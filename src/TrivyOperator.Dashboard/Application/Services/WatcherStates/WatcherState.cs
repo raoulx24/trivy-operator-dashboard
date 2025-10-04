@@ -40,6 +40,7 @@ public class WatcherState<TKubernetesObject>(
                 ProcessFlushedEvent(watcherEvent);
                 break;
             case WatcherEventType.Error:
+                eventsGauge.RemoveKey(watcherEvent.WatcherKey);
                 ProcessRedEvent(watcherEvent);
                 break;
             case WatcherEventType.Initialized:

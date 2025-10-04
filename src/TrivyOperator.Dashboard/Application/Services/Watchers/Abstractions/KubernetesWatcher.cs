@@ -32,6 +32,8 @@ public abstract class KubernetesWatcher<TKubernetesObjectList, TKubernetesObject
 
     public Task Add(CancellationToken cancellationToken, string watcherKey = CacheUtils.DefaultCacheRefreshKey)
     {
+        watcherKey = string.IsNullOrWhiteSpace(watcherKey) ? CacheUtils.DefaultCacheRefreshKey : watcherKey;
+        
         if (Watchers.TryGetValue(watcherKey, out _))
         {
             logger.LogWarning(
@@ -62,6 +64,8 @@ public abstract class KubernetesWatcher<TKubernetesObjectList, TKubernetesObject
 
     public async Task Delete(string watcherKey, CancellationToken cancellationToken)
     {
+        watcherKey = string.IsNullOrWhiteSpace(watcherKey) ? CacheUtils.DefaultCacheRefreshKey : watcherKey;
+        
         logger.LogInformation(
             "Deleting Watcher for {kubernetesObjectType} and key {watcherKey}.",
             typeof(TKubernetesObject).Name,
@@ -104,6 +108,8 @@ public abstract class KubernetesWatcher<TKubernetesObjectList, TKubernetesObject
 
     public async Task Recreate(CancellationToken cancellationToken, string watcherKey = CacheUtils.DefaultCacheRefreshKey)
     {
+        watcherKey = string.IsNullOrWhiteSpace(watcherKey) ? CacheUtils.DefaultCacheRefreshKey : watcherKey;
+
         logger.LogWarning("Recreated called for {kubernetesObjectType} - {watcherKey}", typeof(TKubernetesObject).Name,
                         watcherKey);
         await Delete(watcherKey, cancellationToken);
@@ -198,6 +204,7 @@ public abstract class KubernetesWatcher<TKubernetesObjectList, TKubernetesObject
             catch (Exception ex)
             {
                 await EnqueueWatcherEvent(watcherKey, WatcherEventType.Error, cancellationToken, exception: ex);
+                lastResourceVersion = null;
                 logger.LogError(
                     ex,
                     "Watcher {kubernetesObjectType} - {watcherKey} crashed - {exceptionMessage}",
