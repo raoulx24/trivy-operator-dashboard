@@ -17,14 +17,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KubernetesClient" Version="17.0.4" />
-        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.8" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
-        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.8" />
-        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.12.0" />
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
+        <PackageReference Include="KubernetesClient" Version="17.0.14" />
+        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.9" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
+        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.9" />
+        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.13.0" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.13.0" />
         <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.12.0-beta.1" />
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.13.0" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
         <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
         <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
@@ -38,7 +38,7 @@
         <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
     </ItemGroup>
 
     <ItemGroup>
