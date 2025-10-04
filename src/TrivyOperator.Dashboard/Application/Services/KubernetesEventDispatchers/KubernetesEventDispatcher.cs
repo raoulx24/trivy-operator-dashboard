@@ -45,19 +45,28 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
                     }
                     continue;
                 }
+                if (cancellationToken.IsCancellationRequested) break;
                 try
                 {
                     IEnumerable<Task> tasks = services.Select(service => service.ProcessKubernetesEvent(watcherEvent, cancellationToken));
                     await Task.WhenAll(tasks);
                 }
-                catch (AggregateException aggEx)
+                catch (Exception ex)
                 {
-                    foreach (Exception ex in aggEx.InnerExceptions)
+                    if (ex is AggregateException aggEx)
+                    {
+                        foreach (var inner in aggEx.InnerExceptions)
+                        {
+                            logger.LogError(inner,
+                                "An error occurred while processing the watcher event for {kubernetesObjectType}.",
+                                typeof(TKubernetesObject).Name);
+                        }
+                    }
+                    else
                     {
                         logger.LogError(ex,
-                            "An error occurred while processing the watcher event for {kubernetesObjectType}. Message: {exceptionMessage}",
-                            typeof(TKubernetesObject).Name,
-                            ex.Message);
+                            "An error occurred while processing the watcher event for {kubernetesObjectType}.",
+                            typeof(TKubernetesObject).Name);
                     }
                 }
             }
