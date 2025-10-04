@@ -19,6 +19,7 @@ public class StaticNamespaceWatcher(
         {
             WatcherEvent<V1Namespace> watcherEvent = new()
             {
+                WatcherKey = watcherKey,
                 KubernetesObject = kubernetesNamespace,
                 WatcherEventType = WatcherEventType.Added,
                 IsStatic = true,

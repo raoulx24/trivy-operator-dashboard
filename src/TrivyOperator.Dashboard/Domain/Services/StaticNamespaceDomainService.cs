@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Services.Options;
 using TrivyOperator.Dashboard.Domain.Services.Abstractions;
+using TrivyOperator.Dashboard.Utils;
 
 namespace TrivyOperator.Dashboard.Domain.Services;
 
@@ -21,9 +22,9 @@ public class StaticNamespaceDomainService(
                 (Exception?)null);
         }
 
-        List<V1Namespace> kubernetesNamespaces = configKubernetesNamespaces.Split(',')
-            .Select(namespaceName => CreateNamespace(namespaceName.Trim()))
-            .ToList();
+        List<V1Namespace> kubernetesNamespaces = [.. configKubernetesNamespaces
+            .Split(',')
+            .Select(namespaceName => CreateNamespace(namespaceName.Trim()))];
         logger.LogDebug("Found {listCount} kubernetes namespace names.", kubernetesNamespaces.Count);
 
         return Task.FromResult<IList<V1Namespace>>(kubernetesNamespaces);
@@ -46,6 +47,12 @@ public class StaticNamespaceDomainService(
     
     private static V1Namespace CreateNamespace(string namespaceName) => new()
     {
-        ApiVersion = "v1", Kind = "Namespace", Metadata = new V1ObjectMeta { Name = namespaceName, },
+        ApiVersion = "v1",
+        Kind = "Namespace",
+        Metadata = new V1ObjectMeta
+        {
+            Name = namespaceName,
+            Uid = GuidUtils.GetDeterministicGuid(namespaceName).ToString(),
+        },
     };
 }
