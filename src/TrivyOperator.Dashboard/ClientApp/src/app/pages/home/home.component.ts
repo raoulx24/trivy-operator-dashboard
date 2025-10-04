@@ -62,8 +62,10 @@ export class HomeComponent implements OnInit {
     this.tabPageActiveIndex = localStorage.getItem('home.tabPageActiveIndex') ?? "0";
   }
 
-  onTabPageChange(event: string | number) {
-    localStorage.setItem('home.tabPageActiveIndex', event.toString());
+  onTabPageChange(event: string | number | undefined) {
+    if (event) {
+        localStorage.setItem('home.tabPageActiveIndex', event.toString());
+    }
   }
 
   onRefreshData() {
