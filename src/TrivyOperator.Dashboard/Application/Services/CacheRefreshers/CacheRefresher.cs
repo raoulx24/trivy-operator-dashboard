@@ -21,6 +21,7 @@ public class CacheRefresher<TKubernetesObject>(
     {
         switch (watcherEvent.WatcherEventType)
         {
+            case WatcherEventType.InitialAdded:
             case WatcherEventType.Added:
                 ProcessAddEvent(watcherEvent, cancellationToken);
                 break;

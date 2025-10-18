@@ -10,10 +10,6 @@ public class GitHubClient(HttpClient httpClient, ILogger<GitHubClient> logger) :
     {
         try
         {
-            if (httpClient.DefaultRequestHeaders.UserAgent.Count == 0)
-            {
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
-            }
             HttpResponseMessage response = await httpClient.GetAsync($"{baseRepoUrl.TrimEnd('/')}/releases/latest", cancellationToken);
             response.EnsureSuccessStatusCode();
             string content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -30,10 +26,6 @@ public class GitHubClient(HttpClient httpClient, ILogger<GitHubClient> logger) :
     {
         try
         {
-            if (httpClient.DefaultRequestHeaders.UserAgent.Count == 0)
-            {
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
-            }
             HttpResponseMessage response = await httpClient.GetAsync($"{baseRepoUrl.TrimEnd('/')}/releases", cancellationToken);
             response.EnsureSuccessStatusCode();
             string content = await response.Content.ReadAsStringAsync(cancellationToken);

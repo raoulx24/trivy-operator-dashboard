@@ -202,98 +202,103 @@
         @for (col of columns; track col) {
           <td style="{{ col.style }}">
             @switch(col.renderType) {
-              @case ('standard') {
-                <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
+            @case ('standard') {
+            <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
+            }
+            @case ('date') {
+            <span>{{ rowData[col.field] | date: 'yyyy-MM-dd' }}</span>
+            }
+            @case ('dateTime') {
+            <span>{{ rowData[col.field] | localTime }}</span>
+            }
+            @case ('imageNameTag') {
+            <span>{{ rowData[col.field] }}:{{ rowData[col.extraFields[0]] }}</span>
+            @if (rowData[col.extraFields[1]]) {
+            <p-tag value="EOSL"
+                   [rounded]="true"
+                   class="ml-3"
+                   [style]="1 | severityCssStyleById:1" />
+            }
+            }
+            @case ('link') {
+            <a href="{{ rowData[col.extraFields[0]] }}" target="_blank">
+              {{ rowData[col.field] }}
+            </a>
+            }
+            @case ('severityBadge') {
+            <p-tag [rounded]="true"
+                   [style]="rowData[col.field] | severityCssStyleById:1"
+                   value=" {{ rowData[col.field] | severityNameById }}" />
+            }
+            @case ('severityMultiTags') {
+            <div style="display: flex; justify-content: space-between">
+              <p-tag [rounded]="true"
+                     [style]="0 | severityCssStyleById: rowData[col.field]"
+                     [value]="rowData[col.field]" />
+              @for (extraField of col.extraFields; track $index) {
+              <p-tag [rounded]="true"
+                     [style]="$index + 1 | severityCssStyleById: rowData[extraField]"
+                     [value]="rowData[extraField]" />
               }
-              @case ('date') {
-                <span>{{ rowData[col.field] | date: 'yyyy-MM-dd' }}</span>
-              }
-              @case ('dateTime') {
-                <span>{{ rowData[col.field] | localTime }}</span>
-              }
-              @case ('imageNameTag') {
-                <span>{{ rowData[col.field] }}:{{ rowData[col.extraFields[0]] }}</span>
-                @if (rowData[col.extraFields[1]]) {
-                  <p-tag value="EOSL"
-                         [rounded]="true"
-                         class="ml-3"
-                         [style]="1 | severityCssStyleById:1" />
-                }
-              }
-              @case ('link') {
-                <a href="{{ rowData[col.extraFields[0]] }}" target="_blank">
-                  {{ rowData[col.field] }}
-                </a>
-              }
-              @case ('severityBadge') {
-                <p-tag [rounded]="true"
-                       [style]="rowData[col.field] | severityCssStyleById:1"
-                       value=" {{ rowData[col.field] | severityNameById }}" />
-              }
-              @case ('severityMultiTags') {
-                <div style="display: flex; justify-content: space-between">
-                  <p-tag [rounded]="true"
-                         [style]="0 | severityCssStyleById: rowData[col.field]"
-                         [value]="rowData[col.field]" />
-                  @for (extraField of col.extraFields; track $index) {
-                    <p-tag [rounded]="true"
-                           [style]="$index + 1 | severityCssStyleById: rowData[extraField]"
-                           [value]="rowData[extraField]" />
-                  }
-                </div>
-              }
-              @case ('eosl') {
-                @if (rowData[col.field]) {
-                  <p-tag icon="pi pi-exclamation-circle"
-                         [rounded]="true"
-                         [style]="1 | severityCssStyleById:1"
-                         [value]="'true'" />
-                }
-              }
-              @case ('semaphore') {
-                <p-tag [rounded]="true"
-                       [style]="rowData[col.field] | semaphoreCssStyleByName"
-                       [value]="rowData[col.field]" />
-              }
-              @case ('severityValue') {
-                <p-tag [rounded]="true"
-                       [style]="col.extraFields[0] ?? '' | severityCssStyleById:(rowData[col.field] ?? -1)"
-                       [value]="rowData[col.field] | vulnerabilityCount" />
-              }
-              @case ('multiline') {
-                <span [innerHTML]="rowData[col.field].join('<br>')"></span>
-              }
-              @case ('action') {
-                <p-button [label]="col.extraFields?.[0] ?? 'Change label!'"
-                          class="tod-text-primary-color"
-                          size="small"
-                          text
-                          raised
-                          (onClick)="onRowAction(rowData, col.field)" />
-              }
-              @case ('boolean') {
-                <p-tag [icon]="'pi ' + (rowData[col.field] === undefined ? 'pi-question-circle' : (rowData[col.field] ? 'pi-verified' : 'pi-times-circle'))"
-                       [rounded]="true"
-                       [style]="rowData[col.field] | booleanCssStyle"
-                       [value]="rowData[col.field]?.toString() ?? 'N/A' | capitalizeFirst" />
-              }
-              @case ('unPascalCase') {
-                <span>{{ rowData[col.field] | unPascalCase : col.extraFields?.[0] ?? [] }}</span>
-              }
-              @case ('compareStacked') {
-                @if (rowData[col.field]?.split('|').length === 2) {
-                  @let first = rowData[col.field].split('|')[0].split('__').join(', ');
-                  @let second = rowData[col.field].split('|')[1].split('__').join(', ');
-                  <small class="tod-text-muted-color">1st: <span class="font-bold">{{ first }}</span></small><br/>
-                  <small class="tod-text-muted-color">2nd: <span class="font-bold">{{ second }}</span></small>
-                } @else {
-                  @let splitData = rowData[col.field].split('__');
-                  @if (splitData.length > 1) {
-                    <small class="tod-text-muted-color font-semibold">{{ splitData.length }} Versions</small>
-                  }
-                  <span class="truncate-ellipsis">{{ rowData[col.field].split('__').join(', ') }}</span>
-                }
-              }
+            </div>
+            }
+            @case ('eosl') {
+            @if (rowData[col.field]) {
+            <p-tag icon="pi pi-exclamation-circle"
+                   [rounded]="true"
+                   [style]="1 | severityCssStyleById:1"
+                   [value]="'true'" />
+            }
+            }
+            @case ('semaphore') {
+            <p-tag [rounded]="true"
+                   [style]="rowData[col.field] | semaphoreCssStyleByName"
+                   [value]="rowData[col.field]" />
+            }
+            @case ('severityValue') {
+            <p-tag [rounded]="true"
+                   [style]="col.extraFields[0] ?? '' | severityCssStyleById:(rowData[col.field] ?? -1)"
+                   [value]="rowData[col.field] | vulnerabilityCount" />
+            }
+            @case ('multiline') {
+            <span [innerHTML]="rowData[col.field].join('<br>')"></span>
+            }
+            @case ('action') {
+            <p-button [label]="col.extraFields?.[0] ?? 'Change label!'"
+                      class="tod-text-primary-color"
+                      size="small"
+                      text
+                      raised
+                      (onClick)="onRowAction(rowData, col.field)" />
+            }
+            @case ('boolean') {
+            <p-tag [icon]="'pi ' + (rowData[col.field] === undefined ? 'pi-question-circle' : (rowData[col.field] ? 'pi-verified' : 'pi-times-circle'))"
+                   [rounded]="true"
+                   [style]="rowData[col.field] | booleanCssStyle"
+                   [value]="rowData[col.field]?.toString() ?? 'N/A' | capitalizeFirst" />
+            }
+            @case ('unPascalCase') {
+            <span>{{ rowData[col.field] | unPascalCase : col.extraFields?.[0] ?? [] }}</span>
+            }
+            @case ('compareStacked') {
+            @if (rowData[col.field]?.split('|').length === 2) {
+            @let first = rowData[col.field].split('|')[0].split('__').join(', ');
+            @let second = rowData[col.field].split('|')[1].split('__').join(', ');
+            <small class="tod-text-muted-color">1st: <span class="font-bold">{{ first }}</span></small><br />
+            <small class="tod-text-muted-color">2nd: <span class="font-bold">{{ second }}</span></small>
+            } @else {
+            @let splitData = rowData[col.field].split('__');
+            @if (splitData.length > 1) {
+            <small class="tod-text-muted-color font-semibold">{{ splitData.length }} Versions</small>
+            }
+            <span class="truncate-ellipsis">{{ rowData[col.field].split('__').join(', ') }}</span>
+            }
+            }
+            @case ('counter') {
+            <p-tag [rounded]="true"
+                   severity="secondary"
+                   [value]="rowData[col.field]?.length ?? -1 | vulnerabilityCount" />
+            }
             }
           </td>
         }

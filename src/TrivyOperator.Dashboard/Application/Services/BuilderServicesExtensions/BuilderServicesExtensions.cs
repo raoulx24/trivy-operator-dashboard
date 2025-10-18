@@ -394,7 +394,7 @@ public static class BuilderServicesExtensions
         
         services.AddSingleton<IConcurrentCache<string, WatcherStateInfo>, ConcurrentCache<string, WatcherStateInfo>>();
         //services.AddSingleton<IBackgroundQueue<WatcherStateInfo>, BackgroundQueue<WatcherStateInfo>>();
-        services.AddScoped<IWatcherStatusService, WatcherStatuservice>();
+        services.AddScoped<IWatcherStatusService, WatcherStatusService>();
     }
 
     public static void AddAlertsServices(this IServiceCollection services)
@@ -420,7 +420,10 @@ public static class BuilderServicesExtensions
         
         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
         {
-            services.AddSingleton<IGitHubClient, GitHubClient>();
+            services.AddHttpClient<IGitHubClient, GitHubClient>(client =>
+            {
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
+            });
             services.AddHostedService<GitHubReleaseCacheTimedHostedService>();
         }
         services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
@@ -431,17 +434,17 @@ public static class BuilderServicesExtensions
             .AddCheck<WatchersReadinessHealthCheck>("watchers-readiness");
 
 #if DEBUG
-        services.AddHostedService<SingleBucketTimedHostedService>();
-        services.AddSingleton<IHostedService>(provider =>
-            new MultiBucketTimedHostedService(
-                provider.GetRequiredService<ILogger<MultiBucketTimedHostedService>>(),
-                provider.GetRequiredService<IAlertsService>(),
-                "MultiBucket", ["Hey!", "Yo!", "No way, Jose!"], "subLevel|mama", 3));
-        services.AddSingleton<IHostedService>(provider =>
-            new MultiBucketTimedHostedService(
-                provider.GetRequiredService<ILogger<MultiBucketTimedHostedService>>(),
-                provider.GetRequiredService<IAlertsService>(),
-                "MultiBucket", ["Hey!", "Yo!", "Yes way, Jose!"], "subLevel|dada", 3));
+        //services.AddHostedService<SingleBucketTimedHostedService>();
+        //services.AddSingleton<IHostedService>(provider =>
+        //    new MultiBucketTimedHostedService(
+        //        provider.GetRequiredService<ILogger<MultiBucketTimedHostedService>>(),
+        //        provider.GetRequiredService<IAlertsService>(),
+        //        "MultiBucket", ["Hey!", "Yo!", "No way, Jose!"], "subLevel|mama", 3));
+        //services.AddSingleton<IHostedService>(provider =>
+        //    new MultiBucketTimedHostedService(
+        //        provider.GetRequiredService<ILogger<MultiBucketTimedHostedService>>(),
+        //        provider.GetRequiredService<IAlertsService>(),
+        //        "MultiBucket", ["Hey!", "Yo!", "Yes way, Jose!"], "subLevel|dada", 3));
 
         services.AddScoped<IRawDomainQueryService, RawDomainQueryService>();
 #endif

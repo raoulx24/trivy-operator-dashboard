@@ -26,18 +26,18 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
         }
         switch (watcherEvent.WatcherEventType)
         {
+            case WatcherEventType.InitialAdded:
             case WatcherEventType.Added:
             case WatcherEventType.Deleted:
             case WatcherEventType.Modified:
             case WatcherEventType.Bookmark:
             case WatcherEventType.WatcherConnected:
             case WatcherEventType.Flushed:
+            case WatcherEventType.Initialized:
                 await RemoveAlert(watcherEvent, cancellationToken);
                 break;
             case WatcherEventType.Error:
                 await AddAlert(watcherEvent, cancellationToken);
-                break;
-            case WatcherEventType.Initialized:
                 break;
             case WatcherEventType.Unknown:
                 logger.LogWarning("{watcherEventType} event type {eventType} for {kubernetesObjectType}.",

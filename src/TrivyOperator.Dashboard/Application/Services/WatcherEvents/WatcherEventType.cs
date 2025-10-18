@@ -5,6 +5,7 @@ namespace TrivyOperator.Dashboard.Application.Services.WatcherEvents;
 public enum WatcherEventType
 {
     Initialized,
+    InitialAdded,
     Added,
     Modified,
     Deleted,

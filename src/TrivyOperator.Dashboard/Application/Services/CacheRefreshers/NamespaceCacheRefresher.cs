@@ -1,6 +1,7 @@
 ﻿using k8s.Models;
 using System.Collections.Concurrent;
 using TrivyOperator.Dashboard.Application.Services.KubernetesEventCoordinators.Abstractions;
+using TrivyOperator.Dashboard.Application.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Application.Services.WatcherEvents.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Abstractions;
 using TrivyOperator.Dashboard.Utils;
@@ -25,9 +26,12 @@ public class NamespaceCacheRefresher(
         }
 
         base.ProcessAddEvent(watcherEvent, cancellationToken);
-        foreach (INamespacedKubernetesEventCoordinator service in services)
+        if (watcherEvent.WatcherEventType == WatcherEventType.Added || watcherEvent.WatcherEventType == WatcherEventType.InitialAdded)
         {
-            service.Start(cancellationToken, watcherEvent.KubernetesObject.Metadata.Name);
+            foreach (INamespacedKubernetesEventCoordinator service in services)
+            {
+                service.Start(cancellationToken, watcherEvent.KubernetesObject.Metadata.Name);
+            }
         }
     }
 
