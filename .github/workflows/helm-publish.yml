@@ -19,7 +19,7 @@ jobs:
     - name: Package Helm chart
       run: |
         mkdir -p packaged
-        helm package deploy/helm --destination packaged
+        helm package deploy/helm/trivy-operator-dashboard --destination packaged
 
     - name: Log in to GitHub Container Registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username ${{ github.actor }} --password-stdin
