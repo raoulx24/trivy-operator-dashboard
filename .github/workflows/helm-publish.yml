@@ -27,4 +27,4 @@ jobs:
     - name: Push chart to OCI
       run: |
         CHART_PACKAGE=$(ls packaged/*.tgz)
-        helm push $CHART_PACKAGE oci://ghcr.io/${{ github.repository_owner }}/trivy-operator-dashboard-chart
+        helm push $CHART_PACKAGE oci://ghcr.io/${{ github.repository_owner }}
