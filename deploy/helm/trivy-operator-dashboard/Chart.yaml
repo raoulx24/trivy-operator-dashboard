@@ -1,5 +1,5 @@
 apiVersion: v2
-name: trivy-operator-dashboard-chart
+name: trivy-operator-dashboard
 description: A Helm chart for Trivy Operator Dashboard
 
 type: application

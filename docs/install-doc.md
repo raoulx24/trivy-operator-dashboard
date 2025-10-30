@@ -16,21 +16,30 @@ If, for any reason, `watch` on `namespaces` cannot be provided, then the ones fo
 
 ## Installation
 
-The recommended way of installation is via helm. The files are provided in `deploy/helm`. The helm is a "standard" one (as obtained by `helm create` command and added specific values and files).
+The recommended way of installation is via helm. The helm package is hosted on [GitHub Container Registry (GHCR)](https://github.com/raoulx24/trivy-operator-dashboard/pkgs/container/charts%2Ftrivy-operator-dashboard), where you can also get the list of versions (tags). Also, the files are provided in `deploy/helm`. The helm is a "standard" one (as obtained by `helm create` command and added specific values and files).
 
 > **Note: Static deploy file**  
 > The file `deploy/static/trivy-operator-dashboard.yaml` is a render of the mentioned helm with default values
 
+> **Note: Version in examples**  
+> The version used in the examples (1.7.1) is not necessarily the latest. Always check for the most recent version on [GitHub Charts](https://github.com/raoulx24/trivy-operator-dashboard/pkgs/container/charts%2Ftrivy-operator-dashboard) before installing.
+
 Steps:
 
-1. customize `values.yaml` file. The parameters from `# app related params` section are explained in [Specific Parameters](#specific-parameters)
+1. Customize `values.yaml` file. The parameters from `# app related params` section are explained in [Specific Parameters](#specific-parameters)
 2. if ingress with TLS is needed, update accordingly the values from `ingress` section and create the TLS secret. Example:
 ```sh
 kubectl create secret tls chart-example-tls --cert=path/to/cert/file --key=path/to/key/file
 ```
 3. run the helm. Example:
 ```sh
-helm install trivy-operator-dashboard trivy-operator-dashboard
+helm install trivy-operator-dashboard oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.7.1 -f my-custom-values-file.yaml
+```
+
+**Optional:** If you want to inspect or unpack the chart locally:
+```sh
+helm pull oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.7.1
+tar -xzf trivy-operator-dashboard-1.7.1.tgz
 ```
 
 ## Specific Parameters
