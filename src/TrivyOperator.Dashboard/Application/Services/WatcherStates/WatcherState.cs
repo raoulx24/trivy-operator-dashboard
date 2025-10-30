@@ -22,6 +22,7 @@ public class WatcherState<TKubernetesObject>(
         }
         switch (watcherEvent.WatcherEventType)
         {
+            case WatcherEventType.InitialAdded:
             case WatcherEventType.Added:
                 eventsGauge.OffsetValue(watcherEvent.WatcherKey, 1);
                 ProcessGreenEvent(watcherEvent);
@@ -40,6 +41,7 @@ public class WatcherState<TKubernetesObject>(
                 ProcessFlushedEvent(watcherEvent);
                 break;
             case WatcherEventType.Error:
+                eventsGauge.RemoveKey(watcherEvent.WatcherKey);
                 ProcessRedEvent(watcherEvent);
                 break;
             case WatcherEventType.Initialized:

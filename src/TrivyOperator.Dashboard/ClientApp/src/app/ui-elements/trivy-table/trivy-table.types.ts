@@ -38,6 +38,7 @@ export interface TrivyTableColumn extends Column {
   isSortable: boolean;
   isSortIconVisible?: boolean;
   isFilterable: boolean;
+  isCounter?: boolean;
   style: string;
   multiSelectType: 'none' | 'namespaces' | 'severities';
   renderType:
@@ -55,7 +56,8 @@ export interface TrivyTableColumn extends Column {
     | 'action'
     | 'boolean'
     | 'unPascalCase'
-    | 'compareStacked';
+    | 'compareStacked'
+    | 'counter';
   extraFields?: string[];
 }
 

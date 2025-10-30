@@ -10,7 +10,6 @@ public class GitHubClient(HttpClient httpClient, ILogger<GitHubClient> logger) :
     {
         try
         {
-            httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.UserAgentName);
             HttpResponseMessage response = await httpClient.GetAsync($"{baseRepoUrl.TrimEnd('/')}/releases/latest", cancellationToken);
             response.EnsureSuccessStatusCode();
             string content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -27,7 +26,6 @@ public class GitHubClient(HttpClient httpClient, ILogger<GitHubClient> logger) :
     {
         try
         {
-            httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.UserAgentName);
             HttpResponseMessage response = await httpClient.GetAsync($"{baseRepoUrl.TrimEnd('/')}/releases", cancellationToken);
             response.EnsureSuccessStatusCode();
             string content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -36,7 +34,7 @@ public class GitHubClient(HttpClient httpClient, ILogger<GitHubClient> logger) :
         catch (Exception ex)
         {
             logger.LogError(ex, "Error fetching releases from GitHub.");
-            return [];
+            return null;
         }
     }
 }

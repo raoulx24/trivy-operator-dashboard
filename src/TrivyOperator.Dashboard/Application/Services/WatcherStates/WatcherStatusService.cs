@@ -1,5 +1,7 @@
-﻿using TrivyOperator.Dashboard.Application.Models;
+﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.Models;
 using TrivyOperator.Dashboard.Application.Services.Common;
+using TrivyOperator.Dashboard.Application.Services.Options;
 using TrivyOperator.Dashboard.Application.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.WatcherStates.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy;
@@ -8,11 +10,16 @@ using TrivyOperator.Dashboard.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Services.WatcherStates;
 
-public class WatcherStatuservice(IConcurrentCache<string, WatcherStateInfo> cache, IServiceProvider serviceProvider) : IWatcherStatusService
+public class WatcherStatusService(
+    IConcurrentCache<string, WatcherStateInfo> cache,
+    IOptions<WatchersOptions> options,
+    IServiceProvider serviceProvider) : IWatcherStatusService
 {
     public Task<IEnumerable<WatcherStatusDto>> GetWatcherStatusDtos()
     {
-        WatcherStatusDto[] cachedValues = [.. cache.Values.Select(x => x.ToWatcherStatusDto())];
+        WatcherStatusDto[] cachedValues = [.. cache.Values
+            .Select(x => x.ToWatcherStatusDto())
+            .Where(dto => !options.Value.FilterWatchersWithNoActivity || dto.EventsGauge >= 0 || dto.Status != "Green")];
 
         return Task.FromResult((IEnumerable<WatcherStatusDto>)cachedValues);
     }

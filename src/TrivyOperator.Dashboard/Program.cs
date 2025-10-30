@@ -139,7 +139,24 @@ else
 // Apps deployed in a reverse proxy configuration allow the proxy to handle connection security (HTTPS). If the proxy also handles HTTPS redirection, there's no need to use HTTPS Redirection Middleware.
 //app.UseHttpsRedirection();
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions 
+{ 
+    OnPrepareResponse = ctx => 
+    { 
+        var headers = ctx.Context.Response.Headers;
+        var path = ctx.File.PhysicalPath;
+        if (path?.EndsWith("index.html") ?? false)
+        {
+            headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.Append("Pragma", "no-cache"); 
+            headers.Append("Expires", "0"); 
+        }
+        else
+        {
+            headers.Append("Cache-Control", "public,max-age=2592000,immutable"); 
+        }
+    } 
+});
 app.MapStaticAssets();
 app.UseRouting();
 app.UseCors();
