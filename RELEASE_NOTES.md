@@ -1,6 +1,11 @@
 Release Notes
 ===========================
 
+Version 1.7.1 Hestia (October 2025)
+------------------------
+* Plethora of squashed bugs
+* Helm Package, now easily install via OCI, available on GHCR
+
 Version 1.7 Helios (August 2025)
 ------------------------
 * Cluster SBOM - displays Software Bill of Materials of the entire cluster.
