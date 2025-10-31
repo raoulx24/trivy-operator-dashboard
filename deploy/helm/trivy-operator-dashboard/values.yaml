@@ -21,7 +21,7 @@ gitHub:
 
 openTelemetry:
   enabled: false
-  otelEndpoint: 
+  otelEndpoint:
   otelProtocol: grpc
   consoleEnabled: false
   aspNetCoreInstrumentationEnabled: true
@@ -81,6 +81,7 @@ ingress:
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+  labels: {}
   hosts:
     - host: chart-example.local
       paths:
@@ -100,17 +101,21 @@ resources: {}
   #   cpu: 1000m
   #   memory: 384Mi
 
+startupProbe:
+  httpGet:
+    path: /healthz/ready
+    port: http
+  periodSeconds: 10
+  failureThreshold: 30
 livenessProbe:
   httpGet:
     path: /healthz/live
     port: http
-  initialDelaySeconds: 30
   periodSeconds: 30
 readinessProbe:
   httpGet:
     path: /healthz/ready
     port: http
-  initialDelaySeconds: 30
   periodSeconds: 30
 
 nodeSelector: {}
