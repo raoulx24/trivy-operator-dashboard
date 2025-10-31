@@ -5,6 +5,9 @@ metadata:
   name: {{ include "trivy-operator-dashboard.fullname" . }}
   labels:
     {{- include "trivy-operator-dashboard.labels" . | nindent 4 }}
+    {{- with .Values.ingress.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
