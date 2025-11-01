@@ -22,7 +22,7 @@ The recommended way of installation is via helm. The helm package is hosted on [
 > The file `deploy/static/trivy-operator-dashboard.yaml` is a render of the mentioned helm with default values
 
 > **Note: Version in examples**  
-> The version used in the examples (1.7.1) is not necessarily the latest. Always check for the most recent version on [GitHub Charts](https://github.com/raoulx24/trivy-operator-dashboard/pkgs/container/charts%2Ftrivy-operator-dashboard) before installing.
+> The version used in the examples (1.7.2) is not necessarily the latest. Always check for the most recent version on [GitHub Charts](https://github.com/raoulx24/trivy-operator-dashboard/pkgs/container/charts%2Ftrivy-operator-dashboard) before installing.
 
 Steps:
 
@@ -33,13 +33,13 @@ kubectl create secret tls chart-example-tls --cert=path/to/cert/file --key=path/
 ```
 3. run the helm. Example:
 ```sh
-helm install trivy-operator-dashboard oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.7.1 -f my-custom-values-file.yaml
+helm install trivy-operator-dashboard oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.7.2 -f my-custom-values-file.yaml
 ```
 
 **Optional:** If you want to inspect or unpack the chart locally:
 ```sh
-helm pull oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.7.1
-tar -xzf trivy-operator-dashboard-1.7.1.tgz
+helm pull oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.7.2
+tar -xzf trivy-operator-dashboard-1.7.2.tgz
 ```
 
 ## Specific Parameters
