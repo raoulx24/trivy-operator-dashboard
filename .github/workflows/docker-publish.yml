@@ -36,8 +36,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      # This step checks out the code from the repository.
-      # It uses the actions/checkout action to clone the repository into the runner's workspace.
+      with:
+          fetch-depth: 0
     
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v3.0.3
