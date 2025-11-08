@@ -94,8 +94,9 @@ jobs:
           file: build/dockerfile
           platforms: ${{ matrix.arch }}
           target: ${{ matrix.final_stage }}
-          push: ${{ github.event_name != 'pull_request' }}
-          outputs: type=image,push=true
+          push: false
+          outputs: |
+            type=registry,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-${{ matrix.suffix }},push=true
           tags: ${{ steps.meta.outputs.tags }}-${{ matrix.suffix }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
