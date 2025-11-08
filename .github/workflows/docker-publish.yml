@@ -15,16 +15,19 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - arch: linux/amd64
+          - platform: linux/amd64
             final_stage: final-x64
             suffix: amd64
-          # - arch: linux/arm64
-          #   final_stage: final-arm64
-          #   suffix: arm64
+          - platform: linux/arm64
+            final_stage: final-arm64
+            suffix: arm64
+
+    runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-latest' || matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' }}
+    name: Build Docker image for ${{ matrix.platform }}
 
     permissions:
       contents: read
@@ -42,16 +45,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install cosign
+      - name: Install Cosign
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v3.5.0
         with:
           cosign-release: 'v2.2.4'
-
-      - name: Create single-platform builder
-        run: |
-          docker buildx create --name singlebuilder --use
-          docker buildx inspect --bootstrap
 
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
@@ -88,26 +86,38 @@ jobs:
             type=raw,value=${{ env.MAJORMINOR }},enable=${{ github.ref == 'refs/heads/master' }}
             type=raw,value=${{ env.SEMVERTAG }}
 
-      - name: Build and push ${{ matrix.arch }} image
-        run: |
-          docker buildx build \
-            --builder singlebuilder \
-            --platform ${{ matrix.arch }} \
-            --target ${{ matrix.final_stage }} \
-            --tag ${{ env.GHCR_IMAGE }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }} \
-            --output=type=image,name=${{ env.GHCR_IMAGE }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }},push=true \
-            -f build/dockerfile .
+      - name: Build and push image by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build/dockerfile
+          platforms: ${{ matrix.platform }}
+          target: ${{ matrix.final_stage }}
+          push: true
+          provenance: false
+          annotations: ${{ steps.meta.outputs.annotations }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Get image digest
-        id: digest
         run: |
-          DIGEST=$(docker buildx imagetools inspect ${{ env.GHCR_IMAGE }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }} --format '{{json .Descriptor.Digest}}' | tr -d '"')
-          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v3
+        with:
+          name: digests-${{ matrix.suffix }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Sign the published Docker image
         if: github.event_name != 'pull_request'
         run: |
-          cosign sign --yes ${{ env.GHCR_IMAGE }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }}
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }}
 
       - name: Export version outputs
         id: export
@@ -117,6 +127,7 @@ jobs:
           echo "patch=${{ steps.gitversion.outputs.MajorMinorPatch }}" >> $GITHUB_OUTPUT
 
   # manifest:
+  #   name: Merge Docker manifests
   #   runs-on: ubuntu-latest
   #   needs: build
   #   permissions:
@@ -133,7 +144,14 @@ jobs:
   #         username: ${{ github.actor }}
   #         password: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Extract Docker metadata (again)
+  #     - name: Download digests
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         path: /tmp/digests
+  #         pattern: digests-*
+  #         merge-multiple: true
+
+  #     - name: Extract Docker metadata
   #       id: meta
   #       uses: docker/metadata-action@v5
   #       with:
@@ -145,10 +163,15 @@ jobs:
   #           type=raw,value=${{ needs.build.outputs.semvertag }}
 
   #     - name: Create and push multi-arch manifests
+  #       working-directory: /tmp/digests
   #       run: |
   #         echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | while read tag; do
-  #           docker manifest create "$tag" \
-  #             --amend "$tag-amd64" \
-  #             --amend "$tag-arm64"
-  #           docker manifest push "$tag"
+  #           echo "Creating manifest for tag: $tag"
+  #           digests=$(find . -type f -exec basename {} \;)
+  #           refs=""
+  #           for digest in $digests; do
+  #             refs="$refs ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:$digest"
+  #           done
+  #           docker buildx imagetools create -t "$tag" $refs
+  #           docker buildx imagetools inspect "$tag"
   #         done
