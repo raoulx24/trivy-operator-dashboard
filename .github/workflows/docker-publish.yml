@@ -96,7 +96,7 @@ jobs:
             --target ${{ matrix.final_stage }} \
             --tag ${{ env.GHCR_IMAGE }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }} \
             --output=type=image,name=${{ env.GHCR_IMAGE }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }},push=true \
-            -f Dockerfile .
+            -f build/dockerfile .
 
       - name: Get image digest
         id: digest
