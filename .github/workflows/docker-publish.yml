@@ -101,13 +101,13 @@ jobs:
       - name: Get image digest
         id: digest
         run: |
-          DIGEST=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }} --format '{{json .Digest}}' | tr -d '"')
+          DIGEST=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }} --format '{{json .Descriptor.Digest}}' | tr -d '"')
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }}@${{ steps.digest.outputs.digest }}
+          cosign sign --yes --recursive ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }}
       
       - name: Export version outputs
         id: export
