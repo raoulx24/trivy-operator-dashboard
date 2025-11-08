@@ -22,9 +22,9 @@ jobs:
           - arch: linux/amd64
             final_stage: final-x64
             suffix: amd64
-          - arch: linux/arm64
-            final_stage: final-arm64
-            suffix: arm64
+          # - arch: linux/arm64
+          #   final_stage: final-arm64
+          #   suffix: arm64
 
     permissions:
       contents: read
@@ -116,39 +116,39 @@ jobs:
           echo "majorminor=${MAJORMINOR}" >> $GITHUB_OUTPUT
           echo "patch=${{ steps.gitversion.outputs.MajorMinorPatch }}" >> $GITHUB_OUTPUT
 
-  manifest:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      packages: write
+  # manifest:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   permissions:
+  #     packages: write
 
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #   steps:
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Log into registry ${{ env.REGISTRY }}
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata (again)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
-            type=raw,value=${{ needs.build.outputs.patch }},enable=${{ github.ref == 'refs/heads/master' }}
-            type=raw,value=${{ needs.build.outputs.majorminor }},enable=${{ github.ref == 'refs/heads/master' }}
-            type=raw,value=${{ needs.build.outputs.semvertag }}
+  #     - name: Extract Docker metadata (again)
+  #       id: meta
+  #       uses: docker/metadata-action@v5
+  #       with:
+  #         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+  #         tags: |
+  #           type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+  #           type=raw,value=${{ needs.build.outputs.patch }},enable=${{ github.ref == 'refs/heads/master' }}
+  #           type=raw,value=${{ needs.build.outputs.majorminor }},enable=${{ github.ref == 'refs/heads/master' }}
+  #           type=raw,value=${{ needs.build.outputs.semvertag }}
 
-      - name: Create and push multi-arch manifests
-        run: |
-          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | while read tag; do
-            docker manifest create "$tag" \
-              --amend "$tag-amd64" \
-              --amend "$tag-arm64"
-            docker manifest push "$tag"
-          done
+  #     - name: Create and push multi-arch manifests
+  #       run: |
+  #         echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | while read tag; do
+  #           docker manifest create "$tag" \
+  #             --amend "$tag-amd64" \
+  #             --amend "$tag-arm64"
+  #           docker manifest push "$tag"
+  #         done
