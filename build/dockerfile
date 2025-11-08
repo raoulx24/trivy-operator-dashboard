@@ -1,43 +1,49 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-dotnet
-
-COPY ./src /src
-
-ARG FILEVERSION
-ARG SEMVERFILEVERSION
-
-RUN dotnet publish /src/TrivyOperator.Dashboard/TrivyOperator.Dashboard.csproj \
-    --configuration Release -o /build --runtime linux-x64 --self-contained \
-    -p:FileVersion=$FILEVERSION -p:SemVerFileVersion=$SEMVERFILEVERSION
-
+# Stage 1: Build Angular app (runs once)
 FROM node:22 AS build-node
-# public.ecr.aws/docker/library/node:20
-
 COPY ./src/TrivyOperator.Dashboard/ClientApp /src
-
 WORKDIR /src
-
 RUN npm install
 RUN npm run build -- --configuration production
 
 RUN apt-get update && apt-get install -y brotli gzip
-
 WORKDIR /src/dist
-
 RUN find . -type f -name "*.js" -exec gzip -k -1 {} \;
 RUN find . -type f -name "*.css" -exec gzip -k -1 {} \;
 RUN find . -type f -name "*.html" -exec gzip -k -1 {} \;
 RUN find . -type f -name "*.svg" -exec gzip -k -1 {} \;
-
 RUN find . -type f -name "*.js" -exec brotli -k -4 {} \;
 RUN find . -type f -name "*.css" -exec brotli -k -4 {} \;
 RUN find . -type f -name "*.html" -exec brotli -k -4 {} \;
 RUN find . -type f -name "*.svg" -exec brotli -k -4 {} \;
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled AS final
+# Stage 2a: Publish .NET for linux-x64
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-dotnet-x64
+COPY ./src /src
+ARG FILEVERSION
+ARG SEMVERFILEVERSION
+RUN dotnet publish /src/TrivyOperator.Dashboard/TrivyOperator.Dashboard.csproj \
+    --configuration Release -o /build --runtime linux-x64 --self-contained \
+    -p:FileVersion=$FILEVERSION -p:SemVerFileVersion=$SEMVERFILEVERSION
 
-COPY --from=build-dotnet /build /opt/trivy.dashboard
+# Stage 2b: Publish .NET for linux-arm64
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-dotnet-arm64
+COPY ./src /src
+ARG FILEVERSION
+ARG SEMVERFILEVERSION
+RUN dotnet publish /src/TrivyOperator.Dashboard/TrivyOperator.Dashboard.csproj \
+    --configuration Release -o /build --runtime linux-arm64 --self-contained \
+    -p:FileVersion=$FILEVERSION -p:SemVerFileVersion=$SEMVERFILEVERSION
+
+# Stage 3a: Final image for linux-x64
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled AS final-x64
+COPY --from=build-dotnet-x64 /build /opt/trivy.dashboard
 COPY --from=build-node /src/dist/browser /opt/trivy.dashboard/wwwroot
-
 WORKDIR /opt/trivy.dashboard
+ENTRYPOINT ["dotnet", "TrivyOperator.Dashboard.dll"]
 
+# Stage 3b: Final image for linux-arm64
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled AS final-arm64
+COPY --from=build-dotnet-arm64 /build /opt/trivy.dashboard
+COPY --from=build-node /src/dist/browser /opt/trivy.dashboard/wwwroot
+WORKDIR /opt/trivy.dashboard
 ENTRYPOINT ["dotnet", "TrivyOperator.Dashboard.dll"]
