@@ -94,13 +94,12 @@ jobs:
           file: build/dockerfile
           platforms: ${{ matrix.arch }}
           target: ${{ matrix.final_stage }}
-          push: false
-          outputs: |
-            type=registry,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-${{ matrix.suffix }},push=true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}-${{ matrix.suffix }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          outputs: type=image,name=${{ steps.meta.outputs.tags }}-${{ matrix.suffix }}
           build-args: |
             FILEVERSION=${{ steps.gitversion.outputs.MajorMinorPatch }}
             SEMVERFILEVERSION=${{ env.SEMVERTAG }}
@@ -155,4 +154,3 @@ jobs:
               --amend "$tag-arm64"
             docker manifest push "$tag"
           done
-
