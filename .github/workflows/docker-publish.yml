@@ -87,29 +87,27 @@ jobs:
             type=raw,value=${{ env.SEMVERTAG }}
 
       - name: Build and push ${{ matrix.arch }} image
-        id: build-and-push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: build/dockerfile
-          platforms: ${{ matrix.arch }}
-          target: ${{ matrix.final_stage }}
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}-${{ matrix.suffix }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: type=image,name=${{ steps.meta.outputs.tags }}-${{ matrix.suffix }}
-          build-args: |
-            FILEVERSION=${{ steps.gitversion.outputs.MajorMinorPatch }}
-            SEMVERFILEVERSION=${{ env.SEMVERTAG }}
+        run: |
+          docker buildx build \
+            --platform ${{ matrix.arch }} \
+            --target ${{ matrix.final_stage }} \
+            --build-arg FILEVERSION=${{ steps.gitversion.outputs.MajorMinorPatch }} \
+            --build-arg SEMVERFILEVERSION=${{ env.SEMVERTAG }} \
+            --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }} \
+            --push \
+            -f build/dockerfile \
+            .
+
+      - name: Get image digest
+        id: digest
+        run: |
+          DIGEST=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }} --format '{{json .Digest}}' | tr -d '"')
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}-${{ matrix.arch == 'linux/amd64' && 'amd64' || 'arm64' }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.SEMVERTAG }}-${{ matrix.suffix }}@${{ steps.digest.outputs.digest }}
       
       - name: Export version outputs
         id: export
