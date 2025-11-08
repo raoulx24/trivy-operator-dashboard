@@ -147,9 +147,10 @@ jobs:
 
       - name: Create and push multi-arch manifests
         run: |
-          for tag in ${{ steps.meta.outputs.tags }}; do
-            docker manifest create $tag \
-              --amend $tag-amd64 \
-              --amend $tag-arm64
-            docker manifest push $tag
+          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | while read tag; do
+            docker manifest create "$tag" \
+              --amend "$tag-amd64" \
+              --amend "$tag-arm64"
+            docker manifest push "$tag"
           done
+
