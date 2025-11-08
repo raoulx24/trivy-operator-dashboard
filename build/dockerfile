@@ -1,5 +1,5 @@
-# Stage 1: Build Angular app (runs once)
-FROM node:22 AS build-node
+# Stage 1 - Angular build
+FROM node:24 AS build-node
 COPY ./src/TrivyOperator.Dashboard/ClientApp /src
 WORKDIR /src
 RUN npm install
@@ -16,34 +16,18 @@ RUN find . -type f -name "*.css" -exec brotli -k -4 {} \;
 RUN find . -type f -name "*.html" -exec brotli -k -4 {} \;
 RUN find . -type f -name "*.svg" -exec brotli -k -4 {} \;
 
-# Stage 2a: Publish .NET for linux-x64
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-dotnet-x64
+# Stage 2 - dotnet publish
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-dotnet
 COPY ./src /src
 ARG FILEVERSION
 ARG SEMVERFILEVERSION
 RUN dotnet publish /src/TrivyOperator.Dashboard/TrivyOperator.Dashboard.csproj \
-    --configuration Release -o /build --runtime linux-x64 --self-contained \
+    --configuration Release -o /build \
     -p:FileVersion=$FILEVERSION -p:SemVerFileVersion=$SEMVERFILEVERSION
 
-# Stage 2b: Publish .NET for linux-arm64
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-dotnet-arm64
-COPY ./src /src
-ARG FILEVERSION
-ARG SEMVERFILEVERSION
-RUN dotnet publish /src/TrivyOperator.Dashboard/TrivyOperator.Dashboard.csproj \
-    --configuration Release -o /build --runtime linux-arm64 --self-contained \
-    -p:FileVersion=$FILEVERSION -p:SemVerFileVersion=$SEMVERFILEVERSION
-
-# Stage 3a: Final image for linux-x64
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled AS final-x64
-COPY --from=build-dotnet-x64 /build /opt/trivy.dashboard
-COPY --from=build-node /src/dist/browser /opt/trivy.dashboard/wwwroot
-WORKDIR /opt/trivy.dashboard
-ENTRYPOINT ["dotnet", "TrivyOperator.Dashboard.dll"]
-
-# Stage 3b: Final image for linux-arm64
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled AS final-arm64
-COPY --from=build-dotnet-arm64 /build /opt/trivy.dashboard
+# Stage 3 - Final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled AS final
+COPY --from=build-dotnet /build /opt/trivy.dashboard
 COPY --from=build-node /src/dist/browser /opt/trivy.dashboard/wwwroot
 WORKDIR /opt/trivy.dashboard
 ENTRYPOINT ["dotnet", "TrivyOperator.Dashboard.dll"]
