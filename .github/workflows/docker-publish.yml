@@ -107,7 +107,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: digests-${{ matrix.suffix }}
           path: /tmp/digests/*
