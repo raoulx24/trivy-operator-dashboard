@@ -65,30 +65,30 @@ jobs:
       tar-name: ${{ steps.set-name.outputs.tar }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-    - name: Set tarball name
-      id: set-name
-      run: echo "tar=angular-build-${{ needs.pre-build.outputs.semvertag }}.tar" >> $GITHUB_OUTPUT
+      - name: Set tarball name
+        id: set-name
+        run: echo "tar=node-build-export-${{ needs.pre-build.outputs.semvertag }}.tar" >> $GITHUB_OUTPUT
 
-    - name: Build Angular stage only
-      run: |
-        docker build \
-          --target build-node \
-          -f build/dockerfile \
-          -t build-node .
+      - name: Build minimal Angular export image
+        run: |
+          docker build \
+            --target final-node-build \
+            -f build/dockerfile.tranzit.node-build \
+            -t node-build-export .
 
-    - name: Save image as tarball
-      run: |
-        docker save build-node -o ${{ steps.set-name.outputs.tar }}
+      - name: Save export image as tarball
+        run: |
+          docker save node-build-export -o ${{ steps.set-name.outputs.tar }}
 
-    - name: Upload tarball
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
-      with:
-        name: ${{ steps.set-name.outputs.tar }}
-        path: ${{ steps.set-name.outputs.tar }}
-        retention-days: 1
+      - name: Upload tarball
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: ${{ steps.set-name.outputs.tar }}
+          path: ${{ steps.set-name.outputs.tar }}
+          retention-days: 1
 
   # The build job builds the Docker image for each platform specified in the matrix.
   build-dotnet:
@@ -137,16 +137,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-    - name: Download Angular image tarball
+    - name: Download node-build export tarball
       uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: ${{ needs.build-angular.outputs.tar-name }}
         path: .
 
-    - name: Load Angular image into Docker
+    - name: Load node-build export image into Docker
       run: |
         docker load -i ${{ needs.build-angular.outputs.tar-name }}
-        # docker tag build-node build-node:latest
+        docker tag node-build-export build-node:latest
 
     - name: Docker meta default
       id: meta
