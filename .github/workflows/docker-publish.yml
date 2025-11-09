@@ -8,18 +8,12 @@ on:
 
 
 env:
-  # The name of the Docker image to be built and pushed to GHCR
-  # The image name is derived from the GitHub repository name and the GitHub Container Registry (GHCR) URL.
-  # The image name will be in the format: ghcr.io/<owner>/<repo>
   GHCR_IMAGE: ghcr.io/raoulx24/trivy-operator-dashboard
 
 permissions:
-  # Global permissions for the workflow, which can be overridden at the job level
   contents: read
 
 concurrency:
-  # This concurrency group ensures that only one job in the group runs at a time.
-  # If a new job is triggered, the previous one will be canceled.
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
@@ -64,8 +58,41 @@ jobs:
         echo "majorminor=${MAJORMINOR}" >> $GITHUB_OUTPUT
         echo "majorminorpatch=${{ steps.gitversion.outputs.MajorMinorPatch }}" >> $GITHUB_OUTPUT
 
+  build-angular:
+    runs-on: ubuntu-latest
+    needs: pre-build
+    outputs:
+      tar-name: ${{ steps.set-name.outputs.tar }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+    - name: Set tarball name
+      id: set-name
+      run: echo "tar=angular-build-${{ needs.pre-build.outputs.semvertag }}.tar" >> $GITHUB_OUTPUT
+
+    - name: Build Angular stage only
+      run: |
+        docker build \
+          --target angular-build \
+          --build-arg CONFIGURATION=production \
+          -f build/dockerfile \
+          -t angular-build .
+
+    - name: Save image as tarball
+      run: |
+        docker save angular-build -o ${{ steps.set-name.outputs.tar }}
+
+    - name: Upload tarball
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        name: ${{ steps.set-name.outputs.tar }}
+        path: ${{ steps.set-name.outputs.tar }}
+        retention-days: 1
+
   # The build job builds the Docker image for each platform specified in the matrix.
-  build:
+  build-dotnet:
     strategy:
       fail-fast: false
       matrix:
@@ -95,21 +122,14 @@ jobs:
     
     needs:
     - pre-build
+    - build-angular
 
     runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-latest' || matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' }}
-    # The job runs on different runners based on the platform.
-    # For linux/amd64, it runs on the latest Ubuntu runner.
-    # For linux/arm64, it runs on an Ubuntu 24.04 ARM runner.
-    # The runner is selected based on the platform specified in the matrix.
 
     name: Build Docker image for ${{ matrix.platform }}
 
     steps:
     - name: Prepare environment for current platform 
-      # This step sets up the environment for the current platform being built.
-      # It replaces the '/' character in the platform name with '-' and sets it as an environment variable.
-      # This is useful for naming artifacts and other resources that cannot contain '/'.
-      # The environment variable PLATFORMS_PAIR will be used later in the workflow.
       id: prepare
       run: |
         platform=${{ matrix.platform }}
@@ -117,39 +137,36 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      # This step checks out the code from the repository.
-      # It uses the actions/checkout action to clone the repository into the runner's workspace.
+
+    - name: Download Angular image tarball
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        name: ${{ needs.build-angular.outputs.tar-name }}
+        path: .
+
+    - name: Load Angular image into Docker
+      run: |
+        docker load -i ${{ needs.build-angular.outputs.tar-name }}
+        docker tag angular-build angular-build:latest
 
     - name: Docker meta default
-      # This step generates metadata for the Docker image.
-      # It uses the docker/metadata-action to create metadata based on the repository information.
-      # The metadata includes information such as the image name, tags, and labels.
-      # The metadata will be used later in the workflow to build and push the Docker image.
       id: meta
       uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
         images: ${{ env.GHCR_IMAGE }}
 
     - name: Set up Docker Context for Buildx
-      # This step sets up a Docker context for Buildx.
-      # It creates a new context named "builders" that will be used for building the Docker image.
-      # The context allows Buildx to use the Docker daemon for building images.
       id: buildx-context
       run: |
         docker context create builders
 
     - name: Set up Docker Buildx
-      # This step sets up Docker Buildx, which is a Docker CLI plugin for extended build capabilities with BuildKit.
-      # It uses the docker/setup-buildx-action to configure Buildx with the specified context and platforms.
-      # The platforms are specified in the matrix and will be used for building the Docker image.
       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
       with:
         endpoint: builders
         platforms: ${{ matrix.platform }}
 
     - name: Login to GitHub Container Registry
-      # This step logs in to the GitHub Container Registry (GHCR) using the docker/login-action.
-      # It uses the GitHub actor's username and the GITHUB_TOKEN secret for authentication.
       uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
       with:
         registry: ghcr.io
@@ -157,12 +174,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push by digest
-      # This step builds and pushes the Docker image using Buildx.
-      # It uses the docker/build-push-action to build the image with the specified context and platforms.
-      # The image is built with the labels and annotations generated in the previous steps.
-      # The outputs are configured to push the image by digest, which allows for better caching and versioning.
-      # The cache-from and cache-to options are used to enable caching for the build process.
-      # The cache is stored in GitHub Actions cache and is scoped to the repository, branch, and platform.
       id: build
       uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       env:
@@ -178,20 +189,12 @@ jobs:
         cache-to: type=gha,scope=${{ github.repository }}-${{ github.ref_name }}-${{ matrix.platform }}
 
     - name: Export digest
-      # This step exports the digest of the built image to a file.
-      # It creates a directory in /tmp/digests and saves the digest of the image to a file.
-      # The digest is obtained from the output of the build step.
-      # The digest is used to uniquely identify the built image and can be used for further processing or verification.
       run: |
         mkdir -p /tmp/digests
         digest="${{ steps.build.outputs.digest }}"
         touch "/tmp/digests/${digest#sha256:}"
 
     - name: Upload digest
-      # This step uploads the digest file to the GitHub Actions artifact storage.
-      # It uses the actions/upload-artifact action to upload the file created in the previous step.
-      # The artifact is named digests-${{ env.PLATFORM_PAIR }}, where PLATFORM_PAIR is the platform name with '/' replaced by '-'.
-      # The artifact is retained for 1 day, and if no files are found, it will throw an error.      
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       with:
         name: digests-${{ env.PLATFORM_PAIR }}
@@ -221,15 +224,10 @@ jobs:
 
     needs:
     - pre-build
-    - build
-    # This job depends on the build job to complete before it starts.
-    # It ensures that the Docker images for all platforms are built before merging the manifests.
+    - build-dotnet
  
     steps:
     - name: Download digests
-      # This step downloads the digest files uploaded in the build job.
-      # It uses the actions/download-artifact action to download the artifacts with the pattern digests-*.
-      # The downloaded files are merged into the /tmp/digests directory.
       uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         path: /tmp/digests
@@ -237,9 +235,6 @@ jobs:
         merge-multiple: true
 
     - name: Docker meta
-      # This step generates metadata for the Docker image.
-      # It uses the docker/metadata-action to create metadata based on the repository information.
-      # The metadata includes information such as the image name, tags, and labels.
       id: meta
       uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
@@ -254,35 +249,23 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
-      # This step sets up Docker Buildx, which is a Docker CLI plugin for extended build capabilities with BuildKit.
       with:
         driver-opts: |
           network=host
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
-      # This step logs in to the GitHub Container Registry (GHCR) using the docker/login-action.
-      # It uses the GitHub actor's username and the GITHUB_TOKEN secret for authentication.
-      # The login is necessary to push the merged manifest list to GHCR.
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Get execution timestamp with RFC3339 format
-      # This step gets the current execution timestamp in RFC3339 format.
-      # It uses the date command to get the current UTC time and formats it as a string.
-      # The timestamp is used for annotating the Docker manifest list.
       id: timestamp
       run: |
         echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
 
     - name: Create manifest list and pushs
-      # This step creates a manifest list for the Docker images built for different platforms.
-      # It uses the docker buildx imagetools create command to create the manifest list.
-      # The manifest list is annotated with metadata such as description, creation timestamp, and source URL.
-      # The annotations are obtained from the metadata generated in the previous steps.
-      # The manifest list is pushed to the GitHub Container Registry (GHCR) with the specified tags.
       working-directory: /tmp/digests
       id: manifest-annotate
       continue-on-error: true
@@ -296,10 +279,6 @@ jobs:
           $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
 
     - name: Create manifest list and push without annotations
-      # This step creates a manifest list for the Docker images built for different platforms.
-      # It uses the docker buildx imagetools create command to create the manifest list.
-      # The manifest list is created without annotations if the previous step fails.
-      # The manifest list is pushed to the GitHub Container Registry (GHCR) with the specified tags.
       if: steps.manifest-annotate.outcome == 'failure'
       working-directory: /tmp/digests
       run: |
@@ -307,9 +286,6 @@ jobs:
           $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
 
     - name: Inspect image
-      # This step inspects the created manifest list to verify its contents.
-      # It uses the docker buildx imagetools inspect command to display information about the manifest list.
-      # The inspection output will show the platforms and tags associated with the manifest list.
       id: inspect
       run: |
         docker buildx imagetools inspect '${{ env.GHCR_IMAGE }}:${{ steps.meta.outputs.version }}'
