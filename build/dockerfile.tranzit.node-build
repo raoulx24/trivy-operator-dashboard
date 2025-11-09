@@ -1,0 +1,2 @@
+FROM scratch AS final-node-build
+COPY --from=build-node /src/dist/browser /src/dist/browser

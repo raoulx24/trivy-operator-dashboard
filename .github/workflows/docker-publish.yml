@@ -71,6 +71,13 @@ jobs:
       - name: Set tarball name
         id: set-name
         run: echo "tar=node-build-export-${{ needs.pre-build.outputs.semvertag }}.tar" >> $GITHUB_OUTPUT
+      
+      - name: Build Angular stage only
+        run: |
+          docker build \
+            --target build-node \
+            -f build/dockerfile \
+            -t build-node .
 
       - name: Build minimal Angular export image
         run: |
