@@ -75,14 +75,13 @@ jobs:
     - name: Build Angular stage only
       run: |
         docker build \
-          --target angular-build \
-          --build-arg CONFIGURATION=production \
+          --target build-node \
           -f build/dockerfile \
-          -t angular-build .
+          -t build-node .
 
     - name: Save image as tarball
       run: |
-        docker save angular-build -o ${{ steps.set-name.outputs.tar }}
+        docker save build-node -o ${{ steps.set-name.outputs.tar }}
 
     - name: Upload tarball
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
@@ -147,7 +146,7 @@ jobs:
     - name: Load Angular image into Docker
       run: |
         docker load -i ${{ needs.build-angular.outputs.tar-name }}
-        docker tag angular-build angular-build:latest
+        # docker tag build-node build-node:latest
 
     - name: Docker meta default
       id: meta
