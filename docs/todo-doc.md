@@ -2,10 +2,6 @@
 
 ## Frontend
 
-MainAppInitService
-- polly retry in initializeApp()
-- remove Severities from here (hardcode it)
-
 Generic
 - replace all functions/methods from htmls with pipes
 - chase all styles and replace with classes
@@ -16,8 +12,9 @@ Generic
 
 Extend Settings Service (maybe cross tab communication?)
 
-!!! Check Cluster VR missing fields in detailed
+Support /path in ingress
 
+!!! Check Cluster VR missing fields in detailed
 
 ## Backend
 
@@ -34,6 +31,8 @@ Github versions - Timed Hosted Service - alert if error
 ## Both
 
 Export to CycloneDX - server side, zip file, async (signalr?)
+
+Multi cluster support (in kubernetes? "fat" client?)
 
 ## Not clear where and how
 
