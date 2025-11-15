@@ -12,7 +12,7 @@ Generic
 
 Extend Settings Service (maybe cross tab communication?)
 
-Support /path in ingress
+Support /path in ingress - #4
 
 !!! Check Cluster VR missing fields in detailed
 
@@ -28,11 +28,13 @@ Github versions - Timed Hosted Service - alert if error
 
 (next) change uid in trivy report image dto to latest one (not generated)
 
+Support for `alternateReportStorage` - #7
+
 ## Both
 
 Export to CycloneDX - server side, zip file, async (signalr?)
 
-Multi cluster support (in kubernetes? "fat" client?)
+Multi cluster support (in kubernetes? "fat" client?) - #2
 
 ## Not clear where and how
 
