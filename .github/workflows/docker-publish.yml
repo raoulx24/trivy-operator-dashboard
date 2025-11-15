@@ -44,18 +44,12 @@ jobs:
       id: gitversion
       uses: gittools/actions/gitversion/execute@v3.0.0
 
-    - name: Sanitize Version for FileVersion
-      id: sanitize-semver-version
-      run: echo "SEMVERTAG=$(echo '${{ steps.gitversion.outputs.FullSemVer }}' | sed 's/+/-/g')" >> $GITHUB_ENV
-
-    - name: Set MajorMinor version
-      run: echo "MAJORMINOR=${{ steps.gitversion.outputs.Major }}.${{ steps.gitversion.outputs.Minor }}" >> $GITHUB_ENV
-
     - name: Export version outputs
       id: export
       run: |
+        SEMVERTAG="$(echo '${{ steps.gitversion.outputs.FullSemVer }}' | sed 's/+/-/g')"
         echo "semvertag=${SEMVERTAG}" >> $GITHUB_OUTPUT
-        echo "majorminor=${MAJORMINOR}" >> $GITHUB_OUTPUT
+        echo "majorminor=${{ steps.gitversion.outputs.Major }}.${{ steps.gitversion.outputs.Minor }}" >> $GITHUB_OUTPUT
         echo "majorminorpatch=${{ steps.gitversion.outputs.MajorMinorPatch }}" >> $GITHUB_OUTPUT
 
   build-angular:
@@ -193,6 +187,9 @@ jobs:
         outputs: type=image,name=${{ env.GHCR_IMAGE }},push-by-digest=true,name-canonical=true,push=true,oci-mediatypes=true
         cache-from: type=gha,scope=${{ github.repository }}-${{ github.ref_name }}-${{ matrix.platform }}
         cache-to: type=gha,scope=${{ github.repository }}-${{ github.ref_name }}-${{ matrix.platform }}
+        build-args: |
+            FILEVERSION=${{ needs.pre-build.outputs.majorminorpatch }}
+            SEMVERFILEVERSION=${{ needs.pre-build.outputs.semvertag }}
 
     - name: Export digest
       run: |
@@ -249,7 +246,7 @@ jobs:
           type=org.opencontainers.image.description,value=${{ github.event.repository.description || 'No description provided' }}
         tags: |
           type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
-          type=raw,value=${{ needs.pre-build.outputs.patch }},enable=${{ github.ref == 'refs/heads/master' }}
+          type=raw,value=${{ needs.pre-build.outputs.majorminorpatch }},enable=${{ github.ref == 'refs/heads/master' }}
           type=raw,value=${{ needs.pre-build.outputs.majorminor }},enable=${{ github.ref == 'refs/heads/master' }}
           type=raw,value=${{ needs.pre-build.outputs.semvertag }}
 
@@ -271,7 +268,7 @@ jobs:
       run: |
         echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
 
-    - name: Create manifest list and pushs
+    - name: Create manifest list and push
       working-directory: /tmp/digests
       id: manifest-annotate
       continue-on-error: true
@@ -290,6 +287,15 @@ jobs:
       run: |
         docker buildx imagetools create  $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
+    
+    - name: Install cosign
+      uses: sigstore/cosign-installer@v3.5.0
+
+    - name: Sign images with cosign
+      run: |
+        for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+          cosign sign --yes ${GHCR_IMAGE}:${tag}
+        done
 
     - name: Inspect image
       id: inspect
