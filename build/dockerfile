@@ -17,7 +17,7 @@ RUN find . -type f -name "*.html" -exec brotli -k -4 {} \;
 RUN find . -type f -name "*.svg" -exec brotli -k -4 {} \;
 
 # Stage 2 - dotnet publish
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-dotnet
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-dotnet
 COPY ./src /src
 ARG FILEVERSION
 ARG SEMVERFILEVERSION
@@ -26,7 +26,7 @@ RUN dotnet publish /src/TrivyOperator.Dashboard/TrivyOperator.Dashboard.csproj \
     -p:FileVersion=$FILEVERSION -p:SemVerFileVersion=$SEMVERFILEVERSION
 
 # Stage 3 - Final
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS final
 COPY --from=build-dotnet /build /opt/trivy.dashboard
 COPY --from=build-node /src/dist/browser /opt/trivy.dashboard/wwwroot
 WORKDIR /opt/trivy.dashboard
