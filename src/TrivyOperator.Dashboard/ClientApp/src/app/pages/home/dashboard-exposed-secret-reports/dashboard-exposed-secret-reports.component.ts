@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, effect, input, OnInit } from '@angular/core';
 
 import { EsSeveritiesByNsSummaryDto } from '../../../../api/models/es-severities-by-ns-summary-dto';
@@ -20,9 +20,7 @@ import { TagModule } from 'primeng/tag';
 @Component({
   selector: 'app-dashboard-exposed-secret-reports',
   standalone: true,
-  imports: [CommonModule,
-    ButtonModule, CarouselModule, ChartModule, DialogModule, TableModule, TagModule,
-    SeverityNameByIdPipe, SeverityCssStyleByIdPipe],
+  imports: [ButtonModule, CarouselModule, ChartModule, DialogModule, TableModule, TagModule, SeverityNameByIdPipe, SeverityCssStyleByIdPipe],
   templateUrl: './dashboard-exposed-secret-reports.component.html',
   styleUrl: './dashboard-exposed-secret-reports.component.scss',
 })

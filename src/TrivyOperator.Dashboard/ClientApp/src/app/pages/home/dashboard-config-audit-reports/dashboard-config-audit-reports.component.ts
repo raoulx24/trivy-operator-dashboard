@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, effect, input, Input, OnInit } from '@angular/core';
 
 import { ConfigAuditReportSummaryDto } from '../../../../api/models/config-audit-report-summary-dto';
@@ -22,10 +22,7 @@ import { DarkModeService } from '../../../services/dark-mode.service';
 @Component({
   selector: 'app-dashboard-config-audit-reports',
   standalone: true,
-  imports: [CommonModule,
-    ButtonModule, CarouselModule, ChartModule, DialogModule, TableModule, TagModule,
-    SeverityCssStyleByIdPipe, SeverityNameByIdPipe, VulnerabilityCountPipe,
-  ],
+  imports: [ButtonModule, CarouselModule, ChartModule, DialogModule, TableModule, TagModule, SeverityCssStyleByIdPipe, SeverityNameByIdPipe, VulnerabilityCountPipe],
   templateUrl: './dashboard-config-audit-reports.component.html',
   styleUrl: './dashboard-config-audit-reports.component.scss',
 })

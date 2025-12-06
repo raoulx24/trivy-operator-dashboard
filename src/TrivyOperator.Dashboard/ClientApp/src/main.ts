@@ -1,4 +1,4 @@
-import { enableProdMode, StaticProvider } from '@angular/core';
+import { enableProdMode, StaticProvider, provideZoneChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 
 import { environment } from './environments/environment';
@@ -13,5 +13,5 @@ if (environment.production) {
 
 const providers: StaticProvider[] = [];
 
-bootstrapApplication(AppComponent, appConfig)
+bootstrapApplication(AppComponent, {...appConfig, providers: [provideZoneChangeDetection(), ...appConfig.providers]})
   .catch(err => console.error(err));
