@@ -122,42 +122,40 @@
               <p-columnFilter display="menu"
                               field="{{ col.field }}"
                               type="text"
-                              class="sm-filterIcon"
-                              [ngClass]="hasActiveFilter(col.field)"/>
+                              class="sm-filterIcon" />
             }
             @if (col.isFilterable && col.multiSelectType === 'namespaces') {
               <p-columnFilter display="menu"
-                              field="{{ col.field }}"
-                              matchMode="in"
-                              [showAddButton]="false"
-                              [showMatchModes]="false"
-                              [showOperator]="false"
-                              class="sm-filterIcon"
-                              [ngClass]="hasActiveFilter(col.field)">
-                <ng-template let-filter="filterCallback" pTemplate="filter">
-                  <p-multiSelect optionLabel=""
-                                 placeholder="Any"
-                                 class="text-sm"
-                                 [options]="activeNamespaces()"
-                                 [style]="{ width: '300px' }"
-                                 [(ngModel)]="filterSelectedActiveNamespaces"
-                                 (onChange)="filter($event.value)">
-                  </p-multiSelect>
-                  <ng-template let-option pTemplate="item">
-                    <div [class]="'text-sm'">{{ option }}</div>
-                  </ng-template>
-                </ng-template>
-              </p-columnFilter>
-            }
-            @if (col.isFilterable && col.multiSelectType === 'severities') {
-              <p-columnFilter display="menu"
-                              field="{{ col.field }}"
+                              [field]="col.field"
                               matchMode="in"
                               [showAddButton]="false"
                               [showMatchModes]="false"
                               [showOperator]="false"
                               class="sm-filterIcon">
-                <ng-template let-filter="filterCallback" pTemplate="filter">
+                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+
+                <p-multiSelect [(ngModel)]="filterSelectedActiveNamespaces"
+                                 [options]="activeNamespaces()"
+                                 placeholder="Any"
+                                 class="text-sm"
+                                 style="min-width: 300px"
+                                 (onChange)="filter($event.value)">
+                    <ng-template #item let-option>
+                      <div class="text-sm">{{ option }}</div>
+                    </ng-template>
+                  </p-multiSelect>
+                </ng-template>
+              </p-columnFilter>
+            }
+            @if (col.isFilterable && col.multiSelectType === 'severities') {
+              <p-columnFilter display="menu"
+                              [field]="col.field"
+                              matchMode="in"
+                              [showAddButton]="false"
+                              [showMatchModes]="false"
+                              [showOperator]="false"
+                              class="sm-filterIcon">
+                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                   <p-multiSelect optionLabel="name"
                                  placeholder="Any"
                                  class="text-sm"
@@ -168,10 +166,12 @@
                                  [showToggleAll]="false"
                                  [(ngModel)]="filterSelectedSeverityIds"
                                  (onChange)="filter($event.value)">
-                    <ng-template let-severityIds pTemplate="selectedItems">
-                      <div>{{ severityIds |severityNamesMaxDisplay:2 }}</div>
+
+                    <ng-template pTemplate="selectedItems" let-severityIds>
+                      <div>{{ severityIds | severityNamesMaxDisplay: 2 }}</div>
                     </ng-template>
-                    <ng-template let-option pTemplate="item">
+
+                    <ng-template pTemplate="item" let-option>
                       <div class="flex items-center gap-2" [style]="{ 'font-size': '14px' }">
                         {{ option | severityNameById }}
                       </div>

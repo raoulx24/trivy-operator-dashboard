@@ -29,7 +29,7 @@ import { SplitterModule } from 'primeng/splitter';
 })
 export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTrivyReportDetail>, TTrivyReportDetail extends TrivyReportDetail> {
   severityDtos= input<SeverityDto[]>([]);
-  activeNamespaces = input<string[] | undefined>([]);
+  activeNamespaces = input<string[]>([]);
   mainTableColumns = input.required<TrivyTableColumn[]>();
   mainTableRowExpandResponse = input<TrivyTableExpandRowData<TTrivyReport>>();
   isMainTableLoading = input<boolean>(true);

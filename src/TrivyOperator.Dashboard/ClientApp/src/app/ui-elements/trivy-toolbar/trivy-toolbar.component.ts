@@ -37,13 +37,13 @@ export class TrivyToolbarComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.scrollContainer?.nativeElement) {
-      this.scrollContainer.nativeElement.removeEventListener('scroll', this.updateScrollState);
+      this.scrollContainer.nativeElement.removeEventListener('scroll', this.handleScroll);
       this.resizeObserver.disconnect(); // Stop observing
     }
   }
 
   handleScroll = () => {
-    this.updateScrollState();
+    this.updateScrollState(); 
   };
 
   scrollLeft() {

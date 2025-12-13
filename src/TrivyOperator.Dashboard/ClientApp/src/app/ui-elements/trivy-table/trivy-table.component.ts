@@ -65,7 +65,7 @@ import { ReactiveMap } from '../../abstracts/reactive-map'
 export class TrivyTableComponent<TData> implements OnInit {
   // data
   dataDtos = input<TData[] | null | undefined>([]);
-  activeNamespaces = input<string[] | undefined>();
+  activeNamespaces = input<string[]>([]);
   // layout
   csvStorageKey = input<string>('default');
   csvFileName = input<string>('Default.csv.FileName');
@@ -129,9 +129,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected _csvFileName = this.csvFileName();
   protected _rowExpandMap = new ReactiveMap<TData, TrivyTableExpandRowData<TData>>();
 
-  get trivyTableTotalRecords(): number {
-    return this.dataDtos()?.length ?? 0;
-  }
+  protected trivyTableTotalRecords: number = 0;
   get trivyTableSelectedRecords(): number {
     if (this.selectionMode() === 'single') {
       return this.selectedDataDtos ? 1 : 0;
@@ -468,30 +466,11 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   // force resize event - bug as table is not properly sized and on row expand it looks not ok
   newData() {
-      setTimeout(() => {
+    setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
       }, 0);
+    this.trivyTableTotalRecords = this.dataDtos()?.length ?? 0;
   }
-
-  // temp fix for https://github.com/primefaces/primeng/issues/16576
-  // filter icon is not highlighted
-  hasActiveFilter (columnKey: string): string {
-    if (!this.trivyTable) {
-      return '';
-    }
-    if (Object.hasOwn(this.trivyTable.filters, columnKey)) {
-      let filter = this.trivyTable.filters[columnKey]
-      if (!Array.isArray(filter)) {
-        filter = [filter]
-      }
-      if (filter[0].value && filter[0].value !== 0) {
-        return 'tod-active-filter'
-      }
-    }
-    return '';
-  }
-
-
 
 }
 

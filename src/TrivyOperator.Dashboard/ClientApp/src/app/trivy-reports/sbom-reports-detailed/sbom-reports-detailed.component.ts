@@ -20,7 +20,7 @@ import { namespacedColumns } from '../constants/generic.constants';
 })
 export class SbomReportsDetailedComponent implements OnInit {
   dataDtos: SbomReportImageDto[] | null = null;
-  activeNamespaces: string[] | undefined = [];
+  activeNamespaces: string[] = [];
   selectedDataDtos: SbomReportImageDto[] | null = null;
   isTableLoading: boolean = false;
 

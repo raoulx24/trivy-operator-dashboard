@@ -29,7 +29,7 @@ import { MessageService } from 'primeng/api';
 })
 export class ConfigAuditReportsComponent implements OnInit {
   dataDtos: ConfigAuditReportDto[] = [];
-  activeNamespaces?: string[] = [];
+  activeNamespaces: string[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [... namespacedColumns, ...configAuditReportColumns];
   isMainTableLoading: boolean = true;

@@ -1,1 +1,28 @@
 <p>Test works</p>
+
+<div style="height:700px">
+  <p-table [value]="dataDtos"
+           [loading]="isLoading"
+           scrollHeight="flex"
+           [scrollable]="true"
+           [virtualScroll]="true"
+           [virtualScrollItemSize]="47"
+           [tableStyle]="{ 'min-width': '50rem' }">
+    <ng-template #header>
+      <tr>
+        <th>uid</th>
+        <th>resourceName</th>
+        <th>resourceNamespace</th>
+        <th>resourceKind</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-dataDto>
+      <tr>
+        <td>{{ dataDto.uid }}</td>
+        <td>{{ dataDto.resourceName }}</td>
+        <td>{{ dataDto.resourceNamespace }}</td>
+        <td>{{ dataDto.resourceKind }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

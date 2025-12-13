@@ -28,7 +28,7 @@ import { MessageService } from 'primeng/api';
 })
 export class RbacAssessmentReportsComponent implements OnInit {
   dataDtos: RbacAssessmentReportDto[] = [];
-  activeNamespaces?: string[] = [];
+  activeNamespaces: string[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...rbacAssessmentReportColumns];
   isMainTableLoading: boolean = true;

@@ -34,7 +34,7 @@ import { MessageService } from 'primeng/api';
 })
 export class ExposedSecretReportsComponent implements OnInit {
   dataDtos: ExposedSecretReportImageDto[] = [];
-  activeNamespaces?: string[] = [];
+  activeNamespaces: string[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...exposedSecretReportColumns];
   mainTableExpandCallbackDto?: ExposedSecretReportImageDto;
