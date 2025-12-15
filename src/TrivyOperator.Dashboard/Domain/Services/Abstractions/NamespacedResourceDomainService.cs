@@ -7,8 +7,9 @@ namespace TrivyOperator.Dashboard.Domain.Services.Abstractions;
 
 public abstract class NamespacedResourceDomainService<TKubernetesObject, TKubernetesObjectList>(
     IKubernetesClientFactory kubernetesClientFactory,
+    IKubernetesContextProvider kubernetesContextProvider,
     IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList> namespaceDomainService)
-    : KubernetesResourceDomainService<TKubernetesObject>(kubernetesClientFactory),
+    : KubernetesResourceDomainService<TKubernetesObject>(kubernetesClientFactory, kubernetesContextProvider),
         INamespacedResourceWatchDomainService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>

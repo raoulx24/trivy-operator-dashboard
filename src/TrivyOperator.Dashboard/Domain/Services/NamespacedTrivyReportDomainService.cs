@@ -9,11 +9,12 @@ namespace TrivyOperator.Dashboard.Domain.Services;
 
 public class NamespacedTrivyReportDomainService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
+    IKubernetesContextProvider kubernetesContextProvider,
     ICustomResourceDefinitionFactory customResourceDefinitionFactory,
     IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList> namespaceDomainService)
     : NamespacedResourceDomainService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
-        kubernetesClientFactory,
-        namespaceDomainService) where TKubernetesObject : CustomResource
+        kubernetesClientFactory, kubernetesContextProvider, namespaceDomainService)
+    where TKubernetesObject : CustomResource
 {
     private CustomResourceDefinition? trivyReportCrd;
 
@@ -31,7 +32,7 @@ public class NamespacedTrivyReportDomainService<TKubernetesObject>(
         string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null) => KubernetesClientFactory.GetClient()
+        CancellationToken? cancellationToken = null) => kubernetesClient
         .ListNamespacedCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
             TrivyReportCrd.Group,
             TrivyReportCrd.Version,
@@ -44,7 +45,7 @@ public class NamespacedTrivyReportDomainService<TKubernetesObject>(
     public override Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,
-        CancellationToken? cancellationToken = null) => KubernetesClientFactory.GetClient()
+        CancellationToken? cancellationToken = null) => kubernetesClient
         .CustomObjects.GetNamespacedCustomObjectAsync<TKubernetesObject>(
             TrivyReportCrd.Group,
             TrivyReportCrd.Version,
@@ -59,8 +60,7 @@ public class NamespacedTrivyReportDomainService<TKubernetesObject>(
         int? timeoutSeconds = null,
         CancellationToken? cancellationToken = null)
     {
-         return KubernetesClientFactory.GetClient()
-        .CustomObjects.ListNamespacedCustomObjectWithHttpMessagesAsync<CustomResourceList<TKubernetesObject>>(
+         return kubernetesClient.CustomObjects.ListNamespacedCustomObjectWithHttpMessagesAsync<CustomResourceList<TKubernetesObject>>(
             TrivyReportCrd.Group,
             TrivyReportCrd.Version,
             namespaceName,

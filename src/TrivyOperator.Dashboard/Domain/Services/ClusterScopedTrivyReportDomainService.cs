@@ -8,9 +8,11 @@ namespace TrivyOperator.Dashboard.Domain.Services;
 
 public class ClusterScopedTrivyReportDomainService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
+    IKubernetesContextProvider kubernetesContextProvider,
     ICustomResourceDefinitionFactory customResourceDefinitionFactory)
     : ClusterScopedResourceDomainService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
-        kubernetesClientFactory) where TKubernetesObject : CustomResource
+        kubernetesClientFactory, kubernetesContextProvider)
+    where TKubernetesObject : CustomResource
 {
     private CustomResourceDefinition? trivyReportCrd;
 
@@ -27,7 +29,7 @@ public class ClusterScopedTrivyReportDomainService<TKubernetesObject>(
     public override Task<CustomResourceList<TKubernetesObject>> GetResourceList(
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null) => KubernetesClientFactory.GetClient()
+        CancellationToken? cancellationToken = null) => kubernetesClient
         .ListClusterCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
             TrivyReportCrd.Group,
             TrivyReportCrd.Version,
@@ -37,8 +39,7 @@ public class ClusterScopedTrivyReportDomainService<TKubernetesObject>(
             cancellationToken: cancellationToken ?? CancellationToken.None);
 
     public override Task<TKubernetesObject>
-        GetResource(string resourceName, CancellationToken? cancellationToken = null) => KubernetesClientFactory
-        .GetClient()
+        GetResource(string resourceName, CancellationToken? cancellationToken = null) => kubernetesClient
         .CustomObjects.GetClusterCustomObjectAsync<TKubernetesObject>(
             TrivyReportCrd.Group,
             TrivyReportCrd.Version,
@@ -49,7 +50,7 @@ public class ClusterScopedTrivyReportDomainService<TKubernetesObject>(
     public override Task<HttpOperationResponse<CustomResourceList<TKubernetesObject>>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        CancellationToken? cancellationToken = null) => KubernetesClientFactory.GetClient()
+        CancellationToken? cancellationToken = null) => kubernetesClient
         .CustomObjects.ListClusterCustomObjectWithHttpMessagesAsync<CustomResourceList<TKubernetesObject>>(
             TrivyReportCrd.Group,
             TrivyReportCrd.Version,

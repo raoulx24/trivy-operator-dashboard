@@ -4,5 +4,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.Abstractions;
 
 public interface IKubernetesClientFactory
 {
-    Kubernetes GetClient();
+    Kubernetes GetClient(string contextName);
+    public IEnumerable<string> GetContexts();
+    public string GetCurrentContext();
 }

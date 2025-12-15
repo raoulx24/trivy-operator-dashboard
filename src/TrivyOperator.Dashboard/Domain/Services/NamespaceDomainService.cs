@@ -6,19 +6,18 @@ using TrivyOperator.Dashboard.Infrastructure.Abstractions;
 
 namespace TrivyOperator.Dashboard.Domain.Services;
 
-public class NamespaceDomainService(
-    IKubernetesClientFactory kubernetesClientFactory)
-    : ClusterScopedResourceDomainService<V1Namespace, V1NamespaceList>(kubernetesClientFactory)
+public class NamespaceDomainService(IKubernetesClientFactory kubernetesClientFactory, IKubernetesContextProvider kubernetesContextProvider)
+    : ClusterScopedResourceDomainService<V1Namespace, V1NamespaceList>(kubernetesClientFactory, kubernetesContextProvider)
 {
     public override Task<V1Namespace> GetResource(
         string resourceName,
-        CancellationToken? cancellationToken = null) => KubernetesClientFactory.GetClient()
+        CancellationToken? cancellationToken = null) => kubernetesClient
         .CoreV1.ReadNamespaceAsync(resourceName, cancellationToken: cancellationToken ?? CancellationToken.None);
 
     public override Task<V1NamespaceList> GetResourceList(
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null) => KubernetesClientFactory.GetClient()
+        CancellationToken? cancellationToken = null) => kubernetesClient
                 .CoreV1.ListNamespaceAsync(
                     limit: pageLimit,
                     continueParameter: continueToken,
@@ -27,7 +26,7 @@ public class NamespaceDomainService(
     public override Task<HttpOperationResponse<V1NamespaceList>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        CancellationToken? cancellationToken = null) => KubernetesClientFactory.GetClient()
+        CancellationToken? cancellationToken = null) => kubernetesClient
         .CoreV1.ListNamespaceWithHttpMessagesAsync(
             watch: true,
             resourceVersion: lastResourceVersion,

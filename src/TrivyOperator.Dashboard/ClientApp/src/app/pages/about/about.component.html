@@ -37,6 +37,7 @@
               <li>Cluster Vulnerability Reports</li>
               <li>RBAC Assessment Reports</li>
               <li>SBOM Reports</li>
+              <li>Cluster SBOM Reports</li>
             </ul>
         </div>
 
@@ -74,8 +75,8 @@
                     [ngClass]="{'p-card-bold-subtitle': i === 0}"
                     [header]="releaseNote.name"
                     subheader="{{ releaseNote.createdAt | date: 'yyyy-MM-dd' }} {{ i === 0 ? '(latest)' : '' }}">
-              <div class="prose prose-ul">
-                <markdown class="list-disc pl-5" [data]="releaseNote.body"></markdown>
+              <div class="prose prose-ul pl-5">
+                <markdown class="list-disc" [data]="releaseNote.body"></markdown>
               </div>
             </p-card>
           </div>

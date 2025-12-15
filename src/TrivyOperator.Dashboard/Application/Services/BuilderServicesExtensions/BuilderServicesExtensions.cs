@@ -65,6 +65,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
+using TrivyOperator.Dashboard.Infrastructure.Contexts;
 using TrivyOperator.Dashboard.Infrastructure.Services;
 
 namespace TrivyOperator.Dashboard.Application.Services.BuilderServicesExtensions;
@@ -387,8 +388,6 @@ public static class BuilderServicesExtensions
         services.AddScoped<ISbomReportService, SbomReportService>();
     }
 
-    
-
     public static void AddWatcherStateServices(this IServiceCollection services)
     {
         
@@ -417,7 +416,8 @@ public static class BuilderServicesExtensions
         services.AddHostedService<WatcherStateCacheTimedHostedService>();
 
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
-        
+        services.AddSingleton<IKubernetesContextProvider, DefaultKubernetesContextProvider>();
+
         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
         {
             services.AddHttpClient<IGitHubClient, GitHubClient>(client =>
