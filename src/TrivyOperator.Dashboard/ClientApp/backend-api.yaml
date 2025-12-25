@@ -663,6 +663,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/kubernetes-contexts:
+    get:
+      tags:
+        - KubernetesContexts
+      operationId: GetKubernetesContexts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KubernetesContextsDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/kubernetes-namespaces:
     get:
       tags:
@@ -2453,6 +2479,16 @@ components:
         isLatest:
           type: boolean
       additionalProperties: false
+    KubernetesContextsDto:
+      type: object
+      properties:
+        contexts:
+          type: array
+          items:
+            type: string
+        current:
+          type: string
+      additionalProperties: false
     ProblemDetails:
       type: object
       properties:
@@ -3269,3 +3305,21 @@ components:
           type: integer
           format: int64
       additionalProperties: false
+tags:
+  - name: Alerts
+  - name: AppVersion
+  - name: BackendSettings
+  - name: ClusterComplianceReport
+  - name: ClusterRbacAssessmentReport
+  - name: ClusterSbomReport
+  - name: ClusterVulnerabilityReport
+  - name: ConfigAuditReport
+  - name: ExposedSecretReport
+  - name: KubernetesContexts
+  - name: Namespaces
+  - name: RbacAssessmentReport
+  - name: SbomReport
+  - name: Severities
+  - name: TrivyReportDependency
+  - name: VulnerabilityReports
+  - name: WatcherStatus
