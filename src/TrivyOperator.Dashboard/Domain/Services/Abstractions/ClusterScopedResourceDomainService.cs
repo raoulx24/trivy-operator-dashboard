@@ -7,8 +7,8 @@ namespace TrivyOperator.Dashboard.Domain.Services.Abstractions;
 
 public abstract class
     ClusterScopedResourceDomainService<TKubernetesObject, TKubernetesObjectList>(
-        IKubernetesClientFactory kubernetesClientFactory, IKubernetesContextProvider kubernetesContextProvider)
-    : KubernetesResourceDomainService<TKubernetesObject>(kubernetesClientFactory, kubernetesContextProvider),
+        IKubernetesClientFactory kubernetesClientFactory, IServiceScopeFactory scopeFactory)
+    : KubernetesResourceDomainService<TKubernetesObject>(kubernetesClientFactory, scopeFactory),
         IClusterScopedResourceWatchDomainService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>

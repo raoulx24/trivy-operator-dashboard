@@ -3,6 +3,7 @@
 public record KubernetesOptions
 {
     public string KubeConfigFileName { get; init; } = string.Empty;
+    public bool UseDefaultContext { get; set; } = true;
     public string NamespaceList { get; init; } = string.Empty;
     public bool TrivyUseClusterRbacAssessmentReport { get; init; } = true;
     public bool TrivyUseConfigAuditReport { get; init; } = true;

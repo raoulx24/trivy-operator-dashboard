@@ -9,11 +9,11 @@ namespace TrivyOperator.Dashboard.Domain.Services;
 
 public class NamespacedTrivyReportDomainService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
-    IKubernetesContextProvider kubernetesContextProvider,
+    IServiceScopeFactory scopeFactory,
     ICustomResourceDefinitionFactory customResourceDefinitionFactory,
     IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList> namespaceDomainService)
     : NamespacedResourceDomainService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
-        kubernetesClientFactory, kubernetesContextProvider, namespaceDomainService)
+        kubernetesClientFactory, scopeFactory, namespaceDomainService)
     where TKubernetesObject : CustomResource
 {
     private CustomResourceDefinition? trivyReportCrd;
@@ -32,27 +32,27 @@ public class NamespacedTrivyReportDomainService<TKubernetesObject>(
         string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null) => kubernetesClient
-        .ListNamespacedCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
-            TrivyReportCrd.Group,
-            TrivyReportCrd.Version,
-            namespaceName,
-            TrivyReportCrd.PluralName,
-            limit: pageLimit,
-            continueParameter: continueToken,
-            cancellationToken: cancellationToken ?? CancellationToken.None);
+        CancellationToken? cancellationToken = null) => GetKubernetesClient()
+            .ListNamespacedCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
+                TrivyReportCrd.Group,
+                TrivyReportCrd.Version,
+                namespaceName,
+                TrivyReportCrd.PluralName,
+                limit: pageLimit,
+                continueParameter: continueToken,
+                cancellationToken: cancellationToken ?? CancellationToken.None);
 
     public override Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,
-        CancellationToken? cancellationToken = null) => kubernetesClient
-        .CustomObjects.GetNamespacedCustomObjectAsync<TKubernetesObject>(
-            TrivyReportCrd.Group,
-            TrivyReportCrd.Version,
-            namespaceName,
-            TrivyReportCrd.PluralName,
-            resourceName,
-            cancellationToken ?? CancellationToken.None);
+        CancellationToken? cancellationToken = null) => GetKubernetesClient()
+            .CustomObjects.GetNamespacedCustomObjectAsync<TKubernetesObject>(
+                TrivyReportCrd.Group,
+                TrivyReportCrd.Version,
+                namespaceName,
+                TrivyReportCrd.PluralName,
+                resourceName,
+                cancellationToken ?? CancellationToken.None);
 
     public override Task<HttpOperationResponse<CustomResourceList<TKubernetesObject>>> GetResourceWatchList(
         string namespaceName,
@@ -60,15 +60,17 @@ public class NamespacedTrivyReportDomainService<TKubernetesObject>(
         int? timeoutSeconds = null,
         CancellationToken? cancellationToken = null)
     {
-         return kubernetesClient.CustomObjects.ListNamespacedCustomObjectWithHttpMessagesAsync<CustomResourceList<TKubernetesObject>>(
-            TrivyReportCrd.Group,
-            TrivyReportCrd.Version,
-            namespaceName,
-            TrivyReportCrd.PluralName,
-            watch: true,
-            resourceVersion: lastResourceVersion,
-            allowWatchBookmarks: true,
-            timeoutSeconds: timeoutSeconds,
-            cancellationToken: cancellationToken ?? CancellationToken.None);
+         return GetKubernetesClient()
+            .CustomObjects
+            .ListNamespacedCustomObjectWithHttpMessagesAsync<CustomResourceList<TKubernetesObject>>(
+                TrivyReportCrd.Group,
+                TrivyReportCrd.Version,
+                namespaceName,
+                TrivyReportCrd.PluralName,
+                watch: true,
+                resourceVersion: lastResourceVersion,
+                allowWatchBookmarks: true,
+                timeoutSeconds: timeoutSeconds,
+                cancellationToken: cancellationToken ?? CancellationToken.None);
     }
 }
