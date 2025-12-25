@@ -1,11 +1,9 @@
 ﻿using k8s.Models;
-using Microsoft.Extensions.Diagnostics.Metrics;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
 using TrivyOperator.Dashboard.Application.HealthChecks;
-using TrivyOperator.Dashboard.Application.Internals;
 using TrivyOperator.Dashboard.Application.Services.Alerts;
 using TrivyOperator.Dashboard.Application.Services.Alerts.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.AppVersions;
@@ -15,6 +13,8 @@ using TrivyOperator.Dashboard.Application.Services.BackendSettings.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.BackgroundQueues;
 using TrivyOperator.Dashboard.Application.Services.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.CacheRefreshers;
+using TrivyOperator.Dashboard.Application.Services.KubernetesContexts;
+using TrivyOperator.Dashboard.Application.Services.KubernetesContexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.KubernetesEventCoordinators;
 using TrivyOperator.Dashboard.Application.Services.KubernetesEventCoordinators.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.KubernetesEventDispatchers;
@@ -417,6 +417,7 @@ public static class BuilderServicesExtensions
 
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
         services.AddScoped<IKubernetesContextProvider, DefaultKubernetesContextProvider>();
+        services.AddScoped<IKubernetesContextService, KubernetesContextService>();
 
         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
         {
