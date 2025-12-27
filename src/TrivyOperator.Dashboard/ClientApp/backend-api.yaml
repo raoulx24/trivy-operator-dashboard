@@ -674,9 +674,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/KubernetesContextsDto'
+                $ref: '#/components/schemas/KubernetesContextsDto'
         '400':
           description: Bad Request
           content:

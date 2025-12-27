@@ -1,102 +1,89 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import { AlertDto } from '../../../api/models/alert-dto';
 import { AlertsService } from '../../services/alerts.service';
 import { DarkModeService } from '../../services/dark-mode.service';
 import { MainAppInitService } from '../../services/main-app-init.service';
 import { RouterEventEmitterService } from '../../services/router-event-emitter.service';
-import { IconComponent } from '../icon/icon.component';
+import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
 
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
-import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { MenubarModule } from 'primeng/menubar';
 import { PanelMenuModule } from 'primeng/panelmenu';
+import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+
+import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-nav-menu',
   standalone: true,
   imports: [
+    FormsModule,
     MenubarModule,
     DrawerModule,
     PanelMenuModule,
     ButtonModule,
     TagModule,
     BadgeModule,
+    SelectModule,
     ToastModule,
     IconComponent,
   ],
   templateUrl: './nav-menu.component.html',
   styleUrls: ['./nav-menu.component.scss'],
 })
-export class NavMenuComponent implements OnInit, OnDestroy {
-  items: MenuItem[] = [];
-  alertsCount: number = 0;
-  alerts: AlertDto[] = [];
-  enabledTrivyReports: string[] = ['crar', 'car', 'esr', 'vr'];
-  activePage: string = "";
+export class NavMenuComponent {
+  protected router = inject(Router);
+  private alertsService = inject(AlertsService);
+  private darkModeService = inject(DarkModeService);
+  private mainAppInitService = inject(MainAppInitService);
+  private routerEventEmitterService = inject(RouterEventEmitterService);
+  protected k8sContextState = inject(KubernetesContextStateService);
+  
   isDrawerVisible = false;
-  private alertSubscription!: Subscription;
 
-  constructor(
-    public router: Router,
-    private alertsService: AlertsService,
-    private darkModeService: DarkModeService,
-    private mainAppInitService: MainAppInitService,
-    private routerEventEmitterService: RouterEventEmitterService
-  ) {
-    this.routerEventEmitterService.title$.subscribe((title) => { this.activePage = title; });
-    this.darkModeService.isDarkMode$.subscribe((isDarkMode) => { this.isDarkMode = isDarkMode; });
-  }
+  // --- Signals from services ---
+  alerts = toSignal(this.alertsService.alerts$, { initialValue: [] });
+  backendSettings = toSignal(this.mainAppInitService.backendSettingsDto$);
+  isDarkMode = toSignal(this.darkModeService.isDarkMode$);
+  activePage = toSignal(this.routerEventEmitterService.title$);
 
-  isDarkMode: boolean = false;
+  contexts = this.k8sContextState.contexts;
+  selectedContext = this.k8sContextState.selectedContext;
 
-  ngOnInit() {
-    this.alertSubscription = this.alertsService.alerts$.subscribe((alerts: AlertDto[]) => {
-      this.onNewAlerts(alerts);
-    });
-    this.mainAppInitService.backendSettingsDto$.subscribe((updatedBackendSettingsDto) => {
-      this.enabledTrivyReports =
-        updatedBackendSettingsDto.trivyReportConfigDtos?.filter((x) => x.enabled).map((x) => x.id ?? '') ??
-        this.enabledTrivyReports;
-      this.setMenu();
-    });
-  }
+  // --- Derived values ---
+  alertsCount = computed(() => this.alerts().length);
 
-  ngOnDestroy() {
-    this.alertSubscription.unsubscribe();
-  }
-
-  public switchLightDarkMode() {
-    this.darkModeService.toggleDarkMode();
-  }
-
-  public onAlertsClick() {
-    // TODO: maybe we will debounce multiple clicks or even disable the button until the navigation is complete
-    if (this.router.url === '/alerts') {
-      this.alertsService.triggerRefresh();
-    } else {
-      this.router.navigate(['/alerts']);
+  // This replaces the old enabledTrivyReports field
+  enabledTrivyReports = computed<string[]>(() => {
+    const dto = this.backendSettings();
+    if (!dto || !dto.trivyReportConfigDtos) {
+      // Fallback to your original default, if you still want that behavior
+      return ['crar', 'car', 'esr', 'vr'];
     }
-  }
 
-  openDrawer() {
-    this.isDrawerVisible = true;
-  }
+    return dto.trivyReportConfigDtos
+      .filter(x => x.enabled)
+      .map(x => x.id ?? '')
+      .filter(id => !!id);
+  });
 
-  private onNewAlerts(alerts: AlertDto[]) {
-    this.alerts = alerts;
+  showContextDropdown = computed(() => this.contexts().length >= 2);
 
-    this.alertsCount = alerts ? alerts.length : 0;
-  }
+  items = computed<MenuItem[]>(() => {
+    const dto = this.backendSettings();
+    if (!dto) return [];
 
-  private setMenu() {
-    this.items = [
+    const enabled = this.enabledTrivyReports();
+
+    const items: MenuItem[] = [
       {
         label: 'Home',
         icon: 'home',
@@ -113,7 +100,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Vulnerabilities',
             icon: 'security',
-            disabled: !this.enabledTrivyReports.includes('vr'),
+            disabled: !this.enabledTrivyReports().includes('vr'),
             command: () => {
               this.router.navigate(['/vulnerability-reports']);
               this.isDrawerVisible = false;
@@ -122,7 +109,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'SBOMs',
             icon: 'graph_3',
-            disabled: !this.enabledTrivyReports.includes('sr'),
+            disabled: !this.enabledTrivyReports().includes('sr'),
             command: () => {
               this.router.navigate(['/sbom-reports']);
               this.isDrawerVisible = false;
@@ -131,7 +118,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Config Audits',
             icon: 'assignment',
-            disabled: !this.enabledTrivyReports.includes('car'),
+            disabled: !this.enabledTrivyReports().includes('car'),
             command: () => {
               this.router.navigate(['/config-audit-reports']);
               this.isDrawerVisible = false;
@@ -140,7 +127,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Exposed Secrets',
             icon: 'key_off',
-            disabled: !this.enabledTrivyReports.includes('esr'),
+            disabled: !this.enabledTrivyReports().includes('esr'),
             command: () => {
               this.router.navigate(['/exposed-secret-reports']);
               this.isDrawerVisible = false;
@@ -149,7 +136,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'RBAC Assessments',
             icon: 'admin_panel_settings',
-            disabled: !this.enabledTrivyReports.includes('rar'),
+            disabled: !this.enabledTrivyReports().includes('rar'),
             command: () => {
               this.router.navigate(['/rbac-assessment-reports']);
               this.isDrawerVisible = false;
@@ -165,7 +152,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Vulnerabilities',
             icon: 'security',
-            disabled: !this.enabledTrivyReports.includes('cvr'),
+            disabled: !this.enabledTrivyReports().includes('cvr'),
             command: () => {
               this.router.navigate(['/cluster-vulnerability-reports']);
               this.isDrawerVisible = false;
@@ -174,7 +161,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'SBOMs',
             icon: 'graph_3',
-            disabled: !this.enabledTrivyReports.includes('csr'),
+            disabled: !this.enabledTrivyReports().includes('csr'),
             command: () => {
               this.router.navigate(['/cluster-sbom-reports']);
               this.isDrawerVisible = false;
@@ -183,7 +170,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'RBAC Assessments',
             icon: 'admin_panel_settings',
-            disabled: !this.enabledTrivyReports.includes('crar'),
+            disabled: !this.enabledTrivyReports().includes('crar'),
             command: () => {
               this.router.navigate(['/cluster-rbac-assessment-reports']);
               this.isDrawerVisible = false;
@@ -192,7 +179,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Compliance',
             icon: 'policy',
-            disabled: !this.enabledTrivyReports.includes('ccr'),
+            disabled: !this.enabledTrivyReports().includes('ccr'),
             command: () => {
               this.router.navigate(['/cluster-compliance-reports']);
               this.isDrawerVisible = false;
@@ -208,7 +195,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Vulnerabilities',
             icon: 'security',
-            disabled: !this.enabledTrivyReports.includes('vr'),
+            disabled: !this.enabledTrivyReports().includes('vr'),
             command: () => {
               this.router.navigate(['/vulnerability-reports-detailed']);
               this.isDrawerVisible = false;
@@ -217,7 +204,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'SBOMs',
             icon: 'graph_3',
-            disabled: !this.enabledTrivyReports.includes('sr'),
+            disabled: !this.enabledTrivyReports().includes('sr'),
             command: () => {
               this.router.navigate(['/sbom-reports-detailed']);
               this.isDrawerVisible = false;
@@ -226,7 +213,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Config Audits',
             icon: 'assignment',
-            disabled: !this.enabledTrivyReports.includes('car'),
+            disabled: !this.enabledTrivyReports().includes('car'),
             command: () => {
               this.router.navigate(['/config-audit-reports-detailed']);
               this.isDrawerVisible = false;
@@ -235,7 +222,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Exposed Secrets',
             icon: 'key_off',
-            disabled: !this.enabledTrivyReports.includes('esr'),
+            disabled: !this.enabledTrivyReports().includes('esr'),
             command: () => {
               this.router.navigate(['/exposed-secret-reports-detailed']);
               this.isDrawerVisible = false;
@@ -244,7 +231,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'RBAC Assessments',
             icon: 'admin_panel_settings',
-            disabled: !this.enabledTrivyReports.includes('rar'),
+            disabled: !this.enabledTrivyReports().includes('rar'),
             command: () => {
               this.router.navigate(['/rbac-assessment-reports-detailed']);
               this.isDrawerVisible = false;
@@ -260,7 +247,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Vulnerabilities',
             icon: 'security',
-            disabled: !this.enabledTrivyReports.includes('cvr'),
+            disabled: !this.enabledTrivyReports().includes('cvr'),
             command: () => {
               this.router.navigate(['/cluster-vulnerability-reports-detailed']);
               this.isDrawerVisible = false;
@@ -269,7 +256,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'RBAC Assessments',
             icon: 'admin_panel_settings',
-            disabled: !this.enabledTrivyReports.includes('crar'),
+            disabled: !this.enabledTrivyReports().includes('crar'),
             command: () => {
               this.router.navigate(['/cluster-rbac-assessment-reports-detailed']);
               this.isDrawerVisible = false;
@@ -278,7 +265,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
           {
             label: 'Compliance',
             icon: 'policy',
-            disabled: !this.enabledTrivyReports.includes('ccr'),
+            disabled: !this.enabledTrivyReports().includes('ccr'),
             command: () => {
               this.router.navigate(['/cluster-compliance-reports-detailed']);
               this.isDrawerVisible = false;
@@ -318,5 +305,28 @@ export class NavMenuComponent implements OnInit, OnDestroy {
         ],
       },
     ];
+
+    return items;
+  });
+
+  // --- UI actions ---
+  switchLightDarkMode() {
+    this.darkModeService.toggleDarkMode();
+  }
+
+  onAlertsClick() {
+    if (this.router.url === '/alerts') {
+      this.alertsService.triggerRefresh();
+    } else {
+      this.router.navigate(['/alerts']);
+    }
+  }
+
+  openDrawer() {
+    this.isDrawerVisible = true;
+  }
+
+  onContextChange(context: string) {
+    this.k8sContextState.setSelectedContext(context);
   }
 }

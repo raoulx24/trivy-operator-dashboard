@@ -1,25 +1,18 @@
-import { inject, Injectable } from '@angular/core';
-import {
-  HttpEvent,
-  HttpHandler,
-  HttpInterceptor,
-  HttpRequest,
-} from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { inject } from '@angular/core';
+import { HttpInterceptorFn } from '@angular/common/http';
 import { KubernetesContextStateService } from '../services/kubernetes-context-state.service';
 
-@Injectable()
-export class KubernetesContextInterceptor implements HttpInterceptor {
-  private readonly state = inject(KubernetesContextStateService);
+export const kubernetesContextInterceptor: HttpInterceptorFn = (req, next) => {
+  try {
+    // Optional injection prevents bootstrap failures
+    const state = inject(KubernetesContextStateService, { optional: true });
+    const context = state?.selectedContextSync;
 
-  intercept(
-    req: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
-    const context = this.state.selectedContext;
+    // const isApiRequest = req.url.startsWith('api/');
+    const isApiRequest = true;
 
-    if (!context) {
-      return next.handle(req);
+    if (!isApiRequest || !context) {
+      return next(req);
     }
 
     const modified = req.clone({
@@ -28,6 +21,9 @@ export class KubernetesContextInterceptor implements HttpInterceptor {
       },
     });
 
-    return next.handle(modified);
+    return next(modified);
+  } catch {
+    // Prevent bootstrap from breaking
+    return next(req);
   }
-}
+};

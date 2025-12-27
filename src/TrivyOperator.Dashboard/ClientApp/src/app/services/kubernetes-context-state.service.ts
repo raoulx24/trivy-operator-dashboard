@@ -1,42 +1,104 @@
-import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, map, shareReplay } from 'rxjs';
+import { Injectable, computed, effect, signal } from '@angular/core';
+import { inject } from '@angular/core';
 import { KubernetesContextsService } from '../../api/services/kubernetes-contexts.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { KubernetesContextsDto } from '../../api/models/kubernetes-contexts-dto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class KubernetesContextStateService {
-  private readonly STORAGE_KEY = 'selectedKubernetesContext';
-
+  private readonly kubernetesContextKey = 'settings.selectedKubernetesContext';
   private readonly k8sService = inject(KubernetesContextsService);
 
-  // --- Backend-loaded values ---
-  readonly contexts$ = this.k8sService.getKubernetesContexts().pipe(
-    map((dto: KubernetesContextsDto[]) => dto[0]?.contexts ?? []),
-    shareReplay(1)
+  // --- Backend DTO as a signal ---
+  private readonly dto = toSignal(
+    this.k8sService.getKubernetesContexts(),
+    { initialValue: null }
   );
 
-  readonly current$ = this.k8sService.getKubernetesContexts().pipe(
-    map((dto: KubernetesContextsDto[]) => dto[0]?.current ?? null),
-    shareReplay(1)
-  );
+  // --- Derived backend values ---
+  readonly contexts = computed(() => this.dto()?.contexts ?? []);
+  readonly backendCurrent = computed(() => this.dto()?.current ?? null);
 
-  // --- User-selected context (bidirectional) ---
-  private selectedContextSubject = new BehaviorSubject<string | null>(
-    localStorage.getItem(this.STORAGE_KEY)
-  );
+  // --- Primary in-memory state ---
+  private readonly _selectedContext = signal<string | null>(null);
+  readonly selectedContext = computed(() => this._selectedContext());
 
-  readonly selectedContext$ = this.selectedContextSubject.asObservable();
+  constructor() {
+    // Initialize once DTO arrives
+    effect(() => {
+      const dto = this.dto();
+      if (!dto) return;
 
-  /** Called by UI when user selects a context */
-  setSelectedContext(context: string): void {
-    this.selectedContextSubject.next(context);
-    localStorage.setItem(this.STORAGE_KEY, context);
+      this.initializeSelectedContext(dto);
+    });
   }
 
-  /** Used by interceptor to get the latest value synchronously */
-  get selectedContext(): string | null {
-    return this.selectedContextSubject.value;
+  private initializeSelectedContext(dto: KubernetesContextsDto) {
+    const contexts = dto.contexts ?? [];
+    const backendCurrent = dto.current ?? null;
+
+    // Try localStorage
+    const stored = this.safeGetFromLocalStorage(this.kubernetesContextKey);
+
+    let chosen: string | null = null;
+
+    if (stored) {
+      if (contexts.includes(stored)) {
+        chosen = stored;
+      } else if (backendCurrent && contexts.includes(backendCurrent)) {
+        chosen = backendCurrent;
+      }
+    } else {
+      if (backendCurrent && contexts.includes(backendCurrent)) {
+        chosen = backendCurrent;
+      }
+    }
+
+    this.setSelectedContextInternal(chosen);
+  }
+
+  // --- Public API ---
+  setSelectedContext(context: string): void {
+    const contexts = this.contexts();
+    if (!contexts.includes(context)) return;
+
+    this.setSelectedContextInternal(context);
+  }
+
+  get selectedContextSync(): string | null {
+    return this._selectedContext();
+  }
+
+  // --- Internal helpers ---
+  private setSelectedContextInternal(value: string | null) {
+    this._selectedContext.set(value);
+
+    if (value === null) {
+      this.safeRemoveFromLocalStorage(this.kubernetesContextKey);
+    } else {
+      this.safeSetToLocalStorage(this.kubernetesContextKey, value);
+    }
+  }
+
+  private safeGetFromLocalStorage(key: string): string | null {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  private safeSetToLocalStorage(key: string, value: string): void {
+    try {
+      localStorage.setItem(key, value);
+    } catch {}
+  }
+
+  private safeRemoveFromLocalStorage(key: string): void {
+    try {
+      localStorage.removeItem(key);
+    } catch {}
   }
 }

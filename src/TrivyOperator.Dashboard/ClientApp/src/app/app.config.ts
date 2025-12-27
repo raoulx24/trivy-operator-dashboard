@@ -1,4 +1,4 @@
-import { provideHttpClient } from "@angular/common/http";
+import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import { ApplicationConfig, importProvidersFrom, provideAppInitializer, inject } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
@@ -12,11 +12,14 @@ import { routes } from "./app.routes";
 import { DarkModeService } from "./services/dark-mode.service";
 import { MainAppInitService, initializeAppFactory } from "./services/main-app-init.service";
 import { trivyOperatorDashboardPreset } from "./themes/trivy-operator-dashboard.preset";
+import { kubernetesContextInterceptor } from "./interceptors/kubernetes-context.interceptor";
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(
+      withInterceptors([kubernetesContextInterceptor])
+    ),
     provideAnimationsAsync(),
     importProvidersFrom(ApiModule.forRoot({ rootUrl: environment.baseUrl })),
     MainAppInitService,
