@@ -4,11 +4,6 @@ namespace TrivyOperator.Dashboard.Infrastructure.Contexts;
 
 public class HttpHeaderKubernetesContesxtProvider(IHttpContextAccessor httpContextAccessor) : IKubernetesContextProvider
 {
-    public string? GetCurrentContext()
-    {
-        return httpContextAccessor.HttpContext?.Request.Headers["X-Kubernetes-Context"].FirstOrDefault();
-    }
-
     public bool TryGetCurrentContext(out string? context)
     {
         context = httpContextAccessor.HttpContext?

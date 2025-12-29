@@ -6,7 +6,7 @@ using TrivyOperator.Dashboard.Utils;
 namespace TrivyOperator.Dashboard.Application.Caching;
 
 public class ClusterResourceQueryCache<TValue, TList>(
-    IClusterScopedResourceQueryDomainService<TValue, TList> domain)
+    IClusterScopedResourceWatchDomainService<TValue, TList> domain)
     : ResourceQueryCache<TValue>
     where TValue : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TList : IKubernetesObject<V1ListMeta>, IItems<TValue>

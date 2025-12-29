@@ -328,5 +328,6 @@ export class NavMenuComponent {
 
   onContextChange(context: string) {
     this.k8sContextState.setSelectedContext(context);
+    this.isDrawerVisible = false;
   }
 }

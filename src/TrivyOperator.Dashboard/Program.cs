@@ -72,20 +72,12 @@ if (!builder.Environment.IsProduction())
 builder.Services.AddControllersWithViews(ConfigureMvcOptions)
     .AddJsonOptions(options => ConfigureJsonSerializerOptions(options.JsonSerializerOptions));
 builder.Services.AddCommons(configuration);
-builder.Services.AddDomainServices();
 builder.Services.AddAlertsServices();
 builder.Services.AddWatcherStateServices();
 IConfigurationSection k8SConfigurationSection = configuration.GetSection("Kubernetes");
 builder.Services.AddV1NamespaceServices(k8SConfigurationSection);
-builder.Services.AddClusterRbacAssessmentReportServices(k8SConfigurationSection);
-builder.Services.AddConfigAuditReportServices(k8SConfigurationSection);
-builder.Services.AddExposedSecretReportServices(k8SConfigurationSection);
-builder.Services.AddVulnerabilityReportServices(k8SConfigurationSection);
-builder.Services.AddClusterComplianceReportServices(k8SConfigurationSection);
-builder.Services.AddClusterVulnerabilityReportServices(k8SConfigurationSection);
-builder.Services.AddRbacAssessmentReportServices(k8SConfigurationSection);
-builder.Services.AddSbomReportServices(k8SConfigurationSection);
-builder.Services.AddClusterSbomReportServices(k8SConfigurationSection);
+builder.Services.AddTrivyServices(k8SConfigurationSection);
+
 builder.Services.AddUiCommons();
 builder.Services.AddOthers();
 builder.Services.AddOpenTelemetry(

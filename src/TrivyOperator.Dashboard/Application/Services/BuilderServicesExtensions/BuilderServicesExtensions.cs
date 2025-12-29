@@ -1,4 +1,5 @@
-﻿using k8s.Models;
+﻿using k8s;
+using k8s.Models;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -73,11 +74,9 @@ namespace TrivyOperator.Dashboard.Application.Services.BuilderServicesExtensions
 
 public static class BuilderServicesExtensions
 {
-    public static void AddV1NamespaceServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
+    public static void AddV1NamespaceServices(this IServiceCollection services, IConfiguration kubernetesConfiguration)
     {
-        services
-            .AddSingleton<IConcurrentDictionaryCache<V1Namespace>, ConcurrentDictionaryCache<V1Namespace>>();
+        services.AddSingleton<IConcurrentDictionaryCache<V1Namespace>, ConcurrentDictionaryCache<V1Namespace>>();
         services.AddSingleton<IKubernetesBackgroundQueue<V1Namespace>, KubernetesBackgroundQueue<V1Namespace>>();
         if (string.IsNullOrWhiteSpace(kubernetesConfiguration.GetValue<string>("NamespaceList")))
         {
@@ -110,295 +109,118 @@ public static class BuilderServicesExtensions
         
     }
 
-    public static void AddClusterRbacAssessmentReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
+    public static void AddTrivyServices(this IServiceCollection services, IConfiguration kubernetesConfiguration)
     {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseClusterRbacAssessmentReport");
-        if (useServices == null || !(bool)useServices)
-        {
-            services.AddScoped<IClusterRbacAssessmentReportService, ClusterRbacAssessmentReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<ClusterRbacAssessmentReportCr>, ConcurrentDictionaryCache<ClusterRbacAssessmentReportCr>>();
-            return;
-        }
+        services.AddSingleton<ICustomResourceDefinitionFactory, CustomResourceDefinitionFactory>();
 
-        services
-            .AddSingleton<IConcurrentDictionaryCache<ClusterRbacAssessmentReportCr>,
-                ConcurrentDictionaryCache<ClusterRbacAssessmentReportCr>>();
-        services
-            .AddSingleton<IKubernetesBackgroundQueue<ClusterRbacAssessmentReportCr>,
-                KubernetesBackgroundQueue<ClusterRbacAssessmentReportCr>>();
-        services.AddSingleton<IClusterScopedWatcher<ClusterRbacAssessmentReportCr>, ClusterScopedWatcher<
-            CustomResourceList<ClusterRbacAssessmentReportCr>, ClusterRbacAssessmentReportCr,
-            IKubernetesBackgroundQueue<ClusterRbacAssessmentReportCr>, WatcherEvent<ClusterRbacAssessmentReportCr>>>();
-        
-        services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
-            ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<ClusterRbacAssessmentReportCr>,
-                IClusterScopedWatcher<ClusterRbacAssessmentReportCr>, ClusterRbacAssessmentReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<ClusterRbacAssessmentReportCr>,
-            KubernetesEventDispatcher<ClusterRbacAssessmentReportCr, IKubernetesBackgroundQueue<ClusterRbacAssessmentReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterRbacAssessmentReportCr>,
-                CacheRefresher<ClusterRbacAssessmentReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterRbacAssessmentReportCr>, WatcherState<ClusterRbacAssessmentReportCr>>();
-        services.AddScoped<IClusterRbacAssessmentReportService, ClusterRbacAssessmentReportService>();
+        services.AddClusterScopedService<ClusterComplianceReportCr, IClusterComplianceReportService, ClusterComplianceReportNullService, ClusterComplianceReportService>(kubernetesConfiguration);
+        services.AddClusterScopedService<ClusterRbacAssessmentReportCr, IClusterRbacAssessmentReportService, ClusterRbacAssessmentReportNullService, ClusterRbacAssessmentReportService>(kubernetesConfiguration);
+        services.AddClusterScopedService<ClusterSbomReportCr, IClusterSbomReportService, ClusterSbomReportNullService, ClusterSbomReportService>(kubernetesConfiguration);
+        services.AddClusterScopedService<ClusterVulnerabilityReportCr, IClusterVulnerabilityReportService, ClusterVulnerabilityReportNullService, ClusterVulnerabilityReportService>(kubernetesConfiguration);
+
+        services.AddNamespacedService<ConfigAuditReportCr, IConfigAuditReportService, ConfigAuditReportNullService, ConfigAuditReportService>(kubernetesConfiguration);
+        services.AddNamespacedService<ExposedSecretReportCr, IExposedSecretReportService, ExposedSecretReportNullService, ExposedSecretReportService>(kubernetesConfiguration);
+        services.AddNamespacedService<RbacAssessmentReportCr, IRbacAssessmentReportService, RbacAssessmentReportNullService, RbacAssessmentReportService>(kubernetesConfiguration);
+        services.AddNamespacedService<SbomReportCr, ISbomReportService, SbomReportNullService, SbomReportService>(kubernetesConfiguration);
+        services.AddNamespacedService<VulnerabilityReportCr, IVulnerabilityReportService, VulnerabilityReportNullService, VulnerabilityReportService>(kubernetesConfiguration);
     }
 
-    public static void AddConfigAuditReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
-    {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseConfigAuditReport");
-        if (useServices == null || !(bool)useServices)
-        {
-            services.AddScoped<IConfigAuditReportService, ConfigAuditReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<ConfigAuditReportCr>, ConcurrentDictionaryCache<ConfigAuditReportCr>>();
-            return;
-        }
-
-        services.AddSingleton<IConcurrentDictionaryCache<ConfigAuditReportCr>,
-            ConcurrentDictionaryCache<ConfigAuditReportCr>>();
-        services.AddSingleton<IKubernetesBackgroundQueue<ConfigAuditReportCr>, KubernetesBackgroundQueue<ConfigAuditReportCr>>();
-        services.AddSingleton<INamespacedWatcher<ConfigAuditReportCr>,
-            NamespacedWatcher<CustomResourceList<ConfigAuditReportCr>, ConfigAuditReportCr,
-                IKubernetesBackgroundQueue<ConfigAuditReportCr>, WatcherEvent<ConfigAuditReportCr>>>();
-        
-        services.AddSingleton<INamespacedKubernetesEventCoordinator,
-            NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<ConfigAuditReportCr>, 
-                INamespacedWatcher<ConfigAuditReportCr>, ConfigAuditReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<ConfigAuditReportCr>,
-            KubernetesEventDispatcher<ConfigAuditReportCr, IKubernetesBackgroundQueue<ConfigAuditReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<ConfigAuditReportCr>, CacheRefresher<ConfigAuditReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ConfigAuditReportCr>, WatcherState<ConfigAuditReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ConfigAuditReportCr>, WatcherStateAlertRefresh<ConfigAuditReportCr>>();
-        services.AddScoped<IConfigAuditReportService, ConfigAuditReportService>();
-    }
-
-    public static void AddExposedSecretReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
-    {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseConfigAuditReport");
-        if (useServices == null || !(bool)useServices)
-        {
-            services.AddScoped<IExposedSecretReportService, ExposedSecretReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<ExposedSecretReportCr>, ConcurrentDictionaryCache<ExposedSecretReportCr>>();
-            return;
-        }
-
-        services.AddSingleton<
-            IConcurrentDictionaryCache<ExposedSecretReportCr>,
-            ConcurrentDictionaryCache<ExposedSecretReportCr>>();
-        services.AddSingleton<IKubernetesBackgroundQueue<ExposedSecretReportCr>, KubernetesBackgroundQueue<ExposedSecretReportCr>>();
-        services.AddSingleton<INamespacedWatcher<ExposedSecretReportCr>,
-            NamespacedWatcher<CustomResourceList<ExposedSecretReportCr>, ExposedSecretReportCr,
-                IKubernetesBackgroundQueue<ExposedSecretReportCr>, WatcherEvent<ExposedSecretReportCr>>>();
-        
-        services.AddSingleton<INamespacedKubernetesEventCoordinator,
-            NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<ExposedSecretReportCr>, 
-                INamespacedWatcher<ExposedSecretReportCr>, ExposedSecretReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<ExposedSecretReportCr>,
-            KubernetesEventDispatcher<ExposedSecretReportCr, IKubernetesBackgroundQueue<ExposedSecretReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<ExposedSecretReportCr>, CacheRefresher<ExposedSecretReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ExposedSecretReportCr>, WatcherState<ExposedSecretReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ExposedSecretReportCr>, WatcherStateAlertRefresh<ExposedSecretReportCr>>();
-        services.AddScoped<IExposedSecretReportService, ExposedSecretReportService>();
-    }
-
-    public static void AddVulnerabilityReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
+    public static void AddNamespacedService<TNamespacedTrivyReportCr, TAppServiceInterface,
+        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration kubernetesConfiguration)
+        where TNamespacedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
+        where TAppServiceInterface : class
+        where TNullAppService : class, TAppServiceInterface
+        where TAppService : class, TAppServiceInterface
     {
         bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseVulnerabilityReport");
         bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
+
         if (useServices == null || !(bool)useServices)
         {
-            services.AddScoped<IVulnerabilityReportService, VulnerabilityReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<VulnerabilityReportCr>, ConcurrentDictionaryCache<VulnerabilityReportCr>>();
+            services.AddScoped<TAppServiceInterface, TNullAppService>();
+            services.AddTransient<IConcurrentDictionaryCache<TNamespacedTrivyReportCr>, ConcurrentDictionaryCache<TNamespacedTrivyReportCr>>();
             return;
         }
 
         if (useDefaultContext == null || !(bool)useDefaultContext)
         {
             services.AddSingleton<
-                IConcurrentDictionaryCache<VulnerabilityReportCr>,
-                NamespacedResourceQueryCache<VulnerabilityReportCr, CustomResourceList<VulnerabilityReportCr>>>();
+                IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
+                NamespacedResourceQueryCache<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
         }
         else
         {
             services.AddSingleton<
-                IConcurrentDictionaryCache<VulnerabilityReportCr>,
-                ConcurrentDictionaryCache<VulnerabilityReportCr>>();
-            services.AddSingleton<IKubernetesBackgroundQueue<VulnerabilityReportCr>, KubernetesBackgroundQueue<VulnerabilityReportCr>>();
-            services.AddSingleton<INamespacedWatcher<VulnerabilityReportCr>,
-                NamespacedWatcher<CustomResourceList<VulnerabilityReportCr>, VulnerabilityReportCr,
-                    IKubernetesBackgroundQueue<VulnerabilityReportCr>, WatcherEvent<VulnerabilityReportCr>>>();
+                IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
+                ConcurrentDictionaryCache<TNamespacedTrivyReportCr>>();
+            services.AddSingleton<IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>, KubernetesBackgroundQueue<TNamespacedTrivyReportCr>>();
+            services.AddSingleton<INamespacedWatcher<TNamespacedTrivyReportCr>,
+                NamespacedWatcher<CustomResourceList<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr,
+                    IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>, WatcherEvent<TNamespacedTrivyReportCr>>>();
             services.AddSingleton<INamespacedKubernetesEventCoordinator,
-            NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<VulnerabilityReportCr>,
-                INamespacedWatcher<VulnerabilityReportCr>, VulnerabilityReportCr>>();
-            services.AddSingleton<IKubernetesEventDispatcher<VulnerabilityReportCr>,
-                KubernetesEventDispatcher<VulnerabilityReportCr, IKubernetesBackgroundQueue<VulnerabilityReportCr>>>();
-            services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, CacheRefresher<VulnerabilityReportCr>>();
-            services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, WatcherState<VulnerabilityReportCr>>();
-            services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, WatcherStateAlertRefresh<VulnerabilityReportCr>>();
+            NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
+                INamespacedWatcher<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr>>();
+            services.AddSingleton<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
+                KubernetesEventDispatcher<TNamespacedTrivyReportCr, IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>>>();
+            services.AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>, CacheRefresher<TNamespacedTrivyReportCr>>();
+            services.AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>, WatcherState<TNamespacedTrivyReportCr>>();
+            services.AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>, WatcherStateAlertRefresh<TNamespacedTrivyReportCr>>();
 
         }
 
+        services.AddScoped<TAppServiceInterface, TAppService>();
 
-        services.AddScoped<IVulnerabilityReportService, VulnerabilityReportService>();
+        services.AddSingleton<INamespacedResourceWatchDomainService<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>,
+            NamespacedTrivyReportDomainService<TNamespacedTrivyReportCr>>();
     }
 
-    public static void AddClusterComplianceReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
+    public static void AddClusterScopedService<TClusterScopedTrivyReportCr, TAppServiceInterface,
+        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration kubernetesConfiguration)
+        where TClusterScopedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
+        where TAppServiceInterface : class
+        where TNullAppService : class, TAppServiceInterface
+        where TAppService : class, TAppServiceInterface
     {
         bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseClusterComplianceReport");
+        bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
 
         if (useServices == null || !(bool)useServices)
         {
-            services.AddScoped<IClusterComplianceReportService, ClusterComplianceReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<ClusterComplianceReportCr>, ConcurrentDictionaryCache<ClusterComplianceReportCr>>();
+            services.AddScoped<TAppServiceInterface, TNullAppService>();
+            services.AddTransient<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>, ConcurrentDictionaryCache<TClusterScopedTrivyReportCr>>();
             return;
         }
 
-        services
-            .AddSingleton<IConcurrentDictionaryCache<ClusterComplianceReportCr>,
-                ConcurrentDictionaryCache<ClusterComplianceReportCr>>();
-        services
-            .AddSingleton<IKubernetesBackgroundQueue<ClusterComplianceReportCr>, KubernetesBackgroundQueue<ClusterComplianceReportCr>>();
-        services.AddSingleton<IClusterScopedWatcher<ClusterComplianceReportCr>, ClusterScopedWatcher<
-            CustomResourceList<ClusterComplianceReportCr>, ClusterComplianceReportCr,
-            IKubernetesBackgroundQueue<ClusterComplianceReportCr>, WatcherEvent<ClusterComplianceReportCr>>>();
+        if (useDefaultContext == null || !(bool)useDefaultContext)
+        {
+            services.AddSingleton<
+                IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
+                ClusterResourceQueryCache<TClusterScopedTrivyReportCr, CustomResourceList<TClusterScopedTrivyReportCr>>>();
+        }
+        else
+        {
+            services
+                .AddSingleton<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
+                    ConcurrentDictionaryCache<TClusterScopedTrivyReportCr>>();
+            services
+                .AddSingleton<IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>, KubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>();
+            services.AddSingleton<IClusterScopedWatcher<TClusterScopedTrivyReportCr>, ClusterScopedWatcher<
+                CustomResourceList<TClusterScopedTrivyReportCr>, TClusterScopedTrivyReportCr,
+                IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>, WatcherEvent<TClusterScopedTrivyReportCr>>>();
+
+            services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
+                ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<TClusterScopedTrivyReportCr>,
+                    IClusterScopedWatcher<TClusterScopedTrivyReportCr>, TClusterScopedTrivyReportCr>>();
+            services.AddSingleton<IKubernetesEventDispatcher<TClusterScopedTrivyReportCr>,
+                KubernetesEventDispatcher<TClusterScopedTrivyReportCr, IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>>();
+            services.AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>, CacheRefresher<TClusterScopedTrivyReportCr>>();
+            services.AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>, WatcherState<TClusterScopedTrivyReportCr>>();
+            services.AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>, WatcherStateAlertRefresh<TClusterScopedTrivyReportCr>>();
+        }
         
-        services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
-            ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<ClusterComplianceReportCr>,
-                IClusterScopedWatcher<ClusterComplianceReportCr>, ClusterComplianceReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<ClusterComplianceReportCr>,
-            KubernetesEventDispatcher<ClusterComplianceReportCr, IKubernetesBackgroundQueue<ClusterComplianceReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterComplianceReportCr>, CacheRefresher<ClusterComplianceReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterComplianceReportCr>, WatcherState<ClusterComplianceReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterComplianceReportCr>, WatcherStateAlertRefresh<ClusterComplianceReportCr>>();
-        services.AddScoped<IClusterComplianceReportService, ClusterComplianceReportService>();
-    }
-
-    public static void AddClusterVulnerabilityReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
-    {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseClusterVulnerabilityReport");
-
-        if (useServices == null || !(bool)useServices)
-        {
-            services.AddScoped<IClusterVulnerabilityReportService, ClusterVulnerabilityReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<ClusterVulnerabilityReportCr>, ConcurrentDictionaryCache<ClusterVulnerabilityReportCr>>();
-            return;
-        }
-
-        services
-            .AddSingleton<IConcurrentDictionaryCache<ClusterVulnerabilityReportCr>,
-                ConcurrentDictionaryCache<ClusterVulnerabilityReportCr>>();
-        services
-            .AddSingleton<IKubernetesBackgroundQueue<ClusterVulnerabilityReportCr>,
-                KubernetesBackgroundQueue<ClusterVulnerabilityReportCr>>();
-        services.AddSingleton<IClusterScopedWatcher<ClusterVulnerabilityReportCr>, 
-            ClusterScopedWatcher<CustomResourceList<ClusterVulnerabilityReportCr>, ClusterVulnerabilityReportCr,
-            IKubernetesBackgroundQueue<ClusterVulnerabilityReportCr>, WatcherEvent<ClusterVulnerabilityReportCr>>>();
-        
-        services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
-            ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<ClusterVulnerabilityReportCr>,
-                IClusterScopedWatcher<ClusterVulnerabilityReportCr>, ClusterVulnerabilityReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<ClusterVulnerabilityReportCr>,
-            KubernetesEventDispatcher<ClusterVulnerabilityReportCr, IKubernetesBackgroundQueue<ClusterVulnerabilityReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterVulnerabilityReportCr>, CacheRefresher<ClusterVulnerabilityReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterVulnerabilityReportCr>, WatcherState<ClusterVulnerabilityReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterVulnerabilityReportCr>, WatcherStateAlertRefresh<ClusterVulnerabilityReportCr>>();
-        services.AddScoped<IClusterVulnerabilityReportService, ClusterVulnerabilityReportService>();
-    }
-
-    public static void AddClusterSbomReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
-    {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseClusterSbomReport");
-
-        if (useServices == null || !(bool)useServices)
-        {
-            services.AddScoped<IClusterSbomReportService, ClusterSbomReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<ClusterSbomReportCr>, ConcurrentDictionaryCache<ClusterSbomReportCr>>();
-            return;
-        }
-
-        services
-            .AddSingleton<IConcurrentDictionaryCache<ClusterSbomReportCr>,
-                ConcurrentDictionaryCache<ClusterSbomReportCr>>();
-        services
-            .AddSingleton<IKubernetesBackgroundQueue<ClusterSbomReportCr>,
-                KubernetesBackgroundQueue<ClusterSbomReportCr>>();
-        services.AddSingleton<IClusterScopedWatcher<ClusterSbomReportCr>,
-            ClusterScopedWatcher<CustomResourceList<ClusterSbomReportCr>, ClusterSbomReportCr,
-            IKubernetesBackgroundQueue<ClusterSbomReportCr>, WatcherEvent<ClusterSbomReportCr>>>();
-
-        services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
-            ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<ClusterSbomReportCr>,
-                IClusterScopedWatcher<ClusterSbomReportCr>, ClusterSbomReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<ClusterSbomReportCr>,
-            KubernetesEventDispatcher<ClusterSbomReportCr, IKubernetesBackgroundQueue<ClusterSbomReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterSbomReportCr>, CacheRefresher<ClusterSbomReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterSbomReportCr>, WatcherState<ClusterSbomReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<ClusterSbomReportCr>, WatcherStateAlertRefresh<ClusterSbomReportCr>>();
-        services.AddScoped<IClusterSbomReportService, ClusterSbomReportService>();
-    }
-
-    public static void AddRbacAssessmentReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
-    {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseRbacAssessmentReport");
-
-        if (useServices == null || !(bool)useServices)
-        {
-            services.AddScoped<IRbacAssessmentReportService, RbacAssessmentReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<RbacAssessmentReportCr>, ConcurrentDictionaryCache<RbacAssessmentReportCr>>();
-            return;
-        }
-
-        services
-            .AddSingleton<IConcurrentDictionaryCache<RbacAssessmentReportCr>,
-                ConcurrentDictionaryCache<RbacAssessmentReportCr>>();
-        services.AddSingleton<IKubernetesBackgroundQueue<RbacAssessmentReportCr>, KubernetesBackgroundQueue<RbacAssessmentReportCr>>();
-        services.AddSingleton<INamespacedWatcher<RbacAssessmentReportCr>,
-            NamespacedWatcher<CustomResourceList<RbacAssessmentReportCr>, RbacAssessmentReportCr,
-                IKubernetesBackgroundQueue<RbacAssessmentReportCr>, WatcherEvent<RbacAssessmentReportCr>>>();
-        
-        services.AddSingleton<INamespacedKubernetesEventCoordinator,
-            NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<RbacAssessmentReportCr>,
-                INamespacedWatcher<RbacAssessmentReportCr>, RbacAssessmentReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<RbacAssessmentReportCr>,
-            KubernetesEventDispatcher<RbacAssessmentReportCr, IKubernetesBackgroundQueue<RbacAssessmentReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<RbacAssessmentReportCr>, CacheRefresher<RbacAssessmentReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<RbacAssessmentReportCr>, WatcherState<RbacAssessmentReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<RbacAssessmentReportCr>, WatcherStateAlertRefresh<RbacAssessmentReportCr>>();
-        services.AddScoped<IRbacAssessmentReportService, RbacAssessmentReportService>();
-    }
-
-    public static void AddSbomReportServices(
-        this IServiceCollection services, IConfiguration kubernetesConfiguration)
-    {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseSbomReport");
-
-        if (useServices == null || !(bool)useServices)
-        {
-            services.AddScoped<ISbomReportService, SbomReportNullService>();
-            services.AddTransient<IConcurrentDictionaryCache<SbomReportCr>, ConcurrentDictionaryCache<SbomReportCr>>();
-            return;
-        }
-
-        services
-            .AddSingleton<IConcurrentDictionaryCache<SbomReportCr>,
-                ConcurrentDictionaryCache<SbomReportCr>>();
-        services.AddSingleton<IKubernetesBackgroundQueue<SbomReportCr>, KubernetesBackgroundQueue<SbomReportCr>>();
-        services.AddSingleton<INamespacedWatcher<SbomReportCr>, SbomReportWatcher>();
-        
-        services.AddSingleton<INamespacedKubernetesEventCoordinator,
-            NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<SbomReportCr>,
-                INamespacedWatcher<SbomReportCr>, SbomReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<SbomReportCr>,
-            KubernetesEventDispatcher<SbomReportCr, IKubernetesBackgroundQueue<SbomReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<SbomReportCr>, CacheRefresher<SbomReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<SbomReportCr>, WatcherState<SbomReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<SbomReportCr>, WatcherStateAlertRefresh<SbomReportCr>>();
-        services.AddScoped<ISbomReportService, SbomReportService>();
+        services.AddScoped<TAppServiceInterface, TAppService>();
+        services.AddSingleton<IClusterScopedResourceWatchDomainService<TClusterScopedTrivyReportCr, CustomResourceList<TClusterScopedTrivyReportCr>>,
+            ClusterScopedTrivyReportDomainService<TClusterScopedTrivyReportCr>>();
     }
 
     public static void AddWatcherStateServices(this IServiceCollection services)
@@ -467,45 +289,6 @@ public static class BuilderServicesExtensions
 
     public static void AddUiCommons(this IServiceCollection services) =>
         services.AddScoped<IBackendSettingsService, BackendSettingsService>();
-
-    public static void AddDomainServices(this IServiceCollection services)
-    {
-        services.AddSingleton<ICustomResourceDefinitionFactory, CustomResourceDefinitionFactory>();
-
-        services
-            .AddSingleton<IClusterScopedResourceWatchDomainService<ClusterComplianceReportCr,
-                    CustomResourceList<ClusterComplianceReportCr>>,
-                ClusterScopedTrivyReportDomainService<ClusterComplianceReportCr>>();
-        services
-            .AddSingleton<IClusterScopedResourceWatchDomainService<ClusterRbacAssessmentReportCr,
-                    CustomResourceList<ClusterRbacAssessmentReportCr>>,
-                ClusterScopedTrivyReportDomainService<ClusterRbacAssessmentReportCr>>();
-        services
-            .AddSingleton<IClusterScopedResourceWatchDomainService<ClusterSbomReportCr, CustomResourceList<ClusterSbomReportCr>>,
-                ClusterScopedTrivyReportDomainService<ClusterSbomReportCr>>();
-        services
-            .AddSingleton<
-                IClusterScopedResourceWatchDomainService<ClusterVulnerabilityReportCr,
-                    CustomResourceList<ClusterVulnerabilityReportCr>>,
-                ClusterScopedTrivyReportDomainService<ClusterVulnerabilityReportCr>>();
-
-        services
-            .AddSingleton<INamespacedResourceWatchDomainService<ConfigAuditReportCr, CustomResourceList<ConfigAuditReportCr>>,
-                NamespacedTrivyReportDomainService<ConfigAuditReportCr>>();
-        services
-            .AddSingleton<INamespacedResourceWatchDomainService<ExposedSecretReportCr, CustomResourceList<ExposedSecretReportCr>>,
-                NamespacedTrivyReportDomainService<ExposedSecretReportCr>>();
-        services
-            .AddSingleton<INamespacedResourceWatchDomainService<RbacAssessmentReportCr,
-                    CustomResourceList<RbacAssessmentReportCr>>,
-                NamespacedTrivyReportDomainService<RbacAssessmentReportCr>>();
-        services
-            .AddSingleton<INamespacedResourceWatchDomainService<SbomReportCr, CustomResourceList<SbomReportCr>>,
-                NamespacedTrivyReportDomainService<SbomReportCr>>();
-        services
-            .AddSingleton<INamespacedResourceWatchDomainService<VulnerabilityReportCr, CustomResourceList<VulnerabilityReportCr>>,
-                NamespacedTrivyReportDomainService<VulnerabilityReportCr>>();
-    }
 
     public static void AddOthers(this IServiceCollection services)
     {
