@@ -3,6 +3,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
+using TrivyOperator.Dashboard.Application.Caching;
 using TrivyOperator.Dashboard.Application.HealthChecks;
 using TrivyOperator.Dashboard.Application.Services.Alerts;
 using TrivyOperator.Dashboard.Application.Services.Alerts.Abstractions;
@@ -204,6 +205,7 @@ public static class BuilderServicesExtensions
         this IServiceCollection services, IConfiguration kubernetesConfiguration)
     {
         bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseVulnerabilityReport");
+        bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
         if (useServices == null || !(bool)useServices)
         {
             services.AddScoped<IVulnerabilityReportService, VulnerabilityReportNullService>();
@@ -211,22 +213,33 @@ public static class BuilderServicesExtensions
             return;
         }
 
-        services.AddSingleton<
-            IConcurrentDictionaryCache<VulnerabilityReportCr>,
-            ConcurrentDictionaryCache<VulnerabilityReportCr>>();
-        services.AddSingleton<IKubernetesBackgroundQueue<VulnerabilityReportCr>, KubernetesBackgroundQueue<VulnerabilityReportCr>>();
-        services.AddSingleton<INamespacedWatcher<VulnerabilityReportCr>,
-            NamespacedWatcher<CustomResourceList<VulnerabilityReportCr>, VulnerabilityReportCr,
-                IKubernetesBackgroundQueue<VulnerabilityReportCr>, WatcherEvent<VulnerabilityReportCr>>>();
-        
-        services.AddSingleton<INamespacedKubernetesEventCoordinator,
+        if (useDefaultContext == null || !(bool)useDefaultContext)
+        {
+            services.AddSingleton<
+                IConcurrentDictionaryCache<VulnerabilityReportCr>,
+                NamespacedResourceQueryCache<VulnerabilityReportCr, CustomResourceList<VulnerabilityReportCr>>>();
+        }
+        else
+        {
+            services.AddSingleton<
+                IConcurrentDictionaryCache<VulnerabilityReportCr>,
+                ConcurrentDictionaryCache<VulnerabilityReportCr>>();
+            services.AddSingleton<IKubernetesBackgroundQueue<VulnerabilityReportCr>, KubernetesBackgroundQueue<VulnerabilityReportCr>>();
+            services.AddSingleton<INamespacedWatcher<VulnerabilityReportCr>,
+                NamespacedWatcher<CustomResourceList<VulnerabilityReportCr>, VulnerabilityReportCr,
+                    IKubernetesBackgroundQueue<VulnerabilityReportCr>, WatcherEvent<VulnerabilityReportCr>>>();
+            services.AddSingleton<INamespacedKubernetesEventCoordinator,
             NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<VulnerabilityReportCr>,
                 INamespacedWatcher<VulnerabilityReportCr>, VulnerabilityReportCr>>();
-        services.AddSingleton<IKubernetesEventDispatcher<VulnerabilityReportCr>,
-            KubernetesEventDispatcher<VulnerabilityReportCr, IKubernetesBackgroundQueue<VulnerabilityReportCr>>>();
-        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, CacheRefresher<VulnerabilityReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, WatcherState<VulnerabilityReportCr>>();
-        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, WatcherStateAlertRefresh<VulnerabilityReportCr>>();
+            services.AddSingleton<IKubernetesEventDispatcher<VulnerabilityReportCr>,
+                KubernetesEventDispatcher<VulnerabilityReportCr, IKubernetesBackgroundQueue<VulnerabilityReportCr>>>();
+            services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, CacheRefresher<VulnerabilityReportCr>>();
+            services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, WatcherState<VulnerabilityReportCr>>();
+            services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, WatcherStateAlertRefresh<VulnerabilityReportCr>>();
+
+        }
+
+
         services.AddScoped<IVulnerabilityReportService, VulnerabilityReportService>();
     }
 
@@ -416,7 +429,8 @@ public static class BuilderServicesExtensions
         services.AddHostedService<WatcherStateCacheTimedHostedService>();
 
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
-        services.AddScoped<IKubernetesContextProvider, DefaultKubernetesContextProvider>();
+        //services.AddScoped<IKubernetesContextProvider, DefaultKubernetesContextProvider>();
+        services.AddScoped<IKubernetesContextProvider, HttpHeaderKubernetesContesxtProvider>();
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
 
         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))

@@ -10,10 +10,13 @@ public abstract class KubernetesResourceDomainService<TKubernetesObject>(
 {
     protected Kubernetes GetKubernetesClient()
     {
-        using var scope = scopeFactory.CreateScope();
-        var kubernetesContextProviderService = scope.ServiceProvider.GetRequiredService<IKubernetesContextProvider>();
-        string currentContext = kubernetesContextProviderService.GetCurrentContext();
-
+        using IServiceScope scope = scopeFactory.CreateScope();
+        IKubernetesContextProvider kubernetesContextProviderService = scope.ServiceProvider.GetRequiredService<IKubernetesContextProvider>();
+        if (!kubernetesContextProviderService.TryGetCurrentContext(out string? currentContext) || string.IsNullOrWhiteSpace(currentContext))
+        {
+            currentContext = kubernetesClientFactory.GetCurrentContext(); 
+        }
+    
         return kubernetesClientFactory.GetClient(currentContext);
     }
 

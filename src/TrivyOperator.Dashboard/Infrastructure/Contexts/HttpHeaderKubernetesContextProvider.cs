@@ -4,11 +4,17 @@ namespace TrivyOperator.Dashboard.Infrastructure.Contexts;
 
 public class HttpHeaderKubernetesContesxtProvider(IHttpContextAccessor httpContextAccessor) : IKubernetesContextProvider
 {
-    public string GetCurrentContext()
+    public string? GetCurrentContext()
     {
-        var header = httpContextAccessor.HttpContext?.Request.Headers["X-Kubernetes-Context"].FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(header))
-            throw new InvalidOperationException("No Kubernetes context header provided.");
-        return header;
+        return httpContextAccessor.HttpContext?.Request.Headers["X-Kubernetes-Context"].FirstOrDefault();
+    }
+
+    public bool TryGetCurrentContext(out string? context)
+    {
+        context = httpContextAccessor.HttpContext?
+            .Request.Headers["X-Kubernetes-Context"]
+            .FirstOrDefault();
+
+        return !string.IsNullOrWhiteSpace(context);
     }
 }

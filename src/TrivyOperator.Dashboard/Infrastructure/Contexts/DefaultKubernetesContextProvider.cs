@@ -6,5 +6,10 @@ public class DefaultKubernetesContextProvider(IKubernetesClientFactory kubernete
 {
     private readonly string currentContext = kubernetesClientFactory.GetCurrentContext();
 
-    public string GetCurrentContext() => currentContext;
+    public bool TryGetCurrentContext(out string? context)
+    {
+        context = currentContext;
+        
+        return true;
+    }
 }

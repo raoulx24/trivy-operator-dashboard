@@ -2,5 +2,5 @@
 
 public interface IKubernetesContextProvider
 {
-    string GetCurrentContext();
+    bool TryGetCurrentContext(out string? context);
 }
