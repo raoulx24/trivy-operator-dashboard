@@ -25,6 +25,19 @@ public class BackendSettingsService(IOptions<KubernetesOptions> options) : IBack
             },
             new BackendSettingsTrivyReportConfigDto
             {
+                Id = "csr",
+                Name = "Cluster SBOM Report",
+                Enabled = options.Value.TrivyUseClusterSbomReport,
+            },
+            new BackendSettingsTrivyReportConfigDto
+            {
+                Id = "cvr",
+                Name = "Cluster Vulnerability Report",
+                Enabled = options.Value.TrivyUseClusterVulnerabilityReport,
+            },
+
+            new BackendSettingsTrivyReportConfigDto
+            {
                 Id = "car",
                 Name = "Config Audit Report",
                 Enabled = options.Value.TrivyUseConfigAuditReport,
@@ -37,15 +50,9 @@ public class BackendSettingsService(IOptions<KubernetesOptions> options) : IBack
             },
             new BackendSettingsTrivyReportConfigDto
             {
-                Id = "vr",
-                Name = "Vulnerability Report",
-                Enabled = options.Value.TrivyUseVulnerabilityReport,
-            },
-            new BackendSettingsTrivyReportConfigDto
-            {
-                Id = "cvr",
-                Name = "Cluster Vulnerability Report",
-                Enabled = options.Value.TrivyUseClusterVulnerabilityReport,
+                Id = "iar",
+                Name = "Infra Assessment Report",
+                Enabled = options.Value.TrivyUseInfraAssessmentReport,
             },
             new BackendSettingsTrivyReportConfigDto
             {
@@ -59,13 +66,13 @@ public class BackendSettingsService(IOptions<KubernetesOptions> options) : IBack
                 Name = "SBOM Report",
                 Enabled = options.Value.TrivyUseSbomReport,
             },
-            
             new BackendSettingsTrivyReportConfigDto
             {
-                Id = "csr",
-                Name = "Cluster SBOM Report",
-                Enabled = options.Value.TrivyUseClusterSbomReport,
+                Id = "vr",
+                Name = "Vulnerability Report",
+                Enabled = options.Value.TrivyUseVulnerabilityReport,
             },
+
         ], };
 
         return Task.FromResult(backendSettingsDto);

@@ -1,0 +1,18 @@
+<div class="tod-content-border">
+  <app-trivy-table
+    csvFileName="Infra Assessment Reports"
+    csvStorageKey="Infra Assessment Reports"
+    [activeNamespaces]="activeNamespaces"
+    [dataDtos]="dataDtos"
+    [isLoading]="isLoading"
+    [trivyTableColumns]="trivyTableColumns"
+    (refreshRequested)="getTableDataDtos()"
+
+    [isExportCsvVisible]="true"
+    [isResetFiltersVisible]="true"
+    [isRefreshVisible]="true"
+    [isFooterVisible]="true"
+    [style]="{ width: '2200px' }"
+    [stateKey]="'Infra Assessment Reports Detailed'"
+  />
+</div>

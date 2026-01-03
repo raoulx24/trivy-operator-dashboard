@@ -38,6 +38,8 @@ using TrivyOperator.Dashboard.Application.Services.Trivy.ConfigAuditReport;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ConfigAuditReport.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ExposedSecretReport;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ExposedSecretReport.Abstractions;
+using TrivyOperator.Dashboard.Application.Services.Trivy.InfraAssessmentReport;
+using TrivyOperator.Dashboard.Application.Services.Trivy.InfraAssessmentReport.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.Trivy.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Application.Services.Trivy.RbacAssessmentReport.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.Trivy.SbomReport;
@@ -61,6 +63,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ClusterVulnerabilityReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ConfigAuditReport;
 using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
+using TrivyOperator.Dashboard.Domain.Trivy.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
 using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
@@ -113,26 +116,37 @@ public static class BuilderServicesExtensions
     {
         services.AddSingleton<ICustomResourceDefinitionFactory, CustomResourceDefinitionFactory>();
 
-        services.AddClusterScopedService<ClusterComplianceReportCr, IClusterComplianceReportService, ClusterComplianceReportNullService, ClusterComplianceReportService>(kubernetesConfiguration);
-        services.AddClusterScopedService<ClusterRbacAssessmentReportCr, IClusterRbacAssessmentReportService, ClusterRbacAssessmentReportNullService, ClusterRbacAssessmentReportService>(kubernetesConfiguration);
-        services.AddClusterScopedService<ClusterSbomReportCr, IClusterSbomReportService, ClusterSbomReportNullService, ClusterSbomReportService>(kubernetesConfiguration);
-        services.AddClusterScopedService<ClusterVulnerabilityReportCr, IClusterVulnerabilityReportService, ClusterVulnerabilityReportNullService, ClusterVulnerabilityReportService>(kubernetesConfiguration);
+        services.AddClusterScopedService<ClusterComplianceReportCr, IClusterComplianceReportService,
+            ClusterComplianceReportNullService, ClusterComplianceReportService>(kubernetesConfiguration, "TrivyUseClusterComplianceReport");
+        services.AddClusterScopedService<ClusterRbacAssessmentReportCr, IClusterRbacAssessmentReportService,
+            ClusterRbacAssessmentReportNullService, ClusterRbacAssessmentReportService>(kubernetesConfiguration, "TrivyUseClusterRbacAssessmentReport");
+        services.AddClusterScopedService<ClusterSbomReportCr, IClusterSbomReportService,
+            ClusterSbomReportNullService, ClusterSbomReportService>(kubernetesConfiguration, "TrivyUseClusterSbomReport");
+        services.AddClusterScopedService<ClusterVulnerabilityReportCr, IClusterVulnerabilityReportService, 
+            ClusterVulnerabilityReportNullService, ClusterVulnerabilityReportService>(kubernetesConfiguration, "TrivyUseClusterVulnerabilityReport");
 
-        services.AddNamespacedService<ConfigAuditReportCr, IConfigAuditReportService, ConfigAuditReportNullService, ConfigAuditReportService>(kubernetesConfiguration);
-        services.AddNamespacedService<ExposedSecretReportCr, IExposedSecretReportService, ExposedSecretReportNullService, ExposedSecretReportService>(kubernetesConfiguration);
-        services.AddNamespacedService<RbacAssessmentReportCr, IRbacAssessmentReportService, RbacAssessmentReportNullService, RbacAssessmentReportService>(kubernetesConfiguration);
-        services.AddNamespacedService<SbomReportCr, ISbomReportService, SbomReportNullService, SbomReportService>(kubernetesConfiguration);
-        services.AddNamespacedService<VulnerabilityReportCr, IVulnerabilityReportService, VulnerabilityReportNullService, VulnerabilityReportService>(kubernetesConfiguration);
+        services.AddNamespacedService<ConfigAuditReportCr, IConfigAuditReportService, 
+            ConfigAuditReportNullService, ConfigAuditReportService>(kubernetesConfiguration, "TrivyUseConfigAuditReport");
+        services.AddNamespacedService<ExposedSecretReportCr, IExposedSecretReportService, 
+            ExposedSecretReportNullService, ExposedSecretReportService>(kubernetesConfiguration, "TrivyUseExposedSecretReport");
+        services.AddNamespacedService<InfraAssessmentReportCr, IInfraAssessmentReportService,
+            InfraAssessmentReportNullService, InfraAssessmentReportService>(kubernetesConfiguration, "TrivyUseInfraAssessmentReport");
+        services.AddNamespacedService<RbacAssessmentReportCr, IRbacAssessmentReportService,
+            RbacAssessmentReportNullService, RbacAssessmentReportService>(kubernetesConfiguration, "TrivyUseRbacAssessmentReport");
+        services.AddNamespacedService<SbomReportCr, ISbomReportService, 
+            SbomReportNullService, SbomReportService>(kubernetesConfiguration, "TrivyUseSbomReport");
+        services.AddNamespacedService<VulnerabilityReportCr, IVulnerabilityReportService, 
+            VulnerabilityReportNullService, VulnerabilityReportService>(kubernetesConfiguration, "TrivyUseVulnerabilityReport");
     }
 
     public static void AddNamespacedService<TNamespacedTrivyReportCr, TAppServiceInterface,
-        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration kubernetesConfiguration)
+        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration kubernetesConfiguration, string trivyUseReportParamName)
         where TNamespacedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
         where TAppServiceInterface : class
         where TNullAppService : class, TAppServiceInterface
         where TAppService : class, TAppServiceInterface
     {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseVulnerabilityReport");
+        bool? useServices = kubernetesConfiguration.GetValue<bool?>(trivyUseReportParamName);
         bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
 
         if (useServices == null || !(bool)useServices)
@@ -175,13 +189,13 @@ public static class BuilderServicesExtensions
     }
 
     public static void AddClusterScopedService<TClusterScopedTrivyReportCr, TAppServiceInterface,
-        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration kubernetesConfiguration)
+        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration kubernetesConfiguration, string trivyUseReportParamName)
         where TClusterScopedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
         where TAppServiceInterface : class
         where TNullAppService : class, TAppServiceInterface
         where TAppService : class, TAppServiceInterface
     {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>("TrivyUseClusterComplianceReport");
+        bool? useServices = kubernetesConfiguration.GetValue<bool?>(trivyUseReportParamName);
         bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
 
         if (useServices == null || !(bool)useServices)

@@ -6,6 +6,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ClusterVulnerabilityReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ConfigAuditReport;
 using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
+using TrivyOperator.Dashboard.Domain.Trivy.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
 using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
@@ -23,6 +24,7 @@ public class CustomResourceDefinitionFactory : ICustomResourceDefinitionFactory
             { } t when t == typeof(ClusterVulnerabilityReportCr) => new ClusterVulnerabilityReportCrd(),
             { } t when t == typeof(ConfigAuditReportCr) => new ConfigAuditReportCrd(),
             { } t when t == typeof(ExposedSecretReportCr) => new ExposedSecretReportCrd(),
+            { } t when t == typeof(InfraAssessmentReportCr) => new InfraAssessmentReportCrd(),
             { } t when t == typeof(RbacAssessmentReportCr) => new RbacAssessmentReportCrd(),
             { } t when t == typeof(SbomReportCr) => new SbomReportCrd(),
             { } t when t == typeof(VulnerabilityReportCr) => new VulnerabilityReportCrd(),

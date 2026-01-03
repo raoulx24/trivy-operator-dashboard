@@ -663,6 +663,130 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/infra-assessment-reports:
+    get:
+      tags:
+        - InfraAssessmentReport
+      operationId: GetInfraAssessmentReportDtos
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
+        - name: excludedSeverities
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InfraAssessmentReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/infra-assessment-reports/{uid}':
+    get:
+      tags:
+        - InfraAssessmentReport
+      operationId: GetInfraAssessmentReportDtoByUid
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfraAssessmentReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/infra-assessment-reports/denormalized:
+    get:
+      tags:
+        - InfraAssessmentReport
+      operationId: GetInfraAssessmentReportDenormalizedDtos
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InfraAssessmentReportDenormalizedDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/infra-assessment-reports/active-namespaces:
+    get:
+      tags:
+        - InfraAssessmentReport
+      operationId: GetInfraAssessmentReportActiveNamespaces
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/kubernetes-contexts:
     get:
       tags:
@@ -2477,6 +2601,98 @@ components:
         isLatest:
           type: boolean
       additionalProperties: false
+    InfraAssessmentReportDenormalizedDto:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        resourceName:
+          type: string
+        resourceNamespace:
+          type: string
+        resourceKind:
+          type: string
+        category:
+          type: string
+        checkId:
+          type: string
+        description:
+          type: string
+        messages:
+          type: array
+          items:
+            type: string
+        remediation:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        success:
+          type: boolean
+        title:
+          type: string
+      additionalProperties: false
+    InfraAssessmentReportDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        matchKey:
+          type: string
+          format: uuid
+          readOnly: true
+        category:
+          type: string
+        checkId:
+          type: string
+        description:
+          type: string
+        messages:
+          type: array
+          items:
+            type: string
+        remediation:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        success:
+          type: boolean
+        title:
+          type: string
+      additionalProperties: false
+    InfraAssessmentReportDto:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        resourceName:
+          type: string
+        resourceNamespace:
+          type: string
+        resourceKind:
+          type: string
+        criticalCount:
+          type: integer
+          format: int64
+        highCount:
+          type: integer
+          format: int64
+        mediumCount:
+          type: integer
+          format: int64
+        lowCount:
+          type: integer
+          format: int64
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/InfraAssessmentReportDetailDto'
+      additionalProperties: false
     KubernetesContextsDto:
       type: object
       properties:
@@ -3313,6 +3529,7 @@ tags:
   - name: ClusterVulnerabilityReport
   - name: ConfigAuditReport
   - name: ExposedSecretReport
+  - name: InfraAssessmentReport
   - name: KubernetesContexts
   - name: Namespaces
   - name: RbacAssessmentReport

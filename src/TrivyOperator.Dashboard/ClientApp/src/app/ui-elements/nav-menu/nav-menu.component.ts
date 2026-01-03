@@ -46,7 +46,7 @@ export class NavMenuComponent {
   private mainAppInitService = inject(MainAppInitService);
   private routerEventEmitterService = inject(RouterEventEmitterService);
   protected k8sContextState = inject(KubernetesContextStateService);
-  
+
   isDrawerVisible = false;
 
   // --- Signals from services ---
@@ -142,6 +142,15 @@ export class NavMenuComponent {
               this.isDrawerVisible = false;
             },
           },
+          {
+            label: 'Infra Assessments',
+            icon: 'host',
+            disabled: !this.enabledTrivyReports().includes('iar'),
+            command: () => {
+              this.router.navigate(['/infra-assessment-reports']);
+              this.isDrawerVisible = false;
+            },
+          },
         ]
       },
       {
@@ -234,6 +243,15 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('rar'),
             command: () => {
               this.router.navigate(['/rbac-assessment-reports-detailed']);
+              this.isDrawerVisible = false;
+            },
+          },
+          {
+            label: 'Infra Assessments',
+            icon: 'host',
+            disabled: !this.enabledTrivyReports().includes('iar'),
+            command: () => {
+              this.router.navigate(['/infra-assessment-reports-detailed']);
               this.isDrawerVisible = false;
             },
           },

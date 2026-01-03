@@ -27,6 +27,7 @@ export const routes: Routes = [
         (m) => m.ConfigAuditReportsComponent),
     data: { title: 'Config Audit Reports' },
   },
+
   {
     path: 'config-audit-reports-detailed',
     loadComponent: () =>
@@ -145,6 +146,20 @@ export const routes: Routes = [
     loadComponent: () => import('./trivy-reports/cluster-sbom-reports/cluster-sbom-reports.component').then(
       (m) => m.ClusterSbomReportsComponent),
     data: { title: 'Cluster SBOM Reports' },
+  },
+  {
+    path: 'infra-assessment-reports',
+    loadComponent: () =>
+      import('./trivy-reports/infra-assessment-reports/infra-assessment-reports.component').then(
+        (m) => m.InfraAssessmentReportsComponent),
+    data: { title: 'Infra Assessment Reports' },
+  },
+  {
+    path: 'infra-assessment-reports-detailed',
+    loadComponent: () =>
+      import('./trivy-reports/infra-assessment-reports-detailed/infra-assessment-reports-detailed.component').then(
+        (m) => m.InfraAssessmentReportsDetailedComponent),
+    data: { title: 'Infra Assessment Reports Detailed' },
   },
   {
     path: 'test1',

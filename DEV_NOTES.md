@@ -42,6 +42,8 @@ ng g component fetch-data --skip-tests --style=scss
 
 ```sh
 npm run update-endpoints:local
+# and, maybe, create also api files
+npm run prebuild
 ```
 
 ### Update Angular
