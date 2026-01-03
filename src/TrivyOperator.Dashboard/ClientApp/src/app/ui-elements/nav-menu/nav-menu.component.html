@@ -29,10 +29,12 @@
   </ng-template>
 </p-menubar>
 <p-drawer [baseZIndex]="10000" [closable]="false" [(visible)]="isDrawerVisible">
-  <p-select class="w-full mb-2"
-            [options]="contexts()"
-            [ngModel]="selectedContext()"
-            (onChange)="onContextChange($event.value)" />
+  @if (contexts().length > 1) {
+    <p-select class="w-full mb-2"
+              [options]="contexts()"
+              [ngModel]="selectedContext()"
+              (onChange)="onContextChange($event.value)" />
+  }
   <p-panelMenu class="w-full" [model]="items()" [multiple]="true">
     <ng-template let-item #item>
       <a pRipple class="flex items-center cursor-pointer text-color px-4 py-2">

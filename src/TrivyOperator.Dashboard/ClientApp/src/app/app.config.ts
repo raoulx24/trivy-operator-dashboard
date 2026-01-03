@@ -20,7 +20,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([kubernetesContextInterceptor])
     ),
-    provideAnimationsAsync(),
     importProvidersFrom(ApiModule.forRoot({ rootUrl: environment.baseUrl })),
     MainAppInitService,
     Title,
