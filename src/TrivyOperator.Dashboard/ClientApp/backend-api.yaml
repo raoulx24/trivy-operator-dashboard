@@ -179,6 +179,130 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/cluster-infra-assessment-reports:
+    get:
+      tags:
+        - ClusterInfraAssessmentReport
+      operationId: GetClusterInfraAssessmentReportDtos
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
+        - name: excludedSeverities
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClusterInfraAssessmentReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/cluster-infra-assessment-reports/{uid}':
+    get:
+      tags:
+        - ClusterInfraAssessmentReport
+      operationId: GetClusterInfraAssessmentReportDtoByUid
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterInfraAssessmentReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/cluster-infra-assessment-reports/denormalized:
+    get:
+      tags:
+        - ClusterInfraAssessmentReport
+      operationId: GetClusterInfraAssessmentReportDenormalizedDtos
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClusterInfraAssessmentReportDenormalizedDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/cluster-infra-assessment-reports/active-namespaces:
+    get:
+      tags:
+        - ClusterInfraAssessmentReport
+      operationId: GetClusterInfraAssessmentReportActiveNamespaces
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-rbac-assessment-reports:
     get:
       tags:
@@ -1740,6 +1864,94 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ClusterComplianceReportDetailDto'
+      additionalProperties: false
+    ClusterInfraAssessmentReportDenormalizedDto:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        resourceName:
+          type: string
+        resourceKind:
+          type: string
+        category:
+          type: string
+        checkId:
+          type: string
+        description:
+          type: string
+        messages:
+          type: array
+          items:
+            type: string
+        remediation:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        success:
+          type: boolean
+        title:
+          type: string
+      additionalProperties: false
+    ClusterInfraAssessmentReportDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        matchKey:
+          type: string
+          format: uuid
+          readOnly: true
+        category:
+          type: string
+        checkId:
+          type: string
+        description:
+          type: string
+        messages:
+          type: array
+          items:
+            type: string
+        remediation:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        success:
+          type: boolean
+        title:
+          type: string
+      additionalProperties: false
+    ClusterInfraAssessmentReportDto:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        resourceName:
+          type: string
+        resourceKind:
+          type: string
+        criticalCount:
+          type: integer
+          format: int64
+        highCount:
+          type: integer
+          format: int64
+        mediumCount:
+          type: integer
+          format: int64
+        lowCount:
+          type: integer
+          format: int64
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClusterInfraAssessmentReportDetailDto'
       additionalProperties: false
     ClusterRbacAssessmentReportDenormalizedDto:
       type: object
@@ -3524,6 +3736,7 @@ tags:
   - name: AppVersion
   - name: BackendSettings
   - name: ClusterComplianceReport
+  - name: ClusterInfraAssessmentReport
   - name: ClusterRbacAssessmentReport
   - name: ClusterSbomReport
   - name: ClusterVulnerabilityReport

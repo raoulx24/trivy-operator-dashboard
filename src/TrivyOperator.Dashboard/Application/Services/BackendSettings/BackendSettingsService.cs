@@ -19,6 +19,12 @@ public class BackendSettingsService(IOptions<KubernetesOptions> options) : IBack
             },
             new BackendSettingsTrivyReportConfigDto
             {
+                Id = "ciar",
+                Name = "Cluster Infra Assessment Report",
+                Enabled = options.Value.TrivyUseClusterInfraAssessmentReport,
+            },
+            new BackendSettingsTrivyReportConfigDto
+            {
                 Id = "crar",
                 Name = "Cluster RBAC Assessment Report",
                 Enabled = options.Value.TrivyUseClusterRbacAssessmentReport,

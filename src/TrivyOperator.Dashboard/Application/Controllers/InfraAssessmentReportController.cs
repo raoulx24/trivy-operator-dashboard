@@ -7,7 +7,7 @@ namespace TrivyOperator.Dashboard.Application.Controllers;
 
 [ApiController]
 [Route("api/infra-assessment-reports")]
-public class InfraAssessmentReportController(IInfraAssessmentReportService InfraAssessmentReportService) : ControllerBase
+public class InfraAssessmentReportController(IInfraAssessmentReportService infraAssessmentReportService) : ControllerBase
 {
     [HttpGet(Name = "GetInfraAssessmentReportDtos")]
     [ProducesResponseType<IEnumerable<InfraAssessmentReportDto>>(StatusCodes.Status200OK)]
@@ -23,7 +23,7 @@ public class InfraAssessmentReportController(IInfraAssessmentReportService Infra
         }
 
         IEnumerable<InfraAssessmentReportDto> InfraAssessmentReportImageDtos =
-            await InfraAssessmentReportService.GetInfraAssessmentReportDtos(namespaceName, excludedSeverityIds);
+            await infraAssessmentReportService.GetInfraAssessmentReportDtos(namespaceName, excludedSeverityIds);
 
         return Results.Ok(InfraAssessmentReportImageDtos);
     }
@@ -37,7 +37,7 @@ public class InfraAssessmentReportController(IInfraAssessmentReportService Infra
     public async Task<IResult> GetByUid(Guid uid)
     {
         InfraAssessmentReportDto? InfraAssessmentReportDto =
-            await InfraAssessmentReportService.GetInfraAssessmentReportDtoByUid(uid);
+            await infraAssessmentReportService.GetInfraAssessmentReportDtoByUid(uid);
 
         return InfraAssessmentReportDto is null
             ? Results.NotFound()
@@ -50,12 +50,12 @@ public class InfraAssessmentReportController(IInfraAssessmentReportService Infra
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IEnumerable<InfraAssessmentReportDenormalizedDto>> GetDenormalized() =>
-        await InfraAssessmentReportService.GetInfraAssessmentReportDenormalizedDtos();
+        await infraAssessmentReportService.GetInfraAssessmentReportDenormalizedDtos();
 
     [HttpGet("active-namespaces", Name = "GetInfraAssessmentReportActiveNamespaces")]
     [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IEnumerable<string>> GetActiveNamespaces() =>
-        await InfraAssessmentReportService.GetActiveNamespaces();
+        await infraAssessmentReportService.GetActiveNamespaces();
 }

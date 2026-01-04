@@ -1,5 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterComplianceReport;
+using TrivyOperator.Dashboard.Domain.Trivy.ClusterInfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterRbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterSbomReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterVulnerabilityReport;
@@ -19,6 +20,7 @@ public class CustomResourceDefinitionFactory : ICustomResourceDefinitionFactory
         => typeof(TKubernetesObject) switch
         {
             { } t when t == typeof(ClusterComplianceReportCr) => new ClusterComplianceReportCrd(),
+            { } t when t == typeof(ClusterInfraAssessmentReportCr) => new ClusterInfraAssessmentReportCrd(),
             { } t when t == typeof(ClusterRbacAssessmentReportCr) => new ClusterRbacAssessmentReportCrd(),
             { } t when t == typeof(ClusterSbomReportCr) => new ClusterSbomReportCrd(),
             { } t when t == typeof(ClusterVulnerabilityReportCr) => new ClusterVulnerabilityReportCrd(),

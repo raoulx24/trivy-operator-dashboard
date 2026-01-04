@@ -5,9 +5,11 @@ public record KubernetesOptions
     public string KubeConfigFileName { get; init; } = string.Empty;
     public bool UseDefaultContext { get; set; } = true;
     public string NamespaceList { get; init; } = string.Empty;
-    public bool TrivyUseClusterRbacAssessmentReport { get; init; } = true;
 
+    
     public bool TrivyUseClusterComplianceReport { get; init; } = true;
+    public bool TrivyUseClusterInfraAssessmentReport { get; init; } = true;
+    public bool TrivyUseClusterRbacAssessmentReport { get; init; } = true;
     public bool TrivyUseClusterSbomReport { get; init; } = true;
     public bool TrivyUseClusterVulnerabilityReport { get; init; } = true;
 
