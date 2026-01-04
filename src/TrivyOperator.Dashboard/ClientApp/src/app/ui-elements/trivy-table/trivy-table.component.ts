@@ -25,12 +25,12 @@ import { CronPipe } from '../../pipes/cron.pipe';
 import { LocalTimePipe } from '../../pipes/local-time.pipe';
 import { SemaphoreCssStyleByNamePipe } from '../../pipes/semaphore-css-style-by-name.pipe';
 import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
-import { SeverityNameByIdPipe } from "../../pipes/severity-name-by-id.pipe";
-import { SeverityNamesMaxDisplayPipe } from "../../pipes/severity-names-max-display.pipe";
+import { SeverityNameByIdPipe } from '../../pipes/severity-name-by-id.pipe';
+import { SeverityNamesMaxDisplayPipe } from '../../pipes/severity-names-max-display.pipe';
 import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 import { UnPascalCasePipe } from '../../pipes/un-pascal-case.pipe';
 
-import { ReactiveMap } from '../../abstracts/reactive-map'
+import { ReactiveMap } from '../../abstracts/reactive-map';
 
 @Component({
   selector: 'app-trivy-table',
@@ -218,12 +218,15 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   onFilterData() {
-    const event: TrivyFilterData = {
+    this.serverFilterDataOp?.hide();
+    this.refreshRequested.emit(this.getActualFilterData());
+  }
+
+  getActualFilterData(): TrivyFilterData {
+    return {
       namespaceName: this.filterRefreshActiveNamespace,
       selectedSeverityIds: this.filterRefreshSeverities?.map((x) => x.id) ?? [],
     };
-    this.serverFilterDataOp?.hide();
-    this.refreshRequested.emit(event);
   }
 
   onFilterReset() {

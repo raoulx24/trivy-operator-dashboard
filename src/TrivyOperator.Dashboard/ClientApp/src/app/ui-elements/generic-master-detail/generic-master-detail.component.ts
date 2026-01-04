@@ -1,13 +1,7 @@
-import {
-  Component,
-  effect,
-  HostListener,
-  input,
-  output,
-  ViewChild,
-} from '@angular/core';
+import { Component, effect, HostListener, inject, input, output, ViewChild } from '@angular/core';
 
 import { SeverityDto } from '../../../api/models/severity-dto';
+import { SeverityUtils } from '../../utils/severity.utils';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import {
   MultiHeaderAction,
@@ -18,6 +12,7 @@ import {
 import { TrivyReport, TrivyReportDetail } from '../../trivy-reports/abstracts/trivy-report';
 
 import { SplitterModule } from 'primeng/splitter';
+import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
 
 
 @Component({
@@ -27,8 +22,13 @@ import { SplitterModule } from 'primeng/splitter';
   templateUrl: './generic-master-detail.component.html',
   styleUrl: './generic-master-detail.component.scss',
 })
-export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTrivyReportDetail>, TTrivyReportDetail extends TrivyReportDetail> {
-  severityDtos= input<SeverityDto[]>([]);
+export class GenericMasterDetailComponent<
+  TTrivyReport extends TrivyReport<TTrivyReportDetail>,
+  TTrivyReportDetail extends TrivyReportDetail,
+> {
+  private readonly kubernetesContextService = inject(KubernetesContextStateService);
+
+  severityDtos = input<SeverityDto[]>([]);
   activeNamespaces = input<string[]>([]);
   mainTableColumns = input.required<TrivyTableColumn[]>();
   mainTableRowExpandResponse = input<TrivyTableExpandRowData<TTrivyReport>>();
@@ -40,6 +40,7 @@ export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTriv
   protected _singleSelectDataDto?: TTrivyReport;
 
   refreshRequested = output<TrivyFilterData>();
+  private _lastEvent?: TrivyFilterData;
 
   mainTableRowExpandChange = output<TTrivyReport>();
   mainTableExpandCallback = output<TTrivyReport>();
@@ -61,7 +62,6 @@ export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTriv
   mainTableExtraClasses = input<string | undefined>(undefined);
   mainTableMultiHeaderActions = input<MultiHeaderAction[]>([]);
 
-
   detailsIsClearSelectionVisible = input<boolean | undefined>(false);
   detailsIsCollapseAllVisible = input<boolean | undefined>(false);
   detailsIsResetFiltersVisible = input<boolean | undefined>(false);
@@ -77,9 +77,7 @@ export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTriv
   detailsExtraClasses = input<string | undefined>(undefined);
   detailsMultiHeaderActions = input<MultiHeaderAction[]>([]);
 
-
   detailsTableMultiHeaderActionRequested = output<string>();
-
 
   @ViewChild('mainTable', { static: true }) mainTable?: TrivyTableComponent<TTrivyReport>;
 
@@ -94,13 +92,26 @@ export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTriv
   constructor() {
     effect(() => {
       this._isMainTableLoading = this.isMainTableLoading();
-    })
+    });
     effect(() => {
       const dataDtos = this.dataDtos();
       this.onGetTDataDtos(dataDtos);
     });
     effect(() => {
       this._singleSelectDataDto = this.singleSelectDataDto();
+    });
+    effect(() => {
+      const ctx = this.kubernetesContextService.selectedContext();
+      if (ctx) {
+        if (!this._lastEvent) {
+          this._lastEvent =
+            {
+              namespaceName: '',
+              selectedSeverityIds: SeverityUtils.severityDtos.map(x => x.id),
+            };
+        }
+        this.refreshRequested.emit(this._lastEvent);
+      }
     });
   }
 
@@ -112,7 +123,7 @@ export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTriv
 
     let newSelectedDataDto: TTrivyReport | null = null;
     if (this.selectedDataDto) {
-      newSelectedDataDto = this._dataDtos.find(dto => dto.uid === this.selectedDataDto?.uid) || null;
+      newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === this.selectedDataDto?.uid) || null;
       this._singleSelectDataDto = newSelectedDataDto ?? undefined;
     }
     this.selectedDataDto = newSelectedDataDto;
@@ -132,6 +143,7 @@ export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTriv
   }
 
   onRefreshRequested(event: TrivyFilterData) {
+    this._lastEvent = event;
     this.refreshRequested.emit(event);
   }
 
@@ -158,9 +170,7 @@ export class GenericMasterDetailComponent<TTrivyReport extends TrivyReport<TTriv
   }
 
   getScreenSize(): string {
-    const cssVarValue = getComputedStyle(document.documentElement)
-      .getPropertyValue('--tod-screen-width-sm')
-      .trim(); // Get and clean the CSS variable value
+    const cssVarValue = getComputedStyle(document.documentElement).getPropertyValue('--tod-screen-width-sm').trim(); // Get and clean the CSS variable value
 
     const threshold = parseInt(cssVarValue, 10); // Convert it to a number
 

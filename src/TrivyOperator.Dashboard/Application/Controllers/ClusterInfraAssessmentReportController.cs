@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Models;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ClusterInfraAssessmentReport.Abstractions;
-using TrivyOperator.Dashboard.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Controllers;
 
@@ -13,17 +12,10 @@ public class ClusterInfraAssessmentReportController(IClusterInfraAssessmentRepor
     [ProducesResponseType<IEnumerable<ClusterInfraAssessmentReportDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IResult> Get(string? namespaceName, string? excludedSeverities)
+    public async Task<IResult> Get()
     {
-        List<int>? excludedSeverityIds = TrivyUtils.GetExcludedSeverityIdsFromStringList(excludedSeverities);
-
-        if (excludedSeverityIds == null)
-        {
-            return Results.BadRequest();
-        }
-
         IEnumerable<ClusterInfraAssessmentReportDto> clusterInfraAssessmentReportImageDtos =
-            await clusterInfraAssessmentReportService.GetClusterInfraAssessmentReportDtos(namespaceName, excludedSeverityIds);
+            await clusterInfraAssessmentReportService.GetClusterInfraAssessmentReportDtos();
 
         return Results.Ok(clusterInfraAssessmentReportImageDtos);
     }
@@ -51,11 +43,4 @@ public class ClusterInfraAssessmentReportController(IClusterInfraAssessmentRepor
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>> GetDenormalized() =>
         await clusterInfraAssessmentReportService.GetClusterInfraAssessmentReportDenormalizedDtos();
-
-    [HttpGet("active-namespaces", Name = "GetClusterInfraAssessmentReportActiveNamespaces")]
-    [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<string>> GetActiveNamespaces() =>
-        await clusterInfraAssessmentReportService.GetActiveNamespaces();
 }

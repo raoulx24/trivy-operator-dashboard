@@ -184,15 +184,6 @@ paths:
       tags:
         - ClusterInfraAssessmentReport
       operationId: GetClusterInfraAssessmentReportDtos
-      parameters:
-        - name: namespaceName
-          in: query
-          schema:
-            type: string
-        - name: excludedSeverities
-          in: query
-          schema:
-            type: string
       responses:
         '200':
           description: OK
@@ -265,32 +256,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterInfraAssessmentReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/cluster-infra-assessment-reports/active-namespaces:
-    get:
-      tags:
-        - ClusterInfraAssessmentReport
-      operationId: GetClusterInfraAssessmentReportActiveNamespaces
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
         '400':
           description: Bad Request
           content:
