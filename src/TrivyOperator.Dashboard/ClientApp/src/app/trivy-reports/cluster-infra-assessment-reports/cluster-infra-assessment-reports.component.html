@@ -1,0 +1,49 @@
+<app-generic-master-detail [dataDtos]="dataDtos"
+                           [detailsTableColumns]="detailsTableColumns"
+                           [isMainTableLoading]="isMainTableLoading"
+                           [mainTableColumns]="mainTableColumns"
+                           [splitterStorageKey]="'Cluster Infra Assessment Reports'"
+                           (refreshRequested)="onRefreshRequested($event)"
+                           (mainTableMultiHeaderActionRequested)="onMainTableMultiHeaderActionRequested($event)"
+                           (mainTableSelectedRowChanged)="onMainTableSelectedRowChanged($event)"
+
+                           [mainTableIsRefreshVisible]="true"
+                           [mainTableSelectionMode]="'single'"
+                           [mainTableStyle]="{ width: '775px' }"
+                           [mainTableStateKey]="'Cluster Infra Assessment Reports - Main'"
+                           [mainTableExtraClasses]="'trivy-half'"
+                           [mainTableMultiHeaderActions]="[
+                             { label: '', icon: 'pi pi-align-justify', specialAction: 'Go to Detailed ⧉' },
+                             { label: 'Compare with...', icon: 'pi pi-copy', enabledIfRowSelected: true },
+                             { label: '', specialAction: 'Clear Sort/Filters' },
+                           ]"
+
+                           [detailsIsResetFiltersVisible]="true"
+                           [detailsStateKey]="'Cluster Infra Assessment Reports - Details'"
+                           [detailsDataKey]="'id'"
+                           [detailsRowExpansionRender]="'messages'"
+                           [detailsExtraClasses]="'trivy-half'" />
+
+@if (selectedTrivyReportDto && isTrivyReportsCompareVisible) {
+  <p-dialog closable="true"
+            closeOnEscape="true"
+            dismissableMask="true"
+            resizable="true"
+            maximizable="true"
+            [breakpoints]="{ '890px': '90vw' }"
+            [contentStyle]="{ height: '95vh' }"
+            header="Compare Cluster Infra Assessment Reports"
+            [modal]="true"
+            [style]="{ width: '90vw' }"
+            [(visible)]="isTrivyReportsCompareVisible" >
+    <app-generic-reports-compare [dataDtos]="dataDtos"
+                                 [comparedTableColumns]="comparedTableColumns"
+                                 [namespacedImageDtos]="compareNamespacedImageDtos"
+                                 [firstSelectedTrivyReportId]="compareFirstSelectedIdId"
+
+                                 [compareIsResetFiltersVisible]="true"
+                                 [compareStateKey]="'Cluster Infra Assessment Reports - Compared'"
+                                 [compareExtraClasses]="'trivy-with-filters'"
+                                 imagePlaceholder="Select Cluster Infra Assessment Report..."/>
+  </p-dialog>
+}

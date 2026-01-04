@@ -1,0 +1,17 @@
+<div class="tod-content-border">
+  <app-trivy-table
+    csvFileName="Cluster Infra Assessment Reports"
+    csvStorageKey="Cluster Infra Assessment Reports"
+    [dataDtos]="dataDtos"
+    [isLoading]="isLoading"
+    [trivyTableColumns]="trivyTableColumns"
+    (refreshRequested)="getTableDataDtos()"
+
+    [isExportCsvVisible]="true"
+    [isResetFiltersVisible]="true"
+    [isRefreshVisible]="true"
+    [isFooterVisible]="true"
+    [style]="{ width: '2200px' }"
+    [stateKey]="'Cluster Infra Assessment Reports Detailed'"
+  />
+</div>

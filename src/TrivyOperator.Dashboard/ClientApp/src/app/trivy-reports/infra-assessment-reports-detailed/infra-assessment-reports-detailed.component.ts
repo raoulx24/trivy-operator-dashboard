@@ -22,7 +22,7 @@ export class InfraAssessmentReportsDetailedComponent implements OnInit {
   activeNamespaces: string[] = [];
   isLoading: boolean = false;
 
-  csvFileName: string = 'Config.Audit.Reports';
+  csvFileName: string = 'Infra.Assessment.Reports';
 
   trivyTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...infraAssessmentReportDenormalizedColumns];
 
@@ -42,9 +42,7 @@ export class InfraAssessmentReportsDetailedComponent implements OnInit {
 
   onGetDataDtos(dtos: InfraAssessmentReportDenormalizedDto[]) {
     this.dataDtos = dtos;
-    this.activeNamespaces = Array
-      .from(new Set(dtos.map(dto => dto.resourceNamespace ?? "N/A")))
-      .sort();
+    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
     this.isLoading = false;
   }
 }

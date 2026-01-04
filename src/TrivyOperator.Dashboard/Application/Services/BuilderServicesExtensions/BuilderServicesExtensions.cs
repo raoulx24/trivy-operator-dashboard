@@ -28,6 +28,8 @@ using TrivyOperator.Dashboard.Application.Services.RawDomainQueryServices;
 using TrivyOperator.Dashboard.Application.Services.RawDomainQueryServices.Abstracts;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ClusterComplianceReport;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ClusterComplianceReport.Abstractions;
+using TrivyOperator.Dashboard.Application.Services.Trivy.ClusterInfraAssessmentReport;
+using TrivyOperator.Dashboard.Application.Services.Trivy.ClusterInfraAssessmentReport.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ClusterRbacAssessmentReport;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ClusterRbacAssessmentReport.Abstractions;
 using TrivyOperator.Dashboard.Application.Services.Trivy.ClusterSbomReport;
@@ -57,6 +59,7 @@ using TrivyOperator.Dashboard.Application.Services.WatcherStates.Abstractions;
 using TrivyOperator.Dashboard.Domain.Services;
 using TrivyOperator.Dashboard.Domain.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterComplianceReport;
+using TrivyOperator.Dashboard.Domain.Trivy.ClusterInfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterRbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterSbomReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterVulnerabilityReport;
@@ -118,6 +121,8 @@ public static class BuilderServicesExtensions
 
         services.AddClusterScopedService<ClusterComplianceReportCr, IClusterComplianceReportService,
             ClusterComplianceReportNullService, ClusterComplianceReportService>(kubernetesConfiguration, "TrivyUseClusterComplianceReport");
+        services.AddClusterScopedService<ClusterInfraAssessmentReportCr, IClusterInfraAssessmentReportService,
+            ClusterInfraAssessmentReportNullService, ClusterInfraAssessmentReportService>(kubernetesConfiguration, "TrivyUseClusterInfraAssessmentReport");
         services.AddClusterScopedService<ClusterRbacAssessmentReportCr, IClusterRbacAssessmentReportService,
             ClusterRbacAssessmentReportNullService, ClusterRbacAssessmentReportService>(kubernetesConfiguration, "TrivyUseClusterRbacAssessmentReport");
         services.AddClusterScopedService<ClusterSbomReportCr, IClusterSbomReportService,

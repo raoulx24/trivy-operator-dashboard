@@ -194,6 +194,15 @@ export class NavMenuComponent {
               this.isDrawerVisible.set(false);
             },
           },
+          {
+            label: 'Infra Assessments',
+            icon: 'host',
+            disabled: !this.enabledTrivyReports().includes('ciar'),
+            command: () => {
+              this.router.navigate(['/cluster-infra-assessment-reports']);
+              this.isDrawerVisible.set(false);
+            },
+          },
         ]
       },
       {
@@ -286,6 +295,15 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('ccr'),
             command: () => {
               this.router.navigate(['/cluster-compliance-reports-detailed']);
+              this.isDrawerVisible.set(false);
+            },
+          },
+          {
+            label: 'Infra Assessments',
+            icon: 'host',
+            disabled: !this.enabledTrivyReports().includes('ciar'),
+            command: () => {
+              this.router.navigate(['/cluster-infra-assessment-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },

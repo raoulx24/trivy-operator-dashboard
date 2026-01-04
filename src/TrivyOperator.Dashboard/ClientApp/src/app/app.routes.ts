@@ -162,6 +162,20 @@ export const routes: Routes = [
     data: { title: 'Infra Assessment Reports Detailed' },
   },
   {
+    path: 'cluster-infra-assessment-reports',
+    loadComponent: () =>
+      import('./trivy-reports/cluster-infra-assessment-reports/cluster-infra-assessment-reports.component').then(
+        (m) => m.ClusterInfraAssessmentReportsComponent),
+    data: { title: 'Cluster Infra Assessment Reports' },
+  },
+  {
+    path: 'cluster-infra-assessment-reports-detailed',
+    loadComponent: () =>
+      import('./trivy-reports/cluster-infra-assessment-reports-detailed/cluster-infra-assessment-reports-detailed.component').then(
+        (m) => m.ClusterInfraAssessmentReportsDetailedComponent),
+    data: { title: 'Cluster Infra Assessment Reports Detailed' },
+  },
+  {
     path: 'test1',
     loadComponent: () =>
       import('./tests/tests.component').then(
