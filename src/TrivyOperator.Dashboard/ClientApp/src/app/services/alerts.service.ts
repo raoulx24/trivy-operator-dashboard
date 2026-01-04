@@ -22,7 +22,7 @@ export class AlertsService {
   private readonly refreshTrigger = new Subject<void>();
 
   constructor(private apiConfiguration: ApiConfiguration) {
-    this.hubUrl = apiConfiguration.rootUrl ? new URL(this.hubPath, apiConfiguration.rootUrl).toString() : this.hubPath;
+    this.hubUrl = `${apiConfiguration.rootUrl}${this.hubPath}`;
     this.startConnection();
     this.addEventListeners();
   }
