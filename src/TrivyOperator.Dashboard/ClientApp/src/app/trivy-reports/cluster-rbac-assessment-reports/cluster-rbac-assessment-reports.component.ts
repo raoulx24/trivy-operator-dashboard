@@ -83,7 +83,7 @@ export class ClusterRbacAssessmentReportsComponent implements OnInit {
 
   private goToDetailedPage() {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/cluster-vulnerability-reports-detailed'])
+      this.router.createUrlTree(['cluster-vulnerability-reports-detailed'])
     );
     window.open(url, '_blank');
   }

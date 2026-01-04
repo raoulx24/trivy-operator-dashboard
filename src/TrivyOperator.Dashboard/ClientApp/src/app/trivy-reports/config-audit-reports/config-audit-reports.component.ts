@@ -104,7 +104,7 @@ export class ConfigAuditReportsComponent implements OnInit {
 
   private goToDetailedPage() {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/config-audit-reports-detailed'])
+      this.router.createUrlTree(['config-audit-reports-detailed'])
     );
     window.open(url, '_blank');
   }

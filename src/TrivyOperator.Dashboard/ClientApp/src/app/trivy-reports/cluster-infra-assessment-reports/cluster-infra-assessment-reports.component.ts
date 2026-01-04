@@ -87,7 +87,7 @@ export class ClusterInfraAssessmentReportsComponent implements OnInit {
 
   private goToDetailedPage() {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/cluster-infra-assessment-reports-detailed'])
+      this.router.createUrlTree(['cluster-infra-assessment-reports-detailed'])
     );
     window.open(url, '_blank');
   }

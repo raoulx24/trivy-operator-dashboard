@@ -225,25 +225,25 @@ export class TrivyDependencyComponent {
     switch (treeNodeData.objectType.toLowerCase()) {
       case "vulnerability":
         url = this.router.serializeUrl(
-          this.router.createUrlTree(['/vulnerability-reports'], { queryParams: {
+          this.router.createUrlTree(['vulnerability-reports'], { queryParams: {
               namespaceName: this.trivyReportDependencyDto?.image?.namespaceName,
               digest: this.trivyReportDependencyDto?.image?.imageDigest,
             }}));
         break;
       case "configaudit":
         url = this.router.serializeUrl(
-          this.router.createUrlTree(['/config-audit-reports'], { queryParams: { uid: treeNodeData.id } }));
+          this.router.createUrlTree(['config-audit-reports'], { queryParams: { uid: treeNodeData.id } }));
         break;
       case "exposedsecret":
         url = this.router.serializeUrl(
-          this.router.createUrlTree(['/exposed-secret-reports'], { queryParams: {
+          this.router.createUrlTree(['exposed-secret-reports'], { queryParams: {
               namespaceName: this.trivyReportDependencyDto?.image?.namespaceName,
               digest: this.trivyReportDependencyDto?.image?.imageDigest,
             }}));
         break;
       case "sbom":
         url = this.router.serializeUrl(
-          this.router.createUrlTree(['/sbom-reports'], { queryParams: {
+          this.router.createUrlTree(['sbom-reports'], { queryParams: {
               namespaceName: this.trivyReportDependencyDto?.image?.namespaceName,
               digest: this.trivyReportDependencyDto?.image?.imageDigest,
             }}));

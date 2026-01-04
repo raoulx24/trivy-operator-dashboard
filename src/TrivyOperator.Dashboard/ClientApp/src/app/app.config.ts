@@ -1,7 +1,6 @@
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import { ApplicationConfig, importProvidersFrom, provideAppInitializer, inject } from "@angular/core";
 import { Title } from "@angular/platform-browser";
-import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { provideRouter } from "@angular/router";
 
 import { MessageService } from "primeng/api";

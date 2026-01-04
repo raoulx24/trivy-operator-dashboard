@@ -164,7 +164,7 @@ export class ExposedSecretReportsComponent implements OnInit {
 
   private goToDetailedPage() {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/exposed-secret-reports-detailed'])
+      this.router.createUrlTree(['exposed-secret-reports-detailed'])
     );
     window.open(url, '_blank');
   }

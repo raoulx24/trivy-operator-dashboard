@@ -104,7 +104,7 @@ export class InfraAssessmentReportsComponent implements OnInit {
 
   private goToDetailedPage() {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/infra-assessment-reports-detailed'])
+      this.router.createUrlTree(['infra-assessment-reports-detailed'])
     );
     window.open(url, '_blank');
   }

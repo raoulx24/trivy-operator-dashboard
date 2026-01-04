@@ -85,7 +85,7 @@ export class RbacAssessmentReportsComponent implements OnInit {
 
   private goToDetailedPage() {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/rbac-assessment-reports-detailed'])
+      this.router.createUrlTree(['rbac-assessment-reports-detailed'])
     );
     window.open(url, '_blank');
   }

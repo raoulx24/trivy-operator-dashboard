@@ -113,7 +113,7 @@ export class ClusterSbomReportsComponent implements OnInit  {
 
   private goToDetailedPage() {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/cluster-sbom-reports-detailed'])
+      this.router.createUrlTree(['cluster-sbom-reports-detailed'])
     );
     window.open(url, '_blank');
   }
