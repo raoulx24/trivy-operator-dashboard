@@ -294,7 +294,7 @@ jobs:
     - name: Sign images with cosign
       run: |
         for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
-          cosign sign --yes ${GHCR_IMAGE}:${tag}
+          cosign sign --yes "${tag}"
         done
 
     - name: Inspect image
