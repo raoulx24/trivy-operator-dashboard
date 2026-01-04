@@ -10,6 +10,7 @@ import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.type
 
 import { MessageService } from 'primeng/api';
 import { namespacedColumns } from '../constants/generic.constants';
+import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 
 @Component({
   selector: 'app-sbom-reports-detailed',
@@ -18,7 +19,7 @@ import { namespacedColumns } from '../constants/generic.constants';
   templateUrl: './sbom-reports-detailed.component.html',
   styleUrl: './sbom-reports-detailed.component.scss'
 })
-export class SbomReportsDetailedComponent implements OnInit {
+export class SbomReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
   dataDtos: SbomReportImageDto[] | null = null;
   activeNamespaces: string[] = [];
   selectedDataDtos: SbomReportImageDto[] | null = null;

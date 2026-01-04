@@ -8,6 +8,7 @@ import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.c
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { configAuditReportDenormalizedColumns } from '../constants/config-audit-reports.constants';
 import { namespacedColumns } from '../constants/generic.constants';
+import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 
 @Component({
   selector: 'app-config-audit-reports-detailed',
@@ -16,7 +17,7 @@ import { namespacedColumns } from '../constants/generic.constants';
   templateUrl: './config-audit-reports-detailed.component.html',
   styleUrl: './config-audit-reports-detailed.component.scss',
 })
-export class ConfigAuditReportsDetailedComponent implements OnInit {
+export class ConfigAuditReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
   dataDtos?: ConfigAuditReportDenormalizedDto[];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];

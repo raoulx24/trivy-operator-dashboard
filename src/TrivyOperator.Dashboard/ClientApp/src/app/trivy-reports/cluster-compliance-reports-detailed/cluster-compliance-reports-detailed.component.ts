@@ -7,6 +7,7 @@ import { ClusterComplianceReportDenormalizedDto } from '../../../api/models';
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster-compliance-reports.constants';
+import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 
 @Component({
   selector: 'app-cluster-compliance-reports-detailed',
@@ -15,7 +16,7 @@ import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster
   templateUrl: './cluster-compliance-reports-detailed.component.html',
   styleUrl: './cluster-compliance-reports-detailed.component.scss',
 })
-export class ClusterComplianceReportsDetailedComponent implements OnInit {
+export class ClusterComplianceReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
   dataDtos?: ClusterComplianceReportDenormalizedDto[];
   severityDtos: SeverityDto[] = [];
   isLoading: boolean = false;

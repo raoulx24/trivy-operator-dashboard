@@ -8,6 +8,7 @@ import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.c
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { namespacedColumns } from '../constants/generic.constants';
 import { exposedSecretReportDenormalizedColumns } from '../constants/exposed-secret-reports.constants';
+import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 
 @Component({
   selector: 'app-exposed-secret-reports-detailed',
@@ -16,7 +17,7 @@ import { exposedSecretReportDenormalizedColumns } from '../constants/exposed-sec
   templateUrl: './exposed-secret-reports-detailed.component.html',
   styleUrl: './exposed-secret-reports-detailed.component.scss',
 })
-export class ExposedSecretReportsDetailedComponent implements OnInit {
+export class ExposedSecretReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
   public dataDtos?: ExposedSecretReportDenormalizedDto[];
   public severityDtos: SeverityDto[] = [];
   public activeNamespaces: string[] = [];

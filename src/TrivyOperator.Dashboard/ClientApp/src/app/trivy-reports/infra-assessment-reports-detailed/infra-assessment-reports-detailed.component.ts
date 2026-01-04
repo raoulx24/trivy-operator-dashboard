@@ -8,6 +8,7 @@ import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.c
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { infraAssessmentReportDenormalizedColumns } from '../constants/infra-assessment-reports.constants';
 import { namespacedColumns } from '../constants/generic.constants';
+import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 
 @Component({
   selector: 'app-infra-assessment-reports-detailed',
@@ -16,7 +17,7 @@ import { namespacedColumns } from '../constants/generic.constants';
   templateUrl: './infra-assessment-reports-detailed.component.html',
   styleUrl: './infra-assessment-reports-detailed.component.scss',
 })
-export class InfraAssessmentReportsDetailedComponent implements OnInit {
+export class InfraAssessmentReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
   dataDtos?: InfraAssessmentReportDenormalizedDto[];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];

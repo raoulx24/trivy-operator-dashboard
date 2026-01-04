@@ -8,6 +8,7 @@ import { rbacAssessmentReportDenormalizedColumns } from '../constants/rbac-asses
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { namespacedColumns } from '../constants/generic.constants';
+import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 
 @Component({
   selector: 'app-rbac-assessment-reports-detailed',
@@ -16,7 +17,7 @@ import { namespacedColumns } from '../constants/generic.constants';
   templateUrl: './rbac-assessment-reports-detailed.component.html',
   styleUrl: './rbac-assessment-reports-detailed.component.scss',
 })
-export class RbacAssessmentReportsDetailedComponent implements OnInit {
+export class RbacAssessmentReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
   dataDtos?: RbacAssessmentReportDenormalizedDto[] | null;
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
