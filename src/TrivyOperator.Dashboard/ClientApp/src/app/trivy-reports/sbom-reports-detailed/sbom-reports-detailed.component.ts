@@ -76,7 +76,7 @@ export class SbomReportsDetailedComponent  extends TrivyReportsDetailedBase impl
     })
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     const params = new HttpParams().set('fileType', 'json');
-    const apiUrl = `${this.service.rootUrl}/api/sbom-reports/export`;
+    const apiUrl = `${this.service.rootUrl}api/sbom-reports/export`;
 
     let sbomsExport: { namespaceName: string, digest: string }[];
 

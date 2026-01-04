@@ -260,7 +260,7 @@ public class SbomReportService(
                 string imageVersion = cycloneDxBom.Metadata?.Component?.Version ?? string.Empty;
                 string fileExtension = fileType.ToLower() == "json" ? "json" : "xml";
                 string fileName = InvalidFileNameCharsRegex.Replace(
-                    $"{exportSbom.NamespaceName}_{imageName}_{imageVersion}_{exportSbom.Digest}.${fileExtension}", "_");
+                    $"{exportSbom.NamespaceName}_{imageName}_{imageVersion}_{exportSbom.Digest}.{fileExtension}", "_");
                 await using var stream = archive.CreateEntry(fileName).Open();
                 if (fileType == "json")
                 {

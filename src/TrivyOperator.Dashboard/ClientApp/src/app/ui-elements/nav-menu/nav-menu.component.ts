@@ -88,7 +88,7 @@ export class NavMenuComponent {
         label: 'Home',
         icon: 'home',
         command: () => {
-          this.router.navigate(['/']);
+          this.router.navigate(['']);
           this.isDrawerVisible.set(false);
         },
       },
@@ -102,7 +102,7 @@ export class NavMenuComponent {
             icon: 'security',
             disabled: !this.enabledTrivyReports().includes('vr'),
             command: () => {
-              this.router.navigate(['/vulnerability-reports']);
+              this.router.navigate(['vulnerability-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -111,7 +111,7 @@ export class NavMenuComponent {
             icon: 'graph_3',
             disabled: !this.enabledTrivyReports().includes('sr'),
             command: () => {
-              this.router.navigate(['/sbom-reports']);
+              this.router.navigate(['sbom-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -120,7 +120,7 @@ export class NavMenuComponent {
             icon: 'assignment',
             disabled: !this.enabledTrivyReports().includes('car'),
             command: () => {
-              this.router.navigate(['/config-audit-reports']);
+              this.router.navigate(['config-audit-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -129,7 +129,7 @@ export class NavMenuComponent {
             icon: 'key_off',
             disabled: !this.enabledTrivyReports().includes('esr'),
             command: () => {
-              this.router.navigate(['/exposed-secret-reports']);
+              this.router.navigate(['exposed-secret-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -138,7 +138,7 @@ export class NavMenuComponent {
             icon: 'admin_panel_settings',
             disabled: !this.enabledTrivyReports().includes('rar'),
             command: () => {
-              this.router.navigate(['/rbac-assessment-reports']);
+              this.router.navigate(['rbac-assessment-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -147,7 +147,7 @@ export class NavMenuComponent {
             icon: 'host',
             disabled: !this.enabledTrivyReports().includes('iar'),
             command: () => {
-              this.router.navigate(['/infra-assessment-reports']);
+              this.router.navigate(['infra-assessment-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -163,7 +163,7 @@ export class NavMenuComponent {
             icon: 'security',
             disabled: !this.enabledTrivyReports().includes('cvr'),
             command: () => {
-              this.router.navigate(['/cluster-vulnerability-reports']);
+              this.router.navigate(['cluster-vulnerability-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -172,7 +172,7 @@ export class NavMenuComponent {
             icon: 'graph_3',
             disabled: !this.enabledTrivyReports().includes('csr'),
             command: () => {
-              this.router.navigate(['/cluster-sbom-reports']);
+              this.router.navigate(['cluster-sbom-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -181,7 +181,7 @@ export class NavMenuComponent {
             icon: 'admin_panel_settings',
             disabled: !this.enabledTrivyReports().includes('crar'),
             command: () => {
-              this.router.navigate(['/cluster-rbac-assessment-reports']);
+              this.router.navigate(['cluster-rbac-assessment-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -190,7 +190,7 @@ export class NavMenuComponent {
             icon: 'policy',
             disabled: !this.enabledTrivyReports().includes('ccr'),
             command: () => {
-              this.router.navigate(['/cluster-compliance-reports']);
+              this.router.navigate(['cluster-compliance-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -199,7 +199,7 @@ export class NavMenuComponent {
             icon: 'host',
             disabled: !this.enabledTrivyReports().includes('ciar'),
             command: () => {
-              this.router.navigate(['/cluster-infra-assessment-reports']);
+              this.router.navigate(['cluster-infra-assessment-reports']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -215,7 +215,7 @@ export class NavMenuComponent {
             icon: 'security',
             disabled: !this.enabledTrivyReports().includes('vr'),
             command: () => {
-              this.router.navigate(['/vulnerability-reports-detailed']);
+              this.router.navigate(['vulnerability-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -224,7 +224,7 @@ export class NavMenuComponent {
             icon: 'graph_3',
             disabled: !this.enabledTrivyReports().includes('sr'),
             command: () => {
-              this.router.navigate(['/sbom-reports-detailed']);
+              this.router.navigate(['sbom-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -233,7 +233,7 @@ export class NavMenuComponent {
             icon: 'assignment',
             disabled: !this.enabledTrivyReports().includes('car'),
             command: () => {
-              this.router.navigate(['/config-audit-reports-detailed']);
+              this.router.navigate(['config-audit-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -242,7 +242,7 @@ export class NavMenuComponent {
             icon: 'key_off',
             disabled: !this.enabledTrivyReports().includes('esr'),
             command: () => {
-              this.router.navigate(['/exposed-secret-reports-detailed']);
+              this.router.navigate(['exposed-secret-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -251,7 +251,7 @@ export class NavMenuComponent {
             icon: 'admin_panel_settings',
             disabled: !this.enabledTrivyReports().includes('rar'),
             command: () => {
-              this.router.navigate(['/rbac-assessment-reports-detailed']);
+              this.router.navigate(['rbac-assessment-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -260,7 +260,7 @@ export class NavMenuComponent {
             icon: 'host',
             disabled: !this.enabledTrivyReports().includes('iar'),
             command: () => {
-              this.router.navigate(['/infra-assessment-reports-detailed']);
+              this.router.navigate(['infra-assessment-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -276,7 +276,7 @@ export class NavMenuComponent {
             icon: 'security',
             disabled: !this.enabledTrivyReports().includes('cvr'),
             command: () => {
-              this.router.navigate(['/cluster-vulnerability-reports-detailed']);
+              this.router.navigate(['cluster-vulnerability-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -285,7 +285,7 @@ export class NavMenuComponent {
             icon: 'admin_panel_settings',
             disabled: !this.enabledTrivyReports().includes('crar'),
             command: () => {
-              this.router.navigate(['/cluster-rbac-assessment-reports-detailed']);
+              this.router.navigate(['cluster-rbac-assessment-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -294,7 +294,7 @@ export class NavMenuComponent {
             icon: 'policy',
             disabled: !this.enabledTrivyReports().includes('ccr'),
             command: () => {
-              this.router.navigate(['/cluster-compliance-reports-detailed']);
+              this.router.navigate(['cluster-compliance-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -303,7 +303,7 @@ export class NavMenuComponent {
             icon: 'host',
             disabled: !this.enabledTrivyReports().includes('ciar'),
             command: () => {
-              this.router.navigate(['/cluster-infra-assessment-reports-detailed']);
+              this.router.navigate(['cluster-infra-assessment-reports-detailed']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -318,7 +318,7 @@ export class NavMenuComponent {
             label: 'Watcher Status',
             icon: 'mystery',
             command: () => {
-              this.router.navigate(['/watcher-status']);
+              this.router.navigate(['watcher-status']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -326,7 +326,7 @@ export class NavMenuComponent {
             label: 'Settings',
             icon: 'settings_applications',
             command: () => {
-              this.router.navigate(['/settings']);
+              this.router.navigate(['settings']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -334,7 +334,7 @@ export class NavMenuComponent {
             label: 'About',
             icon: 'chat_info',
             command: () => {
-              this.router.navigate(['/about']);
+              this.router.navigate(['about']);
               this.isDrawerVisible.set(false);
             },
           },
@@ -354,7 +354,7 @@ export class NavMenuComponent {
     if (this.router.url === '/alerts') {
       this.alertsService.triggerRefresh();
     } else {
-      this.router.navigate(['/alerts']);
+      this.router.navigate(['alerts']);
     }
   }
 

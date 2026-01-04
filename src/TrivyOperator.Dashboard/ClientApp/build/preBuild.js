@@ -15,6 +15,7 @@ async function generateApi() {
   });
 
   patchRequiredFields(openApi);
+  makePathsRelative(openApi);
 
   const ngOpenGen = new NgOpenApiGen(openApi, options);
   ngOpenGen.generate();
@@ -39,3 +40,19 @@ function patchRequiredFields(openApi) {
     }
   }
 }
+
+function makePathsRelative(openApi) {
+  const paths = openApi.paths || {};
+
+  for (const path of Object.keys(paths)) {
+    // Skip root path "/" because it becomes empty
+    if (path === '/') continue;
+
+    if (path.startsWith('/')) {
+      const relative = path.slice(1); // remove leading slash
+      paths[relative] = paths[path];
+      delete paths[path];
+    }
+  }
+}
+

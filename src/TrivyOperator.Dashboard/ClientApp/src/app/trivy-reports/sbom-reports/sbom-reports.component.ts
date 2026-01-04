@@ -204,7 +204,7 @@ export class SbomReportsComponent implements OnInit {
     const apiRoot = this.service.rootUrl;
     const namespaceName = encodeURIComponent(this.selectedSbomReportImageDto?.resourceNamespace ?? "");
     const digest = encodeURIComponent(this.selectedSbomReportImageDto?.imageDigest ?? "");
-    const fileUrl = `${apiRoot}/api/sbom-reports/${fileFormat}?digest=${digest}&namespaceName=${namespaceName}`;
+    const fileUrl = `${apiRoot}api/sbom-reports/${fileFormat}?digest=${digest}&namespaceName=${namespaceName}`;
 
     const headers = new HttpHeaders({
       'Accept': contentType === 'json' || fileFormat === 'spdx' ? 'application/json' : 'application/xml'
@@ -248,7 +248,7 @@ export class SbomReportsComponent implements OnInit {
 
   private goToDetailedPage() {
     const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/sbom-reports-detailed'])
+      this.router.createUrlTree(['sbom-reports-detailed'])
     );
     window.open(url, '_blank');
   }

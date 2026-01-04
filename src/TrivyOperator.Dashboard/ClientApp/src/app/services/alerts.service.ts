@@ -16,7 +16,7 @@ export class AlertsService {
   public alerts$: Observable<AlertDto[]> = this.alertsSubject.asObservable();
 
   private retryPolicy = new RetryPolicyUtils();
-  private readonly hubPath: string = '/alerts-hub';
+  private readonly hubPath: string = 'alerts-hub';
   private hubUrl: string = '';
 
   private readonly refreshTrigger = new Subject<void>();

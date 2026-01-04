@@ -3,7 +3,7 @@ FROM node:24 AS build-node
 COPY ./src/TrivyOperator.Dashboard/ClientApp /src
 WORKDIR /src
 RUN npm install
-RUN npm run build -- --configuration production
+RUN npm run build -- --configuration production --base-href ./ --deploy-url ./
 
 RUN apt-get update && apt-get install -y brotli gzip
 WORKDIR /src/dist
