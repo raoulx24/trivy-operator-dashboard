@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -47,7 +47,7 @@ export class NavMenuComponent {
   private routerEventEmitterService = inject(RouterEventEmitterService);
   protected k8sContextState = inject(KubernetesContextStateService);
 
-  isDrawerVisible = false;
+  isDrawerVisible = signal(false);
 
   // --- Signals from services ---
   alerts = toSignal(this.alertsService.alerts$, { initialValue: [] });
@@ -89,7 +89,7 @@ export class NavMenuComponent {
         icon: 'home',
         command: () => {
           this.router.navigate(['/']);
-          this.isDrawerVisible = false;
+          this.isDrawerVisible.set(false);
         },
       },
       {
@@ -103,7 +103,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('vr'),
             command: () => {
               this.router.navigate(['/vulnerability-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -112,7 +112,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('sr'),
             command: () => {
               this.router.navigate(['/sbom-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -121,7 +121,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('car'),
             command: () => {
               this.router.navigate(['/config-audit-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -130,7 +130,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('esr'),
             command: () => {
               this.router.navigate(['/exposed-secret-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -139,7 +139,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('rar'),
             command: () => {
               this.router.navigate(['/rbac-assessment-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -148,7 +148,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('iar'),
             command: () => {
               this.router.navigate(['/infra-assessment-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
         ]
@@ -164,7 +164,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('cvr'),
             command: () => {
               this.router.navigate(['/cluster-vulnerability-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -173,7 +173,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('csr'),
             command: () => {
               this.router.navigate(['/cluster-sbom-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -182,7 +182,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('crar'),
             command: () => {
               this.router.navigate(['/cluster-rbac-assessment-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -191,7 +191,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('ccr'),
             command: () => {
               this.router.navigate(['/cluster-compliance-reports']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
         ]
@@ -207,7 +207,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('vr'),
             command: () => {
               this.router.navigate(['/vulnerability-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -216,7 +216,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('sr'),
             command: () => {
               this.router.navigate(['/sbom-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -225,7 +225,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('car'),
             command: () => {
               this.router.navigate(['/config-audit-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -234,7 +234,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('esr'),
             command: () => {
               this.router.navigate(['/exposed-secret-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -243,7 +243,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('rar'),
             command: () => {
               this.router.navigate(['/rbac-assessment-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -252,7 +252,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('iar'),
             command: () => {
               this.router.navigate(['/infra-assessment-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
         ]
@@ -268,7 +268,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('cvr'),
             command: () => {
               this.router.navigate(['/cluster-vulnerability-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -277,7 +277,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('crar'),
             command: () => {
               this.router.navigate(['/cluster-rbac-assessment-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -286,7 +286,7 @@ export class NavMenuComponent {
             disabled: !this.enabledTrivyReports().includes('ccr'),
             command: () => {
               this.router.navigate(['/cluster-compliance-reports-detailed']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
         ]
@@ -301,7 +301,7 @@ export class NavMenuComponent {
             icon: 'mystery',
             command: () => {
               this.router.navigate(['/watcher-status']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -309,7 +309,7 @@ export class NavMenuComponent {
             icon: 'settings_applications',
             command: () => {
               this.router.navigate(['/settings']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
           {
@@ -317,7 +317,7 @@ export class NavMenuComponent {
             icon: 'chat_info',
             command: () => {
               this.router.navigate(['/about']);
-              this.isDrawerVisible = false;
+              this.isDrawerVisible.set(false);
             },
           },
         ],
@@ -341,11 +341,11 @@ export class NavMenuComponent {
   }
 
   openDrawer() {
-    this.isDrawerVisible = true;
+    this.isDrawerVisible.set(true);
   }
 
   onContextChange(context: string) {
     this.k8sContextState.setSelectedContext(context);
-    this.isDrawerVisible = false;
+    this.isDrawerVisible.set(false);
   }
 }
