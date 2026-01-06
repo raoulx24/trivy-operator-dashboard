@@ -82,6 +82,33 @@ public static class BuilderServicesExtensions
 {
     public static void AddV1NamespaceServices(this IServiceCollection services, IConfiguration kubernetesConfiguration)
     {
+        bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
+
+        if (useDefaultContext == null || !(bool)useDefaultContext)
+        {
+            if (string.IsNullOrWhiteSpace(kubernetesConfiguration.GetValue<string>("NamespaceList")))
+            {
+                services.AddSingleton<NamespaceDomainService>();
+                services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(
+                    sp => sp.GetRequiredService<NamespaceDomainService>());
+                services.AddSingleton<IClusterScopedResourceWatchDomainService<V1Namespace, V1NamespaceList>>(
+                    sp => sp.GetRequiredService<NamespaceDomainService>());
+            }
+            else
+            {
+                services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>, 
+                    StaticNamespaceDomainService>();
+                services.AddSingleton<IClusterScopedWatcher<V1Namespace>,
+                    StaticNamespaceWatcher>();
+            }
+
+            services.AddSingleton<IConcurrentDictionaryCache<V1Namespace>, ClusterResourceQueryCache<V1Namespace, V1NamespaceList>>();
+
+            services.AddScoped<INamespaceService, NamespaceService>();
+
+            return;
+        }
+
         services.AddSingleton<IConcurrentDictionaryCache<V1Namespace>, ConcurrentDictionaryCache<V1Namespace>>();
         services.AddSingleton<IKubernetesBackgroundQueue<V1Namespace>, KubernetesBackgroundQueue<V1Namespace>>();
         if (string.IsNullOrWhiteSpace(kubernetesConfiguration.GetValue<string>("NamespaceList")))
@@ -112,7 +139,6 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, WatcherState<V1Namespace>>();
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, WatcherStateAlertRefresh<V1Namespace>>();
         services.AddScoped<INamespaceService, NamespaceService>();
-        
     }
 
     public static void AddTrivyServices(this IServiceCollection services, IConfiguration kubernetesConfiguration)
