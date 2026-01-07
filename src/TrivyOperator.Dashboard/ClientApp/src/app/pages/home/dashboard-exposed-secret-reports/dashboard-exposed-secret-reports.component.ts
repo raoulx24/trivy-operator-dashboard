@@ -1,5 +1,5 @@
 
-import { Component, effect, input, OnInit } from '@angular/core';
+import { Component, effect, input, OnInit, signal } from '@angular/core';
 
 import { EsSeveritiesByNsSummaryDto } from '../../../../api/models/es-severities-by-ns-summary-dto';
 import { ExposedSecretReportService } from '../../../../api/services/exposed-secret-report.service';
@@ -33,7 +33,7 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
   barchartDataNsByNs: PrimeNgHorizontalBarChartData | null = null;
   barchartDataNsBySev: PrimeNgHorizontalBarChartData | null = null;
   public horizontalBarChartOption: any;
-  public isMoreESDetailsModalVisible: boolean = false;
+  public isMoreESDetailsModalVisible = signal<boolean>(false);
 
   private darkLightMode: 'Dark' | 'Light' = 'Dark';
 
@@ -81,7 +81,7 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
   }
 
   onEsrMore(_event: MouseEvent) {
-    this.isMoreESDetailsModalVisible = true;
+    this.isMoreESDetailsModalVisible.set(true);
   }
 
   // severityWrapperGetCapitalizedName(severityId: number): string {

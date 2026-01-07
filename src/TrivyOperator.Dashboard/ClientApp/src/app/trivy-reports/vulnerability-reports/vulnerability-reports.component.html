@@ -82,7 +82,7 @@
   </p-dialog>
 }
 
-@if (selectedTrivyReportDto && isTrivyReportsCompareVisible) {
+@if (selectedTrivyReportDto && isTrivyReportsCompareVisible()) {
   <p-dialog closable="true"
             closeOnEscape="true"
             dismissableMask="true"
@@ -105,7 +105,7 @@
   </p-dialog>
 }
 
-@if (isDependencyTreeViewVisible && trivyImage) {
+@if (isDependencyTreeViewVisible() && trivyImage) {
   <p-dialog closable="true"
             closeOnEscape="true"
             dismissableMask="true"

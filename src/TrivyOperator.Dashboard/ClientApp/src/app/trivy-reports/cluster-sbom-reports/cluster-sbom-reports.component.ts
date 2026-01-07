@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ClusterSbomReportService } from '../../../api/services/cluster-sbom-report.service';
@@ -31,7 +31,7 @@ export class ClusterSbomReportsComponent implements OnInit  {
   selectedSbomReportImageDto?: ClusterSbomReportDto;
 
   // region dialog related vars
-  isSbomReportOverviewDialogVisible: boolean = false;
+  isSbomReportOverviewDialogVisible = signal<boolean>(false);
   sbomReportDetailStatistics: Array<number | undefined> = [];
   sbomReportDetailPropertiesTreeNodes: TreeNode[] = [];
 
@@ -108,7 +108,7 @@ export class ClusterSbomReportsComponent implements OnInit  {
         .reduce((sum, deps) => sum + deps.length, 0) ?? 0);
     }
 
-    this.isSbomReportOverviewDialogVisible = true;
+    this.isSbomReportOverviewDialogVisible.set(true);
   }
 
   private goToDetailedPage() {

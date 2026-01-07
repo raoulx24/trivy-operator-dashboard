@@ -9,28 +9,28 @@
     @if (enabledTrivyReports.includes('vr'))
     {
       <p-tabpanel value="0">
-        <app-dashboard-vulnerability-reports [showDistinctValues]="showDistinctValues"
+        <app-dashboard-vulnerability-reports [showDistinctValues]="showDistinctValues()"
                                         id="home-vr" />
       </p-tabpanel>
     }
     @if (enabledTrivyReports.includes('car'))
     {
       <p-tabpanel value="1">
-        <app-dashboard-config-audit-reports [showDistinctValues]="showDistinctValues"
+        <app-dashboard-config-audit-reports [showDistinctValues]="showDistinctValues()"
                                        id="home-car" />
       </p-tabpanel>
     }
     @if (enabledTrivyReports.includes('crar'))
     {
       <p-tabpanel value="2">
-        <app-dashboard-cluster-rbac-assessment-reports [showDistinctValues]="showDistinctValues"
+        <app-dashboard-cluster-rbac-assessment-reports [showDistinctValues]="showDistinctValues()"
                                                   id="home-crar" />
       </p-tabpanel>
     }
     @if (enabledTrivyReports.includes('esr'))
     {
       <p-tabpanel value="3">
-        <app-dashboard-exposed-secret-reports [showDistinctValues]="showDistinctValues"
+        <app-dashboard-exposed-secret-reports [showDistinctValues]="showDistinctValues()"
                                          id="home-esr" />
       </p-tabpanel>
     }

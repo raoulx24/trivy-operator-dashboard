@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ClusterInfraAssessmentReportDto } from '../../../api/models/cluster-infra-assessment-report-dto';
@@ -37,7 +37,7 @@ export class ClusterInfraAssessmentReportsComponent implements OnInit {
   isSingleMode: boolean = false;
   selectedTrivyReportDto?: ClusterInfraAssessmentReportDto;
 
-  isTrivyReportsCompareVisible: boolean = false;
+  isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
   compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [... infraAssessmentReportComparedTableColumns];
@@ -111,7 +111,7 @@ export class ClusterInfraAssessmentReportsComponent implements OnInit {
         uid: car.uid ?? '', resourceNamespace: nonExistingNamespace,
         mainLabel: car.resourceName, group: car.resourceKind }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
-    this.isTrivyReportsCompareVisible = true;
+    this.isTrivyReportsCompareVisible.set(true);
   }
 
   onMainTableSelectedRowChanged(event: ClusterInfraAssessmentReportDto | null) {

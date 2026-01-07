@@ -1,5 +1,5 @@
 // import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, effect, HostListener, inject, input, model, output } from '@angular/core';
+import { Component, effect, HostListener, inject, input, model, output, signal } from '@angular/core';
 
 import { NodeDataDto } from '../fcose/fcose.types';
 import { GenericSbomReportDto, GenericSbomReportDetailDto, GenericSbomReportMinimalDto } from './generic-sbom.types';
@@ -78,7 +78,7 @@ export class GenericSbomComponent {
   selectedSbomDetailBomRef?: string;
   private readonly _rootNodeId: string = '00000000-0000-0000-0000-000000000000';
 
-  isTrivyReportsCompareVisible: boolean = false;
+  isTrivyReportsCompareVisible = signal<boolean>(false);
   comparedTableColumns: TrivyTableColumn[] = [... genericSbomReportComparedColumns];
 
   screenSize: string = this.getScreenSize();
@@ -330,7 +330,7 @@ export class GenericSbomComponent {
   private goToComparePage() {
     if (!this.fullSbomDataDto || !this.namespacedImageDtos) return;
 
-    this.isTrivyReportsCompareVisible = true;
+    this.isTrivyReportsCompareVisible.set(true);
   }
 
   rowExpandResponse?: TrivyTableExpandRowData<GenericSbomReportDetailDto>;

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 
 import { ClusterRbacAssessmentReportDto } from '../../../api/models/cluster-rbac-assessment-report-dto';
 import { ClusterRbacAssessmentReportService } from '../../../api/services/cluster-rbac-assessment-report.service';
@@ -34,7 +34,7 @@ export class ClusterRbacAssessmentReportsComponent implements OnInit {
 
   detailsTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportDetailColumns];
 
-  isTrivyReportsCompareVisible: boolean = false;
+  isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
   compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [... rbacAssessmentReportComparedTableColumns];
@@ -107,6 +107,6 @@ export class ClusterRbacAssessmentReportsComponent implements OnInit {
         uid: crar.uid ?? '', resourceNamespace: nonExistingNamespace,
         mainLabel: crar.resourceName ?? '' }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
-    this.isTrivyReportsCompareVisible = true;
+    this.isTrivyReportsCompareVisible.set(true);
   }
 }

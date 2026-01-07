@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GetConfigAuditReportDtos$Params } from '../../../api/fn/config-audit-report/get-config-audit-report-dtos';
@@ -40,7 +40,7 @@ export class ConfigAuditReportsComponent implements OnInit {
   isSingleMode: boolean = false;
   selectedTrivyReportDto?: ConfigAuditReportDto;
 
-  isTrivyReportsCompareVisible: boolean = false;
+  isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
   compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [... configAuditReportComparedTableColumns];
@@ -128,7 +128,7 @@ export class ConfigAuditReportsComponent implements OnInit {
         uid: car.uid ?? '', resourceNamespace: car.resourceNamespace ?? '',
         mainLabel: car.resourceName, group: car.resourceKind }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
-    this.isTrivyReportsCompareVisible = true;
+    this.isTrivyReportsCompareVisible.set(true);
   }
 
   onMainTableSelectedRowChanged(event: ConfigAuditReportDto | null) {

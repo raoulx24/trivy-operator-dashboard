@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GetExposedSecretReportImageDtos$Params } from '../../../api/fn/exposed-secret-report/get-exposed-secret-report-image-dtos';
@@ -42,19 +42,19 @@ export class ExposedSecretReportsComponent implements OnInit {
 
   detailsTableColumns: TrivyTableColumn[] = [...exposedSecretReportDetailColumns];
 
-  isImageUsageDialogVisible: boolean = false;
+  isImageUsageDialogVisible = signal<boolean>(false);
 
   queryNamespaceName?: string;
   queryDigest?: string;
   isSingleMode: boolean = false;
   selectedTrivyReportDto?: ExposedSecretReportImageDto;
 
-  isTrivyReportsCompareVisible: boolean = false;
+  isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
   compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [... exposedSecretReportComparedTableColumns];
 
-  isDependencyTreeViewVisible: boolean = false;
+  isDependencyTreeViewVisible = signal<boolean>(false);
   trivyImage?: ImageInfo;
   trivyDependencyDialogTitle: string = "";
 
@@ -94,7 +94,7 @@ export class ExposedSecretReportsComponent implements OnInit {
 
   onMainTableExpandCallback(dto: ExposedSecretReportImageDto) {
     this.mainTableExpandCallbackDto = dto;
-    this.isImageUsageDialogVisible = true;
+    this.isImageUsageDialogVisible.set(true);
   }
 
   onRefreshRequested(event: TrivyFilterData) {
@@ -188,7 +188,7 @@ export class ExposedSecretReportsComponent implements OnInit {
         uid: esr.uid ?? '', resourceNamespace: esr.resourceNamespace ?? '',
         mainLabel: `${esr.imageName ?? ''}:${esr.imageTag ?? '' }`}));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
-    this.isTrivyReportsCompareVisible = true;
+    this.isTrivyReportsCompareVisible.set(true);
   }
 
   private goToDependencyTree() {
@@ -201,7 +201,7 @@ export class ExposedSecretReportsComponent implements OnInit {
       const imageNamespace = this.selectedTrivyReportDto?.resourceNamespace ?? 'n/a';
       this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageRepository}/${imageName}:${imageTag} in ${imageNamespace}`;
       this.trivyImage = { digest: digest, namespaceName: namespace };
-      this.isDependencyTreeViewVisible = true;
+      this.isDependencyTreeViewVisible.set(true);
     }
   }
 

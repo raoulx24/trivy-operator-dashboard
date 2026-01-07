@@ -1,5 +1,5 @@
 
-import { Component, effect, input, Input, OnInit } from '@angular/core';
+import { Component, effect, input, Input, OnInit, signal } from '@angular/core';
 
 import { ConfigAuditReportSummaryDto } from '../../../../api/models/config-audit-report-summary-dto';
 import { ConfigAuditReportService } from '../../../../api/services/config-audit-report.service';
@@ -41,7 +41,7 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
   barchartDataKindByNs: PrimeNgHorizontalBarChartData | null = null;
   barchartDataKindBySev: PrimeNgHorizontalBarChartData | null = null;
   public horizontalBarChartOption: any;
-  isCarDetailsDialogVisible: boolean = false;
+  isCarDetailsDialogVisible = signal<boolean>(false);
 
   showDistinctValues = input.required<boolean>();
   private darkLightMode: 'Dark' | 'Light' = 'Dark';
@@ -77,7 +77,7 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
   }
 
   onCarsMore(_event: MouseEvent) {
-    this.isCarDetailsDialogVisible = true;
+    this.isCarDetailsDialogVisible.set(true);
   }
 
   private onDtos(dtos: ConfigAuditReportSummaryDto[]) {

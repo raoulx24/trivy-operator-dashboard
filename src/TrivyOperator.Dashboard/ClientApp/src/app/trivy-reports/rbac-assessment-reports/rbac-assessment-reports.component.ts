@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { RbacAssessmentReportDto } from '../../../api/models/rbac-assessment-report-dto';
@@ -37,7 +37,7 @@ export class RbacAssessmentReportsComponent implements OnInit {
 
   selectedTrivyReportDto?: RbacAssessmentReportDto;
 
-  isTrivyReportsCompareVisible: boolean = false;
+  isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
   compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [... rbacAssessmentReportComparedTableColumns];
@@ -109,7 +109,7 @@ export class RbacAssessmentReportsComponent implements OnInit {
         uid: rar.uid ?? '', resourceNamespace: rar.resourceNamespace ?? '',
         mainLabel: rar.resourceName, }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
-    this.isTrivyReportsCompareVisible = true;
+    this.isTrivyReportsCompareVisible.set(true);
   }
 
   onMainTableSelectedRowChanged(event: RbacAssessmentReportDto | null) {

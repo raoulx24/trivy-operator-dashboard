@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MainAppInitService } from '../../services/main-app-init.service';
@@ -12,6 +12,7 @@ import { DashboardVulnerabilityReportsComponent } from './dashboard-vulnerabilit
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
 
 @Component({
   selector: 'app-home',
@@ -38,18 +39,20 @@ export class HomeComponent implements OnInit {
   @ViewChild(DashboardClusterRbacAssessmentReportsComponent) homeCrar?: DashboardClusterRbacAssessmentReportsComponent;
   @ViewChild(DashboardExposedSecretReportsComponent) homeEsr?: DashboardExposedSecretReportsComponent;
 
-  constructor(private mainAppInitService: MainAppInitService) {}
+  private readonly kubernetesContextService = inject(KubernetesContextStateService);
 
-  private _showDistinctValues: boolean = true;
-
-  get showDistinctValues() {
-    return this._showDistinctValues;
+  constructor(private mainAppInitService: MainAppInitService) {
+    effect(() => {
+      const showDistinctValues = this.showDistinctValues();
+      localStorage.setItem('home.showDistinctValues', showDistinctValues.toString());
+    });
+    effect(() => {
+      const ctx = this.kubernetesContextService.selectedContext();
+      this.onRefreshData();
+    });
   }
 
-  set showDistinctValues(value: boolean) {
-    this._showDistinctValues = value;
-    localStorage.setItem('home.showDistinctValues', value.toString());
-  }
+  showDistinctValues = signal<boolean>(true);
 
   ngOnInit() {
     this.mainAppInitService.backendSettingsDto$.subscribe((updatedBackendSettingsDto) => {
@@ -58,7 +61,7 @@ export class HomeComponent implements OnInit {
         this.enabledTrivyReports;
     });
 
-    this.showDistinctValues = LocalStorageUtils.getBoolKeyValue('home.showDistinctValues') ?? true;
+    this.showDistinctValues.set(LocalStorageUtils.getBoolKeyValue('home.showDistinctValues') ?? true);
     this.tabPageActiveIndex = localStorage.getItem('home.tabPageActiveIndex') ?? "0";
   }
 

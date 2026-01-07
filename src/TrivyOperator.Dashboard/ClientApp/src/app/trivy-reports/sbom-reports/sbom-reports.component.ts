@@ -1,4 +1,4 @@
-import { Component, inject, model, OnInit, output } from '@angular/core';
+import { Component, inject, model, OnInit, output, signal } from '@angular/core';
 
 import { SbomReportService } from '../../../api/services/sbom-report.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -45,12 +45,12 @@ export class SbomReportsComponent implements OnInit {
   compareSecondSelectedDto? : SbomReportDto;
 
   // region dialog related vars
-  isSbomReportOverviewDialogVisible: boolean = false;
+  isSbomReportOverviewDialogVisible = signal<boolean>(false);
   sbomReportDetailStatistics: Array<number | undefined> = [];
   sbomReportDetailPropertiesTreeNodes: TreeNode[] = [];
   sbomReportDetailLicensesTreeNodes: TreeNode[] = [];
 
-  isDependencyTreeViewVisible: boolean = false;
+  isDependencyTreeViewVisible = signal<boolean>(false);
   trivyImage?: ImageInfo;
   trivyDependencyDialogTitle: string = "";
   // endregion
@@ -197,7 +197,7 @@ export class SbomReportsComponent implements OnInit {
         .reduce((sum, deps) => sum + deps.length, 0) ?? 0);
     }
 
-    this.isSbomReportOverviewDialogVisible = true;
+    this.isSbomReportOverviewDialogVisible.set(true);
   }
 
   exportSbom(fileFormat: 'cyclonedx' | 'spdx', contentType: 'json' | 'xml') {
@@ -242,7 +242,7 @@ export class SbomReportsComponent implements OnInit {
       const imageNamespace = this.selectedSbomReportImageDto.resourceNamespace ?? 'n/a';
       this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageRepository}/${imageName}:${imageTag} in ${imageNamespace}`;
       this.trivyImage = { digest: digest, namespaceName: namespace };
-      this.isDependencyTreeViewVisible = true;
+      this.isDependencyTreeViewVisible.set(true);
     }
   }
 

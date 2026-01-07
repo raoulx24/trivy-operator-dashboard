@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GetInfraAssessmentReportDtos$Params } from '../../../api/fn/infra-assessment-report/get-infra-assessment-report-dtos';
@@ -40,7 +40,7 @@ export class InfraAssessmentReportsComponent implements OnInit {
   isSingleMode: boolean = false;
   selectedTrivyReportDto?: InfraAssessmentReportDto;
 
-  isTrivyReportsCompareVisible: boolean = false;
+  isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
   compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [... infraAssessmentReportComparedTableColumns];
@@ -128,7 +128,7 @@ export class InfraAssessmentReportsComponent implements OnInit {
         uid: car.uid ?? '', resourceNamespace: car.resourceNamespace ?? '',
         mainLabel: car.resourceName, group: car.resourceKind }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
-    this.isTrivyReportsCompareVisible = true;
+    this.isTrivyReportsCompareVisible.set(true);
   }
 
   onMainTableSelectedRowChanged(event: InfraAssessmentReportDto | null) {
