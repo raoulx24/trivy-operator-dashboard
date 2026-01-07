@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Models;
+using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
 
 namespace TrivyOperator.Dashboard.Application.Services.Trivy.SbomReport.Abstractions;
 
@@ -10,7 +11,7 @@ public interface ISbomReportService
     Task<SbomReportDto?> GetFullSbomReportDtoByUid(string uid);
     Task<SbomReportDto?> GetFullSbomReportDtoByUidNamespace(string uid, string namespaceName);
     Task<SbomReportDto?> GetFullSbomReportDtoByDigestNamespace(string digest, string namespaceName);
-    Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(string digest, string namespaceName);
+    Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(string digest, string namespaceName, IEnumerable<SbomReportCr>? cachedValues = null);
     Task<SpdxBom?> GetSpdxBomByDigestNamespace(string digest, string namespaceName);
     Task<string> CreateCycloneDxExportZipFile(SbomReportExportDto[] exportSboms, string fileType = "json");
     void CleanupFile(string fileName);

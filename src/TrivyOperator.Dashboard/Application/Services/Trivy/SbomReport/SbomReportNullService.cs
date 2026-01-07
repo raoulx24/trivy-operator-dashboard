@@ -1,5 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.Models;
 using TrivyOperator.Dashboard.Application.Services.Trivy.SbomReport.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
 
 namespace TrivyOperator.Dashboard.Application.Services.Trivy.SbomReport;
 
@@ -17,7 +18,7 @@ public class SbomReportNullService : ISbomReportService
         Task.FromResult<SbomReportDto?>(null);
     public Task<SbomReportDto?> GetFullSbomReportDtoByDigestNamespace(string digest, string namespaceName) =>
         Task.FromResult<SbomReportDto?>(null);
-    public Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(string digest, string namespaceName) =>
+    public Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(string digest, string namespaceName, IEnumerable<SbomReportCr>? cachedValues = null) =>
         Task.FromResult<CycloneDxBom?>(null);
     public Task<SpdxBom?> GetSpdxBomByDigestNamespace(string digest, string namespaceName) =>
         Task.FromResult<SpdxBom?>(null);

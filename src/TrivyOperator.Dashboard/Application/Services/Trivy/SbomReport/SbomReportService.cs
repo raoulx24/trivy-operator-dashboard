@@ -1,6 +1,7 @@
 ﻿using k8s.Models;
 using Microsoft.Extensions.Options;
 using System.IO.Compression;
+using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using TrivyOperator.Dashboard.Application.Models;
@@ -146,9 +147,7 @@ public class SbomReportService(
 
     public async Task<SbomReportDto?> GetFullSbomReportDtoByUidNamespace(string uid, string namespaceName)
     {
-        IEnumerable<SbomReportCr> cachedValues = [.. cache
-            .Where(kvp => kvp.Key == namespaceName)
-            .SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<SbomReportCr> cachedValues = [.. cache[namespaceName].Select(kvp => kvp.Value) ?? [],];
 
         SbomReportCr? sr = cachedValues.FirstOrDefault(x => x.Metadata.Uid == uid);
         if (sr != null)
@@ -170,9 +169,7 @@ public class SbomReportService(
 
     public async Task<SbomReportDto?> GetFullSbomReportDtoByDigestNamespace(string digest, string namespaceName)
     {
-        IEnumerable<SbomReportCr> cachedValues = [.. cache
-            .Where(kvp => kvp.Key == namespaceName)
-            .SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<SbomReportCr> cachedValues = [.. cache[namespaceName].Select(kvp => kvp.Value) ?? [],];
 
         SbomReportCr? x = cachedValues
             .Where(x => x.Report?.Artifact?.Digest == digest)
@@ -185,11 +182,9 @@ public class SbomReportService(
         return null;
     }
 
-    public async Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(string digest, string namespaceName)
+    public async Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(string digest, string namespaceName, IEnumerable<SbomReportCr>? cachedValues = null)
     {
-        IEnumerable<SbomReportCr> cachedValues = [.. cache
-            .Where(kvp => kvp.Key == namespaceName)
-            .SelectMany(kvp => kvp.Value.Values),];
+        cachedValues ??= [.. cache[namespaceName].Select(kvp => kvp.Value) ?? [],];
 
         SbomReportCr? sr = cachedValues
             .Where(x => x.Report?.Artifact?.Digest == digest)
@@ -213,9 +208,7 @@ public class SbomReportService(
 
     public async Task<SpdxBom?> GetSpdxBomByDigestNamespace(string digest, string namespaceName)
     {
-        IEnumerable<SbomReportCr> cachedValues = [.. cache
-            .Where(kvp => kvp.Key == namespaceName)
-            .SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<SbomReportCr> cachedValues = [.. cache[namespaceName].Select(kvp => kvp.Value) ?? [],];
 
         SbomReportCr? sr = cachedValues
             .Where(x => x.Report?.Artifact?.Digest == digest)
@@ -241,6 +234,31 @@ public class SbomReportService(
     {
         try
         {
+            IEnumerable<SbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values), ];
+
+            var requestedSboms = exportSboms
+                .Select(x => (x.NamespaceName, x.Digest))
+                .ToHashSet();
+
+            Dictionary<string, SbomReportCr> filteredCachedValues = [];
+
+            foreach (SbomReportCr sbomReportCr in cachedValues)
+            {
+                string ns = sbomReportCr.Metadata.NamespaceProperty;
+                string? digest = sbomReportCr.Report?.Artifact?.Digest;
+                if (digest is null) continue;
+
+                // Only process if this (namespace, digest) was requested
+                if (!requestedSboms.Contains((ns, digest))) continue;
+
+                // Keep the newest report per digest
+                if (!filteredCachedValues.TryGetValue(digest, out SbomReportCr? existing) ||
+                    sbomReportCr.Metadata.CreationTimestamp > existing.Metadata.CreationTimestamp)
+                {
+                    filteredCachedValues[digest] = sbomReportCr;
+                }
+            }
+
             Guid fileNameGuid = Guid.NewGuid();
             string zipFileName = Path.Combine(fileExportOptions.Value.TempFolder, $"{fileNameGuid}_sbom.zip");
 
@@ -248,7 +266,10 @@ public class SbomReportService(
             using var archive = new ZipArchive(zipFileStream, ZipArchiveMode.Create);
             foreach (SbomReportExportDto exportSbom in exportSboms)
             {
-                CycloneDxBom? cycloneDxBom = await GetCycloneDxBomByDigestNamespace(exportSbom.Digest, exportSbom.NamespaceName);
+                CycloneDxBom? cycloneDxBom = 
+                    await GetCycloneDxBomByDigestNamespace(
+                        exportSbom.Digest, exportSbom.NamespaceName,
+                        filteredCachedValues.Where(x => x.Value != null).Select(x => x.Value));
 
                 if (cycloneDxBom == null)
                 {
@@ -303,9 +324,7 @@ public class SbomReportService(
     public Task<IEnumerable<SbomReportImageResourceDto>> GetSbomReportImageResourceDtosByDigestAndNamespace(
         string digest, string namespaceName)
     {
-        IEnumerable<SbomReportCr> cachedValues = [.. cache
-            .Where(kvp => kvp.Key == namespaceName)
-            .SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<SbomReportCr> cachedValues = [.. cache[namespaceName].Select(kvp => kvp.Value) ?? [],];
         IEnumerable<SbomReportImageResourceDto> dtos = cachedValues
             .Where(x => x.Report?.Artifact?.Digest == digest)
             .Select(x => x.ToSbomReportImageResourceDto());
@@ -314,9 +333,7 @@ public class SbomReportService(
 
     private void SetVulnerabilityReportStatistics(SbomReportDto sbomReportDto)
     {
-        IEnumerable<VulnerabilityReportCr> cachedVrValues = [.. vrCache
-            .Where(kvp => kvp.Key == sbomReportDto.ResourceNamespace)
-            .SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<VulnerabilityReportCr> cachedVrValues = [.. vrCache[sbomReportDto.ResourceNamespace].Select(kvp => kvp.Value) ?? [],];
 
         VulnerabilityReportCr? vr = cachedVrValues
             .Where(x => x.Report?.Artifact?.Digest == sbomReportDto.ImageDigest)
