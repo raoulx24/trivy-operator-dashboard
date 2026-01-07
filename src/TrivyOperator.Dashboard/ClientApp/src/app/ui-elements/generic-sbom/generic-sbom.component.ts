@@ -1,5 +1,13 @@
-// import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, effect, HostListener, inject, input, model, output, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  HostListener,
+  inject,
+  input,
+  model,
+  output,
+  signal,
+} from '@angular/core';
 
 import { NodeDataDto } from '../fcose/fcose.types';
 import { GenericSbomReportDto, GenericSbomReportDetailDto, GenericSbomReportMinimalDto } from './generic-sbom.types';
@@ -20,7 +28,6 @@ import { TagModule } from 'primeng/tag';
 
 import { GenericReportsCompareComponent } from '../generic-reports-compare/generic-reports-compare.component';
 import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
-import { SeverityUtils } from '../../utils/severity.utils';
 
 @Component({
   selector: 'app-generic-sbom',
@@ -113,9 +120,8 @@ export class GenericSbomComponent {
 
     effect(() => {
       const ctx = this.kubernetesContextService.selectedContext();
-      if (ctx) {
-        this.onRefreshRequested();
-      }
+      if (!ctx) return;
+      this.onRefreshRequested();
     });
   }
 

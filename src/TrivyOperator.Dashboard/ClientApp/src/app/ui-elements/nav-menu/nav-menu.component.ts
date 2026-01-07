@@ -19,6 +19,7 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
+
 import { IconComponent } from '../icon/icon.component';
 
 @Component({

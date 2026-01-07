@@ -8,7 +8,7 @@ Generic
 - change where aplicable to lazy loading of components in pages (ie vr compare in vr, home pages). maybe deferred load?
 - add updatedate, imagedigest
 - treat onError - getDataDtos()
-- use NavigationExtras.state insted of query params
+- use NavigationExtras.state insted of query params - not possible between tabs
 
 Extend Settings Service (maybe cross tab communication?)
 

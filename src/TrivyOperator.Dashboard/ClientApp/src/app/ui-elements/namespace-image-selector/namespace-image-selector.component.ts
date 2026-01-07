@@ -1,7 +1,6 @@
-import { Component, effect, input, model, OnInit } from '@angular/core';
+import { Component, computed, effect, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 
@@ -19,116 +18,103 @@ export const nonExistingNamespace = 'N/A';
 
 @Component({
   selector: 'app-namespace-image-selector',
-  imports: [FormsModule, ButtonModule, SelectModule, TagModule, IconComponent],
+  imports: [
+    FormsModule,
+    SelectModule,
+    TagModule,
+    IconComponent
+  ],
   templateUrl: './namespace-image-selector.component.html',
   styleUrl: './namespace-image-selector.component.scss'
 })
 export class NamespaceImageSelectorComponent {
+
   dataDtos = input.required<NamespacedImageDto[] | undefined>();
   disabled = input<boolean>(false);
+
   selectedImageId = model<string | undefined>();
 
   namespacePlaceholder = input<string>('Select namespace');
   imagePlaceholder = input<string>('Select image');
 
-  selectedNamespace?: string;
-  nonExistingNamespace = nonExistingNamespace;
-
-  protected activeNamespaces?: string[];
-  protected imageDtos?: ImageDto[];
-
-  get selectedImageDto(): ImageDto | undefined {
-    return this._selectedImageDto;
-  }
-
-  set selectedImageDto(value: ImageDto | undefined) {
-    this.selectedImageId.set(value?.uid);
-    this._selectedImageDto = value;
-  }
-  private _selectedImageDto?: ImageDto;
-
   constructor() {
     effect(() => {
-      const currentDataDtos = this.dataDtos();
-      if (currentDataDtos && currentDataDtos.length > 0) {
-        this.activeNamespaces = Array
-          .from(new Set(currentDataDtos.map(x => x.resourceNamespace)))
-          ?.sort((x, y) => (x > y ? 1 : -1));
-        // try to autoselect is selectedImageId is provided
-        this.autoselectNamespace();
-        // autoselect if only one row
-        if (this.activeNamespaces && this.activeNamespaces.length == 1) {
-          this.selectedNamespace = this.activeNamespaces[0];
-          this.filterImageDtos();
-          return;
-        }
-      } else {
-        this.resetData();
+      const namespaces = this.activeNamespaces();
+      const selectedNs = this.selectedNamespace();
+
+      // Auto-select namespace if only one exists and none selected yet
+      if (namespaces.length === 1 && !selectedNs) {
+        this.setNamespace(namespaces[0]);
+      }
+
+      const images = this.imageDtos();
+      const selectedImg = this.selectedImageId();
+
+      // Auto-select image if only one exists and none selected yet
+      if (images.length === 1 && !selectedImg) {
+        this.setImage(images[0].uid);
       }
     });
-    effect(() => {
-      const imageId = this.selectedImageId();
-      this.autoselectNamespace();
-    });
   }
 
-  autoselectNamespace() {
-    const imageId = this.selectedImageId();
-    const selectedNamespaceName = this.dataDtos()
-      ?.find(x => x.uid === imageId)
-      ?.resourceNamespace;
-    if (selectedNamespaceName && this.selectedNamespace !== selectedNamespaceName) {
-      this.selectedNamespace = selectedNamespaceName;
-      this.filterImageDtos();
-      return;
-    }
-  }
+  activeNamespaces = computed(() => {
+    const dtos = this.dataDtos();
+    if (!dtos || dtos.length === 0) return [];
 
-  filterImageDtos() {
-    this.imageDtos = this.dataDtos()
-      ?.filter((x) => x.resourceNamespace == this.selectedNamespace)
-      .map((x) => ({
-        uid: x.uid ?? '', mainLabel: x.mainLabel,
-        group: x.group, icon: x.icon,
-      } as ImageDto))
+    return Array.from(new Set(dtos.map(x => x.resourceNamespace)))
+      .sort((a, b) => (a > b ? 1 : -1));
+  });
+
+  selectedNamespace = model<string | undefined>(undefined);
+
+  imageDtos = computed(() => {
+    const dtos = this.dataDtos();
+    const ns = this.selectedNamespace();
+
+    if (!dtos || !ns) return [];
+
+    return dtos
+      .filter(x => x.resourceNamespace === ns)
+      .map(x => ({
+        uid: x.uid ?? '',
+        mainLabel: x.mainLabel,
+        group: x.group,
+        icon: x.icon,
+      }))
       .sort((a, b) => {
-        // Normalize undefined groups
-        const groupA = a.group ?? '';
-        const groupB = b.group ?? '';
-
-        if (groupA < groupB) return -1;
-        if (groupA > groupB) return 1;
-
-        // If groups are equal, sort by mainLabel
-        if (a.mainLabel < b.mainLabel) return -1;
-        if (a.mainLabel > b.mainLabel) return 1;
-
-        return 0;
+        const gA = a.group ?? '';
+        const gB = b.group ?? '';
+        if (gA !== gB) return gA < gB ? -1 : 1;
+        return a.mainLabel < b.mainLabel ? -1 : 1;
       });
-    // if cleared ns select
-    if (this.imageDtos?.length == 0) {
-      this.selectedImageDto = undefined;
+  });
+
+  selectedImageDto = computed(() => {
+    const id = this.selectedImageId();
+    const list = this.imageDtos();
+    if (!id || !list) return undefined;
+    return list.find(x => x.uid === id);
+  });
+
+  setNamespace(ns: string | undefined) {
+    this.selectedNamespace.set(ns);
+
+    const images = this.imageDtos();
+    const current = this.selectedImageId();
+
+    if (current && images.some(img => img.uid === current)) {
       return;
     }
-    // try to autoselect is selectedImageId is provided
-    if (this.selectedImageId()) {
-      const selectedImageDto = this.imageDtos
-        ?.find((x) => x.uid === this.selectedImageId());
-      if (selectedImageDto) {
-        this.selectedImageDto = selectedImageDto;
-        return;
-      }
-    }
-    // autoselect if only one row
-    if (this.imageDtos && this.imageDtos.length == 1) {
-      this.selectedImageDto = this.imageDtos[0];
+
+    if (images.length === 1) {
+      this.selectedImageId.set(images[0].uid);
       return;
     }
+
+    this.selectedImageId.set(undefined);
   }
 
-  resetData() {
-    this.selectedNamespace = undefined;
-    this.imageDtos = undefined;
-    this.selectedImageDto = undefined;
+  setImage(id: string | undefined) {
+    this.selectedImageId.set(id);
   }
 }

@@ -1,34 +1,46 @@
 <div class="grid grid-cols-12 gap-2 items-stretch">
+
+  <!-- Namespace selector -->
   <div class="col-span-4 flex w-full">
-    <p-select [placeholder]="namespacePlaceholder()"
-              class="text-sm w-full"
-              [filter]="true"
-              [options]="activeNamespaces"
-              [showClear]="true"
-              [disabled]="disabled() || selectedNamespace === nonExistingNamespace"
-              [(ngModel)]="selectedNamespace"
-              (onChange)="filterImageDtos()" />
+    <p-select
+      [placeholder]="namespacePlaceholder()"
+      class="text-sm w-full"
+      [filter]="true"
+      [options]="activeNamespaces()"
+      [showClear]="true"
+      [disabled]="disabled() || (activeNamespaces().length === 0)"
+      [ngModel]="selectedNamespace()"
+      (ngModelChange)="selectedNamespace.set($event)"
+    ></p-select>
   </div>
+
+  <!-- Image selector -->
   <div class="col-span-8 flex items-center gap-2 justify-center">
-    <p-select optionLabel="mainLabel"
-              [placeholder]="imagePlaceholder()"
-              class="text-sm w-full"
-              appendTo="body"
-              [filter]="true"
-              [options]="imageDtos"
-              [showClear]="true"
-              [disabled]="disabled()"
-              [(ngModel)]="selectedImageDto">
-      <ng-template let-imageDto pTemplate="imageDtos">
+    <p-select
+      optionLabel="mainLabel"
+      [placeholder]="imagePlaceholder()"
+      class="text-sm w-full"
+      appendTo="body"
+      [filter]="true"
+      [options]="imageDtos()"
+      [showClear]="true"
+      [disabled]="disabled() || (activeNamespaces().length === 0)"
+      [ngModel]="selectedImageDto()"
+      (ngModelChange)="setImage($event?.uid)"
+    >
+      <ng-template let-imageDto pTemplate="item">
         <div class="flex items-center gap-2 w-full overflow-hidden text-sm">
           @if (imageDto.group) {
-            <p-tag rounded [value]="imageDto.group"/>
+            <p-tag rounded [value]="imageDto.group" />
           }
           <div class="truncate whitespace-nowrap">{{ imageDto.mainLabel }}</div>
           @if (imageDto.icon) {
             <div class="ml-auto">
               <p-tag rounded class="flex items-center">
-                <app-icon [name]="imageDto.icon" class="text-xs align-middle inline-block tod-text-contrast-color"/>
+                <app-icon
+                  [name]="imageDto.icon"
+                  class="text-xs align-middle inline-block tod-text-contrast-color"
+                />
               </p-tag>
             </div>
           }
@@ -36,4 +48,5 @@
       </ng-template>
     </p-select>
   </div>
+
 </div>
