@@ -1,26 +1,30 @@
-import { Injectable } from '@angular/core';
-import { Router, NavigationEnd, ActivatedRouteSnapshot } from '@angular/router';
-import { Subject } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { effect, inject, Injectable, signal } from '@angular/core';
+import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RouterEventEmitterService {
-  private titleSubject = new Subject<string>();
-  public title$ = this.titleSubject.asObservable();
+  private readonly _title = signal<string>('');
+  readonly title = this._title.asReadonly();
 
-  constructor(private router: Router) {
-    this.router.events.pipe(
-      filter((event) => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      const title = this.getTitleFromRoute(this.router.routerState.snapshot.root);
-      this.titleSubject.next(title); // Emit only the title
+  private readonly router = inject(Router);
+
+  constructor() {
+    effect(() => {
+      const sub = this.router.events.subscribe((event) => {
+        if (event instanceof NavigationEnd) {
+          const title = this.getTitleFromRoute(this.router.routerState.snapshot.root);
+          this._title.set(title);
+        }
+      });
+
+      // Cleanup when the service is destroyed
+      return () => sub.unsubscribe();
     });
   }
 
   private getTitleFromRoute(routeSnapshot: ActivatedRouteSnapshot): string {
-    // Extract `title` from route data
     let title = routeSnapshot.data['title'] || '';
     if (routeSnapshot.firstChild) {
       title = this.getTitleFromRoute(routeSnapshot.firstChild) || title;

@@ -54,7 +54,7 @@ export class NavMenuComponent {
   alerts = this.alertsService.alerts;
   backendSettings = toSignal(this.mainAppInitService.backendSettingsDto$);
   isDarkMode = this.darkModeService.isDarkMode;
-  activePage = toSignal(this.routerEventEmitterService.title$);
+  activePageTitle = this.routerEventEmitterService.title;
 
   contexts = this.k8sContextState.contexts;
   selectedContext = this.k8sContextState.selectedContext;

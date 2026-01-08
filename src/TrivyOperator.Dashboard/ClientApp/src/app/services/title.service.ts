@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { effect, inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterEventEmitterService } from './router-event-emitter.service';
 
@@ -8,11 +8,12 @@ import { RouterEventEmitterService } from './router-event-emitter.service';
 export class TitleService {
   private defaultTitle: string = 'Trivy Operator Dashboard';
 
-  constructor(
-    private titleService: Title,
-    private routerEventEmitterService: RouterEventEmitterService
-  ) {
-    this.routerEventEmitterService.title$.subscribe((title) => {
+  private readonly titleService = inject(Title);
+  private readonly routerEventEmitterService = inject(RouterEventEmitterService);
+
+  constructor() {
+    effect(() => {
+      const title = this.routerEventEmitterService.title();
       this.updateTitle(title);
     });
   }
