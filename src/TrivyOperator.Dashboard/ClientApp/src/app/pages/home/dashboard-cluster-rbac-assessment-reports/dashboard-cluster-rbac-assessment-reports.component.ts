@@ -1,4 +1,4 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, inject, input, OnInit } from '@angular/core';
 
 import { ClusterRbacAssessmentReportSummaryDto } from '../../../../api/models/cluster-rbac-assessment-report-summary-dto';
 import { ClusterRbacAssessmentReportService } from '../../../../api/services/cluster-rbac-assessment-report.service';
@@ -18,7 +18,7 @@ export class DashboardClusterRbacAssessmentReportsComponent implements OnInit {
 
   showDistinctValues = input.required<boolean>();
 
-  constructor(private clusterRbacAssessmentReportService: ClusterRbacAssessmentReportService) { }
+  private readonly clusterRbacAssessmentReportService = inject(ClusterRbacAssessmentReportService);
 
   ngOnInit() {
     this.loadData();

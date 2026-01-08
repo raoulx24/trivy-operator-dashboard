@@ -52,7 +52,7 @@ export class NavMenuComponent {
 
   // --- Signals from services ---
   alerts = this.alertsService.alerts;
-  backendSettings = toSignal(this.mainAppInitService.backendSettingsDto$);
+  backendSettings = this.mainAppInitService.backendSettingsDto;
   isDarkMode = this.darkModeService.isDarkMode;
   activePageTitle = this.routerEventEmitterService.title;
 

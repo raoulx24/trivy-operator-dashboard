@@ -41,7 +41,9 @@ export class HomeComponent implements OnInit {
 
   private readonly kubernetesContextService = inject(KubernetesContextStateService);
 
-  constructor(private mainAppInitService: MainAppInitService) {
+  private readonly mainAppInitService = inject(MainAppInitService);
+
+  constructor() {
     effect(() => {
       const showDistinctValues = this.showDistinctValues();
       localStorage.setItem('home.showDistinctValues', showDistinctValues.toString());
@@ -50,17 +52,17 @@ export class HomeComponent implements OnInit {
       const ctx = this.kubernetesContextService.selectedContext();
       this.onRefreshData();
     });
+    effect(() => {
+      const updatedBackendSettingsDto = this.mainAppInitService.backendSettingsDto();
+      this.enabledTrivyReports =
+        updatedBackendSettingsDto.trivyReportConfigDtos?.filter((x) => x.enabled).map((x) => x.id ?? '') ??
+        this.enabledTrivyReports;
+    });
   }
 
   showDistinctValues = signal<boolean>(true);
 
   ngOnInit() {
-    this.mainAppInitService.backendSettingsDto$.subscribe((updatedBackendSettingsDto) => {
-      this.enabledTrivyReports =
-        updatedBackendSettingsDto.trivyReportConfigDtos?.filter((x) => x.enabled).map((x) => x.id ?? '') ??
-        this.enabledTrivyReports;
-    });
-
     this.showDistinctValues.set(LocalStorageUtils.getBoolKeyValue('home.showDistinctValues') ?? true);
     this.tabPageActiveIndex = localStorage.getItem('home.tabPageActiveIndex') ?? "0";
   }

@@ -38,7 +38,6 @@ export class SettingsService {
     });
   }
 
-  // API call stays Observable
   getAppVersion(): Observable<AppVersion> {
     return this.appVersionService.getCurrentVersion();
   }

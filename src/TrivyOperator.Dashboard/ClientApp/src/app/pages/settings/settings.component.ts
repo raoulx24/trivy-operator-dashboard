@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
@@ -54,13 +54,17 @@ export class SettingsComponent implements OnInit {
   private readonly mainAppInitService = inject(MainAppInitService);
   private readonly settingsService = inject(SettingsService);
 
+  constructor() {
+    effect(() => {
+      const updatedBackendSettingsDto = this.mainAppInitService.backendSettingsDto();
+      this.loadTrivyReportsStates(updatedBackendSettingsDto);
+    });
+  }
+
   ngOnInit() {
     this.loadTableOptions();
     this.loadCsvFileNames();
     this.loadSeverityColorByName();
-    this.mainAppInitService.backendSettingsDto$.subscribe((updatedBackendSettingsDto) => {
-      this.loadTrivyReportsStates(updatedBackendSettingsDto);
-    });
   }
 
   onClearTableStatesSelected(_event: MouseEvent) {

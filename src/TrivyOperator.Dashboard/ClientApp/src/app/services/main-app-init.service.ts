@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Subject, forkJoin } from 'rxjs';
 
 import { BackendSettingsDto } from '../../api/models/backend-settings-dto';
@@ -14,12 +14,12 @@ import { trivyMigrations } from '../constants/migration.constants';
 })
 export class MainAppInitService {
   defaultBackendSettingsDto: BackendSettingsDto | null = null;
-  private backendSettingsDtoSubject: BehaviorSubject<BackendSettingsDto> = new BehaviorSubject<BackendSettingsDto>({
+  private readonly _backendSettingsDto = signal<BackendSettingsDto>({
     trivyReportConfigDtos: [],
   });
-  backendSettingsDto$ = this.backendSettingsDtoSubject.asObservable();
+  readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
-  private readonly backendSettingsService =inject(BackendSettingsService);
+  private readonly backendSettingsService = inject(BackendSettingsService);
   private readonly settingsService = inject(SettingsService);
   private readonly darkModeService = inject(DarkModeService);
   private readonly migrationService = inject(MigrationService);
@@ -56,7 +56,7 @@ export class MainAppInitService {
     });
 
     // const clone = JSON.parse(JSON.stringify(original)) as typeof original;
-    this.backendSettingsDtoSubject.next({ trivyReportConfigDtos: newTrivyReportConfig });
+    this._backendSettingsDto.set({ trivyReportConfigDtos: newTrivyReportConfig });
     localStorage.setItem('backendSettings.trivyReportConfig', newIds.join(','));
     localStorage.setItem(
       'backendSettings.trivyReportConfig.defaultsPreviousSession',
@@ -82,12 +82,12 @@ export class MainAppInitService {
 
   private applyMigrations(appVersion: AppVersion) {
     const appVersionKeyName = 'settings.appVersion';
-    const savedAppVersion = localStorage.getItem(appVersionKeyName) ?? "1.0";
+    const savedAppVersion = localStorage.getItem(appVersionKeyName) ?? '1.0';
 
-    this.migrationService.applyTableMigrations(savedAppVersion, appVersion.fileVersion ?? "1.0", trivyMigrations);
+    this.migrationService.applyTableMigrations(savedAppVersion, appVersion.fileVersion ?? '1.0', trivyMigrations);
     //this.migrationService.applyTableMigrations("1.6", "1.7", trivyMigrations);
 
-    localStorage.setItem(appVersionKeyName, appVersion.fileVersion ?? "1.0");
+    localStorage.setItem(appVersionKeyName, appVersion.fileVersion ?? '1.0');
   }
 }
 
