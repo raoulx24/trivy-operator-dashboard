@@ -1,5 +1,4 @@
-
-import { Component, effect, input, Input, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, OnInit, signal } from '@angular/core';
 
 import { ConfigAuditReportSummaryDto } from '../../../../api/models/config-audit-report-summary-dto';
 import { ConfigAuditReportService } from '../../../../api/services/config-audit-report.service';
@@ -12,6 +11,7 @@ import { ChartModule } from 'primeng/chart';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { ChartOptions } from 'chart.js';
 
 import { SeverityCssStyleByIdPipe } from '../../../pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '../../../pipes/severity-name-by-id.pipe';
@@ -22,7 +22,17 @@ import { DarkModeService } from '../../../services/dark-mode.service';
 @Component({
   selector: 'app-dashboard-config-audit-reports',
   standalone: true,
-  imports: [ButtonModule, CarouselModule, ChartModule, DialogModule, TableModule, TagModule, SeverityCssStyleByIdPipe, SeverityNameByIdPipe, VulnerabilityCountPipe],
+  imports: [
+    ButtonModule,
+    CarouselModule,
+    ChartModule,
+    DialogModule,
+    TableModule,
+    TagModule,
+    SeverityCssStyleByIdPipe,
+    SeverityNameByIdPipe,
+    VulnerabilityCountPipe,
+  ],
   templateUrl: './dashboard-config-audit-reports.component.html',
   styleUrl: './dashboard-config-audit-reports.component.scss',
 })
@@ -30,7 +40,7 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
   configAuditReportSummaryDtos: ConfigAuditReportSummaryDto[] | null = null;
   namespaceNames: string[] = [];
   kinds: string[] = [];
-  severities: number[] = SeverityUtils.severityShortDtos.map(x => x.id);
+  severities: number[] = SeverityUtils.severityShortDtos.map((x) => x.id);
   carSeveritySummaries: CarSeveritySummary[] = [];
   carDetailsDtos: CarDetailsDto[] = [];
   carDetailsDtoFooter: CarDetailsDto = { namespaceName: '', values: [], isTotal: true };
@@ -40,33 +50,30 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
   barchartDataNsBySev: PrimeNgHorizontalBarChartData | null = null;
   barchartDataKindByNs: PrimeNgHorizontalBarChartData | null = null;
   barchartDataKindBySev: PrimeNgHorizontalBarChartData | null = null;
-  public horizontalBarChartOption: any;
+  horizontalBarChartOption = signal<ChartOptions | null>(null);
   isCarDetailsDialogVisible = signal<boolean>(false);
 
   showDistinctValues = input.required<boolean>();
-  private darkLightMode: 'Dark' | 'Light' = 'Dark';
 
-  constructor(private configAuditReportService: ConfigAuditReportService, private darkModeService: DarkModeService) {
+  private readonly configAuditReportService = inject(ConfigAuditReportService);
+  private readonly darkModeService = inject(DarkModeService);
+
+  constructor() {
     effect(() => {
       const x = this.showDistinctValues();
       this.computeCarSeveritySummaries();
       this.computeStatisticsByNs();
       this.computeStatisticsByKind();
     });
+
+    effect(() => {
+      const isDark = this.darkModeService.isDarkMode();
+      this.horizontalBarChartOption.set(PrimeNgChartUtils.getHorizontalBarChartOption());
+    });
   }
 
   ngOnInit() {
     this.loadData();
-    this.darkModeService.isDarkMode$.subscribe((isDarkMode) => {
-      const oldDarkLightMode = this.darkLightMode;
-      this.darkLightMode = isDarkMode ? 'Dark' : 'Light';
-      if (oldDarkLightMode != this.darkLightMode) {
-        setTimeout(() => {
-          this.horizontalBarChartOption = PrimeNgChartUtils.getHorizontalBarChartOption();
-        }, 0);
-      }
-    });
-    this.horizontalBarChartOption = PrimeNgChartUtils.getHorizontalBarChartOption();
   }
 
   loadData(): void {
@@ -81,13 +88,13 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
   }
 
   private onDtos(dtos: ConfigAuditReportSummaryDto[]) {
-    this.configAuditReportSummaryDtos = dtos.sort((a, b) => a.namespaceName! > b.namespaceName! ? 1 : -1);
+    this.configAuditReportSummaryDtos = dtos.sort((a, b) => (a.namespaceName! > b.namespaceName! ? 1 : -1));
 
     this.getArraysFromDtos();
     this.computeCarSeveritySummaries();
     this.computeStatisticsByNs();
     this.computeStatisticsByKind();
-    this.horizontalBarChartOption = PrimeNgChartUtils.getHorizontalBarChartOption();
+    this.horizontalBarChartOption.set(PrimeNgChartUtils.getHorizontalBarChartOption());
   }
 
   private getArraysFromDtos() {
@@ -115,28 +122,30 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
     this.kinds = kinds.sort();
     //this.severities = severities.sort((a, b) => a - b);
 
-    this.namespaceNames.forEach(namespaceName => {
-      const values: { severityId: number, count: number }[] = [];
-      this.severities.forEach(severityId => {
-        this.kinds.forEach(kind => {
+    this.namespaceNames.forEach((namespaceName) => {
+      const values: { severityId: number; count: number }[] = [];
+      this.severities.forEach((severityId) => {
+        this.kinds.forEach((kind) => {
           const dto = this.configAuditReportSummaryDtos?.find(
-            x => x.namespaceName == namespaceName && x.severityId === severityId && x.kind == kind);
+            (x) => x.namespaceName == namespaceName && x.severityId === severityId && x.kind == kind,
+          );
           const count = this.showDistinctValues() ? (dto?.distinctCount ?? -1) : (dto?.totalCount ?? -1);
           values.push({ severityId: severityId, count: count });
         });
       });
       this.carDetailsDtos.push({ namespaceName: namespaceName, values: values, isTotal: false });
     });
-    const values: { severityId: number, count: number }[] = [];
-    this.severities.forEach(severityId => {
-      this.kinds.forEach(kind => {
+    const values: { severityId: number; count: number }[] = [];
+    this.severities.forEach((severityId) => {
+      this.kinds.forEach((kind) => {
         const dto = this.configAuditReportSummaryDtos?.find(
-          x => x.namespaceName === '' && x.severityId === severityId && x.kind == kind);
+          (x) => x.namespaceName === '' && x.severityId === severityId && x.kind == kind,
+        );
         const count = this.showDistinctValues() ? (dto?.distinctCount ?? -1) : (dto?.totalCount ?? -1);
         values.push({ severityId: severityId, count: count });
       });
     });
-    this.carDetailsDtoFooter = { namespaceName: '', values: values, isTotal: true};
+    this.carDetailsDtoFooter = { namespaceName: '', values: values, isTotal: true };
   }
 
   private computeCarSeveritySummaries() {

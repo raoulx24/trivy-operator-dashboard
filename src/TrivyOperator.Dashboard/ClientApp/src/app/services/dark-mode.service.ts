@@ -1,63 +1,52 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 import { LocalStorageUtils } from '../utils/local-storage.utils';
+
+import { Injectable, effect, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DarkModeService {
   static readonly DARK_MODE_SELECTOR = 'trivy-operator-dashboard-dark';
-  private readonly locaStorageIsDarkModeKey = 'mainSettings.isDarkMode';
+  private readonly localStorageKey = 'mainSettings.isDarkMode';
 
-  private isDarkMode = false;
-  private isDarkModeSubject = new BehaviorSubject<boolean>(this.isDarkMode);
-  public isDarkMode$ = this.isDarkModeSubject.asObservable();
+  // The single source of truth
+  readonly isDarkMode = signal(false);
 
   constructor() {
+    this.restoreMode();
     this.watchSystemDarkMode();
+
+    effect(() => {
+      const dark = this.isDarkMode();
+      const root = document.documentElement;
+      root.classList.toggle(DarkModeService.DARK_MODE_SELECTOR, dark);
+    });
   }
 
-  public get darkMode(): boolean {
-    return this.isDarkModeSubject.getValue();
+  restoreMode() {
+    const saved = LocalStorageUtils.getBoolKeyValue(this.localStorageKey);
+    const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    this.isDarkMode.set(saved ?? prefers);
   }
 
-  public restoreMode() {
-    const savedTheme = LocalStorageUtils.getBoolKeyValue(this.locaStorageIsDarkModeKey);
-    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    this.setMode(savedTheme ?? prefersDarkMode);
-  }
-
-  public toggleDarkMode() {
-    localStorage.setItem(this.locaStorageIsDarkModeKey, (!this.darkMode).toString());
-    this.setMode(!this.darkMode);
+  toggleDarkMode() {
+    const next = !this.isDarkMode();
+    localStorage.setItem(this.localStorageKey, next.toString());
+    this.isDarkMode.set(next);
   }
 
   private watchSystemDarkMode() {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', (event) => {
-      const savedTheme = LocalStorageUtils.getBoolKeyValue(this.locaStorageIsDarkModeKey);
-      if (savedTheme !== null) {
-        // if manual set (key exists in localstorage), exit
-        return;
-      }
-      const newIsDarkMode = event.matches;
-      if (this.isDarkMode === newIsDarkMode) {
-        // ignore duplicate events
-        return;
-      }
-      this.setMode(newIsDarkMode);
-    });
-  }
 
-  private setMode(darkMode: boolean) {
-    this.isDarkMode = darkMode;
-    this.isDarkModeSubject.next(darkMode);
-    const root = document.documentElement;
-    if (darkMode) {
-      root.classList.add(DarkModeService.DARK_MODE_SELECTOR);
-    }
-    else {
-      root.classList.remove(DarkModeService.DARK_MODE_SELECTOR);
-    }
+    mediaQuery.addEventListener('change', event => {
+      const saved = LocalStorageUtils.getBoolKeyValue(this.localStorageKey);
+
+      // If user manually set a theme, ignore system changes
+      if (saved !== null) return;
+
+      const newValue = event.matches;
+
+      this.isDarkMode.set(event.matches);
+    });
   }
 }

@@ -6,7 +6,9 @@ import {
   ViewChild,
   ViewContainerRef,
   input,
-  output, effect,
+  output,
+  effect,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -124,7 +126,9 @@ export class FcoseComponent implements AfterViewInit, OnInit {
 
   isHelpDialogVisible: boolean = false;
 
-  constructor(private darkModeService: DarkModeService) {
+  private darkModeService = inject(DarkModeService);
+
+  constructor() {
     effect(() => {
       const nodeDataDtos = this.nodeDataDtos();
       this.isLayoutRedraw = true;
@@ -182,17 +186,16 @@ export class FcoseComponent implements AfterViewInit, OnInit {
           this.graphSelectedNodes[0].unselect();
         }
       }
-    })
+    });
+    effect(() => {
+      const isDark = this.darkModeService.isDarkMode();
+      const newMode = isDark ? 'Dark' : 'Light';
+      const oldMode = isDark ? 'Light' : 'Dark';
+      this.swapClassDarkLikghtMode(oldMode, newMode);
+    });
   }
 
   ngOnInit() {
-    this.darkModeService.isDarkMode$.subscribe((isDarkMode) => {
-      const oldDarkLightMode = this.darkLightMode;
-      this.darkLightMode = isDarkMode ? 'Dark' : 'Light';
-      if (oldDarkLightMode != this.darkLightMode) {
-        this.swapClassDarkLikghtMode(oldDarkLightMode, this.darkLightMode)
-      }
-    });
     this.inputFilterByNameControl.valueChanges.pipe(debounceTime(500)).subscribe((value) => {
       this.onInputChange(value ?? "");
     });

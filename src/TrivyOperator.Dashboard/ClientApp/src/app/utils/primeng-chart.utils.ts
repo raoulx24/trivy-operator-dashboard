@@ -1,5 +1,6 @@
 import { ColorHelper } from './color.utils';
 import { SeverityUtils } from './severity.utils';
+import { ChartOptions } from 'chart.js';
 
 export type PrimeNgPieChartData = {
   labels: string[];
@@ -118,7 +119,7 @@ export class PrimeNgChartUtils {
     return chartData;
   }
 
-  public static getHorizontalBarChartOption(): any {
+  public static getHorizontalBarChartOption(): ChartOptions {
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--p-text-color');
     const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
@@ -146,7 +147,7 @@ export class PrimeNgChartUtils {
           },
           grid: {
             color: surfaceBorder,
-            drawBorder: false,
+            //drawBorder: false,
           },
         },
         y: {
@@ -155,7 +156,7 @@ export class PrimeNgChartUtils {
           },
           grid: {
             color: surfaceBorder,
-            drawBorder: false,
+            //drawBorder: false,
           },
         },
       },

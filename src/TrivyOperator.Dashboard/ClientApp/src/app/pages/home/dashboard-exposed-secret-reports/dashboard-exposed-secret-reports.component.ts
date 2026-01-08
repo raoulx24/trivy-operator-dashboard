@@ -1,5 +1,4 @@
-
-import { Component, effect, input, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, OnInit, signal } from '@angular/core';
 
 import { EsSeveritiesByNsSummaryDto } from '../../../../api/models/es-severities-by-ns-summary-dto';
 import { ExposedSecretReportService } from '../../../../api/services/exposed-secret-report.service';
@@ -16,11 +15,21 @@ import { ChartModule } from 'primeng/chart';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { ChartOptions } from 'chart.js';
 
 @Component({
   selector: 'app-dashboard-exposed-secret-reports',
   standalone: true,
-  imports: [ButtonModule, CarouselModule, ChartModule, DialogModule, TableModule, TagModule, SeverityNameByIdPipe, SeverityCssStyleByIdPipe],
+  imports: [
+    ButtonModule,
+    CarouselModule,
+    ChartModule,
+    DialogModule,
+    TableModule,
+    TagModule,
+    SeverityNameByIdPipe,
+    SeverityCssStyleByIdPipe,
+  ],
   templateUrl: './dashboard-exposed-secret-reports.component.html',
   styleUrl: './dashboard-exposed-secret-reports.component.scss',
 })
@@ -32,32 +41,28 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
   public slides: string[] = ['nsByNs', 'nsBySev'];
   barchartDataNsByNs: PrimeNgHorizontalBarChartData | null = null;
   barchartDataNsBySev: PrimeNgHorizontalBarChartData | null = null;
-  public horizontalBarChartOption: any;
+  horizontalBarChartOption = signal<ChartOptions | null>(null);
   public isMoreESDetailsModalVisible = signal<boolean>(false);
-
-  private darkLightMode: 'Dark' | 'Light' = 'Dark';
 
   showDistinctValues = input.required<boolean>();
 
-  constructor(private exposedSecretReportService: ExposedSecretReportService, private darkModeService: DarkModeService) {
+  private readonly exposedSecretReportService = inject(ExposedSecretReportService);
+  private readonly darkModeService = inject(DarkModeService);
+
+  constructor() {
     effect(() => {
       const x = this.showDistinctValues();
       this.computeValues();
+    });
+
+    effect(() => {
+      const isDark = this.darkModeService.isDarkMode();
+      this.horizontalBarChartOption.set(PrimeNgChartUtils.getHorizontalBarChartOption());
     });
   }
 
   ngOnInit() {
     this.loadData();
-    this.darkModeService.isDarkMode$.subscribe((isDarkMode) => {
-      const oldDarkLightMode = this.darkLightMode;
-      this.darkLightMode = isDarkMode ? 'Dark' : 'Light';
-      if (oldDarkLightMode != this.darkLightMode) {
-        setTimeout(() => {
-          this.horizontalBarChartOption = PrimeNgChartUtils.getHorizontalBarChartOption();
-        }, 0);
-      }
-    });
-    this.horizontalBarChartOption = PrimeNgChartUtils.getHorizontalBarChartOption();
   }
 
   loadData(): void {
@@ -93,7 +98,7 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
   // }
 
   private onDtos(dtos: EsSeveritiesByNsSummaryDto[]) {
-    this.exposedSecretReportSummaryDtos = dtos.sort((a, b) => a.namespaceName! > b.namespaceName! ? 1 : -1);
+    this.exposedSecretReportSummaryDtos = dtos.sort((a, b) => (a.namespaceName! > b.namespaceName! ? 1 : -1));
     this.computeValues();
   }
 
@@ -119,6 +124,6 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
       this.exposedSecretReportSummaryDtos as SeveritiesSummary[],
       this.showDistinctValues(),
     );
-    this.horizontalBarChartOption = PrimeNgChartUtils.getHorizontalBarChartOption();
+    this.horizontalBarChartOption.set(PrimeNgChartUtils.getHorizontalBarChartOption());
   }
 }

@@ -53,7 +53,7 @@ export class NavMenuComponent {
   // --- Signals from services ---
   alerts = toSignal(this.alertsService.alerts$, { initialValue: [] });
   backendSettings = toSignal(this.mainAppInitService.backendSettingsDto$);
-  isDarkMode = toSignal(this.darkModeService.isDarkMode$);
+  isDarkMode = this.darkModeService.isDarkMode;
   activePage = toSignal(this.routerEventEmitterService.title$);
 
   contexts = this.k8sContextState.contexts;
@@ -352,7 +352,7 @@ export class NavMenuComponent {
   }
 
   onAlertsClick() {
-    if (this.router.url === '/alerts') {
+    if (this.router.url === 'alerts') {
       this.alertsService.triggerRefresh();
     } else {
       this.router.navigate(['alerts']);
