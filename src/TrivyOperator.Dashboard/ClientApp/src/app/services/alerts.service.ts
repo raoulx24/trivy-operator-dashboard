@@ -1,9 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { ApiConfiguration } from '../../api/api-configuration';
-
 import { AlertDto } from '../../api/models/alert-dto';
 import { RetryPolicyUtils } from '../utils/retry-policy.utils';
 
@@ -12,31 +10,31 @@ import { RetryPolicyUtils } from '../utils/retry-policy.utils';
 })
 export class AlertsService {
   private hubConnection!: HubConnection;
-  private alertsSubject = new BehaviorSubject<AlertDto[]>([]);
-  public alerts$: Observable<AlertDto[]> = this.alertsSubject.asObservable();
+
+  private readonly _alerts = signal<AlertDto[]>([]);
+  readonly alerts = this._alerts.asReadonly();
+
+  private readonly _refreshCounter = signal(0); // simple counter trigger
+  readonly refreshEvents = this._refreshCounter.asReadonly();
 
   private retryPolicy = new RetryPolicyUtils();
-  private readonly hubPath: string = 'alerts-hub';
-  private hubUrl: string = '';
+  private readonly hubPath = 'alerts-hub';
+  private hubUrl = '';
 
-  private readonly refreshTrigger = new Subject<void>();
+  private readonly apiConfiguration = inject(ApiConfiguration);
 
-  constructor(private apiConfiguration: ApiConfiguration) {
-    this.hubUrl = `${apiConfiguration.rootUrl}${this.hubPath}`;
+  constructor() {
+    this.hubUrl = `${this.apiConfiguration.rootUrl}${this.hubPath}`;
     this.startConnection();
     this.addEventListeners();
   }
 
   getAlerts(): AlertDto[] {
-    return this.alertsSubject.value;
-  }
-
-  onRefresh(): Observable<void> {
-    return this.refreshTrigger.asObservable();
+    return this._alerts();
   }
 
   triggerRefresh(): void {
-    this.refreshTrigger.next();
+    this._refreshCounter.update((v) => v + 1);
   }
 
   private startConnection() {
@@ -60,10 +58,10 @@ export class AlertsService {
 
     this.hubConnection.onreconnecting((error) => {
       console.warn(`Connection lost due to ${error}. Reconnecting...`);
-      this.alertsSubject.next([]);
+      this._alerts.set([]); // clear alerts
     });
 
-    this.hubConnection.onreconnected((connectionId) => {
+    this.hubConnection.onreconnected(() => {
       this.retryPolicy.resetCounter();
     });
 
@@ -90,14 +88,10 @@ export class AlertsService {
   }
 
   private addAlert(alert: AlertDto) {
-    const currentAlerts = this.alertsSubject.value;
-    this.alertsSubject.next([...currentAlerts, alert]);
+    this._alerts.update((list) => [...list, alert]);
   }
 
   private removeAlert(alert: AlertDto) {
-    const currentAlerts = this.alertsSubject.value.filter(
-      (a) => a.emitter !== alert.emitter || a.emitterKey !== alert.emitterKey,
-    );
-    this.alertsSubject.next(currentAlerts);
+    this._alerts.update((list) => list.filter((a) => a.emitter !== alert.emitter || a.emitterKey !== alert.emitterKey));
   }
 }

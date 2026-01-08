@@ -51,7 +51,7 @@ export class NavMenuComponent {
   isDrawerVisible = signal(false);
 
   // --- Signals from services ---
-  alerts = toSignal(this.alertsService.alerts$, { initialValue: [] });
+  alerts = this.alertsService.alerts;
   backendSettings = toSignal(this.mainAppInitService.backendSettingsDto$);
   isDarkMode = this.darkModeService.isDarkMode;
   activePage = toSignal(this.routerEventEmitterService.title$);

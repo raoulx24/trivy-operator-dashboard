@@ -1,4 +1,4 @@
-import { Component, inject, model, OnInit } from '@angular/core';
+import { Component, effect, inject, model, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AlertsService } from '../../services/alerts.service';
@@ -57,14 +57,17 @@ export class AlertsComponent implements OnInit {
     'Info': 4,
   };
 
+  constructor() {
+    effect(() => {
+      const events = this.alertsService.refreshEvents();
+      this.loadData();
+    })
+  }
+
   ngOnInit() {
    setTimeout(() => {
       this.loadData();
    }, 100);
-
-    this.alertsService.onRefresh().subscribe(() => {
-      this.loadData();
-    });
   }
 
   onNodeExpand(event: TreeTableNodeExpandEvent) {
