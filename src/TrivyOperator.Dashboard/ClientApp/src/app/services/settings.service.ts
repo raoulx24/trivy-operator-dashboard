@@ -1,38 +1,44 @@
-import { Injectable } from '@angular/core';
-
+import { Injectable, signal, effect, inject } from '@angular/core';
 import { AppVersionService } from '../../api/services/app-version.service';
-import { Observable } from 'rxjs';
 import { AppVersion } from '../../api/models';
+import { Observable } from 'rxjs';
 
-export type SeverityColorByNameOption = "all" | "grayNulls" | "grayBelowOne" | "hideNonPositive";
+export type SeverityColorByNameOption =
+  | 'all'
+  | 'grayNulls'
+  | 'grayBelowOne'
+  | 'hideNonPositive';
 
 @Injectable({
   providedIn: 'root',
 })
-
 export class SettingsService {
-  private _severityCssStyleByIdOptionDefault: SeverityColorByNameOption = "grayBelowOne";
-  private _severityCssStyleByIdOption: SeverityColorByNameOption | null = null;
-  severityCssStyleByIdOptions: ReadonlyArray<SeverityColorByNameOption> = ["all", "grayNulls", "grayBelowOne", "hideNonPositive"];
+  readonly severityCssStyleByIdOptions: ReadonlyArray<SeverityColorByNameOption> = [
+    'all',
+    'grayNulls',
+    'grayBelowOne',
+    'hideNonPositive',
+  ];
 
-  constructor(private appVersionService: AppVersionService) {
+  private readonly defaultOption: SeverityColorByNameOption = 'grayBelowOne';
 
+  private readonly appVersionService = inject(AppVersionService);
+
+  readonly severityCssStyleByIdOption = signal<SeverityColorByNameOption>(
+    (localStorage.getItem('severityCssStyleByIdOption') as SeverityColorByNameOption) ??
+    this.defaultOption
+  );
+
+  constructor() {
+    effect(() => {
+      localStorage.setItem(
+        'severityCssStyleByIdOption',
+        this.severityCssStyleByIdOption()
+      );
+    });
   }
 
-  get severityCssStyleByIdOption(): SeverityColorByNameOption {
-    if (!this._severityCssStyleByIdOption) {
-      this._severityCssStyleByIdOption =
-        (localStorage.getItem("severityCssStyleByIdOption") as SeverityColorByNameOption) ?? this._severityCssStyleByIdOptionDefault;
-    }
-
-    return this._severityCssStyleByIdOption;
-  }
-
-  set severityCssStyleByIdOption(value: SeverityColorByNameOption) {
-    this._severityCssStyleByIdOption = value;
-    localStorage.setItem("severityCssStyleByIdOption", value);
-  }
-
+  // API call stays Observable
   getAppVersion(): Observable<AppVersion> {
     return this.appVersionService.getCurrentVersion();
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
@@ -51,8 +51,8 @@ export class SettingsComponent implements OnInit {
   severityCssStyleByIdOptionValue: SeverityColorByNameOption = 'grayBelowOne';
   severityCssStyleByIdOptionDescription: string = "";
 
-
-  constructor(private mainAppInitService: MainAppInitService, private settingsService: SettingsService) { }
+  private readonly mainAppInitService = inject(MainAppInitService);
+  private readonly settingsService = inject(SettingsService);
 
   ngOnInit() {
     this.loadTableOptions();
@@ -144,7 +144,7 @@ export class SettingsComponent implements OnInit {
   }
 
   private loadSeverityColorByName() {
-    this.setSeverityColorByNameOptionIndex(this.settingsService.severityCssStyleByIdOptions.indexOf(this.settingsService.severityCssStyleByIdOption));
+    this.setSeverityColorByNameOptionIndex(this.settingsService.severityCssStyleByIdOptions.indexOf(this.settingsService.severityCssStyleByIdOption()));
 
     this.severityCssStyleByIdOptions = this.settingsService.severityCssStyleByIdOptions.map(x => {
       let label = "";
@@ -164,7 +164,7 @@ export class SettingsComponent implements OnInit {
       }
       return { id: x, label: label };
     });
-    this.severityCssStyleByIdOptionValue = this.settingsService.severityCssStyleByIdOption;
+    this.severityCssStyleByIdOptionValue = this.settingsService.severityCssStyleByIdOption();
   }
 
   onSeverityCssStyleByIdOptionsClick(event: SelectButtonOptionClickEvent) {
@@ -175,7 +175,7 @@ export class SettingsComponent implements OnInit {
 
   private setSeverityColorByNameOptionIndex(index: number) {
     this.severityCssStyleByIdOptionIndex = index;
-    this.settingsService.severityCssStyleByIdOption = this.settingsService.severityCssStyleByIdOptions[index] ?? this.settingsService.severityCssStyleByIdOption;
+    this.settingsService.severityCssStyleByIdOption.set(this.settingsService.severityCssStyleByIdOptions[index] ?? this.settingsService.severityCssStyleByIdOption());
     switch (index) {
       case 0:
         this.severityCssStyleByIdOptionDescription = "All are visible";
