@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 
 import { MarkdownModule } from 'ngx-markdown';
 import { provideMarkdown } from 'ngx-markdown';
@@ -20,13 +20,14 @@ import { VersionUtils } from '../../utils/version.utils';
   providers: [provideMarkdown()],
   templateUrl: './about.component.html',
   styleUrl: './about.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AboutComponent {
-  releaseNotes: GitHubReleaseDto[] = [];
-  currentVersion?: AppVersion;
-  latestVersion?: string;
-  newVersionAvailable: boolean = false;
-  experimentalVersion: boolean = false;
+export class AboutComponent implements OnInit {
+  releaseNotes = signal<GitHubReleaseDto[]>([]);
+  currentVersion = signal<AppVersion | undefined>(undefined);
+  latestVersion = signal<string | undefined>(undefined);
+  newVersionAvailable = signal<boolean>(false);
+  experimentalVersion = signal<boolean>(false);
 
   credits: AboutCredits[] = [
     {
@@ -61,7 +62,9 @@ export class AboutComponent {
     }
   ];
 
-  constructor(private service: AppVersionService) {
+  private readonly service = inject(AppVersionService);
+
+  ngOnInit() {
     this.getReleaseNotesDtos();
   }
 
@@ -77,25 +80,28 @@ export class AboutComponent {
   }
 
   private onReleaseNoteDtos(data: GitHubReleaseDto[]) {
-    this.releaseNotes = data.sort((a, b) => VersionUtils.parseVersion(b.tagName ?? '') - VersionUtils.parseVersion(a.tagName ?? ''));
-    this.latestVersion = data.find(x => x.isLatest)?.tagName?.replace('v', '');
+    this.releaseNotes.set(data.sort((a, b) => VersionUtils.parseVersion(b.tagName ?? '') - VersionUtils.parseVersion(a.tagName ?? '')));
+    this.latestVersion.set(data.find(x => x.isLatest)?.tagName?.replace('v', ''));
     this.checkNewVersionAvailable();
   }
 
   private onCurrentVersion(data: AppVersion) {
-    this.currentVersion = data;
+    this.currentVersion.set(data);
     this.checkNewVersionAvailable();
   }
 
   private checkNewVersionAvailable() {
-    if (!this.currentVersion || !this.releaseNotes || !this.releaseNotes[0]) {
+    const localCurrentVersion = this.currentVersion();
+    const localReleaseNotes = this.releaseNotes();
+
+    if (!localCurrentVersion || !localReleaseNotes || !localReleaseNotes[0]) {
       return;
     }
 
-    const parsedCurrentVersion = VersionUtils.parseVersion(this.currentVersion.fileVersion ?? "0.0");
-    const parsedLastVersion = VersionUtils.parseVersion(this.releaseNotes[0].tagName ?? "0.0");
+    const parsedCurrentVersion = VersionUtils.parseVersion(localCurrentVersion.fileVersion ?? '0.0');
+    const parsedLastVersion = VersionUtils.parseVersion(localReleaseNotes[0].tagName ?? "0.0");
 
-    this.newVersionAvailable = parsedLastVersion - parsedCurrentVersion > 0;
-    this.experimentalVersion = parsedLastVersion - parsedCurrentVersion < 0;
+    this.newVersionAvailable.set(parsedLastVersion - parsedCurrentVersion > 0);
+    this.experimentalVersion.set(parsedLastVersion - parsedCurrentVersion < 0);
   }
 }

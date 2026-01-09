@@ -5,9 +5,9 @@
                 label="Refresh" size="small" text raised
                 (click)="loadData()" />
     <div class="h-8 w-[2px] min-w-[2px] tod-separator mx-2"></div>
-    @if (treeData.length > 0) {
+    @if (treeData().length > 0) {
       <span class="px-2 text-sm whitespace-nowrap">Fully visible level: </span>
-      <p-selectButton [options]="treeExpandLevelOptions"
+      <p-selectButton [options]="treeExpandLevelOptions()"
                       [(ngModel)]="treeExpandLevelOptionValue"
                       (onOptionClick)="onOptionClickTreeExpandLevel($event)"
                       optionLabel="label"
@@ -23,7 +23,7 @@
 
 <div class="h-[85vh] flex flex-col tod-content-border">
   <div class="overflow-auto h-full tod-content-background">
-  <p-treeTable [value]="treeData"
+  <p-treeTable [value]="treeData()"
                [virtualScrollItemSize]="53"
                scrollHeight="flex"
                [resizableColumns]="true"

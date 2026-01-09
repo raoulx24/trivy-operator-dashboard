@@ -29,15 +29,17 @@
         <div class="col-span-12 md:col-span-6 xl:col-span-3">
           <p class="text-lg font-semibold">Features</p>
             <ul class="list-disc pl-5">
-              <li>Vulnerability Reports</li>
-              <li>Config Audit Reports</li>
-              <li>Cluster RBAC Assessment Reports</li>
-              <li>Exposed Secret Reports</li>
               <li>Cluster Compliance Reports</li>
+              <li>Cluster Infra Assessment Reports</li>
+              <li>Cluster RBAC Assessment Reports</li>
+              <li>Cluster SBOM Reports</li>
               <li>Cluster Vulnerability Reports</li>
+              <li>Config Audit Reports</li>
+              <li>Infra Assessment Reports</li>
+              <li>Exposed Secret Reports</li>
               <li>RBAC Assessment Reports</li>
               <li>SBOM Reports</li>
-              <li>Cluster SBOM Reports</li>
+              <li>Vulnerability Reports</li>
             </ul>
         </div>
 
@@ -45,17 +47,18 @@
           <p class="text-lg font-semibold">Version Info</p>
           <div class="p-1">
             <span class="pr-2">Current Version:</span>
-            <p-tag [rounded]="true" [value]="currentVersion ? (currentVersion.fileVersion) : 'n/a'" />
+            @let localCurrentVersion = currentVersion();
+            <p-tag [rounded]="true" [value]="localCurrentVersion ? (localCurrentVersion.fileVersion) : 'n/a'" />
           </div>
           <div class="p-1">
             <span class="pr-2">Latest Version:</span>
-            <p-tag class="p-2" [rounded]="true" [value]="latestVersion ?? 'n/a'" />
+            <p-tag class="p-2" [rounded]="true" [value]="latestVersion() ?? 'n/a'" />
           </div>
           <div class="p-1">
-            @if(newVersionAvailable) {
+            @if(newVersionAvailable()) {
               <p-tag [rounded]="true" value="New version available!" icon="pi pi-info-circle" severity="info" />
             }
-            @if(experimentalVersion) {
+            @if(experimentalVersion()) {
               <p-tag [rounded]="true" value="Experimental version!" icon="pi pi-info-circle" severity="info" />
             }
           </div>
@@ -66,10 +69,10 @@
 </div>
 
 <div class="pb-2">
-  @if(releaseNotes.length > 0) {
+  @if(releaseNotes().length > 0) {
     <p-panel header="Release Notes" [toggleable]="true">
       <div class="grid grid-cols-12 gap-4 items-start md:items-stretch">
-        @for (releaseNote of releaseNotes; let i = $index; track releaseNote) {
+        @for (releaseNote of releaseNotes(); let i = $index; track releaseNote) {
           <div class="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3">
             <p-card class="h-full small-header"
                     [ngClass]="{'p-card-bold-subtitle': i === 0}"

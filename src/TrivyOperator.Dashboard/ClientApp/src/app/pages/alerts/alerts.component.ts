@@ -1,4 +1,4 @@
-import { Component, effect, inject, model, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, model, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AlertsService } from '../../services/alerts.service';
@@ -33,6 +33,11 @@ interface AlertNodeData {
   isExpanded: boolean;
 }
 
+interface TreeExpandLevelOption {
+  id: number,
+  label: string
+}
+
 @Component({
   selector: 'app-alerts',
   imports: [
@@ -40,13 +45,14 @@ interface AlertNodeData {
     SeverityCssStyleByIdPipe, VulnerabilityCountPipe, TrivyToolbarComponent, GenericObjectArraySummaryPipe, FormsModule,
   ],
   templateUrl: './alerts.component.html',
-  styleUrl: './alerts.component.scss'
+  styleUrl: './alerts.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlertsComponent implements OnInit {
-  treeData: TreeNode<AlertNodeData>[] = [];
+  treeData = signal<TreeNode<AlertNodeData>[]>([]);
   private allTreeNodes: TreeNode<AlertNodeData>[] = [];
 
-  treeExpandLevelOptions: { id: number, label: string }[] = [];
+  treeExpandLevelOptions = signal<TreeExpandLevelOption[]>([]);
   treeExpandLevelOptionValue = model<number>(0);
 
   alertsService: AlertsService = inject(AlertsService);
@@ -82,7 +88,7 @@ export class AlertsComponent implements OnInit {
 
   loadData() {
     const alerts = this.alertsService.getAlerts();
-    this.treeData = this.buildTree(alerts);
+    this.treeData.set(this.buildTree(alerts));
     this.allTreeNodes
       .sort((a, b) => (a.data?.level ?? 999) - (b.data?.level ?? 999));
     this.treeExpandLevelOptionValue.set(0);
@@ -173,27 +179,32 @@ export class AlertsComponent implements OnInit {
 
   // on load; this method fills the treeExpandLevelOptions array with options for the select button
   private fillTreeExpandLevelOptions(treeMaxLevel: number) {
-    this.treeExpandLevelOptions = [];
+    const localTreeExpandLevelOptions: TreeExpandLevelOption[] = [];
     for (let i = 0; i <= treeMaxLevel; i++) {
-      this.treeExpandLevelOptions.push({ id: i, label: NumberStringUtil.FormatOrdinal(i + 1) });
+      localTreeExpandLevelOptions.push({ id: i, label: NumberStringUtil.FormatOrdinal(i + 1) });
     }
+
+    this.treeExpandLevelOptions.set(localTreeExpandLevelOptions);
   }
 
   private expandTreeNodesToLevel(level: number) {
-    for (let i = 0; i < this.allTreeNodes.length; i++) {
-      const node = this.allTreeNodes[i];
-      const nodeLevel = node.data?.level ?? 999;
+    this.treeData.update(arr => {
+      for (let i = 0; i < this.allTreeNodes.length; i++) {
+        const node = this.allTreeNodes[i];
+        const nodeLevel = node.data?.level ?? 999;
 
-      if (nodeLevel <= level) {
-        node.expanded = nodeLevel < level;
-        if (node.data) node.data.isExpanded = nodeLevel < level;
-      } else {
-        break;
+        if (nodeLevel <= level) {
+          node.expanded = nodeLevel < level;
+          if (node.data) node.data.isExpanded = nodeLevel < level;
+        } else {
+          break;
+        }
       }
-    }
 
-    this.treeData = [...this.treeData];
+      return arr;
+    });
   }
+
 
   onOptionClickTreeExpandLevel(event: SelectButtonOptionClickEvent) {
     if (event.index === undefined) return;

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -39,6 +39,7 @@ import { IconComponent } from '../icon/icon.component';
   ],
   templateUrl: './nav-menu.component.html',
   styleUrls: ['./nav-menu.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavMenuComponent {
   protected router = inject(Router);
