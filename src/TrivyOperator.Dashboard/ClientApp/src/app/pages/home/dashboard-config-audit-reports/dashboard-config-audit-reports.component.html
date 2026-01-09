@@ -3,7 +3,7 @@
     <div class="col-span-12 lg:col-span-3 h-full">
       <span class="block text-center font-semibold">Config Audit Reports Statistics</span>
       <div class="flex row">
-        <p-table class="w-full p-datatable-sm text-sm" [value]="carSeveritySummaries">
+        <p-table class="w-full p-datatable-sm text-sm" [value]="carSeveritySummaries()">
           <ng-template pTemplate="header">
             <tr>
               <th style="width: 50%; max-width: 75%">Severity</th>
@@ -30,50 +30,50 @@
             @switch (slide) {
               @case ('nsByNs') {
                 <span class="block text-center font-semibold">Config Audits - Severity by Namespace</span>
-                @if (barchartDataNsByNs) {
+                @if (barchartDataNsByNs()) {
                   <div class="flex justify-center">
                     <p-chart height="60vh"
                              type="bar"
                              width="60vw"
                              class="justify-center"
-                             [data]="barchartDataNsByNs"
+                             [data]="barchartDataNsByNs()"
                              [options]="horizontalBarChartOption()" />
                   </div>
                 }
               }
               @case ('nsBySev') {
                 <span class="block text-center font-semibold">Config Audits - Namespace by Severity</span>
-                @if (barchartDataNsBySev) {
+                @if (barchartDataNsBySev()) {
                   <div class="flex justify-center">
                     <p-chart height="60vh"
                              type="bar"
                              width="60vw"
-                             [data]="barchartDataNsBySev"
+                             [data]="barchartDataNsBySev()"
                              [options]="horizontalBarChartOption()" />
                   </div>
                 }
               }
               @case ('kindByNs') {
                 <span class="block text-center font-semibold">Config Audits - Severity by Kinds</span>
-                @if (barchartDataKindByNs) {
+                @if (barchartDataKindByNs()) {
                   <div class="flex justify-center">
                     <p-chart height="60vh"
                              type="bar"
                              width="60vw"
                              class="justify-center"
-                             [data]="barchartDataKindByNs"
+                             [data]="barchartDataKindByNs()"
                              [options]="horizontalBarChartOption()" />
                   </div>
                 }
               }
               @case ('kindBySev') {
                 <span class="block text-center font-semibold">Config Audits - Kinds by Severity</span>
-                @if (barchartDataKindBySev) {
+                @if (barchartDataKindBySev()) {
                   <div class="flex justify-center">
                     <p-chart height="60vh"
                              type="bar"
                              width="60vw"
-                             [data]="barchartDataKindBySev"
+                             [data]="barchartDataKindBySev()"
                              [options]="horizontalBarChartOption()" />
                   </div>
                 }
@@ -102,7 +102,7 @@
            class="p-datatable-sm text-sm"
            [scrollable]="true"
            scrollHeight="flex"
-           [value]="carDetailsDtos">
+           [value]="carDetailsDtos()">
     <ng-template pTemplate="header">
       <tr>
         <th pFrozenColumn rowspan="2">Namespace</th>
@@ -136,7 +136,7 @@
     <ng-template pTemplate="footer">
       <tr>
         <td pFrozenColumn class="font-bold">Total</td>
-        @for (value of carDetailsDtoFooter.values; track $index) {
+        @for (value of carDetailsDtoFooter().values; track $index) {
           <td class="tod-text-center">
             <p-tag [rounded]="true"
                    [style]="value.severityId | severityCssStyleById:value.count"

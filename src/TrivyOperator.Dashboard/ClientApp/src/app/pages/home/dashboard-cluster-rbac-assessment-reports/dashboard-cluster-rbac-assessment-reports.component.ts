@@ -1,4 +1,4 @@
-import { Component, inject, input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 
 import { ClusterRbacAssessmentReportSummaryDto } from '../../../../api/models/cluster-rbac-assessment-report-summary-dto';
 import { ClusterRbacAssessmentReportService } from '../../../../api/services/cluster-rbac-assessment-report.service';
@@ -12,9 +12,10 @@ import { TableModule } from 'primeng/table';
   imports: [TableModule, SeverityNameByIdPipe],
   templateUrl: './dashboard-cluster-rbac-assessment-reports.component.html',
   styleUrl: './dashboard-cluster-rbac-assessment-reports.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardClusterRbacAssessmentReportsComponent implements OnInit {
-  clusterRbacAssessmentReportSummaryDtos: ClusterRbacAssessmentReportSummaryDto[] = [];
+  clusterRbacAssessmentReportSummaryDtos = signal<ClusterRbacAssessmentReportSummaryDto[]>([]);
 
   showDistinctValues = input.required<boolean>();
 
@@ -32,6 +33,6 @@ export class DashboardClusterRbacAssessmentReportsComponent implements OnInit {
   }
 
   private onDtos(dtos: ClusterRbacAssessmentReportSummaryDto[]) {
-    this.clusterRbacAssessmentReportSummaryDtos = dtos;
+    this.clusterRbacAssessmentReportSummaryDtos.set(dtos);
   }
 }

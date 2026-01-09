@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, OnInit, signal } from '@angular/core';
 
 import { ConfigAuditReportSummaryDto } from '../../../../api/models/config-audit-report-summary-dto';
 import { ConfigAuditReportService } from '../../../../api/services/config-audit-report.service';
@@ -35,21 +35,22 @@ import { DarkModeService } from '../../../services/dark-mode.service';
   ],
   templateUrl: './dashboard-config-audit-reports.component.html',
   styleUrl: './dashboard-config-audit-reports.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardConfigAuditReportsComponent implements OnInit {
-  configAuditReportSummaryDtos: ConfigAuditReportSummaryDto[] | null = null;
+  configAuditReportSummaryDtos?: ConfigAuditReportSummaryDto[];
   namespaceNames: string[] = [];
   kinds: string[] = [];
   severities: number[] = SeverityUtils.severityShortDtos.map((x) => x.id);
-  carSeveritySummaries: CarSeveritySummary[] = [];
-  carDetailsDtos: CarDetailsDto[] = [];
-  carDetailsDtoFooter: CarDetailsDto = { namespaceName: '', values: [], isTotal: true };
+  carSeveritySummaries = signal<CarSeveritySummary[]>([]);
+  carDetailsDtos = signal<CarDetailsDto[]>([]);
+  carDetailsDtoFooter = signal<CarDetailsDto>({ namespaceName: '', values: [], isTotal: true });
   public slides: string[] = ['nsByNs', 'nsBySev', 'kindByNs', 'kindBySev'];
   severitiesSummariesNamespace: SeveritiesSummary[] = [];
-  barchartDataNsByNs: PrimeNgHorizontalBarChartData | null = null;
-  barchartDataNsBySev: PrimeNgHorizontalBarChartData | null = null;
-  barchartDataKindByNs: PrimeNgHorizontalBarChartData | null = null;
-  barchartDataKindBySev: PrimeNgHorizontalBarChartData | null = null;
+  barchartDataNsByNs = signal<PrimeNgHorizontalBarChartData | null>(null);
+  barchartDataNsBySev = signal<PrimeNgHorizontalBarChartData | null>(null);
+  barchartDataKindByNs = signal<PrimeNgHorizontalBarChartData | null>(null);
+  barchartDataKindBySev = signal<PrimeNgHorizontalBarChartData | null>(null);
   horizontalBarChartOption = signal<ChartOptions | null>(null);
   isCarDetailsDialogVisible = signal<boolean>(false);
 
@@ -122,6 +123,7 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
     this.kinds = kinds.sort();
     //this.severities = severities.sort((a, b) => a - b);
 
+    const localCarDetailsDto: CarDetailsDto[] = [];
     this.namespaceNames.forEach((namespaceName) => {
       const values: { severityId: number; count: number }[] = [];
       this.severities.forEach((severityId) => {
@@ -133,8 +135,9 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
           values.push({ severityId: severityId, count: count });
         });
       });
-      this.carDetailsDtos.push({ namespaceName: namespaceName, values: values, isTotal: false });
+      localCarDetailsDto.push({ namespaceName: namespaceName, values: values, isTotal: false });
     });
+    this.carDetailsDtos.set(localCarDetailsDto);
     const values: { severityId: number; count: number }[] = [];
     this.severities.forEach((severityId) => {
       this.kinds.forEach((kind) => {
@@ -145,7 +148,7 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
         values.push({ severityId: severityId, count: count });
       });
     });
-    this.carDetailsDtoFooter = { namespaceName: '', values: values, isTotal: true };
+    this.carDetailsDtoFooter.set({ namespaceName: '', values: values, isTotal: true });
   }
 
   private computeCarSeveritySummaries() {
@@ -166,10 +169,10 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
         {} as Record<string, number>,
       );
 
-    this.carSeveritySummaries = Object.keys(groupedSumForCarSeverities).map((key) => ({
+    this.carSeveritySummaries.set(Object.keys(groupedSumForCarSeverities).map((key) => ({
       severityName: key,
       count: groupedSumForCarSeverities[key],
-    }));
+    })));
   }
 
   private computeStatisticsByNs() {
@@ -202,14 +205,14 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
       });
 
     this.severitiesSummariesNamespace = Object.values(summaryMap);
-    this.barchartDataKindByNs = PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
+    this.barchartDataKindByNs.set(PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
       this.severitiesSummariesNamespace,
       this.showDistinctValues(),
-    );
-    this.barchartDataKindBySev = PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
+    ));
+    this.barchartDataKindBySev.set(PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
       this.severitiesSummariesNamespace,
       this.showDistinctValues(),
-    );
+    ));
   }
 
   private computeStatisticsByKind() {
@@ -242,13 +245,13 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
       });
 
     this.severitiesSummariesNamespace = Object.values(summaryMap);
-    this.barchartDataNsByNs = PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
+    this.barchartDataNsByNs.set(PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
       this.severitiesSummariesNamespace,
       this.showDistinctValues(),
-    );
-    this.barchartDataNsBySev = PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
+    ));
+    this.barchartDataNsBySev.set(PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
       this.severitiesSummariesNamespace,
       this.showDistinctValues(),
-    );
+    ));
   }
 }

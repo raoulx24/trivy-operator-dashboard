@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, OnInit, signal } from '@angular/core';
 
 import { EsSeveritiesByNsSummaryDto } from '../../../../api/models/es-severities-by-ns-summary-dto';
 import { ExposedSecretReportService } from '../../../../api/services/exposed-secret-report.service';
@@ -16,6 +16,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ChartOptions } from 'chart.js';
+import { VulnerabilityCountPipe } from '../../../pipes/vulnerability-count.pipe';
 
 @Component({
   selector: 'app-dashboard-exposed-secret-reports',
@@ -29,18 +30,20 @@ import { ChartOptions } from 'chart.js';
     TagModule,
     SeverityNameByIdPipe,
     SeverityCssStyleByIdPipe,
+    VulnerabilityCountPipe,
   ],
   templateUrl: './dashboard-exposed-secret-reports.component.html',
   styleUrl: './dashboard-exposed-secret-reports.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardExposedSecretReportsComponent implements OnInit {
-  exposedSecretReportSummaryDtos: EsSeveritiesByNsSummaryDto[] = [];
-  esTableSummary: EsTableSummary[] = [];
+  exposedSecretReportSummaryDtos = signal<EsSeveritiesByNsSummaryDto[]>([]);
+  esTableSummary = signal<EsTableSummary[]>([]);
   namespaceNames: string[] = [];
   severityIds: number[] = [];
   public slides: string[] = ['nsByNs', 'nsBySev'];
-  barchartDataNsByNs: PrimeNgHorizontalBarChartData | null = null;
-  barchartDataNsBySev: PrimeNgHorizontalBarChartData | null = null;
+  barchartDataNsByNs = signal<PrimeNgHorizontalBarChartData | null>(null);
+  barchartDataNsBySev = signal<PrimeNgHorizontalBarChartData | null>(null);
   horizontalBarChartOption = signal<ChartOptions | null>(null);
   public isMoreESDetailsModalVisible = signal<boolean>(false);
 
@@ -72,17 +75,15 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
     });
   }
 
-  getCountFromExposedSecretReportSummaryDtos(namespaceName: string, severityId: number): string {
-    const summary = this.exposedSecretReportSummaryDtos.find((x) => x.namespaceName === namespaceName);
+  getCountFromExposedSecretReportSummaryDtos(namespaceName: string, severityId: number): number {
+    const summary = this.exposedSecretReportSummaryDtos().find((x) => x.namespaceName === namespaceName);
     if (!summary || !summary.details) {
-      return '0';
+      return 0;
     }
 
     const stat = summary.details.find((y) => y.id == severityId);
 
-    const result = this.showDistinctValues() ? (stat?.distinctCount ?? 0) : (stat?.totalCount ?? 0);
-
-    return result.toString();
+    return this.showDistinctValues() ? (stat?.distinctCount ?? 0) : (stat?.totalCount ?? 0);
   }
 
   onEsrMore(_event: MouseEvent) {
@@ -98,32 +99,32 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
   // }
 
   private onDtos(dtos: EsSeveritiesByNsSummaryDto[]) {
-    this.exposedSecretReportSummaryDtos = dtos.sort((a, b) => (a.namespaceName! > b.namespaceName! ? 1 : -1));
+    this.exposedSecretReportSummaryDtos.set(dtos.sort((a, b) => (a.namespaceName! > b.namespaceName! ? 1 : -1)));
     this.computeValues();
   }
 
   private computeValues() {
-    const summary = this.exposedSecretReportSummaryDtos.find((x) => x.isTotal);
+    const summary = this.exposedSecretReportSummaryDtos().find((x) => x.isTotal);
     if (summary && summary.details) {
-      this.esTableSummary = summary.details.map((x) => {
+      this.esTableSummary.set(summary.details.map((x) => {
         return { severityId: x.id!, count: this.showDistinctValues() ? (x.distinctCount ?? 0) : (x.totalCount ?? 0) };
-      });
-      this.severityIds = summary.details.map((x) => x.id!);
+      }));
+      this.severityIds = summary.details.map((x) => x.id!).sort((a, b) => a - b);
     }
 
-    this.namespaceNames = this.exposedSecretReportSummaryDtos
+    this.namespaceNames = this.exposedSecretReportSummaryDtos()
       .filter((x) => !x.isTotal)
       .filter((x) => x.namespaceName)
       .map((x) => x.namespaceName);
 
-    this.barchartDataNsByNs = PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
-      this.exposedSecretReportSummaryDtos as SeveritiesSummary[],
+    this.barchartDataNsByNs.set(PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
+      this.exposedSecretReportSummaryDtos() as SeveritiesSummary[],
       this.showDistinctValues(),
-    );
-    this.barchartDataNsBySev = PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
-      this.exposedSecretReportSummaryDtos as SeveritiesSummary[],
+    ));
+    this.barchartDataNsBySev.set(PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
+      this.exposedSecretReportSummaryDtos() as SeveritiesSummary[],
       this.showDistinctValues(),
-    );
+    ));
     this.horizontalBarChartOption.set(PrimeNgChartUtils.getHorizontalBarChartOption());
   }
 }

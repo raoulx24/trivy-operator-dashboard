@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MainAppInitService } from '../../services/main-app-init.service';
@@ -29,6 +29,7 @@ import { KubernetesContextStateService } from '../../services/kubernetes-context
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent implements OnInit {
   enabledTrivyReports: string[] = ['crar', 'car', 'esr', 'vr'];
