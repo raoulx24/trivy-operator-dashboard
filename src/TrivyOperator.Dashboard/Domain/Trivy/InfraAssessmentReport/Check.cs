@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Utils.JsonConverters;
+using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
+using TrivyOperator.Dashboard.Infrastructure.Utils.JsonConverters;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.InfraAssessmentReport;
 

@@ -1,0 +1,33 @@
+﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Services.Options;
+using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
+using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
+
+namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
+
+public class SbomReportWatcher(
+    INamespacedResourceWatchDomainService<SbomReportCr, CustomResourceList<SbomReportCr>>
+        namespacedResourceWatchDomainService,
+    IKubernetesBackgroundQueue<SbomReportCr> backgroundQueue,
+    IOptions<WatchersOptions> options,
+    IMetricsClient metricsClient,
+    ILogger<SbomReportWatcher> logger)
+    : NamespacedWatcher<CustomResourceList<SbomReportCr>, SbomReportCr, IKubernetesBackgroundQueue<SbomReportCr>,
+        WatcherEvent<SbomReportCr>>(namespacedResourceWatchDomainService, backgroundQueue,
+            options, metricsClient, logger)
+{
+    protected override void ProcessReceivedKubernetesObject(SbomReportCr kubernetesObject)
+    {
+        if (kubernetesObject.Report != null)
+        {
+            kubernetesObject.Report.Components.ComponentsComponents = [];
+            kubernetesObject.Report.Components.Dependencies = [];
+        }
+
+        base.ProcessReceivedKubernetesObject(kubernetesObject);
+    }
+}

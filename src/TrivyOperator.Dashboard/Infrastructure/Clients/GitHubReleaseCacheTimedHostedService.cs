@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.Services.AppVersions;
-using TrivyOperator.Dashboard.Application.Services.Options;
-using TrivyOperator.Dashboard.Infrastructure.Abstractions;
+using TrivyOperator.Dashboard.Application.AppVersions.Services;
+using TrivyOperator.Dashboard.Application.AppVersions.Services.Options;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Clients;

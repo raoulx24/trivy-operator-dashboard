@@ -1,0 +1,11 @@
+﻿using k8s;
+
+namespace TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
+
+public interface IKubernetesClientFactory
+{
+    // Here it should be IKubernetes but the interface does not expose all yet...
+    Kubernetes GetClient(string contextName);
+    public IEnumerable<string> GetContexts();
+    public string GetCurrentContext();
+}

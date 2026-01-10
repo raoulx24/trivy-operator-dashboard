@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using TrivyOperator.Dashboard.Infrastructure.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Clients;

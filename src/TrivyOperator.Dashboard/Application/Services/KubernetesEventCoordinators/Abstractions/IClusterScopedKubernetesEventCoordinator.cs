@@ -1,3 +1,0 @@
-﻿namespace TrivyOperator.Dashboard.Application.Services.KubernetesEventCoordinators.Abstractions;
-
-public interface IClusterScopedKubernetesEventCoordinator : IKubernetesEventCoordinator;

@@ -8,10 +8,11 @@ using Serilog.Extensions.Logging;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Application.Hubs;
-using TrivyOperator.Dashboard.Application.Services.BuilderServicesExtensions;
-using TrivyOperator.Dashboard.Utils;
-using TrivyOperator.Dashboard.Utils.JsonConverters;
+using TrivyOperator.Dashboard;
+using TrivyOperator.Dashboard.Application;
+using TrivyOperator.Dashboard.Application.Alerts.Hubs;
+using TrivyOperator.Dashboard.Application.Utils;
+using TrivyOperator.Dashboard.Infrastructure.Utils.JsonConverters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 

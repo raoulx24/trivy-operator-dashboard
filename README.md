@@ -118,7 +118,7 @@ Recommended resolution: 1080p (1920x1080)
 ## Acknowledgements
 
 **Personal:** I would like to give my sincere thanks to the following persons who have helped me to get here:
-- **Dănuț** - For his technical guidance and explanations.
+- **Dan** - For his technical guidance and explanations.
 - **Florin** - For his insights regarding the app and endurance with its bugs.
 - **Alina** - My better half, for tolerating my long programming evenings.
 

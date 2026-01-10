@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.TrivyReport.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.Report.Abstractions;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
 
