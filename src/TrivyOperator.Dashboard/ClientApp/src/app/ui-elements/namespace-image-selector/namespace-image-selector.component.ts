@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { SelectModule } from 'primeng/select';
@@ -25,7 +25,8 @@ export const nonExistingNamespace = 'N/A';
     IconComponent
   ],
   templateUrl: './namespace-image-selector.component.html',
-  styleUrl: './namespace-image-selector.component.scss'
+  styleUrl: './namespace-image-selector.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NamespaceImageSelectorComponent {
 

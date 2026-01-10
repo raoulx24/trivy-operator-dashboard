@@ -24,27 +24,29 @@ export class TrivyMessageService {
 
   private readonly messageService = inject(MessageService);
 
-  push(message: TrivyMessage) {
+  push(message: TrivyMessage, showToast: boolean = true) {
     this._lastTrivyMessage.set(message);
     this._trivyMessages.update((list) => [...list, message]);
 
-    this.messageService.add({
-      severity: message.severity,
-      summary: message.source,
-      detail: message.message,
-      life: this.toastDuration,
-    });
-    console.log("mama");
+    if (showToast) {
+      this.messageService.add({
+        severity: message.severity,
+        summary: message.source,
+        detail: message.message,
+        life: this.toastDuration,
+      });
+    }
   }
 
-  pushSimple(message: string, source: string, severity: TrivyMessageSeverity, details?: any) {
+  pushSimple(message: string, source: string, severity: TrivyMessageSeverity, details?: any, showToast: boolean = true) {
     this.push({
       message,
       source,
       severity,
       timestamp: Date.now(),
       messageDetails: this.safeStringifyObject(details),
-    });
+      },
+      showToast);
   }
 
   clear() {
@@ -69,5 +71,4 @@ export class TrivyMessageService {
       return String(value);
     }
   }
-
 }

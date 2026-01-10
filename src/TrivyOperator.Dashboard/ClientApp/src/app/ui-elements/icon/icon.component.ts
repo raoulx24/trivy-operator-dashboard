@@ -1,33 +1,31 @@
-import { Component, inject, input, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
-
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { IconRegistryService } from '../../services/icon-registry.service';
+import { SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-icon',
   imports: [CommonModule],
   templateUrl: './icon.component.html',
-  styleUrl: './icon.component.scss'
+  styleUrl: './icon.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class IconComponent implements  OnInit {
+export class IconComponent {
   name = input.required<string>();
-  class = input<string>('');    // optional Tailwind classes
-  svgContent: SafeHtml = '';
+  class = input<string>('');
 
-  private httpClientService = inject(HttpClient);
-  private sanitizer = inject(DomSanitizer);
+  svgContent = signal<SafeHtml>(''); // safe HTML for template
 
-  ngOnInit() {
-    const path = `assets/icons/${this.name()}.svg`;
-    this.httpClientService.get(path, { responseType: 'text' }).subscribe({
-      next: svg => {
-        this.svgContent = this.sanitizer.bypassSecurityTrustHtml(svg);
-      },
-      error: err => {
-        console.error(`Failed to load icon: ${this.name()}`, err);
-        this.svgContent = this.sanitizer.bypassSecurityTrustHtml('<svg><!-- fallback --></svg>');
-      }
+  private readonly registry = inject(IconRegistryService);
+
+  constructor() {
+    effect(() => {
+      const iconName = this.name();
+      if (!iconName) return;
+
+      this.registry.getIcon(iconName).then((svg) => {
+        this.svgContent.set(svg);
+      });
     });
   }
 }
