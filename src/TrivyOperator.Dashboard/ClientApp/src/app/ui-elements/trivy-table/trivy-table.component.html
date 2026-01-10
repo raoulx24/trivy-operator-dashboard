@@ -7,8 +7,8 @@
            stateStorage="local"
            class="p-datatable-xs"
            [columns]="trivyTableColumns()"
-           [expandedRowKeys]="expandedRows"
-           [exportFilename]="_csvFileName"
+           [expandedRowKeys]="expandedRows()"
+           [exportFilename]="_csvFileName()"
            [loading]="isLoading()"
            [ngStyle]="{ 'flex-grow': '1', display: 'flex', 'flex-direction': 'column' }"
            [reorderableColumns]="true"
@@ -17,7 +17,7 @@
            [selectionMode]="selectionMode()"
            [stateKey]="tableStateKey"
            [tableStyle]="style()"
-           [value]="_dataDtos"
+           [value]="_dataDtos()"
            [virtualScroll]="true"
            [virtualScrollItemSize]="47"
            [(selection)]="selectedDataDtos"
@@ -390,9 +390,9 @@
       <ng-template pTemplate="summary">
         <div class="flex flex-wrap tod-content-background tod-content-border-top-light p-1 px-2 gap-4">
           <span>Total</span>
-          <p-tag value="{{ trivyTableTotalRecords }}" [rounded]="true" severity="contrast"/>
+          <p-tag value="{{ trivyTableTotalRecords() }}" [rounded]="true" severity="contrast"/>
           <span>Filtered</span>
-          <p-tag value="{{ trivyTableFilteredRecords }}" [rounded]="true" severity="contrast"/>
+          <p-tag value="{{ trivyTableFilteredRecords() }}" [rounded]="true" severity="contrast"/>
         </div>
       </ng-template>
     }
@@ -428,7 +428,7 @@
     </div>
   </p-popover>
 
-  @if (filterRefreshSeverities) {
+  @if (filterRefreshSeverities()) {
     <p-popover #serverFilterDataOp
                [dismissable]="true"
                [hideTransitionOptions]="'0.3s ease-out'"
@@ -491,7 +491,7 @@
   }
 </div>
 
-@if (overlayVisible) {
+@if (overlayVisible()) {
   <div class="custom-backdrop"></div>
 }
 
