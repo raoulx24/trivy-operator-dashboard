@@ -1,7 +1,7 @@
 <div class="tod-content-border">
   <app-trivy-table
-    [dataDtos]="watcherStateInfoDtos!"
-    [isLoading]="isLoading"
+    [dataDtos]="watcherStateInfoDtos()"
+    [isLoading]="isLoading()"
     [trivyTableColumns]="trivyTableColumns"
     (refreshRequested)="getTableDataDtos()"
     (rowActionRequested)="onRowActionRequested($event)"

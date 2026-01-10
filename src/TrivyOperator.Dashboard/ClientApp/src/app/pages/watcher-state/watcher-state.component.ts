@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 
 import { WatcherStatusDto } from '../../../api/models/watcher-status-dto';
 import { WatcherStatusService } from '../../../api/services/watcher-status.service';
@@ -10,6 +10,8 @@ import { watcherStateColumns } from '../constants/watcher-state.constants';
 
 import { ButtonModule }  from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { TrivyMessageService } from '../../services/trivy-message.service';
+import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
   selector: 'app-watcher-state',
@@ -18,9 +20,9 @@ import { DialogModule } from 'primeng/dialog';
   templateUrl: './watcher-state.component.html',
   styleUrl: './watcher-state.component.scss',
 })
-export class WatcherStateComponent implements OnInit {
-  watcherStateInfoDtos: WatcherStatusDto[] = [];
-  isLoading: boolean = false;
+export class WatcherStateComponent extends DataPageBase implements OnInit {
+  watcherStateInfoDtos = signal<WatcherStatusDto[]>([]);
+  isLoading = signal<boolean>(false);
 
   trivyTableColumns: TrivyTableColumn[] = [...watcherStateColumns];
 
@@ -37,10 +39,10 @@ export class WatcherStateComponent implements OnInit {
   }
 
   public getTableDataDtos() {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.service.getWatcherStateInfos().subscribe({
       next: (res) => this.onGetWatcherStateInfos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 
@@ -49,8 +51,8 @@ export class WatcherStateComponent implements OnInit {
       // dto.kubernetesObjectType = this.unPascalCase(dto.kubernetesObjectType, ['Cr']);
       dto.eventsGauge = (dto.eventsGauge ?? -1) < 0 ? -1 : dto.eventsGauge;
     });
-    this.watcherStateInfoDtos = dtos;
-    this.isLoading = false;
+    this.watcherStateInfoDtos.set(dtos);
+    this.isLoading.set(false);
   }
 
   onRowActionRequested(event: { row: WatcherStatusDto, col: string }) {

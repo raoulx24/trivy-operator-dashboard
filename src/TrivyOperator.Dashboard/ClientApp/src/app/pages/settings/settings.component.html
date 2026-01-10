@@ -1,7 +1,7 @@
 <div class="grid grid-cols-12 gap-2 items-start md:items-stretch">
   <div class="col-span-12 md:col-span-6">
     <p-panel header="Table States" class="h-full">
-      <p-table class="p-datatable-sm text-sm" [tableStyle]="" [value]="clearTablesOptions">
+      <p-table class="p-datatable-sm text-sm" [tableStyle]="" [value]="clearTablesOptions()">
         <ng-template pTemplate="header">
           <tr>
             <th style="width: 200px; min-width: 200px">Table Name</th>
@@ -16,10 +16,10 @@
           <tr>
             <td style="width: 200px; min-width: 200px">{{ item.description }}</td>
             <td style="width: 60px; min-width: 60px">
-              <p-checkbox binary="true" [(ngModel)]="item.filters"></p-checkbox>
+              <p-checkbox binary="true" [(ngModel)]="item.sort"></p-checkbox>
             </td>
             <td style="width: 60px; min-width: 60px">
-              <p-checkbox binary="true" [(ngModel)]="item.sort"></p-checkbox>
+              <p-checkbox binary="true" [(ngModel)]="item.filters"></p-checkbox>
             </td>
             <td style="width: 60px; min-width: 60px">
               <p-checkbox binary="true" [(ngModel)]="item.columnWidths"></p-checkbox>
@@ -48,7 +48,7 @@
                 raised
                 size="small"
                 text
-                [disabled]="clearTablesOptions.length == 0"
+                [disabled]="clearTablesOptions().length == 0"
                 (onClick)="onClearTableStatesSelected($event)"
               />
               <p-button
@@ -57,7 +57,7 @@
                 raised
                 size="small"
                 text
-                [disabled]="clearTablesOptions.length == 0"
+                [disabled]="clearTablesOptions().length == 0"
                 (onClick)="onClearTableStatesAll($event)"
               />
             </td>
@@ -75,13 +75,13 @@
   </div>
   <div class="col-span-12 md:col-span-6">
     <p-panel header="CSV File Names" class="h-full">
-      @for (file of csvFileNames; track file) {
+      @for (file of csvFileNames(); track file) {
         <div class="field pb-1">
           <label for="{{ file.dataKey }}" class="text-sm">{{ file.description }}</label>
           <input id="{{ file.dataKey }}" pInputText class="text-sm w-full" pSize="small" [(ngModel)]="file.savedCsvName" />
         </div>
       }
-      @if (csvFileNames.length == 0) {
+      @if (csvFileNames().length == 0) {
         <div>
           <p class="italic text-muted-color text-sm">No data: no CSV files saved...</p>
         </div>
@@ -92,7 +92,7 @@
         raised
         size="small"
         text
-        [disabled]="csvFileNames.length == 0"
+        [disabled]="csvFileNames().length == 0"
         (onClick)="onUpdateCsvFileNames($event)"
       />
       <ng-template #footer>
@@ -105,7 +105,7 @@
   </div>
   <div class="col-span-12 md:col-span-6">
     <p-panel header="Trivy Reports States" class="h-full">
-      <p-table class="p-datatable-sm text-sm" [tableStyle]="" [value]="trivyReportConfigs">
+      <p-table class="p-datatable-sm text-sm" [tableStyle]="" [value]="trivyReportConfigs()">
         <ng-template pTemplate="header">
           <tr>
             <th style="width: 200px; min-width: 200px">Trivy Report</th>
@@ -164,7 +164,7 @@
       <div class="flex flex-col">
         <span class="text-lg font-semibold pb-2">Severities</span>
         <span class="font-semibold pb-2">Select Severity display option</span>
-        <p-selectButton [options]="severityCssStyleByIdOptions"
+        <p-selectButton [options]="severityCssStyleByIdOptions()"
                         [(ngModel)]="severityCssStyleByIdOptionValue"
                         optionLabel="label"
                         optionValue="id"
@@ -175,7 +175,7 @@
         <div class="py-2">
           @for (sampleValue of [1, 0, -1]; track sampleValue) {
             <p-tag [rounded]="true"
-                   [style]="3 | severityCssStyleById:sampleValue:severityCssStyleByIdOptions[severityCssStyleByIdOptionIndex].id"
+                   [style]="3 | severityCssStyleById:sampleValue:severityCssStyleByIdOptions()[severityCssStyleByIdOptionIndex].id"
                    [value]="sampleValue | vulnerabilityCount"
                    class="mr-1" />
           }

@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
@@ -40,15 +40,16 @@ import { sample } from 'rxjs';
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsComponent implements OnInit {
-  public clearTablesOptions: ClearTablesOptions[] = [];
-  public csvFileNames: SavedCsvFileName[] = [];
-  public trivyReportConfigs: TrivyReportConfig[] = [];
+  public clearTablesOptions = signal<ClearTablesOptions[]>([]);
+  public csvFileNames = signal<SavedCsvFileName[]>([]);
+  public trivyReportConfigs = signal<TrivyReportConfig[]>([]);
 
-  severityCssStyleByIdOptions: { id: SeverityColorByNameOption, label: string }[] = [];
+  severityCssStyleByIdOptions = signal<{ id: SeverityColorByNameOption, label: string }[]>([]);
   severityCssStyleByIdOptionIndex: number = 0;
-  severityCssStyleByIdOptionValue: SeverityColorByNameOption = 'grayBelowOne';
+  severityCssStyleByIdOptionValue = signal<SeverityColorByNameOption>('grayBelowOne');
   severityCssStyleByIdOptionDescription: string = "";
 
   private readonly mainAppInitService = inject(MainAppInitService);
@@ -68,7 +69,7 @@ export class SettingsComponent implements OnInit {
   }
 
   onClearTableStatesSelected(_event: MouseEvent) {
-    this.clearTablesOptions.forEach((option) => {
+    this.clearTablesOptions().forEach((option) => {
       const tableStateJson = localStorage.getItem(option.dataKey);
       if (tableStateJson) {
         if (option.all) {
@@ -95,7 +96,7 @@ export class SettingsComponent implements OnInit {
   }
 
   onClearTableStatesAll(_event: MouseEvent) {
-    this.clearTablesOptions.forEach((option) => {
+    this.clearTablesOptions().forEach((option) => {
       const tableStateJson = localStorage.getItem(option.dataKey);
       if (tableStateJson) {
         localStorage.removeItem(option.dataKey);
@@ -105,27 +106,27 @@ export class SettingsComponent implements OnInit {
   }
 
   onUpdateCsvFileNames(_event: MouseEvent) {
-    this.csvFileNames.forEach((x) => {
+    this.csvFileNames().forEach((x) => {
       localStorage.setItem(x.dataKey, x.savedCsvName);
     });
   }
 
   onUpdateTrivyReportsStates(_event: MouseEvent) {
     this.mainAppInitService.updateBackendSettingsTrivyReportConfigDto(
-      this.trivyReportConfigs.filter((x) => x.frontendEnabled).map((x) => x.id),
+      this.trivyReportConfigs().filter((x) => x.frontendEnabled).map((x) => x.id),
     );
   }
 
   private loadTableOptions() {
-    this.clearTablesOptions = LocalStorageUtils.getKeysWithPrefix(LocalStorageUtils.trivyTableKeyPrefix)
+    this.clearTablesOptions.set(LocalStorageUtils.getKeysWithPrefix(LocalStorageUtils.trivyTableKeyPrefix)
       .sort((x, y) => (x > y ? 1 : -1))
       .map((x) => {
         return new ClearTablesOptions(x, x.slice(LocalStorageUtils.trivyTableKeyPrefix.length));
-      });
+      }));
   }
 
   private loadCsvFileNames() {
-    this.csvFileNames = LocalStorageUtils.getKeysWithPrefix(LocalStorageUtils.csvFileNameKeyPrefix)
+    this.csvFileNames.set(LocalStorageUtils.getKeysWithPrefix(LocalStorageUtils.csvFileNameKeyPrefix)
       .sort((x, y) => (x > y ? 1 : -1))
       .map((x) => {
         return {
@@ -133,24 +134,24 @@ export class SettingsComponent implements OnInit {
           description: x.slice(LocalStorageUtils.csvFileNameKeyPrefix.length),
           savedCsvName: localStorage.getItem(x) ?? '',
         };
-      });
+      }));
   }
 
   private loadTrivyReportsStates(backendSettingsDto: BackendSettingsDto) {
     const defaultBackedSettings = this.mainAppInitService.defaultBackendSettingsDto ?? { trivyReportConfigDtos: [] };
-    this.trivyReportConfigs =
+    this.trivyReportConfigs.set(
       backendSettingsDto.trivyReportConfigDtos?.map((x) => ({
         id: x.id ?? '',
         name: x.name ?? '',
         backendEnabled: defaultBackedSettings.trivyReportConfigDtos?.find((def) => def.id === x.id)?.enabled ?? false,
         frontendEnabled: x.enabled ?? false,
-      })) ?? [];
+      })) ?? []);
   }
 
   private loadSeverityColorByName() {
     this.setSeverityColorByNameOptionIndex(this.settingsService.severityCssStyleByIdOptions.indexOf(this.settingsService.severityCssStyleByIdOption()));
 
-    this.severityCssStyleByIdOptions = this.settingsService.severityCssStyleByIdOptions.map(x => {
+    this.severityCssStyleByIdOptions.set(this.settingsService.severityCssStyleByIdOptions.map(x => {
       let label = "";
       switch (x) {
         case 'all':
@@ -167,8 +168,8 @@ export class SettingsComponent implements OnInit {
           break;
       }
       return { id: x, label: label };
-    });
-    this.severityCssStyleByIdOptionValue = this.settingsService.severityCssStyleByIdOption();
+    }));
+    this.severityCssStyleByIdOptionValue.set(this.settingsService.severityCssStyleByIdOption());
   }
 
   onSeverityCssStyleByIdOptionsClick(event: SelectButtonOptionClickEvent) {
