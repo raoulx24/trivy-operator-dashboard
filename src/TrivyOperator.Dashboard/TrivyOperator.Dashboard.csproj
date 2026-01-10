@@ -17,34 +17,34 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KubernetesClient" Version="18.0.13" />
-        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.1" />
-        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0" />
-        <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.14.0-beta.1" />
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.14.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
-        <PackageReference Include="Serilog" Version="4.3.0" />
-        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
-        <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
-        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
-        <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
-        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
-        <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
-        <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
+        <PackageReference Include="KubernetesClient" Version="18.0.13"/>
+        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.1"/>
+        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.14.0"/>
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0"/>
+        <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.14.0-beta.1"/>
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.14.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0"/>
+        <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1"/>
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0"/>
+        <PackageReference Include="Serilog.Expressions" Version="5.0.0"/>
+        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0"/>
     </ItemGroup>
 
     <ItemGroup>
         <!-- Don't publish the SPA source files, but do show them in the project files list -->
-        <Content Remove="$(SpaRoot)**" />
-        <None Remove="$(SpaRoot)**" />
-        <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+        <Content Remove="$(SpaRoot)**"/>
+        <None Remove="$(SpaRoot)**"/>
+        <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**"/>
         <Content Update="wwwroot\favicon.ico">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -53,28 +53,24 @@
         </None>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Application\K8s\" />
-    </ItemGroup>
-
-  <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
+    <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
         <!-- Ensure Node.js is installed -->
         <Exec Command="node --version" ContinueOnError="true">
-            <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+            <Output TaskParameter="ExitCode" PropertyName="ErrorCode"/>
         </Exec>
-        <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
-        <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
-        <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+        <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE."/>
+        <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..."/>
+        <Exec WorkingDirectory="$(SpaRoot)" Command="npm install"/>
     </Target>
 
     <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish" Condition=" '$(Configuration)' == 'Debug' ">
         <!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
-        <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
-        <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build -- --configuration production" />
+        <Exec WorkingDirectory="$(SpaRoot)" Command="npm install"/>
+        <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build -- --configuration production"/>
 
         <!-- Include the newly-built files in the publish output -->
         <ItemGroup>
-            <DistFiles Include="$(SpaRoot)dist\**; $(SpaRoot)dist-server\**" />
+            <DistFiles Include="$(SpaRoot)dist\**; $(SpaRoot)dist-server\**"/>
             <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
                 <RelativePath>wwwroot\%(RecursiveDir)%(FileName)%(Extension)</RelativePath>
                 <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

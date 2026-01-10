@@ -2,7 +2,7 @@
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
 
-public class HttpHeaderKubernetesContesxtProvider(IHttpContextAccessor httpContextAccessor) : IKubernetesContextProvider
+public class HttpHeaderKubernetesContextProvider(IHttpContextAccessor httpContextAccessor) : IKubernetesContextProvider
 {
     public bool TryGetCurrentContext(out string? context)
     {

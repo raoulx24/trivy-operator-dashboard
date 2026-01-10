@@ -303,7 +303,7 @@ public static class BuilderServicesExtensions
 
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
         //services.AddScoped<IKubernetesContextProvider, DefaultKubernetesContextProvider>();
-        services.AddScoped<IKubernetesContextProvider, HttpHeaderKubernetesContesxtProvider>();
+        services.AddScoped<IKubernetesContextProvider, HttpHeaderKubernetesContextProvider>();
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
 
         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))

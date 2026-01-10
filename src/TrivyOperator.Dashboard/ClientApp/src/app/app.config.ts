@@ -1,5 +1,5 @@
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
-import { ApplicationConfig, importProvidersFrom, provideAppInitializer, inject } from "@angular/core";
+import { ApplicationConfig, importProvidersFrom, provideAppInitializer, inject, provideZoneChangeDetection } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 import { provideRouter } from "@angular/router";
 
@@ -15,10 +15,11 @@ import { kubernetesContextInterceptor } from "./interceptors/kubernetes-context.
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    provideZoneChangeDetection(),
     provideHttpClient(
       withInterceptors([kubernetesContextInterceptor])
     ),
+    provideRouter(routes),
     importProvidersFrom(ApiModule.forRoot({ rootUrl: environment.baseUrl })),
     MainAppInitService,
     Title,
