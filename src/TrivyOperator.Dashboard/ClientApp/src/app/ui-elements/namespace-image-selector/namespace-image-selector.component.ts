@@ -38,25 +38,51 @@ export class NamespaceImageSelectorComponent {
   namespacePlaceholder = input<string>('Select namespace');
   imagePlaceholder = input<string>('Select image');
 
+  private initialImageIdHandled = false;
+
   constructor() {
     effect(() => {
+      const dtos = this.dataDtos();
       const namespaces = this.activeNamespaces();
       const selectedNs = this.selectedNamespace();
-
-      // Auto-select namespace if only one exists and none selected yet
-      if (namespaces.length === 1 && !selectedNs) {
-        this.setNamespace(namespaces[0]);
-      }
-
       const images = this.imageDtos();
       const selectedImg = this.selectedImageId();
 
-      // Auto-select image if only one exists and none selected yet
+      // --- RULE 4: Reset when datasource is cleared ---
+      if (!dtos || dtos.length === 0) {
+        this.initialImageIdHandled = false;
+        this.selectedNamespace.set(undefined);
+        this.selectedImageId.set(undefined);
+        return;
+      }
+
+      // --- RULE 1: Parent-provided selectedImageId wins (only once) ---
+      if (!this.initialImageIdHandled && selectedImg) {
+        this.initialImageIdHandled = true;
+
+        const dto = dtos.find(x => x.uid === selectedImg);
+        if (dto) {
+          this.selectedNamespace.set(dto.resourceNamespace);
+        }
+        return;
+      }
+
+      // --- RULE 2: Auto-select namespace if only one and none selected ---
+      if (namespaces.length === 1 && !selectedNs) {
+        this.selectedNamespace.set(namespaces[0]);
+        return;
+      }
+
+      // --- RULE 3: Auto-select image if only one and none selected ---
       if (images.length === 1 && !selectedImg) {
-        this.setImage(images[0].uid);
+        this.selectedImageId.set(images[0].uid);
+        return;
       }
     });
   }
+
+
+
 
   activeNamespaces = computed(() => {
     const dtos = this.dataDtos();
