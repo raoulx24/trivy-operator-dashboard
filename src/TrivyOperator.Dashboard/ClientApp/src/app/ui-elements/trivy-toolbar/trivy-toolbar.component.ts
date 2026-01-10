@@ -1,49 +1,53 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  signal,
+  ViewChild,
+} from '@angular/core';
 
 @Component({
   selector: 'app-trivy-toolbar',
   standalone: true,
   imports: [],
   templateUrl: './trivy-toolbar.component.html',
-  styleUrl: './trivy-toolbar.component.scss'
+  styleUrl: './trivy-toolbar.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrivyToolbarComponent implements AfterViewInit, OnDestroy {
   @ViewChild('scrollContainer') scrollContainer?: ElementRef;
 
-  showLeftButton = false;
-  showRightButton = false;
+  readonly showLeftButton = signal(false);
+  readonly showRightButton = signal(false);
 
-  private resizeObserver!: ResizeObserver;
-  private resizeTimeout?: any;
+  private resizeObserver?: ResizeObserver;
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   ngAfterViewInit() {
-    // without setTimeout, there is a NG0100 - because the showLeft/RightButton are changing too fast.
-    setTimeout(() => {
+    const el = this.scrollContainer?.nativeElement;
+    if (!el) return;
+
+    this.updateScrollState();
+    el.addEventListener('scroll', this.handleScroll);
+    this.resizeObserver = new ResizeObserver(() => {
       this.updateScrollState();
-      }, 0);
-
-    if (this.scrollContainer?.nativeElement) {
-      this.scrollContainer.nativeElement.addEventListener('scroll', this.handleScroll);
-
-      this.resizeObserver = new ResizeObserver(() => {
-        clearTimeout(this.resizeTimeout);
-        this.resizeTimeout = setTimeout(() => {
-          this.updateScrollState();
-        }, 200); // Adjust timing as needed
-      });
-      this.resizeObserver.observe(this.scrollContainer.nativeElement);
-    }
+    });
+    this.resizeObserver.observe(el);
   }
 
   ngOnDestroy() {
-    if (this.scrollContainer?.nativeElement) {
-      this.scrollContainer.nativeElement.removeEventListener('scroll', this.handleScroll);
-      this.resizeObserver.disconnect(); // Stop observing
-    }
+    const el = this.scrollContainer?.nativeElement;
+    if (el) el.removeEventListener('scroll', this.handleScroll);
+    this.resizeObserver?.disconnect();
   }
 
   handleScroll = () => {
-    this.updateScrollState(); 
+    this.updateScrollState();
   };
 
   scrollLeft() {
@@ -54,11 +58,15 @@ export class TrivyToolbarComponent implements AfterViewInit, OnDestroy {
     this.scrollContainer?.nativeElement.scrollBy({ left: 150, behavior: 'smooth' });
   }
 
-  updateScrollState() {
-    if (!this.scrollContainer?.nativeElement) return;
+  private updateScrollState() {
+    const el = this.scrollContainer?.nativeElement;
+    if (!el) return;
 
-    const { scrollWidth, clientWidth, scrollLeft } = this.scrollContainer.nativeElement;
-    this.showLeftButton = scrollLeft > 0;
-    this.showRightButton = scrollLeft + clientWidth < scrollWidth;
+    const { scrollWidth, clientWidth, scrollLeft } = el;
+
+    this.showLeftButton.set(scrollLeft > 0);
+    this.showRightButton.set(scrollLeft + clientWidth < scrollWidth);
+
+    this.cdr.markForCheck();
   }
 }

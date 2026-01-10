@@ -1,5 +1,5 @@
 <div class="relative flex w-full items-center ">
-  @if (showLeftButton) {
+  @if (showLeftButton()) {
     <button (click)="scrollLeft()"
             class="absolute left-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full" >
       <i class="pi pi-chevron-left text-sm"></i>
@@ -10,7 +10,7 @@
     <ng-content></ng-content>
   </div>
 
-  @if(showRightButton) {
+  @if(showRightButton()) {
     <button (click)="scrollRight()"
             class="absolute right-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full" >
       <i class="pi pi-chevron-right text-sm"></i>
