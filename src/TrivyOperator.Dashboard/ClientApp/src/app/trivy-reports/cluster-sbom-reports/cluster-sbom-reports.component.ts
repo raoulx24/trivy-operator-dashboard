@@ -16,16 +16,25 @@ import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
 import { TableModule } from 'primeng/table';
+import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
   selector: 'app-cluster-sbom-reports',
-  imports: [GenericSbomComponent,
-    SeverityCssStyleByIdPipe, SeverityNameByIdPipe, VulnerabilityCountPipe,
-    CardModule, DialogModule, TagModule, TreeTableModule, TableModule],
+  imports: [
+    GenericSbomComponent,
+    SeverityCssStyleByIdPipe,
+    SeverityNameByIdPipe,
+    VulnerabilityCountPipe,
+    CardModule,
+    DialogModule,
+    TagModule,
+    TreeTableModule,
+    TableModule,
+  ],
   templateUrl: './cluster-sbom-reports.component.html',
-  styleUrl: './cluster-sbom-reports.component.scss'
+  styleUrl: './cluster-sbom-reports.component.scss',
 })
-export class ClusterSbomReportsComponent implements OnInit  {
+export class ClusterSbomReportsComponent extends DataPageBase implements OnInit {
   dataDtos: ClusterSbomReportDto[] = [];
   selectedImageId?: string;
   selectedSbomReportImageDto?: ClusterSbomReportDto;
@@ -35,8 +44,8 @@ export class ClusterSbomReportsComponent implements OnInit  {
   sbomReportDetailStatistics: Array<number | undefined> = [];
   sbomReportDetailPropertiesTreeNodes: TreeNode[] = [];
 
-  compareFirstSelectedDto? : ClusterSbomReportDto;
-  compareSecondSelectedDto? : ClusterSbomReportDto;
+  compareFirstSelectedDto?: ClusterSbomReportDto;
+  compareSecondSelectedDto?: ClusterSbomReportDto;
 
   // endregion
 
@@ -50,7 +59,7 @@ export class ClusterSbomReportsComponent implements OnInit  {
   getTableDataDtos() {
     this.service.getClusterSbomReportDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 
@@ -60,18 +69,18 @@ export class ClusterSbomReportsComponent implements OnInit  {
 
   onSelectedImageIdChange(imageId: string | undefined) {
     setTimeout(() => {
-      this.selectedSbomReportImageDto = this.dataDtos?.find(x => x.uid === imageId);
+      this.selectedSbomReportImageDto = this.dataDtos?.find((x) => x.uid === imageId);
     }, 0);
     this.sbomReportDetailPropertiesTreeNodes = [];
     this.sbomReportDetailStatistics = [];
   }
 
   onCompareFirstDtoRequested(id: string) {
-    this.compareFirstSelectedDto = this.dataDtos?.find(x => x.uid === id);
+    this.compareFirstSelectedDto = this.dataDtos?.find((x) => x.uid === id);
   }
 
   onCompareSecondDtoRequested(id: string) {
-    this.compareSecondSelectedDto = this.dataDtos?.find(x => x.uid === id);
+    this.compareSecondSelectedDto = this.dataDtos?.find((x) => x.uid === id);
   }
 
   onRefreshRequestedChange() {
@@ -80,14 +89,14 @@ export class ClusterSbomReportsComponent implements OnInit  {
 
   onMultiActionEventChange(value: string) {
     switch (value) {
-      case "goToDetailedPage":
+      case 'goToDetailedPage':
         this.goToDetailedPage();
         break;
-      case "Info":
+      case 'Info':
         this.onSbomReportOverviewDialogOpen();
         break;
       default:
-        console.error("cluster sbom - multi action call back - unknown: " + event);
+        console.error('cluster sbom - multi action call back - unknown: ' + event);
     }
   }
 
@@ -103,18 +112,19 @@ export class ClusterSbomReportsComponent implements OnInit  {
       this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.unknownCount ?? -1);
 
       this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.details?.length ?? 0);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.details?.map(item => item.dependsOn)
-        .filter((deps): deps is Array<string> => Array.isArray(deps))
-        .reduce((sum, deps) => sum + deps.length, 0) ?? 0);
+      this.sbomReportDetailStatistics.push(
+        this.selectedSbomReportImageDto?.details
+          ?.map((item) => item.dependsOn)
+          .filter((deps): deps is Array<string> => Array.isArray(deps))
+          .reduce((sum, deps) => sum + deps.length, 0) ?? 0,
+      );
     }
 
     this.isSbomReportOverviewDialogVisible.set(true);
   }
 
   private goToDetailedPage() {
-    const url = this.router.serializeUrl(
-      this.router.createUrlTree(['cluster-sbom-reports-detailed'])
-    );
+    const url = this.router.serializeUrl(this.router.createUrlTree(['cluster-sbom-reports-detailed']));
     window.open(url, '_blank');
   }
 
@@ -127,16 +137,16 @@ export class ClusterSbomReportsComponent implements OnInit  {
   private getSbomReportPropertyTreeNodes(): TreeNode[] {
     const tree: TreeNode[] = [];
 
-    const dataMap = new Map<string, { propValue: string, usedBy: string }[]>();
+    const dataMap = new Map<string, { propValue: string; usedBy: string }[]>();
 
-    this.selectedSbomReportImageDto?.details?.forEach(item => {
-      const usedBy = item.name ?? "unknown";
+    this.selectedSbomReportImageDto?.details?.forEach((item) => {
+      const usedBy = item.name ?? 'unknown';
 
-      item.properties?.forEach(property => {
-        const propName = property[0] ?? "unknown";
-        const propValue = property[1] ?? "unknown";
+      item.properties?.forEach((property) => {
+        const propName = property[0] ?? 'unknown';
+        const propValue = property[1] ?? 'unknown';
 
-        if (propName === "tod.group") return;
+        if (propName === 'tod.group') return;
 
         if (!dataMap.has(propName)) {
           dataMap.set(propName, []);
@@ -151,11 +161,11 @@ export class ClusterSbomReportsComponent implements OnInit  {
 
       const propNameNode: TreeNode = {
         data: { name: propName, usedByCount: 0 },
-        children: []
+        children: [],
       };
 
       const propValueUsedByMap = new Map<string, Set<string>>();
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         uniqueUsedBySet.add(entry.usedBy);
 
         if (!propValueUsedByMap.has(entry.propValue)) {
@@ -167,13 +177,13 @@ export class ClusterSbomReportsComponent implements OnInit  {
       propValueUsedByMap.forEach((usedBySet, propValue) => {
         const propValueNode: TreeNode = {
           data: { name: propValue, usedByCount: usedBySet.size },
-          children: []
+          children: [],
         };
 
-        usedBySet.forEach(usedBy => {
+        usedBySet.forEach((usedBy) => {
           propValueNode.children!.push({
             data: { name: usedBy, usedByCount: undefined },
-            children: []
+            children: [],
           });
         });
 

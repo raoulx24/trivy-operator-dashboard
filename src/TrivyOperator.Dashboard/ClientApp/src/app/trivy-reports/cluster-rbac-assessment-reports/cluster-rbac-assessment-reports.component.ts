@@ -17,6 +17,7 @@ import { Dialog } from 'primeng/dialog';
 import {
   GenericReportsCompareComponent
 } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
+import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
   selector: 'app-cluster-rbac-assessment-reports',
@@ -25,7 +26,7 @@ import {
   templateUrl: './cluster-rbac-assessment-reports.component.html',
   styleUrl: './cluster-rbac-assessment-reports.component.scss',
 })
-export class ClusterRbacAssessmentReportsComponent implements OnInit {
+export class ClusterRbacAssessmentReportsComponent extends DataPageBase implements OnInit {
   dataDtos: ClusterRbacAssessmentReportDto[] = [];
   selectedTrivyReportDto: ClusterRbacAssessmentReportDto | null = null;
 
@@ -37,7 +38,7 @@ export class ClusterRbacAssessmentReportsComponent implements OnInit {
   isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
   compareNamespacedImageDtos?: NamespacedImageDto[];
-  comparedTableColumns: TrivyTableColumn[] = [... rbacAssessmentReportComparedTableColumns];
+  comparedTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportComparedTableColumns];
 
   private readonly dataDtoService = inject(ClusterRbacAssessmentReportService);
   private readonly router = inject(Router);
@@ -51,7 +52,7 @@ export class ClusterRbacAssessmentReportsComponent implements OnInit {
     this.isMainTableLoading = true;
     this.dataDtoService.getClusterRbacAssessmentReportDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 
@@ -70,42 +71,46 @@ export class ClusterRbacAssessmentReportsComponent implements OnInit {
 
   onMainTableMultiHeaderActionRequested(event: string) {
     switch (event) {
-      case "goToDetailedPage":
+      case 'goToDetailedPage':
         this.goToDetailedPage();
         break;
-      case "Compare with...":
+      case 'Compare with...':
         this.goToComparePage();
         break;
       default:
-        console.error("cvr - multi action call back - unknown: " + event);
+        console.error('cvr - multi action call back - unknown: ' + event);
     }
   }
 
   private goToDetailedPage() {
-    const url = this.router.serializeUrl(
-      this.router.createUrlTree(['cluster-vulnerability-reports-detailed'])
-    );
+    const url = this.router.serializeUrl(this.router.createUrlTree(['cluster-vulnerability-reports-detailed']));
     window.open(url, '_blank');
   }
 
   private goToComparePage() {
     if (!this.dataDtos || !this.selectedTrivyReportDto) return;
-    if (this.selectedTrivyReportDto.criticalCount < 1 && this.selectedTrivyReportDto.highCount < 1 &&
-      this.selectedTrivyReportDto.mediumCount < 1 && this.selectedTrivyReportDto.lowCount < 1) {
+    if (
+      this.selectedTrivyReportDto.criticalCount < 1 &&
+      this.selectedTrivyReportDto.highCount < 1 &&
+      this.selectedTrivyReportDto.mediumCount < 1 &&
+      this.selectedTrivyReportDto.lowCount < 1
+    ) {
       this.messageService.add({
-        severity: "info",
-        summary: "Nothing to compare",
-        detail: "The selected item has no details, so there is nothing to compare...",
+        severity: 'info',
+        summary: 'Nothing to compare',
+        detail: 'The selected item has no details, so there is nothing to compare...',
       });
 
       return;
     }
 
     this.compareNamespacedImageDtos = this.dataDtos
-      .filter(crar => crar.criticalCount > 0 || crar.highCount > 0 || crar.mediumCount > 0 || crar.lowCount > 0)
-      .map(crar => ({
-        uid: crar.uid ?? '', resourceNamespace: nonExistingNamespace,
-        mainLabel: crar.resourceName ?? '' }));
+      .filter((crar) => crar.criticalCount > 0 || crar.highCount > 0 || crar.mediumCount > 0 || crar.lowCount > 0)
+      .map((crar) => ({
+        uid: crar.uid ?? '',
+        resourceNamespace: nonExistingNamespace,
+        mainLabel: crar.resourceName ?? '',
+      }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
     this.isTrivyReportsCompareVisible.set(true);
   }

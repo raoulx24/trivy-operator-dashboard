@@ -17,6 +17,7 @@ import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/n
 
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
+import { DataPageBase } from '../../abstracts/data-page-base';
 
 
 @Component({
@@ -26,7 +27,7 @@ import { MessageService } from 'primeng/api';
   templateUrl: './rbac-assessment-reports.component.html',
   styleUrl: './rbac-assessment-reports.component.scss',
 })
-export class RbacAssessmentReportsComponent implements OnInit {
+export class RbacAssessmentReportsComponent extends DataPageBase implements OnInit {
   dataDtos: RbacAssessmentReportDto[] = [];
   activeNamespaces: string[] = [];
 
@@ -40,7 +41,7 @@ export class RbacAssessmentReportsComponent implements OnInit {
   isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
   compareNamespacedImageDtos?: NamespacedImageDto[];
-  comparedTableColumns: TrivyTableColumn[] = [... rbacAssessmentReportComparedTableColumns];
+  comparedTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportComparedTableColumns];
 
   private readonly dataDtoService = inject(RbacAssessmentReportService);
   private readonly router = inject(Router);
@@ -54,15 +55,13 @@ export class RbacAssessmentReportsComponent implements OnInit {
     this.isMainTableLoading = true;
     this.dataDtoService.getRbacAssessmentReportDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 
   private onGetDataDtos(dtos: RbacAssessmentReportDto[]) {
     this.dataDtos = dtos;
-    this.activeNamespaces = Array
-      .from(new Set(dtos.map(dto => dto.resourceNamespace ?? "N/A")))
-      .sort();
+    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
     this.isMainTableLoading = false;
   }
 
@@ -72,42 +71,46 @@ export class RbacAssessmentReportsComponent implements OnInit {
 
   onMainTableMultiHeaderActionRequested(event: string) {
     switch (event) {
-      case "goToDetailedPage":
+      case 'goToDetailedPage':
         this.goToDetailedPage();
         break;
-      case "Compare with...":
+      case 'Compare with...':
         this.goToComparePage();
         break;
       default:
-        console.error("rbac - multi action call back - unknown: " + event);
+        console.error('rbac - multi action call back - unknown: ' + event);
     }
   }
 
   private goToDetailedPage() {
-    const url = this.router.serializeUrl(
-      this.router.createUrlTree(['rbac-assessment-reports-detailed'])
-    );
+    const url = this.router.serializeUrl(this.router.createUrlTree(['rbac-assessment-reports-detailed']));
     window.open(url, '_blank');
   }
 
   private goToComparePage() {
     if (!this.dataDtos || !this.selectedTrivyReportDto) return;
-    if (this.selectedTrivyReportDto.criticalCount < 1 && this.selectedTrivyReportDto.highCount < 1 &&
-      this.selectedTrivyReportDto.mediumCount < 1 && this.selectedTrivyReportDto.lowCount < 1) {
+    if (
+      this.selectedTrivyReportDto.criticalCount < 1 &&
+      this.selectedTrivyReportDto.highCount < 1 &&
+      this.selectedTrivyReportDto.mediumCount < 1 &&
+      this.selectedTrivyReportDto.lowCount < 1
+    ) {
       this.messageService.add({
-        severity: "info",
-        summary: "Nothing to compare",
-        detail: "The selected item has no details, so there is nothing to compare...",
+        severity: 'info',
+        summary: 'Nothing to compare',
+        detail: 'The selected item has no details, so there is nothing to compare...',
       });
 
       return;
     }
 
     this.compareNamespacedImageDtos = this.dataDtos
-      .filter(rar => rar.criticalCount > 0 || rar.highCount > 0 || rar.mediumCount > 0 || rar.lowCount > 0)
-      .map(rar => ({
-        uid: rar.uid ?? '', resourceNamespace: rar.resourceNamespace ?? '',
-        mainLabel: rar.resourceName, }));
+      .filter((rar) => rar.criticalCount > 0 || rar.highCount > 0 || rar.mediumCount > 0 || rar.lowCount > 0)
+      .map((rar) => ({
+        uid: rar.uid ?? '',
+        resourceNamespace: rar.resourceNamespace ?? '',
+        mainLabel: rar.resourceName,
+      }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
     this.isTrivyReportsCompareVisible.set(true);
   }

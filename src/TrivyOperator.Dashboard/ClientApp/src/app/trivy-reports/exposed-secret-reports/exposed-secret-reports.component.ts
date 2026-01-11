@@ -24,6 +24,7 @@ import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/n
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { MessageService } from 'primeng/api';
+import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
   selector: 'app-exposed-secret-reports',
@@ -32,7 +33,7 @@ import { MessageService } from 'primeng/api';
   templateUrl: './exposed-secret-reports.component.html',
   styleUrl: './exposed-secret-reports.component.scss',
 })
-export class ExposedSecretReportsComponent implements OnInit {
+export class ExposedSecretReportsComponent extends DataPageBase implements OnInit {
   dataDtos: ExposedSecretReportImageDto[] = [];
   activeNamespaces: string[] = [];
 
@@ -76,7 +77,7 @@ export class ExposedSecretReportsComponent implements OnInit {
     this.isMainTableLoading = true;
     this.dataDtoService.getExposedSecretReportImageDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 

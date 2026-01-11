@@ -35,7 +35,7 @@ export class ClusterComplianceReportsDetailedComponent extends TrivyReportsDetai
     this.isLoading = true;
     this.dataDtoService.getClusterComplianceReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 

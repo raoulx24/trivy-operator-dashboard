@@ -36,7 +36,7 @@ export class ClusterRbacAssessmentReportsDetailedComponent  extends TrivyReports
     this.isLoading = true;
     this.dataDtoService.getClusterRbacAssessmentReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 

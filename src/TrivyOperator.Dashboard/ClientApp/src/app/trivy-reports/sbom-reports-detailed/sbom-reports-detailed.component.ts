@@ -39,7 +39,7 @@ export class SbomReportsDetailedComponent  extends TrivyReportsDetailedBase impl
     this.isTableLoading = true;
     this.service.getSbomReportImageDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 
@@ -104,7 +104,7 @@ export class SbomReportsDetailedComponent  extends TrivyReportsDetailedBase impl
         window.URL.revokeObjectURL(url);
       },
       error: (err) => {
-        console.error(`Error during the POST request:`, err);
+        this.onError(err);
       }
     });
   }

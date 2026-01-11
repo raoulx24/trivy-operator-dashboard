@@ -17,7 +17,7 @@ import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-ba
   templateUrl: './rbac-assessment-reports-detailed.component.html',
   styleUrl: './rbac-assessment-reports-detailed.component.scss',
 })
-export class RbacAssessmentReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
+export class RbacAssessmentReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
   dataDtos?: RbacAssessmentReportDenormalizedDto[] | null;
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
@@ -37,7 +37,7 @@ export class RbacAssessmentReportsDetailedComponent  extends TrivyReportsDetaile
     this.isLoading = true;
     this.dataDtoService.getRbacAssessmentReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 

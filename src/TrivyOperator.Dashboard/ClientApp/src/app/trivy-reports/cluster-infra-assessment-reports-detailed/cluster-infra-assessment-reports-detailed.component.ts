@@ -35,7 +35,7 @@ export class ClusterInfraAssessmentReportsDetailedComponent  extends TrivyReport
     this.isLoading = true;
     this.dataDtoService.getClusterInfraAssessmentReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 

@@ -37,7 +37,7 @@ export class ExposedSecretReportsDetailedComponent  extends TrivyReportsDetailed
     this.isLoading = true;
     this.dataDtoService.getExposedSecretReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 

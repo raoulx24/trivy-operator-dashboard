@@ -19,6 +19,7 @@ import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
 import { TreeTableModule } from 'primeng/treetable';
 import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
+import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
   selector: 'app-sbom-reports',
@@ -30,7 +31,7 @@ import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image
   templateUrl: './sbom-reports.component.html',
   styleUrl: './sbom-reports.component.scss',
 })
-export class SbomReportsComponent implements OnInit {
+export class SbomReportsComponent extends DataPageBase implements OnInit {
   dataDtos: SbomReportImageMinimalDto[] = [];
   fullSbomDataDto?: SbomReportDto;
   imageResourceDtos?: SbomReportImageResourceDto[];
@@ -74,7 +75,7 @@ export class SbomReportsComponent implements OnInit {
   getTableDataDtos() {
     this.service.getSbomReportImageMinimalDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 
@@ -99,7 +100,7 @@ export class SbomReportsComponent implements OnInit {
           namespaceName: this.selectedSbomReportImageDto.resourceNamespace })
         .subscribe({
           next: (res) => this.onGetSbomReportDtoByDigestNamespace(res),
-          error: (err) => console.error(err),
+          error: (err) => this.onError(err),
         });
       this.service
         .getSbomReportImageResourceDtosByDigestAndNamespace({
@@ -107,7 +108,7 @@ export class SbomReportsComponent implements OnInit {
           namespaceName: this.selectedSbomReportImageDto.resourceNamespace })
         .subscribe({
           next: (res) => this.imageResourceDtos = res,
-          error: (err) => console.error(err),
+          error: (err) => this.onError(err),
         });
     }
   }
@@ -133,7 +134,7 @@ export class SbomReportsComponent implements OnInit {
         next: (res) => {
           this.compareFirstSelectedDto = res;
         },
-        error: (err) => console.error(err),
+        error: (err) => this.onError(err),
       });
     }
   }
@@ -148,7 +149,7 @@ export class SbomReportsComponent implements OnInit {
         next: (res) => {
           this.compareSecondSelectedDto = res;
         },
-        error: (err) => console.error(err),
+        error: (err) => this.onError(err),
       });
     }
   }
@@ -225,7 +226,7 @@ export class SbomReportsComponent implements OnInit {
         window.URL.revokeObjectURL(url);
       },
       error: (err) => {
-        console.error(`Error fetching the file as ${contentType}:`, err);
+        this.onError(err);
       }
     });
   }

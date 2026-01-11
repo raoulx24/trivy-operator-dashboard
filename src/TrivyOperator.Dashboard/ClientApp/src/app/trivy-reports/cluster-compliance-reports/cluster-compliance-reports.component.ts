@@ -5,6 +5,7 @@ import { ClusterComplianceReportService } from '../../../api/services/cluster-co
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import { TrivyFilterData, TrivyTableColumn, TrivyTableExpandRowData } from '../../ui-elements/trivy-table/trivy-table.types';
 import { clusterComplianceReportColumns, clusterComplianceReportDetailColumns } from '../constants/cluster-compliance-reports.constants';
+import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
   selector: 'app-cluster-compliance-reports',
@@ -13,7 +14,7 @@ import { clusterComplianceReportColumns, clusterComplianceReportDetailColumns } 
   templateUrl: './cluster-compliance-reports.component.html',
   styleUrl: './cluster-compliance-reports.component.scss',
 })
-export class ClusterComplianceReportsComponent implements OnInit {
+export class ClusterComplianceReportsComponent extends DataPageBase implements OnInit {
   dataDtos: ClusterComplianceReportDto[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...clusterComplianceReportColumns];
@@ -31,7 +32,7 @@ export class ClusterComplianceReportsComponent implements OnInit {
     this.isMainTableLoading = true;
     this.dataDtoService.getClusterComplianceReportDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.onError(err),
     });
   }
 
