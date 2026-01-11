@@ -2,10 +2,9 @@
 using k8s.Models;
 using System.Collections;
 using System.Collections.Concurrent;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
 public abstract class ResourcePassthroughCache<TValue>()
     : IConcurrentDictionaryCache<TValue>

@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Application.K8s.Services.RawDomainQuery;
+﻿namespace TrivyOperator.Dashboard.Application.K8s.Services.RawDomain;
 
 public class CacheNotRegisteredException : Exception
 {

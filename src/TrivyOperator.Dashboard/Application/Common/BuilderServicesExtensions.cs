@@ -25,8 +25,8 @@ using TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers.Abstract
 using TrivyOperator.Dashboard.Application.K8s.Services.Namespaces;
 using TrivyOperator.Dashboard.Application.K8s.Services.Namespaces.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
-using TrivyOperator.Dashboard.Application.K8s.Services.RawDomainQuery;
-using TrivyOperator.Dashboard.Application.K8s.Services.RawDomainQuery.Abstracts;
+using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain;
+using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain.Abstracts;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
@@ -82,7 +82,7 @@ using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
 using TrivyOperator.Dashboard.Infrastructure.K8s;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
 
-namespace TrivyOperator.Dashboard.Application;
+namespace TrivyOperator.Dashboard.Application.Common;
 
 public static class BuilderServicesExtensions
 {
@@ -315,7 +315,7 @@ public static class BuilderServicesExtensions
             services.AddHostedService<GitHubReleaseCacheTimedHostedService>();
         }
         services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
-        services.AddScoped<IAppVersionService, AppVersionService>();
+        services.AddScoped<IAppVersionsService, AppVersionsService>();
 
         services.AddHealthChecks()
             .AddCheck<WatchersLivenessHealthCheck>("watchers-liveness")

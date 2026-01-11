@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Infrastructure.Caching;
+﻿namespace TrivyOperator.Dashboard.Infrastructure.Utils;
 
 public class DictionaryCounter
 {

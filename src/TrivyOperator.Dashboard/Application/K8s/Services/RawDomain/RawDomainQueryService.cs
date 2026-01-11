@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
-using TrivyOperator.Dashboard.Application.K8s.Services.RawDomainQuery.Abstracts;
+using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
-namespace TrivyOperator.Dashboard.Application.K8s.Services.RawDomainQuery;
+namespace TrivyOperator.Dashboard.Application.K8s.Services.RawDomain;
 
 public sealed class RawDomainQueryService(IServiceProvider sp) : IRawDomainQueryService
 {

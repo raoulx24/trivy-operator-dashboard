@@ -11,7 +11,7 @@ public sealed class GitHubReleaseCacheTimedHostedService(
     IGitHubClient gitHubClient, 
     IOptions<GitHubOptions> options,
     IConcurrentCache<long, GitHubRelease> cache,
-    ILogger<AppVersionService> logger)
+    ILogger<AppVersionsService> logger)
     : IHostedService, IDisposable
 {
     ~GitHubReleaseCacheTimedHostedService()

@@ -6,7 +6,7 @@ using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
 
 namespace TrivyOperator.Dashboard.Application.AppVersions.Services;
 
-public class AppVersionService(IConcurrentCache<long, GitHubRelease> cache) : IAppVersionService
+public class AppVersionsService(IConcurrentCache<long, GitHubRelease> cache) : IAppVersionsService
 {
     public Task<GitHubReleaseDto?> GetTrivyDashboardLatestRelease()
     {

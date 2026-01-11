@@ -6,7 +6,7 @@ namespace TrivyOperator.Dashboard.Application.AppVersions.Controllers;
 
 [ApiController]
 [Route("api/app-versions")]
-public class AppVersionsController(IAppVersionService appVersionService)
+public class AppVersionsController(IAppVersionsService appVersionsService)
 {
     [HttpGet(Name = "GetGitHubVersions")]
     [ProducesResponseType<IEnumerable<GitHubReleaseDto>>(StatusCodes.Status200OK)]
@@ -14,7 +14,7 @@ public class AppVersionsController(IAppVersionService appVersionService)
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IEnumerable<GitHubReleaseDto>> GetAll()
     {
-        return await appVersionService.GetTrivyDashboardReleases();
+        return await appVersionsService.GetTrivyDashboardReleases();
     }
 
     [HttpGet("latest", Name = "GetGitHubLatestVersion")]
@@ -23,7 +23,7 @@ public class AppVersionsController(IAppVersionService appVersionService)
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<GitHubReleaseDto> GetLatest()
     {
-        return await appVersionService.GetTrivyDashboardLatestRelease() ?? new GitHubReleaseDto();
+        return await appVersionsService.GetTrivyDashboardLatestRelease() ?? new GitHubReleaseDto();
     }
 
     [HttpGet("current-version", Name = "GetCurrentVersion")]
@@ -32,7 +32,7 @@ public class AppVersionsController(IAppVersionService appVersionService)
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public AppVersion GetCurrentAppVersion()
     {
-        return appVersionService.GetCurrentVersion();
+        return appVersionsService.GetCurrentVersion();
     }
 
     // TODO - proper error handling with Task<IActionResult>

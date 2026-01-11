@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Application.K8s.Services.RawDomainQuery.Abstracts;
+﻿namespace TrivyOperator.Dashboard.Application.K8s.Services.RawDomain.Abstracts;
 
 public interface IRawDomainQueryService
 {

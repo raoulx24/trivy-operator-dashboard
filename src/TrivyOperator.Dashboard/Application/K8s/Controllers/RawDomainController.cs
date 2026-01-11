@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.K8s.Services.RawDomainQuery;
-using TrivyOperator.Dashboard.Application.K8s.Services.RawDomainQuery.Abstracts;
+using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain;
+using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain.Abstracts;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Controllers;
 
