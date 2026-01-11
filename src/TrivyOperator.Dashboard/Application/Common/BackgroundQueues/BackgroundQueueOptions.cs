@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Application.K8s.Services.Options;
+﻿namespace TrivyOperator.Dashboard.Application.Common.BackgroundQueues;
 
 public record BackgroundQueueOptions
 {

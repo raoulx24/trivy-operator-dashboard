@@ -1,5 +1,4 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Models.Abstracts;
-using TrivyOperator.Dashboard.Application.Trivy.Services;
 using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
 using TrivyOperator.Dashboard.Domain.Utils;
 

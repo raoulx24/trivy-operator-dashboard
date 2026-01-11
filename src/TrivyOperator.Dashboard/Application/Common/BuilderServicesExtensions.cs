@@ -11,6 +11,7 @@ using TrivyOperator.Dashboard.Application.AppVersions.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.AppVersions.Services.Options;
 using TrivyOperator.Dashboard.Application.BackendSettings.Services;
 using TrivyOperator.Dashboard.Application.BackendSettings.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Common.BackgroundQueues;
 using TrivyOperator.Dashboard.Application.Common.HealthChecks;
 using TrivyOperator.Dashboard.Application.K8s.Services;
 using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues;

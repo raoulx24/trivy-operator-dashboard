@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstractions;
+﻿namespace TrivyOperator.Dashboard.Application.Common.BackgroundQueues.Abstractions;
 
 public interface IBackgroundQueue<TObject> where TObject : class
 {
