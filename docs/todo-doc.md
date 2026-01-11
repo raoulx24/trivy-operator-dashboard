@@ -17,6 +17,7 @@ Support /path in ingress - #4
 !!! Check Cluster VR missing fields in detailed
 
 there is a ng100 in sboms, on refresh
+there is smth wrong with trivyTableSelectedRecords()
 
 ## Backend
 

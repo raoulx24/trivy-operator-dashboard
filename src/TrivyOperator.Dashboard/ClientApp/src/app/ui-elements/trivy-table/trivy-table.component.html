@@ -1,7 +1,7 @@
 <div class="trivy-table" [ngClass]="extraClasses()">
   <p-table #trivyTable
            columnResizeMode="expand"
-           dataKey="{{ dataKey() }}"
+           [dataKey]="dataKey()"
            scrollHeight="flex"
            sortMode="multiple"
            stateStorage="local"
@@ -20,7 +20,7 @@
            [value]="_dataDtos()"
            [virtualScroll]="true"
            [virtualScrollItemSize]="47"
-           [(selection)]="selectedDataDtos"
+           [selection]="selectedDataDtos()"
            (onRowCollapse)="onRowCollapse($event)"
            (onRowExpand)="onRowExpand($event)"
            (onStateSave)="onTableStateSave()"
@@ -98,7 +98,7 @@
                          size="small"
                          text
                          [disabled]="'false'"
-                         [model]="multiHeaderActionItems"
+                         [model]="multiHeaderActionItems()"
                          (onClick)="multiHeaderActionGetCommand(multiHeaderActions()[0])()" />
         }
       </div>

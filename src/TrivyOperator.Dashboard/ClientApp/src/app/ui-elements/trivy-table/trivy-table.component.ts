@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
+  ChangeDetectionStrategy, ChangeDetectorRef,
   Component,
   computed,
-  effect,
+  effect, inject,
   input,
   OnInit,
   output,
@@ -125,9 +125,10 @@ export class TrivyTableComponent<TData> implements OnInit {
   filterRefreshSeverities = signal<SeverityDto[] | undefined>([]);
   severityDtos: SeverityDto[] = [...SeverityUtils.severityDtos];
 
-  multiHeaderActionItems: (MenuItem & { initialData: MultiHeaderAction })[] = [];
+  multiHeaderActionItems = signal<(MenuItem & { initialData: MultiHeaderAction })[]>([]);
 
-  selectedDataDtos = signal<any[] | any>(undefined);
+  // _selectedDataDtos = signal<TData | TData[] | undefined>(undefined);
+  selectedDataDtos = signal<TData | TData[] | undefined>(undefined);
   isTableRowsSelected = false;
   private _lastSingleSelectDataDto?: TData | undefined;
   singleSelectDataDto = input<TData | undefined>();
@@ -149,11 +150,8 @@ export class TrivyTableComponent<TData> implements OnInit {
   });
 
   trivyTableSelectedRecords = computed(() => {
-    if (this.selectionMode() === 'single') {
-      return this.selectedDataDtos() ? 1 : 0;
-    } else {
-      return this.selectedDataDtos()?.length ?? 0;
-    }
+    const value = this.selectedDataDtos();
+    return this.getSelectedDataCount(value);
   })
 
   constructor() {
@@ -200,13 +198,16 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   public onTableClearSelected() {
-    this.selectedDataDtos.set(undefined);
+    this.trivyTable.selection = [];
+    this.trivyTable.selectionKeys = {};
+    this.selectedDataDtos.set([]);
     this.isTableRowsSelected = false;
     this.updateMultiHeaderActionSelectionChanged();
   }
 
   onSelectionChange(event: any): void {
-    this.isTableRowsSelected = this.selectedDataDtos() ? this.selectedDataDtos()?.length > 0 : false;
+    this.isTableRowsSelected = this.getSelectedDataCount(event) > 0;
+    this.selectedDataDtos.set(event);
     this.updateMultiHeaderActionSelectionChanged();
     if (!event) {
       this.selectedRowsChanged.emit([]);
@@ -315,15 +316,16 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   private multiHeaderActionInit() {
-    const multiHeaderActions = this.multiHeaderActions()
+    const multiHeaderActions = this.multiHeaderActions();
     if (multiHeaderActions && (multiHeaderActions.length ?? 0) > 1) {
-      this.multiHeaderActionItems = multiHeaderActions.slice(1).map(actionItem => ({
-        label: actionItem.specialAction ?? actionItem.label,
-        command: this.multiHeaderActionGetCommand(actionItem),
-        icon: this.multiHeaderActionGetIcon(actionItem),
-        disabled: this.isMultiHeaderActionDisabled(actionItem),
-        initialData: actionItem,
-      }));
+      this.multiHeaderActionItems.set(
+        multiHeaderActions.slice(1).map(actionItem => ({
+          label: actionItem.specialAction ?? actionItem.label,
+          command: this.multiHeaderActionGetCommand(actionItem),
+          icon: this.multiHeaderActionGetIcon(actionItem),
+          disabled: this.isMultiHeaderActionDisabled(actionItem),
+          initialData: actionItem,
+        })));
     }
   }
 
@@ -370,7 +372,7 @@ export class TrivyTableComponent<TData> implements OnInit {
     }
     if (actionItem.enabledIfRowSelected || actionItem.specialAction == 'Clear Selection')
     {
-      return this.trivyTableSelectedRecords() === 0;
+      return !this.isTableRowsSelected;
     }
     if (actionItem.specialAction == 'Clear Sort/Filters')
     {
@@ -383,40 +385,56 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   private updateMultiHeaderActionOnDataChanged() {
-    this.multiHeaderActionItems
-      .filter(actionItem => actionItem.initialData.enabledIfDataLoaded)
-      .forEach(actionItem => {
-        actionItem.disabled = (this._dataDtos().length ?? 0) === 0;
-      });
+    this.multiHeaderActionItems.update((items) => {
+      items
+        .filter(actionItem => actionItem.initialData.enabledIfDataLoaded)
+        .forEach(actionItem => {
+          actionItem.disabled = (this._dataDtos().length ?? 0) === 0;
+        });
+      return items;
+    });
+
   }
 
   private updateMultiHeaderActionClearSortFilters() {
-    const menuItem = this.multiHeaderActionItems
-      .find(x => x.initialData.specialAction == "Clear Sort/Filters");
-    if (menuItem) {
-      menuItem.disabled = !this.isTableFilteredOrSorted();
-    }
+    this.multiHeaderActionItems.update((items) => {
+      const menuItem = items.find(x => x.initialData.specialAction == "Clear Sort/Filters");
+      if (menuItem) {
+        menuItem.disabled = !this.isTableFilteredOrSorted();
+      }
+
+      return items;
+    });
   }
 
   private updateMultiHeaderActionSelectionChanged() {
-    this.multiHeaderActionItems
-      .filter(actionItem => actionItem.initialData.enabledIfRowSelected)
-      .forEach(actionItem => {
-        actionItem.disabled = this.trivyTableSelectedRecords() === 0;
-      });
-    const menuItem = this.multiHeaderActionItems
-      .find(x => x.initialData.specialAction == "Clear Selection");
-    if (menuItem) {
-      menuItem.disabled = this.trivyTableSelectedRecords() === 0;
-    }
+    this.multiHeaderActionItems.update((items) => {
+      items
+        .filter((actionItem) => actionItem.initialData.enabledIfRowSelected)
+        .forEach((actionItem) => {
+          actionItem.disabled = !this.isTableRowsSelected;
+        });
+      const menuItem = items.find((x) => x.initialData.specialAction == 'Clear Selection');
+      if (menuItem) {
+        menuItem.disabled = !this.isTableRowsSelected;
+      }
+
+      return items;
+    });
+    console.log(this.trivyTableSelectedRecords());
   }
 
   private updateMultiHeaderActionCollapsed() {
-    const menuItem = this.multiHeaderActionItems
-      .find(x => x.initialData.specialAction == "Collapse All");
-    if (menuItem) {
-      menuItem.disabled = !this.anyRowExpanded();
-    }
+    this.multiHeaderActionItems.update((items) => {
+      const menuItem = items
+        .find(x => x.initialData.specialAction == "Collapse All");
+      if (menuItem) {
+        menuItem.disabled = !this.anyRowExpanded();
+      }
+
+      return items;
+    })
+
   }
 
   onSort() {
@@ -487,6 +505,15 @@ export class TrivyTableComponent<TData> implements OnInit {
     setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
       }, 0);
+  }
+
+  private getSelectedDataCount(value: TData | TData[] | undefined) {
+    if (Array.isArray(value)) {
+      return value.length;
+    } else {
+
+      return value ? 1 : 0;
+    }
   }
 
 }

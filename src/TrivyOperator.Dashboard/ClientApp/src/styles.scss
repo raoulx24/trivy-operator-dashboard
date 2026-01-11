@@ -75,7 +75,7 @@ p-dialog.tod-dialog-h-full div.p-dialog-content {
 }
 
 /* various tailwind reverts */
-ul:not(.p-carousel-indicator-list):not(.p-panelmenu-root-list) {
+ul:not(.p-carousel-indicator-list):not(.p-panelmenu-root-list):not(.p-tieredmenu-root-list) {
   list-style-type: disc !important;
   //  padding-left: 1.25rem;
 }
