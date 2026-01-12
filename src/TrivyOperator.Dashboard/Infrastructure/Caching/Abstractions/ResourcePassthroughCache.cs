@@ -31,7 +31,7 @@ public abstract class ResourcePassthroughCache<TValue>()
     {
         get
         {
-            var items = FetchByKeyAsync(key).Result;
+            var items = FetchByKeyAsync(key).ConfigureAwait(false).GetAwaiter().GetResult();
             return BuildInner(items);
         }
         set => throw new NotSupportedException("Cache is read-only");
@@ -50,20 +50,20 @@ public abstract class ResourcePassthroughCache<TValue>()
     // IReadOnlyDictionary impl
     // -----------------------
     public IEnumerable<string> Keys
-        => BuildOuter(FetchAllAsync().Result).Keys;
+        => BuildOuter(FetchAllAsync().ConfigureAwait(false).GetAwaiter().GetResult()).Keys;
 
     public IEnumerable<ConcurrentDictionary<string, TValue>> Values
-        => BuildOuter(FetchAllAsync().Result).Values;
+        => BuildOuter(FetchAllAsync().ConfigureAwait(false).GetAwaiter().GetResult()).Values;
 
     public int Count
-        => BuildOuter(FetchAllAsync().Result).Count;
+        => BuildOuter(FetchAllAsync().ConfigureAwait(false).GetAwaiter().GetResult()).Count;
 
     public bool ContainsKey(string key)
-        => BuildOuter(FetchAllAsync().Result).ContainsKey(key);
+        => BuildOuter(FetchAllAsync().ConfigureAwait(false).GetAwaiter().GetResult()).ContainsKey(key);
 
     public bool TryGetValue(string key, out ConcurrentDictionary<string, TValue> value)
     {
-        var items = FetchByKeyAsync(key).Result;
+        var items = FetchByKeyAsync(key).ConfigureAwait(false).GetAwaiter().GetResult();
         value = BuildInner(items);
         return value.Count > 0;
     }
@@ -72,7 +72,7 @@ public abstract class ResourcePassthroughCache<TValue>()
     // Enumerators (correct!)
     // -----------------------
     public IEnumerator<KeyValuePair<string, ConcurrentDictionary<string, TValue>>> GetEnumerator()
-        => BuildOuter(FetchAllAsync().Result).GetEnumerator();
+        => BuildOuter(FetchAllAsync().ConfigureAwait(false).GetAwaiter().GetResult()).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
