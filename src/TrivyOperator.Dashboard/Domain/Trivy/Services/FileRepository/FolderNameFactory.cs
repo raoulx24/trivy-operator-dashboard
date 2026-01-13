@@ -3,11 +3,12 @@ using TrivyOperator.Dashboard.Domain.Trivy.ClusterSbomReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ClusterVulnerabilityReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
 using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
+using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Services;
+namespace TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository;
 
-public class FileFolderNameFactory
+public class FolderNameFactory : IFolderNameFactory
 {
     public string Get<TKubernetesObject>()
         => typeof(TKubernetesObject) switch

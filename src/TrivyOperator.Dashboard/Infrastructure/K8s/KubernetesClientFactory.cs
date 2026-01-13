@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Text.Json;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
+using TrivyOperator.Dashboard.Domain.Utils;
 using TrivyOperator.Dashboard.Infrastructure.Utils.JsonConverters;
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s;
@@ -18,7 +19,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
     static KubernetesClientFactory()
     {
-        KubernetesJson.AddJsonOptions(ConfigureJsonSerializerOptions);
+        KubernetesJson.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
     }
 
     public KubernetesClientFactory(
@@ -33,7 +34,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             KubernetesClientConfiguration? defaultConfig = KubernetesClientConfiguration.IsInCluster()
                 ? KubernetesClientConfiguration.InClusterConfig()
                 : KubernetesClientConfiguration.BuildConfigFromConfigFile();
-            defaultConfig.AddJsonOptions(ConfigureJsonSerializerOptions);
+            defaultConfig.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
             currentContextName = defaultConfig.CurrentContext ?? currentContextName;
             clients[currentContextName] = new Kubernetes(defaultConfig);
 
@@ -54,7 +55,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
                 if (KubernetesClientConfiguration.IsInCluster())
                 {
                     KubernetesClientConfiguration defaultConfig = KubernetesClientConfiguration.InClusterConfig();
-                    defaultConfig.AddJsonOptions(ConfigureJsonSerializerOptions);
+                    defaultConfig.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
                     clients[currentContextName] = new Kubernetes(defaultConfig);
                 }
                 else
@@ -79,12 +80,6 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         throw new InvalidOperationException($"Unknown Kubernetes context: {context}");
     }
 
-    private static void ConfigureJsonSerializerOptions(JsonSerializerOptions jsonSerializerOptions)
-    {
-        jsonSerializerOptions.Converters.Insert(0, new DateTimeJsonConverter());
-        jsonSerializerOptions.Converters.Insert(0, new DateTimeNullableJsonConverter());
-    }
-
     public IEnumerable<string> GetContexts() => [.. clients.Keys];
     public string GetCurrentContext() => currentContextName;
 
@@ -101,7 +96,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
                 KubernetesClientConfiguration config = KubernetesClientConfiguration.BuildConfigFromConfigFile(
                     kubeConfigFileName, ctx.Name);
 
-                config.AddJsonOptions(ConfigureJsonSerializerOptions);
+                config.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
                 clients[ctx.Name] = new Kubernetes(config);
             }
             catch (Exception ex)

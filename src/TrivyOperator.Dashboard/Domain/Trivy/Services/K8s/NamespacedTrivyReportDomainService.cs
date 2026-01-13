@@ -4,8 +4,9 @@ using k8s.Models;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.Services.K8s.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Services;
+namespace TrivyOperator.Dashboard.Domain.Trivy.Services.K8s;
 
 public class NamespacedTrivyReportDomainService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
