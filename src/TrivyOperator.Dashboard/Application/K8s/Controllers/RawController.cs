@@ -7,7 +7,7 @@ namespace TrivyOperator.Dashboard.Application.K8s.Controllers;
 [ApiController]
 [Route("internal/raw")]
 [ApiExplorerSettings(IgnoreApi = true)]
-public sealed class RawDomainController(ILogger<RawDomainController> logger) : ControllerBase
+public sealed class RawController(ILogger<RawController> logger) : ControllerBase
 {
     // /internal/raw?typeCr=VulnerabilityReportCr&key=trivy
     [HttpGet]

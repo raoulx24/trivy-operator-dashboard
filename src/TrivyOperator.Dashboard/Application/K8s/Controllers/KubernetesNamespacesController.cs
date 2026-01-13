@@ -5,11 +5,11 @@ namespace TrivyOperator.Dashboard.Application.K8s.Controllers;
 
 [ApiController]
 [Route("api/kubernetes-namespaces")]
-public class NamespacesController(INamespaceService kubernetesNamespaceService) : ControllerBase
+public class KubernetesNamespacesController(IKubernetesNamespaceService kubernetesKubernetesNamespaceService) : ControllerBase
 {
     [HttpGet(Name = "GetAllNamespaces")]
     [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<string>> GetAll() => await kubernetesNamespaceService.GetKubernetesNamespaces();
+    public async Task<IEnumerable<string>> GetAll() => await kubernetesKubernetesNamespaceService.GetKubernetesNamespaces();
 }

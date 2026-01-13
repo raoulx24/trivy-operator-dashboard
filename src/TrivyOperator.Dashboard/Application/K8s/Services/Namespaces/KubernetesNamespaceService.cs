@@ -6,7 +6,7 @@ using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Namespaces;
 
-public class NamespaceService(IConcurrentDictionaryCache<V1Namespace> cache) : INamespaceService
+public class KubernetesNamespaceService(IConcurrentDictionaryCache<V1Namespace> cache) : IKubernetesNamespaceService
 {
     public Task<IEnumerable<string>> GetKubernetesNamespaces()
     {

@@ -115,7 +115,7 @@ public static class BuilderServicesExtensions
 
             services.AddSingleton<IConcurrentDictionaryCache<V1Namespace>, ClusterResourcePassthroughCache<V1Namespace, V1NamespaceList>>();
 
-            services.AddScoped<INamespaceService, NamespaceService>();
+            services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceService>();
 
             return;
         }
@@ -149,7 +149,7 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespaceCacheRefresher>();
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, WatcherState<V1Namespace>>();
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, WatcherStateAlertRefresh<V1Namespace>>();
-        services.AddScoped<INamespaceService, NamespaceService>();
+        services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceService>();
     }
 
     public static void AddTrivyServices(this IServiceCollection services, IConfiguration kubernetesConfiguration)
