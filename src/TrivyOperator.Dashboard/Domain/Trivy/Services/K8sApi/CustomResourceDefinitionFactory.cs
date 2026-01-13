@@ -9,10 +9,10 @@ using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
 using TrivyOperator.Dashboard.Domain.Trivy.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
-using TrivyOperator.Dashboard.Domain.Trivy.Services.K8s.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Services.K8s;
+namespace TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi;
 
 public class CustomResourceDefinitionFactory : ICustomResourceDefinitionFactory
 {

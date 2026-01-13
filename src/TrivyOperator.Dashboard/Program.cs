@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 using TrivyOperator.Dashboard.Application.Alerts.Hubs;
 using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.Utils;
-using TrivyOperator.Dashboard.Infrastructure.Utils.JsonConverters;
+using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 

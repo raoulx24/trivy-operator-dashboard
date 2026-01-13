@@ -1,20 +1,18 @@
 ﻿using k8s;
 using k8s.Autorest;
-using k8s.Models;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.Services.K8s.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Services.K8s;
+namespace TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi;
 
-public class NamespacedTrivyReportDomainService<TKubernetesObject>(
+public class ClusterScopedTrivyReportDomainService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
     IServiceScopeFactory scopeFactory,
-    ICustomResourceDefinitionFactory customResourceDefinitionFactory,
-    IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList> namespaceDomainService)
-    : NamespacedResourceDomainService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
-        kubernetesClientFactory, scopeFactory, namespaceDomainService)
+    ICustomResourceDefinitionFactory customResourceDefinitionFactory)
+    : ClusterScopedResourceDomainService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
+        kubernetesClientFactory, scopeFactory)
     where TKubernetesObject : CustomResource
 {
     private CustomResourceDefinition? trivyReportCrd;
@@ -30,48 +28,37 @@ public class NamespacedTrivyReportDomainService<TKubernetesObject>(
     }
 
     public override Task<CustomResourceList<TKubernetesObject>> GetResourceList(
-        string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
         CancellationToken? cancellationToken = null) => GetKubernetesClient()
-            .ListNamespacedCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
+            .ListClusterCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
                 TrivyReportCrd.Group,
                 TrivyReportCrd.Version,
-                namespaceName,
                 TrivyReportCrd.PluralName,
                 limit: pageLimit,
                 continueParameter: continueToken,
                 cancellationToken: cancellationToken ?? CancellationToken.None);
 
-    public override Task<TKubernetesObject> GetResource(
-        string resourceName,
-        string namespaceName,
-        CancellationToken? cancellationToken = null) => GetKubernetesClient()
-            .CustomObjects.GetNamespacedCustomObjectAsync<TKubernetesObject>(
+    public override Task<TKubernetesObject>
+        GetResource(string resourceName, CancellationToken? cancellationToken = null) => GetKubernetesClient()
+            .CustomObjects.GetClusterCustomObjectAsync<TKubernetesObject>(
                 TrivyReportCrd.Group,
                 TrivyReportCrd.Version,
-                namespaceName,
                 TrivyReportCrd.PluralName,
                 resourceName,
                 cancellationToken ?? CancellationToken.None);
 
     public override Task<HttpOperationResponse<CustomResourceList<TKubernetesObject>>> GetResourceWatchList(
-        string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        CancellationToken? cancellationToken = null)
-    {
-         return GetKubernetesClient()
-            .CustomObjects
-            .ListNamespacedCustomObjectWithHttpMessagesAsync<CustomResourceList<TKubernetesObject>>(
+        CancellationToken? cancellationToken = null) => GetKubernetesClient()
+            .CustomObjects.ListClusterCustomObjectWithHttpMessagesAsync<CustomResourceList<TKubernetesObject>>(
                 TrivyReportCrd.Group,
                 TrivyReportCrd.Version,
-                namespaceName,
                 TrivyReportCrd.PluralName,
                 watch: true,
                 resourceVersion: lastResourceVersion,
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,
                 cancellationToken: cancellationToken ?? CancellationToken.None);
-    }
 }

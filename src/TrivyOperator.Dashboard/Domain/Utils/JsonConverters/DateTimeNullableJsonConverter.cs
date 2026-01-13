@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Utils.JsonConverters;
+namespace TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
 
 public sealed class DateTimeNullableJsonConverter : JsonConverter<DateTime?>
 {

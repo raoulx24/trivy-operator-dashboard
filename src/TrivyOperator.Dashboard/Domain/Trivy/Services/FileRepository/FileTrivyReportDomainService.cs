@@ -26,10 +26,10 @@ public class FileTrivyReportDomainService<TTrivyReport>(
         if (!Directory.Exists(fullPath))
             return [];
 
-        ConcurrentBag<TTrivyReport> results = new ConcurrentBag<TTrivyReport>();
-        JsonSerializerOptions jsonOptions = new JsonSerializerOptions();
-        JsonUtils.ConfigureJsonSerializerOptions(jsonOptions);
+        JsonSerializerOptions jsonSerializerOptions = JsonUtils.GetKubernetesJsonSerializerOptions();
+        JsonUtils.ConfigureJsonSerializerOptions(jsonSerializerOptions);
 
+        ConcurrentBag<TTrivyReport> results = [];
         IEnumerable<string> files = Directory.EnumerateFiles(fullPath, "*.json");
         logger.LogDebug("Found {filesCount} files in {folderName} for report type {kubernetesObjectType}", files.Count(), fullPath, typeof(TTrivyReport).Name);
 
@@ -42,10 +42,10 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                 
                 await using var stream = File.OpenRead(file);
 
-                // Try simple object
+                // Try a simple object
                 try
                 {
-                    TTrivyReport? item = await JsonSerializer.DeserializeAsync<TTrivyReport>(stream, jsonOptions, token);
+                    TTrivyReport? item = await JsonSerializer.DeserializeAsync<TTrivyReport>(stream, jsonSerializerOptions, token);
                     if (item?.Metadata != null)
                     {
                         item.Metadata.Uid = GuidUtils.GetDeterministicGuid($"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}").ToString();
@@ -58,13 +58,13 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                     logger.LogError(ex, "Error deserializing file {fileName} as single object for report type {kubernetesObjectType}", file, typeof(TTrivyReport).Name);
                 }
 
-                // Reset stream for second attempt
+                // Reset stream for the second attempt
                 stream.Position = 0;
 
-                // Try array
+                // Try an array
                 try
                 {
-                    List<TTrivyReport>? items = await JsonSerializer.DeserializeAsync<List<TTrivyReport>>(stream, jsonOptions, token);
+                    List<TTrivyReport>? items = await JsonSerializer.DeserializeAsync<List<TTrivyReport>>(stream, jsonSerializerOptions, token);
                     if (items != null)
                     {
                         foreach (TTrivyReport item in items)
@@ -81,7 +81,7 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                 }
                 catch
                 {
-                    // ignore, fallback to single object
+                    // ignore, fallback to a single object
                 }
 
 
@@ -95,7 +95,7 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                 logger.LogWarning("Skipped invalid or unreadable file {fileName} for report type {kubernetesObjectType}", file, typeof(TTrivyReport).Name);
         });
 
-        return [.. results];
+        return [.. results,];
     }
 
     public Task<IList<TTrivyReport>> GetAllReportsAsync(string key, CancellationToken? cancellationToken = null)
