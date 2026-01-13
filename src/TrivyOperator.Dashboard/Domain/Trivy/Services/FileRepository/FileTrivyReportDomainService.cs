@@ -42,7 +42,26 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                 
                 await using var stream = File.OpenRead(file);
 
-                // Try array first
+                // Try simple object
+                try
+                {
+                    TTrivyReport? item = await JsonSerializer.DeserializeAsync<TTrivyReport>(stream, jsonOptions, token);
+                    if (item?.Metadata != null)
+                    {
+                        item.Metadata.Uid = GuidUtils.GetDeterministicGuid($"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}").ToString();
+                        results.Add(item);
+                        isValidFile = true;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    logger.LogError(ex, "Error deserializing file {fileName} as single object for report type {kubernetesObjectType}", file, typeof(TTrivyReport).Name);
+                }
+
+                // Reset stream for second attempt
+                stream.Position = 0;
+
+                // Try array
                 try
                 {
                     List<TTrivyReport>? items = await JsonSerializer.DeserializeAsync<List<TTrivyReport>>(stream, jsonOptions, token);
@@ -52,6 +71,7 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                         {
                             if (item?.Metadata != null)
                             {
+                                item.Metadata.Uid = GuidUtils.GetDeterministicGuid($"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}").ToString();
                                 results.Add(item);
                                 isValidFile = true;
                             }
@@ -64,22 +84,7 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                     // ignore, fallback to single object
                 }
 
-                // Reset stream for second attempt
-                stream.Position = 0;
 
-                try
-                {
-                    TTrivyReport? item = await JsonSerializer.DeserializeAsync<TTrivyReport>(stream, jsonOptions, token);
-                    if (item?.Metadata != null)
-                    {
-                        results.Add(item);
-                        isValidFile = true;
-                    }
-                }
-                catch
-                {
-                    // invalid file - skip
-                }
             }
             catch
             {
