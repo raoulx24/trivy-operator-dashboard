@@ -10,16 +10,12 @@
 
 @import './app/themes/trivy-operator-dashboard.variables.css';
 
-
-
 @layer tailwind {
-  @import "./styles/tailwind.local.css";
-
+  @import './styles/tailwind.local.css';
 }
 
 /* Components fixes*/
 @layer app-layer {
-
 }
 
 // Others
@@ -33,7 +29,7 @@
   }
 }
 
- // tests
+// tests
 .custom-small-row tr {
   height: 25px;
 }
@@ -94,7 +90,7 @@ p-panel.h-full > .p-panel.p-component {
 }
 
 p-panel.h-full .p-panel-content-container {
-  height: calc(100% - 2*var(--p-panel-header-padding) - 1rem) !important;
+  height: calc(100% - 2 * var(--p-panel-header-padding) - 1rem) !important;
   @apply flex flex-col;
 }
 
@@ -104,12 +100,12 @@ p-panel.h-full .p-panel-footer {
 
 /* p-table classes */
 p-table.p-datatable-xs .p-datatable-tbody > tr > td {
-  font-size: .8125rem;
-  padding: .25rem .6rem;
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.6rem;
 }
 
 p-table.p-datatable-xs .p-datatable-thead > tr > th {
-  font-size: .875rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -121,7 +117,7 @@ span.p-sortable-column-badge {
   font-weight: var(--p-tag-font-weight);
   gap: var(--p-tag-gap);
   padding: var(--p-tag-padding);
-  margin: .3rem;
+  margin: 0.3rem;
 }
 
 p-table-row-height {
@@ -133,8 +129,7 @@ p-button.w-full button {
 }
 
 /*** temp fix for https://github.com/primefaces/primeng/issues/16576 ***/
-p-columnfilter.tod-active-filter button
-{
+p-columnfilter.tod-active-filter button {
   background: var(--p-primary-color);
   color: var(--p-primary-contrast-color);
   height: 1.25rem;
@@ -142,9 +137,8 @@ p-columnfilter.tod-active-filter button
 }
 
 /* p-columnfilter classes */
-p-columnfilter.tod-active-filter p-button
-{
-  padding-left: .75rem;
+p-columnfilter.tod-active-filter p-button {
+  padding-left: 0.75rem;
 }
 
 /* p-card classes */
@@ -197,7 +191,6 @@ p-card.small-header .p-card-title {
   overflow: hidden;
 }
 
-
 /* generic classes */
 body > div.p-tieredmenu {
   @apply text-sm;
@@ -245,8 +238,7 @@ p-splitter.tod-splitter-no-borders {
 }
 
 .tod-text-primary-color,
-tr:not(.p-datatable-row-selected):not(.p-treetable-row-selected) p-button.tod-text-primary-color button,
-{
+tr:not(.p-datatable-row-selected):not(.p-treetable-row-selected) p-button.tod-text-primary-color button {
   color: var(--tod-text-primary-color);
 }
 
@@ -269,7 +261,6 @@ tr.p-treetable-row-selected p-button.tod-text-primary-color button {
   height: 90vh;
 }
 
-
 /* mat-icon classes */
 mat-icon.text-sm {
   font-size: 1.25rem;
@@ -282,7 +273,6 @@ mat-icon.text-xs {
   height: unset;
   width: unset;
 }
-
 
 /* p-tag classes */
 p-tag:has(> mat-icon) {
@@ -321,6 +311,6 @@ blockquote p:not(:first-of-type) {
 p-select.text-sm span.p-select-label {
   font-size: 0.875rem;
 }
-p-select.text-sm input.p-select-filter{
+p-select.text-sm input.p-select-filter {
   font-size: 0.875rem;
 }

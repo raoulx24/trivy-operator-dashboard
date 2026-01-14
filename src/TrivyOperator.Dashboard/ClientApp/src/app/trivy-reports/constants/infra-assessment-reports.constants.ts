@@ -221,5 +221,5 @@ export const infraAssessmentReportComparedTableColumns: readonly TrivyTableColum
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
   },
-  ... infraAssessmentReportDetailColumns
+  ...infraAssessmentReportDetailColumns,
 ];

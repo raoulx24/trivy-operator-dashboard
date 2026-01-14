@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy, ChangeDetectorRef,
+  ChangeDetectionStrategy,
   Component,
   computed,
-  effect, inject,
+  effect,
   input,
   OnInit,
   output,
@@ -13,10 +13,10 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
-import { MenuItem } from 'primeng/api';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { Select } from 'primeng/select';
@@ -24,11 +24,11 @@ import { SplitButton, SplitButtonModule } from 'primeng/splitbutton';
 import { Table, TableModule, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
+import { SeverityDto } from '../../../api/models/severity-dto';
 import { LocalStorageUtils } from '../../utils/local-storage.utils';
 import { PrimengTableStateUtil } from '../../utils/primeng-table-state.util';
-import { SeverityDto } from '../../../api/models/severity-dto';
 import { SeverityUtils } from '../../utils/severity.utils';
-import { MultiHeaderAction, TrivyFilterData, TrivyTableColumn, TrivyTableExpandRowData, } from './trivy-table.types';
+import { MultiHeaderAction, TrivyFilterData, TrivyTableColumn, TrivyTableExpandRowData } from './trivy-table.types';
 
 import { BooleanCssStylePipe } from '../../pipes/boolean-css-style.pipe';
 import { CapitalizeFirstPipe } from '../../pipes/capitalize-first.pipe';
@@ -38,8 +38,8 @@ import { SemaphoreCssStyleByNamePipe } from '../../pipes/semaphore-css-style-by-
 import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '../../pipes/severity-name-by-id.pipe';
 import { SeverityNamesMaxDisplayPipe } from '../../pipes/severity-names-max-display.pipe';
-import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 import { UnPascalCasePipe } from '../../pipes/un-pascal-case.pipe';
+import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 
 import { ReactiveMap } from '../../abstracts/reactive-map';
 
@@ -105,7 +105,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   refreshRequested = output<TrivyFilterData>();
   rowExpandActionCallback = output<TData>();
   rowExpandDataChange = output<TData>();
-  rowActionRequested = output<{row: TData, col: string}>();
+  rowActionRequested = output<{ row: TData; col: string }>();
   selectedRowsChanged = output<TData[]>();
 
   @ViewChild('trivyTable') trivyTable!: Table;
@@ -152,7 +152,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   trivyTableSelectedRecords = computed(() => {
     const value = this.selectedDataDtos();
     return this.getSelectedDataCount(value);
-  })
+  });
 
   constructor() {
     effect(() => {
@@ -176,7 +176,7 @@ export class TrivyTableComponent<TData> implements OnInit {
       this._lastSingleSelectDataDto = value;
 
       if (this.selectedDataDtos() === value) {
-        return;  // avoid (re)selection
+        return; // avoid (re)selection
       }
       this.selectedDataDtos.set(value);
       this.updateMultiHeaderActionSelectionChanged();
@@ -184,7 +184,7 @@ export class TrivyTableComponent<TData> implements OnInit {
         this.scrollToDto(value);
         this.selectedRowsChanged.emit([value]);
       }
-    })
+    });
   }
 
   ngOnInit() {
@@ -255,7 +255,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   public onOverlayToggle() {
-    this.overlayVisible.update(value => !value);
+    this.overlayVisible.update((value) => !value);
   }
 
   onTrivyDetailsTableCallback(dto: TData) {
@@ -321,26 +321,27 @@ export class TrivyTableComponent<TData> implements OnInit {
     const multiHeaderActions = this.multiHeaderActions();
     if (multiHeaderActions && (multiHeaderActions.length ?? 0) > 1) {
       this.multiHeaderActionItems.set(
-        multiHeaderActions.slice(1).map(actionItem => ({
+        multiHeaderActions.slice(1).map((actionItem) => ({
           label: actionItem.specialAction ?? actionItem.label,
           command: this.multiHeaderActionGetCommand(actionItem),
           icon: this.multiHeaderActionGetIcon(actionItem),
           disabled: this.isMultiHeaderActionDisabled(actionItem),
           initialData: actionItem,
-        })));
+        })),
+      );
     }
   }
 
   protected multiHeaderActionGetCommand(actionItem: MultiHeaderAction): () => void {
     if (actionItem.specialAction) {
       switch (actionItem.specialAction) {
-        case "Go to Detailed ⧉":
-          return () => this.multiHeaderActionRequested.emit("goToDetailedPage");
-        case "Clear Selection":
+        case 'Go to Detailed ⧉':
+          return () => this.multiHeaderActionRequested.emit('goToDetailedPage');
+        case 'Clear Selection':
           return () => this.onTableClearSelected();
-        case "Clear Sort/Filters":
+        case 'Clear Sort/Filters':
           return () => this.onClearSortFilters();
-        case "Collapse All":
+        case 'Collapse All':
           return () => this.onTableCollapseAll();
         default:
           console.error(actionItem);
@@ -352,13 +353,13 @@ export class TrivyTableComponent<TData> implements OnInit {
   private multiHeaderActionGetIcon(actionItem: MultiHeaderAction): string {
     if (actionItem.specialAction) {
       switch (actionItem.specialAction) {
-        case "Go to Detailed \u29C9" :
+        case 'Go to Detailed \u29C9':
           return 'pi pi-align-justify';
-        case "Clear Selection":
+        case 'Clear Selection':
           return 'pi pi-list';
-        case "Clear Sort/Filters":
+        case 'Clear Sort/Filters':
           return 'pi pi-filter';
-        case "Collapse All":
+        case 'Collapse All':
           return 'pi pi-expand';
         default:
           console.error(actionItem);
@@ -368,16 +369,13 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   isMultiHeaderActionDisabled(actionItem: MultiHeaderAction): boolean {
-    if (actionItem.enabledIfDataLoaded)
-    {
+    if (actionItem.enabledIfDataLoaded) {
       return this._dataDtos().length === 0;
     }
-    if (actionItem.enabledIfRowSelected || actionItem.specialAction == 'Clear Selection')
-    {
+    if (actionItem.enabledIfRowSelected || actionItem.specialAction == 'Clear Selection') {
       return !this.isTableRowsSelected;
     }
-    if (actionItem.specialAction == 'Clear Sort/Filters')
-    {
+    if (actionItem.specialAction == 'Clear Sort/Filters') {
       return !this.isTableFilteredOrSorted();
     }
     if (actionItem.specialAction == 'Collapse All') {
@@ -389,18 +387,17 @@ export class TrivyTableComponent<TData> implements OnInit {
   private updateMultiHeaderActionOnDataChanged() {
     this.multiHeaderActionItems.update((items) => {
       items
-        .filter(actionItem => actionItem.initialData.enabledIfDataLoaded)
-        .forEach(actionItem => {
+        .filter((actionItem) => actionItem.initialData.enabledIfDataLoaded)
+        .forEach((actionItem) => {
           actionItem.disabled = (this._dataDtos().length ?? 0) === 0;
         });
       return items;
     });
-
   }
 
   private updateMultiHeaderActionClearSortFilters() {
     this.multiHeaderActionItems.update((items) => {
-      const menuItem = items.find(x => x.initialData.specialAction == "Clear Sort/Filters");
+      const menuItem = items.find((x) => x.initialData.specialAction == 'Clear Sort/Filters');
       if (menuItem) {
         menuItem.disabled = !this.isTableFilteredOrSorted();
       }
@@ -428,15 +425,13 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   private updateMultiHeaderActionCollapsed() {
     this.multiHeaderActionItems.update((items) => {
-      const menuItem = items
-        .find(x => x.initialData.specialAction == "Collapse All");
+      const menuItem = items.find((x) => x.initialData.specialAction == 'Collapse All');
       if (menuItem) {
         menuItem.disabled = !this.anyRowExpanded();
       }
 
       return items;
-    })
-
+    });
   }
 
   onSort() {
@@ -448,7 +443,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   onRowAction(rowDto: TData, columnName: string) {
-    this.rowActionRequested.emit({row: rowDto, col: columnName});
+    this.rowActionRequested.emit({ row: rowDto, col: columnName });
   }
 
   onRowExpand(event: TableRowExpandEvent) {
@@ -467,8 +462,8 @@ export class TrivyTableComponent<TData> implements OnInit {
       return false;
     }
     return (
-        (!!this.trivyTable.filteredValue) ||
-        (this.trivyTable.multiSortMeta == null ? false : this.trivyTable.multiSortMeta.length > 0)
+      !!this.trivyTable.filteredValue ||
+      (this.trivyTable.multiSortMeta == null ? false : this.trivyTable.multiSortMeta.length > 0)
     );
   }
 
@@ -498,26 +493,23 @@ export class TrivyTableComponent<TData> implements OnInit {
       if (index !== -1 && this.trivyTable) {
         this.trivyTable.scrollToVirtualIndex(index);
       }
-    }, 0)
-
+    }, 0);
   }
 
   // force resize event - bug as table is not properly sized and on row expand it looks not ok
   newData() {
     setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
-      }, 0);
+      window.dispatchEvent(new Event('resize'));
+    }, 0);
   }
 
   private getSelectedDataCount(value: TData | TData[] | undefined) {
     if (Array.isArray(value)) {
       return value.length;
     } else {
-
       return value ? 1 : 0;
     }
   }
-
 }
 
 // clear filters on reset table: https://stackoverflow.com/questions/51395624/reset-filter-value-on-primeng-table

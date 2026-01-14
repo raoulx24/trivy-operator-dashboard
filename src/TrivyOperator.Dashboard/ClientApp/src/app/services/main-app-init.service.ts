@@ -1,13 +1,13 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
+import { AppVersion } from '../../api/models';
 import { BackendSettingsDto } from '../../api/models/backend-settings-dto';
 import { BackendSettingsService } from '../../api/services/backend-settings.service';
-import { SettingsService } from './settings.service';
-import { AppVersion } from '../../api/models';
+import { trivyMigrations } from '../constants/migration.constants';
 import { DarkModeService } from './dark-mode.service';
 import { MigrationService } from './migration.service';
-import { trivyMigrations } from '../constants/migration.constants';
+import { SettingsService } from './settings.service';
 
 @Injectable({
   providedIn: 'root',

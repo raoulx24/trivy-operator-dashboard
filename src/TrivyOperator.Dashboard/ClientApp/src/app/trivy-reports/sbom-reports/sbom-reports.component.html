@@ -1,45 +1,47 @@
-<app-generic-sbom [dataDtos]="dataDtos"
-                  [fullSbomDataDto]="fullSbomDataDto"
-                  [isStatic]="isStatic"
-                  [isTableLoading]="false"
-                  [selectedImageId]="selectedImageId"
-                  [isCompareDependantOnExternalData]="true"
-                  [compareFirstSelectedDto]="compareFirstSelectedDto"
-                  [compareSecondSelectedDto]="compareSecondSelectedDto"
-                  [stateKey]="'SBOM Reports'"
-                  [multiHeaderActions]="[
-                    { label: '', icon: 'pi pi-align-justify', specialAction: 'Go to Detailed ⧉' },
-                    { label: 'Info', icon: 'pi pi-info-circle', enabledIfDataLoaded: true },
-                    { label: 'Dive In', icon: 'pi pi-arrow-down-right', enabledIfRowSelected: true },
-                    { label: 'Export CycloneDX JSON', icon: 'pi pi-file-export', enabledIfDataLoaded: true },
-                    { label: 'Export CycloneDX XML', icon: 'pi pi-file-export', enabledIfDataLoaded: true },
-                    { label: 'Export SPDX', icon: 'pi pi-file-export', enabledIfDataLoaded: true },
-                    { label: 'Compare with...', icon: 'pi pi-copy', enabledIfRowSelected: true },
-                    { label: 'Dependency tree', icon: 'pi pi-sitemap', enabledIfDataLoaded: true },
-                    { label: '', specialAction: 'Clear Selection' },
-                    { label: '', specialAction: 'Clear Sort/Filters' },
-                    { label: '', specialAction: 'Collapse All' }
-                  ]"
+<app-generic-sbom
+  [compareFirstSelectedDto]="compareFirstSelectedDto"
+  [compareSecondSelectedDto]="compareSecondSelectedDto"
+  [dataDtos]="dataDtos"
+  [fullSbomDataDto]="fullSbomDataDto"
+  [isCompareDependantOnExternalData]="true"
+  [isStatic]="isStatic"
+  [isTableLoading]="false"
+  [multiHeaderActions]="[
+    { label: '', icon: 'pi pi-align-justify', specialAction: 'Go to Detailed ⧉' },
+    { label: 'Info', icon: 'pi pi-info-circle', enabledIfDataLoaded: true },
+    { label: 'Dive In', icon: 'pi pi-arrow-down-right', enabledIfRowSelected: true },
+    { label: 'Export CycloneDX JSON', icon: 'pi pi-file-export', enabledIfDataLoaded: true },
+    { label: 'Export CycloneDX XML', icon: 'pi pi-file-export', enabledIfDataLoaded: true },
+    { label: 'Export SPDX', icon: 'pi pi-file-export', enabledIfDataLoaded: true },
+    { label: 'Compare with...', icon: 'pi pi-copy', enabledIfRowSelected: true },
+    { label: 'Dependency tree', icon: 'pi pi-sitemap', enabledIfDataLoaded: true },
+    { label: '', specialAction: 'Clear Selection' },
+    { label: '', specialAction: 'Clear Sort/Filters' },
+    { label: '', specialAction: 'Collapse All' },
+  ]"
+  [selectedImageId]="selectedImageId"
+  [stateKey]="'SBOM Reports'"
+  (compareFirstDtoRequested)="onCompareFirstDtoRequested($event)"
+  (compareSecondDtoRequested)="onCompareSecondDtoRequested($event)"
+  (multiActionEventChange)="onMultiActionEventChange($event)"
+  (refreshRequestedChange)="onRefreshRequestedChange()"
+  (selectedImageIdChange)="onSelectedImageIdChange($event)"
+/>
 
-                  (multiActionEventChange)="onMultiActionEventChange($event)"
-                  (refreshRequestedChange)="onRefreshRequestedChange()"
-                  (selectedImageIdChange)="onSelectedImageIdChange($event)"
-                  (compareFirstDtoRequested)="onCompareFirstDtoRequested($event)"
-                  (compareSecondDtoRequested)="onCompareSecondDtoRequested($event)" />
-
-@if(fullSbomDataDto) {
-  <p-dialog closable="true"
-            closeOnEscape="true"
-            dismissableMask="true"
-            resizable="true"
-            [breakpoints]="{ '1700px': '1360px', '576px': '90vw' }"
-            [contentStyle]="{ height: '95vh' }"
-            [style]="{ width: '1360px', height: '95vh' }"
-            [maximizable]="true"
-            [header]="`SBOM Reports Details - ${fullSbomDataDto.imageName}:${fullSbomDataDto.imageTag}`"
-            [modal]="true"
-            [(visible)]="isSbomReportOverviewDialogVisible">
-
+@if (fullSbomDataDto) {
+  <p-dialog
+    closable="true"
+    closeOnEscape="true"
+    dismissableMask="true"
+    resizable="true"
+    [breakpoints]="{ '1700px': '1360px', '576px': '90vw' }"
+    [contentStyle]="{ height: '95vh' }"
+    [header]="`SBOM Reports Details - ${fullSbomDataDto.imageName}:${fullSbomDataDto.imageTag}`"
+    [maximizable]="true"
+    [modal]="true"
+    [style]="{ width: '1360px', height: '95vh' }"
+    [(visible)]="isSbomReportOverviewDialogVisible"
+  >
     <div class="grid grid-cols-12 gap-4 h-full">
       <div class="col-span-12 md:col-span-4 h-full flex flex-col">
         <div style="height: 180px; min-height: 180px">
@@ -48,15 +50,13 @@
             <div class="col-span-3">
               <div class="flex items-center justify-between">
                 <span class="text-sm">Nodes</span>
-                <p-tag [rounded]="true"
-                       [value]="sbomReportDetailStatistics[5]?.toString() ?? 'N/A'" />
+                <p-tag [rounded]="true" [value]="sbomReportDetailStatistics[5]?.toString() ?? 'N/A'" />
               </div>
             </div>
             <div class="col-span-3">
               <div class="flex items-center justify-between">
                 <span class="text-sm">Edges</span>
-                <p-tag [rounded]="true"
-                       [value]="sbomReportDetailStatistics[6]?.toString() ?? 'N/A'" />
+                <p-tag [rounded]="true" [value]="sbomReportDetailStatistics[6]?.toString() ?? 'N/A'" />
               </div>
             </div>
           </div>
@@ -65,51 +65,56 @@
             @for (i of [0, 1, 2, 3, 4]; track i) {
               <div class="col-span-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm">{{ i | severityNameById:true }}</span>
-                  <p-tag [rounded]="true"
-                         [style]="i | severityCssStyleById:(sbomReportDetailStatistics[i] ?? -1)"
-                         [value]="sbomReportDetailStatistics[i] ?? -1 | vulnerabilityCount" />
+                  <span class="text-sm">{{ i | severityNameById: true }}</span>
+                  <p-tag
+                    [rounded]="true"
+                    [style]="i | severityCssStyleById: sbomReportDetailStatistics[i] ?? -1"
+                    [value]="sbomReportDetailStatistics[i] ?? -1 | vulnerabilityCount"
+                  />
                 </div>
               </div>
             }
           </div>
         </div>
         <div class="h-full flex-col">
-          <p-treeTable [value]="sbomReportDetailLicensesTreeNodes"
-                       [scrollable]="true"
-                       [virtualScroll]="true"
-                       [virtualScrollItemSize]="49"
-                       scrollHeight="flex"
-                       class="p-treetable-sm text-sm">
+          <p-treeTable
+            scrollHeight="flex"
+            class="p-treetable-sm text-sm"
+            [scrollable]="true"
+            [value]="sbomReportDetailLicensesTreeNodes"
+            [virtualScroll]="true"
+            [virtualScrollItemSize]="49"
+          >
             <ng-template pTemplate="header">
               <tr style="height: 49px">
                 <th ttSortableColumn="name">License<p-treeTableSortIcon field="name" /></th>
-                <th class="text-right" style="width: 55px; max-width: 55px;">Count</th>
+                <th style="width: 55px; max-width: 55px" class="text-right">Count</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-              <tr [ttRow]="rowNode" style="height: 49px">
+            <ng-template let-rowData="rowData" let-rowNode pTemplate="body">
+              <tr style="height: 49px" [ttRow]="rowNode">
                 <td>
                   <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
                   {{ rowData.name }}
                 </td>
-                <td class="text-right" style="width: 55px; max-width: 55px;">
+                <td style="width: 55px; max-width: 55px" class="text-right">
                   {{ rowData.count }}
                 </td>
               </tr>
             </ng-template>
           </p-treeTable>
-
         </div>
       </div>
       <div class="col-span-12 md:col-span-8 h-full flex flex-col">
         <div style="height: 180px; min-height: 180px">
-          <p-table scrollHeight="flex"
-                   sortMode="multiple"
-                   class="p-datatable-sm text-sm p-0"
-                   [virtualScrollItemSize]="49"
-                   [scrollable]="true"
-                   [value]="imageResourceDtos ?? []">
+          <p-table
+            scrollHeight="flex"
+            sortMode="multiple"
+            class="p-datatable-sm text-sm p-0"
+            [scrollable]="true"
+            [value]="imageResourceDtos ?? []"
+            [virtualScrollItemSize]="49"
+          >
             <ng-template pTemplate="header">
               <tr style="height: 49px">
                 <th pSortableColumn="name" style="width: 55%">
@@ -140,28 +145,29 @@
               </tr>
             </ng-template>
           </p-table>
-
         </div>
         <div class="h-full flex-col">
-          <p-treeTable [value]="sbomReportDetailPropertiesTreeNodes"
-                       [scrollable]="true"
-                       [virtualScroll]="true"
-                       [virtualScrollItemSize]="49"
-                       scrollHeight="flex"
-                       class="p-treetable-sm text-sm">
+          <p-treeTable
+            scrollHeight="flex"
+            class="p-treetable-sm text-sm"
+            [scrollable]="true"
+            [value]="sbomReportDetailPropertiesTreeNodes"
+            [virtualScroll]="true"
+            [virtualScrollItemSize]="49"
+          >
             <ng-template pTemplate="header">
               <tr style="height: 49px">
                 <th ttSortableColumn="name">Property<p-treeTableSortIcon field="name" /></th>
-                <th class="text-right" style="width: 55px; max-width: 55px;">Count</th>
+                <th style="width: 55px; max-width: 55px" class="text-right">Count</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-              <tr [ttRow]="rowNode" style="height: 49px">
+            <ng-template let-rowData="rowData" let-rowNode pTemplate="body">
+              <tr style="height: 49px" [ttRow]="rowNode">
                 <td>
                   <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
                   {{ rowData.name }}
                 </td>
-                <td class="text-right" style="width: 55px; max-width: 55px;">
+                <td style="width: 55px; max-width: 55px" class="text-right">
                   {{ rowData.usedByCount }}
                 </td>
               </tr>
@@ -174,17 +180,19 @@
 }
 
 @if (isDependencyTreeViewVisible() && trivyImage) {
-  <p-dialog closable="true"
-            closeOnEscape="true"
-            dismissableMask="true"
-            resizable="true"
-            maximizable="true"
-            [breakpoints]="{ '890px': '90vw' }"
-            [contentStyle]="{ height: '95vh' }"
-            [header]="trivyDependencyDialogTitle"
-            [modal]="true"
-            [style]="{ width: '95vw' }"
-            [(visible)]="isDependencyTreeViewVisible" >
+  <p-dialog
+    closable="true"
+    closeOnEscape="true"
+    dismissableMask="true"
+    maximizable="true"
+    resizable="true"
+    [breakpoints]="{ '890px': '90vw' }"
+    [contentStyle]="{ height: '95vh' }"
+    [header]="trivyDependencyDialogTitle"
+    [modal]="true"
+    [style]="{ width: '95vw' }"
+    [(visible)]="isDependencyTreeViewVisible"
+  >
     <app-trivy-dependency [trivyImage]="trivyImage" />
   </p-dialog>
 }

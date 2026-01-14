@@ -15,7 +15,7 @@ public class TrivyReportDependenciesService(
     IConcurrentDictionaryCache<SbomReportCr> srCache,
     IConcurrentDictionaryCache<VulnerabilityReportCr> vrCache) : ITrivyReportDependenciesService
 {
-    public Task<TrivyReportDependencyDto?> GetTryvyReportDependencies(string imageDigest, string namespaceName)
+    public Task<TrivyReportDependencyDto?> GetTrivyReportDependencies(string imageDigest, string namespaceName)
     {
         ExposedSecretReportCr[] esrReports = GetTrivyReportsFromCache(esrCache, namespaceName, imageDigest);
         SbomReportCr[] srReports = GetTrivyReportsFromCache(srCache, namespaceName, imageDigest);

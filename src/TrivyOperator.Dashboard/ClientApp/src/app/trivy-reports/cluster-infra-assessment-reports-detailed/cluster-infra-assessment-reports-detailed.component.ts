@@ -6,8 +6,8 @@ import { ClusterInfraAssessmentReportService } from '../../../api/services/clust
 
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
-import { infraAssessmentReportDenormalizedColumns } from '../constants/infra-assessment-reports.constants';
 import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
+import { infraAssessmentReportDenormalizedColumns } from '../constants/infra-assessment-reports.constants';
 
 @Component({
   selector: 'app-cluster-infra-assessment-reports-detailed',
@@ -16,7 +16,7 @@ import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-ba
   templateUrl: './cluster-infra-assessment-reports-detailed.component.html',
   styleUrl: './cluster-infra-assessment-reports-detailed.component.scss',
 })
-export class ClusterInfraAssessmentReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
+export class ClusterInfraAssessmentReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
   dataDtos?: ClusterInfraAssessmentReportDenormalizedDto[];
   severityDtos: SeverityDto[] = [];
   isLoading: boolean = false;

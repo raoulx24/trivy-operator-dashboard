@@ -4,15 +4,14 @@
     csvStorageKey="RBAC Assessment Reports"
     [activeNamespaces]="activeNamespaces"
     [dataDtos]="dataDtos"
+    [isExportCsvVisible]="true"
+    [isFooterVisible]="true"
     [isLoading]="isLoading"
+    [isRefreshVisible]="true"
+    [isResetFiltersVisible]="true"
+    [stateKey]="'RBAC Assessment Reports Detailed'"
+    [style]="{ width: '2100px' }"
     [trivyTableColumns]="trivyTableColumns"
     (refreshRequested)="getTableDataDtos()"
-
-    [isExportCsvVisible]="true"
-    [isResetFiltersVisible]="true"
-    [isRefreshVisible]="true"
-    [isFooterVisible]="true"
-    [style]="{ width: '2100px' }"
-    [stateKey]="'RBAC Assessment Reports Detailed'"
   />
 </div>

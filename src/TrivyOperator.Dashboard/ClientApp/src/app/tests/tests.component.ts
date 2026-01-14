@@ -9,7 +9,7 @@ import { TableModule } from 'primeng/table';
   selector: 'app-tests',
   imports: [TableModule],
   templateUrl: './tests.component.html',
-  styleUrl: './tests.component.scss'
+  styleUrl: './tests.component.scss',
 })
 export class TestsComponent implements OnInit {
   dataDtos: VulnerabilityReportDenormalizedDto[] = [];

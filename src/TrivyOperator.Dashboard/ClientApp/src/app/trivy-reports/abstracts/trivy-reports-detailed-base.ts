@@ -1,5 +1,5 @@
-import { DataPageBase } from '../../abstracts/data-page-base';
 import { effect, inject } from '@angular/core';
+import { DataPageBase } from '../../abstracts/data-page-base';
 import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
 
 export abstract class TrivyReportsDetailedBase extends DataPageBase {
@@ -16,7 +16,7 @@ export abstract class TrivyReportsDetailedBase extends DataPageBase {
       if (!initialized) {
         initialized = true;
         return; // skip initial run
-        }
+      }
       this.getTableDataDtos();
     });
   }

@@ -6,5 +6,4 @@ export interface AboutCredits {
   homeUrl: string;
   gitUrl: string;
   docsUrl: string;
-  
 }

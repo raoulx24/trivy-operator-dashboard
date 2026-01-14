@@ -1,9 +1,9 @@
-import { Pipe, PipeTransform, inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { Pipe, PipeTransform, inject } from '@angular/core';
 
 @Pipe({
   name: 'computedHeight',
-  standalone: true
+  standalone: true,
 })
 export class ComputedHeightPipe implements PipeTransform {
   private document = inject(DOCUMENT);

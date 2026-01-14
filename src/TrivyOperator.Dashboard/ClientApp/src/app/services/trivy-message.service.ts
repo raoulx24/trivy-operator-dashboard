@@ -38,15 +38,23 @@ export class TrivyMessageService {
     }
   }
 
-  pushSimple(message: string, source: string, severity: TrivyMessageSeverity, details?: any, showToast: boolean = true) {
-    this.push({
-      message,
-      source,
-      severity,
-      timestamp: Date.now(),
-      messageDetails: this.safeStringifyObject(details),
+  pushSimple(
+    message: string,
+    source: string,
+    severity: TrivyMessageSeverity,
+    details?: any,
+    showToast: boolean = true,
+  ) {
+    this.push(
+      {
+        message,
+        source,
+        severity,
+        timestamp: Date.now(),
+        messageDetails: this.safeStringifyObject(details),
       },
-      showToast);
+      showToast,
+    );
   }
 
   clear() {

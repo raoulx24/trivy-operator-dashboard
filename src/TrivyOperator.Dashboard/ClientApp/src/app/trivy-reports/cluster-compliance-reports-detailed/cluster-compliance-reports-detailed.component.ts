@@ -6,8 +6,8 @@ import { ClusterComplianceReportService } from '../../../api/services/cluster-co
 import { ClusterComplianceReportDenormalizedDto } from '../../../api/models';
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
-import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster-compliance-reports.constants';
 import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
+import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster-compliance-reports.constants';
 
 @Component({
   selector: 'app-cluster-compliance-reports-detailed',

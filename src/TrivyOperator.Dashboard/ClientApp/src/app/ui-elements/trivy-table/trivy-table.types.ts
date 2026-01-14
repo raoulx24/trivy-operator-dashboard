@@ -20,7 +20,7 @@ export interface MultiHeaderAction {
   enabledIfRowSelected?: boolean;
   enabledIfDataLoaded?: boolean;
   icon?: string;
-  specialAction?: "Go to Detailed \u29C9" | "Clear Selection" | "Clear Sort/Filters" | "Collapse All";
+  specialAction?: 'Go to Detailed \u29C9' | 'Clear Selection' | 'Clear Sort/Filters' | 'Collapse All';
 }
 
 export interface Column {
@@ -80,19 +80,19 @@ export interface TrivyTableExpandRowData<TData> {
   rowKey: TData;
   colStyles: { [klass: string]: any }[];
   headerDef?: {
-    label: string,
-    class?: string
+    label: string;
+    class?: string;
   }[];
   details: {
-    label: string,
-    class?: string,
-    buttonLink?: string,
-    badge?: string,
-    localTime?: string,
-    cron?: string,
+    label: string;
+    class?: string;
+    buttonLink?: string;
+    badge?: string;
+    localTime?: string;
+    cron?: string;
     url?: {
-      text: string,
-      link: string,
-    }
+      text: string;
+      link: string;
+    };
   }[][];
 }

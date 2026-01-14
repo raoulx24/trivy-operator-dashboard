@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
-import { IconRegistryService } from '../../services/icon-registry.service';
 import { SafeHtml } from '@angular/platform-browser';
+import { IconRegistryService } from '../../services/icon-registry.service';
 
 @Component({
   selector: 'app-icon',

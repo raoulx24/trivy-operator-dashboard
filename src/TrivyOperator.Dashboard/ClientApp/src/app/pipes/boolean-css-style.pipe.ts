@@ -9,13 +9,13 @@ export class BooleanCssStylePipe implements PipeTransform {
     const documentStyle = getComputedStyle(document.documentElement);
     if (data === undefined || data === null) {
       return {
-        'background': documentStyle.getPropertyValue(`--p-gray-400`),
-        'opacity': '0.3',
-      }
+        background: documentStyle.getPropertyValue(`--p-gray-400`),
+        opacity: '0.3',
+      };
     }
 
     return {
-      'background': documentStyle.getPropertyValue(`--p-${data ? 'blue' : 'gray'}-400`),
+      background: documentStyle.getPropertyValue(`--p-${data ? 'blue' : 'gray'}-400`),
     };
   }
 }

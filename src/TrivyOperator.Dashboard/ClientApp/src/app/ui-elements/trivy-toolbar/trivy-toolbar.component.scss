@@ -10,13 +10,14 @@
 .tod-scroll-btn {
   z-index: 10;
   background: var(--p-content-background);
-  opacity: .7;
+  opacity: 0.7;
 
-  transition: background var(--p-togglebutton-transition-duration),
-              color var(--p-togglebutton-transition-duration),
-              border-color var(--p-togglebutton-transition-duration),
-              outline-color var(--p-togglebutton-transition-duration),
-              box-shadow var(--p-togglebutton-transition-duration);
+  transition:
+    background var(--p-togglebutton-transition-duration),
+    color var(--p-togglebutton-transition-duration),
+    border-color var(--p-togglebutton-transition-duration),
+    outline-color var(--p-togglebutton-transition-duration),
+    box-shadow var(--p-togglebutton-transition-duration);
 }
 
 .tod-scroll-btn:hover {
@@ -24,9 +25,10 @@
   background: var(--p-togglebutton-content-checked-background);
   opacity: 1;
 
-  transition: background var(--p-togglebutton-transition-duration),
-              color var(--p-togglebutton-transition-duration),
-              border-color var(--p-togglebutton-transition-duration),
-              outline-color var(--p-togglebutton-transition-duration),
-              box-shadow var(--p-togglebutton-transition-duration);
+  transition:
+    background var(--p-togglebutton-transition-duration),
+    color var(--p-togglebutton-transition-duration),
+    border-color var(--p-togglebutton-transition-duration),
+    outline-color var(--p-togglebutton-transition-duration),
+    box-shadow var(--p-togglebutton-transition-duration);
 }

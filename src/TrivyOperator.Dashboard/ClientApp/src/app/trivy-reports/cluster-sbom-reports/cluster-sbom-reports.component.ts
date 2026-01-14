@@ -1,21 +1,21 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ClusterSbomReportService } from '../../../api/services/cluster-sbom-report.service';
 import { ClusterSbomReportDto } from '../../../api/models/cluster-sbom-report-dto';
+import { ClusterSbomReportService } from '../../../api/services/cluster-sbom-report.service';
 
-import { GenericSbomComponent } from '../../ui-elements/generic-sbom/generic-sbom.component';
 import { TreeNode } from 'primeng/api';
+import { GenericSbomComponent } from '../../ui-elements/generic-sbom/generic-sbom.component';
 
 import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '../../pipes/severity-name-by-id.pipe';
 import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 
-import { CardModule} from 'primeng/card';
+import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
-import { TableModule } from 'primeng/table';
 import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({

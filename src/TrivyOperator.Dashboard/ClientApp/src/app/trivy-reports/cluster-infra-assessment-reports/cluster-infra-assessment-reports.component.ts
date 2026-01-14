@@ -12,11 +12,11 @@ import {
 } from '../constants/infra-assessment-reports.constants';
 
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
-import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 import { nonExistingNamespace } from '../../ui-elements/namespace-image-selector/namespace-image-selector.component';
+import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 
-import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
+import { DialogModule } from 'primeng/dialog';
 import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({

@@ -1,23 +1,21 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { Dialog } from 'primeng/dialog';
 import { ClusterRbacAssessmentReportDto } from '../../../api/models/cluster-rbac-assessment-report-dto';
 import { ClusterRbacAssessmentReportService } from '../../../api/services/cluster-rbac-assessment-report.service';
+import { DataPageBase } from '../../abstracts/data-page-base';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
+import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
+import { nonExistingNamespace } from '../../ui-elements/namespace-image-selector/namespace-image-selector.component';
+import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import {
   rbacAssessmentReportColumns,
-  rbacAssessmentReportDetailColumns,
   rbacAssessmentReportComparedTableColumns,
+  rbacAssessmentReportDetailColumns,
 } from '../constants/rbac-assessment-reports.constants';
-import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
-import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
-import { nonExistingNamespace } from '../../ui-elements/namespace-image-selector/namespace-image-selector.component';
-import { Dialog } from 'primeng/dialog';
-import {
-  GenericReportsCompareComponent
-} from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
-import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
   selector: 'app-cluster-rbac-assessment-reports',

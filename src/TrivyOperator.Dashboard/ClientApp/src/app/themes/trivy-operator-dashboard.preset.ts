@@ -1,7 +1,5 @@
-import { definePreset } from "@primeng/themes";
-import Aura from '@primeng/themes/aura';
+import { definePreset } from '@primeng/themes';
 import Nora from '@primeng/themes/nora';
-import Lara from '@primeng/themes/lara';
 
 export const trivyOperatorDashboardPreset = definePreset(Nora, {
   semantic: {
@@ -16,12 +14,12 @@ export const trivyOperatorDashboardPreset = definePreset(Nora, {
       700: '{sky.700}',
       800: '{sky.800}',
       900: '{sky.900}',
-      950: '{sky.950}'
+      950: '{sky.950}',
     },
     colorScheme: {
       light: {
         surface: {
-          0:   '#F8F8FD',
+          0: '#F8F8FD',
           50: '{sky.50}',
           100: '{sky.100}',
           200: '{sky.200}',
@@ -32,14 +30,14 @@ export const trivyOperatorDashboardPreset = definePreset(Nora, {
           700: '{sky.700}',
           800: '{sky.800}',
           900: '{sky.900}',
-          950: '{sky.950}'
+          950: '{sky.950}',
         },
         text: { color: '#000000' },
       },
       dark: {
         surface: {
-          0:   '#FDFDFD',
-          50:  '#EAEDEF',
+          0: '#FDFDFD',
+          50: '#EAEDEF',
           100: '#D4DAE0',
           200: '#B8C2CD',
           300: '#9DAAB9',
@@ -49,11 +47,10 @@ export const trivyOperatorDashboardPreset = definePreset(Nora, {
           700: '#3D4B64',
           800: '#2D374E',
           900: '#2A323D',
-          950: '#171E27'
+          950: '#171E27',
         },
         text: { color: '#ffffff' },
       },
-
     },
   },
   components: {
@@ -72,7 +69,7 @@ export const trivyOperatorDashboardPreset = definePreset(Nora, {
     card: {
       root: {
         shadow: 'var(--tod-card-shadow)',
-      }
+      },
     },
     datatable: {
       bodyCell: {
@@ -93,10 +90,10 @@ export const trivyOperatorDashboardPreset = definePreset(Nora, {
       headerCell: {
         padding: 'var(--tod-datatable-header-cell-padding)',
         selectedBackground: 'var(--p-datatable-header-cell-background)',
-        selectedColor:'var(--p-button-text-primary-color)',
+        selectedColor: 'var(--p-button-text-primary-color)',
         sm: {
           padding: 'var(--tod-datatable-header-cell-padding)',
-        }
+        },
       },
     },
     dialog: {
@@ -156,6 +153,6 @@ export const trivyOperatorDashboardPreset = definePreset(Nora, {
         fontWeight: '500',
         padding: '.20rem .20rem',
       },
-    }
+    },
   },
 });

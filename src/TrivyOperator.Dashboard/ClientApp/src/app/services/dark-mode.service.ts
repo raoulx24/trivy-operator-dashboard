@@ -38,7 +38,7 @@ export class DarkModeService {
   private watchSystemDarkMode() {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-    mediaQuery.addEventListener('change', event => {
+    mediaQuery.addEventListener('change', (event) => {
       const saved = LocalStorageUtils.getBoolKeyValue(this.localStorageKey);
 
       // If user manually set a theme, ignore system changes

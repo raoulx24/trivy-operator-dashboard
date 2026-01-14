@@ -1,6 +1,6 @@
+import { ChartOptions } from 'chart.js';
 import { ColorHelper } from './color.utils';
 import { SeverityUtils } from './severity.utils';
-import { ChartOptions } from 'chart.js';
 
 export type PrimeNgPieChartData = {
   labels: string[];
@@ -87,7 +87,7 @@ export class PrimeNgChartUtils {
       labels: [],
       title: 'a title',
     };
-    if  (severitiesSummary.length === 0) {
+    if (severitiesSummary.length === 0) {
       return chartData;
     }
     const severities = severitiesSummary[0].details!.map((x) => x.id).sort((a, b) => a! - b!);

@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -5,12 +6,11 @@ import {
   OnInit,
   ViewChild,
   ViewContainerRef,
-  input,
-  output,
   effect,
   inject,
+  input,
+  output,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs/operators';
 
@@ -27,7 +27,7 @@ import { TagModule } from 'primeng/tag';
 import { IconComponent } from '../icon/icon.component';
 import { TrivyToolbarComponent } from '../trivy-toolbar/trivy-toolbar.component';
 
-import { DeletedNodes, NodeDataDto } from './fcose.types'
+import { DeletedNodes, NodeDataDto } from './fcose.types';
 
 import { DarkModeService } from '../../services/dark-mode.service';
 
@@ -36,9 +36,17 @@ cytoscape.use(fcose);
 @Component({
   selector: 'app-fcose',
   standalone: true,
-  imports: [BreadcrumbModule, ButtonModule, DialogModule, InputTextModule, TagModule,
-    IconComponent, TrivyToolbarComponent,
-    CommonModule, ReactiveFormsModule],
+  imports: [
+    BreadcrumbModule,
+    ButtonModule,
+    DialogModule,
+    InputTextModule,
+    TagModule,
+    IconComponent,
+    TrivyToolbarComponent,
+    CommonModule,
+    ReactiveFormsModule,
+  ],
   templateUrl: './fcose.component.html',
   styleUrl: './fcose.component.scss',
 })
@@ -86,7 +94,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
   private fcoseLayoutOptions: FcoseLayoutOptions = {
     name: 'fcose',
     nodeRepulsion: (node: NodeSingular) => {
-        return 20000;
+      return 20000;
     },
     numIter: 2500,
     animate: false,
@@ -108,19 +116,19 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     },
   };
   private isLayoutRedraw: boolean = false;
-  inputFilterByNameControl = new FormControl("");
-  private inputFilterByNameValue: string = "";
+  inputFilterByNameControl = new FormControl('');
+  private inputFilterByNameValue: string = '';
 
   private darkLightMode: 'Dark' | 'Light' = 'Dark';
 
   isStatic = input<boolean>(false);
   staticSelectedNodeId = input<string | undefined>(undefined);
   staticHighlightedNodeId = input<string | undefined>(undefined);
-  staticInputFilterByNameValue = input<string>("");
+  staticInputFilterByNameValue = input<string>('');
 
-  fcoseClasses = input<string>("fcose fcose-half");
+  fcoseClasses = input<string>('fcose fcose-half');
 
-  extraColorClasses = input<{name: string, code: string}[]>([]);
+  extraColorClasses = input<{ name: string; code: string }[]>([]);
 
   idealEdgeLength = input<number>(150);
 
@@ -144,13 +152,12 @@ export class FcoseComponent implements AfterViewInit, OnInit {
         this.currentDeletedNodesIndex = -1;
         this.cy?.elements()?.remove();
         this.isLayoutRedraw = false;
-      }
-      else {
+      } else {
         if (!this.activeNodeId) {
-          this._rootNodeId = nodeDataDtos.find(x => x.isMain)?.id ?? this._defaultRootNodeId;
+          this._rootNodeId = nodeDataDtos.find((x) => x.isMain)?.id ?? this._defaultRootNodeId;
           this.initNavMenuItems();
         }
-        this.activeNodeId = nodeDataDtos.find(x => x.isMain)?.id;
+        this.activeNodeId = nodeDataDtos.find((x) => x.isMain)?.id;
         this.hoveredNode = undefined;
         this.highlightedHoverNode = undefined;
         this.graphSelectedNodes = [];
@@ -174,14 +181,13 @@ export class FcoseComponent implements AfterViewInit, OnInit {
       if (nodeId) {
         const node = this.cy?.$(`#${nodeId}`);
         if (node && this.graphSelectedNodes.length == 1 && this.graphSelectedNodes[0] == node) {
-          return
+          return;
         }
         if (node) {
           this.graphSelectedNodes[0]?.unselect();
           node.select();
         }
-      }
-      else {
+      } else {
         if (this.graphSelectedNodes.length == 1) {
           this.graphSelectedNodes[0].unselect();
         }
@@ -197,7 +203,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
 
   ngOnInit() {
     this.inputFilterByNameControl.valueChanges.pipe(debounceTime(500)).subscribe((value) => {
-      this.onInputChange(value ?? "");
+      this.onInputChange(value ?? '');
     });
     if (this.isStatic()) {
       this.inputFilterByNameControl.setValue(this.staticInputFilterByNameValue());
@@ -224,9 +230,9 @@ export class FcoseComponent implements AfterViewInit, OnInit {
           style: {
             'background-color': 'gray',
             'background-opacity': 0.2,
-            'label': 'data(label)',
+            label: 'data(label)',
             // @ts-ignore
-            'padding': 20,
+            padding: 20,
           },
         },
         {
@@ -243,14 +249,14 @@ export class FcoseComponent implements AfterViewInit, OnInit {
         {
           selector: '.parentNodeDark',
           style: {
-            'color': 'Gainsboro',
-          }
+            color: 'Gainsboro',
+          },
         },
         {
           selector: '.parentNodeLight',
           style: {
-            'color': 'Black',
-          }
+            color: 'Black',
+          },
         },
         {
           selector: '.nodeCommon',
@@ -265,7 +271,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
           selector: '.mainBackgroundColor',
           style: {
             'background-color': 'Aqua',
-          }
+          },
         },
         {
           selector: '.nodePackage',
@@ -292,7 +298,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
         {
           selector: '.nodeLeaf',
           style: {
-            'shape': 'round-rectangle',
+            shape: 'round-rectangle',
             // @ts-ignore
             'corner-radius': '12px',
           },
@@ -324,16 +330,16 @@ export class FcoseComponent implements AfterViewInit, OnInit {
           style: {
             'border-width': 4,
             'border-color': 'Aqua',
-            'border-style': 'solid'
-          }
+            'border-style': 'solid',
+          },
         },
         {
           selector: '.hoveredLight, .selectedLight',
           style: {
             'border-width': 4,
             'border-color': 'Black',
-            'border-style': 'solid'
-          }
+            'border-style': 'solid',
+          },
         },
         {
           selector: '.hovered',
@@ -343,7 +349,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
             //'background-gradient-stop-colors': 'RoyalBlue Aqua RoyalBlue', //DeepSkyBlue
             // @ts-ignore
             'background-gradient-stop-colors': 'RoyalBlue DeepSkyBlue', //DeepSkyBlue
-            'background-gradient-direction': 'to-right'
+            'background-gradient-direction': 'to-right',
           },
         },
         {
@@ -373,7 +379,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
             'background-fill': 'linear-gradient',
             // @ts-ignore
             'background-gradient-stop-colors': 'Red Salmon', //Salmon
-            'background-gradient-direction': 'to-right'
+            'background-gradient-direction': 'to-right',
           },
         },
         {
@@ -424,7 +430,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
         {
           selector: '.deleted',
           style: {
-            'visibility': 'hidden',
+            visibility: 'hidden',
           },
         },
         {
@@ -451,23 +457,23 @@ export class FcoseComponent implements AfterViewInit, OnInit {
           style: {
             'font-style': 'italic',
             'font-weight': 'bold',
-          //  'shape': 'round-rectangle',
-          //  // @ts-ignore
-          //  'corner-radius': '12px',
-          //  'background-fill': 'linear-gradient',
-          //  'background-gradient-stop-colors': 'red pink magenta blue',
-          //  'background-gradient-direction': 'to-right'
-          //  /*'background-gradient-stop-positions': '0% 100%'*/
-          }
-        }
+            //  'shape': 'round-rectangle',
+            //  // @ts-ignore
+            //  'corner-radius': '12px',
+            //  'background-fill': 'linear-gradient',
+            //  'background-gradient-stop-colors': 'red pink magenta blue',
+            //  'background-gradient-direction': 'to-right'
+            //  /*'background-gradient-stop-positions': '0% 100%'*/
+          },
+        },
       ],
     });
 
-    const extraStyles = this.extraColorClasses().map(c => ({
+    const extraStyles = this.extraColorClasses().map((c) => ({
       selector: `.${c.name}`,
       style: {
-        'background-color': c.code
-      }
+        'background-color': c.code,
+      },
     }));
     const mergedStyles = [...extraStyles, ...(this.cy.style() as any).json()];
     this.cy.style().fromJson(mergedStyles).update();
@@ -479,7 +485,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
       return;
     }
     this.cy.on('mouseover', 'node', (event) => {
-      const node = event.target as NodeSingular
+      const node = event.target as NodeSingular;
       this.hoveredNode = node;
       this.highlightHoveredNode(node);
     });
@@ -512,7 +518,6 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     this.cy.on('unselect', 'node', (event) => {
       this.unhighlightSelectedNode(event.target as NodeSingular);
     });
-
   }
   // #endregion
 
@@ -522,29 +527,29 @@ export class FcoseComponent implements AfterViewInit, OnInit {
       node.unselect();
       return;
     }
-    if (this.graphSelectedNodes.some(x => x === node)) {
+    if (this.graphSelectedNodes.some((x) => x === node)) {
       return;
     }
     this.graphSelectedNodes.push(node);
     if (this.graphSelectedNodes.length == 2) {
-      this.unhighlightNode(this.graphSelectedNodes[0], "selected");
-      this.highlightNode(this.graphSelectedNodes[0], "selected", true);
+      this.unhighlightNode(this.graphSelectedNodes[0], 'selected');
+      this.highlightNode(this.graphSelectedNodes[0], 'selected', true);
     }
     if (this.highlightedHoverNode) {
       this.unhighlightHoveredNode(this.highlightedHoverNode);
     }
-    this.highlightNode(node, "selected", this.graphSelectedNodes.length > 1);
+    this.highlightNode(node, 'selected', this.graphSelectedNodes.length > 1);
     this.selectedNodeIdChange.emit(node.id());
   }
 
   private unhighlightSelectedNode(node: NodeSingular) {
-    this.graphSelectedNodes = this.graphSelectedNodes.filter(x => x != node);
-    this.unhighlightNode(node, "selected", this.graphSelectedNodes.length > 1);
+    this.graphSelectedNodes = this.graphSelectedNodes.filter((x) => x != node);
+    this.unhighlightNode(node, 'selected', this.graphSelectedNodes.length > 1);
     if (this.highlightedHoverNode) {
       this.unhighlightHoveredNode(this.highlightedHoverNode);
     }
     if (this.graphSelectedNodes.length == 1) {
-      this.highlightNode(this.graphSelectedNodes[0], "selected");
+      this.highlightNode(this.graphSelectedNodes[0], 'selected');
     }
     if (this.hoveredNode === node) {
       this.highlightHoveredNode(node);
@@ -561,7 +566,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     if (this.highlightedHoverNode) {
       this.unhighlightHoveredNode(this.highlightedHoverNode);
     }
-    this.highlightNode(node, "hovered");
+    this.highlightNode(node, 'hovered');
     this.highlightedHoverNode = node;
   }
 
@@ -569,15 +574,15 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     if (node.isParent() || this.isLayoutRedraw) {
       return;
     }
-    this.unhighlightNode(node, "hovered");
+    this.unhighlightNode(node, 'hovered');
     this.highlightedHoverNode = undefined;
   }
   // #endregion
 
   // #region Node Highlight
-  private highlightNode(node: NodeSingular, stylePrefix: "hovered" | "selected", justNode: boolean = false) {
+  private highlightNode(node: NodeSingular, stylePrefix: 'hovered' | 'selected', justNode: boolean = false) {
     node.addClass(`${stylePrefix}Common ${stylePrefix} ${stylePrefix}${this.darkLightMode}`);
-    this.swapClassNodesHighlightedByName(node, "highlight");
+    this.swapClassNodesHighlightedByName(node, 'highlight');
     if (justNode) {
       return;
     }
@@ -590,13 +595,13 @@ export class FcoseComponent implements AfterViewInit, OnInit {
           depNode.addClass(`${stylePrefix}Incomers`);
         }
       }
-      this.swapClassNodesHighlightedByName(depNode, "highlight");
+      this.swapClassNodesHighlightedByName(depNode, 'highlight');
     });
     node.outgoers('node').forEach((depNode: NodeSingular) => {
       if (!depNode.hasClass('selectedOutgoers') && !depNode.hasClass('selectedCommon')) {
         depNode.addClass(`${stylePrefix}Common ${stylePrefix}Outgoers`);
       }
-      this.swapClassNodesHighlightedByName(depNode, "highlight");
+      this.swapClassNodesHighlightedByName(depNode, 'highlight');
     });
 
     node.connectedEdges().forEach((edge: EdgeSingular) => {
@@ -604,19 +609,19 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     });
   }
 
-  private unhighlightNode(node: NodeSingular, stylePrefix: "hovered" | "selected", justNode: boolean = false) {
+  private unhighlightNode(node: NodeSingular, stylePrefix: 'hovered' | 'selected', justNode: boolean = false) {
     node.removeClass(`${stylePrefix}Common ${stylePrefix} ${stylePrefix}${this.darkLightMode}`);
-    this.swapClassNodesHighlightedByName(node, "unhighlight");
+    this.swapClassNodesHighlightedByName(node, 'unhighlight');
     if (justNode) {
       return;
     }
     node.outgoers('node').forEach((depNode: NodeSingular) => {
       depNode.removeClass(`${stylePrefix}Common ${stylePrefix}Outgoers ${stylePrefix}Highlight`);
-      this.swapClassNodesHighlightedByName(depNode, "unhighlight");
+      this.swapClassNodesHighlightedByName(depNode, 'unhighlight');
     });
     node.incomers('node').forEach((depNode: NodeSingular) => {
       depNode.removeClass(`${stylePrefix}Common ${stylePrefix}Incomers`);
-      this.swapClassNodesHighlightedByName(depNode, "unhighlight");
+      this.swapClassNodesHighlightedByName(depNode, 'unhighlight');
     });
 
     node.connectedEdges().forEach((edge: EdgeSingular) => {
@@ -642,40 +647,38 @@ export class FcoseComponent implements AfterViewInit, OnInit {
             }
           }
         });
-      }
-      else {
+      } else {
         this.cy.nodes().forEach((node: NodeSingular) => {
           node.removeClass('filtered-highlighted');
           node.removeClass('filtered-unhighlighted');
-        })
+        });
       }
     });
   }
 
-  private swapClassNodesHighlightedByName(node: NodeSingular, action: "highlight" | "unhighlight") {
-    if (node.hasClass('filtered-unhighlighted') && action == "highlight") {
+  private swapClassNodesHighlightedByName(node: NodeSingular, action: 'highlight' | 'unhighlight') {
+    if (node.hasClass('filtered-unhighlighted') && action == 'highlight') {
       node.removeClass('filtered-unhighlighted');
       node.addClass('filtered-semihighlighted');
       return;
     }
-    if (node.hasClass('filtered-semihighlighted') && action == "unhighlight") {
+    if (node.hasClass('filtered-semihighlighted') && action == 'unhighlight') {
       node.removeClass('filtered-semihighlighted');
       node.addClass('filtered-unhighlighted');
     }
   }
 
   private swapClassDarkLikghtMode(oldMode: 'Dark' | 'Light', newMode: 'Dark' | 'Light') {
-    this.cy?.nodes(`.selected${oldMode}`).forEach(node => {
+    this.cy?.nodes(`.selected${oldMode}`).forEach((node) => {
       node.removeClass(`selected${oldMode}`);
       node.addClass(`selected${newMode}`);
     });
-    this.cy?.nodes(`.parentNode${oldMode}`).forEach(node => {
+    this.cy?.nodes(`.parentNode${oldMode}`).forEach((node) => {
       node.removeClass(`parentNode${oldMode}`);
       node.addClass(`parentNode${newMode}`);
     });
   }
   // #endregion
-
 
   private diveInNode(node: NodeSingular) {
     if (node.isParent() || node.hasClass('nodeLeaf')) {
@@ -702,7 +705,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
   }
 
   onZoomFit() {
-    const visibleElements = this.cy.elements().filter(ele => !ele.hasClass('deleted'));
+    const visibleElements = this.cy.elements().filter((ele) => !ele.hasClass('deleted'));
     this.cy.animate({
       fit: {
         eles: visibleElements,
@@ -728,11 +731,13 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     this.recreateNodes(this.deletedNodes[this.currentDeletedNodesIndex].nodeIds);
     const lastNodeIds: string[] = [...this.deletedNodes[this.currentDeletedNodesIndex].mainNodeIds];
     setTimeout(() => {
-      this.graphSelectedNodes.forEach(node => { node.unselect(); });
-      lastNodeIds.forEach(nodeId => {
+      this.graphSelectedNodes.forEach((node) => {
+        node.unselect();
+      });
+      lastNodeIds.forEach((nodeId) => {
         const node = this.cy.getElementById(nodeId) as NodeSingular;
         node?.select();
-      })
+      });
     }, 0);
     this.currentDeletedNodesIndex--;
   }
@@ -742,12 +747,14 @@ export class FcoseComponent implements AfterViewInit, OnInit {
       return;
     }
     const mainNodeIds = this.deletedNodes[this.currentDeletedNodesIndex + 1].mainNodeIds;
-    const nodes = mainNodeIds.map(id => this.cy.getElementById(id) as NodeSingular).filter(node => node !== undefined);
+    const nodes = mainNodeIds
+      .map((id) => this.cy.getElementById(id) as NodeSingular)
+      .filter((node) => node !== undefined);
     switch (this.deletedNodes[this.currentDeletedNodesIndex + 1].deleteType) {
-      case "node":
+      case 'node':
         this.deleteNodesAndOrphans(false, nodes);
         break;
-      case "nodeAndChildren":
+      case 'nodeAndChildren':
         this.deleteNodesAndOrphans(true, nodes);
         break;
     }
@@ -787,7 +794,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
       this.cy.layout(this.fcoseLayoutOptions as FcoseLayoutOptions).run();
       this.onZoomFit();
 
-      this.updateNavMenuItems(this.activeNodeId ?? "");
+      this.updateNavMenuItems(this.activeNodeId ?? '');
       setTimeout(() => {
         this.cy.elements().removeClass('hidden');
 
@@ -817,12 +824,11 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     const elements: ElementDefinition[] = [];
     const groupMap = new Map<string, number>();
     this.nodeDataDtos()
-      .filter(x => x.groupName)
+      .filter((x) => x.groupName)
       .forEach((x) => {
-        const currentCount = (groupMap.get(x.groupName ?? "") || 0) + 1;
-        groupMap.set(x.groupName ?? "", currentCount);
-      }
-    );
+        const currentCount = (groupMap.get(x.groupName ?? '') || 0) + 1;
+        groupMap.set(x.groupName ?? '', currentCount);
+      });
     groupMap.forEach((value, key) => {
       if (value > 1) {
         //elements.push({ data: { id: key, label: key }, classes: 'nodeCommon' });
@@ -830,8 +836,8 @@ export class FcoseComponent implements AfterViewInit, OnInit {
       }
     });
 
-    this.nodeDataDtos().forEach(nodeData => {
-      const parentId = (groupMap.get(nodeData.groupName ?? "") || 0) > 1 ? nodeData.groupName : undefined;
+    this.nodeDataDtos().forEach((nodeData) => {
+      const parentId = (groupMap.get(nodeData.groupName ?? '') || 0) > 1 ? nodeData.groupName : undefined;
       elements.push({
         data: {
           id: nodeData.id,
@@ -906,7 +912,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
           label: newDataDetailDto?.name ? newDataDetailDto?.name : '\u2003', // so called 'em space' - just a 'long' space,
           class: 'breadcrumb-size',
         },
-        ];
+      ];
     }
     this.activeNodeId = nodeId;
   }
@@ -928,10 +934,10 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     if (!isRedo) {
       mainNodes = [...this.graphSelectedNodes];
     }
-    this.graphSelectedNodes.forEach(node => node.unselect());
+    this.graphSelectedNodes.forEach((node) => node.unselect());
     const mainNodeIds: string[] = [];
     const deletedNodes: string[] = [];
-    mainNodes.forEach(node => {
+    mainNodes.forEach((node) => {
       mainNodeIds.push(node.id());
       areChildrenIncluded
         ? this.deleteNodeChildrenAndOrphans(node, deletedNodes)
@@ -943,61 +949,87 @@ export class FcoseComponent implements AfterViewInit, OnInit {
 
   private deleteNodeAndOrphans(node: NodeSingular, deletedNodes: string[]) {
     deletedNodes.push(node.id());
-    node.addClass("deleted");
-    node.connectedEdges().addClass("deleted");
-    node.outgoers('node')
-      .filter((x: NodeSingular) => !x.hasClass("deleted"))
-      .filter((x: NodeSingular) => x.connectedEdges().filter(x => !x.hasClass("deleted")).length === 0)
-      .forEach((x: NodeSingular) => { deletedNodes.push(x.id()); x.addClass("deleted"); });
+    node.addClass('deleted');
+    node.connectedEdges().addClass('deleted');
+    node
+      .outgoers('node')
+      .filter((x: NodeSingular) => !x.hasClass('deleted'))
+      .filter((x: NodeSingular) => x.connectedEdges().filter((x) => !x.hasClass('deleted')).length === 0)
+      .forEach((x: NodeSingular) => {
+        deletedNodes.push(x.id());
+        x.addClass('deleted');
+      });
   }
 
   private deleteNodeChildrenAndOrphans(node: NodeSingular, deletedNodes: string[]) {
     this.deleteNodeAndOrphans(node, deletedNodes);
-    node.outgoers('node')
-      .filter((node: NodeSingular) => !node.hasClass("deleted"))
+    node
+      .outgoers('node')
+      .filter((node: NodeSingular) => !node.hasClass('deleted'))
       .forEach((x: NodeSingular) => this.deleteNodeAndOrphans(x, deletedNodes));
   }
 
   private cleanupParentsAndOrphans(deletedNodeIds: string[]) {
-    this.cy.nodes().filter(node => node.isParent())
-      .filter((parentNode: NodeSingular) => parentNode.children().filter(x => !x.hasClass("deleted")).length < 2)
-      .forEach(parent =>
-      {
-        parent.children().forEach((node: NodeSingular) => { node.move({ parent: null }); });
-        parent.addClass("deleted");
+    this.cy
+      .nodes()
+      .filter((node) => node.isParent())
+      .filter((parentNode: NodeSingular) => parentNode.children().filter((x) => !x.hasClass('deleted')).length < 2)
+      .forEach((parent) => {
+        parent.children().forEach((node: NodeSingular) => {
+          node.move({ parent: null });
+        });
+        parent.addClass('deleted');
         deletedNodeIds.push(parent.id());
       });
-    this.cy.nodes()
-      .filter(x => !x.isParent() && x.connectedEdges().filter(y => !y.hasClass("deleted")).length === 0 && !x.hasClass("deleted"))
-      .forEach(x => { deletedNodeIds.push(x.id()); x.addClass("deleted") });
+    this.cy
+      .nodes()
+      .filter(
+        (x) =>
+          !x.isParent() &&
+          x.connectedEdges().filter((y) => !y.hasClass('deleted')).length === 0 &&
+          !x.hasClass('deleted'),
+      )
+      .forEach((x) => {
+        deletedNodeIds.push(x.id());
+        x.addClass('deleted');
+      });
   }
 
   recreateNodes(deletedNodes: string[]) {
-    deletedNodes.forEach(nodeId => {
+    deletedNodes.forEach((nodeId) => {
       const node = this.cy.getElementById(nodeId);
       if (node) {
-        node.removeClass("deleted");
-        node.connectedEdges()
-          .filter(edge => !edge.source().hasClass("deleted") && !edge.target().hasClass("deleted"))
-          .forEach(edge => { edge.removeClass("deleted") });
+        node.removeClass('deleted');
+        node
+          .connectedEdges()
+          .filter((edge) => !edge.source().hasClass('deleted') && !edge.target().hasClass('deleted'))
+          .forEach((edge) => {
+            edge.removeClass('deleted');
+          });
       }
     });
-    const x = this.cy.nodes(".parentNode")
-      .filter(x => x.children().length === 0 && !x.hasClass("deleted"));
-      x.forEach(x => {
-        this.nodeDataDtos().filter(y => y.groupName == x.id()).forEach(y => {
+    const x = this.cy.nodes('.parentNode').filter((x) => x.children().length === 0 && !x.hasClass('deleted'));
+    x.forEach((x) => {
+      this.nodeDataDtos()
+        .filter((y) => y.groupName == x.id())
+        .forEach((y) => {
           this.cy.nodes(`#${y.id}`).move({ parent: x.id() });
         });
-      });
+    });
   }
 
-  private processDeletedNodeIds(mainNodeIds: string[], deletedNodes: string[], areChildrenIncluded: boolean, isRedo: boolean) {
+  private processDeletedNodeIds(
+    mainNodeIds: string[],
+    deletedNodes: string[],
+    areChildrenIncluded: boolean,
+    isRedo: boolean,
+  ) {
     if (deletedNodes.length > 0) {
       this.deletedNodeIdsChange.emit(deletedNodes);
-      const deleteType = areChildrenIncluded ? "nodeAndChildren" : "node";
+      const deleteType = areChildrenIncluded ? 'nodeAndChildren' : 'node';
       if (!isRedo) {
         this.deletedNodes = this.deletedNodes.slice(0, this.currentDeletedNodesIndex + 1);
-        this.deletedNodes.push({ deleteType: deleteType, mainNodeIds: mainNodeIds, nodeIds: deletedNodes, });
+        this.deletedNodes.push({ deleteType: deleteType, mainNodeIds: mainNodeIds, nodeIds: deletedNodes });
       }
       this.currentDeletedNodesIndex++;
     }

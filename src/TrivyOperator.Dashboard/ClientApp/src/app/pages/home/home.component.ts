@@ -33,7 +33,7 @@ import { KubernetesContextStateService } from '../../services/kubernetes-context
 })
 export class HomeComponent implements OnInit {
   enabledTrivyReports: string[] = ['crar', 'car', 'esr', 'vr'];
-  tabPageActiveIndex: string = "0";
+  tabPageActiveIndex: string = '0';
 
   @ViewChild(DashboardVulnerabilityReportsComponent) homeVr?: DashboardVulnerabilityReportsComponent;
   @ViewChild(DashboardConfigAuditReportsComponent) homeCar?: DashboardConfigAuditReportsComponent;
@@ -46,7 +46,7 @@ export class HomeComponent implements OnInit {
 
   constructor() {
     let initialized = false;
-    
+
     effect(() => {
       const showDistinctValues = this.showDistinctValues();
       localStorage.setItem('home.showDistinctValues', showDistinctValues.toString());
@@ -73,12 +73,12 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     this.showDistinctValues.set(LocalStorageUtils.getBoolKeyValue('home.showDistinctValues') ?? true);
-    this.tabPageActiveIndex = localStorage.getItem('home.tabPageActiveIndex') ?? "0";
+    this.tabPageActiveIndex = localStorage.getItem('home.tabPageActiveIndex') ?? '0';
   }
 
   onTabPageChange(event: string | number | undefined) {
     if (event) {
-        localStorage.setItem('home.tabPageActiveIndex', event.toString());
+      localStorage.setItem('home.tabPageActiveIndex', event.toString());
     }
   }
 

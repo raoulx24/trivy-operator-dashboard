@@ -78,7 +78,13 @@
       @for (file of csvFileNames(); track file) {
         <div class="field pb-1">
           <label for="{{ file.dataKey }}" class="text-sm">{{ file.description }}</label>
-          <input id="{{ file.dataKey }}" pInputText class="text-sm w-full" pSize="small" [(ngModel)]="file.savedCsvName" />
+          <input
+            id="{{ file.dataKey }}"
+            pInputText
+            pSize="small"
+            class="text-sm w-full"
+            [(ngModel)]="file.savedCsvName"
+          />
         </div>
       }
       @if (csvFileNames().length == 0) {
@@ -164,20 +170,29 @@
       <div class="flex flex-col">
         <span class="text-lg font-semibold pb-2">Severities</span>
         <span class="font-semibold pb-2">Select Severity display option</span>
-        <p-selectButton [options]="severityCssStyleByIdOptions()"
-                        [(ngModel)]="severityCssStyleByIdOptionValue"
-                        optionLabel="label"
-                        optionValue="id"
-                        class="text-sm"
-                        unselectable="true"
-                        (onOptionClick)="onSeverityCssStyleByIdOptionsClick($event)" />
+        <p-selectButton
+          optionLabel="label"
+          optionValue="id"
+          unselectable="true"
+          class="text-sm"
+          [options]="severityCssStyleByIdOptions()"
+          [(ngModel)]="severityCssStyleByIdOptionValue"
+          (onOptionClick)="onSeverityCssStyleByIdOptionsClick($event)"
+        />
         <span class="font-semibold pt-2">Sample</span>
         <div class="py-2">
           @for (sampleValue of [1, 0, -1]; track sampleValue) {
-            <p-tag [rounded]="true"
-                   [style]="3 | severityCssStyleById:sampleValue:severityCssStyleByIdOptions()[severityCssStyleByIdOptionIndex].id"
-                   [value]="sampleValue | vulnerabilityCount"
-                   class="mr-1" />
+            <p-tag
+              class="mr-1"
+              [rounded]="true"
+              [style]="
+                3
+                  | severityCssStyleById
+                    : sampleValue
+                    : severityCssStyleByIdOptions()[severityCssStyleByIdOptionIndex].id
+              "
+              [value]="sampleValue | vulnerabilityCount"
+            />
           }
           <span class="text-sm">{{ severityCssStyleByIdOptionDescription }}</span>
         </div>

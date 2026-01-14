@@ -6,9 +6,9 @@ import { ConfigAuditReportService } from '../../../api/services/config-audit-rep
 
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
+import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 import { configAuditReportDenormalizedColumns } from '../constants/config-audit-reports.constants';
 import { namespacedColumns } from '../constants/generic.constants';
-import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 
 @Component({
   selector: 'app-config-audit-reports-detailed',
@@ -17,7 +17,7 @@ import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-ba
   templateUrl: './config-audit-reports-detailed.component.html',
   styleUrl: './config-audit-reports-detailed.component.scss',
 })
-export class ConfigAuditReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
+export class ConfigAuditReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
   dataDtos?: ConfigAuditReportDenormalizedDto[];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
@@ -43,9 +43,7 @@ export class ConfigAuditReportsDetailedComponent  extends TrivyReportsDetailedBa
 
   onGetDataDtos(dtos: ConfigAuditReportDenormalizedDto[]) {
     this.dataDtos = dtos;
-    this.activeNamespaces = Array
-      .from(new Set(dtos.map(dto => dto.resourceNamespace ?? "N/A")))
-      .sort();
+    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
     this.isLoading = false;
   }
 }

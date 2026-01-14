@@ -26,7 +26,7 @@ export class IconRegistryService {
       this.cache.set(name, safe);
       return safe;
     } catch (err) {
-      this.trivyMessageService.pushSimple(`Failed to load icon: ${name}`, "Icon registry", "error", err, false);
+      this.trivyMessageService.pushSimple(`Failed to load icon: ${name}`, 'Icon registry', 'error', err, false);
       const fallback = this.sanitizer.bypassSecurityTrustHtml('<svg><!-- fallback --></svg>');
       this.cache.set(name, fallback);
       return fallback;

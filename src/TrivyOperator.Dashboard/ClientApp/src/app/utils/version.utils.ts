@@ -1,5 +1,4 @@
 export class VersionUtils {
-
   public static parseVersion(version: string): number {
     const parts = version.replace('v', '').split('.');
     const x = parseInt(parts[0], 10) || 0;

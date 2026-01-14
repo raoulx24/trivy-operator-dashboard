@@ -3,15 +3,14 @@
     csvFileName="Cluster Compliance Reports"
     csvStorageKey="Cluster Compliance Reports"
     [dataDtos]="dataDtos"
+    [isExportCsvVisible]="true"
+    [isFooterVisible]="true"
     [isLoading]="isLoading"
+    [isRefreshVisible]="true"
+    [isResetFiltersVisible]="true"
+    [stateKey]="'Cluster Compliance Reports Detailed'"
+    [style]="{ width: '3040px' }"
     [trivyTableColumns]="trivyTableColumns"
     (refreshRequested)="getTableDataDtos()"
-
-    [isExportCsvVisible]="true"
-    [isResetFiltersVisible]="true"
-    [isRefreshVisible]="true"
-    [isFooterVisible]="true"
-    [style]="{ width: '3040px' }"
-    [stateKey]="'Cluster Compliance Reports Detailed'"
   />
 </div>

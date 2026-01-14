@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { VersionUtils } from '../utils/version.utils';
 import { LocalStorageUtils } from '../utils/local-storage.utils';
+import { VersionUtils } from '../utils/version.utils';
 
 export type MigrationAction =
   | 'deleteAllTableDefinitions'
@@ -24,12 +24,11 @@ export interface MigrationStep {
   providedIn: 'root',
 })
 export class MigrationService {
-
-
   applyTableMigrations(fromVersion: string, toVersion: string, migrationSteps: readonly MigrationStep[]) {
     for (const step of migrationSteps) {
-      if (!this.isFirstVersionOlder(fromVersion, step.version) || this.isFirstVersionOlder(toVersion, step.version)) continue;
-      console.log("Step version:", step.version, "- Applying migration step:", step.action);
+      if (!this.isFirstVersionOlder(fromVersion, step.version) || this.isFirstVersionOlder(toVersion, step.version))
+        continue;
+      console.log('Step version:', step.version, '- Applying migration step:', step.action);
 
       switch (step.action) {
         case 'deleteAllTableDefinitions': {

@@ -14,7 +14,7 @@ public class TrivyReportDependenciesController(ITrivyReportDependenciesService t
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByDigestNamespace([FromQuery] string digest, [FromQuery] string namespaceName)
     {
-        TrivyReportDependencyDto? trivyReportDependencyDto = await trivyReportDependenciesServiceService.GetTryvyReportDependencies(digest, namespaceName);
+        TrivyReportDependencyDto? trivyReportDependencyDto = await trivyReportDependenciesServiceService.GetTrivyReportDependencies(digest, namespaceName);
 
         return trivyReportDependencyDto is null ? NotFound() : Ok(trivyReportDependencyDto);
     }

@@ -1,52 +1,55 @@
-<app-generic-master-detail [activeNamespaces]="activeNamespaces"
-                           [dataDtos]="dataDtos"
-                           [detailsTableColumns]="detailsTableColumns"
-                           [isMainTableLoading]="isMainTableLoading"
-                           [mainTableColumns]="mainTableColumns"
-                           [singleSelectDataDto]="selectedTrivyReportDto"
-                           [splitterStorageKey]="'Config Audit Reports'"
-                           (refreshRequested)="onRefreshRequested($event)"
-                           (mainTableMultiHeaderActionRequested)="onMainTableMultiHeaderActionRequested($event)"
-                           (mainTableSelectedRowChanged)="onMainTableSelectedRowChanged($event)"
-
-                           [mainTableIsRefreshVisible]="!this.queryUid"
-                           [mainTableIsRefreshFilterable]="!this.queryUid"
-                           [mainTableSelectionMode]="'single'"
-                           [mainTableStyle]="{ width: '775px' }"
-                           [mainTableStateKey]="'Config Audit Reports - Main'"
-                           [mainTableExtraClasses]="'trivy-half'"
-                           [mainTableMultiHeaderActions]="[
-                             { label: '', icon: 'pi pi-align-justify', specialAction: 'Go to Detailed ⧉' },
-                             { label: 'Compare with...', icon: 'pi pi-copy', enabledIfRowSelected: true },
-                             { label: '', specialAction: 'Clear Sort/Filters' },
-                           ]"
-
-                           [detailsIsResetFiltersVisible]="true"
-                           [detailsStateKey]="'Config Audit Reports - Details'"
-                           [detailsDataKey]="'id'"
-                           [detailsRowExpansionRender]="'messages'"
-                           [detailsExtraClasses]="'trivy-half'" />
+<app-generic-master-detail
+  [activeNamespaces]="activeNamespaces"
+  [dataDtos]="dataDtos"
+  [detailsDataKey]="'id'"
+  [detailsExtraClasses]="'trivy-half'"
+  [detailsIsResetFiltersVisible]="true"
+  [detailsRowExpansionRender]="'messages'"
+  [detailsStateKey]="'Config Audit Reports - Details'"
+  [detailsTableColumns]="detailsTableColumns"
+  [isMainTableLoading]="isMainTableLoading"
+  [mainTableColumns]="mainTableColumns"
+  [mainTableExtraClasses]="'trivy-half'"
+  [mainTableIsRefreshFilterable]="!this.queryUid"
+  [mainTableIsRefreshVisible]="!this.queryUid"
+  [mainTableMultiHeaderActions]="[
+    { label: '', icon: 'pi pi-align-justify', specialAction: 'Go to Detailed ⧉' },
+    { label: 'Compare with...', icon: 'pi pi-copy', enabledIfRowSelected: true },
+    { label: '', specialAction: 'Clear Sort/Filters' },
+  ]"
+  [mainTableSelectionMode]="'single'"
+  [mainTableStateKey]="'Config Audit Reports - Main'"
+  [mainTableStyle]="{ width: '775px' }"
+  [singleSelectDataDto]="selectedTrivyReportDto"
+  [splitterStorageKey]="'Config Audit Reports'"
+  (mainTableMultiHeaderActionRequested)="onMainTableMultiHeaderActionRequested($event)"
+  (mainTableSelectedRowChanged)="onMainTableSelectedRowChanged($event)"
+  (refreshRequested)="onRefreshRequested($event)"
+/>
 
 @if (selectedTrivyReportDto && isTrivyReportsCompareVisible()) {
-  <p-dialog closable="true"
-            closeOnEscape="true"
-            dismissableMask="true"
-            resizable="true"
-            maximizable="true"
-            [breakpoints]="{ '890px': '90vw' }"
-            [contentStyle]="{ height: '95vh' }"
-            header="Compare Config Audit Reports"
-            [modal]="true"
-            [style]="{ width: '90vw' }"
-            [(visible)]="isTrivyReportsCompareVisible" >
-    <app-generic-reports-compare [dataDtos]="dataDtos"
-                                 [comparedTableColumns]="comparedTableColumns"
-                                 [namespacedImageDtos]="compareNamespacedImageDtos"
-                                 [firstSelectedTrivyReportId]="compareFirstSelectedIdId"
-
-                                 [compareIsResetFiltersVisible]="true"
-                                 [compareStateKey]="'Config Audit Reports - Compared'"
-                                 [compareExtraClasses]="'trivy-with-filters'"
-                                 imagePlaceholder="Select Config Audit Report..."/>
+  <p-dialog
+    closable="true"
+    closeOnEscape="true"
+    dismissableMask="true"
+    header="Compare Config Audit Reports"
+    maximizable="true"
+    resizable="true"
+    [breakpoints]="{ '890px': '90vw' }"
+    [contentStyle]="{ height: '95vh' }"
+    [modal]="true"
+    [style]="{ width: '90vw' }"
+    [(visible)]="isTrivyReportsCompareVisible"
+  >
+    <app-generic-reports-compare
+      imagePlaceholder="Select Config Audit Report..."
+      [comparedTableColumns]="comparedTableColumns"
+      [compareExtraClasses]="'trivy-with-filters'"
+      [compareIsResetFiltersVisible]="true"
+      [compareStateKey]="'Config Audit Reports - Compared'"
+      [dataDtos]="dataDtos"
+      [firstSelectedTrivyReportId]="compareFirstSelectedIdId"
+      [namespacedImageDtos]="compareNamespacedImageDtos"
+    />
   </p-dialog>
 }

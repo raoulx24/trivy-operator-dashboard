@@ -1,13 +1,13 @@
-import { Component, inject, model, OnInit, output, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 
-import { SbomReportService } from '../../../api/services/sbom-report.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SbomReportDto } from '../../../api/models/sbom-report-dto';
 import { SbomReportImageResourceDto } from '../../../api/models/sbom-report-image-resource-dto';
+import { SbomReportService } from '../../../api/services/sbom-report.service';
 
-import { GenericSbomComponent } from '../../ui-elements/generic-sbom/generic-sbom.component';
 import { TreeNode } from 'primeng/api';
+import { GenericSbomComponent } from '../../ui-elements/generic-sbom/generic-sbom.component';
 import { ImageInfo, TrivyDependencyComponent } from '../../ui-elements/trivy-dependency/trivy-dependency.component';
 
 import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
@@ -15,8 +15,8 @@ import { SeverityNameByIdPipe } from '../../pipes/severity-name-by-id.pipe';
 import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 
 import { DialogModule } from 'primeng/dialog';
-import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
 import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
 import { DataPageBase } from '../../abstracts/data-page-base';
@@ -25,9 +25,16 @@ import { DataPageBase } from '../../abstracts/data-page-base';
   selector: 'app-sbom-reports',
   standalone: true,
   imports: [
-    GenericSbomComponent, TrivyDependencyComponent,
-    SeverityCssStyleByIdPipe, SeverityNameByIdPipe, VulnerabilityCountPipe,
-    DialogModule, TableModule, TagModule, TreeTableModule],
+    GenericSbomComponent,
+    TrivyDependencyComponent,
+    SeverityCssStyleByIdPipe,
+    SeverityNameByIdPipe,
+    VulnerabilityCountPipe,
+    DialogModule,
+    TableModule,
+    TagModule,
+    TreeTableModule,
+  ],
   templateUrl: './sbom-reports.component.html',
   styleUrl: './sbom-reports.component.scss',
 })
@@ -42,8 +49,8 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   queryDigest?: string;
   isStatic: boolean = false;
 
-  compareFirstSelectedDto? : SbomReportDto;
-  compareSecondSelectedDto? : SbomReportDto;
+  compareFirstSelectedDto?: SbomReportDto;
+  compareSecondSelectedDto?: SbomReportDto;
 
   // region dialog related vars
   isSbomReportOverviewDialogVisible = signal<boolean>(false);
@@ -53,7 +60,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
 
   isDependencyTreeViewVisible = signal<boolean>(false);
   trivyImage?: ImageInfo;
-  trivyDependencyDialogTitle: string = "";
+  trivyDependencyDialogTitle: string = '';
   // endregion
 
   private readonly service = inject(SbomReportService);
@@ -62,7 +69,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
 
   ngOnInit() {
-    this.activatedRoute.queryParamMap.subscribe(params => {
+    this.activatedRoute.queryParamMap.subscribe((params) => {
       this.queryNamespaceName = params.get('namespaceName') ?? undefined;
       this.queryDigest = params.get('digest') ?? undefined;
     });
@@ -82,8 +89,9 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   onGetDataDtos(dtos: SbomReportImageMinimalDto[]) {
     this.dataDtos = dtos;
     if (this.isStatic) {
-      const queryDto = dtos
-        .find(x => x.imageDigest == this.queryDigest && x.resourceNamespace == this.queryNamespaceName);
+      const queryDto = dtos.find(
+        (x) => x.imageDigest == this.queryDigest && x.resourceNamespace == this.queryNamespaceName,
+      );
       if (queryDto) {
         this.selectedImageId = queryDto.uid;
       }
@@ -92,12 +100,13 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   }
 
   onSelectedImageIdChange(imageId: string | undefined) {
-    this.selectedSbomReportImageDto = this.dataDtos?.find(x => x.uid === imageId);
+    this.selectedSbomReportImageDto = this.dataDtos?.find((x) => x.uid === imageId);
     if (this.selectedSbomReportImageDto) {
       this.service
         .getSbomReportDtoByDigestNamespace({
           digest: this.selectedSbomReportImageDto.imageDigest,
-          namespaceName: this.selectedSbomReportImageDto.resourceNamespace })
+          namespaceName: this.selectedSbomReportImageDto.resourceNamespace,
+        })
         .subscribe({
           next: (res) => this.onGetSbomReportDtoByDigestNamespace(res),
           error: (err) => this.onError(err),
@@ -105,9 +114,10 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
       this.service
         .getSbomReportImageResourceDtosByDigestAndNamespace({
           digest: this.selectedSbomReportImageDto.imageDigest,
-          namespaceName: this.selectedSbomReportImageDto.resourceNamespace })
+          namespaceName: this.selectedSbomReportImageDto.resourceNamespace,
+        })
         .subscribe({
-          next: (res) => this.imageResourceDtos = res,
+          next: (res) => (this.imageResourceDtos = res),
           error: (err) => this.onError(err),
         });
     }
@@ -127,55 +137,59 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   onCompareFirstDtoRequested(id: string) {
     const dto = this.dataDtos.find((dto) => dto.uid === id);
     if (dto) {
-      this.service.getSbomReportDtoByDigestNamespace({
-        digest: dto.imageDigest,
-        namespaceName: dto.resourceNamespace
-      }).subscribe({
-        next: (res) => {
-          this.compareFirstSelectedDto = res;
-        },
-        error: (err) => this.onError(err),
-      });
+      this.service
+        .getSbomReportDtoByDigestNamespace({
+          digest: dto.imageDigest,
+          namespaceName: dto.resourceNamespace,
+        })
+        .subscribe({
+          next: (res) => {
+            this.compareFirstSelectedDto = res;
+          },
+          error: (err) => this.onError(err),
+        });
     }
   }
 
   onCompareSecondDtoRequested(id: string) {
     const dto = this.dataDtos.find((dto) => dto.uid === id);
     if (dto) {
-      this.service.getSbomReportDtoByDigestNamespace({
-        digest: dto.imageDigest,
-        namespaceName: dto.resourceNamespace
-      }).subscribe({
-        next: (res) => {
-          this.compareSecondSelectedDto = res;
-        },
-        error: (err) => this.onError(err),
-      });
+      this.service
+        .getSbomReportDtoByDigestNamespace({
+          digest: dto.imageDigest,
+          namespaceName: dto.resourceNamespace,
+        })
+        .subscribe({
+          next: (res) => {
+            this.compareSecondSelectedDto = res;
+          },
+          error: (err) => this.onError(err),
+        });
     }
   }
 
   onMultiActionEventChange(value: string) {
     switch (value) {
-      case "goToDetailedPage":
+      case 'goToDetailedPage':
         this.goToDetailedPage();
         break;
-      case "Info":
+      case 'Info':
         this.onSbomReportOverviewDialogOpen();
         break;
-      case "Export CycloneDX JSON":
-        this.exportSbom('cyclonedx','json');
+      case 'Export CycloneDX JSON':
+        this.exportSbom('cyclonedx', 'json');
         break;
-      case "Export CycloneDX XML":
-        this.exportSbom('cyclonedx','xml');
+      case 'Export CycloneDX XML':
+        this.exportSbom('cyclonedx', 'xml');
         break;
-      case "Export SPDX":
-        this.exportSbom('spdx','json');
+      case 'Export SPDX':
+        this.exportSbom('spdx', 'json');
         break;
-      case "Dependency tree":
+      case 'Dependency tree':
         this.goToDependencyTree();
         break;
       default:
-        console.error("sbom - multi action call back - unknown: " + event);
+        console.error('sbom - multi action call back - unknown: ' + event);
     }
   }
 
@@ -193,9 +207,12 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
       this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.lowCount ?? -1);
       this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.unknownCount ?? -1);
       this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.details?.length ?? 0);
-      this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.details?.map(item => item.dependsOn)
-        .filter((deps): deps is Array<string> => Array.isArray(deps))
-        .reduce((sum, deps) => sum + deps.length, 0) ?? 0);
+      this.sbomReportDetailStatistics.push(
+        this.fullSbomDataDto?.details
+          ?.map((item) => item.dependsOn)
+          .filter((deps): deps is Array<string> => Array.isArray(deps))
+          .reduce((sum, deps) => sum + deps.length, 0) ?? 0,
+      );
     }
 
     this.isSbomReportOverviewDialogVisible.set(true);
@@ -203,18 +220,20 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
 
   exportSbom(fileFormat: 'cyclonedx' | 'spdx', contentType: 'json' | 'xml') {
     const apiRoot = this.service.rootUrl;
-    const namespaceName = encodeURIComponent(this.selectedSbomReportImageDto?.resourceNamespace ?? "");
-    const digest = encodeURIComponent(this.selectedSbomReportImageDto?.imageDigest ?? "");
+    const namespaceName = encodeURIComponent(this.selectedSbomReportImageDto?.resourceNamespace ?? '');
+    const digest = encodeURIComponent(this.selectedSbomReportImageDto?.imageDigest ?? '');
     const fileUrl = `${apiRoot}api/sbom-reports/${fileFormat}?digest=${digest}&namespaceName=${namespaceName}`;
 
     const headers = new HttpHeaders({
-      'Accept': contentType === 'json' || fileFormat === 'spdx' ? 'application/json' : 'application/xml'
+      Accept: contentType === 'json' || fileFormat === 'spdx' ? 'application/json' : 'application/xml',
     });
 
     this.http.get(fileUrl, { headers, responseType: 'text' }).subscribe({
       next: (response: string) => {
-        const imageNameTag = `${this.selectedSbomReportImageDto?.imageName}:${this.selectedSbomReportImageDto?.imageTag}`
-        const blob = new Blob([response], { type: contentType === 'json' || fileFormat === 'spdx' ? 'application/json' : 'application/xml' });
+        const imageNameTag = `${this.selectedSbomReportImageDto?.imageName}:${this.selectedSbomReportImageDto?.imageTag}`;
+        const blob = new Blob([response], {
+          type: contentType === 'json' || fileFormat === 'spdx' ? 'application/json' : 'application/xml',
+        });
 
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -227,7 +246,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
       },
       error: (err) => {
         this.onError(err);
-      }
+      },
     });
   }
 
@@ -248,9 +267,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   }
 
   private goToDetailedPage() {
-    const url = this.router.serializeUrl(
-      this.router.createUrlTree(['sbom-reports-detailed'])
-    );
+    const url = this.router.serializeUrl(this.router.createUrlTree(['sbom-reports-detailed']));
     window.open(url, '_blank');
   }
 
@@ -263,16 +280,16 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   private getSbomReportPropertyTreeNodes(): TreeNode[] {
     const tree: TreeNode[] = [];
 
-    const dataMap = new Map<string, { propValue: string, usedBy: string }[]>();
+    const dataMap = new Map<string, { propValue: string; usedBy: string }[]>();
 
-    this.fullSbomDataDto?.details?.forEach(item => {
-      const usedBy = item.name ?? "unknown";
+    this.fullSbomDataDto?.details?.forEach((item) => {
+      const usedBy = item.name ?? 'unknown';
 
-      item.properties?.forEach(property => {
-        const propName = property[0] ?? "unknown";
-        const propValue = property[1] ?? "unknown";
+      item.properties?.forEach((property) => {
+        const propName = property[0] ?? 'unknown';
+        const propValue = property[1] ?? 'unknown';
 
-        if (propName === "tod.group") return;
+        if (propName === 'tod.group') return;
 
         if (!dataMap.has(propName)) {
           dataMap.set(propName, []);
@@ -287,11 +304,11 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
 
       const propNameNode: TreeNode = {
         data: { name: propName, usedByCount: 0 },
-        children: []
+        children: [],
       };
 
       const propValueUsedByMap = new Map<string, Set<string>>();
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         uniqueUsedBySet.add(entry.usedBy);
 
         if (!propValueUsedByMap.has(entry.propValue)) {
@@ -303,13 +320,13 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
       propValueUsedByMap.forEach((usedBySet, propValue) => {
         const propValueNode: TreeNode = {
           data: { name: propValue, usedByCount: usedBySet.size },
-          children: []
+          children: [],
         };
 
-        usedBySet.forEach(usedBy => {
+        usedBySet.forEach((usedBy) => {
           propValueNode.children!.push({
             data: { name: usedBy, usedByCount: undefined },
-            children: []
+            children: [],
           });
         });
 
@@ -327,12 +344,12 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   private getSbomReportLicenseTreeNodes(): TreeNode[] {
     const licenseMap = new Map<string, Set<string>>();
 
-    this.fullSbomDataDto?.details?.forEach(item => {
-      (item.licenses || []).forEach(license => {
+    this.fullSbomDataDto?.details?.forEach((item) => {
+      (item.licenses || []).forEach((license) => {
         if (!licenseMap.has(license)) {
           licenseMap.set(license, new Set<string>());
         }
-        licenseMap.get(license)!.add(item.name ?? "unknown");
+        licenseMap.get(license)!.add(item.name ?? 'unknown');
       });
     });
 
@@ -340,10 +357,10 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
     licenseMap.forEach((names, license) => {
       const licenseNode: TreeNode = {
         data: { name: license, count: names.size },
-        children: Array.from(names).map(name => ({
+        children: Array.from(names).map((name) => ({
           data: { name: name, count: undefined },
-          children: []
-        }))
+          children: [],
+        })),
       };
       tree.push(licenseNode);
     });

@@ -1,31 +1,31 @@
 import { ChangeDetectionStrategy, Component, effect, inject, model, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { AlertsService } from '../../services/alerts.service';
 import { AlertDto } from '../../../api/models/alert-dto';
 import { GenericObjectArraySummaryPipe } from '../../pipes/generic-object-array-summary.pipe';
 import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
 import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
+import { AlertsService } from '../../services/alerts.service';
 import { TrivyToolbarComponent } from '../../ui-elements/trivy-toolbar/trivy-toolbar.component';
 import { NumberStringUtil } from '../../utils/number-string.utils';
 
+import { TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SelectButtonModule, SelectButtonOptionClickEvent } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule, TreeTableNodeCollapseEvent, TreeTableNodeExpandEvent } from 'primeng/treetable';
-import { TreeNode } from 'primeng/api';
 
 interface AlertNodeData {
-  key: string,
-  level: number,
+  key: string;
+  level: number;
   label: string;
   message?: string;
-  childrenLabels?: string,
-  children: AlertNodeData[],
+  childrenLabels?: string;
+  children: AlertNodeData[];
   statistics: {
-    category: string,
+    category: string;
     count: number;
-  }[],
+  }[];
   count: number;
   severityId: number;
   isLeaf: boolean;
@@ -34,15 +34,22 @@ interface AlertNodeData {
 }
 
 interface TreeExpandLevelOption {
-  id: number,
-  label: string
+  id: number;
+  label: string;
 }
 
 @Component({
   selector: 'app-alerts',
   imports: [
-    ButtonModule, SelectButtonModule, TagModule, TreeTableModule,
-    SeverityCssStyleByIdPipe, VulnerabilityCountPipe, TrivyToolbarComponent, GenericObjectArraySummaryPipe, FormsModule,
+    ButtonModule,
+    SelectButtonModule,
+    TagModule,
+    TreeTableModule,
+    SeverityCssStyleByIdPipe,
+    VulnerabilityCountPipe,
+    TrivyToolbarComponent,
+    GenericObjectArraySummaryPipe,
+    FormsModule,
   ],
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.scss',
@@ -58,22 +65,22 @@ export class AlertsComponent implements OnInit {
   alertsService: AlertsService = inject(AlertsService);
 
   private readonly severityOrder: Record<string, number> = {
-    'Error': 0,
-    'Warning': 1,
-    'Info': 4,
+    Error: 0,
+    Warning: 1,
+    Info: 4,
   };
 
   constructor() {
     effect(() => {
       const events = this.alertsService.refreshEvents();
       this.loadData();
-    })
+    });
   }
 
   ngOnInit() {
-   setTimeout(() => {
+    setTimeout(() => {
       this.loadData();
-   }, 100);
+    }, 100);
   }
 
   onNodeExpand(event: TreeTableNodeExpandEvent) {
@@ -89,8 +96,7 @@ export class AlertsComponent implements OnInit {
   loadData() {
     const alerts = this.alertsService.getAlerts();
     this.treeData.set(this.buildTree(alerts));
-    this.allTreeNodes
-      .sort((a, b) => (a.data?.level ?? 999) - (b.data?.level ?? 999));
+    this.allTreeNodes.sort((a, b) => (a.data?.level ?? 999) - (b.data?.level ?? 999));
     this.treeExpandLevelOptionValue.set(0);
   }
 
@@ -102,36 +108,35 @@ export class AlertsComponent implements OnInit {
       const { severity, emitter, emitterKey, category, message } = alert;
       if (!severity || !emitter || !emitterKey || !category) continue;
 
-      const keyPath = [severity, emitter, ...emitterKey.split("|")];
-      let key = "";
+      const keyPath = [severity, emitter, ...emitterKey.split('|')];
+      let key = '';
       let prevNode: AlertNodeData | undefined;
       treeMaxLevel = Math.max(treeMaxLevel, keyPath.length - 1);
 
       for (let i = keyPath.length - 1; i >= 0; i--) {
-        key = keyPath.slice(0, i + 1).join("|");
+        key = keyPath.slice(0, i + 1).join('|');
 
         let node = dtoMap.get(key);
         if (node) {
-          const statistic = node.statistics?.find(s => s.category === category);
+          const statistic = node.statistics?.find((s) => s.category === category);
           if (statistic) {
             statistic.count++;
           } else {
-            node.statistics.push({category, count: 1});
+            node.statistics.push({ category, count: 1 });
           }
           node.count++;
           if (prevNode) {
             node.children.push(prevNode);
           }
           prevNode = undefined; // Reset prevNode since we found an existing node
-        }
-        else {
+        } else {
           node = {
             key,
             level: i,
             label: keyPath[i],
-            message: i === keyPath.length - 1 ? message ?? "" : undefined,
+            message: i === keyPath.length - 1 ? (message ?? '') : undefined,
             children: prevNode ? [prevNode] : [],
-            statistics: [{category, count: 1}],
+            statistics: [{ category, count: 1 }],
             count: 1,
             severityId: this.severityOrder[severity] ?? 4, // Default to Info if not found
             isLeaf: i === keyPath.length - 1,
@@ -148,24 +153,24 @@ export class AlertsComponent implements OnInit {
 
     dtoMap.forEach((value) => {
       value.children = value.children.sort((a, b) => a.label.localeCompare(b.label));
-      value.childrenLabels = value.children.map(child => child.label).join(", ");
+      value.childrenLabels = value.children.map((child) => child.label).join(', ');
     });
 
     const rootNodes = Array.from(dtoMap.values())
-      .filter(node => node.isRoot)
+      .filter((node) => node.isRoot)
       .sort((a, b) => a.severityId - b.severityId);
     return this.convertToTreeNodes(rootNodes);
   }
 
   private convertToTreeNodes(data: AlertNodeData[]): TreeNode<AlertNodeData>[] {
-    const treeNodes = data.map(node => {
+    const treeNodes = data.map((node) => {
       const treeNode: TreeNode<AlertNodeData> = {
         key: node.key,
         label: node.label, // optional, if your tree uses the `label` field directly
         data: node,
         expanded: node.isExpanded,
         leaf: node.isLeaf,
-        children: this.convertToTreeNodes(node.children || [])
+        children: this.convertToTreeNodes(node.children || []),
       };
 
       return treeNode;
@@ -174,8 +179,6 @@ export class AlertsComponent implements OnInit {
 
     return treeNodes;
   }
-
-
 
   // on load; this method fills the treeExpandLevelOptions array with options for the select button
   private fillTreeExpandLevelOptions(treeMaxLevel: number) {
@@ -188,7 +191,7 @@ export class AlertsComponent implements OnInit {
   }
 
   private expandTreeNodesToLevel(level: number) {
-    this.treeData.update(arr => {
+    this.treeData.update((arr) => {
       for (let i = 0; i < this.allTreeNodes.length; i++) {
         const node = this.allTreeNodes[i];
         const nodeLevel = node.data?.level ?? 999;
@@ -205,7 +208,6 @@ export class AlertsComponent implements OnInit {
     });
   }
 
-
   onOptionClickTreeExpandLevel(event: SelectButtonOptionClickEvent) {
     if (event.index === undefined) return;
     this.expandTreeNodesToLevel(event.index);
@@ -214,7 +216,6 @@ export class AlertsComponent implements OnInit {
   private checkIfFullLevelExpanded() {
     let currentLevel = this.allTreeNodes[0]?.data?.level ?? -1;
     let previousLevel: number = -1;
-
 
     for (let i = 0; i < this.allTreeNodes.length; i++) {
       if (this.allTreeNodes[i].data?.level !== currentLevel) {

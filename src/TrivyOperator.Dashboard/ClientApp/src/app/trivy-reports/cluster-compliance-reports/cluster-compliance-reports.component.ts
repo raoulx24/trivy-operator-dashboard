@@ -2,10 +2,17 @@ import { Component, inject, OnInit } from '@angular/core';
 
 import { ClusterComplianceReportDto } from '../../../api/models/cluster-compliance-report-dto';
 import { ClusterComplianceReportService } from '../../../api/services/cluster-compliance-report.service';
-import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
-import { TrivyFilterData, TrivyTableColumn, TrivyTableExpandRowData } from '../../ui-elements/trivy-table/trivy-table.types';
-import { clusterComplianceReportColumns, clusterComplianceReportDetailColumns } from '../constants/cluster-compliance-reports.constants';
 import { DataPageBase } from '../../abstracts/data-page-base';
+import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
+import {
+  TrivyFilterData,
+  TrivyTableColumn,
+  TrivyTableExpandRowData,
+} from '../../ui-elements/trivy-table/trivy-table.types';
+import {
+  clusterComplianceReportColumns,
+  clusterComplianceReportDetailColumns,
+} from '../constants/cluster-compliance-reports.constants';
 
 @Component({
   selector: 'app-cluster-compliance-reports',
@@ -50,8 +57,8 @@ export class ClusterComplianceReportsComponent extends DataPageBase implements O
     this.rowExpandResponse = {
       rowKey: dto,
       colStyles: [
-        { 'width': '70px', 'min-width': '70px', 'height': '50px' },
-        { 'white-space': 'normal', 'display': 'flex', 'align-items': 'center', 'height': '50px' }
+        { width: '70px', 'min-width': '70px', height: '50px' },
+        { 'white-space': 'normal', display: 'flex', 'align-items': 'center', height: '50px' },
       ],
       details: [
         [
@@ -60,27 +67,27 @@ export class ClusterComplianceReportsComponent extends DataPageBase implements O
         ],
         [
           { label: 'Platform' },
-          { label: dto.platform ?? ''},
+          { label: dto.platform ?? '' },
         ],
         [
           { label: 'Type' },
-          { label: dto.type ?? ''},
+          { label: dto.type ?? '' },
         ],
         [
           { label: 'Version' },
-          { label: dto.version ?? ''},
+          { label: dto.version ?? '' },
         ],
         [
           { label: 'Report Type' },
-          { label: dto.reportType ?? ''},
+          { label: dto.reportType ?? '' },
         ],
         [
           { label: 'Checks' },
-          { label: `${dto.totalFailCount ?? 0} failed vs ${dto.totalPassCount ?? 0} passed`},
+          { label: `${dto.totalFailCount ?? 0} failed vs ${dto.totalPassCount ?? 0} passed` },
         ],
         [
           { label: 'Cron' },
-          { label: '', cron: dto.cron ?? undefined},
+          { label: '', cron: dto.cron ?? undefined },
         ],
         [
           { label: 'Updated' },
@@ -93,11 +100,11 @@ export class ClusterComplianceReportsComponent extends DataPageBase implements O
             url: {
               text: this.getHostname(dto.relatedResources?.[0] ?? '') ?? 'link',
               link: dto.relatedResources?.[0] ?? '',
-            }
+            },
           },
         ],
-      ]
-    }
+      ],
+    };
   }
 
   getHostname(urlString: string): string | undefined {
@@ -105,7 +112,7 @@ export class ClusterComplianceReportsComponent extends DataPageBase implements O
       const url = new URL(urlString);
       return url.hostname;
     } catch (error) {
-      console.error("Invalid URL: ", urlString, error);
+      console.error('Invalid URL: ', urlString, error);
       return undefined;
     }
   }

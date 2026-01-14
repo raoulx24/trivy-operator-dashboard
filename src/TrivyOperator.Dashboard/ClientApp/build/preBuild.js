@@ -56,4 +56,3 @@ function makePathsRelative(openApi) {
     }
   }
 }
-

@@ -1,20 +1,21 @@
-
 <div class="grid grid-cols-12 gap-4">
   <div class="col-span-12 md:col-span-6">
-    <app-fcose [nodeDataDtos]="nodeDataDtos"
-               [isStatic]="true"
-               [staticInputFilterByNameValue]="'notdimmed'"
-               [staticSelectedNodeId]="'n11'"
-               [staticHighlightedNodeId]="'n21'"
-               [idealEdgeLength]="30"
-               [fcoseClasses]="'fcose-dialog border border-gray-500'" />
+    <app-fcose
+      [fcoseClasses]="'fcose-dialog border border-gray-500'"
+      [idealEdgeLength]="30"
+      [isStatic]="true"
+      [nodeDataDtos]="nodeDataDtos"
+      [staticHighlightedNodeId]="'n21'"
+      [staticInputFilterByNameValue]="'notdimmed'"
+      [staticSelectedNodeId]="'n11'"
+    />
   </div>
   <div class="col-span-12 md:col-span-6 text-sm">
     <div class="ml-6">
       <span class="font-bold text-lg">Colors</span>
       <ul class="mb-2">
         <li><b>Red</b> - Selected node and adjacent nodes (neighbors)</li>
-        <li><b>Blue</b> - Hovered node  and adjacent nodes (neighbors)</li>
+        <li><b>Blue</b> - Hovered node and adjacent nodes (neighbors)</li>
         <li><b>Gray</b> - Group of nodes. It is also slightly transparent</li>
         <li><b>Other colors</b> - Nodes with specific roles. Non-white colors signal functional distinctions</li>
       </ul>
@@ -22,13 +23,19 @@
       <ul class="mb-2">
         <li><b>Rectangle</b> - Nodes with children</li>
         <li><b>Rounded Rectangle</b> - Leaf nodes (nodes without children)</li>
-        <li><b>Container with nodes</b> - A container that groups nodes. Usually, it is based on something similar to namespaces or package repositories</li>
+        <li>
+          <b>Container with nodes</b> - A container that groups nodes. Usually, it is based on something similar to
+          namespaces or package repositories
+        </li>
       </ul>
       <span class="font-bold text-lg">Color Intensity</span>
       <ul class="mb-2">
         <li><b>Darker (red or blue)</b> - Parent of selected/hovered node</li>
         <li><b>Lighter (red or blue)</b> - Child of selected/hovered node</li>
-        <li><b>Gradient (red or blue)</b> - Selected/hovered node. These nodes are also emphasized using a strong contrasting border</li>
+        <li>
+          <b>Gradient (red or blue)</b> - Selected/hovered node. These nodes are also emphasized using a strong
+          contrasting border
+        </li>
         <li><b>Haloed (red or blue)</b> - Circular reference. Those nodes also depend on selected/hovered node</li>
         <li><b>Dimmed</b> - Unhighlighted Nodes. Their name do not contain the searched word</li>
       </ul>
@@ -36,10 +43,22 @@
       <ul class="mb-2">
         <li><b>Click</b> - Select a node. If other nodes are selected, they will be deselected</li>
         <li><b>Ctrl + Click</b> - Select additional nodes</li>
-        <li><b>Ctrl + Mouse Drag</b> - If dragging starts in empty space, all nodes within the selection range will be selected</li>
-        <li><b>Dbl Click</b> - Dive into the graph. The clicked node becomes the new root, and only its descendants (of any kind) and direct parents will be displayed</li>
-        <li><b>Hide Node</b> - The selected node will be hidden. If orphans remain (nodes with no parents or children), they will also be hidden</li>
-        <li><b>Hide Subtree</b> - The selected node and all its direct descendants will be hidden. If orphans remain (nodes with no parents or children), they will also be hidden</li>
+        <li>
+          <b>Ctrl + Mouse Drag</b> - If dragging starts in empty space, all nodes within the selection range will be
+          selected
+        </li>
+        <li>
+          <b>Dbl Click</b> - Dive into the graph. The clicked node becomes the new root, and only its descendants (of
+          any kind) and direct parents will be displayed
+        </li>
+        <li>
+          <b>Hide Node</b> - The selected node will be hidden. If orphans remain (nodes with no parents or children),
+          they will also be hidden
+        </li>
+        <li>
+          <b>Hide Subtree</b> - The selected node and all its direct descendants will be hidden. If orphans remain
+          (nodes with no parents or children), they will also be hidden
+        </li>
       </ul>
     </div>
   </div>

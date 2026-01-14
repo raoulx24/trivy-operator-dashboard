@@ -7,8 +7,8 @@ import { rbacAssessmentReportDenormalizedColumns } from '../constants/rbac-asses
 
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
-import { namespacedColumns } from '../constants/generic.constants';
 import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
+import { namespacedColumns } from '../constants/generic.constants';
 
 @Component({
   selector: 'app-rbac-assessment-reports-detailed',
@@ -43,9 +43,7 @@ export class RbacAssessmentReportsDetailedComponent extends TrivyReportsDetailed
 
   private onGetDataDtos(dtos: RbacAssessmentReportDenormalizedDto[]) {
     this.dataDtos = dtos;
-    this.activeNamespaces = Array
-      .from(new Set(dtos.map(dto => dto.resourceNamespace ?? "N/A")))
-      .sort();
+    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
     this.isLoading = false;
   }
 }

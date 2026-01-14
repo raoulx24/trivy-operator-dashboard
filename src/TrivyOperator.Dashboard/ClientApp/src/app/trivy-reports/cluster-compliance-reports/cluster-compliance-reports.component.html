@@ -1,25 +1,21 @@
 <app-generic-master-detail
   [dataDtos]="dataDtos"
+  [detailsExtraClasses]="'trivy-half'"
+  [detailsIsResetFiltersVisible]="true"
+  [detailsStateKey]="'Cluster Compliance Reports - Details'"
   [detailsTableColumns]="detailsTableColumns"
   [isMainTableLoading]="isMainTableLoading"
   [mainTableColumns]="mainTableColumns"
-  [splitterStorageKey]="'Cluster Compliance Reports'"
-  (refreshRequested)="onRefreshRequested($event)"
-
-  [mainTableRowExpandResponse]="rowExpandResponse"
-  (mainTableRowExpandChange)="onRowExpandChange($event)"
-
-  [mainTableIsResetFiltersVisible]="true"
-  [mainTableIsRefreshVisible]="true"
-  [mainTableSelectionMode]="'single'"
-  [mainTableStyle]="{ width: '595px' }"
-  [mainTableStateKey]="'Cluster Compliance Reports - Main'"
   [mainTableDataKey]="'uid'"
-  [mainTableRowExpansionRender]="'table'"
   [mainTableExtraClasses]="'trivy-half'"
-
-  [detailsIsResetFiltersVisible]="true"
-  [detailsStateKey]="'Cluster Compliance Reports - Details'"
-  [detailsExtraClasses]="'trivy-half'"
-
+  [mainTableIsRefreshVisible]="true"
+  [mainTableIsResetFiltersVisible]="true"
+  [mainTableRowExpandResponse]="rowExpandResponse"
+  [mainTableRowExpansionRender]="'table'"
+  [mainTableSelectionMode]="'single'"
+  [mainTableStateKey]="'Cluster Compliance Reports - Main'"
+  [mainTableStyle]="{ width: '595px' }"
+  [splitterStorageKey]="'Cluster Compliance Reports'"
+  (mainTableRowExpandChange)="onRowExpandChange($event)"
+  (refreshRequested)="onRefreshRequested($event)"
 />
