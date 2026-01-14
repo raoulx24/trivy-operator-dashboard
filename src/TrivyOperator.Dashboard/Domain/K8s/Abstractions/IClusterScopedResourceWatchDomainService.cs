@@ -13,5 +13,6 @@ public interface
     Task<HttpOperationResponse<TKubernetesObjectList>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 }

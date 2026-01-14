@@ -11,13 +11,13 @@ public class ClusterSbomReportDto : ISbomReportDto<ClusterSbomReportDetailDto>
     public string ImageName { get; set; } = string.Empty;
     public string ImageTag { get; set; } = string.Empty;
     public string ImageRepository { get; set; } = string.Empty;
-    public string RootNodeBomRef { get; set; } = string.Empty;
     public bool HasVulnerabilities { get; set; } = false;
     public long CriticalCount { get; set; } = -1;
     public long HighCount { get; set; } = -1;
     public long MediumCount { get; set; } = -1;
     public long LowCount { get; set; } = -1;
     public long UnknownCount { get; set; } = -1;
+    public string RootNodeBomRef { get; set; } = string.Empty;
     public ClusterSbomReportDetailDto[] Details { get; set; } = [];
 }
 
@@ -33,29 +33,28 @@ public class ClusterSbomReportDetailDto : ISBomReportDetailDto
                 {
                     return bomRefGuid;
                 }
-                else
-                {
-                    return GuidUtils.GetDeterministicGuid(BomRef);
-                }
+
+                return GuidUtils.GetDeterministicGuid(BomRef);
             }
-            else
-            {
-                return GuidUtils.GetDeterministicGuid(Purl);
-            }
+
+            return GuidUtils.GetDeterministicGuid(Purl);
         }
     }
-    public Guid MatchKey => GuidUtils.GetDeterministicGuid($"{(string.IsNullOrEmpty(Purl.Split('@')[0]) ? Name : Purl.Split('@')[0])}");
-    public string BomRef { get; set; } = string.Empty;
+
+    public Guid MatchKey =>
+        GuidUtils.GetDeterministicGuid($"{(string.IsNullOrEmpty(Purl.Split('@')[0]) ? Name : Purl.Split('@')[0])}");
+
     public string Name { get; set; } = string.Empty;
     public string Purl { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
-    public string[] DependsOn { get; set; } = [];
     public string[][] Properties { get; set; } = [];
     public long CriticalCount { get; set; } = -1;
     public long HighCount { get; set; } = -1;
     public long MediumCount { get; set; } = -1;
     public long LowCount { get; set; } = -1;
     public long UnknownCount { get; set; } = -1;
+    public string BomRef { get; set; } = string.Empty;
+    public string[] DependsOn { get; set; } = [];
 }
 
 public class ClusterSbomReportDenormalizedDto
@@ -70,8 +69,8 @@ public class ClusterSbomReportDenormalizedDto
     public string Name { get; set; } = string.Empty;
     public string Purl { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
-    public long DependenciesCount { get; set; } = 0;
-    public long PropertiesCount { get; set; } = 0;
+    public long DependenciesCount { get; set; }
+    public long PropertiesCount { get; set; }
 }
 
 public static class ClusterSbomReportCrExtensions
@@ -81,62 +80,76 @@ public static class ClusterSbomReportCrExtensions
         ComponentsComponent[] allComponents = GetAllComponents(clusterSbomReportCr);
 
         IEnumerable<ClusterSbomReportDetailDto> details = allComponents.Select(component =>
-        {
-            ClusterSbomReportDetailDto detailDto = new()
             {
-                BomRef = component.BomRef,
-                Name = component.Name,
-                Purl = component.Purl,
-                Version = component.Version,
-                DependsOn = clusterSbomReportCr.Report?.Components.Dependencies.FirstOrDefault(x => x.Ref == component.BomRef)?.DependsOn ?? [],
-                Properties = [.. component.Properties.Select(x => new[] { x.Name.Replace("aquasecurity:trivy:", string.Empty), x.Value })],
-            };
+                ClusterSbomReportDetailDto detailDto = new()
+                {
+                    BomRef = component.BomRef,
+                    Name = component.Name,
+                    Purl = component.Purl,
+                    Version = component.Version,
+                    DependsOn = clusterSbomReportCr.Report?.Components.Dependencies
+                                    .FirstOrDefault(x => x.Ref == component.BomRef)
+                                    ?.DependsOn ??
+                                [],
+                    Properties =
+                    [
+                        .. component.Properties.Select(x => new[]
+                            {
+                                x.Name.Replace("aquasecurity:trivy:", string.Empty), x.Value,
+                            }
+                        ),
+                    ],
+                };
 
-            return detailDto;
-        });
+                return detailDto;
+            }
+        );
 
         ClusterSbomReportDto result = new()
         {
-            Uid = Guid.TryParse(clusterSbomReportCr.Metadata.Uid, out Guid parsedGuid)
-                ? parsedGuid
-                : new(),
+            Uid = Guid.TryParse(clusterSbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
             UpdateTimestamp = clusterSbomReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
             ImageName = clusterSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
             ImageTag = clusterSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
             ImageRepository = clusterSbomReportCr.Report?.Registry?.Server ?? string.Empty,
             RootNodeBomRef = clusterSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
-            Details = [.. details],
+            Details = [.. details,],
         };
         SbomReportCrExtensions.CleanupPurlsFromBomRefs(result);
         GroupDetails(result);
 
         return result;
-
     }
 
-    public static IEnumerable<ClusterSbomReportDenormalizedDto> ToClusterSbomReportDenormalizedDtos(this ClusterSbomReportCr clusterSbomReportCr)
+    public static IEnumerable<ClusterSbomReportDenormalizedDto> ToClusterSbomReportDenormalizedDtos(
+        this ClusterSbomReportCr clusterSbomReportCr
+    )
     {
         ComponentsComponent[] allComponents = GetAllComponents(clusterSbomReportCr);
 
         IEnumerable<ClusterSbomReportDenormalizedDto> result = allComponents.Select(component =>
-        {
-            ClusterSbomReportDenormalizedDto detailDto = new()
             {
-                CreationTimestamp = clusterSbomReportCr.Metadata.CreationTimestamp ?? DateTime.MinValue,
-                ImageName = clusterSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
-                ImageTag = clusterSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
-                ImageRepository = clusterSbomReportCr.Report?.Registry?.Server ?? string.Empty,
-                RootNodeBomRef = clusterSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
-
-                BomRef = component.BomRef,
-                Name = component.Name,
-                Purl = component.Purl,
-                Version = component.Version,
-                DependenciesCount = clusterSbomReportCr.Report?.Components.Dependencies.FirstOrDefault(x => x.Ref == component.BomRef)?.DependsOn.Length ?? 0,
-                PropertiesCount = component.Properties.Length
-            };
-            return detailDto;
-        });
+                ClusterSbomReportDenormalizedDto detailDto = new()
+                {
+                    CreationTimestamp = clusterSbomReportCr.Metadata.CreationTimestamp ?? DateTime.MinValue,
+                    ImageName = clusterSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
+                    ImageTag = clusterSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
+                    ImageRepository = clusterSbomReportCr.Report?.Registry?.Server ?? string.Empty,
+                    RootNodeBomRef = clusterSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
+                    BomRef = component.BomRef,
+                    Name = component.Name,
+                    Purl = component.Purl,
+                    Version = component.Version,
+                    DependenciesCount =
+                        clusterSbomReportCr.Report?.Components.Dependencies
+                            .FirstOrDefault(x => x.Ref == component.BomRef)
+                            ?.DependsOn.Length ??
+                        0,
+                    PropertiesCount = component.Properties.Length,
+                };
+                return detailDto;
+            }
+        );
 
         return result;
     }
@@ -145,46 +158,55 @@ public static class ClusterSbomReportCrExtensions
     {
         Dictionary<string, ClusterSbomReportDetailDto> dtoLookup = dto.Details.ToDictionary(x => x.BomRef, x => x);
 
-        var filteredDtos = dto.Details.Where(dto =>
+        IEnumerable<ClusterSbomReportDetailDto>? filteredDtos = dto.Details.Where(dto =>
             dto.Properties.Any(p => p.Length >= 2 && p[0] == "resource:Type" && p[1] == "node") &&
-            dto.Properties.Any(p => p.Length >= 1 && p[0] == "NodeRole"));
+            dto.Properties.Any(p => p.Length >= 1 && p[0] == "NodeRole")
+        );
 
-        foreach (var detail in filteredDtos ?? [])
+        foreach (ClusterSbomReportDetailDto detail in filteredDtos ?? [])
         {
-            Dictionary<string, ClusterSbomReportDetailDto> allChildren = new() { { detail.BomRef, detail } };
-            GetDescendants(detail, dtoLookup, allChildren);
-            foreach (var child in allChildren)
+            Dictionary<string, ClusterSbomReportDetailDto> allChildren = new()
             {
-                child.Value.Properties = [.. child.Value.Properties, ["tod.group", $"node {detail.Name}"]];
+                {
+                    detail.BomRef, detail
+                },
+            };
+            GetDescendants(detail, dtoLookup, allChildren);
+            foreach (KeyValuePair<string, ClusterSbomReportDetailDto> child in allChildren)
+            {
+                child.Value.Properties = [.. child.Value.Properties, ["tod.group", $"node {detail.Name}",],];
             }
         }
-
-        
     }
 
     private static void GetDescendants(
         ClusterSbomReportDetailDto rootDto,
         Dictionary<string, ClusterSbomReportDetailDto> dtoLookup,
-        Dictionary<string, ClusterSbomReportDetailDto> allChildren)
+        Dictionary<string, ClusterSbomReportDetailDto> allChildren
+    )
     {
-        var visited = new HashSet<string>();
+        HashSet<string> visited = new();
 
         void Traverse(string bomRef)
         {
-            if (visited.Contains(bomRef)) return;
+            if (visited.Contains(bomRef))
+            {
+                return;
+            }
+
             visited.Add(bomRef);
 
-            if (dtoLookup.TryGetValue(bomRef, out var dto))
+            if (dtoLookup.TryGetValue(bomRef, out ClusterSbomReportDetailDto? dto))
             {
                 allChildren[bomRef] = dto;
-                foreach (var childRef in dto.DependsOn)
+                foreach (string childRef in dto.DependsOn)
                 {
                     Traverse(childRef);
                 }
             }
         }
 
-        foreach (var dep in rootDto.DependsOn)
+        foreach (string dep in rootDto.DependsOn)
         {
             Traverse(dep);
         }
@@ -193,6 +215,9 @@ public static class ClusterSbomReportCrExtensions
 
     private static ComponentsComponent[] GetAllComponents(ClusterSbomReportCr clusterSbomReportCr) =>
         clusterSbomReportCr.Report?.Components.Metadata.Component != null
-            ? [.. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [], clusterSbomReportCr.Report?.Components.Metadata.Component!]
-            : [.. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? []];
+            ?
+            [
+                .. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],
+                clusterSbomReportCr.Report?.Components.Metadata.Component!,
+            ] : [.. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
 }

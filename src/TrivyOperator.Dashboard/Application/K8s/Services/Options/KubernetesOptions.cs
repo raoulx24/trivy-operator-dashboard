@@ -6,7 +6,7 @@ public record KubernetesOptions
     public bool UseDefaultContext { get; set; } = true;
     public string NamespaceList { get; init; } = string.Empty;
 
-    
+
     public bool TrivyUseClusterComplianceReport { get; init; } = true;
     public bool TrivyUseClusterInfraAssessmentReport { get; init; } = true;
     public bool TrivyUseClusterRbacAssessmentReport { get; init; } = true;

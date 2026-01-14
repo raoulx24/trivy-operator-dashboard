@@ -6,7 +6,8 @@ using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Options;
 
 namespace TrivyOperator.Dashboard.Application.BackendSettings.Services;
 
-public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOptions<FileRepositoryOptions> frOptions) : IBackendSettingsService
+public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOptions<FileRepositoryOptions> frOptions)
+    : IBackendSettingsService
 {
     public Task<BackendSettingsDto> GetBackendSettings()
     {
@@ -21,7 +22,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterComplianceReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.ClusterComplianceReportCrSubpath),
+                        frOptions.Value.ClusterComplianceReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -30,7 +32,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterInfraAssessmentReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.ClusterInfraAssessmentReportCrSubpath),
+                        frOptions.Value.ClusterInfraAssessmentReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -39,7 +42,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterRbacAssessmentReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.ClusterRbacAssessmentReportCrSubpath),
+                        frOptions.Value.ClusterRbacAssessmentReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -48,7 +52,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterSbomReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.ClusterSbomReportCrSubpath),
+                        frOptions.Value.ClusterSbomReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -57,7 +62,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterVulnerabilityReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.ClusterVulnerabilityReportCrSubpath),
+                        frOptions.Value.ClusterVulnerabilityReportCrSubpath
+                    ),
                 },
 
                 new BackendSettingsTrivyReportConfigDto
@@ -67,7 +73,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseConfigAuditReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.ConfigAuditReportCrSubpath),
+                        frOptions.Value.ConfigAuditReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -76,7 +83,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseExposedSecretReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.ExposedSecretReportCrSubpath),
+                        frOptions.Value.ExposedSecretReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -85,7 +93,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseInfraAssessmentReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.InfraAssessmentReportCrSubpath),
+                        frOptions.Value.InfraAssessmentReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -94,7 +103,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseRbacAssessmentReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.RbacAssessmentReportCrSubpath),
+                        frOptions.Value.RbacAssessmentReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -103,7 +113,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseSbomReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.SbomReportCrSubpath),
+                        frOptions.Value.SbomReportCrSubpath
+                    ),
                 },
                 new BackendSettingsTrivyReportConfigDto
                 {
@@ -112,9 +123,9 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseVulnerabilityReport,
                         frOptions.Value.PvcName,
-                        frOptions.Value.VulnerabilityReportCrSubpath),
+                        frOptions.Value.VulnerabilityReportCrSubpath
+                    ),
                 },
-
             ],
             UseDefaultContext = k8sOptions.Value.UseDefaultContext,
             IsUsedKubeConfigFileName = !string.IsNullOrWhiteSpace(k8sOptions.Value.KubeConfigFileName),
@@ -125,7 +136,8 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
         return Task.FromResult(backendSettingsDto);
     }
 
- 
-    private static bool IsTrivyReportEnabled(bool useTrivyReport, string pvcName, string subpath)
-        => useTrivyReport == true && (string.IsNullOrWhiteSpace(pvcName) || (!string.IsNullOrWhiteSpace(pvcName) && !string.IsNullOrWhiteSpace(subpath)));
+
+    private static bool IsTrivyReportEnabled(bool useTrivyReport, string pvcName, string subpath) => useTrivyReport &&
+        (string.IsNullOrWhiteSpace(pvcName) ||
+         (!string.IsNullOrWhiteSpace(pvcName) && !string.IsNullOrWhiteSpace(subpath)));
 }

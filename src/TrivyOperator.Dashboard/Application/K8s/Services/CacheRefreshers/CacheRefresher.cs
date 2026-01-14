@@ -11,13 +11,16 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.CacheRefreshers;
 
 public class CacheRefresher<TKubernetesObject>(
     IConcurrentDictionaryCache<TKubernetesObject> cache,
-    ILogger<CacheRefresher<TKubernetesObject>> logger)
-    : IKubernetesEventProcessor<TKubernetesObject>
+    ILogger<CacheRefresher<TKubernetesObject>> logger
+) : IKubernetesEventProcessor<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
 {
     protected IConcurrentDictionaryCache<TKubernetesObject> cache = cache;
 
-    public async Task ProcessKubernetesEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
+    public async Task ProcessKubernetesEvent(
+        IWatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken cancellationToken
+    )
     {
         switch (watcherEvent.WatcherEventType)
         {
@@ -39,22 +42,27 @@ public class CacheRefresher<TKubernetesObject>(
                 await ProcessInitEvent(watcherEvent, cancellationToken);
                 break;
             case WatcherEventType.Unknown:
-                logger.LogWarning("Unknown event type {eventType} for {kubernetesObjectType}.",
-                    watcherEvent.WatcherEventType, typeof(TKubernetesObject).Name);
-                break;
-            default:
+                logger.LogWarning(
+                    "Unknown event type {eventType} for {kubernetesObjectType}.",
+                    watcherEvent.WatcherEventType,
+                    typeof(TKubernetesObject).Name
+                );
                 break;
         }
     }
 
     protected virtual void ProcessAddEvent(
         IWatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (watcherEvent.KubernetesObject == null)
         {
-            logger.LogWarning("ProcessAddEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring", 
-                watcherEvent.WatcherKey, typeof(TKubernetesObject).Name);
+            logger.LogWarning(
+                "ProcessAddEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
+                watcherEvent.WatcherKey,
+                typeof(TKubernetesObject).Name
+            );
             return;
         }
 
@@ -62,26 +70,40 @@ public class CacheRefresher<TKubernetesObject>(
             "ProcessAddEvent - {kubernetesObjectType} - {watcherKey} - {kubernetesObjectName}",
             typeof(TKubernetesObject).Name,
             watcherEvent.WatcherKey,
-            watcherEvent.KubernetesObject.Metadata.Name);
+            watcherEvent.KubernetesObject.Metadata.Name
+        );
 
-        if (cache.TryGetValue(watcherEvent.WatcherKey, out ConcurrentDictionary<string, TKubernetesObject>? kubernetesObjectsCache))
+        if (cache.TryGetValue(
+                watcherEvent.WatcherKey,
+                out ConcurrentDictionary<string, TKubernetesObject>? kubernetesObjectsCache
+            ))
         {
             kubernetesObjectsCache[watcherEvent.KubernetesObject.Uid()] = watcherEvent.KubernetesObject;
         }
         else // first time, the cache is really empty
         {
-            cache.TryAdd(watcherEvent.WatcherKey, new ConcurrentDictionary<string, TKubernetesObject> { 
-                [watcherEvent.KubernetesObject.Uid()] = watcherEvent.KubernetesObject 
-            });
+            cache.TryAdd(
+                watcherEvent.WatcherKey,
+                new ConcurrentDictionary<string, TKubernetesObject>
+                {
+                    [watcherEvent.KubernetesObject.Uid()] = watcherEvent.KubernetesObject,
+                }
+            );
         }
     }
 
-    protected virtual Task ProcessDeleteEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
+    protected virtual Task ProcessDeleteEvent(
+        IWatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken cancellationToken
+    )
     {
         if (watcherEvent.KubernetesObject == null)
         {
-            logger.LogWarning("ProcessDeleteEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring", 
-                watcherEvent.WatcherKey, typeof(TKubernetesObject).Name);
+            logger.LogWarning(
+                "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
+                watcherEvent.WatcherKey,
+                typeof(TKubernetesObject).Name
+            );
             return Task.CompletedTask;
         }
 
@@ -89,9 +111,13 @@ public class CacheRefresher<TKubernetesObject>(
             "ProcessDeleteEvent - {kubernetesObjectType} - {watcherKey} - {kubernetesObjectName}",
             typeof(TKubernetesObject).Name,
             watcherEvent.WatcherKey,
-            watcherEvent.KubernetesObject.Metadata.Name);
+            watcherEvent.KubernetesObject.Metadata.Name
+        );
 
-        if (!cache.TryGetValue(watcherEvent.WatcherKey, out ConcurrentDictionary<string, TKubernetesObject>? kubernetesObjectsCache))
+        if (!cache.TryGetValue(
+                watcherEvent.WatcherKey,
+                out ConcurrentDictionary<string, TKubernetesObject>? kubernetesObjectsCache
+            ))
         {
             return Task.CompletedTask;
         }
@@ -107,20 +133,22 @@ public class CacheRefresher<TKubernetesObject>(
         logger.LogDebug(
             "ProcessErrorEvent - {kubernetesObjectType} - {watcherKey}",
             typeof(TKubernetesObject).Name,
-            watcherKey);
+            watcherKey
+        );
         cache.TryRemove(watcherKey, out _);
     }
 
     protected virtual void ProcessModifiedEvent(
         IWatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         logger.LogDebug("ProcessModifiedEvent - redirecting to ProcessAddEvent.");
         ProcessAddEvent(watcherEvent, cancellationToken);
     }
 
-    protected virtual Task ProcessInitEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
+    protected virtual Task ProcessInitEvent(
+        IWatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken cancellationToken
+    ) => Task.CompletedTask;
 }

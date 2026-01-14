@@ -18,12 +18,13 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
     ILogger<ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>>
-        logger)
-    : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
-        backgroundQueue,
-        options,
-        metricsClient,
-        logger), IClusterScopedWatcher<TKubernetesObject>
+        logger
+) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+    backgroundQueue,
+    options,
+    metricsClient,
+    logger
+), IClusterScopedWatcher<TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
     where TKubernetesWatcherEvent : IWatcherEvent<TKubernetesObject>, new()
@@ -32,10 +33,12 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
     protected override Task<HttpOperationResponse<TKubernetesObjectList>> GetKubernetesObjectWatchList(
         string watcherKey,
         string? lastResourceVersion,
-        CancellationToken? cancellationToken = null) => clusterScopResourceWatchDomainService.GetResourceWatchList(
+        CancellationToken? cancellationToken = null
+    ) => clusterScopResourceWatchDomainService.GetResourceWatchList(
         lastResourceVersion,
         GetWatcherRandomTimeout(),
-        cancellationToken);
+        cancellationToken
+    );
 
     protected override async Task<TKubernetesObjectList> GetInitialResources(
         string watcherKey,
@@ -44,5 +47,6 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
     ) => await clusterScopResourceWatchDomainService.GetResourceList(
         resourceListPageSize,
         continueToken,
-        cancellationToken);
+        cancellationToken
+    );
 }

@@ -11,19 +11,23 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStateAlertRefr
 
 public class WatcherStateAlertRefresh<TKubernetesObject>(
     IAlertsService alertService,
-    ILogger<WatcherStateAlertRefresh<TKubernetesObject>> logger)
-    : IKubernetesEventProcessor<TKubernetesObject>
+    ILogger<WatcherStateAlertRefresh<TKubernetesObject>> logger
+) : IKubernetesEventProcessor<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
 {
     private const string AlertEmitter = "Watcher";
     private static readonly HashSet<string> ActiveAlerts = [];
-    
-    public async Task ProcessKubernetesEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
+
+    public async Task ProcessKubernetesEvent(
+        IWatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken cancellationToken
+    )
     {
         if (watcherEvent.IsStatic)
         {
             return;
         }
+
         switch (watcherEvent.WatcherEventType)
         {
             case WatcherEventType.InitialAdded:
@@ -40,10 +44,12 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
                 await AddAlert(watcherEvent, cancellationToken);
                 break;
             case WatcherEventType.Unknown:
-                logger.LogWarning("{watcherEventType} event type {eventType} for {kubernetesObjectType}.",
-                    watcherEvent.WatcherEventType.ToString(), watcherEvent.WatcherEventType, typeof(TKubernetesObject).Name);
-                break;
-            default:
+                logger.LogWarning(
+                    "{watcherEventType} event type {eventType} for {kubernetesObjectType}.",
+                    watcherEvent.WatcherEventType.ToString(),
+                    watcherEvent.WatcherEventType,
+                    typeof(TKubernetesObject).Name
+                );
                 break;
         }
     }
@@ -57,7 +63,8 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
 
         ActiveAlerts.Add(watcherEvent.WatcherKey);
 
-        string namespaceName = watcherEvent.WatcherKey == CacheUtils.DefaultCacheRefreshKey ? "n/a" : watcherEvent.WatcherKey;
+        string namespaceName = watcherEvent.WatcherKey == CacheUtils.DefaultCacheRefreshKey ? "n/a"
+            : watcherEvent.WatcherKey;
         await alertService.AddAlert(
             AlertEmitter,
             new Alert
@@ -66,22 +73,28 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
                 Message = $"Watcher for {typeof(TKubernetesObject).Name} and Namespace {namespaceName} failed.",
                 Severity = Severity.Error,
                 Category = "Watcher Failed",
-            }, cancellationToken);
+            },
+            cancellationToken
+        );
     }
 
-    private async ValueTask RemoveAlert(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
+    private async ValueTask RemoveAlert(
+        IWatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken cancellationToken
+    )
     {
         if (ActiveAlerts.Contains(watcherEvent.WatcherKey))
         {
             ActiveAlerts.Remove(watcherEvent.WatcherKey);
 
             await alertService.RemoveAlert(
-            AlertEmitter,
-            new Alert
-            {
-                EmitterKey = GetCacheKey(watcherEvent),
-            },
-            cancellationToken);
+                AlertEmitter,
+                new Alert
+                {
+                    EmitterKey = GetCacheKey(watcherEvent),
+                },
+                cancellationToken
+            );
         }
     }
 

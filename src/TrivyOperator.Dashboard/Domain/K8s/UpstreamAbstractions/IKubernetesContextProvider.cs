@@ -1,7 +1,6 @@
-﻿namespace TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions
+﻿namespace TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
+
+public interface IKubernetesContextProvider
 {
-    public interface IKubernetesContextProvider
-    {
-        bool TryGetCurrentContext(out string? context);
-    }
+    bool TryGetCurrentContext(out string? context);
 }

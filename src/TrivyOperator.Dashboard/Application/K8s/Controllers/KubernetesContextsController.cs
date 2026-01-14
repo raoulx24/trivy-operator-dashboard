@@ -12,5 +12,6 @@ public class KubernetesContextsController(IKubernetesContextService kubernetesCo
     [ProducesResponseType<KubernetesContextsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<KubernetesContextsDto> GetKubernetesContexts() => await kubernetesContextService.GetKubernetesContextsDto();
+    public async Task<KubernetesContextsDto> GetKubernetesContexts() =>
+        await kubernetesContextService.GetKubernetesContextsDto();
 }

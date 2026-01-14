@@ -12,28 +12,20 @@ public class AppVersionsController(IAppVersionsService appVersionsService)
     [ProducesResponseType<IEnumerable<GitHubReleaseDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<GitHubReleaseDto>> GetAll()
-    {
-        return await appVersionsService.GetTrivyDashboardReleases();
-    }
+    public async Task<IEnumerable<GitHubReleaseDto>> GetAll() => await appVersionsService.GetTrivyDashboardReleases();
 
     [HttpGet("latest", Name = "GetGitHubLatestVersion")]
     [ProducesResponseType<GitHubReleaseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<GitHubReleaseDto> GetLatest()
-    {
-        return await appVersionsService.GetTrivyDashboardLatestRelease() ?? new GitHubReleaseDto();
-    }
+    public async Task<GitHubReleaseDto> GetLatest() =>
+        await appVersionsService.GetTrivyDashboardLatestRelease() ?? new GitHubReleaseDto();
 
     [HttpGet("current-version", Name = "GetCurrentVersion")]
     [ProducesResponseType<AppVersion>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public AppVersion GetCurrentAppVersion()
-    {
-        return appVersionsService.GetCurrentVersion();
-    }
+    public AppVersion GetCurrentAppVersion() => appVersionsService.GetCurrentVersion();
 
     // TODO - proper error handling with Task<IActionResult>
     // TODO - proper version return (and also, in GitHubClient, user agent

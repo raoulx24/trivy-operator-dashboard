@@ -6,9 +6,7 @@ public class HttpHeaderKubernetesContextProvider(IHttpContextAccessor httpContex
 {
     public bool TryGetCurrentContext(out string? context)
     {
-        context = httpContextAccessor.HttpContext?
-            .Request.Headers["X-Kubernetes-Context"]
-            .FirstOrDefault();
+        context = httpContextAccessor.HttpContext?.Request.Headers["X-Kubernetes-Context"].FirstOrDefault();
 
         return !string.IsNullOrWhiteSpace(context);
     }

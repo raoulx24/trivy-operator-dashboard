@@ -15,10 +15,9 @@ public class SbomReportWatcher(
     IKubernetesBackgroundQueue<SbomReportCr> backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
-    ILogger<SbomReportWatcher> logger)
-    : NamespacedWatcher<CustomResourceList<SbomReportCr>, SbomReportCr, IKubernetesBackgroundQueue<SbomReportCr>,
-        WatcherEvent<SbomReportCr>>(namespacedResourceWatchDomainService, backgroundQueue,
-            options, metricsClient, logger)
+    ILogger<SbomReportWatcher> logger
+) : NamespacedWatcher<CustomResourceList<SbomReportCr>, SbomReportCr, IKubernetesBackgroundQueue<SbomReportCr>,
+    WatcherEvent<SbomReportCr>>(namespacedResourceWatchDomainService, backgroundQueue, options, metricsClient, logger)
 {
     protected override void ProcessReceivedKubernetesObject(SbomReportCr kubernetesObject)
     {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.K8s.Models;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;
 
@@ -23,30 +24,41 @@ public class WatcherStatusController(IWatcherStatusService watcherStateInfoServi
     {
         if (string.IsNullOrWhiteSpace(request?.KubernetesObjectType))
         {
-            return Results.BadRequest(new RecreateWatcherResponse
-            {
-                Message = "Error occured",
-                Error = "KubernetesObjectType is required.",
-                KubernetesObjectType = request?.KubernetesObjectType,
-                NamespaceName = request?.NamespaceName
-            });
-        }
-        var result = await watcherStateInfoService.RecreateWatcher(request.KubernetesObjectType, request.NamespaceName);
-        
-        if (result.Success)
-        {
-            return Results.Ok(new RecreateWatcherResponse
-            {
-                Message = $"Watcher for '{request.KubernetesObjectType}' in namespace '{request.NamespaceName}' recreated successfully."
-            });
+            return Results.BadRequest(
+                new RecreateWatcherResponse
+                {
+                    Message = "Error occured",
+                    Error = "KubernetesObjectType is required.",
+                    KubernetesObjectType = request?.KubernetesObjectType,
+                    NamespaceName = request?.NamespaceName,
+                }
+            );
         }
 
-        return Results.UnprocessableEntity(new RecreateWatcherResponse
+        OperationResult result = await watcherStateInfoService.RecreateWatcher(
+            request.KubernetesObjectType,
+            request.NamespaceName
+        );
+
+        if (result.Success)
         {
-            Message = "Error occured",
-            Error = result.Message,
-            KubernetesObjectType = request.KubernetesObjectType,
-            NamespaceName = request.NamespaceName
-        });
+            return Results.Ok(
+                new RecreateWatcherResponse
+                {
+                    Message =
+                        $"Watcher for '{request.KubernetesObjectType}' in namespace '{request.NamespaceName}' recreated successfully.",
+                }
+            );
+        }
+
+        return Results.UnprocessableEntity(
+            new RecreateWatcherResponse
+            {
+                Message = "Error occured",
+                Error = result.Message,
+                KubernetesObjectType = request.KubernetesObjectType,
+                NamespaceName = request.NamespaceName,
+            }
+        );
     }
 }

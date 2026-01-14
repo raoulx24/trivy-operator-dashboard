@@ -10,7 +10,7 @@ public class GitHubReleaseDto
     public string HtmlUrl { get; set; } = string.Empty;
     public DateTime PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }
-    public bool IsLatest { get; set; } = false;
+    public bool IsLatest { get; set; }
 }
 
 public static class GitHubReleaseExtensions

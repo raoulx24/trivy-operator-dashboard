@@ -36,14 +36,10 @@ public class ConfigAuditReportController(IConfigAuditReportService configAuditRe
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IResult> GetByUid(Guid uid)
     {
-        ConfigAuditReportDto? configAuditReportDto =
-            await configAuditReportService.GetConfigAuditReportDtoByUid(uid);
+        ConfigAuditReportDto? configAuditReportDto = await configAuditReportService.GetConfigAuditReportDtoByUid(uid);
 
-        return configAuditReportDto is null
-            ? Results.NotFound()
-            : Results.Ok(configAuditReportDto);
+        return configAuditReportDto is null ? Results.NotFound() : Results.Ok(configAuditReportDto);
     }
-
 
 
     [HttpGet("denormalized", Name = "GetConfigAuditReportDenormalizedDtos")]

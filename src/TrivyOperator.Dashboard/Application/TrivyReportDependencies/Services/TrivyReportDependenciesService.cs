@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Application.TrivyReportDependencies.Models;
+﻿using System.Collections.Concurrent;
+using TrivyOperator.Dashboard.Application.TrivyReportDependencies.Models;
 using TrivyOperator.Dashboard.Application.TrivyReportDependencies.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.ConfigAuditReport;
 using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
@@ -13,17 +14,19 @@ public class TrivyReportDependenciesService(
     IConcurrentDictionaryCache<ConfigAuditReportCr> carCache,
     IConcurrentDictionaryCache<ExposedSecretReportCr> esrCache,
     IConcurrentDictionaryCache<SbomReportCr> srCache,
-    IConcurrentDictionaryCache<VulnerabilityReportCr> vrCache) : ITrivyReportDependenciesService
+    IConcurrentDictionaryCache<VulnerabilityReportCr> vrCache
+) : ITrivyReportDependenciesService
 {
     public Task<TrivyReportDependencyDto?> GetTrivyReportDependencies(string imageDigest, string namespaceName)
     {
         ExposedSecretReportCr[] esrReports = GetTrivyReportsFromCache(esrCache, namespaceName, imageDigest);
         SbomReportCr[] srReports = GetTrivyReportsFromCache(srCache, namespaceName, imageDigest);
         VulnerabilityReportCr[] vrReports = GetTrivyReportsFromCache(vrCache, namespaceName, imageDigest);
-        ConfigAuditReportCr[] carReports = carCache.TryGetValue(namespaceName, out var carCacheValue)
-            ? [.. carCacheValue.Select(x => x.Value)] : [];
+        ConfigAuditReportCr[] carReports =
+            carCache.TryGetValue(namespaceName, out ConcurrentDictionary<string, ConfigAuditReportCr>? carCacheValue)
+                ? [.. carCacheValue.Select(x => x.Value),] : [];
 
-        TrivyReportImageDto? imageDto = GetTrivyReportImageDto([esrReports, srReports, vrReports], namespaceName);
+        TrivyReportImageDto? imageDto = GetTrivyReportImageDto([esrReports, srReports, vrReports,], namespaceName);
 
         if (imageDto == null)
         {
@@ -35,22 +38,21 @@ public class TrivyReportDependenciesService(
             .Concat(srReports.Select(r => r.ToTrivyReportDependencyKubernetesResourceBindingDto()))
             .Concat(vrReports.Select(r => r.ToTrivyReportDependencyKubernetesResourceBindingDto()));
 
-        Dictionary<TrivyReportDependencyKubernetesResourceDto, List<TrivyReportDependencyDetailDto>> groupedByResource = digestBindings
-            .GroupBy(x => x.KubernetesResource)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Select(x => x.TrivyReportDependency).ToList()
-            );
+        Dictionary<TrivyReportDependencyKubernetesResourceDto, List<TrivyReportDependencyDetailDto>> groupedByResource =
+            digestBindings.GroupBy(x => x.KubernetesResource)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.TrivyReportDependency).ToList());
 
         // Add config audit reports only if their Kubernetes resource exists in image-based groupings
         foreach (ConfigAuditReportCr car in carReports)
         {
-            TrivyReportDependencyKubernetesResourceBindingDto binding = car.ToTrivyReportDependencyKubernetesResourceBindingDto();
+            TrivyReportDependencyKubernetesResourceBindingDto binding =
+                car.ToTrivyReportDependencyKubernetesResourceBindingDto();
             TrivyReportDependencyKubernetesResourceDto resource = binding.KubernetesResource;
 
-            TrivyReportDependencyKubernetesResourceDto? key = groupedByResource.Keys
-                .FirstOrDefault(key => key.ResourceKind == resource.ResourceKind && key.ResourceName == resource.ResourceName);
-            
+            TrivyReportDependencyKubernetesResourceDto? key = groupedByResource.Keys.FirstOrDefault(key =>
+                key.ResourceKind == resource.ResourceKind && key.ResourceName == resource.ResourceName
+            );
+
             if (key != null)
             {
                 List<TrivyReportDependencyDetailDto> reportList = groupedByResource[key];
@@ -58,13 +60,15 @@ public class TrivyReportDependenciesService(
             }
         }
 
-        TrivyReportDependencyKubernetesResourceLinkDto[] finalLinks = [.. groupedByResource
-            .Select(kvp => new TrivyReportDependencyKubernetesResourceLinkDto
-            {
-                KubernetesResource = kvp.Key,
-                TrivyReportDependencies = [.. kvp.Value]
-
-            })];
+        TrivyReportDependencyKubernetesResourceLinkDto[] finalLinks =
+        [
+            .. groupedByResource.Select(kvp => new TrivyReportDependencyKubernetesResourceLinkDto
+                {
+                    KubernetesResource = kvp.Key,
+                    TrivyReportDependencies = [.. kvp.Value,],
+                }
+            ),
+        ];
 
         TrivyReportDependencyDto x = new()
         {
@@ -75,28 +79,34 @@ public class TrivyReportDependenciesService(
         return Task.FromResult<TrivyReportDependencyDto?>(x);
     }
 
-    private static T[] GetTrivyReportsFromCache<T>(IConcurrentDictionaryCache<T> cache, string namespaceName, string imageDigest)
+    private static T[] GetTrivyReportsFromCache<T>(
+        IConcurrentDictionaryCache<T> cache,
+        string namespaceName,
+        string imageDigest
+    )
         where T : ITrivyReportWithImage
     {
         T[] result = [];
-        if (cache.TryGetValue(namespaceName, out var reports))
+        if (cache.TryGetValue(namespaceName, out ConcurrentDictionary<string, T>? reports))
         {
-            result = [.. reports
-                .Select(kvp => kvp.Value)
-                .Where(tr => tr.ImageArtifact?.Digest == imageDigest)];
+            result = [.. reports.Select(kvp => kvp.Value).Where(tr => tr.ImageArtifact?.Digest == imageDigest),];
         }
+
         return result;
     }
 
-    private static TrivyReportImageDto? GetTrivyReportImageDto(ITrivyReportWithImage[][] allReports, string namespaceName)
+    private static TrivyReportImageDto? GetTrivyReportImageDto(
+        ITrivyReportWithImage[][] allReports,
+        string namespaceName
+    )
     {
-        foreach (var reports in allReports)
+        foreach (ITrivyReportWithImage[] reports in allReports)
         {
             ITrivyReportWithImage? report = reports.FirstOrDefault();
 
             if (report != null)
             {
-                return new()
+                return new TrivyReportImageDto
                 {
                     NamespaceName = namespaceName,
                     ImageDigest = report.ImageArtifact?.Digest ?? string.Empty,
@@ -109,5 +119,4 @@ public class TrivyReportDependenciesService(
 
         return null;
     }
-
 }

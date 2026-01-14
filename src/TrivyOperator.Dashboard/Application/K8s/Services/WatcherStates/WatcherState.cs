@@ -10,16 +10,22 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
 
 public class WatcherState<TKubernetesObject>(
     IConcurrentCache<string, WatcherStateInfo> cache,
-    ILogger<WatcherState<TKubernetesObject>> logger) 
-    : IKubernetesEventProcessor<TKubernetesObject>
+    ILogger<WatcherState<TKubernetesObject>> logger
+) : IKubernetesEventProcessor<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
 {
-    public Task ProcessKubernetesEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
+    private readonly DictionaryCounter eventsGauge = new();
+
+    public Task ProcessKubernetesEvent(
+        IWatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken cancellationToken
+    )
     {
         if (watcherEvent.IsStatic)
         {
             return Task.CompletedTask;
         }
+
         switch (watcherEvent.WatcherEventType)
         {
             case WatcherEventType.InitialAdded:
@@ -47,10 +53,11 @@ public class WatcherState<TKubernetesObject>(
             case WatcherEventType.Initialized:
                 break;
             case WatcherEventType.Unknown:
-                logger.LogWarning("{watcherEventType} event type for {kubernetesObjectType}.",
-                    watcherEvent.WatcherEventType.ToString(), typeof(TKubernetesObject).Name);
-                break;
-            default:
+                logger.LogWarning(
+                    "{watcherEventType} event type for {kubernetesObjectType}.",
+                    watcherEvent.WatcherEventType.ToString(),
+                    typeof(TKubernetesObject).Name
+                );
                 break;
         }
 
@@ -68,7 +75,7 @@ public class WatcherState<TKubernetesObject>(
             Status = WatcherStateStatus.Green,
             EventsGauge = eventsGauge.GetValue(watcherEvent.WatcherKey),
         };
-        
+
         cache[GetCacheKey(watcherEvent)] = watcherStateInfo;
     }
 
@@ -83,17 +90,13 @@ public class WatcherState<TKubernetesObject>(
             Status = WatcherStateStatus.Red,
             EventsGauge = eventsGauge.GetValue(watcherEvent.WatcherKey),
         };
-        
+
         cache[GetCacheKey(watcherEvent)] = watcherStateInfo;
     }
 
-    private void ProcessFlushedEvent(IWatcherEvent<TKubernetesObject> watcherEvent)
-    {
+    private void ProcessFlushedEvent(IWatcherEvent<TKubernetesObject> watcherEvent) =>
         cache.TryRemove(GetCacheKey(watcherEvent), out _);
-    }
-    
+
     private static string GetCacheKey(IWatcherEvent<TKubernetesObject> watcherEvent) =>
         $"{typeof(TKubernetesObject).Name}|{watcherEvent.WatcherKey}";
-
-    private readonly DictionaryCounter eventsGauge = new();
 }

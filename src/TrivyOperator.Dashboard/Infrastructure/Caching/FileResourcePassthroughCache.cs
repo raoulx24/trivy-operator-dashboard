@@ -5,15 +5,15 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching;
 
-public class FileResourcePassthroughCache<TTrivyReport>(
-    IFileTrivyReportDomainService<TTrivyReport> domain)
+public class FileResourcePassthroughCache<TTrivyReport>(IFileTrivyReportDomainService<TTrivyReport> domain)
     : ResourcePassthroughCache<TTrivyReport>
     where TTrivyReport : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
 {
-    protected override Task<IList<TTrivyReport>> FetchAllAsync(CancellationToken? cancellationToken = null)
-        => domain.GetAllReportsAsync(cancellationToken);
+    protected override Task<IList<TTrivyReport>> FetchAllAsync(CancellationToken? cancellationToken = null) =>
+        domain.GetAllReportsAsync(cancellationToken);
+
     protected override Task<IList<TTrivyReport>> FetchByKeyAsync(
         string key,
-        CancellationToken? cancellationToken = null)
-        => domain.GetAllReportsAsync(key, cancellationToken);
+        CancellationToken? cancellationToken = null
+    ) => domain.GetAllReportsAsync(key, cancellationToken);
 }

@@ -7,7 +7,8 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 
 [ApiController]
 [Route("api/infra-assessment-reports")]
-public class InfraAssessmentReportController(IInfraAssessmentReportService infraAssessmentReportService) : ControllerBase
+public class InfraAssessmentReportController(IInfraAssessmentReportService infraAssessmentReportService)
+    : ControllerBase
 {
     [HttpGet(Name = "GetInfraAssessmentReportDtos")]
     [ProducesResponseType<IEnumerable<InfraAssessmentReportDto>>(StatusCodes.Status200OK)]
@@ -39,9 +40,7 @@ public class InfraAssessmentReportController(IInfraAssessmentReportService infra
         InfraAssessmentReportDto? InfraAssessmentReportDto =
             await infraAssessmentReportService.GetInfraAssessmentReportDtoByUid(uid);
 
-        return InfraAssessmentReportDto is null
-            ? Results.NotFound()
-            : Results.Ok(InfraAssessmentReportDto);
+        return InfraAssessmentReportDto is null ? Results.NotFound() : Results.Ok(InfraAssessmentReportDto);
     }
 
 

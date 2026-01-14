@@ -8,9 +8,9 @@ namespace TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 public abstract class NamespacedResourceDomainService<TKubernetesObject, TKubernetesObjectList>(
     IKubernetesClientFactory kubernetesClientFactory,
     IServiceScopeFactory scopeFactory,
-    IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList> namespaceDomainService)
-    : KubernetesResourceDomainService<TKubernetesObject>(kubernetesClientFactory, scopeFactory),
-        INamespacedResourceWatchDomainService<TKubernetesObject, TKubernetesObjectList>
+    IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList> namespaceDomainService
+) : KubernetesResourceDomainService<TKubernetesObject>(kubernetesClientFactory, scopeFactory),
+    INamespacedResourceWatchDomainService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
@@ -33,9 +33,13 @@ public abstract class NamespacedResourceDomainService<TKubernetesObject, TKubern
         return trivyReports;
     }
 
-    public async Task<IList<TKubernetesObject>> GetResources(string namespaceName, CancellationToken? cancellationToken = null)
+    public async Task<IList<TKubernetesObject>> GetResources(
+        string namespaceName,
+        CancellationToken? cancellationToken = null
+    )
     {
-        TKubernetesObjectList kubernetesObjectList = await GetResourceList(namespaceName, cancellationToken: cancellationToken);
+        TKubernetesObjectList kubernetesObjectList =
+            await GetResourceList(namespaceName, cancellationToken: cancellationToken);
         return kubernetesObjectList.Items;
     }
 
@@ -43,16 +47,19 @@ public abstract class NamespacedResourceDomainService<TKubernetesObject, TKubern
         string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 
     public abstract Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 
     public abstract Task<HttpOperationResponse<TKubernetesObjectList>> GetResourceWatchList(
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 }

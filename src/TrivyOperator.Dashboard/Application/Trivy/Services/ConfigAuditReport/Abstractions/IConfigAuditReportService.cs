@@ -4,11 +4,17 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Services.ConfigAuditReport.A
 
 public interface IConfigAuditReportService
 {
-    Task<IEnumerable<ConfigAuditReportDenormalizedDto>> GetConfigAuditReportDenormalizedDtos(string? namespaceName = null);
+    Task<IEnumerable<ConfigAuditReportDenormalizedDto>> GetConfigAuditReportDenormalizedDtos(
+        string? namespaceName = null
+    );
+
     Task<ConfigAuditReportDto?> GetConfigAuditReportDtoByUid(Guid uid);
+
     Task<IEnumerable<ConfigAuditReportDto>> GetConfigAuditReportDtos(
         string? namespaceName = null,
-        IEnumerable<int>? excludedSeverities = null);
+        IEnumerable<int>? excludedSeverities = null
+    );
+
     Task<IEnumerable<string>> GetActiveNamespaces();
-    public Task<IEnumerable<ConfigAuditReportSummaryDto>> GetConfigAuditReportSummaryDtos();
+    Task<IEnumerable<ConfigAuditReportSummaryDto>> GetConfigAuditReportSummaryDtos();
 }

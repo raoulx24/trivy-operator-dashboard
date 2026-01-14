@@ -2,10 +2,7 @@
 
 public static class PortUtils
 {
-    public static bool IsValidPort(int port)
-    {
-        return port >= 1024 && port <= 65535;
-    }
+    public static bool IsValidPort(int port) => port >= 1024 && port <= 65535;
 
     public static int? GetValidatedPort(string? portStr)
     {

@@ -15,7 +15,10 @@ public static class AlertExtensions
 {
     public static AlertDto ToAlertDto(this Alert alert, string emitter) => new()
     {
-        Emitter = emitter, EmitterKey = alert.EmitterKey, Message = alert.Message,
-        Severity = alert.Severity.ToString(), Category = alert.Category,
+        Emitter = emitter,
+        EmitterKey = alert.EmitterKey,
+        Message = alert.Message,
+        Severity = alert.Severity.ToString(),
+        Category = alert.Category,
     };
 }

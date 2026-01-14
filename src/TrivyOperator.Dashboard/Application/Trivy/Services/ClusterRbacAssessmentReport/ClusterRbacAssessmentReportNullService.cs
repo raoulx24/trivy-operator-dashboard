@@ -8,7 +8,8 @@ public class ClusterRbacAssessmentReportNullService : IClusterRbacAssessmentRepo
     public Task<IEnumerable<ClusterRbacAssessmentReportDto>> GetClusterRbacAssessmentReportDtos() =>
         Task.FromResult<IEnumerable<ClusterRbacAssessmentReportDto>>([]);
 
-    public Task<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>> GetClusterRbacAssessmentReportDenormalizedDtos() =>
+    public Task<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>>
+        GetClusterRbacAssessmentReportDenormalizedDtos() =>
         Task.FromResult<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>>([]);
 
     public Task<IEnumerable<ClusterRbacAssessmentReportSummaryDto>> GetClusterRbacAssessmentReportSummaryDtos() =>

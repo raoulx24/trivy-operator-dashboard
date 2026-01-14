@@ -12,7 +12,8 @@ public interface IClusterScopedResourceQueryDomainService<TKubernetesObject, TKu
     Task<TKubernetesObjectList> GetResourceList(
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 
     Task<IList<TKubernetesObject>> GetResources(CancellationToken? cancellationToken = null);
 }

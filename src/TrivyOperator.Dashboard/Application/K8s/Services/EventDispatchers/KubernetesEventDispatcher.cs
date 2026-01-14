@@ -9,7 +9,8 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers;
 public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
     IEnumerable<IKubernetesEventProcessor<TKubernetesObject>> services,
     TBackgroundQueue backgroundQueue,
-    ILogger<KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>> logger) : IKubernetesEventDispatcher<TKubernetesObject>
+    ILogger<KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>> logger
+) : IKubernetesEventDispatcher<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
@@ -22,10 +23,15 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
         {
             logger.LogWarning(
                 "Kubernetes Event Dispatcher for {kubernetesObjectType} already started. Ignoring...",
-                typeof(TKubernetesObject).Name);
+                typeof(TKubernetesObject).Name
+            );
             return;
         }
-        logger.LogInformation("KubernetesEventDispatcher for {kubernetesObjectType} is starting.", typeof(TKubernetesObject).Name);
+
+        logger.LogInformation(
+            "KubernetesEventDispatcher for {kubernetesObjectType} is starting.",
+            typeof(TKubernetesObject).Name
+        );
         dispatcherQueueProcessor = ProcessChannelMessages(cancellationToken);
     }
 
@@ -39,34 +45,46 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
 
                 if (watcherEvent is null)
                 {
-                    if(!cancellationToken.IsCancellationRequested)
+                    if (!cancellationToken.IsCancellationRequested)
                     {
                         logger.LogWarning("Received null watcher event. Ignoring...");
                     }
+
                     continue;
                 }
-                if (cancellationToken.IsCancellationRequested) break;
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 try
                 {
-                    IEnumerable<Task> tasks = services.Select(service => service.ProcessKubernetesEvent(watcherEvent, cancellationToken));
+                    IEnumerable<Task> tasks = services.Select(service =>
+                        service.ProcessKubernetesEvent(watcherEvent, cancellationToken)
+                    );
                     await Task.WhenAll(tasks);
                 }
                 catch (Exception ex)
                 {
                     if (ex is AggregateException aggEx)
                     {
-                        foreach (var inner in aggEx.InnerExceptions)
+                        foreach (Exception inner in aggEx.InnerExceptions)
                         {
-                            logger.LogError(inner,
+                            logger.LogError(
+                                inner,
                                 "An error occurred while processing the watcher event for {kubernetesObjectType}.",
-                                typeof(TKubernetesObject).Name);
+                                typeof(TKubernetesObject).Name
+                            );
                         }
                     }
                     else
                     {
-                        logger.LogError(ex,
+                        logger.LogError(
+                            ex,
                             "An error occurred while processing the watcher event for {kubernetesObjectType}.",
-                            typeof(TKubernetesObject).Name);
+                            typeof(TKubernetesObject).Name
+                        );
                     }
                 }
             }
@@ -75,7 +93,8 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
                 logger.LogError(
                     ex,
                     "Error processing event for {kubernetesObjectType}.",
-                    typeof(TKubernetesObject).Name);
+                    typeof(TKubernetesObject).Name
+                );
             }
         }
     }

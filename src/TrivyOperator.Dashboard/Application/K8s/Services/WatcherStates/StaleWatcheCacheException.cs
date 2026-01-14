@@ -2,18 +2,25 @@
 
 public class StaleWatcheCacheException : Exception
 {
-    public string WatcherKey { get; }
-    public Type KubernetesObjectType { get; }
-    
-    public StaleWatcheCacheException(string message, string watcherKey, Type kubernetesObjectType) : base(message)
+    public StaleWatcheCacheException(string message, string watcherKey, Type kubernetesObjectType)
+        : base(message)
     {
         WatcherKey = watcherKey;
         KubernetesObjectType = kubernetesObjectType;
     }
 
-    public StaleWatcheCacheException(string message, string watcherKey, Type kubernetesObjectType, Exception innerException) : base(message, innerException)
+    public StaleWatcheCacheException(
+        string message,
+        string watcherKey,
+        Type kubernetesObjectType,
+        Exception innerException
+    )
+        : base(message, innerException)
     {
         WatcherKey = watcherKey;
         KubernetesObjectType = kubernetesObjectType;
     }
+
+    public string WatcherKey { get; }
+    public Type KubernetesObjectType { get; }
 }

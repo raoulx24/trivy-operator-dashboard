@@ -32,7 +32,8 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByDigestNamespace([FromQuery] string digest, [FromQuery] string namespaceName)
     {
-        SbomReportDto? sbomReportDto = await sbomReportService.GetFullSbomReportDtoByDigestNamespace(digest, namespaceName);
+        SbomReportDto? sbomReportDto =
+            await sbomReportService.GetFullSbomReportDtoByDigestNamespace(digest, namespaceName);
 
         return sbomReportDto is null ? NotFound() : Ok(sbomReportDto);
     }
@@ -42,7 +43,10 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
     [ProducesResponseType<CycloneDxBom>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetCycloneDxByDigestNamespace([FromQuery] string digest, [FromQuery] string namespaceName)
+    public async Task<IActionResult> GetCycloneDxByDigestNamespace(
+        [FromQuery] string digest,
+        [FromQuery] string namespaceName
+    )
     {
         CycloneDxBom? cycloneDxBom = await sbomReportService.GetCycloneDxBomByDigestNamespace(digest, namespaceName);
 
@@ -53,7 +57,10 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
     [ProducesResponseType<SpdxBom>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetSpdxBomByDigestNamespace([FromQuery] string digest, [FromQuery] string namespaceName)
+    public async Task<IActionResult> GetSpdxBomByDigestNamespace(
+        [FromQuery] string digest,
+        [FromQuery] string namespaceName
+    )
     {
         SpdxBom? spdxBom = await sbomReportService.GetSpdxBomByDigestNamespace(digest, namespaceName);
 
@@ -79,14 +86,17 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
     [ProducesResponseType<FileStreamResult>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Export([FromBody] SbomReportExportDto[] exportSboms, [FromQuery] string fileType = "json")
+    public async Task<IActionResult> Export(
+        [FromBody] SbomReportExportDto[] exportSboms,
+        [FromQuery] string fileType = "json"
+    )
     {
         if (exportSboms.Length == 0)
         {
             return BadRequest("No info provided");
         }
 
-        string zipFilename  = await sbomReportService.CreateCycloneDxExportZipFile(exportSboms, fileType);
+        string zipFilename = await sbomReportService.CreateCycloneDxExportZipFile(exportSboms, fileType);
         if (zipFilename == string.Empty)
         {
             return BadRequest("Failed to create zip file");
@@ -95,11 +105,12 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
         FileStream stream = new(zipFilename, FileMode.Open, FileAccess.Read);
 
         HttpContext.Response.OnCompleted(() =>
-        {
-            sbomReportService.CleanupFile(zipFilename);
+            {
+                sbomReportService.CleanupFile(zipFilename);
 
-            return Task.CompletedTask;
-        });
+                return Task.CompletedTask;
+            }
+        );
 
         return File(stream, "application/zip", zipFilename);
     }
@@ -115,6 +126,9 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
     [ProducesResponseType<IEnumerable<SbomReportImageResourceDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<SbomReportImageResourceDto>> GetImageResourceDtosByDigestAndNamespace([FromQuery] string digest, [FromQuery] string namespaceName) =>
+    public async Task<IEnumerable<SbomReportImageResourceDto>> GetImageResourceDtosByDigestAndNamespace(
+        [FromQuery] string digest,
+        [FromQuery] string namespaceName
+    ) =>
         await sbomReportService.GetSbomReportImageResourceDtosByDigestAndNamespace(digest, namespaceName);
 }

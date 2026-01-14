@@ -64,10 +64,12 @@ public class ClusterComplianceReportDenormalizedDto
 public static class ClusterComplianceReportCrExtensions
 {
     public static ClusterComplianceReportDto ToClusterComplianceReportDto(
-        this ClusterComplianceReportCr clusterComplianceReportCr)
+        this ClusterComplianceReportCr clusterComplianceReportCr
+    )
     {
-        ClusterComplianceReportDetailDto[] details = [.. clusterComplianceReportCr.Spec.Compliance.Controls.Select(
-                control => new ClusterComplianceReportDetailDto
+        ClusterComplianceReportDetailDto[] details =
+        [
+            .. clusterComplianceReportCr.Spec.Compliance.Controls.Select(control => new ClusterComplianceReportDetailDto
                 {
                     Id = control.Id,
                     Name = control.Name,
@@ -80,14 +82,14 @@ public static class ClusterComplianceReportCrExtensions
                                     .FirstOrDefault()
                                     ?.TotalFail ??
                                 0,
-                })];
+                }
+            ),
+        ];
 
         return new ClusterComplianceReportDto
         {
             Name = clusterComplianceReportCr.Metadata.Name,
-            Uid = Guid.TryParse(clusterComplianceReportCr.Metadata.Uid, out Guid parsedGuid)
-                ? parsedGuid
-                : new(),
+            Uid = Guid.TryParse(clusterComplianceReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
             Description = clusterComplianceReportCr.Spec.Compliance.Description,
             Platform = clusterComplianceReportCr.Spec.Compliance.Platform,
             RelatedResources =
@@ -101,46 +103,44 @@ public static class ClusterComplianceReportCrExtensions
             TotalFailCount = clusterComplianceReportCr.Status.Summary.FailCount,
             TotalFailCriticalCount =
                 details.Where(x => x.SeverityId == (int)TrivySeverity.CRITICAL && x.TotalFail > 0).Count(),
-            TotalFailHighCount =
-                details.Where(x => x.SeverityId == (int)TrivySeverity.HIGH && x.TotalFail > 0).Count(),
+            TotalFailHighCount = details.Where(x => x.SeverityId == (int)TrivySeverity.HIGH && x.TotalFail > 0).Count(),
             TotalFailMediumCount =
                 details.Where(x => x.SeverityId == (int)TrivySeverity.MEDIUM && x.TotalFail > 0).Count(),
-            TotalFailLowCount =
-                details.Where(x => x.SeverityId == (int)TrivySeverity.LOW && x.TotalFail > 0).Count(),
+            TotalFailLowCount = details.Where(x => x.SeverityId == (int)TrivySeverity.LOW && x.TotalFail > 0).Count(),
             UpdateTimestamp = clusterComplianceReportCr.Status.UpdateTimestamp,
             Details = details,
         };
     }
 
     public static IEnumerable<ClusterComplianceReportDenormalizedDto> ToClusterComplianceReportDenormalizedDtos(
-        this ClusterComplianceReportCr clusterComplianceReportCr) =>
-        clusterComplianceReportCr.Spec.Compliance.Controls.Select(
-                control => new ClusterComplianceReportDenormalizedDto
-                {
-                    Name = clusterComplianceReportCr.Metadata.Name,
-                    Uid = new Guid(clusterComplianceReportCr.Metadata.Uid),
-                    Description = clusterComplianceReportCr.Spec.Compliance.Description,
-                    Platform = clusterComplianceReportCr.Spec.Compliance.Platform,
-                    RelatedResources =
-                        clusterComplianceReportCr.Spec.Compliance.RelatedResources.Select(x => x.ToString()).ToArray(),
-                    Title = clusterComplianceReportCr.Spec.Compliance.Title,
-                    Type = clusterComplianceReportCr.Spec.Compliance.Type,
-                    Version = clusterComplianceReportCr.Spec.Compliance.Version,
-                    Cron = clusterComplianceReportCr.Spec.Cron,
-                    ReportType = clusterComplianceReportCr.Spec.ReportType,
-                    TotalPassCount = clusterComplianceReportCr.Status.Summary.PassCount,
-                    TotalFailCount = clusterComplianceReportCr.Status.Summary.FailCount,
-                    UpdateTimestamp = clusterComplianceReportCr.Status.UpdateTimestamp,
-                    DetailId = control.Id,
-                    DetailName = control.Name,
-                    DetailDescription = control.Description,
-                    SeverityId = (int)control.Severity,
-                    Checks = control.Checks.Select(check => check.Id).ToArray(),
-                    Commands = control.Commands.Select(command => command.Id).ToArray(),
-                    TotalFail = clusterComplianceReportCr.Status.SummaryReport.ControlCheck
-                                    .Where(x => x.Id == control.Id)
-                                    .FirstOrDefault()
-                                    ?.TotalFail ??
-                                0,
-                });
+        this ClusterComplianceReportCr clusterComplianceReportCr
+    ) =>
+        clusterComplianceReportCr.Spec.Compliance.Controls.Select(control => new ClusterComplianceReportDenormalizedDto
+            {
+                Name = clusterComplianceReportCr.Metadata.Name,
+                Uid = new Guid(clusterComplianceReportCr.Metadata.Uid),
+                Description = clusterComplianceReportCr.Spec.Compliance.Description,
+                Platform = clusterComplianceReportCr.Spec.Compliance.Platform,
+                RelatedResources =
+                    clusterComplianceReportCr.Spec.Compliance.RelatedResources.Select(x => x.ToString()).ToArray(),
+                Title = clusterComplianceReportCr.Spec.Compliance.Title,
+                Type = clusterComplianceReportCr.Spec.Compliance.Type,
+                Version = clusterComplianceReportCr.Spec.Compliance.Version,
+                Cron = clusterComplianceReportCr.Spec.Cron,
+                ReportType = clusterComplianceReportCr.Spec.ReportType,
+                TotalPassCount = clusterComplianceReportCr.Status.Summary.PassCount,
+                TotalFailCount = clusterComplianceReportCr.Status.Summary.FailCount,
+                UpdateTimestamp = clusterComplianceReportCr.Status.UpdateTimestamp,
+                DetailId = control.Id,
+                DetailName = control.Name,
+                DetailDescription = control.Description,
+                SeverityId = (int)control.Severity,
+                Checks = control.Checks.Select(check => check.Id).ToArray(),
+                Commands = control.Commands.Select(command => command.Id).ToArray(),
+                TotalFail = clusterComplianceReportCr.Status.SummaryReport.ControlCheck.Where(x => x.Id == control.Id)
+                                .FirstOrDefault()
+                                ?.TotalFail ??
+                            0,
+            }
+        );
 }

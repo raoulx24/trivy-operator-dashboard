@@ -15,7 +15,8 @@ public sealed class RawController(ILogger<RawController> logger) : ControllerBas
         [FromServices] IRawDomainQueryService svc,
         [FromQuery] string typeCr,
         [FromQuery] string key,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         if (string.IsNullOrWhiteSpace(typeCr) || string.IsNullOrWhiteSpace(key))
         {
@@ -23,8 +24,7 @@ public sealed class RawController(ILogger<RawController> logger) : ControllerBas
             return Results.BadRequest("typeCr and key are required.");
         }
 
-        var valueType = AppDomain.CurrentDomain
-            .GetAssemblies()
+        Type? valueType = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(a => a.GetTypes())
             .FirstOrDefault(t => t.Name == typeCr);
         if (valueType is null)
@@ -35,7 +35,7 @@ public sealed class RawController(ILogger<RawController> logger) : ControllerBas
 
         try
         {
-            var result = await svc.GetAllAsync(valueType, key, ct);
+            IReadOnlyList<object> result = await svc.GetAllAsync(valueType, key, ct);
 
             if (result.Count == 0)
             {

@@ -23,18 +23,18 @@ public class BackgroundQueue<TObject> : IBackgroundQueue<TObject>
 
     public async ValueTask QueueBackgroundWorkItemAsync(TObject enqueuedObject, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(enqueuedObject, nameof(enqueuedObject));
+        ArgumentNullException.ThrowIfNull(enqueuedObject);
         LogQueue(enqueuedObject);
 
         try
         {
             await queue.Writer.WriteAsync(enqueuedObject, cancellationToken);
         }
-        catch(OperationCanceledException)
+        catch (OperationCanceledException)
         {
             logger.LogDebug("Queueing was cancelled for {objectType}", typeof(TObject).Name);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             logger.LogError(ex, "Could not enqueue {objectType}", typeof(TObject).Name);
         }
@@ -57,20 +57,17 @@ public class BackgroundQueue<TObject> : IBackgroundQueue<TObject>
         {
             logger.LogError(ex, "Could not dequeue {objectType}", typeof(TObject).Name);
         }
+
         return null;
     }
 
-    protected virtual void LogQueue(TObject enqueuedObject)
-    {
-        logger.LogDebug(
-            "Queueing {objectType}",
-            typeof(TObject).Name);
-    }
+    protected virtual void LogQueue(TObject enqueuedObject) => logger.LogDebug(
+        "Queueing {objectType}",
+        typeof(TObject).Name
+    );
 
-    protected virtual void LogDequeue(TObject dequeuedObject)
-    {
-        logger.LogDebug(
-            "Dequeued {objectType}",
-            typeof(TObject).Name);
-    }
+    protected virtual void LogDequeue(TObject dequeuedObject) => logger.LogDebug(
+        "Dequeued {objectType}",
+        typeof(TObject).Name
+    );
 }

@@ -6,7 +6,9 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 
 [ApiController]
 [Route("api/cluster-infra-assessment-reports")]
-public class ClusterInfraAssessmentReportController(IClusterInfraAssessmentReportService clusterInfraAssessmentReportService) : ControllerBase
+public class ClusterInfraAssessmentReportController(
+    IClusterInfraAssessmentReportService clusterInfraAssessmentReportService
+) : ControllerBase
 {
     [HttpGet(Name = "GetClusterInfraAssessmentReportDtos")]
     [ProducesResponseType<IEnumerable<ClusterInfraAssessmentReportDto>>(StatusCodes.Status200OK)]
@@ -31,8 +33,7 @@ public class ClusterInfraAssessmentReportController(IClusterInfraAssessmentRepor
         ClusterInfraAssessmentReportDto? clusterInfraAssessmentReportDto =
             await clusterInfraAssessmentReportService.GetClusterInfraAssessmentReportDtoByUid(uid);
 
-        return clusterInfraAssessmentReportDto is null
-            ? Results.NotFound()
+        return clusterInfraAssessmentReportDto is null ? Results.NotFound()
             : Results.Ok(clusterInfraAssessmentReportDto);
     }
 

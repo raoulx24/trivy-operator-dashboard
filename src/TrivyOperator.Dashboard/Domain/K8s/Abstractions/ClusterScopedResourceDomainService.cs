@@ -5,11 +5,11 @@ using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
 
 namespace TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 
-public abstract class
-    ClusterScopedResourceDomainService<TKubernetesObject, TKubernetesObjectList>(
-        IKubernetesClientFactory kubernetesClientFactory, IServiceScopeFactory scopeFactory)
-    : KubernetesResourceDomainService<TKubernetesObject>(kubernetesClientFactory, scopeFactory),
-        IClusterScopedResourceWatchDomainService<TKubernetesObject, TKubernetesObjectList>
+public abstract class ClusterScopedResourceDomainService<TKubernetesObject, TKubernetesObjectList>(
+    IKubernetesClientFactory kubernetesClientFactory,
+    IServiceScopeFactory scopeFactory
+) : KubernetesResourceDomainService<TKubernetesObject>(kubernetesClientFactory, scopeFactory),
+    IClusterScopedResourceWatchDomainService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
@@ -22,14 +22,17 @@ public abstract class
     public abstract Task<TKubernetesObjectList> GetResourceList(
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 
     public abstract Task<TKubernetesObject> GetResource(
         string resourceName,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 
     public abstract Task<HttpOperationResponse<TKubernetesObjectList>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 }

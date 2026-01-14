@@ -8,6 +8,7 @@ public class ExposedSecretReportCr : CustomResource, ITrivyReportWithImage
 {
     [JsonPropertyName("report")]
     public Report? Report { get; init; }
+
     public IArtifact? ImageArtifact => Report?.Artifact;
     public IRegistry? ImageRegistry => Report?.Registry;
 }

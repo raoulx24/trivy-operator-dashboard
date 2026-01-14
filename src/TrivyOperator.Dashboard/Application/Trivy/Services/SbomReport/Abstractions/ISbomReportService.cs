@@ -11,11 +11,20 @@ public interface ISbomReportService
     Task<SbomReportDto?> GetFullSbomReportDtoByUid(string uid);
     Task<SbomReportDto?> GetFullSbomReportDtoByUidNamespace(string uid, string namespaceName);
     Task<SbomReportDto?> GetFullSbomReportDtoByDigestNamespace(string digest, string namespaceName);
-    Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(string digest, string namespaceName, IEnumerable<SbomReportCr>? cachedValues = null);
+
+    Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(
+        string digest,
+        string namespaceName,
+        IEnumerable<SbomReportCr>? cachedValues = null
+    );
+
     Task<SpdxBom?> GetSpdxBomByDigestNamespace(string digest, string namespaceName);
     Task<string> CreateCycloneDxExportZipFile(SbomReportExportDto[] exportSboms, string fileType = "json");
     void CleanupFile(string fileName);
     Task<IEnumerable<string>> GetActiveNamespaces();
+
     Task<IEnumerable<SbomReportImageResourceDto>> GetSbomReportImageResourceDtosByDigestAndNamespace(
-        string digest, string namespaceName);
+        string digest,
+        string namespaceName
+    );
 }

@@ -6,15 +6,16 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Services.InfraAssessmentRepo
 public class InfraAssessmentReportNullService : IInfraAssessmentReportService
 {
     public Task<IEnumerable<InfraAssessmentReportDto>> GetInfraAssessmentReportDtos(
-        string? namespaceName = null, 
-        IEnumerable<int>? excludedSeverities = null) => Task.FromResult<IEnumerable<InfraAssessmentReportDto>>([]);
+        string? namespaceName = null,
+        IEnumerable<int>? excludedSeverities = null
+    ) => Task.FromResult<IEnumerable<InfraAssessmentReportDto>>([]);
 
     public Task<InfraAssessmentReportDto?> GetInfraAssessmentReportDtoByUid(Guid uid) =>
         Task.FromResult<InfraAssessmentReportDto?>(null);
 
     public Task<IEnumerable<InfraAssessmentReportDenormalizedDto>> GetInfraAssessmentReportDenormalizedDtos(
-        string? namespaceName = null) => Task.FromResult<IEnumerable<InfraAssessmentReportDenormalizedDto>>([]);
+        string? namespaceName = null
+    ) => Task.FromResult<IEnumerable<InfraAssessmentReportDenormalizedDto>>([]);
 
     public Task<IEnumerable<string>> GetActiveNamespaces() => Task.FromResult<IEnumerable<string>>([]);
-
 }

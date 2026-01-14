@@ -9,17 +9,19 @@ namespace TrivyOperator.Dashboard.Application.Common.HealthChecks;
 public class WatchersLivenessHealthCheck(
     IConcurrentCache<string, WatcherStateInfo> cache,
     IOptions<WatchersOptions> options,
-    ILogger<WatchersLivenessHealthCheck> logger) : IHealthCheck
+    ILogger<WatchersLivenessHealthCheck> logger
+) : IHealthCheck
 {
     private readonly int timeFrameInSeconds = (int)((options.Value.WatchTimeoutInSeconds * 1.1) + 120);
-    
-    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
-    {
 
+    public Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context,
+        CancellationToken cancellationToken = default
+    )
+    {
         try
         {
-            bool isAnyWatcherStale = cache
-                .Select(kvp => kvp.Value)
+            bool isAnyWatcherStale = cache.Select(kvp => kvp.Value)
                 .Any(x => (DateTime.UtcNow - x.LastEventMoment).TotalSeconds > timeFrameInSeconds);
             if (isAnyWatcherStale)
             {
@@ -30,7 +32,7 @@ public class WatchersLivenessHealthCheck(
         {
             logger.LogWarning(ex, "Error checking watchers liveness health check.");
         }
-        
+
         return Task.FromResult(HealthCheckResult.Healthy("App is alive"));
     }
 }

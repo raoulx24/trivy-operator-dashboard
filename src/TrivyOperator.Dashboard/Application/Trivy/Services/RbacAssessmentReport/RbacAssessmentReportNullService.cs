@@ -9,11 +9,13 @@ public class RbacAssessmentReportNullService : IRbacAssessmentReportService
         Task.FromResult<IEnumerable<string>>([]);
 
     public Task<IEnumerable<RbacAssessmentReportDenormalizedDto>> GetRbacAssessmentReportDenormalizedDtos(
-        string? namespaceName = null) =>
+        string? namespaceName = null
+    ) =>
         Task.FromResult<IEnumerable<RbacAssessmentReportDenormalizedDto>>([]);
 
     public Task<IEnumerable<RbacAssessmentReportDto>> GetRbacAssessmentReportDtos(
         string? namespaceName = null,
-        IEnumerable<int>? excludedSeverities = null) =>
+        IEnumerable<int>? excludedSeverities = null
+    ) =>
         Task.FromResult<IEnumerable<RbacAssessmentReportDto>>([]);
 }

@@ -45,11 +45,14 @@ public class TrivyReportDependencyKubernetesResourceDto : IEquatable<TrivyReport
 
     public bool Equals(TrivyReportDependencyKubernetesResourceDto? other)
     {
-        if (other is null) return false;
+        if (other is null)
+        {
+            return false;
+        }
 
-        return ResourceContainerName == other.ResourceContainerName 
-            && ResourceKind == other.ResourceKind
-            && ResourceName == other.ResourceName;
+        return ResourceContainerName == other.ResourceContainerName &&
+               ResourceKind == other.ResourceKind &&
+               ResourceName == other.ResourceName;
     }
 
     public override bool Equals(object? obj) => Equals(obj as TrivyReportDependencyKubernetesResourceDto);
@@ -75,108 +78,89 @@ public enum TrivyReport
     ExposedSecret,
     Sbom,
     Vulnerability,
-    Unknown
+    Unknown,
 }
 
 public static class TrivyReportDependencyDtoExtensions
 {
-    public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
-        this ConfigAuditReportCr tr)
-    {
-        return new TrivyReportDependencyKubernetesResourceBindingDto
-        {
-            KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
-            TrivyReportDependency = new TrivyReportDependencyDetailDto
-            {
-                Uid = tr.Uid(),
-                TrivyReport = TrivyReport.ConfigAudit,
-                CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
-                HighCount = tr.Report?.Summary?.HighCount ?? -1,
-                MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
-                LowCount = tr.Report?.Summary?.LowCount ?? -1,
-            },
-        };
-    }
+    public static readonly string NotAvailable = "N/A";
 
     public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
-        this ExposedSecretReportCr tr)
+        this ConfigAuditReportCr tr
+    ) => new()
     {
-        return new TrivyReportDependencyKubernetesResourceBindingDto
+        KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
+        TrivyReportDependency = new TrivyReportDependencyDetailDto
         {
-            KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
-            TrivyReportDependency = new TrivyReportDependencyDetailDto
-            {
-                Uid = tr.Uid(),
-                TrivyReport = TrivyReport.ExposedSecret,
-                CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
-                HighCount = tr.Report?.Summary?.HighCount ?? -1,
-                MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
-                LowCount = tr.Report?.Summary?.LowCount ?? -1,
-            },
-        };
-    }
+            Uid = tr.Uid(),
+            TrivyReport = TrivyReport.ConfigAudit,
+            CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
+            HighCount = tr.Report?.Summary?.HighCount ?? -1,
+            MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
+            LowCount = tr.Report?.Summary?.LowCount ?? -1,
+        },
+    };
 
     public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
-        this VulnerabilityReportCr tr)
+        this ExposedSecretReportCr tr
+    ) => new()
     {
-        return new TrivyReportDependencyKubernetesResourceBindingDto
+        KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
+        TrivyReportDependency = new TrivyReportDependencyDetailDto
         {
-            KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
-            TrivyReportDependency = new TrivyReportDependencyDetailDto
-            {
-                Uid = tr.Uid(),
-                TrivyReport = TrivyReport.Vulnerability,
-                CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
-                HighCount = tr.Report?.Summary?.HighCount ?? -1,
-                MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
-                LowCount = tr.Report?.Summary?.LowCount ?? -1,
-                UnknownCount = tr.Report?.Summary?.UnknownCount ?? -1,
-            },
-        };
-    }
+            Uid = tr.Uid(),
+            TrivyReport = TrivyReport.ExposedSecret,
+            CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
+            HighCount = tr.Report?.Summary?.HighCount ?? -1,
+            MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
+            LowCount = tr.Report?.Summary?.LowCount ?? -1,
+        },
+    };
 
     public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
-        this SbomReportCr tr)
+        this VulnerabilityReportCr tr
+    ) => new()
     {
-        return new TrivyReportDependencyKubernetesResourceBindingDto
+        KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
+        TrivyReportDependency = new TrivyReportDependencyDetailDto
         {
-            KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
-            TrivyReportDependency = new TrivyReportDependencyDetailDto
-            {
-                Uid = tr.Uid(),
-                TrivyReport = TrivyReport.Sbom,
-            },
-        };
-    }
+            Uid = tr.Uid(),
+            TrivyReport = TrivyReport.Vulnerability,
+            CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
+            HighCount = tr.Report?.Summary?.HighCount ?? -1,
+            MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
+            LowCount = tr.Report?.Summary?.LowCount ?? -1,
+            UnknownCount = tr.Report?.Summary?.UnknownCount ?? -1,
+        },
+    };
+
+    public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
+        this SbomReportCr tr
+    ) => new()
+    {
+        KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
+        TrivyReportDependency = new TrivyReportDependencyDetailDto
+        {
+            Uid = tr.Uid(),
+            TrivyReport = TrivyReport.Sbom,
+        },
+    };
 
     private static TrivyReportDependencyKubernetesResourceDto GetTrivyReportDependencyKubernetesResourceDto(
-        IKubernetesObject<V1ObjectMeta> report)
+        IKubernetesObject<V1ObjectMeta> report
+    ) => new()
     {
-        return new TrivyReportDependencyKubernetesResourceDto
-        {
-            ResourceKind =
-                report.Metadata.Labels != null &&
-                report.Metadata.Labels.TryGetValue(
-                    "trivy-operator.resource.kind",
-                    out string? resourceKind)
-                    ? resourceKind
-                    : NotAvailable,
-            ResourceName =
-                report.Metadata.Labels != null &&
-                report.Metadata.Labels.TryGetValue(
-                    "trivy-operator.resource.name",
-                    out string? resourceName)
-                    ? resourceName
-                    : NotAvailable,
-            ResourceContainerName =
-                report.Metadata.Labels != null &&
-                report.Metadata.Labels.TryGetValue(
-                    "trivy-operator.container.name",
-                    out string? resourceContainerName)
-                    ? resourceContainerName
-                    : NotAvailable,
-        };
-    }
-
-    public static readonly string NotAvailable = "N/A";
+        ResourceKind =
+            report.Metadata.Labels != null &&
+            report.Metadata.Labels.TryGetValue("trivy-operator.resource.kind", out string? resourceKind) ? resourceKind
+                : NotAvailable,
+        ResourceName =
+            report.Metadata.Labels != null &&
+            report.Metadata.Labels.TryGetValue("trivy-operator.resource.name", out string? resourceName) ? resourceName
+                : NotAvailable,
+        ResourceContainerName =
+            report.Metadata.Labels != null &&
+            report.Metadata.Labels.TryGetValue("trivy-operator.container.name", out string? resourceContainerName)
+                ? resourceContainerName : NotAvailable,
+    };
 }

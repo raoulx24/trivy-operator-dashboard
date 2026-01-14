@@ -6,6 +6,6 @@ public interface IKubernetesClientFactory
 {
     // Here it should be IKubernetes but the interface does not expose all yet...
     Kubernetes GetClient(string contextName);
-    public IEnumerable<string> GetContexts();
-    public string GetCurrentContext();
+    IEnumerable<string> GetContexts();
+    string GetCurrentContext();
 }

@@ -4,7 +4,8 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services;
 
 public sealed class KubernetesEventCoordinatorsHandlerHostedService(
     IEnumerable<IClusterScopedKubernetesEventCoordinator> services,
-    ILogger<KubernetesEventCoordinatorsHandlerHostedService> logger) : BackgroundService
+    ILogger<KubernetesEventCoordinatorsHandlerHostedService> logger
+) : BackgroundService
 {
     public override async Task StopAsync(CancellationToken stoppingToken)
     {

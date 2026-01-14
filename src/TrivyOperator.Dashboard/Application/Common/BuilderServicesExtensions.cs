@@ -1,5 +1,6 @@
 ﻿using k8s;
 using k8s.Models;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -91,6 +92,8 @@ namespace TrivyOperator.Dashboard.Application.Common;
 
 public static class BuilderServicesExtensions
 {
+    public static ILogger? logger { get; set; }
+
     public static void AddV1NamespaceServices(this IServiceCollection services, IConfiguration kubernetesConfiguration)
     {
         bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
@@ -101,21 +104,27 @@ public static class BuilderServicesExtensions
             {
                 logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", typeof(V1Namespace).Name);
                 services.AddSingleton<NamespaceDomainService>();
-                services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(
-                    sp => sp.GetRequiredService<NamespaceDomainService>());
-                services.AddSingleton<IClusterScopedResourceWatchDomainService<V1Namespace, V1NamespaceList>>(
-                    sp => sp.GetRequiredService<NamespaceDomainService>());
+                services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(sp =>
+                    sp.GetRequiredService<NamespaceDomainService>()
+                );
+                services.AddSingleton<IClusterScopedResourceWatchDomainService<V1Namespace, V1NamespaceList>>(sp =>
+                    sp.GetRequiredService<NamespaceDomainService>()
+                );
             }
             else
             {
-                logger?.LogInformation("Using StaticNamespaceDomainService for {kubernetesObjectType}", typeof(V1Namespace).Name);
-                services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>, 
+                logger?.LogInformation(
+                    "Using StaticNamespaceDomainService for {kubernetesObjectType}",
+                    typeof(V1Namespace).Name
+                );
+                services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>,
                     StaticNamespaceDomainService>();
-                services.AddSingleton<IClusterScopedWatcher<V1Namespace>,
-                    StaticNamespaceWatcher>();
+                services.AddSingleton<IClusterScopedWatcher<V1Namespace>, StaticNamespaceWatcher>();
             }
 
-            services.AddSingleton<IConcurrentDictionaryCache<V1Namespace>, ClusterResourcePassthroughCache<V1Namespace, V1NamespaceList>>();
+            services
+                .AddSingleton<IConcurrentDictionaryCache<V1Namespace>,
+                    ClusterResourcePassthroughCache<V1Namespace, V1NamespaceList>>();
 
             services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceService>();
 
@@ -128,23 +137,28 @@ public static class BuilderServicesExtensions
         {
             logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", typeof(V1Namespace).Name);
             services.AddSingleton<NamespaceDomainService>();
-            services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(
-                sp => sp.GetRequiredService<NamespaceDomainService>());
-            services.AddSingleton<IClusterScopedResourceWatchDomainService<V1Namespace, V1NamespaceList>>(
-                sp => sp.GetRequiredService<NamespaceDomainService>());
+            services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(sp =>
+                sp.GetRequiredService<NamespaceDomainService>()
+            );
+            services.AddSingleton<IClusterScopedResourceWatchDomainService<V1Namespace, V1NamespaceList>>(sp =>
+                sp.GetRequiredService<NamespaceDomainService>()
+            );
             services.AddSingleton<IClusterScopedWatcher<V1Namespace>,
                 ClusterScopedWatcher<V1NamespaceList, V1Namespace, IKubernetesBackgroundQueue<V1Namespace>,
                     WatcherEvent<V1Namespace>>>();
         }
         else
         {
-            logger?.LogInformation("Using StaticNamespaceDomainService for {kubernetesObjectType}", typeof(V1Namespace).Name);
+            logger?.LogInformation(
+                "Using StaticNamespaceDomainService for {kubernetesObjectType}",
+                typeof(V1Namespace).Name
+            );
             services
                 .AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>,
                     StaticNamespaceDomainService>();
             services.AddSingleton<IClusterScopedWatcher<V1Namespace>, StaticNamespaceWatcher>();
         }
-        
+
         services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
             ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<V1Namespace>,
                 IClusterScopedWatcher<V1Namespace>, V1Namespace>>();
@@ -179,14 +193,15 @@ public static class BuilderServicesExtensions
             InfraAssessmentReportNullService, InfraAssessmentReportService>(configuration);
         services.AddNamespacedTrivyServices<RbacAssessmentReportCr, IRbacAssessmentReportService,
             RbacAssessmentReportNullService, RbacAssessmentReportService>(configuration);
-        services.AddNamespacedTrivyServices<SbomReportCr, ISbomReportService,
-            SbomReportNullService, SbomReportService>(configuration);
+        services.AddNamespacedTrivyServices<SbomReportCr, ISbomReportService, SbomReportNullService, SbomReportService>(
+            configuration
+        );
         services.AddNamespacedTrivyServices<VulnerabilityReportCr, IVulnerabilityReportService,
             VulnerabilityReportNullService, VulnerabilityReportService>(configuration);
     }
 
-    public static void AddNamespacedTrivyServices<TNamespacedTrivyReportCr, TAppServiceInterface,
-        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration configuration)
+    public static void AddNamespacedTrivyServices<TNamespacedTrivyReportCr, TAppServiceInterface, TNullAppService,
+        TAppService>(this IServiceCollection services, IConfiguration configuration)
         where TNamespacedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
         where TAppServiceInterface : class
         where TNullAppService : class, TAppServiceInterface
@@ -199,9 +214,13 @@ public static class BuilderServicesExtensions
             out bool? useServices,
             out bool? useDefaultContext,
             out string? pvcName,
-            out string? subpath);
+            out string? subpath
+        );
 
-        if (!string.IsNullOrWhiteSpace(pvcName) && useServices != null && (bool)useServices  && !string.IsNullOrWhiteSpace(subpath))
+        if (!string.IsNullOrWhiteSpace(pvcName) &&
+            useServices != null &&
+            (bool)useServices &&
+            !string.IsNullOrWhiteSpace(subpath))
         {
             logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
@@ -214,17 +233,24 @@ public static class BuilderServicesExtensions
                 FileResourcePassthroughCache<TNamespacedTrivyReportCr>>();
 
             services.AddScoped<TAppServiceInterface, TAppService>();
-            services.AddSingleton<INamespacedResourceWatchDomainService<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>,
-                FileTrivyReportPassThroughDomainService<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
+            services
+                .AddSingleton<
+                    INamespacedResourceWatchDomainService<TNamespacedTrivyReportCr,
+                        CustomResourceList<TNamespacedTrivyReportCr>>, FileTrivyReportPassThroughDomainService<
+                        TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
 
             return;
         }
 
-        if (useServices == null || !(bool)useServices || (!string.IsNullOrWhiteSpace(pvcName) && string.IsNullOrWhiteSpace(subpath)))
+        if (useServices == null ||
+            !(bool)useServices ||
+            (!string.IsNullOrWhiteSpace(pvcName) && string.IsNullOrWhiteSpace(subpath)))
         {
             logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
             services.AddScoped<TAppServiceInterface, TNullAppService>();
-            services.AddTransient<IConcurrentDictionaryCache<TNamespacedTrivyReportCr>, ConcurrentDictionaryCache<TNamespacedTrivyReportCr>>();
+            services
+                .AddTransient<IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
+                    ConcurrentDictionaryCache<TNamespacedTrivyReportCr>>();
             return;
         }
 
@@ -232,8 +258,8 @@ public static class BuilderServicesExtensions
         {
             logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
             services.AddSingleton<
-                IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
-                NamespacedResourcePassthroughCache<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
+                IConcurrentDictionaryCache<TNamespacedTrivyReportCr>, NamespacedResourcePassthroughCache<
+                    TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
         }
         else
         {
@@ -241,30 +267,42 @@ public static class BuilderServicesExtensions
             services.AddSingleton<
                 IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
                 ConcurrentDictionaryCache<TNamespacedTrivyReportCr>>();
-            services.AddSingleton<IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>, KubernetesBackgroundQueue<TNamespacedTrivyReportCr>>();
+            services
+                .AddSingleton<IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>,
+                    KubernetesBackgroundQueue<TNamespacedTrivyReportCr>>();
             services.AddSingleton<INamespacedWatcher<TNamespacedTrivyReportCr>,
                 NamespacedWatcher<CustomResourceList<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr,
                     IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>, WatcherEvent<TNamespacedTrivyReportCr>>>();
             services.AddSingleton<INamespacedKubernetesEventCoordinator,
-            NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
-                INamespacedWatcher<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr>>();
+                NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
+                    INamespacedWatcher<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr>>();
             services.AddSingleton<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
-                KubernetesEventDispatcher<TNamespacedTrivyReportCr, IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>>>();
-            services.AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>, CacheRefresher<TNamespacedTrivyReportCr>>();
-            services.AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>, WatcherState<TNamespacedTrivyReportCr>>();
-            services.AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>, WatcherStateAlertRefresh<TNamespacedTrivyReportCr>>();
-
+                KubernetesEventDispatcher<TNamespacedTrivyReportCr,
+                    IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>>>();
+            services
+                .AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>,
+                    CacheRefresher<TNamespacedTrivyReportCr>>();
+            services
+                .AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>,
+                    WatcherState<TNamespacedTrivyReportCr>>();
+            services
+                .AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>,
+                    WatcherStateAlertRefresh<TNamespacedTrivyReportCr>>();
         }
 
         services.AddScoped<TAppServiceInterface, TAppService>();
 
-        services.AddSingleton<INamespacedResourceWatchDomainService<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>,
-            NamespacedTrivyReportDomainService<TNamespacedTrivyReportCr>>();
+        services
+            .AddSingleton<
+                INamespacedResourceWatchDomainService<TNamespacedTrivyReportCr,
+                    CustomResourceList<TNamespacedTrivyReportCr>>,
+                NamespacedTrivyReportDomainService<TNamespacedTrivyReportCr>>();
     }
 
-    public static void AddClusterScopedTrivyServices<TClusterScopedTrivyReportCr, TAppServiceInterface,
-        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration configuration)
-        where TClusterScopedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
+    public static void AddClusterScopedTrivyServices<TClusterScopedTrivyReportCr, TAppServiceInterface, TNullAppService,
+        TAppService>(this IServiceCollection services, IConfiguration configuration)
+        where TClusterScopedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>,
+        new()
         where TAppServiceInterface : class
         where TNullAppService : class, TAppServiceInterface
         where TAppService : class, TAppServiceInterface
@@ -276,9 +314,13 @@ public static class BuilderServicesExtensions
             out bool? useServices,
             out bool? useDefaultContext,
             out string? pvcName,
-            out string? subpath);
+            out string? subpath
+        );
 
-        if (!string.IsNullOrWhiteSpace(pvcName) && useServices != null && (bool)useServices && !string.IsNullOrWhiteSpace(subpath))
+        if (!string.IsNullOrWhiteSpace(pvcName) &&
+            useServices != null &&
+            (bool)useServices &&
+            !string.IsNullOrWhiteSpace(subpath))
         {
             logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
@@ -295,11 +337,15 @@ public static class BuilderServicesExtensions
             return;
         }
 
-        if (useServices == null || !(bool)useServices || (!string.IsNullOrWhiteSpace(pvcName) && string.IsNullOrWhiteSpace(subpath)))
+        if (useServices == null ||
+            !(bool)useServices ||
+            (!string.IsNullOrWhiteSpace(pvcName) && string.IsNullOrWhiteSpace(subpath)))
         {
             logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
             services.AddScoped<TAppServiceInterface, TNullAppService>();
-            services.AddTransient<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>, ConcurrentDictionaryCache<TClusterScopedTrivyReportCr>>();
+            services
+                .AddTransient<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
+                    ConcurrentDictionaryCache<TClusterScopedTrivyReportCr>>();
             return;
         }
 
@@ -307,8 +353,8 @@ public static class BuilderServicesExtensions
         {
             logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
             services.AddSingleton<
-                IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
-                ClusterResourcePassthroughCache<TClusterScopedTrivyReportCr, CustomResourceList<TClusterScopedTrivyReportCr>>>();
+                IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>, ClusterResourcePassthroughCache<
+                    TClusterScopedTrivyReportCr, CustomResourceList<TClusterScopedTrivyReportCr>>>();
         }
         else
         {
@@ -317,7 +363,8 @@ public static class BuilderServicesExtensions
                 .AddSingleton<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
                     ConcurrentDictionaryCache<TClusterScopedTrivyReportCr>>();
             services
-                .AddSingleton<IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>, KubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>();
+                .AddSingleton<IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>,
+                    KubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>();
             services.AddSingleton<IClusterScopedWatcher<TClusterScopedTrivyReportCr>, ClusterScopedWatcher<
                 CustomResourceList<TClusterScopedTrivyReportCr>, TClusterScopedTrivyReportCr,
                 IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>, WatcherEvent<TClusterScopedTrivyReportCr>>>();
@@ -326,52 +373,30 @@ public static class BuilderServicesExtensions
                 ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<TClusterScopedTrivyReportCr>,
                     IClusterScopedWatcher<TClusterScopedTrivyReportCr>, TClusterScopedTrivyReportCr>>();
             services.AddSingleton<IKubernetesEventDispatcher<TClusterScopedTrivyReportCr>,
-                KubernetesEventDispatcher<TClusterScopedTrivyReportCr, IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>>();
-            services.AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>, CacheRefresher<TClusterScopedTrivyReportCr>>();
-            services.AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>, WatcherState<TClusterScopedTrivyReportCr>>();
-            services.AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>, WatcherStateAlertRefresh<TClusterScopedTrivyReportCr>>();
+                KubernetesEventDispatcher<TClusterScopedTrivyReportCr,
+                    IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>>();
+            services
+                .AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>,
+                    CacheRefresher<TClusterScopedTrivyReportCr>>();
+            services
+                .AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>,
+                    WatcherState<TClusterScopedTrivyReportCr>>();
+            services
+                .AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>,
+                    WatcherStateAlertRefresh<TClusterScopedTrivyReportCr>>();
         }
-        
+
         services.AddScoped<TAppServiceInterface, TAppService>();
-        services.AddSingleton<IClusterScopedResourceWatchDomainService<TClusterScopedTrivyReportCr, CustomResourceList<TClusterScopedTrivyReportCr>>,
-            ClusterScopedTrivyReportDomainService<TClusterScopedTrivyReportCr>>();
-    }
-
-    private static class TrivyConfigHelper
-    {
-        public static void GetConfigFor<T>(
-            IConfiguration config,
-            out string className,
-            out string shortClassName,
-            out bool? useServices,
-            out bool? useDefaultContext,
-            out string? pvcName,
-            out string? subpath)
-        {
-            className = typeof(T).Name;
-
-            shortClassName = className.EndsWith("Cr", StringComparison.Ordinal)
-                ? className[..^2]
-                : className;
-
-            useServices =
-                config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}");
-
-            useDefaultContext =
-                config.GetValue<bool?>("Kubernetes:UseDefaultContext");
-
-            pvcName =
-                config.GetValue<string>("FileRepository:PvcName");
-
-            subpath =
-                config.GetValue<string>($"FileRepository:{className}Subpath");
-        }
+        services
+            .AddSingleton<
+                IClusterScopedResourceWatchDomainService<TClusterScopedTrivyReportCr,
+                    CustomResourceList<TClusterScopedTrivyReportCr>>,
+                ClusterScopedTrivyReportDomainService<TClusterScopedTrivyReportCr>>();
     }
 
 
     public static void AddWatcherStateServices(this IServiceCollection services)
     {
-        
         services.AddSingleton<IConcurrentCache<string, WatcherStateInfo>, ConcurrentCache<string, WatcherStateInfo>>();
         //services.AddSingleton<IBackgroundQueue<WatcherStateInfo>, BackgroundQueue<WatcherStateInfo>>();
         services.AddScoped<IWatcherStatusService, WatcherStatusService>();
@@ -384,8 +409,7 @@ public static class BuilderServicesExtensions
         services.AddTransient<IAlertsService, AlertsService>();
     }
 
-    public static void AddCommons(
-        this IServiceCollection services, IConfiguration configuration)
+    public static void AddCommons(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<BackgroundQueueOptions>(configuration.GetSection("Queues"));
         services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
@@ -404,11 +428,13 @@ public static class BuilderServicesExtensions
         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
         {
             services.AddHttpClient<IGitHubClient, GitHubClient>(client =>
-            {
-                client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
-            });
+                {
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
+                }
+            );
             services.AddHostedService<GitHubReleaseCacheTimedHostedService>();
         }
+
         services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
         services.AddScoped<IAppVersionsService, AppVersionsService>();
 
@@ -436,104 +462,151 @@ public static class BuilderServicesExtensions
     public static void AddUiCommons(this IServiceCollection services) =>
         services.AddScoped<IBackendSettingsService, BackendSettingsService>();
 
-    public static void AddOthers(this IServiceCollection services)
-    {
+    public static void AddOthers(this IServiceCollection services) =>
         services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
-    }
 
-    public static void AddOpenTelemetry(this IServiceCollection services, IConfiguration configuration, string applicationName)
+    public static void AddOpenTelemetry(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string applicationName
+    )
     {
-        if ((configuration.GetValue<bool?>("Enabled") ?? false) == false)
+        if (!(configuration.GetValue<bool?>("Enabled") ?? false))
         {
             services.AddSingleton<IMetricsClient>(provider => new MetricsClient(applicationName));
             return;
         }
 
-        string fileVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0";
+        string fileVersion =
+            Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0";
         string? otelEndpoint = configuration.GetValue<string>("OtelEndpoint");
         bool? isConsoleEnabled = configuration.GetValue<bool?>("ConsoleEnabled");
         bool? isAspNetCoreEnabled = configuration.GetValue<bool?>("AspNetCoreInstrumentationEnabled");
         bool? isRuntimeEnabled = configuration.GetValue<bool?>("RuntimeInstrumentationEnabled");
         int? metricsPort = configuration.GetValue<int>("PrometheusExporterPort");
-        double[]? histogramBounds = configuration.GetValue<double[]>("HistogramBoundsInMs") ?? [200, 500, 1000, 5000];
+        double[]? histogramBounds = configuration.GetValue<double[]>("HistogramBoundsInMs") ?? [200, 500, 1000, 5000,];
 
         services.AddSingleton<IMetricsClient>(provider => new MetricsClient(applicationName));
         services.AddOpenTelemetry()
             .WithTracing(tracingBuilder =>
-            {
-                tracingBuilder
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                        .AddService(applicationName)
-                        .AddAttributes(new Dictionary<string, object>
-                        {
-                            { "service.version", fileVersion }
-                        }))
-                    .AddHttpClientInstrumentation();
-                if (isConsoleEnabled ?? false)
                 {
-                    tracingBuilder.AddConsoleExporter();
-                }
-                if (!string.IsNullOrWhiteSpace(otelEndpoint))
-                {
-                    tracingBuilder.AddOtlpExporter(options =>
+                    tracingBuilder.SetResourceBuilder(
+                            ResourceBuilder.CreateDefault()
+                                .AddService(applicationName)
+                                .AddAttributes(
+                                    new Dictionary<string, object>
+                                    {
+                                        {
+                                            "service.version", fileVersion
+                                        },
+                                    }
+                                )
+                        )
+                        .AddHttpClientInstrumentation();
+                    if (isConsoleEnabled ?? false)
                     {
-                        options.Endpoint = new Uri(otelEndpoint);
-                        options.Protocol = (configuration.GetValue<string?>("OtelProtocol")?.ToLowerInvariant() ?? "grpc") == "grpc"
-                            ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
-                            : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-                    });
-                }
-                if (isAspNetCoreEnabled ?? false)
-                {
-                    tracingBuilder.AddAspNetCoreInstrumentation(options =>
-                    {
-                        options.Filter = context =>
-                        {
-                            var path = context.Request.Path.Value;
-                            return !((path?.StartsWith("/healthz") ?? false) || (path?.StartsWith("/metrics") ?? false));
-                        };
-                    });
-                }
+                        tracingBuilder.AddConsoleExporter();
+                    }
 
-            })
+                    if (!string.IsNullOrWhiteSpace(otelEndpoint))
+                    {
+                        tracingBuilder.AddOtlpExporter(options =>
+                            {
+                                options.Endpoint = new Uri(otelEndpoint);
+                                options.Protocol =
+                                    (configuration.GetValue<string?>("OtelProtocol")?.ToLowerInvariant() ?? "grpc") ==
+                                    "grpc"
+                                        ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
+                            }
+                        );
+                    }
+
+                    if (isAspNetCoreEnabled ?? false)
+                    {
+                        tracingBuilder.AddAspNetCoreInstrumentation(options =>
+                            {
+                                options.Filter = context =>
+                                {
+                                    string? path = context.Request.Path.Value;
+                                    return !((path?.StartsWith("/healthz") ?? false) ||
+                                             (path?.StartsWith("/metrics") ?? false));
+                                };
+                            }
+                        );
+                    }
+                }
+            )
             .WithMetrics(metricsBuilder =>
-            {
-                metricsBuilder
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(applicationName))
-                    .AddView("*", new ExplicitBucketHistogramConfiguration
+                {
+                    metricsBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(applicationName))
+                        .AddView(
+                            "*",
+                            new ExplicitBucketHistogramConfiguration
+                            {
+                                Boundaries = histogramBounds,
+                                // defaults: [ 0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000 ]
+                            }
+                        )
+                        .AddMeter($"{applicationName}.metrics");
+                    if (!string.IsNullOrWhiteSpace(otelEndpoint))
                     {
-                        Boundaries = histogramBounds,
-                        // defaults: [ 0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000 ]
-                    })
-                    .AddMeter($"{applicationName}.metrics");
-                if (!string.IsNullOrWhiteSpace(otelEndpoint))
-                {
-                    metricsBuilder.AddOtlpExporter(options =>
+                        metricsBuilder.AddOtlpExporter(options =>
+                            {
+                                options.Endpoint = new Uri(otelEndpoint);
+                                options.Protocol =
+                                    (configuration.GetValue<string?>("OtelProtocol")?.ToLowerInvariant() ?? "grpc") ==
+                                    "grpc"
+                                        ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
+                            }
+                        );
+                    }
+
+                    if (isConsoleEnabled ?? false)
                     {
-                        options.Endpoint = new Uri(otelEndpoint);
-                        options.Protocol = (configuration.GetValue<string?>("OtelProtocol")?.ToLowerInvariant() ?? "grpc") == "grpc"
-                            ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
-                            : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-                    });
+                        metricsBuilder.AddConsoleExporter();
+                    }
+
+                    if (isAspNetCoreEnabled ?? false)
+                    {
+                        metricsBuilder.AddAspNetCoreInstrumentation();
+                    }
+
+                    if (isRuntimeEnabled ?? false)
+                    {
+                        metricsBuilder.AddRuntimeInstrumentation();
+                    }
+
+                    if (metricsPort is not null)
+                    {
+                        metricsBuilder.AddPrometheusExporter();
+                    }
                 }
-                if (isConsoleEnabled ?? false)
-                {
-                    metricsBuilder.AddConsoleExporter();
-                }
-                if (isAspNetCoreEnabled ?? false)
-                {
-                    metricsBuilder.AddAspNetCoreInstrumentation();
-                }
-                if (isRuntimeEnabled ?? false)
-                {
-                    metricsBuilder.AddRuntimeInstrumentation();
-                }
-                if (metricsPort is not null)
-                {
-                    metricsBuilder.AddPrometheusExporter();
-                }
-            });
+            );
     }
 
-    public static ILogger? logger { get; set; }
+    private static class TrivyConfigHelper
+    {
+        public static void GetConfigFor<T>(
+            IConfiguration config,
+            out string className,
+            out string shortClassName,
+            out bool? useServices,
+            out bool? useDefaultContext,
+            out string? pvcName,
+            out string? subpath
+        )
+        {
+            className = typeof(T).Name;
+
+            shortClassName = className.EndsWith("Cr", StringComparison.Ordinal) ? className[..^2] : className;
+
+            useServices = config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}");
+
+            useDefaultContext = config.GetValue<bool?>("Kubernetes:UseDefaultContext");
+
+            pvcName = config.GetValue<string>("FileRepository:PvcName");
+
+            subpath = config.GetValue<string>($"FileRepository:{className}Subpath");
+        }
+    }
 }

@@ -50,7 +50,7 @@ public class SpdxCreationInfo
     [JsonPropertyName("creators")]
     [XmlArray("creators")]
     [XmlArrayItem("creator")]
-    public List<string> Creators { get; set; } = [ "Tool: Custom SBOM Converter" ];
+    public List<string> Creators { get; set; } = ["Tool: Custom SBOM Converter",];
 }
 
 public class SpdxPackage
@@ -81,7 +81,7 @@ public class SpdxPackage
 
     [JsonPropertyName("filesAnalyzed")]
     [XmlElement("filesAnalyzed")]
-    public bool FilesAnalyzed { get; set; } = false;
+    public bool FilesAnalyzed { get; set; }
 }
 
 public class SpdxRelationship
@@ -103,7 +103,7 @@ public static partial class SbomReportCrExtensions
 {
     public static SpdxBom ToSpdx(this SbomReportCr sbomReport)
     {
-        var spdxDocument = new SpdxBom
+        SpdxBom spdxDocument = new()
         {
             Name = sbomReport.Report?.Artifact.Repository ?? "Unknown SBOM",
             DocumentNamespace = $"http://spdx.org/spdxdocs/{Guid.NewGuid()}",
@@ -113,23 +113,33 @@ public static partial class SbomReportCrExtensions
                 Creators =
                 [
                     $"Tool: {sbomReport.Report?.Scanner.Name} {sbomReport.Report?.Scanner.Version}",
-                    $"Organization: {sbomReport.Report?.Registry.Server}"
-                ]
+                    $"Organization: {sbomReport.Report?.Registry.Server}",
+                ],
             },
-            Packages = [.. sbomReport.Report?.Components.ComponentsComponents.Select(comp => new SpdxPackage
-            {
-                SPDXID = $"SPDXRef-{comp.BomRef}",
-                Name = comp.Name,
-                VersionInfo = comp.Version,
-                LicenseDeclared = comp.Licenses?.FirstOrDefault()?.License?.Id ?? "NOASSERTION",
-                LicenseConcluded = "NOASSERTION"
-            }) ?? []],
-            Relationships = [.. sbomReport.Report?.Components.Dependencies.Select(dep => new SpdxRelationship
-            {
-                SpdxElementId = $"SPDXRef-{dep.Ref}",
-                RelatedSpdxElement = string.Join(", ", dep.DependsOn.Select(d => $"SPDXRef-{d}")),
-                RelationshipType = "DEPENDS_ON"
-            })?? []]
+            Packages =
+            [
+                .. sbomReport.Report?.Components.ComponentsComponents.Select(comp => new SpdxPackage
+                       {
+                           SPDXID = $"SPDXRef-{comp.BomRef}",
+                           Name = comp.Name,
+                           VersionInfo = comp.Version,
+                           LicenseDeclared = comp.Licenses?.FirstOrDefault()?.License?.Id ?? "NOASSERTION",
+                           LicenseConcluded = "NOASSERTION",
+                       }
+                   ) ??
+                   [],
+            ],
+            Relationships =
+            [
+                .. sbomReport.Report?.Components.Dependencies.Select(dep => new SpdxRelationship
+                       {
+                           SpdxElementId = $"SPDXRef-{dep.Ref}",
+                           RelatedSpdxElement = string.Join(", ", dep.DependsOn.Select(d => $"SPDXRef-{d}")),
+                           RelationshipType = "DEPENDS_ON",
+                       }
+                   ) ??
+                   [],
+            ],
         };
 
         return spdxDocument;

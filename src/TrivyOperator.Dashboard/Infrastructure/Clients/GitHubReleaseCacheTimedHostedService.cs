@@ -8,23 +8,18 @@ using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
 namespace TrivyOperator.Dashboard.Infrastructure.Clients;
 
 public sealed class GitHubReleaseCacheTimedHostedService(
-    IGitHubClient gitHubClient, 
+    IGitHubClient gitHubClient,
     IOptions<GitHubOptions> options,
     IConcurrentCache<long, GitHubRelease> cache,
-    ILogger<AppVersionsService> logger)
-    : IHostedService, IDisposable
+    ILogger<AppVersionsService> logger
+) : IHostedService, IDisposable
 {
-    ~GitHubReleaseCacheTimedHostedService()
-    {
-        Dispose(false);
-    }
-    
     private readonly int timeFrameInMinutes = options.Value.CheckForUpdatesIntervalInMinutes;
     private bool disposed;
     private Task? executingTask;
     private CancellationTokenSource? stoppingCts;
     private Timer? timer;
-    
+
     public void Dispose()
     {
         Dispose(true);
@@ -63,6 +58,11 @@ public sealed class GitHubReleaseCacheTimedHostedService(
         }
     }
 
+    ~GitHubReleaseCacheTimedHostedService()
+    {
+        Dispose(false);
+    }
+
     private void Execute(object? state)
     {
         if (executingTask?.IsCompleted ?? true)
@@ -81,13 +81,20 @@ public sealed class GitHubReleaseCacheTimedHostedService(
     {
         try
         {
-            GitHubRelease[]? releases = await gitHubClient.GitHubReleases(options.Value.BaseTrivyDashboardRepoUrl, cancellationToken);
+            GitHubRelease[]? releases = await gitHubClient.GitHubReleases(
+                options.Value.BaseTrivyDashboardRepoUrl,
+                cancellationToken
+            );
             if (releases is null)
             {
                 logger.LogWarning("Failed to fetch releases from GitHub.");
                 return;
             }
-            GitHubRelease? latestRelease = await gitHubClient.GetLatestRelease(options.Value.BaseTrivyDashboardRepoUrl, cancellationToken);
+
+            GitHubRelease? latestRelease = await gitHubClient.GetLatestRelease(
+                options.Value.BaseTrivyDashboardRepoUrl,
+                cancellationToken
+            );
             if (latestRelease != null)
             {
                 GitHubRelease? release = releases.FirstOrDefault(x => x.Id == latestRelease.Id);
@@ -96,6 +103,7 @@ public sealed class GitHubReleaseCacheTimedHostedService(
                     release.IsLatest = true;
                 }
             }
+
             cache.Clear();
             foreach (GitHubRelease release in releases)
             {
@@ -104,7 +112,11 @@ public sealed class GitHubReleaseCacheTimedHostedService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error occurred while executing the timed hosted service - {exceptionMessage}", ex.Message);
+            logger.LogError(
+                ex,
+                "Error occurred while executing the timed hosted service - {exceptionMessage}",
+                ex.Message
+            );
         }
     }
 

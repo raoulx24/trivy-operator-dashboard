@@ -4,9 +4,10 @@ namespace TrivyOperator.Dashboard.Application.Common.HealthChecks;
 
 public class WatchersReadinessHealthCheck : IHealthCheck
 {
-    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
-    {
+    public Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context,
+        CancellationToken cancellationToken = default
+    ) =>
         // TODO: Add logic
-        return Task.FromResult(HealthCheckResult.Healthy("App is ready"));
-    }
+        Task.FromResult(HealthCheckResult.Healthy("App is ready"));
 }

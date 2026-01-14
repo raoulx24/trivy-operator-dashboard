@@ -5,17 +5,24 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Services.ExposedSecretReport
 public interface IExposedSecretReportService
 {
     Task<IEnumerable<string>> GetActiveNamespaces();
-    Task<IEnumerable<ExposedSecretReportDenormalizedDto>> GetExposedSecretDenormalizedDtos(string? namespaceName = null);
+
+    Task<IEnumerable<ExposedSecretReportDenormalizedDto>>
+        GetExposedSecretDenormalizedDtos(string? namespaceName = null);
 
     Task<IEnumerable<ExposedSecretReportDto>> GetExposedSecretReportDtos(
         string? namespaceName = null,
-        IEnumerable<int>? excludedSeverities = null);
+        IEnumerable<int>? excludedSeverities = null
+    );
 
-    public Task<IEnumerable<ExposedSecretReportImageDto>> GetExposedSecretReportImageDtos(
+    Task<IEnumerable<ExposedSecretReportImageDto>> GetExposedSecretReportImageDtos(
         string? namespaceName = null,
-        IEnumerable<int>? excludedSeverities = null);
+        IEnumerable<int>? excludedSeverities = null
+    );
 
-    Task<ExposedSecretReportImageDto?> GetExposedSecretReportImageDtoByDigestNamespace(string digest, string namespaceName);
+    Task<ExposedSecretReportImageDto?> GetExposedSecretReportImageDtoByDigestNamespace(
+        string digest,
+        string namespaceName
+    );
 
-    public Task<IEnumerable<EsSeveritiesByNsSummaryDto>> GetExposedSecretReportSummaryDtos();
+    Task<IEnumerable<EsSeveritiesByNsSummaryDto>> GetExposedSecretReportSummaryDtos();
 }

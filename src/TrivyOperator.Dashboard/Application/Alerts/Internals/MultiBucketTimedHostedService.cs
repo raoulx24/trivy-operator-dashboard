@@ -9,16 +9,26 @@ public class MultiBucketTimedHostedService(
     string bucketName,
     string[] categories,
     string subBucket,
-    int subBucketCount) : IHostedService, IDisposable
+    int subBucketCount
+) : IHostedService, IDisposable
 {
-    private Timer? _timer;
-    private readonly Random _random = new();
     private readonly HashSet<string> _activeAlerts = new();
+    private readonly Random _random = new();
+    private Timer? _timer;
+
+    public void Dispose() => _timer?.Dispose();
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("{bucketName} alert service starting.", bucketName);
         _timer = new Timer(_ => DoWork(cancellationToken), null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        logger.LogInformation($"{bucketName} alert service stopping.");
+        _timer?.Change(Timeout.Infinite, 0);
         return Task.CompletedTask;
     }
 
@@ -32,7 +42,7 @@ public class MultiBucketTimedHostedService(
         {
             if (_activeAlerts.Add(key))
             {
-                var severity = GetRandomSeverity();
+                Severity severity = GetRandomSeverity();
                 string category = categories[_random.Next(categories.Length)];
                 string message = $"{bucketName} [{category}] {severity} alert on key {key}.";
 
@@ -43,9 +53,10 @@ public class MultiBucketTimedHostedService(
                         EmitterKey = key,
                         Message = message,
                         Severity = severity,
-                        Category = category
+                        Category = category,
                     },
-                    cancellationToken);
+                    cancellationToken
+                );
             }
         }
         else
@@ -62,39 +73,30 @@ public class MultiBucketTimedHostedService(
                     bucketName,
                     new Alert
                     {
-                        EmitterKey = keyToRemove
+                        EmitterKey = keyToRemove,
                     },
-                    cancellationToken);
+                    cancellationToken
+                );
             }
         }
     }
 
 
-    private static Severity GetRandomSeverity()
-    {
-        return (Severity)new Random().Next(3);
-    }
+    private static Severity GetRandomSeverity() => (Severity)new Random().Next(3);
 
     private static string GetRandomElement(HashSet<string> set, int index)
     {
         int i = 0;
-        foreach (var item in set)
+        foreach (string item in set)
         {
-            if (i == index) return item;
+            if (i == index)
+            {
+                return item;
+            }
+
             i++;
         }
+
         throw new InvalidOperationException("Index out of range.");
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        logger.LogInformation($"{bucketName} alert service stopping.");
-        _timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
     }
 }

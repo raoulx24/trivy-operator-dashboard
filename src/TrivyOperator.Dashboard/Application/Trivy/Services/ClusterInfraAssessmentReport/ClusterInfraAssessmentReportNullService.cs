@@ -11,6 +11,7 @@ public class ClusterInfraAssessmentReportNullService : IClusterInfraAssessmentRe
     public Task<ClusterInfraAssessmentReportDto?> GetClusterInfraAssessmentReportDtoByUid(Guid uid) =>
         Task.FromResult<ClusterInfraAssessmentReportDto?>(null);
 
-    public Task<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>> GetClusterInfraAssessmentReportDenormalizedDtos() =>
+    public Task<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>>
+        GetClusterInfraAssessmentReportDenormalizedDtos() =>
         Task.FromResult<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>>([]);
 }

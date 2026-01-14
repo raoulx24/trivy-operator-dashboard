@@ -5,13 +5,15 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Models;
 
 public class ClusterInfraAssessmentReportDto
 {
-    public Guid Uid { get; init; } = new Guid();
+    public Guid Uid { get; init; }
     public string ResourceName { get; init; } = string.Empty;
     public string ResourceKind { get; init; } = string.Empty;
     public long CriticalCount { get; init; }
     public long HighCount { get; init; }
     public long MediumCount { get; init; }
+
     public long LowCount { get; init; }
+
     //public DateTime? UpdateTimestamp { get; init; }
     public ClusterInfraAssessmentReportDetailDto[] Details { get; set; } = [];
 }
@@ -47,7 +49,9 @@ public class ClusterInfraAssessmentReportDenormalizedDto
 
 public static class ClusterInfraAssessmentReportCrExtensions
 {
-    public static ClusterInfraAssessmentReportDto ToClusterInfraAssessmentReportDto(this ClusterInfraAssessmentReportCr clusterInfraAssessmentReportCr)
+    public static ClusterInfraAssessmentReportDto ToClusterInfraAssessmentReportDto(
+        this ClusterInfraAssessmentReportCr clusterInfraAssessmentReportCr
+    )
     {
         List<ClusterInfraAssessmentReportDetailDto> clusterInfraAssessmentReportDetailDtos = [];
         foreach (Check check in clusterInfraAssessmentReportCr.Report?.Checks ?? [])
@@ -68,35 +72,35 @@ public static class ClusterInfraAssessmentReportCrExtensions
 
         ClusterInfraAssessmentReportDto clusterInfraAssessmentReportDto = new()
         {
-            Uid = Guid.TryParse(clusterInfraAssessmentReportCr.Metadata.Uid, out Guid parsedGuid)
-                ? parsedGuid
-                : new(),
+            Uid =
+                Guid.TryParse(clusterInfraAssessmentReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid
+                    : new Guid(),
             ResourceName =
                 clusterInfraAssessmentReportCr.Metadata.Labels != null &&
                 clusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.name",
-                    out string? resourceName)
-                    ? resourceName
-                    : string.Empty,
+                    out string? resourceName
+                ) ? resourceName : string.Empty,
             ResourceKind =
                 clusterInfraAssessmentReportCr.Metadata.Labels != null &&
                 clusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.kind",
-                    out string? resourceKind)
-                    ? resourceKind
-                    : string.Empty,
+                    out string? resourceKind
+                ) ? resourceKind : string.Empty,
             CriticalCount = clusterInfraAssessmentReportCr.Report?.Summary?.CriticalCount ?? 0,
             HighCount = clusterInfraAssessmentReportCr.Report?.Summary?.HighCount ?? 0,
             MediumCount = clusterInfraAssessmentReportCr.Report?.Summary?.MediumCount ?? 0,
             LowCount = clusterInfraAssessmentReportCr.Report?.Summary?.LowCount ?? 0,
-            Details = [.. clusterInfraAssessmentReportDetailDtos],
+            Details = [.. clusterInfraAssessmentReportDetailDtos,],
         };
 
         return clusterInfraAssessmentReportDto;
     }
 
-    public static IList<ClusterInfraAssessmentReportDenormalizedDto> ToClusterInfraAssessmentReportDetailDenormalizedDtos(
-        this ClusterInfraAssessmentReportCr clusterInfraAssessmentReportCr)
+    public static IList<ClusterInfraAssessmentReportDenormalizedDto>
+        ToClusterInfraAssessmentReportDetailDenormalizedDtos(
+            this ClusterInfraAssessmentReportCr clusterInfraAssessmentReportCr
+        )
     {
         if (clusterInfraAssessmentReportCr is null)
         {
@@ -121,16 +125,14 @@ public static class ClusterInfraAssessmentReportCrExtensions
                     clusterInfraAssessmentReportCr?.Metadata?.Labels != null &&
                     clusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                         "trivy-operator.resource.name",
-                        out string? resourceName)
-                        ? resourceName
-                        : string.Empty,
+                        out string? resourceName
+                    ) ? resourceName : string.Empty,
                 ResourceKind =
                     clusterInfraAssessmentReportCr?.Metadata?.Labels != null &&
                     clusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                         "trivy-operator.resource.kind",
-                        out string? resourceKind)
-                        ? resourceKind
-                        : string.Empty,
+                        out string? resourceKind
+                    ) ? resourceKind : string.Empty,
             };
             clusterInfraAssessmentReportDenormalizedDtos.Add(clusterInfraAssessmentReportDenormalizedDto);
         }

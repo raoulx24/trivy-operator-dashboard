@@ -7,6 +7,7 @@ public class Artifact : IArtifact
 {
     [JsonPropertyName("digest")]
     public string Digest { get; init; } = string.Empty;
+
     [JsonPropertyName("repository")]
     public string Repository { get; init; } = string.Empty;
 

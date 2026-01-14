@@ -6,7 +6,8 @@ namespace TrivyOperator.Dashboard.Application.TrivyReportDependencies.Controller
 
 [ApiController]
 [Route("api/trivy-report-dependencies")]
-public class TrivyReportDependenciesController(ITrivyReportDependenciesService trivyReportDependenciesServiceService) : ControllerBase
+public class TrivyReportDependenciesController(ITrivyReportDependenciesService trivyReportDependenciesServiceService)
+    : ControllerBase
 {
     [HttpGet("digest", Name = "GetTrivyReportDependecyDtoByDigestNamespace")]
     [ProducesResponseType<TrivyReportDependencyDto>(StatusCodes.Status200OK)]
@@ -14,7 +15,8 @@ public class TrivyReportDependenciesController(ITrivyReportDependenciesService t
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByDigestNamespace([FromQuery] string digest, [FromQuery] string namespaceName)
     {
-        TrivyReportDependencyDto? trivyReportDependencyDto = await trivyReportDependenciesServiceService.GetTrivyReportDependencies(digest, namespaceName);
+        TrivyReportDependencyDto? trivyReportDependencyDto =
+            await trivyReportDependenciesServiceService.GetTrivyReportDependencies(digest, namespaceName);
 
         return trivyReportDependencyDto is null ? NotFound() : Ok(trivyReportDependencyDto);
     }

@@ -6,6 +6,6 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers.Abst
 public interface IKubernetesEventDispatcher<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
 {
-    void StartEventsProcessing(CancellationToken cancellationToken);
     bool IsQueueProcessingStarted { get; }
+    void StartEventsProcessing(CancellationToken cancellationToken);
 }

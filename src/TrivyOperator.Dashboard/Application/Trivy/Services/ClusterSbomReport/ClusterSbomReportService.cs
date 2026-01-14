@@ -8,17 +8,16 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ClusterSbomReport;
 
 public class ClusterSbomReportService(
-    IConcurrentDictionaryCache<ClusterSbomReportCr> cache, 
-    IConcurrentDictionaryCache<ClusterVulnerabilityReportCr> cvrCache)
-    : IClusterSbomReportService
+    IConcurrentDictionaryCache<ClusterSbomReportCr> cache,
+    IConcurrentDictionaryCache<ClusterVulnerabilityReportCr> cvrCache
+) : IClusterSbomReportService
 {
     public Task<IEnumerable<ClusterSbomReportDto>> GetClusterSbomReportDtos()
     {
-        IEnumerable<ClusterSbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values)];
-        IEnumerable<ClusterVulnerabilityReportCr> chachedCvrValues = [.. cvrCache.SelectMany(kvp => kvp.Value.Values)];
+        IEnumerable<ClusterSbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<ClusterVulnerabilityReportCr> chachedCvrValues = [.. cvrCache.SelectMany(kvp => kvp.Value.Values),];
 
-        IEnumerable<ClusterSbomReportDto> values = cachedValues
-            .Select(cr => cr.ToClusterSbomReportDto())
+        IEnumerable<ClusterSbomReportDto> values = cachedValues.Select(cr => cr.ToClusterSbomReportDto())
             .GroupJoin(
                 chachedCvrValues,
                 sbom => sbom.Uid.ToString(),
@@ -38,10 +37,11 @@ public class ClusterSbomReportService(
 
                         foreach (Vulnerability cvrVulnerability in cvr.Report?.Vulnerabilities ?? [])
                         {
-                            var sbomDtoBoomRefs = sbomDto
-                            .Details
-                            .Where(detail => detail.Name == cvrVulnerability.Resource && detail.Version == cvrVulnerability.InstalledVersion);
-                            foreach (var sbomDtoBoomRef in sbomDtoBoomRefs)
+                            IEnumerable<ClusterSbomReportDetailDto> sbomDtoBoomRefs = sbomDto.Details.Where(detail =>
+                                detail.Name == cvrVulnerability.Resource &&
+                                detail.Version == cvrVulnerability.InstalledVersion
+                            );
+                            foreach (ClusterSbomReportDetailDto sbomDtoBoomRef in sbomDtoBoomRefs)
                             {
                                 switch (cvrVulnerability.Severity)
                                 {
@@ -64,17 +64,19 @@ public class ClusterSbomReportService(
                             }
                         }
                     }
+
                     return sbomDto;
-                });
-        
+                }
+            );
+
         return Task.FromResult(values);
     }
 
     public Task<IEnumerable<ClusterSbomReportDenormalizedDto>> GetClusterSbomReportDenormalizedDtos()
     {
-        IEnumerable<ClusterSbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values)];
-        IEnumerable<ClusterSbomReportDenormalizedDto> values = cachedValues
-            .SelectMany(cr => cr.ToClusterSbomReportDenormalizedDtos());
+        IEnumerable<ClusterSbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<ClusterSbomReportDenormalizedDto> values =
+            cachedValues.SelectMany(cr => cr.ToClusterSbomReportDenormalizedDtos());
         return Task.FromResult(values);
     }
 }

@@ -45,10 +45,7 @@ public class ExposedSecretReportController(IExposedSecretReportService exposedSe
     [ProducesResponseType<IEnumerable<ExposedSecretReportImageDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IResult> GetGroupedByImage(
-        string? namespaceName,
-        string? excludedSeverities,
-        string? digest)
+    public async Task<IResult> GetGroupedByImage(string? namespaceName, string? excludedSeverities, string? digest)
     {
         List<int>? excludedSeverityIds = TrivyUtils.GetExcludedSeverityIdsFromStringList(excludedSeverities);
 
@@ -67,9 +64,12 @@ public class ExposedSecretReportController(IExposedSecretReportService exposedSe
             ExposedSecretReportImageDto? exposedSecretReportImageDto =
                 await exposedSecretReportService.GetExposedSecretReportImageDtoByDigestNamespace(digest, namespaceName);
 
-            return exposedSecretReportImageDto is null
-                ? Results.NotFound()
-                : Results.Ok(new[] { exposedSecretReportImageDto });
+            return exposedSecretReportImageDto is null ? Results.NotFound() : Results.Ok(
+                new[]
+                {
+                    exposedSecretReportImageDto,
+                }
+            );
         }
 
         IEnumerable<ExposedSecretReportImageDto> exposedSecretReportImageDtos =

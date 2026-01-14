@@ -24,9 +24,11 @@ public class AppVersionsService(IConcurrentCache<long, GitHubRelease> cache) : I
     {
         Assembly assembly = Assembly.GetExecutingAssembly();
 
-        return new AppVersion {
+        return new AppVersion
+        {
             FileVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0",
-            InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0",
+            InformationalVersion =
+                assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0",
         };
     }
 }

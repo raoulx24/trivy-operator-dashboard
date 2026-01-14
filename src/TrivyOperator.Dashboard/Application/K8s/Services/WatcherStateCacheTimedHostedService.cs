@@ -13,11 +13,6 @@ public sealed class WatcherStateCacheTimedHostedService(
     ILogger<WatcherStateCacheTimedHostedService> logger
 ) : IHostedService, IDisposable
 {
-    ~WatcherStateCacheTimedHostedService()
-    {
-        Dispose(false);
-    }
-    
     private readonly int timeFrameInSeconds = (int)((options.Value.WatchTimeoutInSeconds * 1.1) + 60);
     private bool disposed;
     private Task? executingTask;
@@ -60,6 +55,11 @@ public sealed class WatcherStateCacheTimedHostedService(
         {
             await executingTask.WaitAsync(cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
         }
+    }
+
+    ~WatcherStateCacheTimedHostedService()
+    {
+        Dispose(false);
     }
 
     private void Execute(object? state)

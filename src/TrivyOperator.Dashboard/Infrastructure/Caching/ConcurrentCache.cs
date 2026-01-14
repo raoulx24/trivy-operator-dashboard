@@ -7,19 +7,20 @@ using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching;
 
-public class ConcurrentCache<TKey, TValue> : IConcurrentCache<TKey, TValue> where TKey : notnull
+public class ConcurrentCache<TKey, TValue> : IConcurrentCache<TKey, TValue>
+    where TKey : notnull
 {
+    private readonly ConcurrentDictionary<TKey, TValue> dictionary = new();
+
     public ConcurrentCache(IMetricsClient metricsClient)
     {
         metricsClient.CreateObservableGauge(
             $"{metricsClient.AppName}.cache.size",
             GetCacheMeasurements,
-            unit: "items",
-            description: "Tracks the size of the caches."
+            "items",
+            "Tracks the size of the caches."
         );
     }
-    
-    private readonly ConcurrentDictionary<TKey, TValue> dictionary = new();
 
     public TValue this[TKey key]
     {
@@ -59,7 +60,8 @@ public class ConcurrentCache<TKey, TValue> : IConcurrentCache<TKey, TValue> wher
             new(
                 dictionary.Count,
                 new KeyValuePair<string, object?>("value_kind", "generic"),
-                new KeyValuePair<string, object?>("value_type", typeof(TValue).Name)),
+                new KeyValuePair<string, object?>("value_type", typeof(TValue).Name)
+            ),
         ];
 
         return measurements;

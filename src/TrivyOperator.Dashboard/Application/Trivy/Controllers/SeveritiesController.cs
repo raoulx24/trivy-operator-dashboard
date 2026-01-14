@@ -17,7 +17,11 @@ public class SeveritiesController : ControllerBase
         List<SeverityDto> severityDtos = [];
         foreach (int severityId in Enum.GetValues(typeof(TrivySeverity)))
         {
-            SeverityDto severityDto = new() { Id = severityId, Name = ((TrivySeverity)severityId).ToString() };
+            SeverityDto severityDto = new()
+            {
+                Id = severityId,
+                Name = ((TrivySeverity)severityId).ToString(),
+            };
             severityDtos.Add(severityDto);
         }
 

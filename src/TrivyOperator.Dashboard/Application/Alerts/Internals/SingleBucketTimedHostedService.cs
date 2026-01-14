@@ -3,17 +3,27 @@ using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Alerts.Internals;
 
-public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedService> logger, IAlertsService alertService) : IHostedService, IDisposable
+public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedService> logger, IAlertsService alertService)
+    : IHostedService, IDisposable
 {
-    private Timer? _timer;
-    private readonly Random _random = new();
-    private readonly HashSet<string> _activeAlerts = [];
     private const string AlertEmitter = "SingleBucket";
+    private readonly HashSet<string> _activeAlerts = [];
+    private readonly Random _random = new();
+    private Timer? _timer;
+
+    public void Dispose() => _timer?.Dispose();
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("TimedAlertService starting.");
         _timer = new Timer(_ => DoWork(cancellationToken), null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        logger.LogInformation("TimedAlertService stopping.");
+        _timer?.Change(Timeout.Infinite, 0);
         return Task.CompletedTask;
     }
 
@@ -26,7 +36,7 @@ public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedServi
         {
             if (_activeAlerts.Add(key))
             {
-                var severity = GetRandomSeverity();
+                Severity severity = GetRandomSeverity();
 
                 await alertService.AddAlert(
                     AlertEmitter,
@@ -37,7 +47,8 @@ public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedServi
                         Severity = severity,
                         Category = "Test",
                     },
-                    cancellationToken);
+                    cancellationToken
+                );
             }
         }
         else
@@ -57,36 +68,27 @@ public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedServi
                         EmitterKey = keyToRemove,
                         // message and severity not required for removal
                     },
-                    cancellationToken);
+                    cancellationToken
+                );
             }
         }
     }
 
-    private static Severity GetRandomSeverity()
-    {
-        return (Severity)new Random().Next(3); // 0 = Info, 1 = Warning, 2 = Error
-    }
+    private static Severity GetRandomSeverity() => (Severity)new Random().Next(3); // 0 = Info, 1 = Warning, 2 = Error
 
     private static string GetRandomElement(HashSet<string> set, int index)
     {
         int i = 0;
-        foreach (var item in set)
+        foreach (string item in set)
         {
-            if (i == index) return item;
+            if (i == index)
+            {
+                return item;
+            }
+
             i++;
         }
+
         throw new InvalidOperationException("Index out of range.");
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        logger.LogInformation("TimedAlertService stopping.");
-        _timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
     }
 }

@@ -18,12 +18,13 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
     ILogger<NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>>
-        logger)
-    : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
-        backgroundQueue,
-        options,
-        metricsClient,
-        logger), INamespacedWatcher<TKubernetesObject>
+        logger
+) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+    backgroundQueue,
+    options,
+    metricsClient,
+    logger
+), INamespacedWatcher<TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
     where TKubernetesWatcherEvent : IWatcherEvent<TKubernetesObject>, new()
@@ -49,17 +50,17 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
         watcherKey,
         lastResourceVersion,
         GetWatcherRandomTimeout(),
-        cancellationToken);
+        cancellationToken
+    );
 
     protected override async Task<TKubernetesObjectList> GetInitialResources(
         string watcherKey,
         string? continueToken,
-        CancellationToken? cancellationToken = null)
-    {
-        return await namespacedResourceWatchDomainService.GetResourceList(
-            watcherKey,
-            resourceListPageSize,
-            continueToken,
-            cancellationToken);
-    }
+        CancellationToken? cancellationToken = null
+    ) => await namespacedResourceWatchDomainService.GetResourceList(
+        watcherKey,
+        resourceListPageSize,
+        continueToken,
+        cancellationToken
+    );
 }

@@ -6,21 +6,15 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.Contexts;
 
 public class KubernetesContextService(IKubernetesClientFactory kubernetesClientFactory) : IKubernetesContextService
 {
-    public Task<IEnumerable<string>> GetContexts()
-    {
-        return Task.FromResult(kubernetesClientFactory.GetContexts());
-    }
+    public Task<IEnumerable<string>> GetContexts() => Task.FromResult(kubernetesClientFactory.GetContexts());
 
-    public Task<string> GetCurrentContext()
-    {
-        return Task.FromResult(kubernetesClientFactory.GetCurrentContext());
-    }
+    public Task<string> GetCurrentContext() => Task.FromResult(kubernetesClientFactory.GetCurrentContext());
 
     public Task<KubernetesContextsDto> GetKubernetesContextsDto()
     {
         KubernetesContextsDto contextDto = new()
         {
-            Contexts = [.. kubernetesClientFactory.GetContexts()],
+            Contexts = [.. kubernetesClientFactory.GetContexts(),],
             Current = kubernetesClientFactory.GetCurrentContext(),
         };
 

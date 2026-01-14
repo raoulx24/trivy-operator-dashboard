@@ -11,13 +11,15 @@ public interface INamespacedResourceWatchDomainService<TKubernetesObject, TKuber
     Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 
     Task<TKubernetesObjectList> GetResourceList(
         string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 
     Task<IList<TKubernetesObject>> GetResources(CancellationToken? cancellationToken = null);
     Task<IList<TKubernetesObject>> GetResources(string namespaceName, CancellationToken? cancellationToken = null);
@@ -26,5 +28,6 @@ public interface INamespacedResourceWatchDomainService<TKubernetesObject, TKuber
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        CancellationToken? cancellationToken = null);
+        CancellationToken? cancellationToken = null
+    );
 }
