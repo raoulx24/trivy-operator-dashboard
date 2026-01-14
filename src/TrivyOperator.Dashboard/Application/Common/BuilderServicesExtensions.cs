@@ -57,7 +57,6 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport.Abstractions;
-using TrivyOperator.Dashboard.Application.TrivyReportDependencies.Models;
 using TrivyOperator.Dashboard.Application.TrivyReportDependencies.Services;
 using TrivyOperator.Dashboard.Application.TrivyReportDependencies.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s;
@@ -78,6 +77,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Options;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi;
+using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
@@ -99,6 +99,7 @@ public static class BuilderServicesExtensions
         {
             if (string.IsNullOrWhiteSpace(kubernetesConfiguration.GetValue<string>("NamespaceList")))
             {
+                logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", typeof(V1Namespace).Name);
                 services.AddSingleton<NamespaceDomainService>();
                 services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(
                     sp => sp.GetRequiredService<NamespaceDomainService>());
@@ -107,6 +108,7 @@ public static class BuilderServicesExtensions
             }
             else
             {
+                logger?.LogInformation("Using StaticNamespaceDomainService for {kubernetesObjectType}", typeof(V1Namespace).Name);
                 services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>, 
                     StaticNamespaceDomainService>();
                 services.AddSingleton<IClusterScopedWatcher<V1Namespace>,
@@ -124,6 +126,7 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IKubernetesBackgroundQueue<V1Namespace>, KubernetesBackgroundQueue<V1Namespace>>();
         if (string.IsNullOrWhiteSpace(kubernetesConfiguration.GetValue<string>("NamespaceList")))
         {
+            logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", typeof(V1Namespace).Name);
             services.AddSingleton<NamespaceDomainService>();
             services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(
                 sp => sp.GetRequiredService<NamespaceDomainService>());
@@ -135,6 +138,7 @@ public static class BuilderServicesExtensions
         }
         else
         {
+            logger?.LogInformation("Using StaticNamespaceDomainService for {kubernetesObjectType}", typeof(V1Namespace).Name);
             services
                 .AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>,
                     StaticNamespaceDomainService>();
@@ -152,64 +156,73 @@ public static class BuilderServicesExtensions
         services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceService>();
     }
 
-    public static void AddTrivyServices(this IServiceCollection services, IConfiguration kubernetesConfiguration)
+    public static void AddTrivyServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // TODO: revert this
+        services.AddSingleton<ICustomResourceDefinitionFactory, CustomResourceDefinitionFactory>();
 
-        //services.AddSingleton<ICustomResourceDefinitionFactory, CustomResourceDefinitionFactory>();
+        services.AddClusterScopedTrivyServices<ClusterComplianceReportCr, IClusterComplianceReportService,
+            ClusterComplianceReportNullService, ClusterComplianceReportService>(configuration);
+        services.AddClusterScopedTrivyServices<ClusterInfraAssessmentReportCr, IClusterInfraAssessmentReportService,
+            ClusterInfraAssessmentReportNullService, ClusterInfraAssessmentReportService>(configuration);
+        services.AddClusterScopedTrivyServices<ClusterRbacAssessmentReportCr, IClusterRbacAssessmentReportService,
+            ClusterRbacAssessmentReportNullService, ClusterRbacAssessmentReportService>(configuration);
+        services.AddClusterScopedTrivyServices<ClusterSbomReportCr, IClusterSbomReportService,
+            ClusterSbomReportNullService, ClusterSbomReportService>(configuration);
+        services.AddClusterScopedTrivyServices<ClusterVulnerabilityReportCr, IClusterVulnerabilityReportService,
+            ClusterVulnerabilityReportNullService, ClusterVulnerabilityReportService>(configuration);
 
-        //services.AddClusterScopedService<ClusterComplianceReportCr, IClusterComplianceReportService,
-        //    ClusterComplianceReportNullService, ClusterComplianceReportService>(kubernetesConfiguration, "TrivyUseClusterComplianceReport");
-        //services.AddClusterScopedService<ClusterInfraAssessmentReportCr, IClusterInfraAssessmentReportService,
-        //    ClusterInfraAssessmentReportNullService, ClusterInfraAssessmentReportService>(kubernetesConfiguration, "TrivyUseClusterInfraAssessmentReport");
-        //services.AddClusterScopedService<ClusterRbacAssessmentReportCr, IClusterRbacAssessmentReportService,
-        //    ClusterRbacAssessmentReportNullService, ClusterRbacAssessmentReportService>(kubernetesConfiguration, "TrivyUseClusterRbacAssessmentReport");
-        //services.AddClusterScopedService<ClusterSbomReportCr, IClusterSbomReportService,
-        //    ClusterSbomReportNullService, ClusterSbomReportService>(kubernetesConfiguration, "TrivyUseClusterSbomReport");
-        //services.AddClusterScopedService<ClusterVulnerabilityReportCr, IClusterVulnerabilityReportService, 
-        //    ClusterVulnerabilityReportNullService, ClusterVulnerabilityReportService>(kubernetesConfiguration, "TrivyUseClusterVulnerabilityReport");
-
-        //services.AddNamespacedService<ConfigAuditReportCr, IConfigAuditReportService, 
-        //    ConfigAuditReportNullService, ConfigAuditReportService>(kubernetesConfiguration, "TrivyUseConfigAuditReport");
-        //services.AddNamespacedService<ExposedSecretReportCr, IExposedSecretReportService, 
-        //    ExposedSecretReportNullService, ExposedSecretReportService>(kubernetesConfiguration, "TrivyUseExposedSecretReport");
-        //services.AddNamespacedService<InfraAssessmentReportCr, IInfraAssessmentReportService,
-        //    InfraAssessmentReportNullService, InfraAssessmentReportService>(kubernetesConfiguration, "TrivyUseInfraAssessmentReport");
-        //services.AddNamespacedService<RbacAssessmentReportCr, IRbacAssessmentReportService,
-        //    RbacAssessmentReportNullService, RbacAssessmentReportService>(kubernetesConfiguration, "TrivyUseRbacAssessmentReport");
-        //services.AddNamespacedService<SbomReportCr, ISbomReportService, 
-        //    SbomReportNullService, SbomReportService>(kubernetesConfiguration, "TrivyUseSbomReport");
-        //services.AddNamespacedService<VulnerabilityReportCr, IVulnerabilityReportService, 
-        //    VulnerabilityReportNullService, VulnerabilityReportService>(kubernetesConfiguration, "TrivyUseVulnerabilityReport");
-        TestFileRepo(services);
+        services.AddNamespacedTrivyServices<ConfigAuditReportCr, IConfigAuditReportService,
+            ConfigAuditReportNullService, ConfigAuditReportService>(configuration);
+        services.AddNamespacedTrivyServices<ExposedSecretReportCr, IExposedSecretReportService,
+            ExposedSecretReportNullService, ExposedSecretReportService>(configuration);
+        services.AddNamespacedTrivyServices<InfraAssessmentReportCr, IInfraAssessmentReportService,
+            InfraAssessmentReportNullService, InfraAssessmentReportService>(configuration);
+        services.AddNamespacedTrivyServices<RbacAssessmentReportCr, IRbacAssessmentReportService,
+            RbacAssessmentReportNullService, RbacAssessmentReportService>(configuration);
+        services.AddNamespacedTrivyServices<SbomReportCr, ISbomReportService,
+            SbomReportNullService, SbomReportService>(configuration);
+        services.AddNamespacedTrivyServices<VulnerabilityReportCr, IVulnerabilityReportService,
+            VulnerabilityReportNullService, VulnerabilityReportService>(configuration);
     }
 
-    public static void TestFileRepo(IServiceCollection services)
-    {
-        services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
-        services.AddSingleton<
-            IFileTrivyReportDomainService<VulnerabilityReportCr>,
-            FileTrivyReportDomainService<VulnerabilityReportCr>>();
-
-        services.AddSingleton<
-            IConcurrentDictionaryCache<VulnerabilityReportCr>,
-            FileResourcePassthroughCache<VulnerabilityReportCr>>();
-
-        services.AddScoped<IVulnerabilityReportService, VulnerabilityReportService>();
-    }
-
-    public static void AddNamespacedService<TNamespacedTrivyReportCr, TAppServiceInterface,
-        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration kubernetesConfiguration, string trivyUseReportParamName)
+    public static void AddNamespacedTrivyServices<TNamespacedTrivyReportCr, TAppServiceInterface,
+        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration configuration)
         where TNamespacedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
         where TAppServiceInterface : class
         where TNullAppService : class, TAppServiceInterface
         where TAppService : class, TAppServiceInterface
     {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>(trivyUseReportParamName);
-        bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
+        TrivyConfigHelper.GetConfigFor<TNamespacedTrivyReportCr>(
+            configuration,
+            out string? className,
+            out string? shortClassName,
+            out bool? useServices,
+            out bool? useDefaultContext,
+            out string? pvcName,
+            out string? subpath);
 
-        if (useServices == null || !(bool)useServices)
+        if (!string.IsNullOrWhiteSpace(pvcName) && useServices != null && (bool)useServices  && !string.IsNullOrWhiteSpace(subpath))
         {
+            logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
+            services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
+            services.AddSingleton<
+                IFileTrivyReportDomainService<TNamespacedTrivyReportCr>,
+                FileTrivyReportDomainService<TNamespacedTrivyReportCr>>();
+
+            services.AddSingleton<
+                IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
+                FileResourcePassthroughCache<TNamespacedTrivyReportCr>>();
+
+            services.AddScoped<TAppServiceInterface, TAppService>();
+            services.AddSingleton<INamespacedResourceWatchDomainService<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>,
+                FileTrivyReportPassThroughDomainService<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
+
+            return;
+        }
+
+        if (useServices == null || !(bool)useServices || (!string.IsNullOrWhiteSpace(pvcName) && string.IsNullOrWhiteSpace(subpath)))
+        {
+            logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
             services.AddScoped<TAppServiceInterface, TNullAppService>();
             services.AddTransient<IConcurrentDictionaryCache<TNamespacedTrivyReportCr>, ConcurrentDictionaryCache<TNamespacedTrivyReportCr>>();
             return;
@@ -217,12 +230,14 @@ public static class BuilderServicesExtensions
 
         if (useDefaultContext == null || !(bool)useDefaultContext)
         {
+            logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
             services.AddSingleton<
                 IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
                 NamespacedResourcePassthroughCache<TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
         }
         else
         {
+            logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", className);
             services.AddSingleton<
                 IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
                 ConcurrentDictionaryCache<TNamespacedTrivyReportCr>>();
@@ -247,18 +262,42 @@ public static class BuilderServicesExtensions
             NamespacedTrivyReportDomainService<TNamespacedTrivyReportCr>>();
     }
 
-    public static void AddClusterScopedService<TClusterScopedTrivyReportCr, TAppServiceInterface,
-        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration kubernetesConfiguration, string trivyUseReportParamName)
+    public static void AddClusterScopedTrivyServices<TClusterScopedTrivyReportCr, TAppServiceInterface,
+        TNullAppService, TAppService>(this IServiceCollection services, IConfiguration configuration)
         where TClusterScopedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
         where TAppServiceInterface : class
         where TNullAppService : class, TAppServiceInterface
         where TAppService : class, TAppServiceInterface
     {
-        bool? useServices = kubernetesConfiguration.GetValue<bool?>(trivyUseReportParamName);
-        bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
+        TrivyConfigHelper.GetConfigFor<TClusterScopedTrivyReportCr>(
+            configuration,
+            out string? className,
+            out string? shortClassName,
+            out bool? useServices,
+            out bool? useDefaultContext,
+            out string? pvcName,
+            out string? subpath);
 
-        if (useServices == null || !(bool)useServices)
+        if (!string.IsNullOrWhiteSpace(pvcName) && useServices != null && (bool)useServices && !string.IsNullOrWhiteSpace(subpath))
         {
+            logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
+            services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
+            services.AddSingleton<
+                IFileTrivyReportDomainService<TClusterScopedTrivyReportCr>,
+                FileTrivyReportDomainService<TClusterScopedTrivyReportCr>>();
+
+            services.AddSingleton<
+                IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
+                FileResourcePassthroughCache<TClusterScopedTrivyReportCr>>();
+
+            services.AddScoped<TAppServiceInterface, TAppService>();
+
+            return;
+        }
+
+        if (useServices == null || !(bool)useServices || (!string.IsNullOrWhiteSpace(pvcName) && string.IsNullOrWhiteSpace(subpath)))
+        {
+            logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
             services.AddScoped<TAppServiceInterface, TNullAppService>();
             services.AddTransient<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>, ConcurrentDictionaryCache<TClusterScopedTrivyReportCr>>();
             return;
@@ -266,12 +305,14 @@ public static class BuilderServicesExtensions
 
         if (useDefaultContext == null || !(bool)useDefaultContext)
         {
+            logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
             services.AddSingleton<
                 IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
                 ClusterResourcePassthroughCache<TClusterScopedTrivyReportCr, CustomResourceList<TClusterScopedTrivyReportCr>>>();
         }
         else
         {
+            logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", className);
             services
                 .AddSingleton<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
                     ConcurrentDictionaryCache<TClusterScopedTrivyReportCr>>();
@@ -295,6 +336,38 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IClusterScopedResourceWatchDomainService<TClusterScopedTrivyReportCr, CustomResourceList<TClusterScopedTrivyReportCr>>,
             ClusterScopedTrivyReportDomainService<TClusterScopedTrivyReportCr>>();
     }
+
+    private static class TrivyConfigHelper
+    {
+        public static void GetConfigFor<T>(
+            IConfiguration config,
+            out string className,
+            out string shortClassName,
+            out bool? useServices,
+            out bool? useDefaultContext,
+            out string? pvcName,
+            out string? subpath)
+        {
+            className = typeof(T).Name;
+
+            shortClassName = className.EndsWith("Cr", StringComparison.Ordinal)
+                ? className[..^2]
+                : className;
+
+            useServices =
+                config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}");
+
+            useDefaultContext =
+                config.GetValue<bool?>("Kubernetes:UseDefaultContext");
+
+            pvcName =
+                config.GetValue<string>("FileRepository:PvcName");
+
+            subpath =
+                config.GetValue<string>($"FileRepository:{className}Subpath");
+        }
+    }
+
 
     public static void AddWatcherStateServices(this IServiceCollection services)
     {
@@ -325,7 +398,6 @@ public static class BuilderServicesExtensions
         services.AddHostedService<WatcherStateCacheTimedHostedService>();
 
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
-        //services.AddScoped<IKubernetesContextProvider, DefaultKubernetesContextProvider>();
         services.AddScoped<IKubernetesContextProvider, HttpHeaderKubernetesContextProvider>();
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
 
@@ -366,8 +438,7 @@ public static class BuilderServicesExtensions
 
     public static void AddOthers(this IServiceCollection services)
     {
-        // TODO: revert this
-        //services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
+        services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
     }
 
     public static void AddOpenTelemetry(this IServiceCollection services, IConfiguration configuration, string applicationName)
@@ -463,4 +534,6 @@ public static class BuilderServicesExtensions
                 }
             });
     }
+
+    public static ILogger? logger { get; set; }
 }

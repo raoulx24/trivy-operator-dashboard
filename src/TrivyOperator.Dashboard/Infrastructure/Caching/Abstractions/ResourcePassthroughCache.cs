@@ -21,7 +21,7 @@ public abstract class ResourcePassthroughCache<TValue>()
             .GroupBy(item => CacheUtils.GetCacheRefreshKey(item))
             .ToDictionary(
                 g => g.Key,
-                g => BuildInner(g.ToList())
+                g => BuildInner([.. g])
             );
 
     // ---------------------------------------------------------

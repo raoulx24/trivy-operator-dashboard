@@ -76,7 +76,7 @@ builder.Services.AddAlertsServices();
 builder.Services.AddWatcherStateServices();
 IConfigurationSection k8SConfigurationSection = configuration.GetSection("Kubernetes");
 builder.Services.AddV1NamespaceServices(k8SConfigurationSection);
-builder.Services.AddTrivyServices(k8SConfigurationSection);
+builder.Services.AddTrivyServices(configuration);
 
 builder.Services.AddUiCommons();
 builder.Services.AddOthers();
@@ -229,6 +229,7 @@ static void ConfigureLogging(IConfiguration configuration)
     Log.Logger = loggerConfiguration.CreateLogger();
     SerilogLoggerFactory serilogLoggerFactory = new(Log.Logger);
     Logger = serilogLoggerFactory.CreateLogger<Program>();
+    BuilderServicesExtensions.logger = Logger;
     AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
     TaskScheduler.UnobservedTaskException += TaskSchedulerUnobservedTaskException;
 }

@@ -36,6 +36,11 @@ public class FileTrivyReportDomainService<TTrivyReport>(
         await Parallel.ForEachAsync(files, ct, async (file, token) =>
         {
             bool isValidFile = false;
+            Exception? simpleObectException = null;
+            Exception? arrayObjectException = null;
+            Exception? fileException = null;
+
+
             try
             {
                 logger.LogDebug("Processing file {fileName} for report type {kubernetesObjectType}", file, typeof(TTrivyReport).Name);
@@ -48,14 +53,17 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                     TTrivyReport? item = await JsonSerializer.DeserializeAsync<TTrivyReport>(stream, jsonSerializerOptions, token);
                     if (item?.Metadata != null)
                     {
-                        item.Metadata.Uid = GuidUtils.GetDeterministicGuid($"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}").ToString();
+                        item.Metadata.Uid = GuidUtils.GetDeterministicGuid(
+                            $"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}-{typeof(TTrivyReport).Name}").ToString();
                         results.Add(item);
                         isValidFile = true;
                     }
                 }
                 catch(Exception ex)
                 {
-                    logger.LogError(ex, "Error deserializing file {fileName} as single object for report type {kubernetesObjectType}", file, typeof(TTrivyReport).Name);
+                    logger.LogDebug(ex, "Error deserializing file {fileName} as single object for report type {kubernetesObjectType}",
+                        file, typeof(TTrivyReport).Name);
+                    simpleObectException = ex;
                 }
 
                 // Reset stream for the second attempt
@@ -71,7 +79,8 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                         {
                             if (item?.Metadata != null)
                             {
-                                item.Metadata.Uid = GuidUtils.GetDeterministicGuid($"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}").ToString();
+                                item.Metadata.Uid = GuidUtils.GetDeterministicGuid(
+                                    $"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}-{typeof(TTrivyReport).Name}").ToString();
                                 results.Add(item);
                                 isValidFile = true;
                             }
@@ -79,25 +88,45 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                         return;
                     }
                 }
-                catch
+                catch(Exception ex)
                 {
-                    // ignore, fallback to a single object
+                    logger.LogDebug(ex, "Error deserializing file {fileName} as array for report type {kubernetesObjectType}",
+                        file, typeof(TTrivyReport).Name);
+                    arrayObjectException = ex;
                 }
 
 
             }
-            catch
+            catch(Exception ex)
             {
-                // unreadable file - skip
+                logger.LogDebug(ex, "Error reading file {fileName} for report type {kubernetesObjectType}",
+                    file, typeof(TTrivyReport).Name);
+                fileException = ex;
             }
-            
-            if (!isValidFile)
-                logger.LogWarning("Skipped invalid or unreadable file {fileName} for report type {kubernetesObjectType}", file, typeof(TTrivyReport).Name);
+
+            List<Exception> exceptions = [];
+            if (simpleObectException != null) exceptions.Add(simpleObectException);
+            if (arrayObjectException != null) exceptions.Add(arrayObjectException);
+            if (fileException != null) exceptions.Add(fileException);
+
+            if (!isValidFile && exceptions.Count > 0)
+            {
+                AggregateException aggregateException = new("Failed to process file", exceptions);
+                logger.LogWarning(aggregateException, "Skipped invalid or unreadable file {fileName} for report type {kubernetesObjectType}", file, typeof(TTrivyReport).Name);
+            }
+            else if (!isValidFile)
+            {
+                logger.LogWarning("Skipped invalid file {fileName} for report type {kubernetesObjectType}", file, typeof(TTrivyReport).Name);
+            }
+                
         });
 
         return [.. results,];
     }
 
-    public Task<IList<TTrivyReport>> GetAllReportsAsync(string key, CancellationToken? cancellationToken = null)
-        => GetAllReportsAsync(cancellationToken);
+    public async Task<IList<TTrivyReport>> GetAllReportsAsync(string key, CancellationToken? cancellationToken = null)
+    {
+        IList<TTrivyReport> resources = await GetAllReportsAsync(cancellationToken);
+        return [.. resources.Where(r => r.Metadata.NamespaceProperty == key)];
+    }
 }
