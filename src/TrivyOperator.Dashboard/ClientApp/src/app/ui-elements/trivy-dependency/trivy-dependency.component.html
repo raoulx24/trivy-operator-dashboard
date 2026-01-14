@@ -1,18 +1,25 @@
-<p-splitter class="mb-8" [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
-            [panelSizes]="[45, 55]" stateStorage="local" [stateKey]="screenSize !== 'sm' ? 'splitter.TrivyDependency' : undefined" >
+<p-splitter
+  stateStorage="local"
+  class="mb-8"
+  [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
+  [panelSizes]="[45, 55]"
+  [stateKey]="screenSize !== 'sm' ? 'splitter.TrivyDependency' : undefined"
+>
   <ng-template #panel>
-    <div class="trivy-tree-table trivy-half overflow-auto" >
-      <p-treeTable [value]="treeNodes"
-                   [resizableColumns]="true"
-                   [virtualScrollItemSize]="49"
-                   scrollHeight="flex"
-                   columnResizeMode="expand"
-                   selectionMode="single"
-                   [(selection)]="selectedTreeNode"
-                   (onNodeSelect)="onTreeTableNodeSelect($event)"
-                   (onNodeUnselect)="onTreeTableNodeUnselect()"
-                   class="p-treetable-sm text-sm w-full"
-                   dataKey="id">
+    <div class="trivy-tree-table trivy-half overflow-auto">
+      <p-treeTable
+        columnResizeMode="expand"
+        dataKey="id"
+        scrollHeight="flex"
+        selectionMode="single"
+        class="p-treetable-sm text-sm w-full"
+        [resizableColumns]="true"
+        [value]="treeNodes"
+        [virtualScrollItemSize]="49"
+        [(selection)]="selectedTreeNode"
+        (onNodeSelect)="onTreeTableNodeSelect($event)"
+        (onNodeUnselect)="onTreeTableNodeUnselect()"
+      >
         <ng-template pTemplate="colgroup">
           <colgroup>
             <col style="width: auto" />
@@ -25,20 +32,20 @@
             <col style="width: 120px" />
           </colgroup>
         </ng-template>
-        <ng-template pTemplate="header" let-rowNode>
+        <ng-template let-rowNode pTemplate="header">
           <tr class="sticky top-0 bg-white z-10">
             <th ttResizableColumn>Object Type</th>
             <th ttResizableColumn>Name</th>
-            <th ttResizableColumn style="width: 60px">C</th>
-            <th ttResizableColumn style="width: 60px">H</th>
-            <th ttResizableColumn style="width: 60px">M</th>
-            <th ttResizableColumn style="width: 60px">L</th>
-            <th ttResizableColumn style="width: 60px">U</th>
-            <th ttResizableColumn style="width: 120px"></th>
+            <th style="width: 60px" ttResizableColumn>C</th>
+            <th style="width: 60px" ttResizableColumn>H</th>
+            <th style="width: 60px" ttResizableColumn>M</th>
+            <th style="width: 60px" ttResizableColumn>L</th>
+            <th style="width: 60px" ttResizableColumn>U</th>
+            <th style="width: 120px" ttResizableColumn></th>
           </tr>
         </ng-template>
 
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+        <ng-template let-rowData="rowData" let-rowNode pTemplate="body">
           <tr [ttRow]="rowNode" [ttSelectableRow]="rowNode">
             <td style="width: 250px">
               <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
@@ -47,40 +54,52 @@
             <td [attr.colspan]="rowData.hasSeverities ? 1 : 6">{{ rowData.description }}</td>
             @if (rowData.hasSeverities) {
               <td style="width: 60px">
-                <p-tag [rounded]="true"
-                       [style]="0 | severityCssStyleById:(rowData.critical ?? -1)"
-                       [value]="rowData.critical | vulnerabilityCount" />
+                <p-tag
+                  [rounded]="true"
+                  [style]="0 | severityCssStyleById: rowData.critical ?? -1"
+                  [value]="rowData.critical | vulnerabilityCount"
+                />
               </td>
               <td style="width: 60px">
-                <p-tag [rounded]="true"
-                       [style]="1 | severityCssStyleById:(rowData.high ?? -1)"
-                       [value]="rowData.high | vulnerabilityCount" />
+                <p-tag
+                  [rounded]="true"
+                  [style]="1 | severityCssStyleById: rowData.high ?? -1"
+                  [value]="rowData.high | vulnerabilityCount"
+                />
               </td>
               <td style="width: 60px">
-                <p-tag [rounded]="true"
-                       [style]="2 | severityCssStyleById:(rowData.medium ?? -1)"
-                       [value]="rowData.medium | vulnerabilityCount" />
+                <p-tag
+                  [rounded]="true"
+                  [style]="2 | severityCssStyleById: rowData.medium ?? -1"
+                  [value]="rowData.medium | vulnerabilityCount"
+                />
               </td>
               <td style="width: 60px">
-                <p-tag [rounded]="true"
-                       [style]="3 | severityCssStyleById:(rowData.low ?? -1)"
-                       [value]="rowData.low | vulnerabilityCount" />
+                <p-tag
+                  [rounded]="true"
+                  [style]="3 | severityCssStyleById: rowData.low ?? -1"
+                  [value]="rowData.low | vulnerabilityCount"
+                />
               </td>
               <td style="width: 60px">
-                <p-tag [rounded]="true"
-                       [style]="4 | severityCssStyleById:(rowData.unknown ?? -1)"
-                       [value]="rowData.unknown | vulnerabilityCount" />
+                <p-tag
+                  [rounded]="true"
+                  [style]="4 | severityCssStyleById: rowData.unknown ?? -1"
+                  [value]="rowData.unknown | vulnerabilityCount"
+                />
               </td>
             }
 
             <td style="width: 100px">
               @if (rowData.isTrivyReport) {
-                <p-button class="tod-text-primary-color"
-                          label="Open... ⧉"
-                          size="small"
-                          text
-                          raised
-                          (onClick)="onOpenTrivyReport(rowData)" />
+                <p-button
+                  label="Open... ⧉"
+                  raised
+                  size="small"
+                  text
+                  class="tod-text-primary-color"
+                  (onClick)="onOpenTrivyReport(rowData)"
+                />
               }
             </td>
           </tr>
@@ -90,14 +109,14 @@
   </ng-template>
   <ng-template #panel>
     <div class="w-full">
-
-      <app-fcose [nodeDataDtos]="nodeDataDtos"
-                 [fcoseClasses]="'fcose fcose-half mt-2'"
-                 [idealEdgeLength]="30"
-                 [extraColorClasses]="extraColorClasses"
-                 [selectedNodeId]="selectedNodeId"
-                 (selectedNodeIdChange)="onGraphSelectedNodeIdChange($event)" />
+      <app-fcose
+        [extraColorClasses]="extraColorClasses"
+        [fcoseClasses]="'fcose fcose-half mt-2'"
+        [idealEdgeLength]="30"
+        [nodeDataDtos]="nodeDataDtos"
+        [selectedNodeId]="selectedNodeId"
+        (selectedNodeIdChange)="onGraphSelectedNodeIdChange($event)"
+      />
     </div>
   </ng-template>
 </p-splitter>
-

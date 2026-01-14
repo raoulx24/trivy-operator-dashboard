@@ -5,87 +5,97 @@
       <p-button icon="pi pi-search-minus" label="Zoom Out" size="small" [text]="true" (onClick)="onZoomOut()" />
       <p-button icon="pi pi-arrows-alt" label="Fit" size="small" [text]="true" (onClick)="onZoomFit()" />
       <div class="h-6 w-[2px] tod-separator mr-3 ml-1"></div>
-      <input type="search"
-             pInputText
-             [formControl]="inputFilterByNameControl"
-             placeholder="Highlight by name..."
-             style="width: 200px; font-size: 12px" />
+      <input
+        pInputText
+        placeholder="Highlight by name..."
+        style="width: 200px; font-size: 12px"
+        type="search"
+        [formControl]="inputFilterByNameControl"
+      />
       @if (!isStatic()) {
         <div class="h-6 w-[2px] tod-separator mr-1 ml-3"></div>
-        <p-button label="Hide Node"
-                  size="small"
-                  class="hidden-sm"
-                  [text]="true"
-                  [disabled]="graphSelectedNodes.length == 0"
-                  (onClick)="onDeleteNode()">
+        <p-button
+          label="Hide Node"
+          size="small"
+          class="hidden-sm"
+          [disabled]="graphSelectedNodes.length == 0"
+          [text]="true"
+          (onClick)="onDeleteNode()"
+        >
           <app-icon name="commit" />
         </p-button>
-        <p-button label="Hide Subtree"
-                  size="small"
-                  class="hidden-sm"
-                  [text]="true"
-                  [disabled]="isStatic() || graphSelectedNodes.length == 0"
-                  (onClick)="onDeleteNodeAndChildren()">
+        <p-button
+          label="Hide Subtree"
+          size="small"
+          class="hidden-sm"
+          [disabled]="isStatic() || graphSelectedNodes.length == 0"
+          [text]="true"
+          (onClick)="onDeleteNodeAndChildren()"
+        >
           <app-icon name="graph_2" />
         </p-button>
-        <p-button label="Undo"
-                  size="small"
-                  class="hidden-sm"
-                  [text]="true"
-                  [disabled]="isStatic() || currentDeletedNodesIndex == -1 || deletedNodes.length == 0"
-                  (onClick)="onUndo()">
+        <p-button
+          label="Undo"
+          size="small"
+          class="hidden-sm"
+          [disabled]="isStatic() || currentDeletedNodesIndex == -1 || deletedNodes.length == 0"
+          [text]="true"
+          (onClick)="onUndo()"
+        >
           <app-icon name="undo" />
         </p-button>
-        <p-button label="Redo"
-                  size="small"
-                  class="hidden-sm"
-                  [text]="true"
-                  [disabled]="isStatic() || currentDeletedNodesIndex >= deletedNodes.length - 1"
-                  (onClick)="onRedo()">
+        <p-button
+          label="Redo"
+          size="small"
+          class="hidden-sm"
+          [disabled]="isStatic() || currentDeletedNodesIndex >= deletedNodes.length - 1"
+          [text]="true"
+          (onClick)="onRedo()"
+        >
           <app-icon name="redo" />
         </p-button>
-        <p-button label="Show All"
-                  size="small"
-                  class="hidden-sm"
-                  [text]="true"
-                  [disabled]="deletedNodes.length == 0 || this.currentDeletedNodesIndex == -1"
-                  (onClick)="onShowAll()">
+        <p-button
+          label="Show All"
+          size="small"
+          class="hidden-sm"
+          [disabled]="deletedNodes.length == 0 || this.currentDeletedNodesIndex == -1"
+          [text]="true"
+          (onClick)="onShowAll()"
+        >
           <app-icon name="visibility" />
         </p-button>
         <div class="h-6 w-[2px] tod-separator mx-1"></div>
-        <p-button icon="pi pi-question-circle"
-                  size="small"
-                  class="hidden-sm"
-                  [text]="true"
-                  (onClick)="onHelp()">
+        <p-button icon="pi pi-question-circle" size="small" class="hidden-sm" [text]="true" (onClick)="onHelp()">
         </p-button>
       }
     </div>
   </app-trivy-toolbar>
   @if (!isStatic()) {
     <div class="flex items-center col-span-12 p-0">
-      <p-breadcrumb class="breadcrumb-no-background breadcrumb-no-overflow pl-2.5"
-                    [home]="navHome"
-                    [model]="navItems"
-                    (onItemClick)="onNavItemClick($event)"/>
+      <p-breadcrumb
+        class="breadcrumb-no-background breadcrumb-no-overflow pl-2.5"
+        [home]="navHome"
+        [model]="navItems"
+        (onItemClick)="onNavItemClick($event)"
+      />
     </div>
   }
   <div class="col-span-12">
-    <div #graphContainer [ngClass]="fcoseClasses()" class="graph-container"></div>
+    <div #graphContainer class="graph-container" [ngClass]="fcoseClasses()"></div>
   </div>
 </div>
 
-
-<p-dialog closable="true"
-          closeOnEscape="true"
-          dismissableMask="true"
-          resizable="true"
-          [breakpoints]="{ '1920px': '1800px', '576px': '90vw' }"
-          [style]="{ width: '1800px', height: '90vh' }"
-          [maximizable]="true"
-          [header]="'Mini Help'"
-          [modal]="true"
-          [(visible)]="isHelpDialogVisible">
+<p-dialog
+  closable="true"
+  closeOnEscape="true"
+  dismissableMask="true"
+  resizable="true"
+  [breakpoints]="{ '1920px': '1800px', '576px': '90vw' }"
+  [header]="'Mini Help'"
+  [maximizable]="true"
+  [modal]="true"
+  [style]="{ width: '1800px', height: '90vh' }"
+  [(visible)]="isHelpDialogVisible"
+>
   <ng-container #helpContainer></ng-container>
 </p-dialog>
-

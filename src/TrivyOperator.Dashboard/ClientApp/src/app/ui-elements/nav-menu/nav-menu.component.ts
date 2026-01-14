@@ -1,24 +1,22 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 
 import { AlertsService } from '../../services/alerts.service';
 import { DarkModeService } from '../../services/dark-mode.service';
+import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
 import { MainAppInitService } from '../../services/main-app-init.service';
 import { RouterEventEmitterService } from '../../services/router-event-emitter.service';
-import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
 
+import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
-import { MenuItem } from 'primeng/api';
 import { MenubarModule } from 'primeng/menubar';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-
 
 import { IconComponent } from '../icon/icon.component';
 
@@ -72,9 +70,9 @@ export class NavMenuComponent {
     }
 
     return dto.trivyReportConfigDtos
-      .filter(x => x.enabled)
-      .map(x => x.id ?? '')
-      .filter(id => !!id);
+      .filter((x) => x.enabled)
+      .map((x) => x.id ?? '')
+      .filter((id) => !!id);
   });
 
   showContextDropdown = computed(() => this.contexts().length >= 2);
@@ -153,7 +151,7 @@ export class NavMenuComponent {
               this.isDrawerVisible.set(false);
             },
           },
-        ]
+        ],
       },
       {
         label: 'Cluster Level',
@@ -205,7 +203,7 @@ export class NavMenuComponent {
               this.isDrawerVisible.set(false);
             },
           },
-        ]
+        ],
       },
       {
         label: 'Namespaced - Detailed',
@@ -266,7 +264,7 @@ export class NavMenuComponent {
               this.isDrawerVisible.set(false);
             },
           },
-        ]
+        ],
       },
       {
         label: 'Cluster Level - Detailed',
@@ -309,7 +307,7 @@ export class NavMenuComponent {
               this.isDrawerVisible.set(false);
             },
           },
-        ]
+        ],
       },
       {
         label: 'System',

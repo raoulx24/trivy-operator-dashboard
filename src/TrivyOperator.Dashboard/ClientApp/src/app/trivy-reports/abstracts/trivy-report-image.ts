@@ -21,14 +21,12 @@ export interface NarrowedResourceNameInfo {
 // i do not know yet how to name this class...
 export class ReportHelper {
   static getNarrowedResourceNames<T extends TrivyReportImageResourceDto>(
-    dto: TrivyReportImageDto<T>
+    dto: TrivyReportImageDto<T>,
   ): NarrowedResourceNameInfo {
-    const resourceNames: string[] =
-      dto.resources?.map((x) => x.name ?? 'unknown') ?? [];
+    const resourceNames: string[] = dto.resources?.map((x) => x.name ?? 'unknown') ?? [];
 
     const label = resourceNames.slice(0, 2).join(', ');
-    const buttonLink =
-      resourceNames.length > 2 ? ` [+${resourceNames.length - 2}]` : '[...]';
+    const buttonLink = resourceNames.length > 2 ? ` [+${resourceNames.length - 2}]` : '[...]';
 
     return {
       label,

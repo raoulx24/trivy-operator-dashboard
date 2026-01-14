@@ -1,40 +1,44 @@
-<app-generic-sbom [dataDtos]="dataDtos"
-                  [fullSbomDataDto]="selectedSbomReportImageDto"
-                  [isStatic]="false"
-                  [isTableLoading]="false"
-                  [selectedImageId]="selectedImageId"
-                  [isCompareDependantOnExternalData]="true"
-                  [compareFirstSelectedDto]="compareFirstSelectedDto"
-                  [compareSecondSelectedDto]="compareSecondSelectedDto"
-                  [stateKey]="'Cluster SBOM Reports'"
-                  [multiHeaderActions]="[
-                    { label: 'Info', icon: 'pi pi-info-circle', enabledIfDataLoaded: true },
-                    { label: 'Dive In', icon: 'pi pi-arrow-down-right', enabledIfRowSelected: true },
-                    { label: 'Compare with...', icon: 'pi pi-copy', enabledIfRowSelected: true },
-                    { label: '', specialAction: 'Clear Selection' },
-                    { label: '', specialAction: 'Clear Sort/Filters' },
-                    { label: '', specialAction: 'Collapse All' }
-                  ]"
+<app-generic-sbom
+  [compareFirstSelectedDto]="compareFirstSelectedDto"
+  [compareSecondSelectedDto]="compareSecondSelectedDto"
+  [dataDtos]="dataDtos"
+  [fullSbomDataDto]="selectedSbomReportImageDto"
+  [isCompareDependantOnExternalData]="true"
+  [isStatic]="false"
+  [isTableLoading]="false"
+  [multiHeaderActions]="[
+    { label: 'Info', icon: 'pi pi-info-circle', enabledIfDataLoaded: true },
+    { label: 'Dive In', icon: 'pi pi-arrow-down-right', enabledIfRowSelected: true },
+    { label: 'Compare with...', icon: 'pi pi-copy', enabledIfRowSelected: true },
+    { label: '', specialAction: 'Clear Selection' },
+    { label: '', specialAction: 'Clear Sort/Filters' },
+    { label: '', specialAction: 'Collapse All' },
+  ]"
+  [selectedImageId]="selectedImageId"
+  [stateKey]="'Cluster SBOM Reports'"
+  (compareFirstDtoRequested)="onCompareFirstDtoRequested($event)"
+  (compareSecondDtoRequested)="onCompareSecondDtoRequested($event)"
+  (multiActionEventChange)="onMultiActionEventChange($event)"
+  (refreshRequestedChange)="onRefreshRequestedChange()"
+  (selectedImageIdChange)="onSelectedImageIdChange($event)"
+/>
 
-                  (multiActionEventChange)="onMultiActionEventChange($event)"
-                  (refreshRequestedChange)="onRefreshRequestedChange()"
-                  (selectedImageIdChange)="onSelectedImageIdChange($event)"
-                  (compareFirstDtoRequested)="onCompareFirstDtoRequested($event)"
-                  (compareSecondDtoRequested)="onCompareSecondDtoRequested($event)" />
-
-@if(selectedSbomReportImageDto) {
-  <p-dialog closable="true"
-            closeOnEscape="true"
-            dismissableMask="true"
-            resizable="true"
-            [breakpoints]="{ '1700px': '1600px', '576px': '90vw' }"
-            [contentStyle]="{ height: '95vh' }"
-            [style]="{ width: '1600px', height: '95vh' }"
-            [maximizable]="true"
-            [header]="`Cluster SBOM Reports Details - ${selectedSbomReportImageDto.imageName}:${selectedSbomReportImageDto.imageTag}`"
-            [modal]="true"
-            [(visible)]="isSbomReportOverviewDialogVisible">
-
+@if (selectedSbomReportImageDto) {
+  <p-dialog
+    closable="true"
+    closeOnEscape="true"
+    dismissableMask="true"
+    resizable="true"
+    [breakpoints]="{ '1700px': '1600px', '576px': '90vw' }"
+    [contentStyle]="{ height: '95vh' }"
+    [header]="
+      `Cluster SBOM Reports Details - ${selectedSbomReportImageDto.imageName}:${selectedSbomReportImageDto.imageTag}`
+    "
+    [maximizable]="true"
+    [modal]="true"
+    [style]="{ width: '1600px', height: '95vh' }"
+    [(visible)]="isSbomReportOverviewDialogVisible"
+  >
     <div class="grid grid-cols-12 gap-4 h-full">
       <div class="col-span-12 md:col-span-4 h-full flex flex-col">
         <div style="height: 180px; min-height: 180px">
@@ -43,15 +47,13 @@
             <div class="col-span-3">
               <div class="flex items-center justify-between">
                 <span class="text-sm">Nodes</span>
-                <p-tag [rounded]="true"
-                       [value]="sbomReportDetailStatistics[5]?.toString() ?? 'N/A'" />
+                <p-tag [rounded]="true" [value]="sbomReportDetailStatistics[5]?.toString() ?? 'N/A'" />
               </div>
             </div>
             <div class="col-span-3">
               <div class="flex items-center justify-between">
                 <span class="text-sm">Edges</span>
-                <p-tag [rounded]="true"
-                       [value]="sbomReportDetailStatistics[6]?.toString() ?? 'N/A'" />
+                <p-tag [rounded]="true" [value]="sbomReportDetailStatistics[6]?.toString() ?? 'N/A'" />
               </div>
             </div>
           </div>
@@ -60,10 +62,12 @@
             @for (i of [0, 1, 2, 3, 4]; track i) {
               <div class="col-span-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm">{{ i | severityNameById:true }}</span>
-                  <p-tag [rounded]="true"
-                         [style]="i | severityCssStyleById:(sbomReportDetailStatistics[i] ?? -1)"
-                         [value]="sbomReportDetailStatistics[i] ?? -1 | vulnerabilityCount" />
+                  <span class="text-sm">{{ i | severityNameById: true }}</span>
+                  <p-tag
+                    [rounded]="true"
+                    [style]="i | severityCssStyleById: sbomReportDetailStatistics[i] ?? -1"
+                    [value]="sbomReportDetailStatistics[i] ?? -1 | vulnerabilityCount"
+                  />
                 </div>
               </div>
             }
@@ -72,23 +76,25 @@
       </div>
       <div class="col-span-12 md:col-span-8 h-[85vh] flex flex-col">
         <div class="overflow-auto h-full">
-          <p-treeTable [value]="sbomReportDetailPropertiesTreeNodes"
-                       [virtualScrollItemSize]="49"
-                       scrollHeight="flex"
-                       class="p-treetable-sm text-sm h-[85vh]">
+          <p-treeTable
+            scrollHeight="flex"
+            class="p-treetable-sm text-sm h-[85vh]"
+            [value]="sbomReportDetailPropertiesTreeNodes"
+            [virtualScrollItemSize]="49"
+          >
             <ng-template pTemplate="header">
               <tr style="height: 49px" class="sticky top-0 bg-white z-10">
                 <th ttSortableColumn="name">Property<p-treeTableSortIcon field="name" /></th>
-                <th class="text-right" style="width: 55px; max-width: 55px;">Count</th>
+                <th style="width: 55px; max-width: 55px" class="text-right">Count</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-              <tr [ttRow]="rowNode" style="height: 49px">
+            <ng-template let-rowData="rowData" let-rowNode pTemplate="body">
+              <tr style="height: 49px" [ttRow]="rowNode">
                 <td>
                   <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
                   {{ rowData.name }}
                 </td>
-                <td class="text-right" style="width: 55px; max-width: 55px;">
+                <td style="width: 55px; max-width: 55px" class="text-right">
                   {{ rowData.usedByCount }}
                 </td>
               </tr>

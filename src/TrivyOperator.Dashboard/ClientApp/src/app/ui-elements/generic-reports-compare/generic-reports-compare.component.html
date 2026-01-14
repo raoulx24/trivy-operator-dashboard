@@ -1,23 +1,28 @@
 <div class="grid grid-cols-12 gap-2 pb-2">
-  <app-namespace-image-selector class="col-span-12 xl:col-span-4 lg:col-span-6"
-                                [dataDtos]="namespacedImageDtos()"
-                                [namespacePlaceholder]="namespacePlaceholder()"
-                                [imagePlaceholder]="imagePlaceholder()"
-                                [(selectedImageId)]="firstSelectedTrivyReportId" />
-  <app-namespace-image-selector class="col-span-12 xl:col-span-4 lg:col-span-6"
-                                [dataDtos]="namespacedImageDtos()"
-                                [namespacePlaceholder]="namespacePlaceholder()"
-                                [imagePlaceholder]="imagePlaceholder()"
-                                [(selectedImageId)]="secondSelectedTrivyReportId" />
+  <app-namespace-image-selector
+    class="col-span-12 xl:col-span-4 lg:col-span-6"
+    [dataDtos]="namespacedImageDtos()"
+    [imagePlaceholder]="imagePlaceholder()"
+    [namespacePlaceholder]="namespacePlaceholder()"
+    [(selectedImageId)]="firstSelectedTrivyReportId"
+  />
+  <app-namespace-image-selector
+    class="col-span-12 xl:col-span-4 lg:col-span-6"
+    [dataDtos]="namespacedImageDtos()"
+    [imagePlaceholder]="imagePlaceholder()"
+    [namespacePlaceholder]="namespacePlaceholder()"
+    [(selectedImageId)]="secondSelectedTrivyReportId"
+  />
 </div>
 <div class="tod-content-border">
-  <app-trivy-table class="row"
-                   [activeNamespaces]="[]"
-                   [dataDtos]="trivyReportDetailsCompared"
-                   [trivyTableColumns]="comparedTableColumns()"
-
-                   [isCollapseAllVisible]="compareIsCollapseAllVisible()"
-                   [isResetFiltersVisible]="compareIsResetFiltersVisible()"
-                   [stateKey]="compareStateKey()"
-                   [extraClasses]="compareExtraClasses()" />
+  <app-trivy-table
+    class="row"
+    [activeNamespaces]="[]"
+    [dataDtos]="trivyReportDetailsCompared"
+    [extraClasses]="compareExtraClasses()"
+    [isCollapseAllVisible]="compareIsCollapseAllVisible()"
+    [isResetFiltersVisible]="compareIsResetFiltersVisible()"
+    [stateKey]="compareStateKey()"
+    [trivyTableColumns]="comparedTableColumns()"
+  />
 </div>

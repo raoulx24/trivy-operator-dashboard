@@ -1,19 +1,19 @@
 :root {
   /* primeng overrides */
-  --p-icon-size: .75rem;
+  --p-icon-size: 0.75rem;
   --p-border-radius-md: 2px;
 
   /* trivy operator dashboard specific used in primeng components */
   --tod-host-line-height: 19.5px;
   --tod-button-label-font-weight: 400;
   --tod-card-shadow: 0px 2px 4px 0 rgba(0, 0, 0, 0.6);
-  --tod-datatable-body-cell-padding: .25rem .6rem;
+  --tod-datatable-body-cell-padding: 0.25rem 0.6rem;
   --tod-datatable-footer-cell-background: var(--p-datatable-header-cell-background);
-  --tod-datatable-header-cell-padding: .5rem .5rem;
+  --tod-datatable-header-cell-padding: 0.5rem 0.5rem;
   --tod-datatable-column-title-font-weight: 400;
   --tod-selectbutton-border-radius: 4px;
-  --tod-tabs-tab-padding: .5rem .75rem;
-  --tod-tag-font-size: .75rem;
+  --tod-tabs-tab-padding: 0.5rem 0.75rem;
+  --tod-tag-font-size: 0.75rem;
   --tod-tag-font-weight: 600;
 
   /* generic vars */

@@ -1,73 +1,87 @@
-<p-splitter class="tod-splitter-no-borders tod-no-background mb-8"
-            [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
-            [panelSizes]="[35, 65]" stateStorage="local" [stateKey]="screenSize !== 'sm' ? `splitter.${stateKey()}` : undefined">
+<p-splitter
+  stateStorage="local"
+  class="tod-splitter-no-borders tod-no-background mb-8"
+  [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
+  [panelSizes]="[35, 65]"
+  [stateKey]="screenSize !== 'sm' ? `splitter.${stateKey()}` : undefined"
+>
   <ng-template #panel>
     <div class="w-full">
       <div class="pb-2">
-        <app-namespace-image-selector [dataDtos]="namespacedImageDtos"
-                                      [(selectedImageId)]="selectedImageId" />
+        <app-namespace-image-selector [dataDtos]="namespacedImageDtos" [(selectedImageId)]="selectedImageId" />
       </div>
       <div class="tod-content-border tod-content-background">
-        <app-trivy-table [dataDtos]="dependsOnBoms"
-                         [isLoading]="isTableLoading()"
-                         [trivyTableColumns]="dependsOnTableColumns"
-                         [singleSelectDataDto]="selectedSbomDetailDto"
-                         (selectedRowsChanged)="onTableSelectedRowChange($event)"
-                         (refreshRequested)="onRefreshRequested()"
-                         (multiHeaderActionRequested)="onMultiHeaderActionRequested($event)"
-
-                         [rowExpandData]="rowExpandResponse"
-                         (rowExpandDataChange)="onRowExpandChange($event)"
-
-                         [isRefreshVisible]="!isStatic()"
-                         [selectionMode]="'single'"
-                         [style]="{ width: '930px' }"
-                         [stateKey]="`${stateKey()} - Depends On`"
-                         [dataKey]="'bomRef'"
-                         [rowExpansionRender]="'table'"
-                         [extraClasses]="'trivy-with-filters-half'"
-                         [multiHeaderActions]="multiHeaderActions()" />
+        <app-trivy-table
+          [dataDtos]="dependsOnBoms"
+          [dataKey]="'bomRef'"
+          [extraClasses]="'trivy-with-filters-half'"
+          [isLoading]="isTableLoading()"
+          [isRefreshVisible]="!isStatic()"
+          [multiHeaderActions]="multiHeaderActions()"
+          [rowExpandData]="rowExpandResponse"
+          [rowExpansionRender]="'table'"
+          [selectionMode]="'single'"
+          [singleSelectDataDto]="selectedSbomDetailDto"
+          [stateKey]="`${stateKey()} - Depends On`"
+          [style]="{ width: '930px' }"
+          [trivyTableColumns]="dependsOnTableColumns"
+          (multiHeaderActionRequested)="onMultiHeaderActionRequested($event)"
+          (refreshRequested)="onRefreshRequested()"
+          (rowExpandDataChange)="onRowExpandChange($event)"
+          (selectedRowsChanged)="onTableSelectedRowChange($event)"
+        />
       </div>
     </div>
   </ng-template>
   <ng-template #panel>
     <div class="w-full flex flex-col tod-content-border h-full">
-      <app-fcose [nodeDataDtos]="nodeDataDtos"
-                 [selectedNodeId]="selectedSbomDetailBomRef"
-                 (activeNodeIdChange)="onActiveNodeIdChange($event)"
-                 (hoveredNodeIdChange)="onHoveredNodeDtoChange($event)"
-                 (selectedNodeIdChange)="onNodeIdChange($event)"
-                 (deletedNodeIdsChange)="onDeletedNodeIds($event)"
-                 (undeletedNodeIdsChange)="onUndeletedNodeIds($event)"
-                 class="px-2"/>
+      <app-fcose
+        class="px-2"
+        [nodeDataDtos]="nodeDataDtos"
+        [selectedNodeId]="selectedSbomDetailBomRef"
+        (activeNodeIdChange)="onActiveNodeIdChange($event)"
+        (deletedNodeIdsChange)="onDeletedNodeIds($event)"
+        (hoveredNodeIdChange)="onHoveredNodeDtoChange($event)"
+        (selectedNodeIdChange)="onNodeIdChange($event)"
+        (undeletedNodeIdsChange)="onUndeletedNodeIds($event)"
+      />
       @let dto = hoveredSbomDetailDto;
       @if (dto) {
-        <div class="mt-auto pb-1 pl-2" >
+        <div class="mt-auto pb-1 pl-2">
           <span>
-            <b>Name:</b> {{ dto.name }} -
-            <b>Version:</b> {{ dto.version }} -
-            <b>Dependencies:</b> {{ dto.dependsOn.length }}
+            <b>Name:</b> {{ dto.name }} - <b>Version:</b> {{ dto.version }} - <b>Dependencies:</b>
+            {{ dto.dependsOn.length }}
           </span>
-          <p-tag class="ml-2"
-                 [rounded]="true"
-                 [style]="0 | severityCssStyleById:dto.criticalCount"
-                 [value]="dto.criticalCount | vulnerabilityCount" />
-          <p-tag class="ml-2"
-                 [rounded]="true"
-                 [style]="1 | severityCssStyleById:dto.highCount"
-                 [value]="dto.highCount | vulnerabilityCount" />
-          <p-tag class="ml-2"
-                 [rounded]="true"
-                 [style]="2 | severityCssStyleById:dto.mediumCount"
-                 [value]="dto.mediumCount | vulnerabilityCount" />
-          <p-tag class="ml-2"
-                 [rounded]="true"
-                 [style]="3 | severityCssStyleById:dto.lowCount"
-                 [value]="dto.lowCount | vulnerabilityCount" />
-          <p-tag class="ml-2"
-                 [rounded]="true"
-                 [style]="4 | severityCssStyleById:dto.unknownCount"
-                 [value]="dto.unknownCount | vulnerabilityCount" />
+          <p-tag
+            class="ml-2"
+            [rounded]="true"
+            [style]="0 | severityCssStyleById: dto.criticalCount"
+            [value]="dto.criticalCount | vulnerabilityCount"
+          />
+          <p-tag
+            class="ml-2"
+            [rounded]="true"
+            [style]="1 | severityCssStyleById: dto.highCount"
+            [value]="dto.highCount | vulnerabilityCount"
+          />
+          <p-tag
+            class="ml-2"
+            [rounded]="true"
+            [style]="2 | severityCssStyleById: dto.mediumCount"
+            [value]="dto.mediumCount | vulnerabilityCount"
+          />
+          <p-tag
+            class="ml-2"
+            [rounded]="true"
+            [style]="3 | severityCssStyleById: dto.lowCount"
+            [value]="dto.lowCount | vulnerabilityCount"
+          />
+          <p-tag
+            class="ml-2"
+            [rounded]="true"
+            [style]="4 | severityCssStyleById: dto.unknownCount"
+            [value]="dto.unknownCount | vulnerabilityCount"
+          />
         </div>
       }
     </div>
@@ -75,28 +89,32 @@
 </p-splitter>
 
 @if (fullSbomDataDto() && isTrivyReportsCompareVisible()) {
-  <p-dialog closable="true"
-            closeOnEscape="true"
-            dismissableMask="true"
-            resizable="true"
-            maximizable="true"
-            [breakpoints]="{ '890px': '90vw' }"
-            [contentStyle]="{ height: '95vh' }"
-            [header]="`Compare ${stateKey()}`"
-            [modal]="true"
-            [style]="{ width: '90vw' }"
-            [(visible)]="isTrivyReportsCompareVisible" >
-    <app-generic-reports-compare [dataDtos]="[]"
-                                 [comparedTableColumns]="comparedTableColumns"
-                                 [namespacedImageDtos]="namespacedImageDtos"
-                                 [firstSelectedTrivyReportId]="fullSbomDataDto()?.uid"
-                                 [isDependantOnExternalData]="isCompareDependantOnExternalData()"
-                                 [firstSelectedDto]="compareFirstSelectedDto()"
-                                 [secondSelectedDto]="compareSecondSelectedDto()"
-                                 [compareIsResetFiltersVisible]="true"
-                                 [compareStateKey]="`${stateKey()} - Compared`"
-                                 [compareExtraClasses]="'trivy-with-filters'"
-                                 (firstDtoRequested)="onCompareFirstDtoRequested($event)"
-                                 (secondDtoRequested)="onCompareSecondDtoRequested($event)" />
+  <p-dialog
+    closable="true"
+    closeOnEscape="true"
+    dismissableMask="true"
+    maximizable="true"
+    resizable="true"
+    [breakpoints]="{ '890px': '90vw' }"
+    [contentStyle]="{ height: '95vh' }"
+    [header]="`Compare ${stateKey()}`"
+    [modal]="true"
+    [style]="{ width: '90vw' }"
+    [(visible)]="isTrivyReportsCompareVisible"
+  >
+    <app-generic-reports-compare
+      [comparedTableColumns]="comparedTableColumns"
+      [compareExtraClasses]="'trivy-with-filters'"
+      [compareIsResetFiltersVisible]="true"
+      [compareStateKey]="`${stateKey()} - Compared`"
+      [dataDtos]="[]"
+      [firstSelectedDto]="compareFirstSelectedDto()"
+      [firstSelectedTrivyReportId]="fullSbomDataDto()?.uid"
+      [isDependantOnExternalData]="isCompareDependantOnExternalData()"
+      [namespacedImageDtos]="namespacedImageDtos"
+      [secondSelectedDto]="compareSecondSelectedDto()"
+      (firstDtoRequested)="onCompareFirstDtoRequested($event)"
+      (secondDtoRequested)="onCompareSecondDtoRequested($event)"
+    />
   </p-dialog>
 }

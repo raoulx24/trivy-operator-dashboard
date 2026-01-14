@@ -4,7 +4,7 @@ export interface CarSeveritySummary {
 }
 
 export interface CarDetailsDto {
-  namespaceName: string,
-  values: { severityId: number, count: number }[],
-  isTotal: boolean
+  namespaceName: string;
+  values: { severityId: number; count: number }[];
+  isTotal: boolean;
 }

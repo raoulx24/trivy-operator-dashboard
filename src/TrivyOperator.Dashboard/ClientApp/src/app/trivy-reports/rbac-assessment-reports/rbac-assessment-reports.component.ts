@@ -11,14 +11,13 @@ import {
 } from '../constants/rbac-assessment-reports.constants';
 
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
-import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
+import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 
-import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
+import { DialogModule } from 'primeng/dialog';
 import { DataPageBase } from '../../abstracts/data-page-base';
-
 
 @Component({
   selector: 'app-rbac-assessment-reports',

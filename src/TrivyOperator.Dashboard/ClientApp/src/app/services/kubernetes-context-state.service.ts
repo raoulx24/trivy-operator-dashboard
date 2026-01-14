@@ -1,8 +1,7 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
-import { inject } from '@angular/core';
-import { KubernetesContextsService } from '../../api/services/kubernetes-contexts.service';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { KubernetesContextsDto } from '../../api/models/kubernetes-contexts-dto';
+import { KubernetesContextsService } from '../../api/services/kubernetes-contexts.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,10 +11,7 @@ export class KubernetesContextStateService {
   private readonly k8sService = inject(KubernetesContextsService);
 
   // --- Backend DTO as a signal ---
-  private readonly dto = toSignal(
-    this.k8sService.getKubernetesContexts(),
-    { initialValue: null }
-  );
+  private readonly dto = toSignal(this.k8sService.getKubernetesContexts(), { initialValue: null });
 
   // --- Derived backend values ---
   readonly contexts = computed(() => this.dto()?.contexts ?? []);

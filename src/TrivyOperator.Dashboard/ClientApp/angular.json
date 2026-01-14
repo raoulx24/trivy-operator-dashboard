@@ -25,7 +25,7 @@
             "outputPath": "dist",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [ "src/polyfills.ts" ],
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.app.json",
             "allowedCommonJsDependencies": [
               "cytoscape-fcose",
@@ -34,7 +34,7 @@
             "assets": [
               "src/assets"
             ],
-            "styles": [ "src/styles.scss" ],
+            "styles": ["src/styles.scss"],
             "scripts": []
           },
           "configurations": {
@@ -97,7 +97,7 @@
             "assets": [
               "src/assets"
             ],
-            "styles": [ "src/styles.scss" ],
+            "styles": ["src/styles.scss"],
             "scripts": []
           }
         },

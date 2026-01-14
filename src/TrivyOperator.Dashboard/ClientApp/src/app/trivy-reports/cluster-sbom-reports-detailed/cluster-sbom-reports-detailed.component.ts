@@ -4,8 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-cluster-sbom-reports-detailed',
   imports: [],
   templateUrl: './cluster-sbom-reports-detailed.component.html',
-  styleUrl: './cluster-sbom-reports-detailed.component.scss'
+  styleUrl: './cluster-sbom-reports-detailed.component.scss',
 })
-export class ClusterSbomReportsDetailedComponent {
-
-}
+export class ClusterSbomReportsDetailedComponent {}

@@ -1,7 +1,6 @@
-<div class="relative flex w-full items-center ">
+<div class="relative flex w-full items-center">
   @if (showLeftButton()) {
-    <button (click)="scrollLeft()"
-            class="absolute left-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full" >
+    <button class="absolute left-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full" (click)="scrollLeft()">
       <i class="pi pi-chevron-left text-sm"></i>
     </button>
   }
@@ -10,9 +9,8 @@
     <ng-content></ng-content>
   </div>
 
-  @if(showRightButton()) {
-    <button (click)="scrollRight()"
-            class="absolute right-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full" >
+  @if (showRightButton()) {
+    <button class="absolute right-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full" (click)="scrollRight()">
       <i class="pi pi-chevron-right text-sm"></i>
     </button>
   }

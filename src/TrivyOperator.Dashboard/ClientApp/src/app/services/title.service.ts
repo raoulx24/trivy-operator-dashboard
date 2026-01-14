@@ -19,7 +19,7 @@ export class TitleService {
   }
 
   private updateTitle(routeTitle: string) {
-    const fullTitle = [routeTitle.replace("Reports", "Reps"), this.defaultTitle].filter(Boolean).join(' - ');
+    const fullTitle = [routeTitle.replace('Reports', 'Reps'), this.defaultTitle].filter(Boolean).join(' - ');
     this.titleService.setTitle(fullTitle);
   }
 }

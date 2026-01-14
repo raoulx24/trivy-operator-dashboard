@@ -1,4 +1,4 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 
 import { ApiConfiguration } from '../../api/api-configuration';

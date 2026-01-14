@@ -11,9 +11,9 @@ export class ReactiveMap<TKey, TValue> {
 
   getAsync(key: TKey): Observable<TValue> {
     return this.subject.pipe(
-      filter(map => map.has(key)), // filters only when the key exists in the map.
-      map(map => map.get(key)!),
-      timeout(30000) // if the key is not found for 30 seconds, it throws an error.
+      filter((map) => map.has(key)), // filters only when the key exists in the map.
+      map((map) => map.get(key)!),
+      timeout(30000), // if the key is not found for 30 seconds, it throws an error.
     );
   }
 

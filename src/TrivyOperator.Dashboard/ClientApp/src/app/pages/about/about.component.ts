@@ -1,17 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 
-import { MarkdownModule } from 'ngx-markdown';
-import { provideMarkdown } from 'ngx-markdown';
+import { MarkdownModule, provideMarkdown } from 'ngx-markdown';
 import { CardModule } from 'primeng/card';
 import { PanelModule } from 'primeng/panel';
-import { TagModule} from 'primeng/tag'
+import { TagModule } from 'primeng/tag';
 
-import { AppVersionService } from '../../../api/services/app-version.service';
+import { AppVersion } from '../../../api/models/app-version';
 import { GitHubReleaseDto } from '../../../api/models/git-hub-release-dto';
-import { AppVersion } from '../../../api/models/app-version'
-import { AboutCredits } from './about.types';
+import { AppVersionService } from '../../../api/services/app-version.service';
 import { VersionUtils } from '../../utils/version.utils';
+import { AboutCredits } from './about.types';
 
 @Component({
   selector: 'app-about',
@@ -31,35 +30,54 @@ export class AboutComponent implements OnInit {
 
   credits: AboutCredits[] = [
     {
-      name: 'Trivy Operator', imgSrc: 'assets/trivy-operator-logo.png', imgAlt: 'Trivy Operator Logo', imgExtraStyle: 'filter: invert(1)',
-      homeUrl: 'https://trivy.dev/latest/', gitUrl: 'https://github.com/aquasecurity/trivy-operator',
-      docsUrl: 'https://aquasecurity.github.io/trivy-operator/latest/'
+      name: 'Trivy Operator',
+      imgSrc: 'assets/trivy-operator-logo.png',
+      imgAlt: 'Trivy Operator Logo',
+      imgExtraStyle: 'filter: invert(1)',
+      homeUrl: 'https://trivy.dev/latest/',
+      gitUrl: 'https://github.com/aquasecurity/trivy-operator',
+      docsUrl: 'https://aquasecurity.github.io/trivy-operator/latest/',
     },
     {
-      name: '.NET', imgSrc: 'assets/dotnet.png', imgAlt: 'dot net Logo',
-      homeUrl: 'https://dotnet.microsoft.com/en-us/', gitUrl: 'https://github.com/dotnet/core',
-      docsUrl: 'https://learn.microsoft.com/en-us/dotnet/'
+      name: '.NET',
+      imgSrc: 'assets/dotnet.png',
+      imgAlt: 'dot net Logo',
+      homeUrl: 'https://dotnet.microsoft.com/en-us/',
+      gitUrl: 'https://github.com/dotnet/core',
+      docsUrl: 'https://learn.microsoft.com/en-us/dotnet/',
     },
     {
-      name: 'Angular', imgSrc: 'assets/angular-js.png', imgAlt: 'Angular 18 Logo',
-      homeUrl: 'https://angular.dev/', gitUrl: 'https://github.com/angular/angular',
-      docsUrl: 'https://angular.dev/overview'
+      name: 'Angular',
+      imgSrc: 'assets/angular-js.png',
+      imgAlt: 'Angular 18 Logo',
+      homeUrl: 'https://angular.dev/',
+      gitUrl: 'https://github.com/angular/angular',
+      docsUrl: 'https://angular.dev/overview',
     },
     {
-      name: 'PrimeNG', imgSrc: 'assets/primeng.png', imgAlt: 'PrimeNG Logo',
-      homeUrl: 'https://primeng.org/', gitUrl: 'https://github.com/primefaces/primeng',
-      docsUrl: 'https://primeng.org/installation'
+      name: 'PrimeNG',
+      imgSrc: 'assets/primeng.png',
+      imgAlt: 'PrimeNG Logo',
+      homeUrl: 'https://primeng.org/',
+      gitUrl: 'https://github.com/primefaces/primeng',
+      docsUrl: 'https://primeng.org/installation',
     },
     {
-      name: 'tailwind css', imgSrc: 'assets/tailwind.png', imgAlt: 'tailwind Logo',
-      homeUrl: 'https://tailwindcss.com/', gitUrl: 'https://github.com/tailwindlabs/tailwindcss',
-      docsUrl: 'https://tailwindcss.com/docs/installation/using-vite'
+      name: 'tailwind css',
+      imgSrc: 'assets/tailwind.png',
+      imgAlt: 'tailwind Logo',
+      homeUrl: 'https://tailwindcss.com/',
+      gitUrl: 'https://github.com/tailwindlabs/tailwindcss',
+      docsUrl: 'https://tailwindcss.com/docs/installation/using-vite',
     },
     {
-      name: 'Open Telemetry', imgSrc: 'assets/opentelemetry.png', imgAlt: 'OpenTelemetry Logo',
-      homeUrl: 'https://opentelemetry.io/', gitUrl: 'https://github.com/open-telemetry',
-      docsUrl: 'https://opentelemetry.io/docs/'
-    }
+      name: 'Open Telemetry',
+      imgSrc: 'assets/opentelemetry.png',
+      imgAlt: 'OpenTelemetry Logo',
+      homeUrl: 'https://opentelemetry.io/',
+      gitUrl: 'https://github.com/open-telemetry',
+      docsUrl: 'https://opentelemetry.io/docs/',
+    },
   ];
 
   private readonly service = inject(AppVersionService);
@@ -80,8 +98,10 @@ export class AboutComponent implements OnInit {
   }
 
   private onReleaseNoteDtos(data: GitHubReleaseDto[]) {
-    this.releaseNotes.set(data.sort((a, b) => VersionUtils.parseVersion(b.tagName ?? '') - VersionUtils.parseVersion(a.tagName ?? '')));
-    this.latestVersion.set(data.find(x => x.isLatest)?.tagName?.replace('v', ''));
+    this.releaseNotes.set(
+      data.sort((a, b) => VersionUtils.parseVersion(b.tagName ?? '') - VersionUtils.parseVersion(a.tagName ?? '')),
+    );
+    this.latestVersion.set(data.find((x) => x.isLatest)?.tagName?.replace('v', ''));
     this.checkNewVersionAvailable();
   }
 
@@ -99,7 +119,7 @@ export class AboutComponent implements OnInit {
     }
 
     const parsedCurrentVersion = VersionUtils.parseVersion(localCurrentVersion.fileVersion ?? '0.0');
-    const parsedLastVersion = VersionUtils.parseVersion(localReleaseNotes[0].tagName ?? "0.0");
+    const parsedLastVersion = VersionUtils.parseVersion(localReleaseNotes[0].tagName ?? '0.0');
 
     this.newVersionAvailable.set(parsedLastVersion - parsedCurrentVersion > 0);
     this.experimentalVersion.set(parsedLastVersion - parsedCurrentVersion < 0);

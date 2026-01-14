@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { SelectModule } from 'primeng/select';
@@ -22,14 +22,13 @@ export const nonExistingNamespace = 'N/A';
     FormsModule,
     SelectModule,
     TagModule,
-    IconComponent
+    IconComponent,
   ],
   templateUrl: './namespace-image-selector.component.html',
   styleUrl: './namespace-image-selector.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NamespaceImageSelectorComponent {
-
   dataDtos = input.required<NamespacedImageDto[] | undefined>();
   disabled = input<boolean>(false);
 
@@ -60,7 +59,7 @@ export class NamespaceImageSelectorComponent {
       if (!this.initialImageIdHandled && selectedImg) {
         this.initialImageIdHandled = true;
 
-        const dto = dtos.find(x => x.uid === selectedImg);
+        const dto = dtos.find((x) => x.uid === selectedImg);
         if (dto) {
           this.selectedNamespace.set(dto.resourceNamespace);
         }
@@ -81,15 +80,11 @@ export class NamespaceImageSelectorComponent {
     });
   }
 
-
-
-
   activeNamespaces = computed(() => {
     const dtos = this.dataDtos();
     if (!dtos || dtos.length === 0) return [];
 
-    return Array.from(new Set(dtos.map(x => x.resourceNamespace)))
-      .sort((a, b) => (a > b ? 1 : -1));
+    return Array.from(new Set(dtos.map((x) => x.resourceNamespace))).sort((a, b) => (a > b ? 1 : -1));
   });
 
   selectedNamespace = model<string | undefined>(undefined);
@@ -101,8 +96,8 @@ export class NamespaceImageSelectorComponent {
     if (!dtos || !ns) return [];
 
     return dtos
-      .filter(x => x.resourceNamespace === ns)
-      .map(x => ({
+      .filter((x) => x.resourceNamespace === ns)
+      .map((x) => ({
         uid: x.uid ?? '',
         mainLabel: x.mainLabel,
         group: x.group,
@@ -120,7 +115,7 @@ export class NamespaceImageSelectorComponent {
     const id = this.selectedImageId();
     const list = this.imageDtos();
     if (!id || !list) return undefined;
-    return list.find(x => x.uid === id);
+    return list.find((x) => x.uid === id);
   });
 
   setNamespace(ns: string | undefined) {
@@ -129,7 +124,7 @@ export class NamespaceImageSelectorComponent {
     const images = this.imageDtos();
     const current = this.selectedImageId();
 
-    if (current && images.some(img => img.uid === current)) {
+    if (current && images.some((img) => img.uid === current)) {
       return;
     }
 

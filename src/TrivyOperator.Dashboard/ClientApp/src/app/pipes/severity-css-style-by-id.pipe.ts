@@ -1,6 +1,6 @@
 import { inject, Pipe, PipeTransform } from '@angular/core';
-import { SeverityUtils } from '../utils/severity.utils';
 import { SettingsService, SeverityColorByNameOption } from '../services/settings.service';
+import { SeverityUtils } from '../utils/severity.utils';
 
 @Pipe({
   name: 'severityCssStyleById',

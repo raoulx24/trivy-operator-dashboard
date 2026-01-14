@@ -1,6 +1,7 @@
 import { Component, effect, HostListener, inject, input, output, ViewChild } from '@angular/core';
 
 import { SeverityDto } from '../../../api/models/severity-dto';
+import { TrivyReport, TrivyReportDetail } from '../../trivy-reports/abstracts/trivy-report';
 import { SeverityUtils } from '../../utils/severity.utils';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import {
@@ -9,11 +10,9 @@ import {
   TrivyTableColumn,
   TrivyTableExpandRowData,
 } from '../trivy-table/trivy-table.types';
-import { TrivyReport, TrivyReportDetail } from '../../trivy-reports/abstracts/trivy-report';
 
 import { SplitterModule } from 'primeng/splitter';
 import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
-
 
 @Component({
   selector: 'app-generic-master-detail',
@@ -112,11 +111,10 @@ export class GenericMasterDetailComponent<
 
       if (ctx) {
         if (!this._lastEvent) {
-          this._lastEvent =
-            {
-              namespaceName: '',
-              selectedSeverityIds: SeverityUtils.severityDtos.map(x => x.id),
-            };
+          this._lastEvent = {
+            namespaceName: '',
+            selectedSeverityIds: SeverityUtils.severityDtos.map((x) => x.id),
+          };
         }
         this.refreshRequested.emit(this._lastEvent);
       }

@@ -3,14 +3,13 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { WatcherStatusDto } from '../../../api/models/watcher-status-dto';
 import { WatcherStatusService } from '../../../api/services/watcher-status.service';
 
+import { ApiWatcherStatusRecreatePost$Params } from '../../../api/fn/watcher-status/api-watcher-status-recreate-post';
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
-import { ApiWatcherStatusRecreatePost$Params } from '../../../api/fn/watcher-status/api-watcher-status-recreate-post';
 import { watcherStateColumns } from '../constants/watcher-state.constants';
 
-import { ButtonModule }  from 'primeng/button';
+import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { TrivyMessageService } from '../../services/trivy-message.service';
 import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
@@ -55,7 +54,7 @@ export class WatcherStateComponent extends DataPageBase implements OnInit {
     this.isLoading.set(false);
   }
 
-  onRowActionRequested(event: { row: WatcherStatusDto, col: string }) {
+  onRowActionRequested(event: { row: WatcherStatusDto; col: string }) {
     const { row, col } = event;
 
     if (col === 'recreateAction' && row.kubernetesObjectType) {
@@ -64,7 +63,6 @@ export class WatcherStateComponent extends DataPageBase implements OnInit {
       this.recreateWatcherResponseError = undefined;
       this.isActionStarted = false;
       this.isRecreateWatcherDialogVisible = true;
-
     } else {
       console.warn('Cannot recreate watcher: Missing type or incorrect action');
     }
@@ -77,8 +75,8 @@ export class WatcherStateComponent extends DataPageBase implements OnInit {
     const params: ApiWatcherStatusRecreatePost$Params = {
       body: {
         kubernetesObjectType: this.requestedRecreateWatcher.kubernetesObjectType,
-        namespaceName: this.requestedRecreateWatcher.namespaceName  // Fallback if null
-      }
+        namespaceName: this.requestedRecreateWatcher.namespaceName, // Fallback if null
+      },
     };
 
     this.service.apiWatcherStatusRecreatePost(params).subscribe({
@@ -93,7 +91,7 @@ export class WatcherStateComponent extends DataPageBase implements OnInit {
         } else {
           console.error('Unexpected Error:', err.message);
         }
-      }
+      },
     });
   }
 }

@@ -8,7 +8,7 @@ export interface NodeDataDto {
 }
 
 export interface DeletedNodes {
-  deleteType: "node" | "nodeAndChildren";
+  deleteType: 'node' | 'nodeAndChildren';
   mainNodeIds: string[];
   nodeIds: string[];
 }

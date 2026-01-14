@@ -35,7 +35,7 @@ export class SeverityUtils {
   }
 
   public static getCssColorByName(severityName: string): string {
-    const severityId = this.severityDtos.find(x => x.name == severityName)?.id ?? 4;
+    const severityId = this.severityDtos.find((x) => x.name == severityName)?.id ?? 4;
     return this.getCssColor(severityId);
   }
 
@@ -57,11 +57,11 @@ export class SeverityUtils {
   }
 
   public static getName(severityId: number): string {
-    return this.severityDtos.find(x => x.id === severityId)?.name ?? ''
+    return this.severityDtos.find((x) => x.id === severityId)?.name ?? '';
   }
 
   public static getShortName(severityId: number): string {
-    return this.severityDtos.find(x => x.id === severityId)?.short ?? ''
+    return this.severityDtos.find((x) => x.id === severityId)?.short ?? '';
   }
 
   public static getCapitalizedName(severityId: number): string {

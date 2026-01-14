@@ -8,7 +8,7 @@ import { SemaphoreStatusUtils } from '../utils/semaphore-status.utils';
 export class SemaphoreCssStyleByNamePipe implements PipeTransform {
   transform(semaphoreStatusNameStr: string): { [key: string]: string } {
     return {
-      'background': SemaphoreStatusUtils.getCssColorByName(semaphoreStatusNameStr),
+      background: SemaphoreStatusUtils.getCssColorByName(semaphoreStatusNameStr),
     };
   }
 }

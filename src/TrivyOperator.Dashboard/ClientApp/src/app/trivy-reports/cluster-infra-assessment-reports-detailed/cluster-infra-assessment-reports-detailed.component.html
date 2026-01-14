@@ -3,15 +3,14 @@
     csvFileName="Cluster Infra Assessment Reports"
     csvStorageKey="Cluster Infra Assessment Reports"
     [dataDtos]="dataDtos"
+    [isExportCsvVisible]="true"
+    [isFooterVisible]="true"
     [isLoading]="isLoading"
+    [isRefreshVisible]="true"
+    [isResetFiltersVisible]="true"
+    [stateKey]="'Cluster Infra Assessment Reports Detailed'"
+    [style]="{ width: '2200px' }"
     [trivyTableColumns]="trivyTableColumns"
     (refreshRequested)="getTableDataDtos()"
-
-    [isExportCsvVisible]="true"
-    [isResetFiltersVisible]="true"
-    [isRefreshVisible]="true"
-    [isFooterVisible]="true"
-    [style]="{ width: '2200px' }"
-    [stateKey]="'Cluster Infra Assessment Reports Detailed'"
   />
 </div>

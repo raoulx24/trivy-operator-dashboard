@@ -1,23 +1,27 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, signal } from '@angular/core';
 
 import { ConfigAuditReportSummaryDto } from '../../../../api/models/config-audit-report-summary-dto';
 import { ConfigAuditReportService } from '../../../../api/services/config-audit-report.service';
-import { PrimeNgChartUtils, PrimeNgHorizontalBarChartData, SeveritiesSummary } from '../../../utils/primeng-chart.utils';
+import {
+  PrimeNgChartUtils,
+  PrimeNgHorizontalBarChartData,
+  SeveritiesSummary,
+} from '../../../utils/primeng-chart.utils';
 import { CarDetailsDto, CarSeveritySummary } from './dashboard-config-audit-reports.types';
 
+import { ChartOptions } from 'chart.js';
 import { ButtonModule } from 'primeng/button';
 import { CarouselModule } from 'primeng/carousel';
 import { ChartModule } from 'primeng/chart';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ChartOptions } from 'chart.js';
 
 import { SeverityCssStyleByIdPipe } from '../../../pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '../../../pipes/severity-name-by-id.pipe';
 import { VulnerabilityCountPipe } from '../../../pipes/vulnerability-count.pipe';
-import { SeverityUtils } from '../../../utils/severity.utils';
 import { DarkModeService } from '../../../services/dark-mode.service';
+import { SeverityUtils } from '../../../utils/severity.utils';
 
 @Component({
   selector: 'app-dashboard-config-audit-reports',
@@ -169,10 +173,12 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
         {} as Record<string, number>,
       );
 
-    this.carSeveritySummaries.set(Object.keys(groupedSumForCarSeverities).map((key) => ({
-      severityName: key,
-      count: groupedSumForCarSeverities[key],
-    })));
+    this.carSeveritySummaries.set(
+      Object.keys(groupedSumForCarSeverities).map((key) => ({
+        severityName: key,
+        count: groupedSumForCarSeverities[key],
+      })),
+    );
   }
 
   private computeStatisticsByNs() {
@@ -205,14 +211,18 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
       });
 
     this.severitiesSummariesNamespace = Object.values(summaryMap);
-    this.barchartDataKindByNs.set(PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
-      this.severitiesSummariesNamespace,
-      this.showDistinctValues(),
-    ));
-    this.barchartDataKindBySev.set(PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
-      this.severitiesSummariesNamespace,
-      this.showDistinctValues(),
-    ));
+    this.barchartDataKindByNs.set(
+      PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
+        this.severitiesSummariesNamespace,
+        this.showDistinctValues(),
+      ),
+    );
+    this.barchartDataKindBySev.set(
+      PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
+        this.severitiesSummariesNamespace,
+        this.showDistinctValues(),
+      ),
+    );
   }
 
   private computeStatisticsByKind() {
@@ -245,13 +255,17 @@ export class DashboardConfigAuditReportsComponent implements OnInit {
       });
 
     this.severitiesSummariesNamespace = Object.values(summaryMap);
-    this.barchartDataNsByNs.set(PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
-      this.severitiesSummariesNamespace,
-      this.showDistinctValues(),
-    ));
-    this.barchartDataNsBySev.set(PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
-      this.severitiesSummariesNamespace,
-      this.showDistinctValues(),
-    ));
+    this.barchartDataNsByNs.set(
+      PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
+        this.severitiesSummariesNamespace,
+        this.showDistinctValues(),
+      ),
+    );
+    this.barchartDataNsBySev.set(
+      PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
+        this.severitiesSummariesNamespace,
+        this.showDistinctValues(),
+      ),
+    );
   }
 }

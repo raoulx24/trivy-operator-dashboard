@@ -12,34 +12,40 @@
     <div class="flex items-center gap-0">
       @if (alertsCount()) {
         <p-button icon="pi pi-bell" label="" [raised]="true" [rounded]="true" [text]="true" (click)="onAlertsClick()" />
-        <p-tag class="left-0 top-1/3 transform -translate-x-1/2 -translate-y-1/2 text-xs px-1 py-0.5 z-10"
-               [value]="alertsCount().toString()"
-               [rounded]="true"
-               severity="info">
+        <p-tag
+          severity="info"
+          class="left-0 top-1/3 transform -translate-x-1/2 -translate-y-1/2 text-xs px-1 py-0.5 z-10"
+          [rounded]="true"
+          [value]="alertsCount().toString()"
+        >
         </p-tag>
       }
 
-      <p-button [icon]="isDarkMode() ? 'pi pi-sun' : 'pi pi-moon'"
-                [raised]="true"
-                [rounded]="true"
-                [text]="true"
-                (click)="switchLightDarkMode()">
+      <p-button
+        [icon]="isDarkMode() ? 'pi pi-sun' : 'pi pi-moon'"
+        [raised]="true"
+        [rounded]="true"
+        [text]="true"
+        (click)="switchLightDarkMode()"
+      >
       </p-button>
     </div>
   </ng-template>
 </p-menubar>
 <p-drawer [baseZIndex]="10000" [closable]="false" [(visible)]="isDrawerVisible">
   @if (contexts().length > 1) {
-    <p-select class="w-full mb-2"
-              [options]="contexts()"
-              [ngModel]="selectedContext()"
-              (onChange)="onContextChange($event.value)" />
+    <p-select
+      class="w-full mb-2"
+      [ngModel]="selectedContext()"
+      [options]="contexts()"
+      (onChange)="onContextChange($event.value)"
+    />
   }
   <p-panelMenu class="w-full" [model]="items()" [multiple]="true">
-    <ng-template let-item #item>
+    <ng-template #item let-item>
       <a pRipple class="flex items-center cursor-pointer text-color px-4 py-2">
         @if (item.icon) {
-          <app-icon [name]="item.icon"/>
+          <app-icon [name]="item.icon" />
         }
         <span class="ml-2">{{ item.label }}</span>
       </a>

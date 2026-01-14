@@ -32,12 +32,14 @@
                 <span class="block text-center font-semibold">Config Audits - Severity by Namespace</span>
                 @if (barchartDataNsByNs()) {
                   <div class="flex justify-center">
-                    <p-chart height="60vh"
-                             type="bar"
-                             width="60vw"
-                             class="justify-center"
-                             [data]="barchartDataNsByNs()"
-                             [options]="horizontalBarChartOption()" />
+                    <p-chart
+                      height="60vh"
+                      type="bar"
+                      width="60vw"
+                      class="justify-center"
+                      [data]="barchartDataNsByNs()"
+                      [options]="horizontalBarChartOption()"
+                    />
                   </div>
                 }
               }
@@ -45,11 +47,13 @@
                 <span class="block text-center font-semibold">Config Audits - Namespace by Severity</span>
                 @if (barchartDataNsBySev()) {
                   <div class="flex justify-center">
-                    <p-chart height="60vh"
-                             type="bar"
-                             width="60vw"
-                             [data]="barchartDataNsBySev()"
-                             [options]="horizontalBarChartOption()" />
+                    <p-chart
+                      height="60vh"
+                      type="bar"
+                      width="60vw"
+                      [data]="barchartDataNsBySev()"
+                      [options]="horizontalBarChartOption()"
+                    />
                   </div>
                 }
               }
@@ -57,12 +61,14 @@
                 <span class="block text-center font-semibold">Config Audits - Severity by Kinds</span>
                 @if (barchartDataKindByNs()) {
                   <div class="flex justify-center">
-                    <p-chart height="60vh"
-                             type="bar"
-                             width="60vw"
-                             class="justify-center"
-                             [data]="barchartDataKindByNs()"
-                             [options]="horizontalBarChartOption()" />
+                    <p-chart
+                      height="60vh"
+                      type="bar"
+                      width="60vw"
+                      class="justify-center"
+                      [data]="barchartDataKindByNs()"
+                      [options]="horizontalBarChartOption()"
+                    />
                   </div>
                 }
               }
@@ -70,11 +76,13 @@
                 <span class="block text-center font-semibold">Config Audits - Kinds by Severity</span>
                 @if (barchartDataKindBySev()) {
                   <div class="flex justify-center">
-                    <p-chart height="60vh"
-                             type="bar"
-                             width="60vw"
-                             [data]="barchartDataKindBySev()"
-                             [options]="horizontalBarChartOption()" />
+                    <p-chart
+                      height="60vh"
+                      type="bar"
+                      width="60vw"
+                      [data]="barchartDataKindBySev()"
+                      [options]="horizontalBarChartOption()"
+                    />
                   </div>
                 }
               }
@@ -92,17 +100,19 @@
   dismissableMask="true"
   header="Config Audit Reports Details"
   resizable="true"
-  [maximizable]="true"
   [contentStyle]="{ height: '70vh' }"
+  [maximizable]="true"
   [modal]="true"
   [style]="{ width: '90vw' }"
   [(visible)]="isCarDetailsDialogVisible"
 >
-  <p-table scrollDirection="both"
-           class="p-datatable-sm text-sm"
-           [scrollable]="true"
-           scrollHeight="flex"
-           [value]="carDetailsDtos()">
+  <p-table
+    scrollDirection="both"
+    scrollHeight="flex"
+    class="p-datatable-sm text-sm"
+    [scrollable]="true"
+    [value]="carDetailsDtos()"
+  >
     <ng-template pTemplate="header">
       <tr>
         <th pFrozenColumn rowspan="2">Namespace</th>
@@ -125,11 +135,12 @@
         <td pFrozenColumn>{{ item.namespaceName }}</td>
         @for (value of item.values; track $index) {
           <td class="tod-text-center">
-            <p-tag [rounded]="true"
-                   [style]="value.severityId | severityCssStyleById:value.count"
-                   [value]="value.count | vulnerabilityCount" />
+            <p-tag
+              [rounded]="true"
+              [style]="value.severityId | severityCssStyleById: value.count"
+              [value]="value.count | vulnerabilityCount"
+            />
           </td>
-
         }
       </tr>
     </ng-template>
@@ -138,12 +149,14 @@
         <td pFrozenColumn class="font-bold">Total</td>
         @for (value of carDetailsDtoFooter().values; track $index) {
           <td class="tod-text-center">
-            <p-tag [rounded]="true"
-                   [style]="value.severityId | severityCssStyleById:value.count"
-                   [value]="value.count | vulnerabilityCount" />
+            <p-tag
+              [rounded]="true"
+              [style]="value.severityId | severityCssStyleById: value.count"
+              [value]="value.count | vulnerabilityCount"
+            />
           </td>
         }
-     </tr>
+      </tr>
     </ng-template>
   </p-table>
 </p-dialog>

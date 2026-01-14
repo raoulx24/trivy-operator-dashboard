@@ -1,13 +1,15 @@
 <p>Test works</p>
 
-<div style="height:700px">
-  <p-table [value]="dataDtos"
-           [loading]="isLoading"
-           scrollHeight="flex"
-           [scrollable]="true"
-           [virtualScroll]="true"
-           [virtualScrollItemSize]="47"
-           [tableStyle]="{ 'min-width': '50rem' }">
+<div style="height: 700px">
+  <p-table
+    scrollHeight="flex"
+    [loading]="isLoading"
+    [scrollable]="true"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    [value]="dataDtos"
+    [virtualScroll]="true"
+    [virtualScrollItemSize]="47"
+  >
     <ng-template #header>
       <tr>
         <th>uid</th>

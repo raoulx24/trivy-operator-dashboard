@@ -14,13 +14,23 @@ export class CronPipe implements PipeTransform {
 
   private daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   private monthsOfYear = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   private parseCron(cron: string): string {
     if (cron.split(' ').length != 5) {
-      return "Unknown format";
+      return 'Unknown format';
     }
 
     const [minute, hour, dayOfMonth, month, dayOfWeek] = cron.split(' ');
@@ -30,12 +40,10 @@ export class CronPipe implements PipeTransform {
     // Minute
     if (minute === '*') {
       readable.push('every minute');
-    }
-    else {
-      if (minute.startsWith("*/")) {
-        readable.push(`every ${minute.replace("*/", "")} minute(s)`);
-      }
-      else {
+    } else {
+      if (minute.startsWith('*/')) {
+        readable.push(`every ${minute.replace('*/', '')} minute(s)`);
+      } else {
         readable.push(`at minute ${minute}`);
       }
     }
@@ -43,12 +51,10 @@ export class CronPipe implements PipeTransform {
     // Hour
     if (hour === '*') {
       readable.push('every hour');
-    }
-    else {
-      if (hour.startsWith("*/")) {
-        readable.push(`every ${hour.replace("*/", "")} hour(s)`);
-      }
-      else {
+    } else {
+      if (hour.startsWith('*/')) {
+        readable.push(`every ${hour.replace('*/', '')} hour(s)`);
+      } else {
         readable.push(`at minute ${hour}`);
       }
     }
@@ -56,27 +62,22 @@ export class CronPipe implements PipeTransform {
     // Day of Month
     if (dayOfMonth === '*') {
       readable.push('every day');
-    } else
-    {
-      if (dayOfMonth.startsWith("*/")) {
-        readable.push(`every ${dayOfMonth.replace("*/", "")} day of month`);
-      }
-      else {
+    } else {
+      if (dayOfMonth.startsWith('*/')) {
+        readable.push(`every ${dayOfMonth.replace('*/', '')} day of month`);
+      } else {
         readable.push(`on day ${dayOfMonth}`);
       }
-      
     }
 
     // Month
     if (month === '*') {
       readable.push('every month');
-    } else
-    {
-      if (month.startsWith("*/")) {
-        readable.push(`every ${month.replace("*/", "")} month(s)`);
-      }
-      else {
-        const monthNames = month.split(',').map(m => this.monthsOfYear[parseInt(m, 10) - 1]);
+    } else {
+      if (month.startsWith('*/')) {
+        readable.push(`every ${month.replace('*/', '')} month(s)`);
+      } else {
+        const monthNames = month.split(',').map((m) => this.monthsOfYear[parseInt(m, 10) - 1]);
         readable.push(`in ${monthNames.join(', ')}`);
       }
     }
@@ -84,13 +85,11 @@ export class CronPipe implements PipeTransform {
     // Day of Week
     if (dayOfWeek === '*') {
       readable.push('on every day of the week');
-    } else
-    {
-      if (dayOfWeek.startsWith("*/")) {
-        readable.push(`every ${dayOfWeek.replace("*/", "")} day of week`);
-      }
-      else {
-        const weekDays = dayOfWeek.split(',').map(d => this.daysOfWeek[parseInt(d, 10)]);
+    } else {
+      if (dayOfWeek.startsWith('*/')) {
+        readable.push(`every ${dayOfWeek.replace('*/', '')} day of week`);
+      } else {
+        const weekDays = dayOfWeek.split(',').map((d) => this.daysOfWeek[parseInt(d, 10)]);
         readable.push(`on ${weekDays.join(', ')}`);
       }
     }

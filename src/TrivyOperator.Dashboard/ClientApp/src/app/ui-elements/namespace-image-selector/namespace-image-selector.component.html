@@ -1,15 +1,14 @@
 <div class="grid grid-cols-12 gap-2 items-stretch">
-
   <!-- Namespace selector -->
   <div class="col-span-4 flex w-full">
     <p-select
-      [placeholder]="namespacePlaceholder()"
       class="text-sm w-full"
+      [disabled]="disabled() || activeNamespaces().length === 0"
       [filter]="true"
-      [options]="activeNamespaces()"
-      [showClear]="true"
-      [disabled]="disabled() || (activeNamespaces().length === 0)"
       [ngModel]="selectedNamespace()"
+      [options]="activeNamespaces()"
+      [placeholder]="namespacePlaceholder()"
+      [showClear]="true"
       (ngModelChange)="selectedNamespace.set($event)"
     ></p-select>
   </div>
@@ -17,15 +16,15 @@
   <!-- Image selector -->
   <div class="col-span-8 flex items-center gap-2 justify-center">
     <p-select
-      optionLabel="mainLabel"
-      [placeholder]="imagePlaceholder()"
-      class="text-sm w-full"
       appendTo="body"
+      optionLabel="mainLabel"
+      class="text-sm w-full"
+      [disabled]="disabled() || activeNamespaces().length === 0"
       [filter]="true"
-      [options]="imageDtos()"
-      [showClear]="true"
-      [disabled]="disabled() || (activeNamespaces().length === 0)"
       [ngModel]="selectedImageDto()"
+      [options]="imageDtos()"
+      [placeholder]="imagePlaceholder()"
+      [showClear]="true"
       (ngModelChange)="setImage($event?.uid)"
     >
       <ng-template let-imageDto pTemplate="item">
@@ -37,10 +36,7 @@
           @if (imageDto.icon) {
             <div class="ml-auto">
               <p-tag rounded class="flex items-center">
-                <app-icon
-                  [name]="imageDto.icon"
-                  class="text-xs align-middle inline-block tod-text-contrast-color"
-                />
+                <app-icon class="text-xs align-middle inline-block tod-text-contrast-color" [name]="imageDto.icon" />
               </p-tag>
             </div>
           }
@@ -48,5 +44,4 @@
       </ng-template>
     </p-select>
   </div>
-
 </div>

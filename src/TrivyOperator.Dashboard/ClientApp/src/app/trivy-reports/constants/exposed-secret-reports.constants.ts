@@ -240,5 +240,5 @@ export const exposedSecretReportComparedTableColumns: readonly TrivyTableColumn[
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
   },
-  ... exposedSecretReportDetailColumns,
+  ...exposedSecretReportDetailColumns,
 ];

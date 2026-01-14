@@ -4,16 +4,14 @@
     csvStorageKey="Cluster RBAC Assessment Reports"
     [activeNamespaces]="activeNamespaces"
     [dataDtos]="dataDtos"
+    [isExportCsvVisible]="true"
+    [isFooterVisible]="true"
     [isLoading]="isLoading"
+    [isRefreshVisible]="true"
+    [isResetFiltersVisible]="true"
+    [stateKey]="'Cluster RBAC Assessment Reports Detailed'"
+    [style]="{ width: '1970px' }"
     [trivyTableColumns]="trivyTableColumns"
     (refreshRequested)="getTableDataDtos()"
-
-    [isExportCsvVisible]="true"
-    [isResetFiltersVisible]="true"
-    [isRefreshVisible]="true"
-    [isFooterVisible]="true"
-    [style]="{ width: '1970px' }"
-    [stateKey]="'Cluster RBAC Assessment Reports Detailed'"
-
   />
 </div>

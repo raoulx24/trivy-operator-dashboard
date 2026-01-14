@@ -1,25 +1,25 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Component, inject, OnInit } from '@angular/core';
 
-import { SbomReportService } from '../../../api/services';
 import { SbomReportImageDto } from '../../../api/models';
+import { SbomReportService } from '../../../api/services';
 import { sbomReportDenormalizedColumns } from '../constants/sbom-reports.constans';
 
-import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component'
+import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 
 import { MessageService } from 'primeng/api';
-import { namespacedColumns } from '../constants/generic.constants';
 import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
+import { namespacedColumns } from '../constants/generic.constants';
 
 @Component({
   selector: 'app-sbom-reports-detailed',
   standalone: true,
   imports: [TrivyTableComponent],
   templateUrl: './sbom-reports-detailed.component.html',
-  styleUrl: './sbom-reports-detailed.component.scss'
+  styleUrl: './sbom-reports-detailed.component.scss',
 })
-export class SbomReportsDetailedComponent  extends TrivyReportsDetailedBase implements OnInit {
+export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
   dataDtos: SbomReportImageDto[] | null = null;
   activeNamespaces: string[] = [];
   selectedDataDtos: SbomReportImageDto[] | null = null;
@@ -45,9 +45,7 @@ export class SbomReportsDetailedComponent  extends TrivyReportsDetailedBase impl
 
   private onGetDataDtos(dtos: SbomReportImageDto[]) {
     this.dataDtos = dtos;
-    this.activeNamespaces = Array
-      .from(new Set(dtos.map(dto => dto.resourceNamespace ?? "N/A")))
-      .sort();
+    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
     this.isTableLoading = false;
   }
 
@@ -57,38 +55,39 @@ export class SbomReportsDetailedComponent  extends TrivyReportsDetailedBase impl
 
   onMultiHeaderActionRequested(event: string) {
     switch (event) {
-      case "Export All":
-        this.exportSboms("all");
+      case 'Export All':
+        this.exportSboms('all');
         break;
-      case "Export Selected":
-        this.exportSboms("selected");
+      case 'Export Selected':
+        this.exportSboms('selected');
         break;
       default:
-        console.error("sbom detailed - multi action call back - unknown: " + event);
+        console.error('sbom detailed - multi action call back - unknown: ' + event);
     }
   }
 
-  exportSboms(exportType: "all" | "selected") {
+  exportSboms(exportType: 'all' | 'selected') {
     this.messageService.add({
-      severity: "info",
-      summary: "Download SBOMs",
-      detail: "Download request sent. Please wait...",
-    })
+      severity: 'info',
+      summary: 'Download SBOMs',
+      detail: 'Download request sent. Please wait...',
+    });
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     const params = new HttpParams().set('fileType', 'json');
     const apiUrl = `${this.service.rootUrl}api/sbom-reports/export`;
 
-    let sbomsExport: { namespaceName: string, digest: string }[];
+    let sbomsExport: { namespaceName: string; digest: string }[];
 
-    if (exportType == "all") {
-      sbomsExport = this.dataDtos?.map(x => {
-        return { namespaceName: x.resourceNamespace ?? "", digest: x.imageDigest ?? "" }
-      }) ?? [];
-    }
-    else {
-      sbomsExport = this.selectedDataDtos?.map(x => {
-        return { namespaceName: x.resourceNamespace ?? "", digest: x.imageDigest ?? "" }
-      }) ?? [];
+    if (exportType == 'all') {
+      sbomsExport =
+        this.dataDtos?.map((x) => {
+          return { namespaceName: x.resourceNamespace ?? '', digest: x.imageDigest ?? '' };
+        }) ?? [];
+    } else {
+      sbomsExport =
+        this.selectedDataDtos?.map((x) => {
+          return { namespaceName: x.resourceNamespace ?? '', digest: x.imageDigest ?? '' };
+        }) ?? [];
     }
 
     // const httpReq = new HttpRequest("POST", apiUrl, sbomsExport, { headers: headers, params: params, responseType: 'blob' });
@@ -105,7 +104,7 @@ export class SbomReportsDetailedComponent  extends TrivyReportsDetailedBase impl
       },
       error: (err) => {
         this.onError(err);
-      }
+      },
     });
   }
 }

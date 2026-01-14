@@ -1,21 +1,25 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, signal } from '@angular/core';
 
 import { EsSeveritiesByNsSummaryDto } from '../../../../api/models/es-severities-by-ns-summary-dto';
 import { ExposedSecretReportService } from '../../../../api/services/exposed-secret-report.service';
 import { EsTableSummary } from './dashboard-exposed-secret-reports.types';
 
-import { PrimeNgChartUtils, PrimeNgHorizontalBarChartData, SeveritiesSummary } from '../../../utils/primeng-chart.utils';
-import { DarkModeService } from '../../../services/dark-mode.service';
 import { SeverityCssStyleByIdPipe } from '../../../pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '../../../pipes/severity-name-by-id.pipe';
+import { DarkModeService } from '../../../services/dark-mode.service';
+import {
+  PrimeNgChartUtils,
+  PrimeNgHorizontalBarChartData,
+  SeveritiesSummary,
+} from '../../../utils/primeng-chart.utils';
 
+import { ChartOptions } from 'chart.js';
 import { ButtonModule } from 'primeng/button';
 import { CarouselModule } from 'primeng/carousel';
 import { ChartModule } from 'primeng/chart';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ChartOptions } from 'chart.js';
 import { VulnerabilityCountPipe } from '../../../pipes/vulnerability-count.pipe';
 
 @Component({
@@ -106,9 +110,11 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
   private computeValues() {
     const summary = this.exposedSecretReportSummaryDtos().find((x) => x.isTotal);
     if (summary && summary.details) {
-      this.esTableSummary.set(summary.details.map((x) => {
-        return { severityId: x.id!, count: this.showDistinctValues() ? (x.distinctCount ?? 0) : (x.totalCount ?? 0) };
-      }));
+      this.esTableSummary.set(
+        summary.details.map((x) => {
+          return { severityId: x.id!, count: this.showDistinctValues() ? (x.distinctCount ?? 0) : (x.totalCount ?? 0) };
+        }),
+      );
       this.severityIds = summary.details.map((x) => x.id!).sort((a, b) => a - b);
     }
 
@@ -117,14 +123,18 @@ export class DashboardExposedSecretReportsComponent implements OnInit {
       .filter((x) => x.namespaceName)
       .map((x) => x.namespaceName);
 
-    this.barchartDataNsByNs.set(PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
-      this.exposedSecretReportSummaryDtos() as SeveritiesSummary[],
-      this.showDistinctValues(),
-    ));
-    this.barchartDataNsBySev.set(PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
-      this.exposedSecretReportSummaryDtos() as SeveritiesSummary[],
-      this.showDistinctValues(),
-    ));
+    this.barchartDataNsByNs.set(
+      PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
+        this.exposedSecretReportSummaryDtos() as SeveritiesSummary[],
+        this.showDistinctValues(),
+      ),
+    );
+    this.barchartDataNsBySev.set(
+      PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
+        this.exposedSecretReportSummaryDtos() as SeveritiesSummary[],
+        this.showDistinctValues(),
+      ),
+    );
     this.horizontalBarChartOption.set(PrimeNgChartUtils.getHorizontalBarChartOption());
   }
 }

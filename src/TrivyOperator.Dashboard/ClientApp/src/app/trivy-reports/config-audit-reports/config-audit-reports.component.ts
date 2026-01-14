@@ -7,18 +7,18 @@ import { ConfigAuditReportService } from '../../../api/services/config-audit-rep
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { SeverityUtils } from '../../utils/severity.utils';
-import { namespacedColumns } from '../constants/generic.constants';
 import {
   configAuditReportColumns,
   configAuditReportComparedTableColumns,
   configAuditReportDetailColumns,
 } from '../constants/config-audit-reports.constants';
+import { namespacedColumns } from '../constants/generic.constants';
 
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 
-import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
+import { DialogModule } from 'primeng/dialog';
 import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({

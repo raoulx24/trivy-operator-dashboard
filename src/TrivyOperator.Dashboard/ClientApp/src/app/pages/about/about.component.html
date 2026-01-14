@@ -3,44 +3,53 @@
     <div class="grid grid-cols-12 gap-4">
       <div class="col-span-12 grid grid-cols-12 gap-4">
         <div class="col-span-12 xl:col-span-6 flex flex-col sm:flex-row items-start gap-4">
-
           <div class="w-[300px] flex-none">
-            <img src="assets/logo.blurred.png" alt="Trivy Operator Dashboard Logo"
-                 class="w-full" height="512" width="512"/>
+            <img
+              alt="Trivy Operator Dashboard Logo"
+              height="512"
+              src="assets/logo.blurred.png"
+              width="512"
+              class="w-full"
+            />
           </div>
           <div class="flex-1">
             <p class="text-lg font-semibold pb-2">Intro</p>
             <p class="pb-2">
-              Welcome to the <b>Trivy Operator Dashboard</b>, a comprehensive security management tool for Kubernetes environments.
+              Welcome to the <b>Trivy Operator Dashboard</b>, a comprehensive security management tool for Kubernetes
+              environments.
             </p>
             <p class="pb-2">
-              Built on top of the powerful <b>Trivy Operator</b> from <b>Aqua Security</b>, this dashboard provides insights into your
-              cluster's security posture. It offers detailed insights on vulnerability scans, policy validation scans, and
-              other ones. With an intuitive and user-friendly interface, you can easily monitor, detect, and respond to
-              security threats, ensuring your Kubernetes environment remains robust and secure.
+              Built on top of the powerful <b>Trivy Operator</b> from <b>Aqua Security</b>, this dashboard provides
+              insights into your cluster's security posture. It offers detailed insights on vulnerability scans, policy
+              validation scans, and other ones. With an intuitive and user-friendly interface, you can easily monitor,
+              detect, and respond to security threats, ensuring your Kubernetes environment remains robust and secure.
             </p>
             <p class="pb-2">
-              All features consist of dashboards (for a quick overview), browsing and inspecting findings (with table filters, sorts), and exporting data.
+              All features consist of dashboards (for a quick overview), browsing and inspecting findings (with table
+              filters, sorts), and exporting data.
             </p>
-            <p>More info on <a href="https://github.com/raoulx24/trivy-operator-dashboard" target="_blank">GitHub page</a>.</p>
+            <p>
+              More info on
+              <a href="https://github.com/raoulx24/trivy-operator-dashboard" target="_blank">GitHub page</a>.
+            </p>
           </div>
         </div>
 
         <div class="col-span-12 md:col-span-6 xl:col-span-3">
           <p class="text-lg font-semibold">Features</p>
-            <ul class="list-disc pl-5">
-              <li>Cluster Compliance Reports</li>
-              <li>Cluster Infra Assessment Reports</li>
-              <li>Cluster RBAC Assessment Reports</li>
-              <li>Cluster SBOM Reports</li>
-              <li>Cluster Vulnerability Reports</li>
-              <li>Config Audit Reports</li>
-              <li>Infra Assessment Reports</li>
-              <li>Exposed Secret Reports</li>
-              <li>RBAC Assessment Reports</li>
-              <li>SBOM Reports</li>
-              <li>Vulnerability Reports</li>
-            </ul>
+          <ul class="list-disc pl-5">
+            <li>Cluster Compliance Reports</li>
+            <li>Cluster Infra Assessment Reports</li>
+            <li>Cluster RBAC Assessment Reports</li>
+            <li>Cluster SBOM Reports</li>
+            <li>Cluster Vulnerability Reports</li>
+            <li>Config Audit Reports</li>
+            <li>Infra Assessment Reports</li>
+            <li>Exposed Secret Reports</li>
+            <li>RBAC Assessment Reports</li>
+            <li>SBOM Reports</li>
+            <li>Vulnerability Reports</li>
+          </ul>
         </div>
 
         <div class="col-span-12 md:col-span-6 xl:col-span-3">
@@ -48,18 +57,18 @@
           <div class="p-1">
             <span class="pr-2">Current Version:</span>
             @let localCurrentVersion = currentVersion();
-            <p-tag [rounded]="true" [value]="localCurrentVersion ? (localCurrentVersion.fileVersion) : 'n/a'" />
+            <p-tag [rounded]="true" [value]="localCurrentVersion ? localCurrentVersion.fileVersion : 'n/a'" />
           </div>
           <div class="p-1">
             <span class="pr-2">Latest Version:</span>
             <p-tag class="p-2" [rounded]="true" [value]="latestVersion() ?? 'n/a'" />
           </div>
           <div class="p-1">
-            @if(newVersionAvailable()) {
-              <p-tag [rounded]="true" value="New version available!" icon="pi pi-info-circle" severity="info" />
+            @if (newVersionAvailable()) {
+              <p-tag icon="pi pi-info-circle" severity="info" value="New version available!" [rounded]="true" />
             }
-            @if(experimentalVersion()) {
-              <p-tag [rounded]="true" value="Experimental version!" icon="pi pi-info-circle" severity="info" />
+            @if (experimentalVersion()) {
+              <p-tag icon="pi pi-info-circle" severity="info" value="Experimental version!" [rounded]="true" />
             }
           </div>
         </div>
@@ -69,15 +78,17 @@
 </div>
 
 <div class="pb-2">
-  @if(releaseNotes().length > 0) {
+  @if (releaseNotes().length > 0) {
     <p-panel header="Release Notes" [toggleable]="true">
       <div class="grid grid-cols-12 gap-4 items-start md:items-stretch">
         @for (releaseNote of releaseNotes(); let i = $index; track releaseNote) {
           <div class="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3">
-            <p-card class="h-full small-header"
-                    [ngClass]="{'p-card-bold-subtitle': i === 0}"
-                    [header]="releaseNote.name"
-                    subheader="{{ releaseNote.createdAt | date: 'yyyy-MM-dd' }} {{ i === 0 ? '(latest)' : '' }}">
+            <p-card
+              subheader="{{ releaseNote.createdAt | date: 'yyyy-MM-dd' }} {{ i === 0 ? '(latest)' : '' }}"
+              class="h-full small-header"
+              [header]="releaseNote.name"
+              [ngClass]="{ 'p-card-bold-subtitle': i === 0 }"
+            >
               <div class="prose prose-ul pl-5">
                 <markdown class="list-disc" [data]="releaseNote.body"></markdown>
               </div>
@@ -94,34 +105,42 @@
   <div class="grid grid-cols-12 gap-4 items-stretch">
     @for (credit of credits; track credit) {
       <div class="col-span-4 md:col-span-3 lg:col-span-2 xl:col-span-1 items-stretch">
-        <p-card class="h-full small-header tod-panel-mt-auto" header="{{ credit.name }}">
+        <p-card header="{{ credit.name }}" class="h-full small-header tod-panel-mt-auto">
           <div class="text-left pb-4">
             <div class="mt-2"><a href="{{ credit.homeUrl }}" target="_blank">Home</a></div>
             <div class="mt-2"><a href="{{ credit.gitUrl }}" target="_blank">Git</a></div>
             <div class="mt-2"><a href="{{ credit.docsUrl }}" target="_blank">Docs</a></div>
           </div>
           <div class="mt-auto">
-            <img src="{{ credit.imgSrc }}" alt="{{ credit.imgAlt }}" loading="lazy"
-                 class="w-full h-auto object-cover" style="{{ credit.imgExtraStyle }}" />
+            <img
+              alt="{{ credit.imgAlt }}"
+              loading="lazy"
+              src="{{ credit.imgSrc }}"
+              style="{{ credit.imgExtraStyle }}"
+              class="w-full h-auto object-cover"
+            />
           </div>
         </p-card>
       </div>
     }
     <div class="col-span-6 md:col-span-3 lg:col-span-2 items-stretch">
-      <p-card class="h-full small-header" header="Others">
+      <p-card header="Others" class="h-full small-header">
         <div class="gap-4">
           <div class="flex-col text-left mt-auto">
             <div class="font-semibold">Frontend</div>
             <div class="mt-2"><a href="https://github.com/cytoscape/cytoscape" target="_blank">Cytoscape</a></div>
-            <div class="mt-2"><a href="https://github.com/iVis-at-Bilkent/cytoscape.js-fcose" target="_blank">fCoSE</a></div>
+            <div class="mt-2">
+              <a href="https://github.com/iVis-at-Bilkent/cytoscape.js-fcose" target="_blank">fCoSE</a>
+            </div>
             <div class="mt-2"><a href="https://github.com/chartjs" target="_blank">Chart.js</a></div>
             <div class="mt-4 font-semibold">Backend</div>
-            <div class="mt-2"><a href="https://github.com/kubernetes-client/csharp" target="_blank">K8s C# Client</a></div>
+            <div class="mt-2">
+              <a href="https://github.com/kubernetes-client/csharp" target="_blank">K8s C# Client</a>
+            </div>
             <div class="mt-2"><a href="https://github.com/serilog/serilog" target="_blank">Serilog</a></div>
           </div>
         </div>
       </p-card>
     </div>
-
   </div>
 </p-panel>

@@ -1,4 +1,4 @@
-<p-tabs [(value)]="tabPageActiveIndex" (valueChange)="onTabPageChange($event)" scrollable class="tod-content-border">
+<p-tabs scrollable class="tod-content-border" [(value)]="tabPageActiveIndex" (valueChange)="onTabPageChange($event)">
   <p-tablist>
     <p-tab value="0" [disabled]="!enabledTrivyReports.includes('vr')">Vulnerability Reports</p-tab>
     <p-tab value="1" [disabled]="!enabledTrivyReports.includes('car')">Config Audit Reports</p-tab>
@@ -6,32 +6,24 @@
     <p-tab value="3" [disabled]="!enabledTrivyReports.includes('esr')">Exposed Secret Reports</p-tab>
   </p-tablist>
   <p-tabpanels>
-    @if (enabledTrivyReports.includes('vr'))
-    {
+    @if (enabledTrivyReports.includes('vr')) {
       <p-tabpanel value="0">
-        <app-dashboard-vulnerability-reports [showDistinctValues]="showDistinctValues()"
-                                        id="home-vr" />
+        <app-dashboard-vulnerability-reports id="home-vr" [showDistinctValues]="showDistinctValues()" />
       </p-tabpanel>
     }
-    @if (enabledTrivyReports.includes('car'))
-    {
+    @if (enabledTrivyReports.includes('car')) {
       <p-tabpanel value="1">
-        <app-dashboard-config-audit-reports [showDistinctValues]="showDistinctValues()"
-                                       id="home-car" />
+        <app-dashboard-config-audit-reports id="home-car" [showDistinctValues]="showDistinctValues()" />
       </p-tabpanel>
     }
-    @if (enabledTrivyReports.includes('crar'))
-    {
+    @if (enabledTrivyReports.includes('crar')) {
       <p-tabpanel value="2">
-        <app-dashboard-cluster-rbac-assessment-reports [showDistinctValues]="showDistinctValues()"
-                                                  id="home-crar" />
+        <app-dashboard-cluster-rbac-assessment-reports id="home-crar" [showDistinctValues]="showDistinctValues()" />
       </p-tabpanel>
     }
-    @if (enabledTrivyReports.includes('esr'))
-    {
+    @if (enabledTrivyReports.includes('esr')) {
       <p-tabpanel value="3">
-        <app-dashboard-exposed-secret-reports [showDistinctValues]="showDistinctValues()"
-                                         id="home-esr" />
+        <app-dashboard-exposed-secret-reports id="home-esr" [showDistinctValues]="showDistinctValues()" />
       </p-tabpanel>
     }
     <div class="flex text-sm items-center justify-items-center gap-4 pb-1 pt-2">
@@ -40,14 +32,12 @@
         label="Refresh Data"
         raised
         size="small"
-        class="-mt-1"
         text
+        class="-mt-1"
         (onClick)="onRefreshData()"
       />
       <p-toggleswitch inputId="distinctSwitch" [(ngModel)]="showDistinctValues" />
       <label for="distinctSwitch" class="">Distinct values</label>
-
     </div>
-
   </p-tabpanels>
 </p-tabs>

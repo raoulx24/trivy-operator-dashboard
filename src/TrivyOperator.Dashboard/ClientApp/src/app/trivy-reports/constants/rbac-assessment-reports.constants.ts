@@ -203,5 +203,5 @@ export const rbacAssessmentReportComparedTableColumns: readonly TrivyTableColumn
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
   },
-  ... rbacAssessmentReportDetailColumns,
+  ...rbacAssessmentReportDetailColumns,
 ];

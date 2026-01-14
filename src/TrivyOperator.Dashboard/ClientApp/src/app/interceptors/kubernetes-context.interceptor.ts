@@ -1,5 +1,5 @@
-import { inject } from '@angular/core';
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { KubernetesContextStateService } from '../services/kubernetes-context-state.service';
 
 export const kubernetesContextInterceptor: HttpInterceptorFn = (req, next) => {

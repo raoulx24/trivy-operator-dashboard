@@ -2,33 +2,34 @@
   <app-trivy-table
     [dataDtos]="watcherStateInfoDtos()"
     [isLoading]="isLoading()"
+    [isRefreshVisible]="true"
+    [isResetFiltersVisible]="true"
+    [stateKey]="'Watcher States'"
+    [style]="{ width: '1205px' }"
     [trivyTableColumns]="trivyTableColumns"
     (refreshRequested)="getTableDataDtos()"
     (rowActionRequested)="onRowActionRequested($event)"
-    [isResetFiltersVisible]="true"
-    [isRefreshVisible]="true"
-    [style]="{ width: '1205px' }"
-    [stateKey]="'Watcher States'"
   />
 </div>
 
-<p-dialog header="Recreate watcher"
-          class="tod-dialog-h-full"
-          [modal]="true"
-          [closable]="true"
-          [closeOnEscape]="true"
-          [dismissableMask]="true"
-          [(visible)]="isRecreateWatcherDialogVisible"
-          [style]="{ width: '45rem', height: '15rem' }">
+<p-dialog
+  header="Recreate watcher"
+  class="tod-dialog-h-full"
+  [closable]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="true"
+  [modal]="true"
+  [style]="{ width: '45rem', height: '15rem' }"
+  [(visible)]="isRecreateWatcherDialogVisible"
+>
   <div class="flex flex-col h-full">
-
     <div class="flex-1 overflow-auto">
       @if (!isActionStarted) {
         <p class="p-text-secondary mb-4">
           Are you sure you want to recreate the watcher
           <b>{{ requestedRecreateWatcher?.kubernetesObjectType ?? 'n/a' }}</b>
-          in namespace <b>{{ requestedRecreateWatcher?.namespaceName ?? 'n/a' }}</b>?
-          This will delete the existing watcher and create a new one.
+          in namespace <b>{{ requestedRecreateWatcher?.namespaceName ?? 'n/a' }}</b
+          >? This will delete the existing watcher and create a new one.
         </p>
       } @else {
         <p>{{ recreateWatcherResponseMessage }}</p>
@@ -40,12 +41,11 @@
 
     <div class="mt-auto pt-6 flex justify-end gap-2">
       @if (!isActionStarted) {
-        <p-button label="Cancel" text raised severity="secondary" (click)="isRecreateWatcherDialogVisible = false" />
-        <p-button label="Recreate" text raised [disabled]="isActionStarted" (click)="onRecreateWatcherRequested()" />
+        <p-button label="Cancel" raised severity="secondary" text (click)="isRecreateWatcherDialogVisible = false" />
+        <p-button label="Recreate" raised text [disabled]="isActionStarted" (click)="onRecreateWatcherRequested()" />
       } @else {
-        <p-button label="Close" text raised severity="secondary" (click)="isRecreateWatcherDialogVisible = false" />
+        <p-button label="Close" raised severity="secondary" text (click)="isRecreateWatcherDialogVisible = false" />
       }
     </div>
-
   </div>
 </p-dialog>

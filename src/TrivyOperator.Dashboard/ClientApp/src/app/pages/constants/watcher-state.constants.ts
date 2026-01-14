@@ -9,7 +9,9 @@ export const watcherStateColumns: readonly TrivyTableColumn[] = [
     multiSelectType: 'none',
     style: 'width: 200px; max-width: 200px;',
     renderType: 'unPascalCase',
-    extraFields: ['Cr', ],
+    extraFields: [
+      'Cr',
+    ],
   },
   {
     field: 'namespaceName',

@@ -17,7 +17,7 @@ export class UnPascalCasePipe implements PipeTransform {
     if (exclude.length) {
       spaced = spaced
         .split(' ')
-        .filter(word => !exclude.includes(word))
+        .filter((word) => !exclude.includes(word))
         .join(' ');
     }
 
