@@ -4,6 +4,7 @@ import {
   importProvidersFrom,
   inject,
   provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
@@ -21,7 +22,8 @@ import { trivyOperatorDashboardPreset } from './themes/trivy-operator-dashboard.
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection(),
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([kubernetesContextInterceptor])),
     provideRouter(routes),
     importProvidersFrom(ApiModule.forRoot({ rootUrl: environment.baseUrl })),
