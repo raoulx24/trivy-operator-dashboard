@@ -51,7 +51,7 @@ export class AboutComponent implements OnInit {
     {
       name: '.NET',
       imgSrc: 'assets/dotnet.png',
-      imgAlt: 'dot net Logo',
+      imgAlt: '.NET Logo',
       homeUrl: 'https://dotnet.microsoft.com/en-us/',
       gitUrl: 'https://github.com/dotnet/core',
       docsUrl: 'https://learn.microsoft.com/en-us/dotnet/',
@@ -59,7 +59,7 @@ export class AboutComponent implements OnInit {
     {
       name: 'Angular',
       imgSrc: 'assets/angular-js.png',
-      imgAlt: 'Angular 18 Logo',
+      imgAlt: 'Angular Logo',
       homeUrl: 'https://angular.dev/',
       gitUrl: 'https://github.com/angular/angular',
       docsUrl: 'https://angular.dev/overview',
@@ -73,9 +73,9 @@ export class AboutComponent implements OnInit {
       docsUrl: 'https://primeng.org/installation',
     },
     {
-      name: 'tailwind css',
+      name: 'Tailwind CSS',
       imgSrc: 'assets/tailwind.png',
-      imgAlt: 'tailwind Logo',
+      imgAlt: 'Tailwind CSS Logo',
       homeUrl: 'https://tailwindcss.com/',
       gitUrl: 'https://github.com/tailwindlabs/tailwindcss',
       docsUrl: 'https://tailwindcss.com/docs/installation/using-vite',
@@ -90,7 +90,7 @@ export class AboutComponent implements OnInit {
     },
   ];
 
-  private readonly appVersionService = inject(AppVersionsService);
+  private readonly appVersionsService = inject(AppVersionsService);
   private readonly mainAppInitService = inject(MainAppInitService);
 
   constructor() {
@@ -112,11 +112,11 @@ export class AboutComponent implements OnInit {
   }
 
   getReleaseNotesDtos() {
-    this.appVersionService.getGitHubVersions().subscribe({
+    this.appVersionsService.getGitHubVersions().subscribe({
       next: (res) => this.onReleaseNoteDtos(res),
       error: (err) => console.error(err),
     });
-    this.appVersionService.getCurrentVersion().subscribe({
+    this.appVersionsService.getCurrentVersion().subscribe({
       next: (res) => this.onCurrentVersion(res),
       error: (err) => console.error(err),
     });
