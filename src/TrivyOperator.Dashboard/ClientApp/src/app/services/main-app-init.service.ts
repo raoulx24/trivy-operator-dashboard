@@ -64,7 +64,7 @@ export class MainAppInitService {
       item.trivyReportConfigDtos = newTrivyReportConfig;
       return item;
     });
-    
+
     localStorage.setItem('backendSettings.trivyReportConfig', newIds.join(','));
     localStorage.setItem(
       'backendSettings.trivyReportConfig.defaultsPreviousSession',
