@@ -3,7 +3,7 @@ import { Component, effect, HostListener, input, OnInit } from '@angular/core';
 import { FcoseComponent } from '../fcose/fcose.component';
 import { NodeDataDto } from '../fcose/fcose.types';
 
-import { TrivyReportDependencyService } from '../../../api/services/trivy-report-dependency.service';
+import { TrivyReportDependenciesService } from '../../../api/services/trivy-report-dependencies.service';
 import { TrivyReportDependencyDto } from '../../../api/models/trivy-report-dependency-dto';
 
 import { ButtonModule } from 'primeng/button'
@@ -62,7 +62,7 @@ export class TrivyDependencyComponent {
     { name: 'burnt-sienna',   code: '#B25C33' }
   ];
 
-  constructor(private service: TrivyReportDependencyService, private router: Router) {
+  constructor(private service: TrivyReportDependenciesService, private router: Router) {
     effect(() => {
       const currentTrivyImage = this.trivyImage();
       this.nodeDataDtos = [];

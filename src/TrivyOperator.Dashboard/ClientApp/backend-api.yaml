@@ -32,7 +32,7 @@ paths:
   /api/app-versions:
     get:
       tags:
-        - AppVersion
+        - AppVersions
       operationId: GetGitHubVersions
       responses:
         '200':
@@ -58,7 +58,7 @@ paths:
   /api/app-versions/latest:
     get:
       tags:
-        - AppVersion
+        - AppVersions
       operationId: GetGitHubLatestVersion
       responses:
         '200':
@@ -82,7 +82,7 @@ paths:
   /api/app-versions/current-version:
     get:
       tags:
-        - AppVersion
+        - AppVersions
       operationId: GetCurrentVersion
       responses:
         '200':
@@ -903,7 +903,7 @@ paths:
   /api/kubernetes-namespaces:
     get:
       tags:
-        - Namespaces
+        - KubernetesNamespaces
       operationId: GetAllNamespaces
       responses:
         '200':
@@ -1387,7 +1387,7 @@ paths:
   /api/trivy-report-dependencies/digest:
     get:
       tags:
-        - TrivyReportDependency
+        - TrivyReportDependencies
       operationId: GetTrivyReportDependecyDtoByDigestNamespace
       parameters:
         - name: digest
@@ -1685,6 +1685,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BackendSettingsTrivyReportConfigDto'
+        isUsedKubeConfigFileName:
+          type: boolean
+        useDefaultContext:
+          type: boolean
+        isUsedNamespaceList:
+          type: boolean
+        isUsedPvcName:
+          type: boolean
       additionalProperties: false
     BackendSettingsTrivyReportConfigDto:
       type: object
@@ -3698,7 +3706,7 @@ components:
       additionalProperties: false
 tags:
   - name: Alerts
-  - name: AppVersion
+  - name: AppVersions
   - name: BackendSettings
   - name: ClusterComplianceReport
   - name: ClusterInfraAssessmentReport
@@ -3709,10 +3717,10 @@ tags:
   - name: ExposedSecretReport
   - name: InfraAssessmentReport
   - name: KubernetesContexts
-  - name: Namespaces
+  - name: KubernetesNamespaces
   - name: RbacAssessmentReport
   - name: SbomReport
   - name: Severities
-  - name: TrivyReportDependency
+  - name: TrivyReportDependencies
   - name: VulnerabilityReports
   - name: WatcherStatus

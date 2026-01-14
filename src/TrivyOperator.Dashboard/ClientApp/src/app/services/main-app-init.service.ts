@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { BehaviorSubject, Subject, forkJoin } from 'rxjs';
+import { forkJoin } from 'rxjs';
 
 import { BackendSettingsDto } from '../../api/models/backend-settings-dto';
 import { BackendSettingsService } from '../../api/services/backend-settings.service';
@@ -16,6 +16,10 @@ export class MainAppInitService {
   defaultBackendSettingsDto: BackendSettingsDto | null = null;
   private readonly _backendSettingsDto = signal<BackendSettingsDto>({
     trivyReportConfigDtos: [],
+    isUsedKubeConfigFileName: false,
+    isUsedNamespaceList: false,
+    isUsedPvcName: false,
+    useDefaultContext: true,
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
@@ -56,7 +60,11 @@ export class MainAppInitService {
     });
 
     // const clone = JSON.parse(JSON.stringify(original)) as typeof original;
-    this._backendSettingsDto.set({ trivyReportConfigDtos: newTrivyReportConfig });
+    this._backendSettingsDto.update((item) => {
+      item.trivyReportConfigDtos = newTrivyReportConfig;
+      return item;
+    });
+    
     localStorage.setItem('backendSettings.trivyReportConfig', newIds.join(','));
     localStorage.setItem(
       'backendSettings.trivyReportConfig.defaultsPreviousSession',

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from '@angular/core';
 
 import { MarkdownModule } from 'ngx-markdown';
 import { provideMarkdown } from 'ngx-markdown';
@@ -7,16 +7,25 @@ import { CardModule } from 'primeng/card';
 import { PanelModule } from 'primeng/panel';
 import { TagModule} from 'primeng/tag'
 
-import { AppVersionService } from '../../../api/services/app-version.service';
+import { AppVersionsService } from '../../../api/services/app-versions.service';
 import { GitHubReleaseDto } from '../../../api/models/git-hub-release-dto';
 import { AppVersion } from '../../../api/models/app-version'
 import { AboutCredits } from './about.types';
 import { VersionUtils } from '../../utils/version.utils';
 
+import { MainAppInitService } from '../../services/main-app-init.service';
+import { BooleanCssStylePipe } from '../../pipes/boolean-css-style.pipe';
+import { CapitalizeFirstPipe } from '../../pipes/capitalize-first.pipe';
+
+export interface BackendFeature {
+  feature: string;
+  enabled: boolean;
+}
+
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule, MarkdownModule, CardModule, PanelModule, TagModule],
+  imports: [CommonModule, MarkdownModule, CardModule, PanelModule, TagModule, BooleanCssStylePipe, CapitalizeFirstPipe],
   providers: [provideMarkdown()],
   templateUrl: './about.component.html',
   styleUrl: './about.component.scss',
@@ -28,6 +37,7 @@ export class AboutComponent implements OnInit {
   latestVersion = signal<string | undefined>(undefined);
   newVersionAvailable = signal<boolean>(false);
   experimentalVersion = signal<boolean>(false);
+  backendFeatures = signal<BackendFeature[]>([]);
 
   credits: AboutCredits[] = [
     {
@@ -62,18 +72,33 @@ export class AboutComponent implements OnInit {
     }
   ];
 
-  private readonly service = inject(AppVersionService);
+  private readonly appVersionService = inject(AppVersionsService);
+  private readonly mainAppInitService = inject(MainAppInitService);
+
+  constructor() {
+    effect(() => {
+      const backendSettings = this.mainAppInitService.backendSettingsDto();
+
+      const newFeatures: BackendFeature[]= [];
+      newFeatures.push({ feature: 'Use Default Context', enabled: backendSettings.useDefaultContext });
+      newFeatures.push({ feature: 'Static Namespace List', enabled: backendSettings.isUsedNamespaceList});
+      newFeatures.push({ feature: 'Custom kube.config', enabled: backendSettings.isUsedKubeConfigFileName });
+      newFeatures.push({ feature: 'Alternative Storage', enabled: backendSettings.isUsedPvcName });
+
+      this.backendFeatures.set(newFeatures);
+    });
+  }
 
   ngOnInit() {
     this.getReleaseNotesDtos();
   }
 
   getReleaseNotesDtos() {
-    this.service.getGitHubVersions().subscribe({
+    this.appVersionService.getGitHubVersions().subscribe({
       next: (res) => this.onReleaseNoteDtos(res),
       error: (err) => console.error(err),
     });
-    this.service.getCurrentVersion().subscribe({
+    this.appVersionService.getCurrentVersion().subscribe({
       next: (res) => this.onCurrentVersion(res),
       error: (err) => console.error(err),
     });

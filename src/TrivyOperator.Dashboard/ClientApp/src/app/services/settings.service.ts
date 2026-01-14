@@ -1,5 +1,5 @@
 import { Injectable, signal, effect, inject } from '@angular/core';
-import { AppVersionService } from '../../api/services/app-version.service';
+import { AppVersionsService } from '../../api/services/app-versions.service';
 import { AppVersion } from '../../api/models';
 import { Observable } from 'rxjs';
 
@@ -22,7 +22,7 @@ export class SettingsService {
 
   private readonly defaultOption: SeverityColorByNameOption = 'grayBelowOne';
 
-  private readonly appVersionService = inject(AppVersionService);
+  private readonly appVersionsService = inject(AppVersionsService);
 
   readonly severityCssStyleByIdOption = signal<SeverityColorByNameOption>(
     (localStorage.getItem('severityCssStyleByIdOption') as SeverityColorByNameOption) ??
@@ -39,6 +39,6 @@ export class SettingsService {
   }
 
   getAppVersion(): Observable<AppVersion> {
-    return this.appVersionService.getCurrentVersion();
+    return this.appVersionsService.getCurrentVersion();
   }
 }
