@@ -45,12 +45,20 @@ export class HomeComponent implements OnInit {
   private readonly mainAppInitService = inject(MainAppInitService);
 
   constructor() {
+    let initialized = false;
+    
     effect(() => {
       const showDistinctValues = this.showDistinctValues();
       localStorage.setItem('home.showDistinctValues', showDistinctValues.toString());
     });
     effect(() => {
       const ctx = this.kubernetesContextService.selectedContext();
+
+      if (!initialized) {
+        initialized = true;
+        return; // skip initial run
+      }
+
       this.onRefreshData();
     });
     effect(() => {

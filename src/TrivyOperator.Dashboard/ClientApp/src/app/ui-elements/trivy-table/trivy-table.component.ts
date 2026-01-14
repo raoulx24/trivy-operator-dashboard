@@ -156,7 +156,9 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   constructor() {
     effect(() => {
-      this._dataDtos.set(this.dataDtos() ?? []);
+      const data = this.dataDtos();
+
+      this._dataDtos.set(data ?? []);
       this.updateMultiHeaderActionOnDataChanged();
       this.newData();
     });

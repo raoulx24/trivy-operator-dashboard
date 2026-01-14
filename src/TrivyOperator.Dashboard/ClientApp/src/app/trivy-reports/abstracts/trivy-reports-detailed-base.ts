@@ -7,8 +7,16 @@ export abstract class TrivyReportsDetailedBase extends DataPageBase {
 
   constructor() {
     super();
+
+    let initialized = false;
+
     effect(() => {
       const ctx = this.kubernetesContextService.selectedContext();
+
+      if (!initialized) {
+        initialized = true;
+        return; // skip initial run
+        }
       this.getTableDataDtos();
     });
   }

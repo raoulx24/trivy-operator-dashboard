@@ -91,6 +91,8 @@ export class GenericSbomComponent {
   screenSize: string = this.getScreenSize();
 
   constructor() {
+    let initialized = false;
+
     effect(() => {
       const dataDtos = this.dataDtos();
       if (dataDtos && dataDtos.length > 0) {
@@ -121,6 +123,12 @@ export class GenericSbomComponent {
     effect(() => {
       const ctx = this.kubernetesContextService.selectedContext();
       if (!ctx) return;
+
+      if (!initialized) {
+        initialized = true;
+        return; // skip initial run
+      }
+
       this.onRefreshRequested();
     });
   }

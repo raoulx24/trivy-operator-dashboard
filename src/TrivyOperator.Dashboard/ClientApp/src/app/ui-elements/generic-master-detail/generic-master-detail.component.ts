@@ -90,6 +90,8 @@ export class GenericMasterDetailComponent<
   protected _isMainTableLoading: boolean = this.isMainTableLoading();
 
   constructor() {
+    let initialized = false;
+
     effect(() => {
       this._isMainTableLoading = this.isMainTableLoading();
     });
@@ -102,6 +104,12 @@ export class GenericMasterDetailComponent<
     });
     effect(() => {
       const ctx = this.kubernetesContextService.selectedContext();
+
+      if (!initialized) {
+        initialized = true;
+        return; // skip initial run
+      }
+
       if (ctx) {
         if (!this._lastEvent) {
           this._lastEvent =
