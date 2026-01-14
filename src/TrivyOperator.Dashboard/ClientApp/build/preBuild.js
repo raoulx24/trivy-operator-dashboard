@@ -46,7 +46,7 @@ function makePathsRelative(openApi) {
 
   for (const path of Object.keys(paths)) {
     // Skip root path "/" because it becomes empty
-    console.info(path)
+    console.info(path);
     if (path === '/') continue;
 
     if (path.startsWith('/')) {

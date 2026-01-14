@@ -1,13 +1,9 @@
-import { Injectable, signal, effect, inject } from '@angular/core';
-import { AppVersionsService } from '../../api/services/app-versions.service';
-import { AppVersion } from '../../api/models';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
+import { AppVersion } from '../../api/models';
+import { AppVersionsService } from '../../api/services/app-versions.service';
 
-export type SeverityColorByNameOption =
-  | 'all'
-  | 'grayNulls'
-  | 'grayBelowOne'
-  | 'hideNonPositive';
+export type SeverityColorByNameOption = 'all' | 'grayNulls' | 'grayBelowOne' | 'hideNonPositive';
 
 @Injectable({
   providedIn: 'root',
@@ -25,16 +21,12 @@ export class SettingsService {
   private readonly appVersionsService = inject(AppVersionsService);
 
   readonly severityCssStyleByIdOption = signal<SeverityColorByNameOption>(
-    (localStorage.getItem('severityCssStyleByIdOption') as SeverityColorByNameOption) ??
-    this.defaultOption
+    (localStorage.getItem('severityCssStyleByIdOption') as SeverityColorByNameOption) ?? this.defaultOption,
   );
 
   constructor() {
     effect(() => {
-      localStorage.setItem(
-        'severityCssStyleByIdOption',
-        this.severityCssStyleByIdOption()
-      );
+      localStorage.setItem('severityCssStyleByIdOption', this.severityCssStyleByIdOption());
     });
   }
 
