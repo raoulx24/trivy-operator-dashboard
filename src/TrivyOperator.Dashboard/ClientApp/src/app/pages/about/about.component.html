@@ -72,21 +72,19 @@
             }
           </div>
 
-          <p class="text-lg font-semibold mt-5">Backend features</p>
+          <p class="text-lg font-semibold mt-2">Backend features</p>
           @for (item of backendFeatures(); track item.feature) {
             <div class="p-1 grid grid-cols-[4rem_auto] items-center">
               <p-tag
-                [icon]="
-                  'pi ' +
-                  (item.enabled === undefined ? 'pi-question-circle' : item.enabled ? 'pi-verified' : 'pi-times-circle')
-                "
+                [icon]="'pi ' + (item.enabled === undefined ? 'pi-question-circle' : (item.enabled ? 'pi-verified' : 'pi-times-circle'))"
                 [rounded]="true"
                 [style]="item.enabled | booleanCssStyle"
-                [value]="item.enabled?.toString() ?? 'N/A' | capitalizeFirst"
+                [value]="item.enabled.toString() | capitalizeFirst"
               />
-              <span class="tesxt-sm ml-4">{{ item.feature }}</span>
+              <span class="text-sm ml-4">{{ item.feature }}</span>
             </div>
           }
+
         </div>
       </div>
     </div>
