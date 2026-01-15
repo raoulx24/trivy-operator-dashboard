@@ -62,7 +62,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         {
             try
             {
-                LoadSingleDefaultContextFromFile(kubeConfigFileName);
+                LoadSingleDefaultContextFromFile(options.KubeConfigFileName);
 
                 logger.LogInformation("Using default context from file: {contextName}",
                     currentContextName);
@@ -70,7 +70,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Failed to load default context from kubeconfig file {kubeconfigFile}. Falling back.",
-                    kubeConfigFileName);
+                    options.KubeConfigFileName);
 
                 UseFallbackContext();
             }
@@ -88,8 +88,8 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
         if (hasConfigFile)
         {
-            SetContextsFromConfig(kubeConfigFileName);
-            currentContextName = GetCurrentContextFromConfig(kubeConfigFileName);
+            SetContextsFromConfig(options.KubeConfigFileName);
+            currentContextName = GetCurrentContextFromConfig(options.KubeConfigFileName);
         }
         else
         {
