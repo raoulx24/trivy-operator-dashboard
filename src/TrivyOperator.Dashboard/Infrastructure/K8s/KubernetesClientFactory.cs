@@ -10,82 +10,139 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s;
 public class KubernetesClientFactory : IKubernetesClientFactory
 {
     private readonly IDictionary<string, Kubernetes> clients;
-    private readonly string currentContextName = "default";
     private readonly ILogger<KubernetesClientFactory> logger;
+    private string currentContextName = "default";
     private K8SConfiguration? loadedKubeConfig;
-
 
     static KubernetesClientFactory()
     {
         KubernetesJson.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
     }
 
-    public KubernetesClientFactory(IOptions<KubernetesOptions> options, ILogger<KubernetesClientFactory> logger)
+    public KubernetesClientFactory(
+        IOptions<KubernetesOptions> options,
+        ILogger<KubernetesClientFactory> logger)
     {
         this.logger = logger;
         clients = new Dictionary<string, Kubernetes>(StringComparer.OrdinalIgnoreCase);
 
         if (options.Value.UseDefaultContext)
         {
-            KubernetesClientConfiguration? defaultConfig = KubernetesClientConfiguration.IsInCluster()
-                ? KubernetesClientConfiguration.InClusterConfig()
-                : KubernetesClientConfiguration.BuildConfigFromConfigFile();
-            defaultConfig.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
-            currentContextName = defaultConfig.CurrentContext ?? currentContextName;
-            clients[currentContextName] = new Kubernetes(defaultConfig);
-
-            logger.LogInformation("Using default context - {contextName}", currentContextName);
+            InitializeWithDefaultContext(options.Value);
         }
         else
         {
-            string kubeConfigFileName = options.Value.KubeConfigFileName;
-
-            if (!string.IsNullOrWhiteSpace(kubeConfigFileName) && File.Exists(kubeConfigFileName))
-            {
-                SetContextsFromConfig(kubeConfigFileName);
-                currentContextName = GetCurrentContextFromConfig(kubeConfigFileName);
-            }
-            else
-            {
-                if (KubernetesClientConfiguration.IsInCluster())
-                {
-                    KubernetesClientConfiguration defaultConfig = KubernetesClientConfiguration.InClusterConfig();
-                    defaultConfig.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
-                    clients[currentContextName] = new Kubernetes(defaultConfig);
-                }
-                else
-                {
-                    SetContextsFromConfig();
-                    currentContextName = GetCurrentContextFromConfig();
-                }
-            }
-
-            logger.LogInformation(
-                "Default context is {currentContext}. Got {contextCount} contexts: {contextList}",
-                currentContextName,
-                clients.Count,
-                string.Join(", ", clients.Keys)
-            );
+            InitializeExplicitContexts(options.Value);
         }
+
+        logger.LogInformation("Current context: {context}. Loaded {count} contexts: {list}",
+            currentContextName, clients.Count, string.Join(", ", clients.Keys));
     }
 
     public Kubernetes GetClient(string context)
     {
         if (string.IsNullOrWhiteSpace(context))
-        {
             throw new ArgumentNullException(nameof(context));
-        }
 
         if (clients.TryGetValue(context, out Kubernetes? client))
-        {
             return client;
-        }
 
         throw new InvalidOperationException($"Unknown Kubernetes context: {context}");
     }
 
-    public IEnumerable<string> GetContexts() => [.. clients.Keys,];
+    public IEnumerable<string> GetContexts() => [.. clients.Keys];
     public string GetCurrentContext() => currentContextName;
+
+    private void InitializeWithDefaultContext(KubernetesOptions options)
+    {
+        bool hasConfigFile;
+        TryGetKubeConfigFile(options.KubeConfigFileName, out hasConfigFile);
+
+        if (hasConfigFile)
+        {
+            try
+            {
+                LoadSingleDefaultContextFromFile(kubeConfigFileName);
+
+                logger.LogInformation("Using default context from file: {contextName}",
+                    currentContextName);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to load default context from kubeconfig file {kubeconfigFile}. Falling back.",
+                    kubeConfigFileName);
+
+                UseFallbackContext();
+            }
+        }
+        else
+        {
+            UseFallbackContext();
+        }
+    }
+
+    private void InitializeExplicitContexts(KubernetesOptions options)
+    {
+        bool hasConfigFile;
+        TryGetKubeConfigFile(options.KubeConfigFileName, out hasConfigFile);
+
+        if (hasConfigFile)
+        {
+            SetContextsFromConfig(kubeConfigFileName);
+            currentContextName = GetCurrentContextFromConfig(kubeConfigFileName);
+        }
+        else
+        {
+            if (KubernetesClientConfiguration.IsInCluster())
+            {
+                var defaultConfig = KubernetesClientConfiguration.InClusterConfig();
+                defaultConfig.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
+                clients[currentContextName] = new Kubernetes(defaultConfig);
+            }
+            else
+            {
+                SetContextsFromConfig();
+                currentContextName = GetCurrentContextFromConfig();
+            }
+        }
+    }
+
+    private void UseFallbackContext()
+    {
+        var defaultConfig = KubernetesClientConfiguration.IsInCluster()
+            ? KubernetesClientConfiguration.InClusterConfig()
+            : KubernetesClientConfiguration.BuildConfigFromConfigFile();
+
+        defaultConfig.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
+
+        currentContextName = defaultConfig.CurrentContext ?? currentContextName;
+
+        clients.Clear();
+        clients[currentContextName] = new Kubernetes(defaultConfig);
+
+        logger.LogInformation("Using fallback context - {contextName}", currentContextName);
+    }
+
+    private void LoadSingleDefaultContextFromFile(string kubeConfigFileName)
+    {
+        loadedKubeConfig = KubernetesClientConfiguration.LoadKubeConfig(kubeConfigFileName);
+
+        if (loadedKubeConfig.Contexts.Count() == 0)
+            throw new InvalidOperationException("No contexts found in kubeconfig");
+
+        string contextName = loadedKubeConfig.CurrentContext
+                             ?? loadedKubeConfig.Contexts.First().Name;
+
+        var config = KubernetesClientConfiguration.BuildConfigFromConfigFile(
+            kubeConfigFileName, contextName);
+
+        config.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
+
+        clients.Clear();
+        clients[contextName] = new Kubernetes(config);
+
+        currentContextName = contextName;
+    }
 
     private void SetContextsFromConfig(string? kubeConfigFileName = null)
     {
@@ -98,9 +155,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             try
             {
                 KubernetesClientConfiguration config = KubernetesClientConfiguration.BuildConfigFromConfigFile(
-                    kubeConfigFileName,
-                    ctx.Name
-                );
+                    kubeConfigFileName, ctx.Name);
 
                 config.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
                 clients[ctx.Name] = new Kubernetes(config);
@@ -115,15 +170,34 @@ public class KubernetesClientFactory : IKubernetesClientFactory
     private string GetCurrentContextFromConfig(string? kubeConfigFileName = null)
     {
         if (loadedKubeConfig is null)
-        {
             throw new InvalidOperationException("Kubeconfig was not loaded before calling GetCurrentContextFromConfig");
-        }
 
         if (clients.Count == 0)
-        {
             throw new InvalidOperationException("No Kubernetes contexts found in the kubeconfig file");
-        }
 
         return loadedKubeConfig.CurrentContext ?? clients.Keys.First();
     }
+
+    private bool TryGetKubeConfigFile(string? kubeConfigFileName, out bool hasConfigFile)
+    {
+        if (string.IsNullOrWhiteSpace(kubeConfigFileName))
+        {
+            hasConfigFile = false;
+            return false;
+        }
+
+        if (!File.Exists(kubeConfigFileName))
+        {
+            hasConfigFile = false;
+
+            logger.LogWarning("Kubeconfig file {kubeconfigFile} does not exist. Falling back.",
+                kubeConfigFileName);
+
+            return false;
+        }
+
+        hasConfigFile = true;
+        return true;
+    }
+
 }
