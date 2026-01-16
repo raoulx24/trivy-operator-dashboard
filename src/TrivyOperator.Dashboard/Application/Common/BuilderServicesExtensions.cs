@@ -272,16 +272,15 @@ public static class BuilderServicesExtensions
                     KubernetesBackgroundQueue<TNamespacedTrivyReportCr>>();
             if (typeof(TNamespacedTrivyReportCr).Name == "SbomReportCr")
             {
-                services.AddSingleton<INamespacedWatcher<SbomReportCr>,
-                    SbomReportWatcher>();
+                services.AddSingleton<INamespacedWatcher<SbomReportCr>, SbomReportWatcher>();
             }
             else
             {
-                services.AddSingleton<INamespacedWatcher<TNamespacedTrivyReportCr>,
-                    NamespacedWatcher<CustomResourceList<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr,
-                        IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>, WatcherEvent<TNamespacedTrivyReportCr>>>();
+                services.AddSingleton<INamespacedWatcher<TNamespacedTrivyReportCr>, NamespacedWatcher<
+                    CustomResourceList<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr,
+                    IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>, WatcherEvent<TNamespacedTrivyReportCr>>>();
             }
-                
+
             services.AddSingleton<INamespacedKubernetesEventCoordinator,
                 NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
                     INamespacedWatcher<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr>>();

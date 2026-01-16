@@ -214,10 +214,9 @@ public static class ClusterSbomReportCrExtensions
 
 
     private static ComponentsComponent[] GetAllComponents(ClusterSbomReportCr clusterSbomReportCr) =>
-        clusterSbomReportCr.Report?.Components.Metadata.Component != null
-            ?
-            [
-                .. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],
-                clusterSbomReportCr.Report?.Components.Metadata.Component!,
-            ] : [.. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
+        clusterSbomReportCr.Report?.Components.Metadata.Component != null ?
+        [
+            .. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],
+            clusterSbomReportCr.Report?.Components.Metadata.Component!,
+        ] : [.. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
 }

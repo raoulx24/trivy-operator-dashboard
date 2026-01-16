@@ -54,7 +54,9 @@
       "Application": "TrivyOperator.Dashboard",
       "Audience": "System"
     },
-    "Using": [ "Serilog.Expressions" ],
+    "Using": [
+      "Serilog.Expressions"
+    ],
     "Filter": [
       {
         "Name": "ByExcluding",

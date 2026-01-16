@@ -95,12 +95,11 @@ public static partial class SbomReportCrExtensions
 {
     public static SbomReportDto ToSbomReportDto(this SbomReportCr sbomReportCr)
     {
-        ComponentsComponent[] allComponents = sbomReportCr.Report?.Components.Metadata.Component != null
-            ?
-            [
-                .. sbomReportCr.Report?.Components.ComponentsComponents ?? [],
-                sbomReportCr.Report?.Components.Metadata.Component!,
-            ] : [.. sbomReportCr.Report?.Components.ComponentsComponents ?? [],];
+        ComponentsComponent[] allComponents = sbomReportCr.Report?.Components.Metadata.Component != null ?
+        [
+            .. sbomReportCr.Report?.Components.ComponentsComponents ?? [],
+            sbomReportCr.Report?.Components.Metadata.Component!,
+        ] : [.. sbomReportCr.Report?.Components.ComponentsComponents ?? [],];
 
         IEnumerable<SbomReportDetailDto> details = allComponents.Select(component =>
             {
@@ -177,12 +176,11 @@ public static partial class SbomReportCrExtensions
     {
         //SbomReportCr[] sbomReportCrs = [.. groupedSbomReportCr];
         SbomReportCr firstSbomReportCr = groupedSbomReportCr.First();
-        ComponentsComponent[] allComponents = firstSbomReportCr.Report?.Components.Metadata.Component != null
-            ?
-            [
-                .. firstSbomReportCr.Report?.Components.ComponentsComponents ?? [],
-                firstSbomReportCr.Report?.Components.Metadata.Component!,
-            ] : [.. firstSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
+        ComponentsComponent[] allComponents = firstSbomReportCr.Report?.Components.Metadata.Component != null ?
+        [
+            .. firstSbomReportCr.Report?.Components.ComponentsComponents ?? [],
+            firstSbomReportCr.Report?.Components.Metadata.Component!,
+        ] : [.. firstSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
         IEnumerable<SbomReportDetailDto> details = allComponents.Select(component =>
             {
                 SbomReportDetailDto detailDto = new()

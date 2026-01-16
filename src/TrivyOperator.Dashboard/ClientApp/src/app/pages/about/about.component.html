@@ -76,7 +76,10 @@
           @for (item of backendFeatures(); track item.feature) {
             <div class="p-1 grid grid-cols-[4rem_auto] items-center">
               <p-tag
-                [icon]="'pi ' + (item.enabled === undefined ? 'pi-question-circle' : (item.enabled ? 'pi-verified' : 'pi-times-circle'))"
+                [icon]="
+                  'pi ' +
+                  (item.enabled === undefined ? 'pi-question-circle' : item.enabled ? 'pi-verified' : 'pi-times-circle')
+                "
                 [rounded]="true"
                 [style]="item.enabled | booleanCssStyle"
                 [value]="item.enabled.toString() | capitalizeFirst"
@@ -84,7 +87,6 @@
               <span class="text-sm ml-4">{{ item.feature }}</span>
             </div>
           }
-
         </div>
       </div>
     </div>
