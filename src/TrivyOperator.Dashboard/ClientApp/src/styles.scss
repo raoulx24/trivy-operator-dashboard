@@ -287,6 +287,10 @@ p-tag.text-lg span.p-tag-label {
   font-size: 0.825rem;
 }
 
+p-tag.only-icon {
+  display: unset;
+}
+
 /* blockquote classes */
 blockquote {
   padding-top: 1rem;

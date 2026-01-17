@@ -16,10 +16,10 @@ export class MainAppInitService {
   defaultBackendSettingsDto: BackendSettingsDto | null = null;
   private readonly _backendSettingsDto = signal<BackendSettingsDto>({
     trivyReportConfigDtos: [],
-    isUsedKubeConfigFileName: false,
-    isUsedNamespaceList: false,
-    isUsedPvcName: false,
-    useDefaultContext: true,
+    isDefaultContextUsed: true,
+    isFileRepositoryUsed: false,
+    isKubeConfigUsed: false,
+    isNamespaceListUsed: false,
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 

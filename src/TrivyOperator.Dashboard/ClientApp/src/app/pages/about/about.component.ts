@@ -98,10 +98,10 @@ export class AboutComponent implements OnInit {
       const backendSettings = this.mainAppInitService.backendSettingsDto();
 
       const newFeatures: BackendFeature[] = [];
-      newFeatures.push({ feature: 'Use Default Context', enabled: backendSettings.useDefaultContext });
-      newFeatures.push({ feature: 'Static Namespace List', enabled: backendSettings.isUsedNamespaceList });
-      newFeatures.push({ feature: 'Custom kube.config', enabled: backendSettings.isUsedKubeConfigFileName });
-      newFeatures.push({ feature: 'Alternative Storage', enabled: backendSettings.isUsedPvcName });
+      newFeatures.push({ feature: 'Use Default Context', enabled: backendSettings.isDefaultContextUsed });
+      newFeatures.push({ feature: 'Static Namespace List', enabled: backendSettings.isNamespaceListUsed });
+      newFeatures.push({ feature: 'Custom kube.config', enabled: backendSettings.isKubeConfigUsed });
+      newFeatures.push({ feature: 'Alternative Storage', enabled: backendSettings.isFileRepositoryUsed });
 
       this.backendFeatures.set(newFeatures);
     });

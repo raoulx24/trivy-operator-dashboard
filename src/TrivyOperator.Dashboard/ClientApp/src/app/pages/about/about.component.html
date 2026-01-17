@@ -74,7 +74,7 @@
 
           <p class="text-lg font-semibold mt-2">Backend features</p>
           @for (item of backendFeatures(); track item.feature) {
-            <div class="p-1 grid grid-cols-[4rem_auto] items-center">
+            <div class="p-1">
               <p-tag
                 [icon]="
                   'pi ' +
@@ -82,9 +82,9 @@
                 "
                 [rounded]="true"
                 [style]="item.enabled | booleanCssStyle"
-                [value]="item.enabled.toString() | capitalizeFirst"
+                class="only-icon text-xl"
               />
-              <span class="text-sm ml-4">{{ item.feature }}</span>
+              <span class="text-sm ml-4 font-bold" [ngClass]="item.enabled ? '' : 'tod-text-muted-color'">{{ item.feature }}</span>
             </div>
           }
         </div>

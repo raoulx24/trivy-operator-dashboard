@@ -21,7 +21,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Cluster Compliance Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterComplianceReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.ClusterComplianceReportCrSubpath
                     ),
                 },
@@ -31,7 +31,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Cluster Infra Assessment Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterInfraAssessmentReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.ClusterInfraAssessmentReportCrSubpath
                     ),
                 },
@@ -41,7 +41,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Cluster RBAC Assessment Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterRbacAssessmentReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.ClusterRbacAssessmentReportCrSubpath
                     ),
                 },
@@ -51,7 +51,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Cluster SBOM Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterSbomReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.ClusterSbomReportCrSubpath
                     ),
                 },
@@ -61,7 +61,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Cluster Vulnerability Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseClusterVulnerabilityReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.ClusterVulnerabilityReportCrSubpath
                     ),
                 },
@@ -72,7 +72,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Config Audit Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseConfigAuditReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.ConfigAuditReportCrSubpath
                     ),
                 },
@@ -82,7 +82,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Exposed Secret Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseExposedSecretReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.ExposedSecretReportCrSubpath
                     ),
                 },
@@ -92,7 +92,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Infra Assessment Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseInfraAssessmentReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.InfraAssessmentReportCrSubpath
                     ),
                 },
@@ -102,7 +102,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "RBAC Assessment Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseRbacAssessmentReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.RbacAssessmentReportCrSubpath
                     ),
                 },
@@ -112,7 +112,7 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "SBOM Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseSbomReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.SbomReportCrSubpath
                     ),
                 },
@@ -122,15 +122,15 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                     Name = "Vulnerability Report",
                     Enabled = IsTrivyReportEnabled(
                         k8sOptions.Value.TrivyUseVulnerabilityReport,
-                        frOptions.Value.PvcName,
+                        frOptions.Value.BasePath,
                         frOptions.Value.VulnerabilityReportCrSubpath
                     ),
                 },
             ],
-            UseDefaultContext = k8sOptions.Value.UseDefaultContext,
-            IsUsedKubeConfigFileName = !string.IsNullOrWhiteSpace(k8sOptions.Value.KubeConfigFileName),
-            IsUsedNamespaceList = !string.IsNullOrWhiteSpace(k8sOptions.Value.NamespaceList),
-            IsUsedPvcName = !string.IsNullOrWhiteSpace(frOptions.Value.PvcName),
+            IsDefaultContextUsed = k8sOptions.Value.UseDefaultContext,
+            IsKubeConfigUsed = !string.IsNullOrWhiteSpace(k8sOptions.Value.KubeConfigFileName),
+            IsNamespaceListUsed = !string.IsNullOrWhiteSpace(k8sOptions.Value.NamespaceList),
+            IsFileRepositoryUsed = !string.IsNullOrWhiteSpace(frOptions.Value.BasePath),
         };
 
         return Task.FromResult(backendSettingsDto);

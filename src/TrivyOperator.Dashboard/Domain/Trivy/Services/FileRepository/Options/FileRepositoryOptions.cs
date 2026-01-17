@@ -3,7 +3,6 @@
 public class FileRepositoryOptions
 {
     public string BasePath { get; set; } = string.Empty;
-    public string PvcName { get; set; } = "trivy-operator-pvc";
     public string ClusterComplianceReportCrSubpath { get; set; } = string.Empty;
     public string ClusterInfraAssessmentReportCrSubpath { get; set; } = "cluster_infra_assessment_reports";
     public string ClusterRbacAssessmentReportCrSubpath { get; set; } = string.Empty;
