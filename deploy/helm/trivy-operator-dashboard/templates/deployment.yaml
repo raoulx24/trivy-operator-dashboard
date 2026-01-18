@@ -65,9 +65,9 @@ spec:
           value: {{ .Values.kubernetes.trivyUseSbomReport | quote }}
         - name: KUBERNETES__TRIVYUSEVULNERABILITYREPORT
           value: {{ .Values.kubernetes.trivyUseVulnerabilityReport | quote }}
-        {{- if include "trivy-operator-dashboard.fileRepositoryAllValuesSet" . }}
         - name: FILEREPOSITORY__BASEPATH
-          value: {{ .Values.fileRepository.basePath | quote }}
+          value: {{ if include "trivy-operator-dashboard.fileRepositoryAllValuesSet" . }}{{ .Values.fileRepository.basePath | quote }}{{ else }}""{{ end }}
+        {{- if include "trivy-operator-dashboard.fileRepositoryAllValuesSet" . }}
         - name: FILEREPOSITORY__CLUSTERCOMPLIANCEREPORTCRSUBPATH
           value: {{ .Values.fileRepository.clusterComplianceReportCrSubpath | quote }}
         - name: FILEREPOSITORY__CLUSTERINFRAASSESSMENTREPORTCRSUBPATH

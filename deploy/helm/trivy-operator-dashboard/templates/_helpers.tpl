@@ -75,5 +75,9 @@ Create the name of the service account to use
 
 
 {{- define "trivy-operator-dashboard.fileRepositoryAllValuesSet" -}}
-{{- and .Values.fileRepository.enabled .Values.fileRepository.pvcName .Values.fileRepository.basePath -}}
+{{- $fileRepositoryEnabled := "" -}}
+{{- if .Values.fileRepository.enabled -}}
+  {{- $fileRepositoryEnabled = "yeah, baby" -}}
+{{- end -}}
+{{- and $fileRepositoryEnabled .Values.fileRepository.pvcName .Values.fileRepository.basePath -}}
 {{- end -}}

@@ -3,19 +3,19 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: trivy-operator-dashboard
+  name: release-name-trivy-operator-dashboard
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.7.1
+    helm.sh/chart: trivy-operator-dashboard-1.8.0
     app.kubernetes.io/name: trivy-operator-dashboard
-    app.kubernetes.io/instance: trivy-operator-dashboard
-    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.8.0"
     app.kubernetes.io/managed-by: Helm
 ---
 # Source: trivy-operator-dashboard/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: trivy-operator-dashboard
+  name: release-name-trivy-operator-dashboard
 rules:
 - apiGroups: [""]
   resources: ["namespaces"]
@@ -28,26 +28,26 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: trivy-operator-dashboard
+  name: release-name-trivy-operator-dashboard
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: trivy-operator-dashboard
+  name: release-name-trivy-operator-dashboard
 subjects:
 - kind: ServiceAccount
-  name: trivy-operator-dashboard
+  name: release-name-trivy-operator-dashboard
   namespace: default
 ---
 # Source: trivy-operator-dashboard/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: trivy-operator-dashboard
+  name: release-name-trivy-operator-dashboard
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.7.1
+    helm.sh/chart: trivy-operator-dashboard-1.8.0
     app.kubernetes.io/name: trivy-operator-dashboard
-    app.kubernetes.io/instance: trivy-operator-dashboard
-    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.8.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   type: ClusterIP
@@ -58,70 +58,78 @@ spec:
     name: http
   selector:
     app.kubernetes.io/name: trivy-operator-dashboard
-    app.kubernetes.io/instance: trivy-operator-dashboard
+    app.kubernetes.io/instance: release-name
 ---
 # Source: trivy-operator-dashboard/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: trivy-operator-dashboard
+  name: release-name-trivy-operator-dashboard
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.7.1
+    helm.sh/chart: trivy-operator-dashboard-1.8.0
     app.kubernetes.io/name: trivy-operator-dashboard
-    app.kubernetes.io/instance: trivy-operator-dashboard
-    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.8.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: trivy-operator-dashboard
-      app.kubernetes.io/instance: trivy-operator-dashboard
+      app.kubernetes.io/instance: release-name
   template:
     metadata:
       labels:
-        helm.sh/chart: trivy-operator-dashboard-1.7.1
+        helm.sh/chart: trivy-operator-dashboard-1.8.0
         app.kubernetes.io/name: trivy-operator-dashboard
-        app.kubernetes.io/instance: trivy-operator-dashboard
-        app.kubernetes.io/version: "1.7.1"
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "1.8.0"
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: web
         app.kubernetes.io/part-of: trivy-operator
     spec:
-      serviceAccountName: trivy-operator-dashboard
+      serviceAccountName: release-name-trivy-operator-dashboard
       securityContext:
         {}
       containers:
       - name: trivy-operator-dashboard
         securityContext:
           {}
-        image: "ghcr.io/raoulx24/trivy-operator-dashboard:1.7.1"
+        image: "ghcr.io/raoulx24/trivy-operator-dashboard:1.8.0"
         imagePullPolicy: Always
         env:
         - name: MAINAPPPORT
           value: "8900"
         - name: KUBERNETES__KUBECONFIGFILENAME
           value: 
+        - name: KUBERNETES__USEDEFAULTCONTEXT
+          value: "true"
         - name: KUBERNETES__NAMESPACELIST
-          value: 
+          value: ""
+        - name: KUBERNETES__TRIVYUSECLUSTERCOMPLIANCEREPORT
+          value: "true"
+        - name: KUBERNETES__TRIVYUSECLUSTERINFRAASSESSMENTREPORT
+          value: "true"
         - name: KUBERNETES__TRIVYUSECLUSTERRBACASSESSMENTREPORT
+          value: "true"
+        - name: KUBERNETES__TRIVYUSECLUSTERSBOMREPORT
+          value: "true"
+        - name: KUBERNETES__TRIVYUSECLUSTERVULNERABILITYREPORT
           value: "true"
         - name: KUBERNETES__TRIVYUSECONFIGAUDITREPORT
           value: "true"
+        - name: KUBERNETES__TRIVYUSEINFRAASSESSMENTREPORT
+          value: "true"
         - name: KUBERNETES__TRIVYUSEEXPOSEDSECRETREPORT
-          value: "true"
-        - name: KUBERNETES__TRIVYUSEVULNERABILITYREPORT
-          value: "true"
-        - name: KUBERNETES__TRIVYUSECLUSTERCOMPLIANCEREPORT
-          value: "true"
-        - name: KUBERNETES__TRIVYUSECLUSTERVULNERABILITYREPORT
           value: "true"
         - name: KUBERNETES__TRIVYUSERBACASSESSMENTREPORT
           value: "true"
         - name: KUBERNETES__TRIVYUSESBOMREPORT
           value: "true"
-        - name: KUBERNETES__TRIVYUSECLUSTERSBOMREPORT
+        - name: KUBERNETES__TRIVYUSEVULNERABILITYREPORT
           value: "true"
+        - name: FILEREPOSITORY__BASEPATH
+          value: ""
         - name: GITHUB__SERVERCHECKFORUPDATES
           value: "true"
         - name: GITHUB__CHECKFORUPDATESINTERVALINMINUTES
@@ -149,17 +157,21 @@ spec:
         volumeMounts:
         - mountPath: /tmp
           name: tmp-volume
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthz/ready
+            port: http
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /healthz/live
             port: http
-          initialDelaySeconds: 30
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /healthz/ready
             port: http
-          initialDelaySeconds: 30
           periodSeconds: 30
         resources:
           {}
@@ -172,12 +184,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: trivy-operator-dashboard
+  name: release-name-trivy-operator-dashboard
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.7.1
+    helm.sh/chart: trivy-operator-dashboard-1.8.0
     app.kubernetes.io/name: trivy-operator-dashboard
-    app.kubernetes.io/instance: trivy-operator-dashboard
-    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.8.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   ingressClassName: nginx
@@ -189,7 +201,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: trivy-operator-dashboard
+                name: release-name-trivy-operator-dashboard
                 port:
                   number: 8900
 ---
@@ -197,12 +209,12 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "trivy-operator-dashboard-test-connection"
+  name: "release-name-trivy-operator-dashboard-test-connection"
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.7.1
+    helm.sh/chart: trivy-operator-dashboard-1.8.0
     app.kubernetes.io/name: trivy-operator-dashboard
-    app.kubernetes.io/instance: trivy-operator-dashboard
-    app.kubernetes.io/version: "1.7.1"
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.8.0"
     app.kubernetes.io/managed-by: Helm
   annotations:
     "helm.sh/hook": test
@@ -211,5 +223,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['trivy-operator-dashboard:8900']
+      args: ['release-name-trivy-operator-dashboard:8900']
   restartPolicy: Never
