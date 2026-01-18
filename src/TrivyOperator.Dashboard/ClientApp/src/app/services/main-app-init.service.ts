@@ -61,8 +61,14 @@ export class MainAppInitService {
 
     // const clone = JSON.parse(JSON.stringify(original)) as typeof original;
     this._backendSettingsDto.update((item) => {
-      item.trivyReportConfigDtos = newTrivyReportConfig;
-      return item;
+      const newItem: BackendSettingsDto = {
+        isDefaultContextUsed: this.defaultBackendSettingsDto?.isDefaultContextUsed ?? false,
+        isFileRepositoryUsed: this.defaultBackendSettingsDto?.isFileRepositoryUsed ?? false,
+        isNamespaceListUsed: this.defaultBackendSettingsDto?.isNamespaceListUsed ?? false,
+        isKubeConfigUsed: this.defaultBackendSettingsDto?.isKubeConfigUsed ?? false,
+        trivyReportConfigDtos: newTrivyReportConfig,
+      };
+      return newItem;
     });
 
     localStorage.setItem('backendSettings.trivyReportConfig', newIds.join(','));
