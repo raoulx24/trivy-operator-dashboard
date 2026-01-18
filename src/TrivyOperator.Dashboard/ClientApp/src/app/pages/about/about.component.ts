@@ -13,7 +13,6 @@ import { VersionUtils } from '../../utils/version.utils';
 import { AboutCredits } from './about.types';
 
 import { BooleanCssStylePipe } from '../../pipes/boolean-css-style.pipe';
-import { CapitalizeFirstPipe } from '../../pipes/capitalize-first.pipe';
 import { MainAppInitService } from '../../services/main-app-init.service';
 
 export interface BackendFeature {
@@ -24,7 +23,7 @@ export interface BackendFeature {
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule, MarkdownModule, CardModule, PanelModule, TagModule, BooleanCssStylePipe, CapitalizeFirstPipe],
+  imports: [CommonModule, MarkdownModule, CardModule, PanelModule, TagModule, BooleanCssStylePipe],
   providers: [provideMarkdown()],
   templateUrl: './about.component.html',
   styleUrl: './about.component.scss',

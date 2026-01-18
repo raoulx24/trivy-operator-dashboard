@@ -10,7 +10,8 @@
         unselectable="true"
         class="text-sm"
         [options]="treeExpandLevelOptions()"
-        [(ngModel)]="treeExpandLevelOptionValue"
+        [ngModel]="treeExpandLevelOptionValue()"
+        (ngModelChange)="treeExpandLevelOptionValue.set($event)"
         (onOptionClick)="onOptionClickTreeExpandLevel($event)"
       />
     } @else {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, model, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AlertDto } from '../../../api/models/alert-dto';
@@ -60,7 +60,7 @@ export class AlertsComponent implements OnInit {
   private allTreeNodes: TreeNode<AlertNodeData>[] = [];
 
   treeExpandLevelOptions = signal<TreeExpandLevelOption[]>([]);
-  treeExpandLevelOptionValue = model<number>(0);
+  treeExpandLevelOptionValue = signal<number>(0);
 
   alertsService: AlertsService = inject(AlertsService);
 
@@ -73,27 +73,30 @@ export class AlertsComponent implements OnInit {
   constructor() {
     effect(() => {
       const events = this.alertsService.refreshEvents();
-      this.loadData();
     });
+    effect(() => {
+      const levelOptionValue = this.treeExpandLevelOptionValue();
+      this.expandTreeNodesToLevel(levelOptionValue);
+    })
   }
 
   ngOnInit() {
-    setTimeout(() => {
       this.loadData();
-    }, 100);
   }
 
   onNodeExpand(event: TreeTableNodeExpandEvent) {
     event.node.data.isExpanded = true;
-    this.checkIfFullLevelExpanded();
+    this.checkIfFullLevelExpanded(event.node);
   }
 
   onNodeCollapse(event: TreeTableNodeCollapseEvent) {
+    this.collapseRecursively(event.node);
     event.node.data.isExpanded = false;
-    this.checkIfFullLevelExpanded();
+    this.checkIfFullLevelExpanded(event.node);
   }
 
   loadData() {
+    this.allTreeNodes = [];
     const alerts = this.alertsService.getAlerts();
     this.treeData.set(this.buildTree(alerts));
     this.allTreeNodes.sort((a, b) => (a.data?.level ?? 999) - (b.data?.level ?? 999));
@@ -204,7 +207,7 @@ export class AlertsComponent implements OnInit {
         }
       }
 
-      return arr;
+      return [...arr];
     });
   }
 
@@ -213,25 +216,54 @@ export class AlertsComponent implements OnInit {
     this.expandTreeNodesToLevel(event.index);
   }
 
-  private checkIfFullLevelExpanded() {
-    let currentLevel = this.allTreeNodes[0]?.data?.level ?? -1;
-    let previousLevel: number = -1;
+  private checkIfFullLevelExpanded(changedNode: TreeNode<AlertNodeData>) {
+    const changedLevel = changedNode.data?.level ?? -1;
 
-    for (let i = 0; i < this.allTreeNodes.length; i++) {
-      if (this.allTreeNodes[i].data?.level !== currentLevel) {
-        previousLevel = currentLevel;
-        currentLevel = this.allTreeNodes[i].data?.level ?? 999;
-      }
+    // All nodes at this level
+    const nodesAtLevel = this.allTreeNodes.filter(
+      n => (n.data?.level ?? -1) === changedLevel
+    );
 
-      if (this.allTreeNodes[i].data?.level === currentLevel && !this.allTreeNodes[i].data?.isExpanded) {
-        currentLevel = previousLevel;
-        break;
-      }
+    const expandedCount = nodesAtLevel.filter(n => n.data?.isExpanded).length;
+    const allExpanded = expandedCount === nodesAtLevel.length;
+    const allCollapsed = expandedCount === 0;
+
+    const currentValue = this.treeExpandLevelOptionValue();
+
+    // --- CASE 1: Increase level when fully expanded ---
+    if (allExpanded && currentValue < changedLevel + 1) {
+      this.treeExpandLevelOptionValue.set(changedLevel + 1);
+      return;
     }
 
-    // If we get through the loop, last level was fully expanded
-    if (currentLevel !== this.treeExpandLevelOptionValue() - 1) {
-      this.treeExpandLevelOptionValue.set(currentLevel + 1);
+    // --- CASE 2: Decrease level only if ALL deeper levels are collapsed ---
+    if (allCollapsed && currentValue > changedLevel) {
+
+      // Check deeper levels
+      const deeperLevelsHaveExpandedNodes = this.allTreeNodes.some(n =>
+        (n.data?.level ?? -1) > changedLevel &&
+        n.data?.isExpanded === true
+      );
+
+      // Only decrease if deeper levels are fully collapsed
+      if (!deeperLevelsHaveExpandedNodes) {
+        this.treeExpandLevelOptionValue.set(changedLevel);
+      }
+
+      return;
     }
   }
+
+  private collapseRecursively(node: TreeNode<AlertNodeData>) {
+    node.expanded = false;
+    if (node.data) node.data.isExpanded = false;
+
+    if (node.children) {
+      for (const child of node.children) {
+        this.collapseRecursively(child);
+      }
+    }
+  }
+
+
 }
