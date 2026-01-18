@@ -38,27 +38,59 @@ spec:
         - name: MAINAPPPORT
           value: {{ .Values.service.port | quote }}
         - name: KUBERNETES__KUBECONFIGFILENAME
-          value: {{ .Values.kubernetes.kubeConfigFileName }}
+          value: {{ include "trivy-operator-dashboard.kubeConfigFullPath" . }}
+        - name: KUBERNETES__USEDEFAULTCONTEXT
+          value: {{ .Values.kubernetes.useDefaultContext | quote }}
         - name: KUBERNETES__NAMESPACELIST
-          value: {{ .Values.kubernetes.namespaceList }}
-        - name: KUBERNETES__TRIVYUSECLUSTERRBACASSESSMENTREPORT
-          value: {{ .Values.kubernetes.trivyUseClusterRbacAssessmentReport | quote }}
-        - name: KUBERNETES__TRIVYUSECONFIGAUDITREPORT
-          value: {{ .Values.kubernetes.trivyUseConfigAuditReport | quote }}
-        - name: KUBERNETES__TRIVYUSEEXPOSEDSECRETREPORT
-          value: {{ .Values.kubernetes.trivyUseExposedSecretReport | quote }}
-        - name: KUBERNETES__TRIVYUSEVULNERABILITYREPORT
-          value: {{ .Values.kubernetes.trivyUseVulnerabilityReport | quote }}
+          value: {{ .Values.kubernetes.namespaceList | quote }}
         - name: KUBERNETES__TRIVYUSECLUSTERCOMPLIANCEREPORT
           value: {{ .Values.kubernetes.trivyUseClusterComplianceReport | quote }}
+        - name: KUBERNETES__TRIVYUSECLUSTERINFRAASSESSMENTREPORT
+          value: {{ .Values.kubernetes.trivyUseClusterInfraAssessmentReport | quote }}
+        - name: KUBERNETES__TRIVYUSECLUSTERRBACASSESSMENTREPORT
+          value: {{ .Values.kubernetes.trivyUseClusterRbacAssessmentReport | quote }}
+        - name: KUBERNETES__TRIVYUSECLUSTERSBOMREPORT
+          value: {{ .Values.kubernetes.trivyUseClusterSbomReport | quote }}
         - name: KUBERNETES__TRIVYUSECLUSTERVULNERABILITYREPORT
           value: {{ .Values.kubernetes.trivyUseClusterVulnerabilityReport | quote }}
+        - name: KUBERNETES__TRIVYUSECONFIGAUDITREPORT
+          value: {{ .Values.kubernetes.trivyUseConfigAuditReport | quote }}
+        - name: KUBERNETES__TRIVYUSEINFRAASSESSMENTREPORT
+          value: {{ .Values.kubernetes.trivyUseInfraAssessmentReport | quote }}
+        - name: KUBERNETES__TRIVYUSEEXPOSEDSECRETREPORT
+          value: {{ .Values.kubernetes.trivyUseExposedSecretReport | quote }}
         - name: KUBERNETES__TRIVYUSERBACASSESSMENTREPORT
           value: {{ .Values.kubernetes.trivyUseRbacAssessmentReport | quote }}
         - name: KUBERNETES__TRIVYUSESBOMREPORT
           value: {{ .Values.kubernetes.trivyUseSbomReport | quote }}
-        - name: KUBERNETES__TRIVYUSECLUSTERSBOMREPORT
-          value: {{ .Values.kubernetes.trivyUseClusterSbomReport | quote }}
+        - name: KUBERNETES__TRIVYUSEVULNERABILITYREPORT
+          value: {{ .Values.kubernetes.trivyUseVulnerabilityReport | quote }}
+        {{- if include "trivy-operator-dashboard.fileRepositoryAllValuesSet" . }}
+        - name: FILEREPOSITORY__BASEPATH
+          value: {{ .Values.fileRepository.basePath | quote }}
+        - name: FILEREPOSITORY__CLUSTERCOMPLIANCEREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.clusterComplianceReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__CLUSTERINFRAASSESSMENTREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.clusterInfraAssessmentReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__CLUSTERRBACASSESSMENTREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.clusterRbacAssessmentReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__CLUSTERSBOMREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.clusterSbomReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__CLUSTERVULNERABILITYREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.clusterVulnerabilityReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__CONFIGAUDITREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.configAuditReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__EXPOSEDSECRETREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.exposedSecretReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__INFRAASSESSMENTREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.infraAssessmentReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__RBACASSESSMENTREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.rbacAssessmentReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__SBOMREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.sbomReportCrSubpath | quote }}
+        - name: FILEREPOSITORY__VULNERABILITYREPORTCRSUBPATH
+          value: {{ .Values.fileRepository.vulnerabilityReportCrSubpath | quote }}
+        {{- end }}
         - name: GITHUB__SERVERCHECKFORUPDATES
           value: {{ .Values.gitHub.serverCheckForUpdates | quote }}
         - name: GITHUB__CHECKFORUPDATESINTERVALINMINUTES
@@ -95,6 +127,16 @@ spec:
         volumeMounts:
         - mountPath: /tmp
           name: tmp-volume
+        {{- if include "trivy-operator-dashboard.kubeConfigAllValuesSet" . }}
+        - name: kubeconfig
+          mountPath: {{ .Values.kubernetes.kubeConfigPath }}
+          subPath: {{ .Values.kubernetes.kubeConfigFileName }}
+        {{- end }}
+        {{- if include "trivy-operator-dashboard.fileRepositoryAllValuesSet" . }}
+        - name: file-repo 
+          mountPath: {{ .Values.fileRepository.basePath }}
+          # subPath: "." # required due to issue #7
+        {{- end }}
         startupProbe:
           {{- toYaml .Values.startupProbe | nindent 10 }}
         livenessProbe:
@@ -107,6 +149,20 @@ spec:
       - name: tmp-volume
         emptyDir:
           sizeLimit: 1024Mi
+      {{- if include "trivy-operator-dashboard.kubeConfigAllValuesSet" . }}
+      - name: kubeconfig
+        secret:
+          secretName: {{ .Values.kubernetes.kubeConfigSecretName }}
+          items:
+          - key: {{ .Values.kubernetes.kubeConfigFileName }}
+            path: {{ .Values.kubernetes.kubeConfigFileName }}
+      {{- end }}
+      {{- if include "trivy-operator-dashboard.fileRepositoryAllValuesSet" . }}
+      - name: file-repo
+        persistentVolumeClaim:
+          claimName: {{ .Values.fileRepository.pvcName }} 
+      {{- end }}
+      
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

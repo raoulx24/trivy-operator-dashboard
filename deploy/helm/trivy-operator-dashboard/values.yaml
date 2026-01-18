@@ -3,17 +3,44 @@ logging:
   level: Information                                      # Debug, Information, Warning, Error
 
 kubernetes:
-  kubeConfigFileName: ""                                  # path to custom kube config file. in k8s it should be empty
+  kubeConfigFileName: ""                                  # file name of the custom kube config file
+  kubeConfigPath: ""                                      # path where kub config file will be mounted
+  kubeConfigSecretName: ""                                # the secret that contains the kube config. the key is the file name
+  useDefaultContext: true                                 # if true, default context will be used and cache will be active
   namespaceList: ""                                       # a list of namespaces, comma delimited
-  trivyUseClusterRbacAssessmentReport: true               # (in)activate Cluster RBAC Assessment Reports
-  trivyUseConfigAuditReport: true                         # (in)activate Config Audit Reports
-  trivyUseExposedSecretReport: true                       # (in)activate Exposed Secret Reports
-  trivyUseVulnerabilityReport: true                       # (in)activate Vulnerability Reports
-  trivyUseClusterComplianceReport: true                   # (in)activate Cluster Compliance Reports
-  trivyUseClusterVulnerabilityReport: true                # (in)activate Cluster Vulnerability Reports
-  trivyUseRbacAssessmentReport: true                      # (in)activate RBAC Assessment Reports
-  trivyUseSbomReport: true                                # (in)activate SBOM Reports
-  trivyUseClusterSbomReport: true                         # (in)activate Cluster SBOM Reports
+  # trivyUseXyzReport true, false - if the reports are active in TOD or not
+  trivyUseClusterComplianceReport: true
+  trivyUseClusterInfraAssessmentReport: true
+  trivyUseClusterRbacAssessmentReport: true
+  trivyUseClusterSbomReport: true
+  trivyUseClusterVulnerabilityReport: true
+  trivyUseConfigAuditReport: true
+  trivyUseInfraAssessmentReport: true
+  trivyUseExposedSecretReport: true
+  trivyUseRbacAssessmentReport: true
+  trivyUseSbomReport: true
+  trivyUseVulnerabilityReport: true
+  
+
+fileRepository:
+  enabled: false                                          # true, false
+  # important: if enabled, you should also set affinity and user (now, trivy user id in TO is 10000)
+  # as of 2026-01-18, only the ones with Subpath not empty work
+  # see https://github.com/raoulx24/trivy-operator-dashboard/issues/7
+  pvcName: "trivy-operator-pvc"                           # the pvc name of trivy operator
+  basePath: "/var/lib/trivy-operator"                     # where the pcv will be mounted and consumed by TOD
+  clusterComplianceReportCrSubpath: "cluster_compliance_report"
+  clusterInfraAssessmentReportCrSubpath: ""
+  clusterRbacAssessmentReportCrSubpath: ""
+  clusterSbomReportCrSubpath: "cluster_sbom_reports"
+  clusterVulnerabilityReportCrSubpath: "cluster_vulnerability_reports"
+  configAuditReportCrSubpath: ""
+  exposedSecretReportCrSubpath: "secret_reports"
+  infraAssessmentReportCrSubpath: ""
+  rbacAssessmentReportCrSubpath: ""
+  sbomReportCrSubpath: "sbom_reports"
+  vulnerabilityReportCrSubpath: "vulnerability_reports"
+ 
 
 gitHub:
   serverCheckForUpdates: true
@@ -68,7 +95,7 @@ securityContext: {}
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
-  # runAsUser: 1000
+  # runAsUser: 10000
 
 service:
   type: ClusterIP

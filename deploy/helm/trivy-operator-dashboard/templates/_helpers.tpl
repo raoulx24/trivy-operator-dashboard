@@ -60,3 +60,20 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+
+{{- define "trivy-operator-dashboard.kubeConfigAllValuesSet" -}}
+{{- and .Values.kubernetes.kubeConfigFileName .Values.kubernetes.kubeConfigPath .Values.kubernetes.kubeConfigSecretName -}}
+{{- end -}}
+
+{{- define "trivy-operator-dashboard.kubeConfigFullPath" -}}
+{{- if include "trivy-operator-dashboard.kubeConfigAllValuesSet" . }}
+{{- printf "%s/%s" .Values.kubernetes.kubeConfigPath .Values.kubernetes.kubeConfigFileName -}}
+{{- end -}}
+{{- end -}}
+
+
+{{- define "trivy-operator-dashboard.fileRepositoryAllValuesSet" -}}
+{{- and .Values.fileRepository.enabled .Values.fileRepository.pvcName .Values.fileRepository.basePath -}}
+{{- end -}}
