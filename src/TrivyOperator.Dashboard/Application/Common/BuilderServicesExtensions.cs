@@ -5,6 +5,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
+using TrivyOperator.Dashboard.Application.Alerts.Internals;
 using TrivyOperator.Dashboard.Application.Alerts.Services;
 using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.AppVersions.Services;
@@ -94,13 +95,20 @@ public static class BuilderServicesExtensions
 {
     public static ILogger? logger { get; set; }
 
-    public static void AddV1NamespaceServices(this IServiceCollection services, IConfiguration kubernetesConfiguration)
+    public static void AddV1NamespaceServices(this IServiceCollection services, IConfiguration configuration)
     {
-        bool? useDefaultContext = kubernetesConfiguration.GetValue<bool?>("UseDefaultContext");
+        bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
+        bool useNamespaceList = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("Kubernetes:NamespaceList"));
+        bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
 
-        if (useDefaultContext == null || !(bool)useDefaultContext)
+        if (useFileRepository)
         {
-            if (string.IsNullOrWhiteSpace(kubernetesConfiguration.GetValue<string>("NamespaceList")))
+            return;
+        }
+
+        if (!useDefaultContext)
+        {
+            if (!useNamespaceList)
             {
                 logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", typeof(V1Namespace).Name);
                 services.AddSingleton<NamespaceDomainService>();
@@ -133,7 +141,7 @@ public static class BuilderServicesExtensions
 
         services.AddSingleton<IConcurrentDictionaryCache<V1Namespace>, ConcurrentDictionaryCache<V1Namespace>>();
         services.AddSingleton<IKubernetesBackgroundQueue<V1Namespace>, KubernetesBackgroundQueue<V1Namespace>>();
-        if (string.IsNullOrWhiteSpace(kubernetesConfiguration.GetValue<string>("NamespaceList")))
+        if (!useNamespaceList)
         {
             logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", typeof(V1Namespace).Name);
             services.AddSingleton<NamespaceDomainService>();
@@ -207,19 +215,18 @@ public static class BuilderServicesExtensions
         where TNullAppService : class, TAppServiceInterface
         where TAppService : class, TAppServiceInterface
     {
-        TrivyConfigHelper.GetConfigFor<TNamespacedTrivyReportCr>(
+        GetConfigFor<TNamespacedTrivyReportCr>(
             configuration,
-            out string? className,
-            out string? shortClassName,
-            out bool? useServices,
-            out bool? useDefaultContext,
-            out string? pvcName,
-            out string? subpath
+            out string className,
+            out string shortClassName,
+            out bool useService,
+            out bool useDefaultContext,
+            out string basePath,
+            out string subpath
         );
 
-        if (!string.IsNullOrWhiteSpace(pvcName) &&
-            useServices != null &&
-            (bool)useServices &&
+        if (!string.IsNullOrWhiteSpace(basePath) &&
+            useService &&
             !string.IsNullOrWhiteSpace(subpath))
         {
             logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
@@ -242,9 +249,7 @@ public static class BuilderServicesExtensions
             return;
         }
 
-        if (useServices == null ||
-            !(bool)useServices ||
-            (!string.IsNullOrWhiteSpace(pvcName) && string.IsNullOrWhiteSpace(subpath)))
+        if (!useService || (!string.IsNullOrWhiteSpace(basePath) && string.IsNullOrWhiteSpace(subpath)))
         {
             logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
             services.AddScoped<TAppServiceInterface, TNullAppService>();
@@ -254,7 +259,7 @@ public static class BuilderServicesExtensions
             return;
         }
 
-        if (useDefaultContext == null || !(bool)useDefaultContext)
+        if (!useDefaultContext)
         {
             logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
             services.AddSingleton<
@@ -315,19 +320,18 @@ public static class BuilderServicesExtensions
         where TNullAppService : class, TAppServiceInterface
         where TAppService : class, TAppServiceInterface
     {
-        TrivyConfigHelper.GetConfigFor<TClusterScopedTrivyReportCr>(
+        GetConfigFor<TClusterScopedTrivyReportCr>(
             configuration,
-            out string? className,
-            out string? shortClassName,
-            out bool? useServices,
-            out bool? useDefaultContext,
-            out string? pvcName,
-            out string? subpath
+            out string className,
+            out string shortClassName,
+            out bool useService,
+            out bool useDefaultContext,
+            out string basePath,
+            out string subpath
         );
 
-        if (!string.IsNullOrWhiteSpace(pvcName) &&
-            useServices != null &&
-            (bool)useServices &&
+        if (!string.IsNullOrWhiteSpace(basePath) &&
+            useService &&
             !string.IsNullOrWhiteSpace(subpath))
         {
             logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
@@ -345,9 +349,7 @@ public static class BuilderServicesExtensions
             return;
         }
 
-        if (useServices == null ||
-            !(bool)useServices ||
-            (!string.IsNullOrWhiteSpace(pvcName) && string.IsNullOrWhiteSpace(subpath)))
+        if (!useService || (!string.IsNullOrWhiteSpace(basePath) && string.IsNullOrWhiteSpace(subpath)))
         {
             logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
             services.AddScoped<TAppServiceInterface, TNullAppService>();
@@ -357,7 +359,7 @@ public static class BuilderServicesExtensions
             return;
         }
 
-        if (useDefaultContext == null || !(bool)useDefaultContext)
+        if (!useDefaultContext)
         {
             logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
             services.AddSingleton<
@@ -592,29 +594,26 @@ public static class BuilderServicesExtensions
             );
     }
 
-    private static class TrivyConfigHelper
+    private static void GetConfigFor<T>(
+        IConfiguration config,
+        out string className,
+        out string shortClassName,
+        out bool useService,
+        out bool useDefaultContext,
+        out string basePath,
+        out string subpath
+    )
     {
-        public static void GetConfigFor<T>(
-            IConfiguration config,
-            out string className,
-            out string shortClassName,
-            out bool? useServices,
-            out bool? useDefaultContext,
-            out string? pvcName,
-            out string? subpath
-        )
-        {
-            className = typeof(T).Name;
+        className = typeof(T).Name;
 
-            shortClassName = className.EndsWith("Cr", StringComparison.Ordinal) ? className[..^2] : className;
+        shortClassName = className.EndsWith("Cr", StringComparison.Ordinal) ? className[..^2] : className;
 
-            useServices = config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}");
+        useService = config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}") ?? false;
 
-            useDefaultContext = config.GetValue<bool?>("Kubernetes:UseDefaultContext");
+        useDefaultContext = config.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
+            
+        basePath = config.GetValue<string>("FileRepository:BasePath") ?? "";
 
-            pvcName = config.GetValue<string>("FileRepository:PvcName");
-
-            subpath = config.GetValue<string>($"FileRepository:{className}Subpath");
-        }
+        subpath = config.GetValue<string>($"FileRepository:{className}Subpath") ?? "";
     }
 }

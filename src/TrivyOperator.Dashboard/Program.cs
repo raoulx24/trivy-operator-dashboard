@@ -74,8 +74,7 @@ builder.Services.AddControllersWithViews(ConfigureMvcOptions)
 builder.Services.AddCommons(configuration);
 builder.Services.AddAlertsServices();
 builder.Services.AddWatcherStateServices();
-IConfigurationSection k8SConfigurationSection = configuration.GetSection("Kubernetes");
-builder.Services.AddV1NamespaceServices(k8SConfigurationSection);
+builder.Services.AddV1NamespaceServices(configuration);
 builder.Services.AddTrivyServices(configuration);
 
 builder.Services.AddUiCommons();
