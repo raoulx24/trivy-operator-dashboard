@@ -89,7 +89,7 @@ In Helm values file, the following sections are app related
 
 > **Note: kube config file**  
 
-1. **Important:** This feature is experimental. If the user provides a kubeconfig, it must be one where all defined connections are actually usable - meaning the authentication plugins work (kubelogin, AWS IAM, GCP, OIDC, Vault etc.), the clusters are reachable, certificates are valid, RBAC is defined, and no session or token has expired
+1. **Important:** This feature is experimental. If the user provides a kubeconfig, it must be one where all defined connections are actually usable - meaning the authentication plugins work (kubelogin, aws-iam-authenticator, gcloud, OIDC, Vault etc.), the clusters are reachable and with proper RBAC, certificates are valid, and no session or token has expired
 2. if a kubeconfig file is provided, the app will ignore the defaults and attempt to use it. If it is malformed, it will fall back to default  
 3. `kubeConfigFileName` must be the key used in `kubeConfigSecretName` secret. Failing to do so will block the pod startup  
 4. command to create a secret (sample; replace `kubeConfigSecretName`, `kubeConfigFileName`, `path/to/file` with their appropriate values):
@@ -106,7 +106,7 @@ If set to `true`, only default context will be used and watchers are activated. 
 > **Note: file repository**
 
 1. **Important:** the feature is experimental (as the feature from trivy Operator is not mature)
-2. **Important:** if activated, parameters from `kubernetes`, except `trivyUse*TrivyReportName*Report` ones, are ignored. And no RBAC is needed
+2. **Important:** if activated, all parameters from `kubernetes`, except `trivyUse*TrivyReportName*Report` ones, are ignored. And no RBAC is needed
 3. Minimal additional values that must be set:
 
    ```yaml
