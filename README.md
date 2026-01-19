@@ -17,17 +17,19 @@ environment remains robust and secure.
 
 ## Features
 
-The application exposes the following reports:
+The application exposes all Trivy Reports:
 
-- Vulnerability Reports
-- Config Audit Reports
-- Cluster RBAC Assessment Reports
-- Exposed Secret Reports
 - Cluster Compliance Reports
+- Cluster Infra Assessment Reports
+- Cluster RBAC Assessment Reports
+- Cluster SBOM Reports
 - Cluster Vulnerability Report
+- Config Audit Reports
+- Exposed Secret Reports
+- Infra Assessment Reports
 - RBAC Assessment Report
 - SBOM Reports
-- Cluster SBOM Reports
+- Vulnerability Reports
 
 All of them consist of dashboards (for view at a glance), browse and inspect findings (with table filters, sorts), export data, compare.
 
@@ -81,6 +83,8 @@ immediate needs and serves the community effectively.
 [Installation](docs/install-doc.md)
 
 [Main User Guide](docs/main-doc.md)
+
+[Tips & Tricks](docs/tips-and-tricks.md)
 
 ### Compatibility and Apps
 

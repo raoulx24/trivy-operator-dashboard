@@ -22,7 +22,7 @@ The recommended way of installation is via helm. The helm package is hosted on [
 > The file `deploy/static/trivy-operator-dashboard.yaml` is a render of the mentioned helm with default values
 
 > **Note: Version in examples**  
-> The version used in the examples (1.7.2) is not necessarily the latest. Always check for the most recent version on [GitHub Charts](https://github.com/raoulx24/trivy-operator-dashboard/pkgs/container/charts%2Ftrivy-operator-dashboard) before installing.
+> The version used in the examples (1.8.0) is not necessarily the latest. Always check for the most recent version on [GitHub Charts](https://github.com/raoulx24/trivy-operator-dashboard/pkgs/container/charts%2Ftrivy-operator-dashboard) before installing.
 
 Steps:
 
@@ -33,51 +33,107 @@ kubectl create secret tls chart-example-tls --cert=path/to/cert/file --key=path/
 ```
 3. run the helm. Example:
 ```sh
-helm install trivy-operator-dashboard oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.7.2 -f my-custom-values-file.yaml
+helm install trivy-operator-dashboard oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.8.0 -f my-custom-values-file.yaml
 ```
 
 **Optional:** If you want to inspect or unpack the chart locally:
 ```sh
-helm pull oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.7.2
-tar -xzf trivy-operator-dashboard-1.7.2.tgz
+helm pull oci://ghcr.io/raoulx24/charts/trivy-operator-dashboard --version 1.8.0
+tar -xzf trivy-operator-dashboard-1.8.0.tgz
 ```
 
 ## Specific Parameters
 
-In helm values file, the following parameters are app related:
+In helm values file, the following sections are app related
 
-| section       | key name                            | description |
-|---------------| ------------------------------------|-----|
-| kubernetes    | kubeConfigFileName                  | path to custom kube config file. normally needed only for dev stage and in k8s it should be empty |
-| kubernetes    | namespaceList                       | comma-separated list of namespaces. Providing this disables the namespaces watcher. |
-| kubernetes    | trivyUseClusterRbacAssessmentReport | enables or disables Cluster RBAC Assessment Report module; if false, the watchers are disabled |
-| kubernetes    | trivyUseConfigAuditReport           | enables or disables Config Audit Report module; if false, the watchers are disabled |
-| kubernetes    | trivyUseExposedSecretReport         | enables or disables Exposed Secret Report module; if false, the watchers are disabled |
-| kubernetes    | trivyUseVulnerabilityReport         | enables or disables Vulnerability Report module; if false, the watchers are disabled |
-| kubernetes    | trivyUseClusterComplianceReport     | enables or disables Cluster Compliance Report module; if false, the watchers are disabled |
-| kubernetes    | trivyUseClusterVulnerabilityReport  | enables or disables Cluster Vulnerability Report module; if false, the watchers are disabled |
-| kubernetes    | trivyUseRbacAssessmentReport        | enables or disables RBAC Assessment Report module; if false, the watchers are disabled |
-| kubernetes    | trivyUseSbomReport                  | enables or disables SBOM Report module; if false, the watchers are disabled |
-| kubernetes    | trivyUseClusterSbomReport           | enables or disables Cluster SBOM Report module; if false, the watchers are disabled |
-| gitHub        | serverCheckForUpdates               | enables or disables the backend check for new versions and cache release information. |
-| gitHub        | checkForUpdatesIntervalInMinutes    | the time interval in minutes used by the backend for new version polling |
-| openTelemetry | enabled                             | enables or disables OpenTelemetry instrumentation |
-| openTelemetry | otelEndpoint                        | otel endpoint. normally, it is http://otel-endpoint(:port) |
-| openTelemetry | otelProtocol                        | the protocol used for otel writer. can be `grpc` or `http` |
-| openTelemetry | consoleEnabled                      | enables or disables console output. Not recommended for production |
-| openTelemetry | aspNetCoreInstrumentationEnabled    | enables or disables ASPNET instrumentation |
-| openTelemetry | runtimeInstrumentationEnabled       | enables or disables runtime instrumentation |
-| openTelemetry | prometheusExporterPort              | port for Prometheus metrics export. Experimental; prefer using OpenTelemetry for Prometheus metrics |
+### `kubernetes` section
+
+| key name                        | description |
+| --------------------------------|-------------|
+| kubeConfigFileName              | name custom kubeconfig file |
+| kubeConfigPath                  | full path for the kubeconfig file. it should not be changed |
+| kubeConfigSecretName            | the secret that holds the kubeconfig content | 
+| namespaceList                   | comma-separated list of namespaces. Providing this disables the namespaces watcher |
+| useDefaultContext               | if `true`, only the default context is used and watchers are enabled. <br>if `false`, all contexts are used, but watchers are disabled
+| trivyUse*TrivyReportName*Report | enables or disables the specific Trivy Report module - for brevity, the full list is not provided here; in Helm values they are fully provided |
+
+### `fileRepository` section
+
+| key name                        | description |
+| --------------------------------|-------------|
+| enabled                         | enables or disables the file repository feature. in this mode, instead of querying the kubernetes for reports, exported files by the operator are used |
+| pvcName                         | the Persisten Volume Name (PVC) used by Trivy Operator for storing reports as files |
+| basePath                        | where the PVC will be mounted and consumed by Trivy Operator Dashboard |
+| *TrivyreportName*tCrSubpath     | the subpath for files of the specific *Trivy Report* module - for brevity, the full list is not provided here; in Helm values they are fully provided. If empty, they are ignored. Should not be changed unless you are certain |
 
 
-> **Note: Configuration Mapping**  
-> The parameters described above have corresponding entries in appsettings.json. This file is primarily intended for development purposes and should not be used for production configuration
+### `gitHub` section
+
+| key name                            | description |
+| ------------------------------------|-------------|
+| serverCheckForUpdates               | enables or disables the backend check for new versions and cache release information. |
+| checkForUpdatesIntervalInMinutes    | the time interval in minutes used by the backend for new version polling |
+
+
+### `openTelemetry` section
+
+| key name                            | description |
+| ------------------------------------|-------------|
+| enabled                             | enables or disables OpenTelemetry instrumentation |
+| otelEndpoint                        | otel endpoint. normally, it is http://otel-endpoint(:port) |
+| otelProtocol                        | the protocol used for otel writer. can be `grpc` or `http` |
+| consoleEnabled                      | enables or disables console output. Not recommended for production |
+| aspNetCoreInstrumentationEnabled    | enables or disables ASPNET instrumentation |
+| runtimeInstrumentationEnabled       | enables or disables runtime instrumentation |
+| prometheusExporterPort              | port for Prometheus metrics export. **Experimental**; prefer using OpenTelemetry for Prometheus metrics |
+
+> **Note: kube config file**  
+
+1. if a kube config file is provided, the app will ignore the defaults and attempt to use it. If it is malformed, it will fall back to default  
+2. `kubeConfigFileName` must be the key used in `kubeConfigSecretName` secret. Failing to do so, will block the pod startup  
+3. command to create a secret (sample; replace `kubeConfigSecretName`, `kubeConfigFileName`, `path/to/file` with their appropriate values):
+
+   ```sh
+   kubectl create secret generic __kubeConfigSecretName__ --from-file=__kubeConfigFileName__=path/to/file
+   ```
+
+> **Note: default context**  
+
+If st to `true`, only default context will be used and watchers are activated. If set to `false`, all contexts are provided and watchers are disabled (a "passthrough mode" is activated). As a side effect, **all reqs are slower**, as all data from all namespaces is queried in most cases
+
+> **Note: file repository**
+
+1. Minimal additional values that must be set:
+
+   ```yaml
+   fileRepository:
+     enabled: true
+ 
+   securityContext:
+     runAsNonRoot: true
+     runAsUser: 10000
+   ```
+
+   Affinity for the Trivy Operator pods should also be set, as the PVC is RWO and Trivy Operator Dashboard must run on the same node as Trivy Operator
+2. The feature from Trivy Operator is not very mature. Not all Trivy reports are usable. Also, it seems that the files are not cleaned up and grow in size
+3. The feature is developed as openly as possible. If new reports become available (and output storage is fixed), it will only require a configuration change during installation (to set the path of that Trivy Report). This is why some parameters have empty values
+4. Additinonal info: [GitHub req](https://github.com/raoulx24/trivy-operator-dashboard/issues/7)
 
 > **Note: Open Telemetry and metrics**  
-> If an OpenTelemetry URL is provided, the Prometheus metrics port should not be used, as OpenTelemetry already supplies the metrics - using both will result in duplication
 
-> **Note: Security Recommendation:**  
-> It is highly recommended that the Prometheus exporter port, if used, be different from the MainAppPort. This separation enhances security by reducing the risk of exposing internal metrics endpoints on public-facing ports. If in doubt, use the recommended ports: 8900 for the app and 8901 for Prometheus
+If an OpenTelemetry URL is provided, the Prometheus metrics port should not be used, as OpenTelemetry already supplies the metrics - using both will result in duplication
+
+> **Note: Security Recommendation**  
+
+It is highly recommended that the Prometheus exporter port, if used, be different from the MainAppPort. This separation enhances security by reducing the risk of exposing internal metrics endpoints on public-facing ports. If in doubt, use the recommended ports: 8900 for the app and 8901 for Prometheus
+
+> **Note: Configuration Mapping**  
+
+The parameters described above have corresponding entries in appsettings.json. This file is primarily intended for development purposes and should not be used for production configuration
+
+## Tips & Tricks
+
+Additional documentation (such as how to perform on‑demand scans or how to use the app with an ingress path) can be found in [Tips & Tricks](./tips-and-tricks.md).
 
 ## Considerations
 
