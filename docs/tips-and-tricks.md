@@ -63,7 +63,7 @@ spec:
       paths:
       - backend:
           service:
-            name: trivy-operator-dashboard-test
+            name: trivy-operator-dashboard
             port:
               number: 8900
         path: /my-path(/|$)(.*)
@@ -75,10 +75,10 @@ The important ones are
 - the two annotations
   - `nginx.ingress.kubernetes.io/rewrite-target: /$2`
   - `nginx.ingress.kubernetes.io/use-regex: "true"`
-- the path must use a regex pattern such as `/my-path(/|$)(.*)` (replace `/my-path` with whatever prefix you want)
+- the path must use a regex pattern such as `/my-path(/|$)(.*)` (replace `/my-path` with whatever path you want)
 - the `pathType` must be set to `ImplementationSpecific` so the regex is interpreted correctly.
 
-Once configured, the application will be accessible at (note the trailing `/`):
+Once configured, the application will be accessible at (important: note the trailing `/`):
 ```
 https://my-host/my-path/
 ```

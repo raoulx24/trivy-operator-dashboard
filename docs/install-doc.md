@@ -44,25 +44,25 @@ tar -xzf trivy-operator-dashboard-1.8.0.tgz
 
 ## Specific Parameters
 
-In helm values file, the following sections are app related
+In Helm values file, the following sections are app related
 
 ### `kubernetes` section
 
 | key name                        | description |
 | --------------------------------|-------------|
-| kubeConfigFileName              | name custom kubeconfig file |
+| kubeConfigFileName              | name of the custom kubeconfig file |
 | kubeConfigPath                  | full path for the kubeconfig file. it should not be changed |
 | kubeConfigSecretName            | the secret that holds the kubeconfig content | 
 | namespaceList                   | comma-separated list of namespaces. Providing this disables the namespaces watcher |
 | useDefaultContext               | if `true`, only the default context is used and watchers are enabled. <br>if `false`, all contexts are used, but watchers are disabled
-| trivyUse*TrivyReportName*Report | enables or disables the specific Trivy Report module - for brevity, the full list is not provided here; in Helm values they are fully provided |
+| trivyUse*TrivyReportName*Report | enables or disables the specific *Trivy Report* module - for brevity, the full list is not provided here; in Helm values they are fully provided |
 
 ### `fileRepository` section
 
 | key name                        | description |
 | --------------------------------|-------------|
 | enabled                         | enables or disables the file repository feature. in this mode, instead of querying the kubernetes for reports, exported files by the operator are used |
-| pvcName                         | the Persisten Volume Name (PVC) used by Trivy Operator for storing reports as files |
+| pvcName                         | the Persistent Volume Claim (PVC) used by Trivy Operator for storing reports as files |
 | basePath                        | where the PVC will be mounted and consumed by Trivy Operator Dashboard |
 | *TrivyreportName*tCrSubpath     | the subpath for files of the specific *Trivy Report* module - for brevity, the full list is not provided here; in Helm values they are fully provided. If empty, they are ignored. Should not be changed unless you are certain |
 
@@ -89,8 +89,8 @@ In helm values file, the following sections are app related
 
 > **Note: kube config file**  
 
-1. if a kube config file is provided, the app will ignore the defaults and attempt to use it. If it is malformed, it will fall back to default  
-2. `kubeConfigFileName` must be the key used in `kubeConfigSecretName` secret. Failing to do so, will block the pod startup  
+1. if a kubeconfig file is provided, the app will ignore the defaults and attempt to use it. If it is malformed, it will fall back to default  
+2. `kubeConfigFileName` must be the key used in `kubeConfigSecretName` secret. Failing to do so will block the pod startup  
 3. command to create a secret (sample; replace `kubeConfigSecretName`, `kubeConfigFileName`, `path/to/file` with their appropriate values):
 
    ```sh
@@ -99,7 +99,7 @@ In helm values file, the following sections are app related
 
 > **Note: default context**  
 
-If st to `true`, only default context will be used and watchers are activated. If set to `false`, all contexts are provided and watchers are disabled (a "passthrough mode" is activated). As a side effect, **all reqs are slower**, as all data from all namespaces is queried in most cases
+If set to `true`, only default context will be used and watchers are activated. If set to `false`, all contexts are provided and watchers are disabled (a "passthrough mode" is activated). As a side effect, **all reqs are slower**, as all data from all namespaces is queried in most cases
 
 > **Note: file repository**
 
