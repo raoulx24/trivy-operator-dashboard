@@ -156,7 +156,9 @@ public static class ClusterSbomReportCrExtensions
 
     private static void GroupDetails(ClusterSbomReportDto dto)
     {
-        Dictionary<string, ClusterSbomReportDetailDto> dtoLookup = dto.Details.ToDictionary(x => x.BomRef, x => x);
+        Dictionary<string, ClusterSbomReportDetailDto> dtoLookup = dto.Details
+            .GroupBy(x => x.BomRef)
+            .ToDictionary(g => g.Key, g => g.First());
 
         IEnumerable<ClusterSbomReportDetailDto>? filteredDtos = dto.Details.Where(dto =>
             dto.Properties.Any(p => p.Length >= 2 && p[0] == "resource:Type" && p[1] == "node") &&

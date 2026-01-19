@@ -282,8 +282,10 @@ public static partial class SbomReportCrExtensions
     public static void CleanupPurlsFromBomRefs<TSBomReportDetailDto>(ISbomReportDto<TSBomReportDetailDto> sbomReportDto)
         where TSBomReportDetailDto : ISBomReportDetailDto
     {
-        Dictionary<string, string> nonGuidToGuidMap = sbomReportDto.Details.Where(d => !Guid.TryParse(d.BomRef, out _))
-            .ToDictionary(d => d.BomRef, d => GuidUtils.GetDeterministicGuid(d.BomRef).ToString());
+        Dictionary<string, string> nonGuidToGuidMap = sbomReportDto.Details
+            .Where(d => !Guid.TryParse(d.BomRef, out _))
+            .GroupBy(d => d.BomRef)
+            .ToDictionary(g => g.Key, g => GuidUtils.GetDeterministicGuid(g.Key).ToString());
 
         if (nonGuidToGuidMap.Count == 0)
         {
