@@ -193,6 +193,8 @@ The page provides essential information about the app, including version details
 
 **Version Check** allows users to see their current version and whether an update is available.
 
+**Backend features** shows main backend settings
+
 **Release Notes** document recent updates, including improvements and bug fixes.
 
 **Credits** lists the technologies and frameworks that support the app.

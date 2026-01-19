@@ -89,21 +89,25 @@ In Helm values file, the following sections are app related
 
 > **Note: kube config file**  
 
-1. if a kubeconfig file is provided, the app will ignore the defaults and attempt to use it. If it is malformed, it will fall back to default  
-2. `kubeConfigFileName` must be the key used in `kubeConfigSecretName` secret. Failing to do so will block the pod startup  
-3. command to create a secret (sample; replace `kubeConfigSecretName`, `kubeConfigFileName`, `path/to/file` with their appropriate values):
+1. **Important:** This feature is experimental. If the user provides a kubeconfig, it must be one where all defined connections are actually usable - meaning the authentication plugins work (kubelogin, AWS IAM, GCP, OIDC, Vault etc.), the clusters are reachable, certificates are valid, RBAC is defined, and no session or token has expired
+2. if a kubeconfig file is provided, the app will ignore the defaults and attempt to use it. If it is malformed, it will fall back to default  
+3. `kubeConfigFileName` must be the key used in `kubeConfigSecretName` secret. Failing to do so will block the pod startup  
+4. command to create a secret (sample; replace `kubeConfigSecretName`, `kubeConfigFileName`, `path/to/file` with their appropriate values):
 
    ```sh
    kubectl create secret generic __kubeConfigSecretName__ --from-file=__kubeConfigFileName__=path/to/file
    ```
 
+5. Additional info: [GitHub req](https://github.com/raoulx24/trivy-operator-dashboard/issues/2)
 > **Note: default context**  
 
 If set to `true`, only default context will be used and watchers are activated. If set to `false`, all contexts are provided and watchers are disabled (a "passthrough mode" is activated). As a side effect, **all reqs are slower**, as all data from all namespaces is queried in most cases
 
 > **Note: file repository**
 
-1. Minimal additional values that must be set:
+1. **Important:** the feature is experimental (as the feature from trivy Operator is not mature)
+2. **Important:** if activated, parameters from `kubernetes`, except `trivyUse*TrivyReportName*Report` ones, are ignored. And no RBAC is needed
+3. Minimal additional values that must be set:
 
    ```yaml
    fileRepository:
@@ -115,9 +119,9 @@ If set to `true`, only default context will be used and watchers are activated. 
    ```
 
    Affinity for the Trivy Operator pods should also be set, as the PVC is RWO and Trivy Operator Dashboard must run on the same node as Trivy Operator
-2. The feature from Trivy Operator is not very mature. Not all Trivy reports are usable. Also, it seems that the files are not cleaned up and grow in size
-3. The feature is developed as openly as possible. If new reports become available (and output storage is fixed), it will only require a configuration change during installation (to set the path of that Trivy Report). This is why some parameters have empty values
-4. Additinonal info: [GitHub req](https://github.com/raoulx24/trivy-operator-dashboard/issues/7)
+4. The feature from Trivy Operator is not very mature. Not all Trivy reports are usable. Also, it seems that the files are not cleaned up and grow in size
+5. The feature is developed as openly as possible. If new reports become available (and output storage is fixed), it will only require a configuration change during installation (to set the path of that Trivy Report). This is why some parameters have empty values
+6. Additinonal info: [GitHub req](https://github.com/raoulx24/trivy-operator-dashboard/issues/7)
 
 > **Note: Open Telemetry and metrics**  
 
