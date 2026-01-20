@@ -2,7 +2,7 @@
 
 ## Windows with Visual Studio
 
-- Install [Visual Studio 2022 version 17.14.12 or newer](https://visualstudio.microsoft.com/vs/):
+- Install [Visual Studio 2026 version 18.2.0 or newer](https://visualstudio.microsoft.com/vs/):
     - Select the following workloads:
         - `ASP.NET and web development` workload.
 
@@ -18,9 +18,9 @@
 
 - Install [nvm version 1.1.12](https://github.com/coreybutler/nvm-windows/releases/tag/1.1.12):
     - Install Node.js LTS:
-        - `nvm install 24.6.0`.
+        - `nvm install 24.13.0`.
     - Use Node.js LTS:
-        - `nvm use 24.6.0`.
+        - `nvm use 24.13.0`.
 
 ## Development server
 
