@@ -99,6 +99,7 @@ In Helm values file, the following sections are app related
    ```
 
 5. Additional info: [GitHub req](https://github.com/raoulx24/trivy-operator-dashboard/issues/2)
+
 > **Note: default context**  
 
 If set to `true`, only default context will be used and watchers are activated. If set to `false`, all contexts are provided and watchers are disabled (a "passthrough mode" is activated). As a side effect, **all reqs are slower**, as all data from all namespaces is queried in most cases

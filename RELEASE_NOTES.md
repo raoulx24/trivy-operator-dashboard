@@ -1,6 +1,19 @@
 Release Notes
 ===========================
 
+Version 1.8 Iapetus (January 2026)
+------------------------
+* New Reports - added support for the final two missing Trivy report types, **Cluster Infra Assessment Reports** and **Infra Assessment Reports** (finally! 🙂)
+* Configuration Enhancements - kubeconfig - added support for custom kubeconfig files and multi‑context environments
+* Configuration Enhancements - File Repository - added support for the `alternateReportStorage` setting from the Trivy Operator Helm chart (referred to here as File Repository)
+* Ingress Improvements - the application can now be published behind an ingress with a custom path
+* DevOps and Build Updates - introduced a multi‑stage, multi‑platform build process; added a new ARM64 build alongside the existing AMD64 build.
+* Technological Upgrades - backend migrated to .NET 10, frontend upgraded to Angular 21 and PrimeNG 21. Performed codebase refactoring to improve compatibility and performance.
+
+### (New) Tips & Tricks
+
+Additional documentation (such as how to perform on‑demand scans or how to use the app with an ingress path) can be found in the [Tips & Tricks](https://github.com/raoulx24/trivy-operator-dashboard/blob/master/docs/tips-and-tricks.md) section.
+
 Version 1.7.1 Hestia (October 2025)
 ------------------------
 * Plethora of squashed bugs
@@ -23,9 +36,10 @@ Version 1.6 Gaia (June 2025)
 * Upgraded to Angular 19 and PrimeNG 19, paving the way for modern UI features and a more maintainable codebase. Extensive refactoring ensures better performance and future scalability.
 * Core backend now runs on the latest .NET 9, accompanied by significant stability refactors and architectural cleanup.
 * True support for kubernetes healthz probes (readiness and liveness)
+
 > **Where’s version 1.5?** We’ve jumped a beat - this release includes 120+ commits, which felt a bit much for a mere point upgrade. The bulk of the changes come from the Angular and PrimeNG upgrades, which triggered significant refactoring across the board. 
 >
->And in case you're wondering… there are no known Greek (demi)gods whose names start with **F** - so mythologically speaking, version 1.5 simply wasn’t meant to be :-)
+> And in case you're wondering… there are no known Greek (demi)gods whose names start with **F** - so mythologically speaking, version 1.5 simply wasn’t meant to be :-)
 
 Version 1.4 Erebus (April 2025)
 ------------------------
