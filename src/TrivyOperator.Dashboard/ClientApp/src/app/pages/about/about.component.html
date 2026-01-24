@@ -76,15 +76,17 @@
           @for (item of backendFeatures(); track item.feature) {
             <div class="p-1">
               <p-tag
+                class="only-icon text-xl"
                 [icon]="
                   'pi ' +
                   (item.enabled === undefined ? 'pi-question-circle' : item.enabled ? 'pi-verified' : 'pi-times-circle')
                 "
                 [rounded]="true"
                 [style]="item.enabled | booleanCssStyle"
-                class="only-icon text-xl"
               />
-              <span class="text-sm ml-4 font-bold" [ngClass]="item.enabled ? '' : 'tod-text-muted-color'">{{ item.feature }}</span>
+              <span class="text-sm ml-4 font-bold" [ngClass]="item.enabled ? '' : 'tod-text-muted-color'">{{
+                item.feature
+              }}</span>
             </div>
           }
         </div>

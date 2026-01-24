@@ -5,7 +5,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
-using TrivyOperator.Dashboard.Application.Alerts.Internals;
 using TrivyOperator.Dashboard.Application.Alerts.Services;
 using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.AppVersions.Services;
@@ -225,9 +224,7 @@ public static class BuilderServicesExtensions
             out string subpath
         );
 
-        if (!string.IsNullOrWhiteSpace(basePath) &&
-            useService &&
-            !string.IsNullOrWhiteSpace(subpath))
+        if (!string.IsNullOrWhiteSpace(basePath) && useService && !string.IsNullOrWhiteSpace(subpath))
         {
             logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
@@ -330,9 +327,7 @@ public static class BuilderServicesExtensions
             out string subpath
         );
 
-        if (!string.IsNullOrWhiteSpace(basePath) &&
-            useService &&
-            !string.IsNullOrWhiteSpace(subpath))
+        if (!string.IsNullOrWhiteSpace(basePath) && useService && !string.IsNullOrWhiteSpace(subpath))
         {
             logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
@@ -611,7 +606,7 @@ public static class BuilderServicesExtensions
         useService = config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}") ?? false;
 
         useDefaultContext = config.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
-            
+
         basePath = config.GetValue<string>("FileRepository:BasePath") ?? "";
 
         subpath = config.GetValue<string>($"FileRepository:{className}Subpath") ?? "";
