@@ -88,16 +88,20 @@ Updated when:
   - If cvesHash is new -> add new field
 
 ### 3. Image lineage (hash)
-Tracks all digests ever seen for a given image in a given namespace.
+Tracks all digests ever seen for a given image in a given namespace. vrimage maintains a mapping between digest and its associated image:tag. It is used for grouping digests by image (ignoring tag) and for display purposes. It may be reconstructed from snapshots if missing.
+- During ingestion: reflects last observed `image:tag`
+- During repair: reconstructed from the latest snapshot by timestamp
+
+It is not guaranteed to be historically accurate (as tag).
 
 Key:
 ```
-image:<namespace>:<container_registry>:<container_repo>:<image_name>
+vrimage:<namespace>
 ```
 
 Fields:
 ```
-<digest> = <timestamp>
+<digest> <container_registry>:<container_repo>:<image>:<tag>
 ```
 
 Created when:
@@ -105,9 +109,7 @@ Created when:
 
 Updated when:
 - On every scan:
-  - Set `<digest> = now`  
-  - If digest already exists -> timestamp is updated  
-  - If digest is new -> new field is added
+  - Add/update `<digest> = <container_registry>:<container_repo>:<image>:<tag>`
 
 
 ### 4. Full scan workflow (summary)
@@ -117,8 +119,8 @@ When a new scan arrives:
 2. Check if key `vr:<namespace>:<digest>:<cvesHash>` exists
    - If No -> create string key `vr:<namespace>:<digest>:<cvesHash>` with Brotli JSON
 3. Insert/update in `vrmeta:<namespace>:<digest>` `<cvesHash>` with timestamp
-4. Update image lineage
-   - `HSET image:<namespace>:<container_registry>:<container_repo>:<image> <digest> <timestamp>`
+4. Add/update image lineage (tag is last seen)
+   - `HSET vrimage:<namespace> <digest> <container_registry>:<container_repo>:<image>:<tag>`
 
 ## Redis/Valkey Retention & Repair Job
 
@@ -147,12 +149,12 @@ For each (namespace, digest):
 #### Step 1 - Discover snapshots
 
 ```redis
-SCAN vr:<namespace>:<digest>:*
+SCAN vr:<namespace>:*
 ```
 
-Extract `<cvesHash>` from key
+Group by <digest> is required before retention logic
 
-#### Step 2 - Load metadata
+#### Step 2 - Foreach `<digest>` load metadata
 
 ```redis
 HGETALL vrmeta:<namespace>:<digest>
@@ -163,8 +165,7 @@ This gives `<cvesHash> = <timestamp>`
 #### Step 3 - Repair missing metadata (only when needed)
 
 For each snapshot `<cvesHash>`:
-- If `<cvesHash>` exists in metadata -> use stored timestamp
-- If missing:
+- If `<cvesHash>` does not exist in `vrmeta`:
   - Decompress snapshot
   - Extract timestamp from JSON
   - Add to metadata:
@@ -172,6 +173,8 @@ For each snapshot `<cvesHash>`:
     ```redis
     HSET vrmeta:<ns>:<digest> <cvesHash> <timestamp>
     ```
+
+If `<digest>` does not exist in `vrimage:<ns>` -> add `vrimage = image:tag` extracted from the snapshot with the latest timestamp (per digest)
 
 #### Step 4 - Build working set
 
@@ -208,6 +211,47 @@ After deletions:
   ```redis
   HDEL vrmeta:<ns>:<digest> <cvesHash>
   ```
+
+#### Step 8 - VR Image Cleanup - Image-level Retention
+
+Step A - *Compute digest_last_seen*
+
+From:
+```redis
+HGETALL vrmeta:<ns>:<digest>
+```
+```
+digest_last_seen = max(timestamp)
+```
+
+Step B - *Group by image - ignoring tags*
+
+From:
+```redis
+HGETALL vrimage:<ns>
+```
+For each `<digest> → <registry>:<repo>:<image>:<tag>` extract `image_key = <registry>:<repo>:<image>`. Group `image_key -> [digests...]`
+
+Step C - *apply retention per image*
+
+For each image group `Sort digests by digest_last_seen DESC`. Keep:
+1. All digests newer than M days
+2. At least L newest digests
+
+Delete the rest.
+
+Step D - *Full cleanup per digest*
+
+For each deleted digest:
+```redis
+DEL vr:<ns>:<digest>:*
+DEL vrmeta:<ns>:<digest>
+HDEL vrimage:<ns> <digest>
+```
+
+Step E - *implicit image cleanup*
+
+No extra step needed. Because if all digests of an image are deleted, they disappear from vrimage automatically
 
 ### 5. Consistency guarantees
 
