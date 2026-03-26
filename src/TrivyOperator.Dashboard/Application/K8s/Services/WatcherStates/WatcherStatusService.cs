@@ -40,16 +40,9 @@ public class WatcherStatusService(
             };
         }
 
-        string fullTypeName;
-        if (kubernetesObjectType == "V1Namespace") // the only known type that is not a Trivy Report
-        {
-            fullTypeName = $"k8s.Models.{kubernetesObjectType}";
-        }
-        else
-        {
-            fullTypeName =
-                $"{TrivyDomainUtils.TrivyDomainNamespace}.{kubernetesObjectType.TrimEnd('C', 'r')}.{kubernetesObjectType}";
-        }
+        string fullTypeName = kubernetesObjectType == "V1Namespace" 
+            ? $"k8s.Models.{kubernetesObjectType}" // the only known type that is not a Trivy Report
+            : $"{TrivyDomainUtils.TrivyDomainNamespace}.{kubernetesObjectType.TrimEnd('C', 'r')}.{kubernetesObjectType}";
 
         Type? watchedKubernetesType = Type.GetType(fullTypeName);
 
@@ -65,15 +58,9 @@ public class WatcherStatusService(
         Type clusteredScopedWatcherType = typeof(IClusterScopedWatcher<>).MakeGenericType(watchedKubernetesType);
         Type namespacedWatcherType = typeof(INamespacedWatcher<>).MakeGenericType(watchedKubernetesType);
 
-        object? watcherService = null;
-        if (string.IsNullOrWhiteSpace(namespaceName))
-        {
-            watcherService = serviceProvider.GetServices(clusteredScopedWatcherType).FirstOrDefault();
-        }
-        else
-        {
-            watcherService = serviceProvider.GetServices(namespacedWatcherType).FirstOrDefault();
-        }
+        object? watcherService = string.IsNullOrWhiteSpace(namespaceName) 
+            ? serviceProvider.GetServices(clusteredScopedWatcherType).FirstOrDefault() 
+            : serviceProvider.GetServices(namespacedWatcherType).FirstOrDefault();
 
         if (watcherService is IKubernetesWatcher watcher)
         {

@@ -230,7 +230,7 @@ static void ConfigureLogging(IConfiguration configuration)
     Log.Logger = loggerConfiguration.CreateLogger();
     SerilogLoggerFactory serilogLoggerFactory = new(Log.Logger);
     Logger = serilogLoggerFactory.CreateLogger<Program>();
-    BuilderServicesExtensions.logger = Logger;
+    BuilderServicesExtensions.Logger = Logger;
     AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
     TaskScheduler.UnobservedTaskException += TaskSchedulerUnobservedTaskException;
 }

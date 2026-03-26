@@ -5,7 +5,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
-using TrivyOperator.Dashboard.Application.Alerts.Internals;
 using TrivyOperator.Dashboard.Application.Alerts.Services;
 using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.AppVersions.Services;
@@ -93,7 +92,7 @@ namespace TrivyOperator.Dashboard.Application.Common;
 
 public static class BuilderServicesExtensions
 {
-    public static ILogger? logger { get; set; }
+    public static ILogger? Logger { get; set; }
 
     public static void AddV1NamespaceServices(this IServiceCollection services, IConfiguration configuration)
     {
@@ -110,7 +109,7 @@ public static class BuilderServicesExtensions
         {
             if (!useNamespaceList)
             {
-                logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", typeof(V1Namespace).Name);
+                Logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", nameof(V1Namespace));
                 services.AddSingleton<NamespaceDomainService>();
                 services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(sp =>
                     sp.GetRequiredService<NamespaceDomainService>()
@@ -121,9 +120,9 @@ public static class BuilderServicesExtensions
             }
             else
             {
-                logger?.LogInformation(
+                Logger?.LogInformation(
                     "Using StaticNamespaceDomainService for {kubernetesObjectType}",
-                    typeof(V1Namespace).Name
+                    nameof(V1Namespace)
                 );
                 services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>,
                     StaticNamespaceDomainService>();
@@ -143,7 +142,7 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IKubernetesBackgroundQueue<V1Namespace>, KubernetesBackgroundQueue<V1Namespace>>();
         if (!useNamespaceList)
         {
-            logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", typeof(V1Namespace).Name);
+            Logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", nameof(V1Namespace));
             services.AddSingleton<NamespaceDomainService>();
             services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(sp =>
                 sp.GetRequiredService<NamespaceDomainService>()
@@ -157,9 +156,9 @@ public static class BuilderServicesExtensions
         }
         else
         {
-            logger?.LogInformation(
+            Logger?.LogInformation(
                 "Using StaticNamespaceDomainService for {kubernetesObjectType}",
-                typeof(V1Namespace).Name
+                nameof(V1Namespace)
             );
             services
                 .AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>,
@@ -208,7 +207,7 @@ public static class BuilderServicesExtensions
             VulnerabilityReportNullService, VulnerabilityReportService>(configuration);
     }
 
-    public static void AddNamespacedTrivyServices<TNamespacedTrivyReportCr, TAppServiceInterface, TNullAppService,
+    private static void AddNamespacedTrivyServices<TNamespacedTrivyReportCr, TAppServiceInterface, TNullAppService,
         TAppService>(this IServiceCollection services, IConfiguration configuration)
         where TNamespacedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>, new()
         where TAppServiceInterface : class
@@ -218,7 +217,6 @@ public static class BuilderServicesExtensions
         GetConfigFor<TNamespacedTrivyReportCr>(
             configuration,
             out string className,
-            out string shortClassName,
             out bool useService,
             out bool useDefaultContext,
             out string basePath,
@@ -229,7 +227,7 @@ public static class BuilderServicesExtensions
             useService &&
             !string.IsNullOrWhiteSpace(subpath))
         {
-            logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
+            Logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
             services.AddSingleton<
                 IFileTrivyReportDomainService<TNamespacedTrivyReportCr>,
@@ -251,7 +249,7 @@ public static class BuilderServicesExtensions
 
         if (!useService || (!string.IsNullOrWhiteSpace(basePath) && string.IsNullOrWhiteSpace(subpath)))
         {
-            logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
+            Logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
             services.AddScoped<TAppServiceInterface, TNullAppService>();
             services
                 .AddTransient<IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
@@ -261,14 +259,14 @@ public static class BuilderServicesExtensions
 
         if (!useDefaultContext)
         {
-            logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
+            Logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
             services.AddSingleton<
                 IConcurrentDictionaryCache<TNamespacedTrivyReportCr>, NamespacedResourcePassthroughCache<
                     TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
         }
         else
         {
-            logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", className);
+            Logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", className);
             services.AddSingleton<
                 IConcurrentDictionaryCache<TNamespacedTrivyReportCr>,
                 ConcurrentDictionaryCache<TNamespacedTrivyReportCr>>();
@@ -312,7 +310,7 @@ public static class BuilderServicesExtensions
                 NamespacedTrivyReportDomainService<TNamespacedTrivyReportCr>>();
     }
 
-    public static void AddClusterScopedTrivyServices<TClusterScopedTrivyReportCr, TAppServiceInterface, TNullAppService,
+    private static void AddClusterScopedTrivyServices<TClusterScopedTrivyReportCr, TAppServiceInterface, TNullAppService,
         TAppService>(this IServiceCollection services, IConfiguration configuration)
         where TClusterScopedTrivyReportCr : CustomResource, IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>,
         new()
@@ -323,7 +321,6 @@ public static class BuilderServicesExtensions
         GetConfigFor<TClusterScopedTrivyReportCr>(
             configuration,
             out string className,
-            out string shortClassName,
             out bool useService,
             out bool useDefaultContext,
             out string basePath,
@@ -334,7 +331,7 @@ public static class BuilderServicesExtensions
             useService &&
             !string.IsNullOrWhiteSpace(subpath))
         {
-            logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
+            Logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
             services.AddSingleton<
                 IFileTrivyReportDomainService<TClusterScopedTrivyReportCr>,
@@ -351,7 +348,7 @@ public static class BuilderServicesExtensions
 
         if (!useService || (!string.IsNullOrWhiteSpace(basePath) && string.IsNullOrWhiteSpace(subpath)))
         {
-            logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
+            Logger?.LogInformation("Using NullService for {kubernetesObjectType}", className);
             services.AddScoped<TAppServiceInterface, TNullAppService>();
             services
                 .AddTransient<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
@@ -361,14 +358,14 @@ public static class BuilderServicesExtensions
 
         if (!useDefaultContext)
         {
-            logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
+            Logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", className);
             services.AddSingleton<
                 IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>, ClusterResourcePassthroughCache<
                     TClusterScopedTrivyReportCr, CustomResourceList<TClusterScopedTrivyReportCr>>>();
         }
         else
         {
-            logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", className);
+            Logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", className);
             services
                 .AddSingleton<IConcurrentDictionaryCache<TClusterScopedTrivyReportCr>,
                     ConcurrentDictionaryCache<TClusterScopedTrivyReportCr>>();
@@ -483,7 +480,7 @@ public static class BuilderServicesExtensions
     {
         if (!(configuration.GetValue<bool?>("Enabled") ?? false))
         {
-            services.AddSingleton<IMetricsClient>(provider => new MetricsClient(applicationName));
+            services.AddSingleton<IMetricsClient>(_ => new MetricsClient(applicationName));
             return;
         }
 
@@ -494,9 +491,9 @@ public static class BuilderServicesExtensions
         bool? isAspNetCoreEnabled = configuration.GetValue<bool?>("AspNetCoreInstrumentationEnabled");
         bool? isRuntimeEnabled = configuration.GetValue<bool?>("RuntimeInstrumentationEnabled");
         int? metricsPort = configuration.GetValue<int>("PrometheusExporterPort");
-        double[]? histogramBounds = configuration.GetValue<double[]>("HistogramBoundsInMs") ?? [200, 500, 1000, 5000,];
+        double[] histogramBounds = configuration.GetValue<double[]>("HistogramBoundsInMs") ?? [200, 500, 1000, 5000,];
 
-        services.AddSingleton<IMetricsClient>(provider => new MetricsClient(applicationName));
+        services.AddSingleton<IMetricsClient>(_ => new MetricsClient(applicationName));
         services.AddOpenTelemetry()
             .WithTracing(tracingBuilder =>
                 {
@@ -597,7 +594,6 @@ public static class BuilderServicesExtensions
     private static void GetConfigFor<T>(
         IConfiguration config,
         out string className,
-        out string shortClassName,
         out bool useService,
         out bool useDefaultContext,
         out string basePath,
@@ -606,7 +602,7 @@ public static class BuilderServicesExtensions
     {
         className = typeof(T).Name;
 
-        shortClassName = className.EndsWith("Cr", StringComparison.Ordinal) ? className[..^2] : className;
+        string shortClassName = className.EndsWith("Cr", StringComparison.Ordinal) ? className[..^2] : className;
 
         useService = config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}") ?? false;
 
