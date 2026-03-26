@@ -53,7 +53,7 @@ Stores the Brotli‑compressed vulnerability report JSON.
 
 Key:
 ```
-vr:<namespace>:<digest>:<cvesHash>
+vr:{<namespace>}:<digest>:<cvesHash>
 ```
 
 Value:
@@ -71,7 +71,7 @@ Tracks when each cvesHash was last seen for a given digest and namespace.
 
 Key:
 ```
-vrmeta:<namespace>:<digest>
+vrmeta:{<namespace>}:<digest>
 ```
 
 Fields:
@@ -96,7 +96,7 @@ It is not guaranteed to be historically accurate (as tag).
 
 Key:
 ```
-vrimage:<namespace>
+vrimage:{<namespace>}
 ```
 
 Fields:
