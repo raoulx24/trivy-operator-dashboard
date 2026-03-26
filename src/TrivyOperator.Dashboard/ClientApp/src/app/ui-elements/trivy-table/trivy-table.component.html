@@ -282,6 +282,7 @@
                 <p-tag
                   [rounded]="true"
                   [style]="col.extraFields[0] ?? '' | severityCssStyleById: rowData[col.field] ?? -1"
+                  [icon]="rowData[col.field] | counterIcon"
                   [value]="rowData[col.field] | vulnerabilityCount"
                 />
               }

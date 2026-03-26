@@ -32,6 +32,7 @@ import { MultiHeaderAction, TrivyFilterData, TrivyTableColumn, TrivyTableExpandR
 
 import { BooleanCssStylePipe } from '../../pipes/boolean-css-style.pipe';
 import { CapitalizeFirstPipe } from '../../pipes/capitalize-first.pipe';
+import { CounterIconPipe } from '../../pipes/counter-icon.pipe';
 import { CronPipe } from '../../pipes/cron.pipe';
 import { LocalTimePipe } from '../../pipes/local-time.pipe';
 import { SemaphoreCssStyleByNamePipe } from '../../pipes/semaphore-css-style-by-name.pipe';
@@ -42,6 +43,7 @@ import { UnPascalCasePipe } from '../../pipes/un-pascal-case.pipe';
 import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 
 import { ReactiveMap } from '../../abstracts/reactive-map';
+
 
 @Component({
   selector: 'app-trivy-table',
@@ -63,6 +65,7 @@ import { ReactiveMap } from '../../abstracts/reactive-map';
     CapitalizeFirstPipe,
     SeverityCssStyleByIdPipe,
     SemaphoreCssStyleByNamePipe,
+    CounterIconPipe,
     CronPipe,
     LocalTimePipe,
     SeverityNameByIdPipe,
