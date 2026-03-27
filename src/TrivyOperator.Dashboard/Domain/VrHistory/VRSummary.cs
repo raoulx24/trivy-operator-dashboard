@@ -4,7 +4,7 @@ namespace TrivyOperator.Dashboard.Domain.VrHistory;
 
 public class VrSummary
 {
-    public string NamespaceNameName { get; }
+    public string NamespaceName { get; }
     public string Digest { get; }
     public long Critical { get; }
     public long High { get; }
@@ -20,7 +20,7 @@ public class VrSummary
         if (string.IsNullOrEmpty(vr.Metadata.NamespaceProperty)) throw new ArgumentException("Namespace cannot be null or empty.");
         if (string.IsNullOrEmpty(vr.ImageArtifact?.Digest)) throw new ArgumentException(nameof(vr.ImageArtifact));
         
-        NamespaceNameName = vr.Metadata.NamespaceProperty;
+        NamespaceName = vr.Metadata.NamespaceProperty;
         Digest = vr.ImageArtifact.Digest;
         Critical = vr.Report.Summary?.CriticalCount ?? 0;
         High = vr.Report.Summary?.HighCount ?? 0;

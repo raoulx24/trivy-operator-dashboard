@@ -6,7 +6,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache;
 public static class DistributedCacheKeyExtensions
 {
     public static string GetKey(this VrMetadata metadata)
-        => $"vrmeta:{{{metadata.NamespaceNameName}}}:{metadata.Digest}";
+        => $"vrmeta:{{{metadata.NamespaceName}}}:{metadata.Digest}";
 
     public static string GetKey(this VrSnapshot snapshot)
         => $"vr:{{{snapshot.NamespaceName}}}:{snapshot.Digest}:{snapshot.CvesHash}";
