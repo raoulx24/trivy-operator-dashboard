@@ -1,39 +1,225 @@
-﻿using Microsoft.Extensions.Options;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 using TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client;
 
-public class DistributedCacheClientFactory(string connectionString, ILogger<DistributedCacheClientFactory> logger)
-    : IDistributedCacheClientFactory, IDisposable
+public sealed class DistributedCacheClientFactory : IDistributedCacheClientFactory, IDisposable
 {
+    private readonly string connectionString;
+    private readonly ILogger<DistributedCacheClientFactory> logger;
+
+    private readonly SemaphoreSlim connectionLock = new(1, 1);
+    private readonly CancellationTokenSource cts = new();
+
     private ConnectionMultiplexer? connection;
-    private readonly object localMutex = new();
+    private bool disposed;
 
-    private ConnectionMultiplexer GetOrCreate()
+    public DistributedCacheClientFactory(
+        string connectionString,
+        ILogger<DistributedCacheClientFactory> logger)
     {
-        if (connection is { IsConnected: true })
-            return connection;
-
-        logger.LogDebug("Trying to (re)create connection6");
-        lock (localMutex)
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
-            if (connection is { IsConnected: true })
-                return connection;
+            throw new ArgumentException("Redis connection string must not be empty.", nameof(connectionString));
+        }
 
-            connection?.Dispose();
-            connection = ConnectionMultiplexer.Connect(connectionString);
-            return connection;
+        this.connectionString = connectionString;
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        _ = Task.Run(EnsureConnectedLoop);
+    }
+
+    public IDatabase GetDatabase()
+    {
+        ThrowIfDisposed();
+
+        ConnectionMultiplexer? conn = Volatile.Read(ref connection);
+
+        if (conn is null)
+        {
+            throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis not ready");
+        }
+
+        return conn.GetDatabase();
+    }
+
+    public ISubscriber GetSubscriber()
+    {
+        ThrowIfDisposed();
+
+        ConnectionMultiplexer? conn = Volatile.Read(ref connection);
+
+        if (conn is null)
+        {
+            throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis not ready");
+        }
+
+        return conn.GetSubscriber();
+    }
+
+    private async Task EnsureConnectedLoop()
+    {
+        TimeSpan delay = TimeSpan.FromSeconds(1);
+        TimeSpan maxDelay = TimeSpan.FromSeconds(10);
+
+        while (!cts.Token.IsCancellationRequested)
+        {
+            ThrowIfDisposed();
+
+            if (Volatile.Read(ref connection) != null)
+                return;
+
+            await connectionLock.WaitAsync(cts.Token).ConfigureAwait(false);
+            try
+            {
+                ThrowIfDisposed();
+
+                if (Volatile.Read(ref connection) != null)
+                    return;
+
+                try
+                {
+                    logger.LogInformation("Connecting to Redis...");
+
+                    await using ConnectionMultiplexer conn = await ConnectionMultiplexer
+                        .ConnectAsync(connectionString)
+                        .ConfigureAwait(false);
+
+                    WireEvents(conn);
+
+                    Volatile.Write(ref connection, conn);
+
+                    logger.LogInformation("Redis connection established");
+
+                    return;
+                }
+                catch (OperationCanceledException) when (cts.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Redis unavailable. Retrying in {Delay}...", delay);
+                }
+            }
+            finally
+            {
+                connectionLock.Release();
+            }
+
+            try
+            {
+                await Task.Delay(delay, cts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested)
+            {
+                return;
+            }
+
+            delay = TimeSpan.FromMilliseconds(
+                Math.Min(delay.TotalMilliseconds * 2, maxDelay.TotalMilliseconds));
         }
     }
 
-    public IDatabase GetDatabase() => GetOrCreate().GetDatabase();
+    private void WireEvents(ConnectionMultiplexer conn)
+    {
+        conn.ConnectionFailed += (_, args) =>
+        {
+            logger.LogInformation("Redis connection failed ({FailureType}) to {EndPoint}", args.FailureType, args.EndPoint);
 
-    public ISubscriber GetSubscriber() => GetOrCreate().GetSubscriber();
+            if (disposed)
+                return;
+
+            // Keep reconnect logic centralized in the background loop.
+            // If the connection becomes invalid, clear the current reference
+            // so the loop can establish a new one.
+            if (args.FailureType == ConnectionFailureType.UnableToConnect ||
+                args.FailureType == ConnectionFailureType.SocketFailure)
+            {
+                ConnectionMultiplexer? old = Interlocked.CompareExchange(ref connection, null, conn);
+
+                if (old == conn)
+                {
+                    try
+                    {
+                        conn.Dispose();
+                    }
+                    catch
+                    {
+                        // swallow during recovery
+                    }
+
+                    Volatile.Write(ref connection, null);
+                    _ = Task.Run(EnsureConnectedLoop);
+                }
+            }
+        };
+
+        conn.ConnectionRestored += (_, args) =>
+        {
+            logger.LogInformation("Redis connection restored to {EndPoint}", args.EndPoint);
+        };
+
+        conn.ErrorMessage += (_, args) =>
+        {
+            logger.LogWarning("Redis error: {Message}", args.Message);
+        };
+
+        conn.InternalError += (_, args) =>
+        {
+            logger.LogError("Redis internal error: {Exception}", args.Exception);
+        };
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (disposed)
+            throw new ObjectDisposedException(nameof(DistributedCacheClientFactory));
+    }
 
     public void Dispose()
     {
-        connection?.Dispose();
-        GC.SuppressFinalize(this);
+        if (disposed)
+            return;
+
+        disposed = true;
+
+        try
+        {
+            cts.Cancel();
+        }
+        catch
+        {
+            // ignore shutdown cancellation issues
+        }
+
+        try
+        {
+            var conn = Interlocked.Exchange(ref connection, null);
+            conn?.Dispose();
+        }
+        catch
+        {
+            // ignore shutdown issues
+        }
+
+        try
+        {
+            connectionLock.Dispose();
+        }
+        catch
+        {
+            // ignore shutdown issues
+        }
+
+        try
+        {
+            cts.Dispose();
+        }
+        catch
+        {
+            // ignore shutdown issues
+        }
     }
 }

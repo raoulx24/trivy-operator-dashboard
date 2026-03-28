@@ -4,6 +4,6 @@ namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstrac
 
 public interface IDistributedCacheExecutor
 {
-    Task<T> ExecuteAsync<T>(Func<IDatabase, Task<T>> action);
-    Task ExecuteAsync(Func<IDatabase, Task> action);
+    Task<T> ExecuteAsync<T>(Func<IDatabase, Task<T>> action, CancellationToken ct);
+    Task ExecuteAsync(Func<IDatabase, Task> action, CancellationToken ct);
 }

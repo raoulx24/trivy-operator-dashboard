@@ -10,10 +10,7 @@ public class DistributedCacheExecutor(
     ILogger<DistributedCacheExecutor> logger)
     : IDistributedCacheExecutor
 {
-    private IDatabase db => factory.GetDatabase();
-    private static readonly Random rng = new();
-
-    public async Task<T> ExecuteAsync<T>(Func<IDatabase, Task<T>> action)
+    public async Task<T> ExecuteAsync<T>(Func<IDatabase, Task<T>> action, CancellationToken ct = default)
     {
         int attempt = 0;
         TimeSpan delay = options.InitialDelay;
@@ -22,43 +19,52 @@ public class DistributedCacheExecutor(
         {
             try
             {
-                return await action(db);
+                return await action(factory.GetDatabase());
             }
             catch (RedisConnectionException ex) when (attempt < options.MaxRetries)
             {
-                logger.LogWarning(ex, "Transient DistributedCache connection failure on attempt {ConnectionAttempt}. Retrying...", attempt + 1);
-                await Task.Delay(ApplyJitter(delay));
-                delay = Cap(Backoff(delay), options.MaxDelay);
+                if (attempt == 0)
+                {
+                    logger.LogWarning(ex, "Transient DistributedCache connection failure on attempt {ConnectionAttempt}. Retrying...", attempt + 1);    
+                }
+                await Task.Delay(ApplyJitter(delay), ct);
+                delay = Backoff(delay, options.MaxDelay);
                 attempt++;
             }
-            catch (RedisException ex) when (attempt < options.MaxRetries)
+            catch (RedisTimeoutException ex) when (attempt < options.MaxRetries)
             {
-                logger.LogWarning(ex, "Transient DistributedCache failure on attempt {ConnectionAttempt}. Retrying...", attempt + 1);
-                await Task.Delay(ApplyJitter(delay));
-                delay = Cap(Backoff(delay), options.MaxDelay);
+                if (attempt == 0)
+                {
+                    logger.LogWarning(ex, "Transient DistributedCache connection failure on attempt {ConnectionAttempt}. Retrying...", attempt + 1);    
+                }
+                await Task.Delay(ApplyJitter(delay), ct);
+                delay = Backoff(delay, options.MaxDelay);
                 attempt++;
             }
         }
     }
 
-    public async Task ExecuteAsync(Func<IDatabase, Task> action)
+    public async Task ExecuteAsync(Func<IDatabase, Task> action, CancellationToken ct = default)
     {
         await ExecuteAsync<object>(async db =>
         {
             await action(db);
             return null!;
-        });
+        }, ct);
     }
 
-    private static TimeSpan Backoff(TimeSpan current)
-        => TimeSpan.FromMilliseconds(current.TotalMilliseconds * 2);
+    private static TimeSpan Backoff(TimeSpan current, TimeSpan max)
+    {
+        TimeSpan next = TimeSpan.FromMilliseconds(
+            Math.Min(max.TotalMilliseconds,
+                Random.Shared.NextDouble() * current.TotalMilliseconds * 3));
 
-    private static TimeSpan Cap(TimeSpan current, TimeSpan maxDelay)
-        => current > maxDelay ? maxDelay : current;
+        return next;
+    }
 
     private static TimeSpan ApplyJitter(TimeSpan delay)
     {
-        double jitter = 0.2 + rng.NextDouble() * 0.6;
+        double jitter = 0.2 + Random.Shared.NextDouble() * 0.6;
         return TimeSpan.FromMilliseconds(delay.TotalMilliseconds * jitter);
     }
 }
