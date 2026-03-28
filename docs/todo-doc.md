@@ -76,7 +76,7 @@ vrmeta:{<namespace>}:<digest>
 
 Fields:
 ```
-<cvesHash> = <timestamp>
+<cvesHash> = json with NamespaceName, Digest, Critical, High, Medium, Low, Unknown, Timestamp
 ```
 
 Created when:
@@ -101,7 +101,7 @@ vrimage:{<namespace>}
 
 Fields:
 ```
-<digest> <container_registry>:<container_repo>:<image>:<tag>
+<digest> with json with RepositoryImage, Tag, Registry
 ```
 
 Created when:

@@ -612,4 +612,19 @@ public static class BuilderServicesExtensions
 
         subpath = config.GetValue<string>($"FileRepository:{className}Subpath") ?? "";
     }
+    
+    // // wiring for distributed cache
+    // services.Configure<DistributedCacheRetryOptions>(
+    // configuration.GetSection("RetryOptions"));
+    //
+    // // 2. Factory (singleton)
+    // services.AddSingleton<IDistributedCacheClientFactory>(sp =>
+    // {
+    //     var connString = configuration.GetConnectionString("DistributedCache")
+    //                      ?? throw new InvalidOperationException("Missing cache connection string.");
+    //     return new DistributedCacheClientFactory(connString);
+    // });
+    //
+    // // 3. Executor (transient)
+    // services.AddTransient<IDistributedCacheExecutor, DistributedCacheExecutor>();
 }

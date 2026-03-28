@@ -12,5 +12,5 @@ public static class DistributedCacheKeyExtensions
         => $"vr:{{{snapshot.NamespaceName}}}:{snapshot.Digest}:{snapshot.CvesHash}";
 
     public static string GetKey(this VrImageLineage lineage)
-        => $"vrimage:{lineage.NamespaceName}";
+        => $"vrimage:{{{lineage.NamespaceName}}}";
 }

@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.DistributedCache;
 
-namespace TrivyOperator.Dashboard.Domain.VrHistory.Abstract;
+namespace TrivyOperator.Dashboard.Domain.VrHistory.Abstractions;
 
 public interface IVrHistoryRepository
 {

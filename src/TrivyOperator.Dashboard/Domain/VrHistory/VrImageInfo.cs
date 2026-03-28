@@ -1,10 +1,15 @@
-﻿namespace TrivyOperator.Dashboard.Domain.VrHistory;
+﻿using System.Text.Json.Serialization;
+
+namespace TrivyOperator.Dashboard.Domain.VrHistory;
 
 public class VrImageInfo
 {
-    string RepositoryImage { get; }
-    string Tag { get; }
-    string Registry { get; }
+    [JsonPropertyName("repositoryImage")]
+    public string RepositoryImage { get; }
+    [JsonPropertyName("tag")]
+    public string Tag { get; }
+    [JsonPropertyName("registry")]
+    public string Registry { get; }
 
     public VrImageInfo(string repositoryImage, string tag, string registry)
     {
