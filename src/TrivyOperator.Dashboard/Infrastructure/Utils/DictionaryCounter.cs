@@ -13,13 +13,9 @@ public class DictionaryCounter
             return;
         }
 
-        if (data.ContainsKey(key))
+        if (!data.TryAdd(key, offset))
         {
             data[key] += offset;
-        }
-        else
-        {
-            data[key] = offset;
         }
     }
 

@@ -1,6 +1,6 @@
 ﻿using StackExchange.Redis;
 using TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstractions;
-using Microsoft.Extensions.Logging;
+using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client;
 
@@ -17,6 +17,7 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
 
     public DistributedCacheClientFactory(
         string connectionString,
+        IHostApplicationLifetime lifetime,
         ILogger<DistributedCacheClientFactory> logger)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -26,6 +27,9 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
 
         this.connectionString = connectionString;
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        
+        // Cancel internal CTS when the app is shutting down
+        lifetime.ApplicationStopping.Register(() => cts.Cancel());
 
         _ = Task.Run(EnsureConnectedLoop);
     }
@@ -36,12 +40,9 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
 
         ConnectionMultiplexer? conn = Volatile.Read(ref connection);
 
-        if (conn is null)
-        {
-            throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis not ready");
-        }
-
-        return conn.GetDatabase();
+        return conn is null 
+            ? throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis not ready")
+            : conn.GetDatabase();
     }
 
     public ISubscriber GetSubscriber()
@@ -50,17 +51,15 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
 
         ConnectionMultiplexer? conn = Volatile.Read(ref connection);
 
-        if (conn is null)
-        {
-            throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis not ready");
-        }
-
-        return conn.GetSubscriber();
+        return conn is null 
+            ? throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Redis not ready") 
+            : conn.GetSubscriber();
     }
 
     private async Task EnsureConnectedLoop()
     {
         TimeSpan delay = TimeSpan.FromSeconds(1);
+        TimeSpan baseDelay = TimeSpan.FromSeconds(1);
         TimeSpan maxDelay = TimeSpan.FromSeconds(10);
 
         while (!cts.Token.IsCancellationRequested)
@@ -107,6 +106,8 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
             {
                 connectionLock.Release();
             }
+            
+            delay = Backoff.DecorrelatedJitter(delay, baseDelay, maxDelay);
 
             try
             {
@@ -116,9 +117,6 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
             {
                 return;
             }
-
-            delay = TimeSpan.FromMilliseconds(
-                Math.Min(delay.TotalMilliseconds * 2, maxDelay.TotalMilliseconds));
         }
     }
 
@@ -134,25 +132,26 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
             // Keep reconnect logic centralized in the background loop.
             // If the connection becomes invalid, clear the current reference
             // so the loop can establish a new one.
-            if (args.FailureType == ConnectionFailureType.UnableToConnect ||
-                args.FailureType == ConnectionFailureType.SocketFailure)
+            if (args.FailureType is ConnectionFailureType.UnableToConnect or ConnectionFailureType.SocketFailure)
             {
                 ConnectionMultiplexer? old = Interlocked.CompareExchange(ref connection, null, conn);
 
-                if (old == conn)
+                if (old != conn)
                 {
-                    try
-                    {
-                        conn.Dispose();
-                    }
-                    catch
-                    {
-                        // swallow during recovery
-                    }
-
-                    Volatile.Write(ref connection, null);
-                    _ = Task.Run(EnsureConnectedLoop);
+                    return;
                 }
+
+                try
+                {
+                    conn.Dispose();
+                }
+                catch
+                {
+                    // swallow during recovery
+                }
+
+                Volatile.Write(ref connection, null);
+                _ = Task.Run(EnsureConnectedLoop);
             }
         };
 
@@ -196,7 +195,7 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
 
         try
         {
-            var conn = Interlocked.Exchange(ref connection, null);
+            ConnectionMultiplexer? conn = Interlocked.Exchange(ref connection, null);
             conn?.Dispose();
         }
         catch

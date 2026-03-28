@@ -1,5 +1,4 @@
 ﻿using StackExchange.Redis;
-using TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstractions;
 

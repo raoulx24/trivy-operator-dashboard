@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 using TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client;
 
@@ -25,20 +25,20 @@ public class DistributedCacheExecutor(
             {
                 if (attempt == 0)
                 {
-                    logger.LogWarning(ex, "Transient DistributedCache connection failure on attempt {ConnectionAttempt}. Retrying...", attempt + 1);    
+                    logger.LogWarning(ex, "Transient DistributedCache connection failure on attempt. Retrying...");    
                 }
-                await Task.Delay(ApplyJitter(delay), ct);
-                delay = Backoff(delay, options.MaxDelay);
+                delay = Backoff.DecorrelatedJitter(delay, options.InitialDelay, options.MaxDelay);
+                await Task.Delay(delay, ct);
                 attempt++;
             }
             catch (RedisTimeoutException ex) when (attempt < options.MaxRetries)
             {
                 if (attempt == 0)
                 {
-                    logger.LogWarning(ex, "Transient DistributedCache connection failure on attempt {ConnectionAttempt}. Retrying...", attempt + 1);    
+                    logger.LogWarning(ex, "Timeout DistributedCache connection failure on attempt. Retrying...");    
                 }
-                await Task.Delay(ApplyJitter(delay), ct);
-                delay = Backoff(delay, options.MaxDelay);
+                delay = Backoff.DecorrelatedJitter(delay, options.InitialDelay, options.MaxDelay);
+                await Task.Delay(delay, ct);
                 attempt++;
             }
         }
@@ -51,20 +51,5 @@ public class DistributedCacheExecutor(
             await action(db);
             return null!;
         }, ct);
-    }
-
-    private static TimeSpan Backoff(TimeSpan current, TimeSpan max)
-    {
-        TimeSpan next = TimeSpan.FromMilliseconds(
-            Math.Min(max.TotalMilliseconds,
-                Random.Shared.NextDouble() * current.TotalMilliseconds * 3));
-
-        return next;
-    }
-
-    private static TimeSpan ApplyJitter(TimeSpan delay)
-    {
-        double jitter = 0.2 + Random.Shared.NextDouble() * 0.6;
-        return TimeSpan.FromMilliseconds(delay.TotalMilliseconds * jitter);
     }
 }
