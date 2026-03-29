@@ -83,23 +83,26 @@ export class MiniBarChartComponent {
     this.barWidth.set(100 / Math.max(1, this.dataDtos().length));
   }
 
+  tooltipLocked = signal(false);
   // Handle both mouseenter and mouseleave
   hoveredBar(row: MiniBarChartDataDto | null, event?: MouseEvent) {
+    // If tooltip is locked, ignore all hover events
+    if (this.tooltipLocked()) return;
+
     if (!row || !event) {
-      // Hide tooltip if mouse leaves
-      if (this.overlayRef?.hasAttached()) {
-        this.overlayRef.detach();
-      }
+      this.hideTooltip();
       return;
     }
 
-    // Show tooltip immediately when hovering over a bar
     this.showTooltip(row, event);
   }
 
+
   private showTooltip(row: MiniBarChartDataDto, event: MouseEvent) {
+    this.tooltipLocked.set(true);
+
     const positionStrategy = this.overlayPositionBuilder
-      .flexibleConnectedTo({ x: event.clientX, y: event.clientY })
+      .flexibleConnectedTo({ x: event.clientX + 3, y: event.clientY + 3 })
       .withPositions([
         { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'top' }
       ]);
@@ -127,6 +130,18 @@ export class MiniBarChartComponent {
       instance.primaryColor.set(this.containerStyles.getPropertyValue('--tod-text-primary-color')?.trim() || 'black');
     }
   }
+
+  protected hideTooltip() {
+    if (this.overlayRef?.hasAttached()) {
+      this.overlayRef.detach();
+    }
+    this.tooltipLocked.set(false);
+  }
+
+
+
+
+
 
   // Helper methods for stacking bars
   getPositiveStack(stack: number[]) {

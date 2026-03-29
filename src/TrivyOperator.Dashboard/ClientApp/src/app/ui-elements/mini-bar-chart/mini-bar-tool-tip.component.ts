@@ -73,6 +73,12 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
         padding: 5px;
         box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
       }
+
+      .tod-tooltip,
+      .tod-tooltip * {
+        pointer-events: none !important;
+      }
+
     `,
   ],
   standalone: true,
