@@ -24,21 +24,21 @@ export class TestsComponent implements OnInit {
       lowCount: 6,
       unknownCount: 0,
       history: [
-        { label: '03-02', criticalCount: -2, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-03', criticalCount: 2, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
-        { label: '03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
-        { label: '03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
-        { label: '03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-02', criticalCount: -2, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-03', criticalCount: 2, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
+        { label: '2026-03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
       ],
     },
     {
@@ -52,21 +52,21 @@ export class TestsComponent implements OnInit {
       lowCount: -2,
       unknownCount: 0,
       history: [
-        { label: '03-02', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
-        { label: '03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
-        { label: '03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: -2, unknownCount: 1 }, // full
-        { label: '03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-02', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: -2, unknownCount: 1 }, // full
+        { label: '2026-03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
       ],
     },
     {
@@ -80,21 +80,21 @@ export class TestsComponent implements OnInit {
       lowCount: 6,
       unknownCount: 0,
       history: [
-        { label: '03-02', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
-        { label: '03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
-        { label: '03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
-        { label: '03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-02', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
+        { label: '2026-03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
       ],
     },
     {
@@ -108,21 +108,21 @@ export class TestsComponent implements OnInit {
       lowCount: 6,
       unknownCount: 0,
       history: [
-        { label: '03-02', criticalCount: 6, highCount: 0, mediumCount: 1, lowCount: 0, unknownCount: -2 },
-        { label: '03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-04', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
-        { label: '03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
-        { label: '03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
-        { label: '03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-02', criticalCount: 6, highCount: 0, mediumCount: 1, lowCount: 0, unknownCount: -2 },
+        { label: '2026-03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-04', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
+        { label: '2026-03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '2026-03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
       ],
     }
   ];

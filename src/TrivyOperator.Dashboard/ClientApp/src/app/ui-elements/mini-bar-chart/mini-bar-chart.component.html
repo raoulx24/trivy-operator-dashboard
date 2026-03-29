@@ -1,6 +1,5 @@
 <div #miniBarChart
      class="chart-container" >
-
   <svg [attr.viewBox]="'0 0 100 ' + height()"
        preserveAspectRatio="none"
        style="width: 100%; height: 39px;" >
@@ -14,8 +13,6 @@
           stroke-width="0.3" />
 
     @for (stack of bars(); track i; let i = $index) {
-
-
       <!-- POSITIVE STACK -->
       @for (v of getPositiveStack(stack); track j; let j = $index) {
         @if (v > 0) {
@@ -51,8 +48,6 @@
               (mouseenter)="hoveredBar(dataDtos()[i], $event)"
               (mouseleave)="hoveredBar(null)" />
       }
-
-
     }
   </svg>
 </div>

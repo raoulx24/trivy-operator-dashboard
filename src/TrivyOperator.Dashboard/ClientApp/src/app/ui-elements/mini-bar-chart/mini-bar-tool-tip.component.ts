@@ -9,38 +9,58 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
 @Component({
   selector: 'app-mini-bar-tooltip',
   template: `
-    <div class="tod-tooltip" [style.background]="background()" [style.color]="primaryColor()">
-      @if (data()) {
-        @let criticalCount = data()?.criticalCount ?? 0;
-        @let highCount = data()?.highCount ?? 0;
-        @let mediumCount = data()?.mediumCount ?? 0;
-        @let lowCount = data()?.lowCount ?? 0;
-        @let unknownCount = data()?.unknownCount ?? 0;
-        <p-tag [rounded]="true"
-               [style]="0 | severityDifCssStyleById: criticalCount"
-               class="mr-1"
-               [icon]="criticalCount | counterIcon"
-               [value]="criticalCount | vulnerabilityCount : false" />
-        <p-tag [rounded]="true"
-               [style]="1 | severityDifCssStyleById: highCount"
-               class="mr-1"
-               [icon]="highCount | counterIcon"
-               [value]="highCount | vulnerabilityCount : false" />
-        <p-tag [rounded]="true"
-               [style]="2 | severityDifCssStyleById: mediumCount"
-               class="mr-1"
-               [icon]="mediumCount | counterIcon"
-               [value]="mediumCount | vulnerabilityCount : false" />
-        <p-tag [rounded]="true"
-               [style]="3 | severityDifCssStyleById: lowCount"
-               class="mr-1"
-               [icon]="lowCount | counterIcon"
-               [value]="lowCount | vulnerabilityCount : false" />
-        <p-tag [rounded]="true"
-               [style]="4 | severityDifCssStyleById: unknownCount"
-               class="mr-1"
-               [icon]="unknownCount | counterIcon"
-               [value]="unknownCount | vulnerabilityCount : false" />
+    <div class="tod-tooltip grid grid-cols-[auto_1fr] gap-4 items-center"
+         [style.background]="background()"
+         [style.color]="primaryColor()">
+
+      @let currentData = data();
+      @if (currentData) {
+
+        <div class="mb-2">
+          <small class="tod-text-contrast-color mr-2 my-0">Date:</small><br />
+          <small class="tod-text-contrast-color font-bold mr-2 my-0">
+            {{ currentData.label }}
+          </small>
+        </div>
+
+        <!-- Tag Container: Use CSS Grid for Columns, 2 per row -->
+        <div class="flex items-center justify-center">
+
+          <!-- Tag 1 -->
+          <p-tag [rounded]="true"
+                 [style]="0 | severityDifCssStyleById: currentData.criticalCount"
+                 class="mr-1"
+                 [icon]="currentData.criticalCount | counterIcon"
+                 [value]="currentData.criticalCount | vulnerabilityCount : false" />
+
+          <!-- Tag 2 -->
+          <p-tag [rounded]="true"
+                 [style]="1 | severityDifCssStyleById: currentData.highCount"
+                 class="mr-1"
+                 [icon]="currentData.highCount | counterIcon"
+                 [value]="currentData.highCount | vulnerabilityCount : false" />
+
+          <!-- Tag 3 -->
+          <p-tag [rounded]="true"
+                 [style]="2 | severityDifCssStyleById: currentData.mediumCount"
+                 class="mr-1"
+                 [icon]="currentData.mediumCount | counterIcon"
+                 [value]="currentData.mediumCount | vulnerabilityCount : false" />
+
+          <!-- Tag 4 -->
+          <p-tag [rounded]="true"
+                 [style]="3 | severityDifCssStyleById: currentData.lowCount"
+                 class="mr-1"
+                 [icon]="currentData.lowCount | counterIcon"
+                 [value]="currentData.lowCount | vulnerabilityCount : false" />
+
+          <!-- Tag 5 -->
+          <p-tag [rounded]="true"
+                 [style]="4 | severityDifCssStyleById: currentData.unknownCount"
+                 class="mr-1"
+                 [icon]="currentData.unknownCount | counterIcon"
+                 [value]="currentData.unknownCount | vulnerabilityCount : false" />
+        </div>
       }
     </div>
   `,
@@ -60,6 +80,7 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
 })
 export class MiniBarTooltipComponent {
   data = model<MiniBarChartDataDto | undefined>(undefined);
+  label = model
   background = model<string | undefined>(undefined);
   primaryColor = model<string | undefined>(undefined);
 }
