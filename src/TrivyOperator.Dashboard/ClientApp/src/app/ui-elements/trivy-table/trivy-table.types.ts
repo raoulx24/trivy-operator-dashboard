@@ -57,7 +57,8 @@ export interface TrivyTableColumn extends Column {
     | 'boolean'
     | 'unPascalCase'
     | 'compareStacked'
-    | 'counter';
+    | 'counter'
+    | 'miniChart';
   extraFields?: string[];
 }
 

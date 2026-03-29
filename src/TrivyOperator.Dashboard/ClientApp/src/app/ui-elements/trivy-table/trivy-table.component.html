@@ -336,11 +336,15 @@
                 }
               }
               @case ('counter') {
-                <p-tag
-                  severity="secondary"
-                  [rounded]="true"
-                  [value]="rowData[col.field]?.length ?? -1 | vulnerabilityCount"
-                />
+                <p-tag severity="secondary"
+                       [rounded]="true"
+                       [value]="rowData[col.field]?.length ?? -1 | vulnerabilityCount" />
+              }
+              @case ('miniChart') {
+                <app-mini-bar-chart [dataDtos]="rowData[col.field]"
+                                    title="Findings by Severity"
+                                    [height]="40"
+                                    [gap]="0.5" />
               }
             }
           </td>
@@ -354,7 +358,7 @@
             @switch (rowExpansionRender()) {
               @case ('messages') {
                 <div class="pl-4 whitespace-normal">
-                  @for (mess of rowData.messages; track $index) {
+                  @for (mess of rowData.messages; track i; let i= $index) {
                     <li>{{ mess }}</li>
                   }
                 </div>
