@@ -1,9 +1,8 @@
 export interface MiniBarChartDataDto {
   label: string;
-  critical: number;
-  high: number;
-  medium: number;
-  low: number;
-  unknown: number;
-  total: number;
+  criticalCount: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
+  unknownCount: number;
 }

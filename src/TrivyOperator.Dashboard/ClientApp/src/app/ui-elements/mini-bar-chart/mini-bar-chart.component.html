@@ -8,84 +8,88 @@
        (mouseleave)="hoveredBar(null)" >
 
     <!-- baseline -->
-    <line
-      x1="0"
-      [attr.y1]="zeroY()"
-      x2="100"
-      [attr.y2]="zeroY()"
-      stroke="var(--tod-text-primary-color)"
-      stroke-width="0.3"
-    />
+    <line x1="0"
+          [attr.y1]="zeroY()"
+          x2="100"
+          [attr.y2]="zeroY()"
+          stroke="var(--tod-text-primary-color)"
+          stroke-width="0.3" />
 
     @for (stack of bars(); track i; let i = $index) {
+
+      @if (hasData(dataDtos()[i])) {
+      <!-- 👇 HIT AREA (invisible) -->
+        <rect [attr.x]="i * barWidth()"
+              y="0"
+              [attr.width]="barWidth() - gap()"
+              [attr.height]="height()"
+              fill="transparent"
+              style="pointer-events: all;"
+              (mouseenter)="hoveredBar(dataDtos()[i], $event)"
+              (mouseleave)="hoveredBar(null)" />
+      }
 
       <!-- POSITIVE STACK -->
       @for (v of getPositiveStack(stack); track j; let j = $index) {
         @if (v > 0) {
-          <rect
-            [attr.x]="i * barWidth()"
-            [attr.y]="getY(stack, j)"
-            [attr.width]="barWidth() - gap()"
-            [attr.height]="getHeight(v)"
-            [attr.fill]="(j | severityCssStyleById : 1).background"
-            [attr.rx]="j === stack.length - 1 ? 1 : 0"
-            (mouseenter)="hoveredBar(dataDtos()[i], $event)"
-            (mousemove)="onMouseMove($event)"
-            (mouseleave)="hoveredBar(null)"
-          />
+          <rect [attr.x]="i * barWidth()"
+                [attr.y]="getY(stack, j)"
+                [attr.width]="barWidth() - gap()"
+                [attr.height]="getHeight(v)"
+                [attr.fill]="(j | severityCssStyleById : 1).background"
+                [attr.rx]="j === stack.length - 1 ? 1 : 0"
+                (mouseenter)="hoveredBar(dataDtos()[i], $event)"
+                (mouseleave)="hoveredBar(null)" />
         }
       }
 
       <!-- NEGATIVE STACK -->
       @for (v of getNegativeStack(stack); track j; let j = $index) {
         @if (v < 0) {
-          <rect
-            [attr.x]="i * barWidth()"
-            [attr.y]="getY(stack, j)"
-            [attr.width]="barWidth() - gap()"
-            [attr.height]="getHeight(v)"
-            [attr.fill]="(j | severityCssStyleById : 1).background"
-            [attr.rx]="j === stack.length - 1 ? 1 : 0"
-            (mouseenter)="hoveredBar(dataDtos()[i], $event)"
-            (mousemove)="onMouseMove($event)"
-            (mouseleave)="hoveredBar(null)"
-          />
+          <rect [attr.x]="i * barWidth()"
+                [attr.y]="getY(stack, j)"
+                [attr.width]="barWidth() - gap()"
+                [attr.height]="getHeight(v)"
+                [attr.fill]="(j | severityCssStyleById : 1).background"
+                [attr.rx]="j === stack.length - 1 ? 1 : 0"
+                (mouseenter)="hoveredBar(dataDtos()[i], $event)"
+                (mouseleave)="hoveredBar(null)" />
         }
       }
+
     }
   </svg>
 
   @if (hovered()) {
-    <div class="tod-tooltip"
+    @let criticalCount = hovered()?.criticalCount ?? 0;
+    @let highCount = hovered()?.highCount ?? 0;
+    @let mediumCount = hovered()?.mediumCount ?? 0;
+    @let lowCount = hovered()?.lowCount ?? 0;
+    @let unknownCount = hovered()?.unknownCount ?? 0;
+    <div class="tod-tooltip p-5 mx-2"
          [style.left.px]="tooltipX()"
          [style.top.px]="tooltipY()" >
-      <strong>{{ title() }}</strong>
-      <table>
-        <thead>
-        <tr>
-          <th>Date</th>
-          <th>C</th>
-          <th>H</th>
-          <th>M</th>
-          <th>L</th>
-          <th>U</th>
-        </tr>
-        </thead>
-        <tbody>
-          @for (row of dataDtos(); track i; let i = $index) {
-            @if (row.total > 0 || row.total < 0) {
-              <tr [style.font-weight]="row === hovered() ? '600' : '400'" >
-                <td>{{ row.label }}</td>
-                <td>{{ row.critical }}</td>
-                <td>{{ row.high }}</td>
-                <td>{{ row.medium }}</td>
-                <td>{{ row.low }}</td>
-                <td>{{ row.unknown }}</td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
+      <p-tag class="mr-1"
+             [rounded]="true"
+             [style]="0 | severityDifCssStyleById: criticalCount"
+             [icon]="criticalCount | counterIcon"
+             [value]="criticalCount | vulnerabilityCount : false" />
+      <p-tag [rounded]="true"
+             [style]="1 | severityDifCssStyleById: highCount"
+             [icon]="highCount | counterIcon"
+             [value]="highCount | vulnerabilityCount : false" />
+      <p-tag [rounded]="true"
+             [style]="2 | severityDifCssStyleById: mediumCount"
+             [icon]="mediumCount | counterIcon"
+             [value]="mediumCount | vulnerabilityCount : false" />
+      <p-tag [rounded]="true"
+             [style]="3 | severityDifCssStyleById: lowCount"
+             [icon]="lowCount | counterIcon"
+             [value]="lowCount | vulnerabilityCount : false" />
+      <p-tag [rounded]="true"
+             [style]="4 | severityDifCssStyleById: unknownCount"
+             [icon]="unknownCount | counterIcon"
+             [value]="unknownCount | vulnerabilityCount : false" />
     </div>
   }
 </div>

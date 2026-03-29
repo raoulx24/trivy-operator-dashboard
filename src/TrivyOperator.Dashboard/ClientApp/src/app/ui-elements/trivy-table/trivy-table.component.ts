@@ -44,6 +44,7 @@ import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 
 import { ReactiveMap } from '../../abstracts/reactive-map';
 import { MiniBarChartComponent } from '../mini-bar-chart/mini-bar-chart.component';
+import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by-id.pipe";
 
 
 @Component({
@@ -73,6 +74,7 @@ import { MiniBarChartComponent } from '../mini-bar-chart/mini-bar-chart.componen
     SeverityNamesMaxDisplayPipe,
     UnPascalCasePipe,
     MiniBarChartComponent,
+    SeverityDifCssStyleByIdPipe,
   ],
   templateUrl: './trivy-table.component.html',
   styleUrl: './trivy-table.component.scss',

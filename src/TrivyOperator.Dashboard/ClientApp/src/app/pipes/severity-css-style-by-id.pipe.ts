@@ -28,7 +28,7 @@ export class SeverityCssStyleByIdPipe implements PipeTransform {
         break;
       case 'grayBelowOne':
         cssColor = severityCount < 1 ? 'gray' : SeverityUtils.getCssColor(id);
-        opacity = (severityCount < 1 || severityCount < 6) ? '0.4' : '1';
+        opacity = severityCount < 1 ? '0.2' : '1';
         break;
       case 'hideNonPositive':
         cssColor = severityCount > 0 ? SeverityUtils.getCssColor(id) : 'transparent';

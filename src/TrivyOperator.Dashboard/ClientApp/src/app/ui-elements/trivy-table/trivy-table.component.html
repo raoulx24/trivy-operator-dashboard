@@ -282,7 +282,6 @@
                 <p-tag
                   [rounded]="true"
                   [style]="col.extraFields[0] ?? '' | severityCssStyleById: rowData[col.field] ?? -1"
-                  [icon]="rowData[col.field] | counterIcon"
                   [value]="rowData[col.field] | vulnerabilityCount"
                 />
               }
@@ -342,9 +341,15 @@
               }
               @case ('miniChart') {
                 <app-mini-bar-chart [dataDtos]="rowData[col.field]"
-                                    title="Findings by Severity"
+                                    tooltipTitle="mama"
                                     [height]="40"
                                     [gap]="0.5" />
+              }
+              @case ('severityDifValue') {
+                <p-tag [rounded]="true"
+                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
+                       [icon]="rowData[col.field] | counterIcon"
+                       [value]="rowData[col.field] | vulnerabilityCount : false" />
               }
             }
           </td>

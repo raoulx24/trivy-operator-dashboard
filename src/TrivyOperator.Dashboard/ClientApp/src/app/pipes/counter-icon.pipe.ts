@@ -9,12 +9,12 @@ export class CounterIconPipe implements PipeTransform {
     if (!data) {
       return '';
     }
-    if (data > 6) {
+    if (data > 0) {
       return 'pi pi-arrow-up';
       // return 'pi pi-plus-circle';
       // return 'pi pi-arrow-circle-up';
     }
-    if (data < 6) {
+    if (data < 0) {
       return 'pi pi-arrow-down';
       // return 'pi pi-minus-circle';
       // return 'pi pi-arrow-circle-down';

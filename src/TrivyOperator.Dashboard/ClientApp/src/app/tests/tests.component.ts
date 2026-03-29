@@ -24,21 +24,49 @@ export class TestsComponent implements OnInit {
       lowCount: 6,
       unknownCount: 0,
       history: [
-        { label: '03-02', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-03', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-04', critical: 1, high: 0, medium: 0, low: 0, unknown: 0, total: 1 }, // small
-        { label: '03-05', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-06', critical: 0, high: 2, medium: 1, low: 0, unknown: 0, total: 3 }, // small
-        { label: '03-07', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-08', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-09', critical: 1, high: 1, medium: 1, low: 1, unknown: 1, total: 5 }, // full
-        { label: '03-10', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-11', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-12', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-13', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-14', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-15', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-16', critical: 0, high: 1, medium: 0, low: 0, unknown: 0, total: 1 }, // small
+        { label: '03-02', criticalCount: -2, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-03', criticalCount: 2, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
+        { label: '03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
+        { label: '03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+      ],
+    },
+    {
+      imageName: 'image name',
+      imageTag: 'latest',
+      imageDigest: 'sha256: xyz',
+      imageRepository: 'myrepo.com',
+      criticalCount: 2,
+      highCount: -2,
+      mediumCount: 6,
+      lowCount: -2,
+      unknownCount: 0,
+      history: [
+        { label: '03-02', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
+        { label: '03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: -2, unknownCount: 1 }, // full
+        { label: '03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
       ],
     },
     {
@@ -52,21 +80,21 @@ export class TestsComponent implements OnInit {
       lowCount: 6,
       unknownCount: 0,
       history: [
-        { label: '03-02', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-03', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-04', critical: 1, high: 0, medium: 0, low: 0, unknown: 0, total: 1 }, // small
-        { label: '03-05', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-06', critical: 0, high: 2, medium: 1, low: 0, unknown: 0, total: 3 }, // small
-        { label: '03-07', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-08', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-09', critical: 1, high: 1, medium: 1, low: -2, unknown: 1, total: 6 }, // full
-        { label: '03-10', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-11', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-12', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-13', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-14', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-15', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-16', critical: 0, high: 1, medium: 0, low: 0, unknown: 0, total: 1 }, // small
+        { label: '03-02', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
+        { label: '03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
+        { label: '03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
       ],
     },
     {
@@ -80,21 +108,21 @@ export class TestsComponent implements OnInit {
       lowCount: 6,
       unknownCount: 0,
       history: [
-        { label: '03-02', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-03', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-04', critical: 1, high: 0, medium: 0, low: 0, unknown: 0, total: 1 }, // small
-        { label: '03-05', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-06', critical: 0, high: 2, medium: 1, low: 0, unknown: 0, total: 3 }, // small
-        { label: '03-07', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-08', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-09', critical: 1, high: 1, medium: 1, low: 1, unknown: 1, total: 5 }, // full
-        { label: '03-10', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-11', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-12', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-13', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-14', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-15', critical: 0, high: 0, medium: 0, low: 0, unknown: 0, total: 0 },
-        { label: '03-16', critical: 0, high: 1, medium: 0, low: 0, unknown: 0, total: 1 }, // small
+        { label: '03-02', criticalCount: 6, highCount: 0, mediumCount: 1, lowCount: 0, unknownCount: -2 },
+        { label: '03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-04', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
+        { label: '03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
+        { label: '03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
+        { label: '03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
       ],
     }
   ];
@@ -138,13 +166,22 @@ export class TestsComponent implements OnInit {
       renderType: 'standard',
     },
     {
+      field: 'history',
+      header: 'History',
+      isFilterable: false,
+      isSortable: false,
+      multiSelectType: 'none',
+      style: 'width: 50px; max-width: 50px;',
+      renderType: 'miniChart',
+    },
+    {
       field: 'criticalCount',
       header: 'C',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'severityValue',
+      renderType: 'severityDifValue',
       extraFields: ['0'],
     },
     {
@@ -154,7 +191,7 @@ export class TestsComponent implements OnInit {
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px;',
-      renderType: 'severityValue',
+      renderType: 'severityDifValue',
       extraFields: ['1'],
     },
     {
@@ -164,7 +201,7 @@ export class TestsComponent implements OnInit {
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'severityValue',
+      renderType: 'severityDifValue',
       extraFields: ['2'],
     },
     {
@@ -174,7 +211,7 @@ export class TestsComponent implements OnInit {
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'severityValue',
+      renderType: 'severityDifValue',
       extraFields: ['3'],
     },
     {
@@ -184,17 +221,8 @@ export class TestsComponent implements OnInit {
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'severityValue',
+      renderType: 'severityDifValue',
       extraFields: ['4'],
-    },
-    {
-      field: 'history',
-      header: 'History',
-      isFilterable: false,
-      isSortable: false,
-      multiSelectType: 'none',
-      style: 'width: 50px; max-width: 50px;',
-      renderType: 'miniChart',
     },
   ];
 

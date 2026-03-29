@@ -3,23 +3,23 @@
   /*overflow: visible;*/
 }
 
-.tod-tooltip {
-  position: absolute; /* instead of absolute */
-  color: var(--tod-text-primary-color);
-  background: var(--p-highlight-background);
-  padding: 5px;
-  font-size: 12px;
-  pointer-events: none;
-  z-index: 99999;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-}
+/*.tod-tooltip {*/
+/*  position: absolute;*/
+/*  color: var(--tod-text-primary-color);*/
+/*  background: var(--p-highlight-background);*/
+/*  padding: 5px;*/
+/*  font-size: 12px;*/
+/*  pointer-events: none;*/
+/*  z-index: 99999;*/
+/*  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);*/
+/*}*/
 
-.tod-tooltip table {
-  border-collapse: collapse;
-}
+/*.tod-tooltip table {*/
+/*  border-collapse: collapse;*/
+/*}*/
 
-.tod-tooltip th,
-.tod-tooltip td {
-  padding: 2px 4px;
-  border: 1px solid #ddd;
-}
+/*.tod-tooltip th,*/
+/*.tod-tooltip td {*/
+/*  padding: 2px 4px;*/
+/*  border: 1px solid #ddd;*/
+/*}*/

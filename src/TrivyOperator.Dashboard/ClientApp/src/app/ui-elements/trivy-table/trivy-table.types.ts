@@ -58,7 +58,8 @@ export interface TrivyTableColumn extends Column {
     | 'unPascalCase'
     | 'compareStacked'
     | 'counter'
-    | 'miniChart';
+    | 'miniChart'
+    | 'severityDifValue';
   extraFields?: string[];
 }
 
