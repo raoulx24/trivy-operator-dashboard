@@ -1,5 +1,6 @@
 import { Component, model } from '@angular/core';
 import { Tag } from 'primeng/tag';
+
 import { SeverityDifCssStyleByIdPipe } from '../../pipes/severity-dif-css-style-by-id.pipe';
 import { CounterIconPipe } from '../../pipes/counter-icon.pipe';
 import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
@@ -8,7 +9,7 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
 @Component({
   selector: 'app-mini-bar-tooltip',
   template: `
-    <div class="tod-tooltip" [style.background]="background" [style.color]="primaryColor">
+    <div class="tod-tooltip" [style.background]="background()" [style.color]="primaryColor()">
       @if (data()) {
         @let criticalCount = data()?.criticalCount ?? 0;
         @let highCount = data()?.highCount ?? 0;

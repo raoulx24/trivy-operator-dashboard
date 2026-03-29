@@ -1,11 +1,9 @@
-<div #container
-     class="chart-container"
-     (mouseleave)="hoveredBar(null)" >
+<div #miniBarChart
+     class="chart-container" >
 
-  <svg [attr.viewBox]="'0 0 100 ' + height"
+  <svg [attr.viewBox]="'0 0 100 ' + height()"
        preserveAspectRatio="none"
-       style="width: 100%; height: 39px;"
-       (mouseleave)="hoveredBar(null)" >
+       style="width: 100%; height: 39px;" >
 
     <!-- baseline -->
     <line x1="0"
@@ -17,17 +15,6 @@
 
     @for (stack of bars(); track i; let i = $index) {
 
-      @if (hasData(dataDtos()[i])) {
-      <!-- 👇 HIT AREA (invisible) -->
-        <rect [attr.x]="i * barWidth()"
-              y="0"
-              [attr.width]="barWidth() - gap()"
-              [attr.height]="height()"
-              fill="transparent"
-              style="pointer-events: all;"
-              (mouseenter)="hoveredBar(dataDtos()[i], $event)"
-              (mouseleave)="hoveredBar(null)" />
-      }
 
       <!-- POSITIVE STACK -->
       @for (v of getPositiveStack(stack); track j; let j = $index) {
@@ -37,9 +24,7 @@
                 [attr.width]="barWidth() - gap()"
                 [attr.height]="getHeight(v)"
                 [attr.fill]="(j | severityCssStyleById : 1).background"
-                [attr.rx]="j === stack.length - 1 ? 1 : 0"
-                (mouseenter)="hoveredBar(dataDtos()[i], $event)"
-                (mouseleave)="hoveredBar(null)" />
+                [attr.rx]="j === stack.length - 1 ? 1 : 0" />
         }
       }
 
@@ -51,45 +36,23 @@
                 [attr.width]="barWidth() - gap()"
                 [attr.height]="getHeight(v)"
                 [attr.fill]="(j | severityCssStyleById : 1).background"
-                [attr.rx]="j === stack.length - 1 ? 1 : 0"
-                (mouseenter)="hoveredBar(dataDtos()[i], $event)"
-                (mouseleave)="hoveredBar(null)" />
+                [attr.rx]="j === stack.length - 1 ? 1 : 0" />
         }
       }
 
+      @if (hasData(dataDtos()[i])) {
+        <!-- 👇 HIT AREA (invisible) -->
+        <rect [attr.x]="i * barWidth() - 0.5"
+              y="0"
+              [attr.width]="barWidth() + 1"
+              [attr.height]="height()"
+              fill="transparent"
+              style="pointer-events: all;"
+              (mouseenter)="hoveredBar(dataDtos()[i], $event)"
+              (mouseleave)="hoveredBar(null)" />
+      }
+
+
     }
   </svg>
-
-  @if (hovered()) {
-    @let criticalCount = hovered()?.criticalCount ?? 0;
-    @let highCount = hovered()?.highCount ?? 0;
-    @let mediumCount = hovered()?.mediumCount ?? 0;
-    @let lowCount = hovered()?.lowCount ?? 0;
-    @let unknownCount = hovered()?.unknownCount ?? 0;
-    <div class="tod-tooltip p-5 mx-2"
-         [style.left.px]="tooltipX()"
-         [style.top.px]="tooltipY()" >
-      <p-tag class="mr-1"
-             [rounded]="true"
-             [style]="0 | severityDifCssStyleById: criticalCount"
-             [icon]="criticalCount | counterIcon"
-             [value]="criticalCount | vulnerabilityCount : false" />
-      <p-tag [rounded]="true"
-             [style]="1 | severityDifCssStyleById: highCount"
-             [icon]="highCount | counterIcon"
-             [value]="highCount | vulnerabilityCount : false" />
-      <p-tag [rounded]="true"
-             [style]="2 | severityDifCssStyleById: mediumCount"
-             [icon]="mediumCount | counterIcon"
-             [value]="mediumCount | vulnerabilityCount : false" />
-      <p-tag [rounded]="true"
-             [style]="3 | severityDifCssStyleById: lowCount"
-             [icon]="lowCount | counterIcon"
-             [value]="lowCount | vulnerabilityCount : false" />
-      <p-tag [rounded]="true"
-             [style]="4 | severityDifCssStyleById: unknownCount"
-             [icon]="unknownCount | counterIcon"
-             [value]="unknownCount | vulnerabilityCount : false" />
-    </div>
-  }
 </div>
