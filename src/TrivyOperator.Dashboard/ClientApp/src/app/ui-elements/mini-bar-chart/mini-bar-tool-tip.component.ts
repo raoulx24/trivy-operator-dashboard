@@ -31,35 +31,35 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
                  [style]="0 | severityDifCssStyleById: currentData.criticalCount"
                  class="mr-1"
                  [icon]="currentData.criticalCount | counterIcon"
-                 [value]="currentData.criticalCount | vulnerabilityCount : false" />
+                 [value]="currentData.criticalCount | vulnerabilityCount : 'hideZeroes'" />
 
           <!-- Tag 2 -->
           <p-tag [rounded]="true"
                  [style]="1 | severityDifCssStyleById: currentData.highCount"
                  class="mr-1"
                  [icon]="currentData.highCount | counterIcon"
-                 [value]="currentData.highCount | vulnerabilityCount : false" />
+                 [value]="currentData.highCount | vulnerabilityCount : 'hideZeroes'" />
 
           <!-- Tag 3 -->
           <p-tag [rounded]="true"
                  [style]="2 | severityDifCssStyleById: currentData.mediumCount"
                  class="mr-1"
                  [icon]="currentData.mediumCount | counterIcon"
-                 [value]="currentData.mediumCount | vulnerabilityCount : false" />
+                 [value]="currentData.mediumCount | vulnerabilityCount : 'hideZeroes'" />
 
           <!-- Tag 4 -->
           <p-tag [rounded]="true"
                  [style]="3 | severityDifCssStyleById: currentData.lowCount"
                  class="mr-1"
                  [icon]="currentData.lowCount | counterIcon"
-                 [value]="currentData.lowCount | vulnerabilityCount : false" />
+                 [value]="currentData.lowCount | vulnerabilityCount : 'hideZeroes'" />
 
           <!-- Tag 5 -->
           <p-tag [rounded]="true"
                  [style]="4 | severityDifCssStyleById: currentData.unknownCount"
                  class="mr-1"
                  [icon]="currentData.unknownCount | counterIcon"
-                 [value]="currentData.unknownCount | vulnerabilityCount : false" />
+                 [value]="currentData.unknownCount | vulnerabilityCount : 'hideZeroes'" />
         </div>
       }
     </div>

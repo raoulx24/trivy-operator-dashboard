@@ -345,20 +345,20 @@
                 <p-tag [rounded]="true"
                        [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
                        [icon]="rowData[col.field] | counterIcon"
-                       [value]="rowData[col.field] | vulnerabilityCount : false" />
+                       [value]="rowData[col.field] | vulnerabilityCount : 'hideZeroes'" />
               }
               @case ('doubleSeverityDifValue') {
                 <p-tag class="mb-2 mt-1"
                        [rounded]="true"
                        [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
                        [icon]="rowData[col.field] | counterIcon"
-                       [value]="rowData[col.field] | vulnerabilityCount : false" />
+                       [value]="rowData[col.field] | vulnerabilityCount : 'hideZeroes'" />
                 <hr class="tod-datatable-border-color" />
                 <p-tag class="mt-2 mb-1"
                        [rounded]="true"
                        [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
                        [icon]="rowData[col.field] | counterIcon"
-                       [value]="rowData[col.field] | vulnerabilityCount : false" />
+                       [value]="rowData[col.field] | vulnerabilityCount : 'hideZeroes'" />
               }
             }
           </td>
