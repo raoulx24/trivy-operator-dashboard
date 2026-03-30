@@ -2,7 +2,7 @@
      class="chart-container" >
   <svg [attr.viewBox]="'0 0 100 ' + height()"
        preserveAspectRatio="none"
-       class="w-full"
+       class="w-full mx-1"
        [style.height]="height() + 'px'" >
 
     <!-- baseline -->
@@ -22,7 +22,11 @@
                 [attr.width]="barWidth() - gap()"
                 [attr.height]="getHeight(v)"
                 [attr.fill]="(j | severityCssStyleById : 1).background"
-                [attr.rx]="j === stack.length - 1 ? 1 : 0" />
+                [attr.rx]="1"
+                class="mini-bar-chart-hover-effect"
+                [style.--bar-origin-x]="(i * barWidth()) + 'px'"
+                [style.--bar-origin-y]="zeroY() + 'px'"
+                [class.is-hovered]="hoveredIndex === i" />
         }
       }
 
@@ -34,7 +38,11 @@
                 [attr.width]="barWidth() - gap()"
                 [attr.height]="getHeight(v)"
                 [attr.fill]="(j | severityCssStyleById : 1).background"
-                [attr.rx]="j === stack.length - 1 ? 1 : 0" />
+                [attr.rx]="j === stack.length - 1 ? 1 : 0"
+                class="mini-bar-chart-hover-effect"
+                [style.--bar-origin-x]="(i * barWidth()) + 'px'"
+                [style.--bar-origin-y]="zeroY() + 'px'"
+                [class.is-hovered]="hoveredIndex === i" />
         }
       }
 
@@ -46,8 +54,8 @@
               [attr.height]="height()"
               fill="transparent"
               style="pointer-events: all;"
-              (mouseenter)="hoveredBar(dataDtos()[i], $event)"
-              (mouseleave)="hideTooltip()" />
+              (mouseenter)="hoveredBar(dataDtos()[i], i, $event)"
+              (mouseleave)="hideTooltip(i)" />
       }
     }
   </svg>

@@ -75,6 +75,9 @@ export class MiniBarChartComponent {
   private readonly overlayPositionBuilder = inject(OverlayPositionBuilder);
 
   private containerStyles!: CSSStyleDeclaration;
+
+  hoveredIndex?: number;
+
   ngAfterViewInit() {
     this.containerStyles = getComputedStyle(document.documentElement);
   }
@@ -85,12 +88,13 @@ export class MiniBarChartComponent {
 
   tooltipLocked = signal(false);
   // Handle both mouseenter and mouseleave
-  hoveredBar(row: MiniBarChartDataDto | null, event?: MouseEvent) {
+  hoveredBar(row: MiniBarChartDataDto | null, index: number, event?: MouseEvent) {
     // If tooltip is locked, ignore all hover events
     if (this.tooltipLocked()) return;
+    this.hoveredIndex = index ?? undefined;
 
     if (!row || !event) {
-      this.hideTooltip();
+      this.hideTooltip(index);
       return;
     }
 
@@ -131,11 +135,12 @@ export class MiniBarChartComponent {
     }
   }
 
-  protected hideTooltip() {
+  protected hideTooltip(index: number) {
     if (this.overlayRef?.hasAttached()) {
       this.overlayRef.detach();
     }
     this.tooltipLocked.set(false);
+    this.hoveredIndex = undefined;
   }
 
 

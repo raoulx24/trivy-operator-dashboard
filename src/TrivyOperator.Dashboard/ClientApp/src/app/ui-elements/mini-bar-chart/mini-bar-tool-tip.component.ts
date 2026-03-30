@@ -9,7 +9,7 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
 @Component({
   selector: 'app-mini-bar-tooltip',
   template: `
-    <div class="tod-tooltip grid grid-cols-[auto_1fr] gap-4 items-center"
+    <div class="tod-tooltip tod-content-border-contrast-color tod-tooltip-shadow grid grid-cols-[auto_1fr] gap-4 items-center"
          [style.background]="background()"
          [style.color]="primaryColor()">
 

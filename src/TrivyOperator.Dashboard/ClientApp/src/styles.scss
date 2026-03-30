@@ -214,8 +214,9 @@ p-splitter.tod-splitter-no-borders {
   color: var(--p-primary-contrast-color);
 }
 
-.tod-border-contrast-color {
-  border: 2px solid var(--p-primary-contrast-color);
+.tod-content-border-contrast-color {
+  border: 2px solid var(--p-text-color);
+  border-radius: var(--p-border-radius-sm);
 }
 
 .tod-content-border {
@@ -319,10 +320,37 @@ blockquote p:not(:first-of-type) {
   border-left: 4px solid var(--p-surface-700);
 }
 
-/* p-select classes */
+/* p-select classes */s
 p-select.text-sm span.p-select-label {
   font-size: 0.875rem;
 }
 p-select.text-sm input.p-select-filter {
   font-size: 0.875rem;
 }
+
+.tod-tooltip-shadow {
+  box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.8) !important;
+}
+
+.mini-bar-chart-hover-effect {
+  stroke: transparent;
+  stroke-width: 0.25px;
+  rx: 2;
+
+  transition:
+    transform 0.9s ease-in-out,
+    filter 0.9s ease-in-out,
+    stroke 0.9s ease-in-out,
+    stroke-width 0.9s ease-in-out;
+
+
+  transform-origin: var(--bar-origin-x) var(--bar-origin-y);
+}
+
+.mini-bar-chart-hover-effect.is-hovered {
+  //transform: scale(1.08);
+  filter: brightness(1.2);
+  stroke: var(--tod-text-primary-color);
+  stroke-width: 0.25px;
+}
+
