@@ -181,7 +181,7 @@ export class TestsComponent implements OnInit {
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'severityDifValue',
+      renderType: 'doubleSeverityDifValue',
       extraFields: ['0'],
     },
     {

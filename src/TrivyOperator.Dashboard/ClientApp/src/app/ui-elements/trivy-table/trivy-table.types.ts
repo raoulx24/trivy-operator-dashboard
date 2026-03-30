@@ -59,7 +59,8 @@ export interface TrivyTableColumn extends Column {
     | 'compareStacked'
     | 'counter'
     | 'miniChart'
-    | 'severityDifValue';
+    | 'severityDifValue'
+    | 'doubleSeverityDifValue';
   extraFields?: string[];
 }
 

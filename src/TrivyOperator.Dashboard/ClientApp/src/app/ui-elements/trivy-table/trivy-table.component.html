@@ -21,7 +21,7 @@
     [tableStyle]="style()"
     [value]="_dataDtos()"
     [virtualScroll]="true"
-    [virtualScrollItemSize]="47"
+    [virtualScrollItemSize]="rowHeight()"
     (onFilter)="onFilter()"
     (onRowCollapse)="onRowCollapse($event)"
     (onRowExpand)="onRowExpand($event)"
@@ -200,7 +200,7 @@
       </tr>
     </ng-template>
     <ng-template let-columns="columns" let-expanded="expanded" let-rowData let-rowIndex="rowIndex" pTemplate="body">
-      <tr style="height: 47px" [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
+      <tr [style.height] = rowHeightPx() [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
         @if (dataKey()) {
           <td style="max-width: 50px">
             <p-button
@@ -338,11 +338,24 @@
               @case ('miniChart') {
                 <app-mini-bar-chart [dataDtos]="rowData[col.field]"
                                     tooltipTitle="mama"
-                                    [height]="40"
+                                    [height]="rowHeight() - 8"
                                     [gap]="0.5" />
               }
               @case ('severityDifValue') {
                 <p-tag [rounded]="true"
+                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
+                       [icon]="rowData[col.field] | counterIcon"
+                       [value]="rowData[col.field] | vulnerabilityCount : false" />
+              }
+              @case ('doubleSeverityDifValue') {
+                <p-tag class="mb-2 mt-1"
+                       [rounded]="true"
+                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
+                       [icon]="rowData[col.field] | counterIcon"
+                       [value]="rowData[col.field] | vulnerabilityCount : false" />
+                <hr class="tod-datatable-border-color" />
+                <p-tag class="mt-2 mb-1"
+                       [rounded]="true"
                        [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
                        [icon]="rowData[col.field] | counterIcon"
                        [value]="rowData[col.field] | vulnerabilityCount : false" />

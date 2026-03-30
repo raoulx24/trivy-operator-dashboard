@@ -103,6 +103,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
   style = input<{ [klass: string]: any } | undefined>({});
   stateKey = input<string | undefined>(undefined);
+  rowHeight = input<number>(47);
 
   trivyTableColumns = input.required<TrivyTableColumn[]>();
   //
@@ -160,6 +161,8 @@ export class TrivyTableComponent<TData> implements OnInit {
     const value = this.selectedDataDtos();
     return this.getSelectedDataCount(value);
   });
+
+  protected rowHeightPx = computed(() => { return `${this.rowHeight()}px` });
 
   constructor() {
     effect(() => {
