@@ -9,7 +9,7 @@
         <SpaProxyServerUrl>http://localhost:4200</SpaProxyServerUrl>
         <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
         <ImplicitUsings>enable</ImplicitUsings>
-        <LangVersion>12</LangVersion>
+        <LangVersion>default</LangVersion>
         <Platforms>AnyCPU;x64</Platforms>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <FileVersion Condition=" '$(FileVersion)' != '' ">$(FileVersion)</FileVersion>

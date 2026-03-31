@@ -223,9 +223,7 @@ public static class BuilderServicesExtensions
             out string subpath
         );
 
-        if (!string.IsNullOrWhiteSpace(basePath) &&
-            useService &&
-            !string.IsNullOrWhiteSpace(subpath))
+        if (!string.IsNullOrWhiteSpace(basePath) && useService && !string.IsNullOrWhiteSpace(subpath))
         {
             Logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
@@ -327,9 +325,7 @@ public static class BuilderServicesExtensions
             out string subpath
         );
 
-        if (!string.IsNullOrWhiteSpace(basePath) &&
-            useService &&
-            !string.IsNullOrWhiteSpace(subpath))
+        if (!string.IsNullOrWhiteSpace(basePath) && useService && !string.IsNullOrWhiteSpace(subpath))
         {
             Logger?.LogInformation("Using FileRepository for {kubernetesObjectType}", className);
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
@@ -607,7 +603,7 @@ public static class BuilderServicesExtensions
         useService = config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}") ?? false;
 
         useDefaultContext = config.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
-            
+
         basePath = config.GetValue<string>("FileRepository:BasePath") ?? "";
 
         subpath = config.GetValue<string>($"FileRepository:{className}Subpath") ?? "";

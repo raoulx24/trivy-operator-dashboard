@@ -77,11 +77,11 @@ export class AlertsComponent implements OnInit {
     effect(() => {
       const levelOptionValue = this.treeExpandLevelOptionValue();
       this.expandTreeNodesToLevel(levelOptionValue);
-    })
+    });
   }
 
   ngOnInit() {
-      this.loadData();
+    this.loadData();
   }
 
   onNodeExpand(event: TreeTableNodeExpandEvent) {
@@ -220,11 +220,9 @@ export class AlertsComponent implements OnInit {
     const changedLevel = changedNode.data?.level ?? -1;
 
     // All nodes at this level
-    const nodesAtLevel = this.allTreeNodes.filter(
-      n => (n.data?.level ?? -1) === changedLevel
-    );
+    const nodesAtLevel = this.allTreeNodes.filter((n) => (n.data?.level ?? -1) === changedLevel);
 
-    const expandedCount = nodesAtLevel.filter(n => n.data?.isExpanded).length;
+    const expandedCount = nodesAtLevel.filter((n) => n.data?.isExpanded).length;
     const allExpanded = expandedCount === nodesAtLevel.length;
     const allCollapsed = expandedCount === 0;
 
@@ -238,11 +236,9 @@ export class AlertsComponent implements OnInit {
 
     // --- CASE 2: Decrease level only if ALL deeper levels are collapsed ---
     if (allCollapsed && currentValue > changedLevel) {
-
       // Check deeper levels
-      const deeperLevelsHaveExpandedNodes = this.allTreeNodes.some(n =>
-        (n.data?.level ?? -1) > changedLevel &&
-        n.data?.isExpanded === true
+      const deeperLevelsHaveExpandedNodes = this.allTreeNodes.some(
+        (n) => (n.data?.level ?? -1) > changedLevel && n.data?.isExpanded === true,
       );
 
       // Only decrease if deeper levels are fully collapsed
@@ -264,6 +260,4 @@ export class AlertsComponent implements OnInit {
       }
     }
   }
-
-
 }
