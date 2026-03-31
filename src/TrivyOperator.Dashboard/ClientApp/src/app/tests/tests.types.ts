@@ -5,10 +5,15 @@ export interface TestDto {
   imageTag: string;
   imageDigest: string;
   imageRepository: string;
-  criticalCount: number;
-  highCount: number;
-  mediumCount: number;
-  lowCount: number;
-  unknownCount: number;
+  criticalNew: number;
+  highNew: number;
+  mediumNew: number;
+  lowNew: number;
+  unknownNew: number;
+  criticalRemoved: number;
+  highRemoved: number;
+  mediumRemoved: number;
+  lowRemoved: number;
+  unknownRemoved: number;
   history: MiniBarChartDataDto[];
 }

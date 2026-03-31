@@ -354,11 +354,12 @@
                        [icon]="rowData[col.field] | counterIcon"
                        [value]="rowData[col.field] | vulnerabilityCount : 'hideZeroes'" />
                 <hr class="tod-datatable-border-color" />
+                @let negativeCount = (rowData[col.extraFields?.[1]] ?? 0) * (-1);
                 <p-tag class="mt-2 mb-1"
                        [rounded]="true"
-                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
-                       [icon]="rowData[col.field] | counterIcon"
-                       [value]="rowData[col.field] | vulnerabilityCount : 'hideZeroes'" />
+                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount"
+                       [icon]="negativeCount | counterIcon"
+                       [value]="negativeCount | vulnerabilityCount : 'hideZeroes'" />
               }
             }
           </td>
@@ -372,7 +373,7 @@
             @switch (rowExpansionRender()) {
               @case ('messages') {
                 <div class="pl-4 whitespace-normal">
-                  @for (mess of rowData.messages; track i; let i= $index) {
+                  @for (mess of rowData.messages; track $index) {
                     <li>{{ mess }}</li>
                   }
                 </div>

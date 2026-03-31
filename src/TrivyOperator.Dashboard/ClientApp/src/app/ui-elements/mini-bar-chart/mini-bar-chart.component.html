@@ -37,7 +37,7 @@
                 [attr.y]="getY(stack, j)"
                 [attr.width]="barWidth() - gap()"
                 [attr.height]="getHeight(v)"
-                [attr.fill]="(j | severityCssStyleById : 1).background"
+                [attr.fill]="((j % 5) | severityCssStyleById : 1).background"
                 [attr.rx]="j === stack.length - 1 ? 1 : 0"
                 class="mini-bar-chart-hover-effect"
                 [style.--bar-origin-x]="(i * barWidth()) + 'px'"

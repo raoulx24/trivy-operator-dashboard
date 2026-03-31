@@ -36,18 +36,21 @@ export class MiniBarChartComponent {
 
   // stack: [critical, high, medium, low, unknown]
   bars = computed(() =>
-    this.dataDtos().map((d) => [
-      d.criticalCount,
-      d.highCount,
-      d.mediumCount,
-      d.lowCount,
-      d.unknownCount,
-    ])
+    this.dataDtos().map((d) => {
+      const added = d.newCount;
+      const removed = d.removedCount.map(v => -v); // convert to negative
+
+      return [...added, ...removed]; // 10 values total
+    })
   );
+
 
   stackExtents = computed(() =>
     this.dataDtos().map((d) => {
-      const values = [d.criticalCount, d.highCount, d.mediumCount, d.lowCount, d.unknownCount];
+      const values = [
+        ...d.newCount,
+        ...d.removedCount.map(v => -v)
+      ];
 
       const positive = values.filter(v => v > 0).reduce((a, b) => a + b, 0);
       const negative = values.filter(v => v < 0).reduce((a, b) => a + b, 0);
@@ -55,6 +58,7 @@ export class MiniBarChartComponent {
       return { positive, negative };
     })
   );
+
 
   minTotal = computed(() => Math.min(0, ...this.stackExtents().map(e => e.negative)));
   maxTotal = computed(() => Math.max(0, ...this.stackExtents().map(e => e.positive)));
@@ -140,7 +144,8 @@ export class MiniBarChartComponent {
       this.overlayRef.detach();
     }
     this.tooltipLocked.set(false);
-    this.hoveredIndex = undefined;
+    if (this.hoveredIndex === index)
+      this.hoveredIndex = undefined;
   }
 
 
@@ -199,11 +204,8 @@ export class MiniBarChartComponent {
 
   hasData(d: MiniBarChartDataDto): boolean {
     return (
-      d.criticalCount !== 0 ||
-      d.highCount !== 0 ||
-      d.mediumCount !== 0 ||
-      d.lowCount !== 0 ||
-      d.unknownCount !== 0
+      d.newCount.some(v => v !== 0) ||
+      d.removedCount.some(v => v !== 0)
     );
   }
 }

@@ -18,114 +18,184 @@ export class TestsComponent implements OnInit {
       imageTag: 'latest',
       imageDigest: 'sha256: xyz',
       imageRepository: 'myrepo.com',
-      criticalCount: 0,
-      highCount: 2,
-      mediumCount: 10,
-      lowCount: 6,
-      unknownCount: 0,
+
+      criticalNew: 0, highNew: 1, mediumNew: 0, lowNew: 0, unknownNew: 0,
+      criticalRemoved: 0, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
+
       history: [
-        { label: '2026-03-02', criticalCount: -2, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-03', criticalCount: 2, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
-        { label: '2026-03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
-        { label: '2026-03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
-        { label: '2026-03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-02', newCount: [0, 0, 0, 0, 0], removedCount: [2, 0, 0, 0, 0] },
+        { label: '2026-03-03', newCount: [2, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-04', newCount: [1, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-05', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-06', newCount: [0, 2, 1, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-07', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-08', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-09', newCount: [1, 1, 1, 1, 1], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-10', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-11', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-12', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-13', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-14', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-15', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { label: '2026-03-16', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
       ],
     },
+
     {
-      imageName: 'image name',
+      imageName: 'backend-service',
       imageTag: 'latest',
-      imageDigest: 'sha256: xyz',
-      imageRepository: 'myrepo.com',
-      criticalCount: 2,
-      highCount: -2,
-      mediumCount: 6,
-      lowCount: -2,
-      unknownCount: 0,
+      imageDigest: 'sha256:111aaa',
+      imageRepository: 'repo.company.com/backend',
+
+      // last non-zero newCount: [1,1,1,1,1]
+      criticalNew: 1, highNew: 1, mediumNew: 1, lowNew: 1, unknownNew: 1,
+      // last non-zero removedCount: [1,0,0,0,0]
+      criticalRemoved: 1, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
+
       history: [
-        { label: '2026-03-02', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
-        { label: '2026-03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
-        { label: '2026-03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: -2, unknownCount: 1 }, // full
-        { label: '2026-03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-01', newCount: [0,0,0,0,0], removedCount: [1,0,0,0,0] },
+        { label: '2026-03-02', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-03', newCount: [1,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-04', newCount: [0,1,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-06', newCount: [1,1,1,1,1], removedCount: [0,0,0,0,0] }, // last new
+        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
       ],
     },
+
+    // 2. Frontend UI
     {
-      imageName: 'image name',
-      imageTag: 'latest',
-      imageDigest: 'sha256: xyz',
-      imageRepository: 'myrepo.com',
-      criticalCount: 0,
-      highCount: 2,
-      mediumCount: 10,
-      lowCount: 6,
-      unknownCount: 0,
+      imageName: 'frontend-ui',
+      imageTag: '1.4.2',
+      imageDigest: 'sha256:222bbb',
+      imageRepository: 'repo.company.com/frontend',
+
+      // last non-zero newCount: [0,2,0,0,0]
+      criticalNew: 0, highNew: 2, mediumNew: 0, lowNew: 0, unknownNew: 0,
+      // last non-zero removedCount: [0,0,1,0,0]
+      criticalRemoved: 0, highRemoved: 0, mediumRemoved: 1, lowRemoved: 0, unknownRemoved: 0,
+
       history: [
-        { label: '2026-03-02', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-04', criticalCount: 1, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
-        { label: '2026-03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
-        { label: '2026-03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
-        { label: '2026-03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-01', newCount: [0,0,0,0,0], removedCount: [0,1,0,0,0] },
+        { label: '2026-03-02', newCount: [0,2,0,0,0], removedCount: [0,0,0,0,0] }, // last new
+        { label: '2026-03-03', newCount: [0,0,0,0,0], removedCount: [0,0,1,0,0] }, // last removed
+        { label: '2026-03-04', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-06', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
       ],
     },
+
+    // 3. Payment Gateway
     {
-      imageName: 'image name',
-      imageTag: 'latest',
-      imageDigest: 'sha256: xyz',
-      imageRepository: 'myrepo.com',
-      criticalCount: 0,
-      highCount: 2,
-      mediumCount: 10,
-      lowCount: 6,
-      unknownCount: 0,
+      imageName: 'payment-gateway',
+      imageTag: 'stable',
+      imageDigest: 'sha256:333ccc',
+      imageRepository: 'repo.company.com/payments',
+
+      // last non-zero newCount: [0,0,2,0,0]
+      criticalNew: 0, highNew: 0, mediumNew: 2, lowNew: 0, unknownNew: 0,
+      // last non-zero removedCount: [1,0,0,0,0]
+      criticalRemoved: 1, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
+
       history: [
-        { label: '2026-03-02', criticalCount: 6, highCount: 0, mediumCount: 1, lowCount: 0, unknownCount: -2 },
-        { label: '2026-03-03', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-04', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
-        { label: '2026-03-05', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-06', criticalCount: 0, highCount: 2, mediumCount: 1, lowCount: 0, unknownCount: 0 }, // small
-        { label: '2026-03-07', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-08', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-09', criticalCount: 1, highCount: 1, mediumCount: 1, lowCount: 1, unknownCount: 1 }, // full
-        { label: '2026-03-10', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-11', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-12', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-13', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-14', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-15', criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, unknownCount: 0 },
-        { label: '2026-03-16', criticalCount: 0, highCount: 1, mediumCount: 0, lowCount: 0, unknownCount: 0 }, // small
+        { label: '2026-03-01', newCount: [0,0,1,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-02', newCount: [0,0,2,0,0], removedCount: [0,0,0,0,0] }, // last new
+        { label: '2026-03-03', newCount: [0,0,0,0,0], removedCount: [1,0,0,0,0] }, // last removed
+        { label: '2026-03-04', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-06', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
       ],
-    }
+    },
+
+    // 4. Analytics Engine
+    {
+      imageName: 'analytics-engine',
+      imageTag: '2.0.1',
+      imageDigest: 'sha256:444ddd',
+      imageRepository: 'repo.company.com/analytics',
+
+      // last non-zero newCount: [0,0,0,4,0]
+      criticalNew: 0, highNew: 0, mediumNew: 0, lowNew: 4, unknownNew: 0,
+      // last non-zero removedCount: [0,0,0,0,2]
+      criticalRemoved: 0, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 2,
+
+      history: [
+        { label: '2026-03-01', newCount: [0,0,0,2,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-02', newCount: [0,0,0,4,0], removedCount: [0,0,0,0,0] }, // last new
+        { label: '2026-03-03', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,2] }, // last removed
+        { label: '2026-03-04', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-06', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+      ],
+    },
+
+    // 5. Notification Service
+    {
+      imageName: 'notification-service',
+      imageTag: 'beta',
+      imageDigest: 'sha256:555eee',
+      imageRepository: 'repo.company.com/notify',
+
+      // last non-zero newCount: [0,1,0,0,0]
+      criticalNew: 0, highNew: 1, mediumNew: 0, lowNew: 0, unknownNew: 0,
+      // last non-zero removedCount: [0,0,0,1,0]
+      criticalRemoved: 0, highRemoved: 0, mediumRemoved: 0, lowRemoved: 1, unknownRemoved: 0,
+
+      history: [
+        { label: '2026-03-01', newCount: [0,1,0,0,0], removedCount: [0,0,0,0,0] }, // last new
+        { label: '2026-03-02', newCount: [0,0,0,0,0], removedCount: [0,0,0,1,0] }, // last removed
+        { label: '2026-03-03', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-04', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-06', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+      ],
+    },
   ];
+
   isLoading: boolean = false;
 
   trivyTableColumns: TrivyTableColumn[] = [
@@ -175,54 +245,54 @@ export class TestsComponent implements OnInit {
       renderType: 'miniChart',
     },
     {
-      field: 'criticalCount',
+      field: 'criticalNew',
       header: 'C',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
       renderType: 'doubleSeverityDifValue',
-      extraFields: ['0'],
+      extraFields: ['0', 'criticalRemoved'],
     },
     {
-      field: 'highCount',
+      field: 'highNew',
       header: 'H',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px;',
-      renderType: 'severityDifValue',
-      extraFields: ['1'],
+      renderType: 'doubleSeverityDifValue',
+      extraFields: ['1', 'highRemoved'],
     },
     {
-      field: 'mediumCount',
+      field: 'mediumNew',
       header: 'M',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'severityDifValue',
-      extraFields: ['2'],
+      renderType: 'doubleSeverityDifValue',
+      extraFields: ['2', 'mediumRemoved'],
     },
     {
-      field: 'lowCount',
+      field: 'lowNew',
       header: 'L',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'severityDifValue',
-      extraFields: ['3'],
+      renderType: 'doubleSeverityDifValue',
+      extraFields: ['3', 'lowRemoved'],
     },
     {
-      field: 'unknownCount',
+      field: 'unknownNew',
       header: 'U',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'severityDifValue',
-      extraFields: ['4'],
+      renderType: 'doubleSeverityDifValue',
+      extraFields: ['4', 'unknownRemoved'],
     },
   ];
 

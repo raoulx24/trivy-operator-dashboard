@@ -1,8 +1,7 @@
+export type SeveritiesCount = [number, number, number, number, number];
+
 export interface MiniBarChartDataDto {
   label: string;
-  criticalCount: number;
-  highCount: number;
-  mediumCount: number;
-  lowCount: number;
-  unknownCount: number;
+  newCount: SeveritiesCount;
+  removedCount: SeveritiesCount;
 }

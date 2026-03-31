@@ -17,49 +17,29 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
       @if (currentData) {
 
         <div class="mb-2">
-          <small class="tod-text-contrast-color mr-2 my-0">Date:</small><br />
-          <small class="tod-text-contrast-color font-bold mr-2 my-0">
-            {{ currentData.label }}
-          </small>
+          <small class="tod-text-contrast-color mr-2 my-0">{{ staticLabel() }}</small><br />
+          <small class="tod-text-contrast-color font-bold mr-2 my-0">{{ currentData.label }}</small>
         </div>
 
         <!-- Tag Container: Use CSS Grid for Columns, 2 per row -->
         <div class="flex items-center justify-center">
-
-          <!-- Tag 1 -->
-          <p-tag [rounded]="true"
-                 [style]="0 | severityDifCssStyleById: currentData.criticalCount"
-                 class="mr-1"
-                 [icon]="currentData.criticalCount | counterIcon"
-                 [value]="currentData.criticalCount | vulnerabilityCount : 'hideZeroes'" />
-
-          <!-- Tag 2 -->
-          <p-tag [rounded]="true"
-                 [style]="1 | severityDifCssStyleById: currentData.highCount"
-                 class="mr-1"
-                 [icon]="currentData.highCount | counterIcon"
-                 [value]="currentData.highCount | vulnerabilityCount : 'hideZeroes'" />
-
-          <!-- Tag 3 -->
-          <p-tag [rounded]="true"
-                 [style]="2 | severityDifCssStyleById: currentData.mediumCount"
-                 class="mr-1"
-                 [icon]="currentData.mediumCount | counterIcon"
-                 [value]="currentData.mediumCount | vulnerabilityCount : 'hideZeroes'" />
-
-          <!-- Tag 4 -->
-          <p-tag [rounded]="true"
-                 [style]="3 | severityDifCssStyleById: currentData.lowCount"
-                 class="mr-1"
-                 [icon]="currentData.lowCount | counterIcon"
-                 [value]="currentData.lowCount | vulnerabilityCount : 'hideZeroes'" />
-
-          <!-- Tag 5 -->
-          <p-tag [rounded]="true"
-                 [style]="4 | severityDifCssStyleById: currentData.unknownCount"
-                 class="mr-1"
-                 [icon]="currentData.unknownCount | counterIcon"
-                 [value]="currentData.unknownCount | vulnerabilityCount : 'hideZeroes'" />
+          @for (severityCount of currentData.newCount; track $index) {
+            <p-tag [rounded]="true"
+                   [style]="$index | severityDifCssStyleById: severityCount"
+                   class="mr-1"
+                   [icon]="severityCount | counterIcon"
+                   [value]="severityCount | vulnerabilityCount : 'hideZeroes'" />
+          }
+        </div>
+        <hr class="tod-datatable-border-color" />
+        <div class="flex items-center justify-center">
+          @for (severityCount of currentData.removedCount; track $index) {
+            <p-tag [rounded]="true"
+                   [style]="$index | severityDifCssStyleById: (severityCount * (-1))"
+                   class="mr-1"
+                   [icon]="(severityCount * (-1)) | counterIcon"
+                   [value]="(severityCount * (-1)) | vulnerabilityCount : 'hideZeroes'" />
+          }
         </div>
       }
     </div>
@@ -86,7 +66,7 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
 })
 export class MiniBarTooltipComponent {
   data = model<MiniBarChartDataDto | undefined>(undefined);
-  label = model
+  staticLabel = model<string>("Date:");
   background = model<string | undefined>(undefined);
   primaryColor = model<string | undefined>(undefined);
 }
