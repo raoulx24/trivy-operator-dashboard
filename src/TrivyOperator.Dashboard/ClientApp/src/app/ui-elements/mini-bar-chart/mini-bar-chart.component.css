@@ -3,23 +3,9 @@
   /*overflow: visible;*/
 }
 
-/*.tod-tooltip {*/
-/*  position: absolute;*/
-/*  color: var(--tod-text-primary-color);*/
-/*  background: var(--p-highlight-background);*/
-/*  padding: 5px;*/
-/*  font-size: 12px;*/
-/*  pointer-events: none;*/
-/*  z-index: 99999;*/
-/*  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);*/
-/*}*/
-
-/*.tod-tooltip table {*/
-/*  border-collapse: collapse;*/
-/*}*/
-
-/*.tod-tooltip th,*/
-/*.tod-tooltip td {*/
-/*  padding: 2px 4px;*/
-/*  border: 1px solid #ddd;*/
-/*}*/
+.mini-bar-chart-hover-effect.is-hovered {
+  transform: scale(1.03);
+  filter: brightness(1.2);
+  stroke: var(--tod-text-primary-color);
+  stroke-width: 0.25px;
+}

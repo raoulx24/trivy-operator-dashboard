@@ -347,10 +347,7 @@ p-select.text-sm input.p-select-filter {
   transform-origin: var(--bar-origin-x) var(--bar-origin-y);
 }
 
-.mini-bar-chart-hover-effect.is-hovered {
-  //transform: scale(1.08);
-  filter: brightness(1.2);
-  stroke: var(--tod-text-primary-color);
-  stroke-width: 0.25px;
+.chart-container svg {
+  overflow: visible;
 }
 

@@ -23,7 +23,7 @@ export class TestsComponent implements OnInit {
       criticalRemoved: 0, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
 
       history: [
-        { label: '2026-03-02', newCount: [0, 0, 0, 0, 0], removedCount: [2, 0, 0, 0, 0] },
+        { label: '2026-03-02', newCount: [0, 1, 0, 2, 0], removedCount: [2, 1, 0, 3, 0] },
         { label: '2026-03-03', newCount: [2, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
         { label: '2026-03-04', newCount: [1, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
         { label: '2026-03-05', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },

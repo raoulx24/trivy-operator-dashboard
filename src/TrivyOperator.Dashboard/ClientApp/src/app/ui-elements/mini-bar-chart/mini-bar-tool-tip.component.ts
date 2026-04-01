@@ -9,38 +9,47 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
 @Component({
   selector: 'app-mini-bar-tooltip',
   template: `
-    <div class="tod-tooltip tod-content-border-contrast-color tod-tooltip-shadow grid grid-cols-[auto_1fr] gap-4 items-center"
+    <div class="tod-tooltip tod-content-border-contrast-color tod-tooltip-shadow
+            grid grid-cols-[auto_repeat(5,max-content)]
+            grid-rows-[auto_auto_auto] gap-x-4 items-center"
          [style.background]="background()"
          [style.color]="primaryColor()">
 
       @let currentData = data();
       @if (currentData) {
 
-        <div class="mb-2">
-          <small class="tod-text-contrast-color mr-2 my-0">{{ staticLabel() }}</small><br />
+        <!-- Column 1 spans all 3 rows -->
+        <div class="row-span-3 flex flex-col justify-center">
+          <small class="tod-text-contrast-color mr-2 my-0">{{ staticLabel() }}</small>
           <small class="tod-text-contrast-color font-bold mr-2 my-0">{{ currentData.label }}</small>
         </div>
 
-        <!-- Tag Container: Use CSS Grid for Columns, 2 per row -->
-        <div class="flex items-center justify-center">
-          @for (severityCount of currentData.newCount; track $index) {
+        <!-- Row 1: newCount -->
+        @for (data of currentData.newCount; track $index) {
+          <div class="flex justify-center">
             <p-tag [rounded]="true"
-                   [style]="$index | severityDifCssStyleById: severityCount"
-                   class="mr-1"
-                   [icon]="severityCount | counterIcon"
-                   [value]="severityCount | vulnerabilityCount : 'hideZeroes'" />
-          }
-        </div>
-        <hr class="tod-datatable-border-color" />
-        <div class="flex items-center justify-center">
-          @for (severityCount of currentData.removedCount; track $index) {
+                   [style]="$index | severityDifCssStyleById: data"
+                   [icon]="data | counterIcon"
+                   [value]="data | vulnerabilityCount : 'hideZeroes'" />
+          </div>
+        }
+
+        <!-- Row 2: hr (perfectly aligned across all columns) -->
+        @for (i of [0,1,2,3,4]; track i) {
+          <div class="flex justify-center w-full">
+            <hr class="tod-datatable-border-color w-full my-2" />
+          </div>
+        }
+
+        <!-- Row 3: removedCount -->
+        @for (data of currentData.removedCount; track $index) {
+          <div class="flex justify-center">
             <p-tag [rounded]="true"
-                   [style]="$index | severityDifCssStyleById: (severityCount * (-1))"
-                   class="mr-1"
-                   [icon]="(severityCount * (-1)) | counterIcon"
-                   [value]="(severityCount * (-1)) | vulnerabilityCount : 'hideZeroes'" />
-          }
-        </div>
+                   [style]="$index | severityDifCssStyleById: (data * -1)"
+                   [icon]="(data * -1) | counterIcon"
+                   [value]="(data * -1) | vulnerabilityCount : 'hideZeroes'" />
+          </div>
+        }
       }
     </div>
   `,
