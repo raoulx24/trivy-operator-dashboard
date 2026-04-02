@@ -1,0 +1,12 @@
+.tod-tooltip {
+  pointer-events: none;
+  color: var(--tod-text-primary-color);
+  background: var(--p-highlight-background);
+  padding: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.tod-tooltip,
+.tod-tooltip * {
+  pointer-events: none !important;
+}

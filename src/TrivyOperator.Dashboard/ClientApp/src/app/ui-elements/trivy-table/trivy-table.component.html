@@ -337,6 +337,7 @@
               }
               @case ('miniChart') {
                 <app-mini-bar-chart [dataDtos]="rowData[col.field]"
+                                    [minHistoryDays]="minHistoryDays()"
                                     tooltipTitle="mama"
                                     [height]="rowHeight()"
                                     [gap]="0.5" />

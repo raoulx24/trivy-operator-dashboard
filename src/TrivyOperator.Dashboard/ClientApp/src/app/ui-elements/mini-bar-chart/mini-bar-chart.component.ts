@@ -13,7 +13,7 @@ import { MiniBarChartDataDto } from './mini-bar-chart.types';
 
 import { Overlay, OverlayModule, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { MiniBarTooltipComponent } from './mini-bar-tool-tip.component';
+import { TrHistoryTooltipComponent } from './../tr-history-tooltip/tr-history-tooltip.component';
 
 @Component({
   selector: 'app-mini-bar-chart',
@@ -25,18 +25,87 @@ import { MiniBarTooltipComponent } from './mini-bar-tool-tip.component';
 })
 export class MiniBarChartComponent {
   dataDtos = input<MiniBarChartDataDto[]>([]);
+  minHistoryDays = input<number>(0);
   tooltipTitle = input<string>('');
   height = input<number>(39);
   gap = input<number>(0.5);
 
   @ViewChild('miniBarChart', { static: false })
-  private tooltipComponentRef?: ComponentRef<MiniBarTooltipComponent>;
+  private tooltipComponentRef?: ComponentRef<TrHistoryTooltipComponent>;
 
   barWidth = signal(100);
+  internalDataDtos = computed<MiniBarChartDataDto[]>(() => {
+    const data = this.dataDtos() ?? [];
+    const minDays = this.minHistoryDays() ?? 0;
+
+    if (data.length === 0) return [];
+
+    // --- 1. Sort by moment (ascending) ---
+    const sorted = [...data].sort((a, b) => a.moment.localeCompare(b.moment));
+
+    // --- 2. Collapse duplicates (keep last of each day) ---
+    const byDay = new Map<string, MiniBarChartDataDto>();
+
+    for (const d of sorted) {
+      const day = d.moment.slice(0, 10); // yyyy-MM-dd
+      byDay.set(day, d); // overwrites previous → keeps last
+    }
+
+    // Convert map back to sorted array of days
+    const uniqueDays = [...byDay.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+    // --- 3. Determine threshold ---
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+    const threshold = new Date(today);
+    threshold.setUTCDate(today.getUTCDate() - minDays);
+
+    const earliestDay = new Date(uniqueDays[0][0] + 'T00:00:00Z');
+
+    // Always start at threshold.
+    // earliestDay only matters for extending *backward* when it is older.
+    const startDate = earliestDay < threshold ? earliestDay : threshold;
+
+    // --- 4. Fill missing days ---
+    const result: MiniBarChartDataDto[] = [];
+
+    const cursor = new Date(startDate);
+
+    const endDate = new Date(today);
+
+    let idx = 0;
+
+    while (cursor <= endDate) {
+      const dayStr = cursor.toISOString().slice(0, 10);
+
+      if (idx < uniqueDays.length && uniqueDays[idx][0] === dayStr) {
+        // existing day
+        const dto = uniqueDays[idx][1];
+        result.push({
+          moment: dayStr,
+          newCount: dto.newCount,
+          removedCount: dto.removedCount,
+        });
+        idx++;
+      } else {
+        // missing day → empty
+        result.push({
+          moment: dayStr,
+          newCount: [],
+          removedCount: [],
+        });
+      }
+
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+
+    return result;
+  });
 
   // stack: [critical, high, medium, low, unknown]
   bars = computed(() =>
-    this.dataDtos().map((d) => {
+    this.internalDataDtos().map((d) => {
       const added = d.newCount;
       const removed = d.removedCount.map(v => -v); // convert to negative
 
@@ -46,7 +115,7 @@ export class MiniBarChartComponent {
 
 
   stackExtents = computed(() =>
-    this.dataDtos().map((d) => {
+    this.internalDataDtos().map((d) => {
       const values = [
         ...d.newCount,
         ...d.removedCount.map(v => -v)
@@ -87,7 +156,7 @@ export class MiniBarChartComponent {
   }
 
   ngOnChanges() {
-    this.barWidth.set(100 / Math.max(1, this.dataDtos().length));
+    this.barWidth.set(100 / Math.max(1, this.internalDataDtos().length));
   }
 
   tooltipLocked = signal(false);
@@ -124,7 +193,7 @@ export class MiniBarChartComponent {
 
     // Attach tooltip if not already attached
     if (!this.overlayRef.hasAttached()) {
-      const portal = new ComponentPortal(MiniBarTooltipComponent);
+      const portal = new ComponentPortal(TrHistoryTooltipComponent);
       this.tooltipComponentRef = this.overlayRef.attach(portal);
     }
 

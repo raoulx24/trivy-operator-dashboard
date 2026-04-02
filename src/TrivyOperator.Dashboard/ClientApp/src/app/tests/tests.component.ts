@@ -1,9 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit } from '@angular/core';
 
 import { TableModule } from 'primeng/table';
 import { TrivyTableComponent } from '../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../ui-elements/trivy-table/trivy-table.types';
 import { TestDto } from './tests.types';
+import {MiniBarChartDataDto} from "../ui-elements/mini-bar-chart/mini-bar-chart.types";
 
 @Component({
   selector: 'app-tests',
@@ -12,8 +13,11 @@ import { TestDto } from './tests.types';
   styleUrl: './tests.component.scss',
 })
 export class TestsComponent implements OnInit {
+  readonly minHistoryDays = 14;
+
   dataDtos?: TestDto[] = [
     {
+      id: '01',
       imageName: 'image name',
       imageTag: 'latest',
       imageDigest: 'sha256: xyz',
@@ -23,56 +27,34 @@ export class TestsComponent implements OnInit {
       criticalRemoved: 0, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
 
       history: [
-        { label: '2026-03-02', newCount: [0, 1, 0, 2, 0], removedCount: [2, 1, 0, 3, 0] },
-        { label: '2026-03-03', newCount: [2, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-04', newCount: [1, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-05', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-06', newCount: [0, 2, 1, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-07', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-08', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-09', newCount: [1, 1, 1, 1, 1], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-10', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-11', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-12', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-13', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-14', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-15', newCount: [0, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
-        { label: '2026-03-16', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-20', newCount: [0, 1, 0, 2, 0], removedCount: [2, 1, 0, 3, 0] },
+        { moment: '2026-03-24', newCount: [2, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-25', newCount: [1, 0, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-27', newCount: [0, 2, 1, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-02', newCount: [1, 1, 1, 1, 1], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-04-03', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
       ],
     },
-
     {
+      id: '02',
       imageName: 'backend-service',
       imageTag: 'latest',
       imageDigest: 'sha256:111aaa',
       imageRepository: 'repo.company.com/backend',
 
-      // last non-zero newCount: [1,1,1,1,1]
       criticalNew: 1, highNew: 1, mediumNew: 1, lowNew: 1, unknownNew: 1,
-      // last non-zero removedCount: [1,0,0,0,0]
       criticalRemoved: 1, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
 
       history: [
-        { label: '2026-03-01', newCount: [0,0,0,0,0], removedCount: [1,0,0,0,0] },
-        { label: '2026-03-02', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-03', newCount: [1,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-04', newCount: [0,1,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-06', newCount: [1,1,1,1,1], removedCount: [0,0,0,0,0] }, // last new
-        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { moment: '2026-03-21', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 1, 0] },
+        { moment: '2026-03-23', newCount: [1, 0, 0, 0, 0], removedCount: [0, 0, 1, 0, 0] },
+        { moment: '2026-03-26', newCount: [0, 0, 2, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-30', newCount: [0, 1, 1, 0, 0], removedCount: [1, 0, 0, 0, 0] },
+        { moment: '2026-04-02', newCount: [0, 0, 0, 1, 0], removedCount: [0, 0, 0, 0, 0] }
       ],
     },
-
-    // 2. Frontend UI
     {
+      id: '03',
       imageName: 'frontend-ui',
       imageTag: '1.4.2',
       imageDigest: 'sha256:222bbb',
@@ -84,26 +66,14 @@ export class TestsComponent implements OnInit {
       criticalRemoved: 0, highRemoved: 0, mediumRemoved: 1, lowRemoved: 0, unknownRemoved: 0,
 
       history: [
-        { label: '2026-03-01', newCount: [0,0,0,0,0], removedCount: [0,1,0,0,0] },
-        { label: '2026-03-02', newCount: [0,2,0,0,0], removedCount: [0,0,0,0,0] }, // last new
-        { label: '2026-03-03', newCount: [0,0,0,0,0], removedCount: [0,0,1,0,0] }, // last removed
-        { label: '2026-03-04', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-06', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { moment: '2026-03-22', newCount: [1, 0, 0, 0, 0], removedCount: [0, 1, 0, 0, 0] },
+        { moment: '2026-03-25', newCount: [0, 0, 1, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-29', newCount: [0, 2, 0, 0, 0], removedCount: [0, 0, 0, 1, 0] },
+        { moment: '2026-04-01', newCount: [1, 0, 0, 1, 0], removedCount: [0, 0, 0, 0, 0] }
       ],
     },
-
-    // 3. Payment Gateway
     {
+      id: '04',
       imageName: 'payment-gateway',
       imageTag: 'stable',
       imageDigest: 'sha256:333ccc',
@@ -115,26 +85,16 @@ export class TestsComponent implements OnInit {
       criticalRemoved: 1, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
 
       history: [
-        { label: '2026-03-01', newCount: [0,0,1,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-02', newCount: [0,0,2,0,0], removedCount: [0,0,0,0,0] }, // last new
-        { label: '2026-03-03', newCount: [0,0,0,0,0], removedCount: [1,0,0,0,0] }, // last removed
-        { label: '2026-03-04', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-06', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { moment: '2026-03-20', newCount: [0, 0, 0, 1, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-22', newCount: [1, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 1] },
+        { moment: '2026-03-24', newCount: [0, 0, 0, 0, 1], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-27', newCount: [2, 0, 0, 0, 0], removedCount: [1, 0, 0, 0, 0] },
+        { moment: '2026-03-31', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-04-03', newCount: [0, 0, 1, 0, 0], removedCount: [0, 0, 0, 0, 0] }
       ],
     },
-
-    // 4. Analytics Engine
     {
+      id: '05',
       imageName: 'analytics-engine',
       imageTag: '2.0.1',
       imageDigest: 'sha256:444ddd',
@@ -146,26 +106,13 @@ export class TestsComponent implements OnInit {
       criticalRemoved: 0, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 2,
 
       history: [
-        { label: '2026-03-01', newCount: [0,0,0,2,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-02', newCount: [0,0,0,4,0], removedCount: [0,0,0,0,0] }, // last new
-        { label: '2026-03-03', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,2] }, // last removed
-        { label: '2026-03-04', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-06', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { moment: '2026-03-28', newCount: [0, 0, 1, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-30', newCount: [1, 0, 0, 0, 0], removedCount: [0, 1, 0, 0, 0] },
+        { moment: '2026-04-02', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] }
       ],
     },
-
-    // 5. Notification Service
     {
+      id: '06',
       imageName: 'notification-service',
       imageTag: 'beta',
       imageDigest: 'sha256:555eee',
@@ -177,21 +124,12 @@ export class TestsComponent implements OnInit {
       criticalRemoved: 0, highRemoved: 0, mediumRemoved: 0, lowRemoved: 1, unknownRemoved: 0,
 
       history: [
-        { label: '2026-03-01', newCount: [0,1,0,0,0], removedCount: [0,0,0,0,0] }, // last new
-        { label: '2026-03-02', newCount: [0,0,0,0,0], removedCount: [0,0,0,1,0] }, // last removed
-        { label: '2026-03-03', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-04', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-05', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-06', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-07', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-08', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-09', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-10', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-11', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-12', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-13', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-14', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
-        { label: '2026-03-15', newCount: [0,0,0,0,0], removedCount: [0,0,0,0,0] },
+        { moment: '2026-03-21', newCount: [0, 0, 0, 0, 1], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-23', newCount: [1, 0, 0, 0, 0], removedCount: [0, 0, 1, 0, 0] },
+        { moment: '2026-03-26', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-28', newCount: [0, 0, 1, 0, 0], removedCount: [0, 0, 0, 0, 0] },
+        { moment: '2026-03-31', newCount: [1, 0, 0, 0, 0], removedCount: [0, 0, 0, 1, 0] },
+        { moment: '2026-04-03', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] }
       ],
     },
   ];
@@ -295,6 +233,54 @@ export class TestsComponent implements OnInit {
       extraFields: ['4', 'unknownRemoved'],
     },
   ];
+
+  constructor() {
+    //effect(() => {
+    //   const dtos = this.dataDtos();
+      const dtos = this.dataDtos;
+
+      if (!dtos) return;
+
+      for (const dto of dtos) {
+        if (!dto.history || dto.history.length === 0) continue;
+
+        // 1. Find the last history entry that has data
+        let lastWithData: MiniBarChartDataDto | null = null;
+
+        for (let i = dto.history.length - 1; i >= 0; i--) {
+          const h = dto.history[i];
+          const hasData =
+              h.newCount.some(v => v !== 0) ||
+              h.removedCount.some(v => v !== 0);
+
+          if (hasData) {
+            lastWithData = h;
+            break;
+          }
+        }
+
+        // If none have data, treat as all zeros
+        const src = lastWithData ?? {
+          newCount: [],
+          removedCount: []
+        };
+
+        // 2. Mutate dto.* fields
+        dto.criticalNew   = src.newCount[0] ?? 0;
+        dto.highNew       = src.newCount[1] ?? 0;
+        dto.mediumNew     = src.newCount[2] ?? 0;
+        dto.lowNew        = src.newCount[3] ?? 0;
+        dto.unknownNew    = src.newCount[4] ?? 0;
+
+        dto.criticalRemoved = src.removedCount[0] ?? 0;
+        dto.highRemoved     = src.removedCount[1] ?? 0;
+        dto.mediumRemoved   = src.removedCount[2] ?? 0;
+        dto.lowRemoved      = src.removedCount[3] ?? 0;
+        dto.unknownRemoved  = src.removedCount[4] ?? 0;
+      }
+    // });
+
+  }
 
   ngOnInit(): void {
 

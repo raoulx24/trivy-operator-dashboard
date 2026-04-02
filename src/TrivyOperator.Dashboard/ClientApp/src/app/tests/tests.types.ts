@@ -1,6 +1,7 @@
 import { MiniBarChartDataDto } from '../ui-elements/mini-bar-chart/mini-bar-chart.types';
 
 export interface TestDto {
+  id: string;
   imageName: string;
   imageTag: string;
   imageDigest: string;

@@ -48,7 +48,7 @@
         }
       }
 
-      @if (hasData(dataDtos()[i])) {
+      @if (hasData(internalDataDtos()[i])) {
         <!-- 👇 HIT AREA (invisible) -->
         <rect [attr.x]="i * barWidth() - 0.5"
               y="0"
@@ -56,7 +56,7 @@
               [attr.height]="height()"
               fill="transparent"
               style="pointer-events: all;"
-              (mouseenter)="hoveredBar(dataDtos()[i], i, $event)"
+              (mouseenter)="hoveredBar(internalDataDtos()[i], i, $event)"
               (mouseleave)="hideTooltip(i)" />
       }
     }
