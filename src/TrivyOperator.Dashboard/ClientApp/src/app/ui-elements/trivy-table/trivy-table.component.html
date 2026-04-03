@@ -360,7 +360,7 @@
                        [rounded]="true"
                        [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount"
                        [icon]="negativeCount | counterIcon"
-                       [value]="negativeCount | vulnerabilityCount : 'hideZeroes'" />
+                       [value]="negativeCount * (-1) | vulnerabilityCount : 'hideZeroes'" />
               }
             }
           </td>

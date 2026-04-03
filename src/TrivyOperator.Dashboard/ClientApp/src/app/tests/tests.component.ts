@@ -23,6 +23,8 @@ export class TestsComponent implements OnInit {
       imageDigest: 'sha256: xyz',
       imageRepository: 'myrepo.com',
 
+      criticalCount: 0, highCount: 2, mediumCount: 6, lowCount: 24, unknownCount: 0,
+
       criticalNew: 0, highNew: 1, mediumNew: 0, lowNew: 0, unknownNew: 0,
       criticalRemoved: 0, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
 
@@ -42,6 +44,8 @@ export class TestsComponent implements OnInit {
       imageDigest: 'sha256:111aaa',
       imageRepository: 'repo.company.com/backend',
 
+      criticalCount: 3, highCount: 6, mediumCount: 12, lowCount: 34, unknownCount: 1,
+
       criticalNew: 1, highNew: 1, mediumNew: 1, lowNew: 1, unknownNew: 1,
       criticalRemoved: 1, highRemoved: 0, mediumRemoved: 0, lowRemoved: 0, unknownRemoved: 0,
 
@@ -59,6 +63,8 @@ export class TestsComponent implements OnInit {
       imageTag: '1.4.2',
       imageDigest: 'sha256:222bbb',
       imageRepository: 'repo.company.com/frontend',
+
+      criticalCount: 3, highCount: 6, mediumCount: 12, lowCount: 34, unknownCount: 1,
 
       // last non-zero newCount: [0,2,0,0,0]
       criticalNew: 0, highNew: 2, mediumNew: 0, lowNew: 0, unknownNew: 0,
@@ -78,6 +84,8 @@ export class TestsComponent implements OnInit {
       imageTag: 'stable',
       imageDigest: 'sha256:333ccc',
       imageRepository: 'repo.company.com/payments',
+
+      criticalCount: 3, highCount: 6, mediumCount: 12, lowCount: 34, unknownCount: 1,
 
       // last non-zero newCount: [0,0,2,0,0]
       criticalNew: 0, highNew: 0, mediumNew: 2, lowNew: 0, unknownNew: 0,
@@ -100,6 +108,8 @@ export class TestsComponent implements OnInit {
       imageDigest: 'sha256:444ddd',
       imageRepository: 'repo.company.com/analytics',
 
+      criticalCount: 3, highCount: 6, mediumCount: 12, lowCount: 34, unknownCount: 1,
+
       // last non-zero newCount: [0,0,0,4,0]
       criticalNew: 0, highNew: 0, mediumNew: 0, lowNew: 4, unknownNew: 0,
       // last non-zero removedCount: [0,0,0,0,2]
@@ -118,6 +128,8 @@ export class TestsComponent implements OnInit {
       imageDigest: 'sha256:555eee',
       imageRepository: 'repo.company.com/notify',
 
+      criticalCount: 3, highCount: 6, mediumCount: 12, lowCount: 34, unknownCount: 1,
+
       // last non-zero newCount: [0,1,0,0,0]
       criticalNew: 0, highNew: 1, mediumNew: 0, lowNew: 0, unknownNew: 0,
       // last non-zero removedCount: [0,0,0,1,0]
@@ -129,7 +141,7 @@ export class TestsComponent implements OnInit {
         { moment: '2026-03-26', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] },
         { moment: '2026-03-28', newCount: [0, 0, 1, 0, 0], removedCount: [0, 0, 0, 0, 0] },
         { moment: '2026-03-31', newCount: [1, 0, 0, 0, 0], removedCount: [0, 0, 0, 1, 0] },
-        { moment: '2026-04-03', newCount: [0, 1, 0, 0, 0], removedCount: [0, 0, 0, 0, 0] }
+        { moment: '2026-04-03', newCount: [88, 88, 88, 88, 88], removedCount: [88, 88, 88, 88, 88] }
       ],
     },
   ];
@@ -156,15 +168,6 @@ export class TestsComponent implements OnInit {
       renderType: 'standard',
     },
     {
-      field: 'imageDigest',
-      header: 'Image Digest',
-      isFilterable: true,
-      isSortable: true,
-      multiSelectType: 'none',
-      style: 'width: 550px; max-width: 550px;',
-      renderType: 'standard',
-    },
-    {
       field: 'imageRepository',
       header: 'Repository',
       isFilterable: true,
@@ -174,61 +177,120 @@ export class TestsComponent implements OnInit {
       renderType: 'standard',
     },
     {
-      field: 'history',
-      header: 'History',
-      isFilterable: false,
-      isSortable: false,
+      field: 'imageDigest',
+      header: 'Image Digest',
+      isFilterable: true,
+      isSortable: true,
       multiSelectType: 'none',
-      style: 'width: 50px; max-width: 50px;',
-      renderType: 'miniChart',
+      style: 'width: 250px; max-width: 250px;',
+      renderType: 'standard',
     },
     {
-      field: 'criticalNew',
+      field: 'criticalCount',
       header: 'C',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'doubleSeverityDifValue',
-      extraFields: ['0', 'criticalRemoved'],
+      renderType: 'severityValue',
+      extraFields: ['0'],
     },
     {
-      field: 'highNew',
+      field: 'highCount',
       header: 'H',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px;',
-      renderType: 'doubleSeverityDifValue',
-      extraFields: ['1', 'highRemoved'],
+      renderType: 'severityValue',
+      extraFields: ['1'],
     },
     {
-      field: 'mediumNew',
+      field: 'mediumCount',
       header: 'M',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'doubleSeverityDifValue',
-      extraFields: ['2', 'mediumRemoved'],
+      renderType: 'severityValue',
+      extraFields: ['2'],
     },
     {
-      field: 'lowNew',
+      field: 'lowCount',
       header: 'L',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
-      renderType: 'doubleSeverityDifValue',
-      extraFields: ['3', 'lowRemoved'],
+      renderType: 'severityValue',
+      extraFields: ['3'],
     },
     {
-      field: 'unknownNew',
+      field: 'unknownCount',
       header: 'U',
       isFilterable: false,
       isSortable: true,
       multiSelectType: 'none',
       style: 'width: 50px; max-width: 50px;',
+      renderType: 'severityValue',
+      extraFields: ['4'],
+    },
+    {
+      field: 'history',
+      header: 'History',
+      isFilterable: false,
+      isSortable: false,
+      multiSelectType: 'none',
+      style: 'width: 120px; max-width: 120px;',
+      renderType: 'miniChart',
+    },
+    {
+      field: 'criticalNew',
+      header: 'C-Dif',
+      isFilterable: false,
+      isSortable: true,
+      multiSelectType: 'none',
+      style: 'width: 68px; max-width: 68px;',
+      renderType: 'doubleSeverityDifValue',
+      extraFields: ['0', 'criticalRemoved'],
+    },
+    {
+      field: 'highNew',
+      header: 'H-Dif',
+      isFilterable: false,
+      isSortable: true,
+      multiSelectType: 'none',
+      style: 'width: 68px; max-width: 68px;',
+      renderType: 'doubleSeverityDifValue',
+      extraFields: ['1', 'highRemoved'],
+    },
+    {
+      field: 'mediumNew',
+      header: 'M-Dif',
+      isFilterable: false,
+      isSortable: true,
+      multiSelectType: 'none',
+      style: 'width: 68px; max-width: 68px;',
+      renderType: 'doubleSeverityDifValue',
+      extraFields: ['2', 'mediumRemoved'],
+    },
+    {
+      field: 'lowNew',
+      header: 'L-Dif',
+      isFilterable: false,
+      isSortable: true,
+      multiSelectType: 'none',
+      style: 'width: 68px; max-width: 68px;',
+      renderType: 'doubleSeverityDifValue',
+      extraFields: ['3', 'lowRemoved'],
+    },
+    {
+      field: 'unknownNew',
+      header: 'U-Dif',
+      isFilterable: false,
+      isSortable: true,
+      multiSelectType: 'none',
+      style: 'width: 68px; max-width: 68px;',
       renderType: 'doubleSeverityDifValue',
       extraFields: ['4', 'unknownRemoved'],
     },

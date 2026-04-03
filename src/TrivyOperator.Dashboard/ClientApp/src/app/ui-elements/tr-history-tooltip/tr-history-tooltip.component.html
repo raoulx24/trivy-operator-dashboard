@@ -1,5 +1,5 @@
 <div class="tod-tooltip tod-content-border-contrast-color tod-tooltip-shadow
-            grid grid-cols-[auto_repeat(5,max-content)]
+            grid grid-cols-[auto_repeat(6,max-content)]
             grid-rows-[auto_auto_auto] gap-x-4 items-center"
      [style.background]="background()"
      [style.color]="primaryColor()">
@@ -10,8 +10,13 @@
     <!-- Column 1 spans all 3 rows -->
     <div class="row-span-3 flex flex-col justify-center">
       <small class="tod-text-contrast-color mr-2 my-0">{{ staticLabel() }}</small>
-      <small class="tod-text-contrast-color font-bold mr-2 my-0">{{ currentData.moment }}</small>
+      <small class="tod-text-contrast-color font-bold mr-2 my-0 whitespace-nowrap">{{ currentData.moment }}</small>
     </div>
+
+    <div class="flex justify-left">
+      <small class="tod-text-contrast-color font-bold">New</small>
+    </div>
+
 
     <!-- Row 1: newCount -->
     @for (data of currentData.newCount; track $index) {
@@ -24,11 +29,15 @@
     }
 
     <!-- Row 2: hr (perfectly aligned across all columns) -->
-    @for (i of [0, 1, 2, 3, 4]; track i) {
+    @for (i of [0, 1, 2, 3, 4, 5]; track i) {
       <div class="flex justify-center w-full">
         <hr class="tod-datatable-border-color w-full my-2"/>
       </div>
     }
+
+    <div class="flex justify-left">
+      <small class="tod-text-contrast-color font-bold">Removed</small>
+    </div>
 
     <!-- Row 3: removedCount -->
     @for (data of currentData.removedCount; track $index) {
