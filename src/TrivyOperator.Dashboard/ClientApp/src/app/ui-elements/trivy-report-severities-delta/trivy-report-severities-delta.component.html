@@ -1,6 +1,6 @@
 <div class="tod-tooltip tod-content-border-contrast-color tod-tooltip-shadow
             grid grid-cols-[auto_repeat(6,max-content)]
-            grid-rows-[auto_auto_auto] gap-x-4 items-center"
+            grid-rows-[auto_auto_auto] items-center"
      [style.background]="background()"
      [style.color]="primaryColor()">
 
@@ -9,11 +9,13 @@
 
     <!-- Column 1 spans all 3 rows -->
     <div class="row-span-3 flex flex-col justify-center">
-      <small class="tod-text-contrast-color mr-2 my-0">{{ staticLabel() }}</small>
-      <small class="tod-text-contrast-color font-bold mr-2 my-0 whitespace-nowrap">{{ currentData.moment }}</small>
+      @if (staticLabel()) {
+        <small class="tod-text-contrast-color mr-2 my-0">{{ staticLabel() }}</small>
+        <small class="tod-text-contrast-color font-bold mr-2 my-0 whitespace-nowrap">{{ currentData.moment }}</small>
+      }
     </div>
 
-    <div class="flex justify-left">
+    <div class="flex justify-left mx-1">
       <small class="tod-text-contrast-color font-bold">New</small>
     </div>
 
@@ -22,6 +24,7 @@
     @for (data of currentData.newCount; track $index) {
       <div class="flex justify-center">
         <p-tag [rounded]="true"
+               class="mx-1"
                [style]="$index | severityDifCssStyleById: data"
                [icon]="data | counterIcon"
                [value]="data | vulnerabilityCount : 'hideZeroes'"/>
@@ -31,11 +34,11 @@
     <!-- Row 2: hr (perfectly aligned across all columns) -->
     @for (i of [0, 1, 2, 3, 4, 5]; track i) {
       <div class="flex justify-center w-full">
-        <hr class="tod-datatable-border-color w-full my-2"/>
+        <hr class="tod-datatable-border-color w-full my-2 mx-1"/>
       </div>
     }
 
-    <div class="flex justify-left">
+    <div class="flex justify-left mx-1">
       <small class="tod-text-contrast-color font-bold">Removed</small>
     </div>
 
@@ -43,6 +46,7 @@
     @for (data of currentData.removedCount; track $index) {
       <div class="flex justify-center">
         <p-tag [rounded]="true"
+               class="mx-1"
                [style]="$index | severityDifCssStyleById: (data * -1)"
                [icon]="(data * -1) | counterIcon"
                [value]="(data * -1) | vulnerabilityCount : 'hideZeroes'"/>

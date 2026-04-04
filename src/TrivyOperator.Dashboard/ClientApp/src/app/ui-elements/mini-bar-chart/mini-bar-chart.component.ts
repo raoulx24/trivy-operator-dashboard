@@ -7,13 +7,16 @@ import {
   signal,
   inject,
   ComponentRef,
+  OnChanges,
+  AfterViewInit,
 } from '@angular/core';
+import { Overlay, OverlayModule, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overlay';
+import { ComponentPortal } from '@angular/cdk/portal';
+
 import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
 import { MiniBarChartDataDto } from './mini-bar-chart.types';
 
-import { Overlay, OverlayModule, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overlay';
-import { ComponentPortal } from '@angular/cdk/portal';
-import { TrHistoryTooltipComponent } from './../tr-history-tooltip/tr-history-tooltip.component';
+import { TrivyReportSeveritiesDeltaComponent } from '../trivy-report-severities-delta/trivy-report-severities-delta.component';
 
 @Component({
   selector: 'app-mini-bar-chart',
@@ -23,7 +26,7 @@ import { TrHistoryTooltipComponent } from './../tr-history-tooltip/tr-history-to
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SeverityCssStyleByIdPipe, OverlayModule],
 })
-export class MiniBarChartComponent {
+export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   dataDtos = input<MiniBarChartDataDto[]>([]);
   minHistoryDays = input<number>(0);
   tooltipTitle = input<string>('');
@@ -31,7 +34,7 @@ export class MiniBarChartComponent {
   gap = input<number>(0.5);
 
   @ViewChild('miniBarChart', { static: false })
-  private tooltipComponentRef?: ComponentRef<TrHistoryTooltipComponent>;
+  private tooltipComponentRef?: ComponentRef<TrivyReportSeveritiesDeltaComponent>;
 
   barWidth = signal(100);
   internalDataDtos = computed<MiniBarChartDataDto[]>(() => {
@@ -193,7 +196,7 @@ export class MiniBarChartComponent {
 
     // Attach tooltip if not already attached
     if (!this.overlayRef.hasAttached()) {
-      const portal = new ComponentPortal(TrHistoryTooltipComponent);
+      const portal = new ComponentPortal(TrivyReportSeveritiesDeltaComponent);
       this.tooltipComponentRef = this.overlayRef.attach(portal);
     }
 

@@ -216,7 +216,7 @@
           </td>
         }
         @for (col of columns; track col) {
-          <td style="{{ col.style }}">
+          <td style="{{ col.style }}" class="h-full">
             @switch (col.renderType) {
               @case ('standard') {
                 <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
@@ -348,19 +348,34 @@
                        [icon]="rowData[col.field] | counterIcon"
                        [value]="rowData[col.field] | vulnerabilityCount : 'hideZeroes'" />
               }
+              @case ('doubleStackedSpans') {
+                 <div class="flex flex-col h-full" [style.height]="rowHeight()+'px'">
+                  <div class="flex-1 flex items-center justify-left">
+                    <span>{{ col.extraFields?.[0] ?? '' }}</span>
+                  </div>
+
+                  <hr class="tod-datatable-border-color">
+
+                  <div class="flex-1 flex items-center justify-left">
+                    <span>{{ col.extraFields?.[1] ?? '' }}</span>
+                  </div>
+                </div>
+            }
               @case ('doubleSeverityDifValue') {
+                @let showBorder = (col.extraFields?.[2] ?? 'true') === 'true';
+                @let showArrow = (col.extraFields?.[3] ?? 'true') === 'true';
                 <p-tag class="mb-2 mt-1"
                        [rounded]="true"
-                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1"
-                       [icon]="rowData[col.field] | counterIcon"
-                       [value]="rowData[col.field] | vulnerabilityCount : 'hideZeroes'" />
+                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1 : showBorder"
+                       [icon]="showArrow ? (rowData[col.field] | counterIcon) : ''"
+                       [value]="rowData[col.field] | vulnerabilityCount : 'nonNegatives'" />
                 <hr class="tod-datatable-border-color" />
                 @let negativeCount = (rowData[col.extraFields?.[1]] ?? 0) * (-1);
                 <p-tag class="mt-2 mb-1"
                        [rounded]="true"
-                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount"
-                       [icon]="negativeCount | counterIcon"
-                       [value]="negativeCount * (-1) | vulnerabilityCount : 'hideZeroes'" />
+                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount : showBorder"
+                       [icon]="showArrow ? (negativeCount | counterIcon) : ''"
+                       [value]="negativeCount * (-1) | vulnerabilityCount : 'nonNegatives'" />
               }
             }
           </td>
@@ -443,6 +458,10 @@
                     <li>{{ mess }}</li>
                   }
                 </div>
+              }
+              @case ('vrHistory') {
+                <p>Placeholder</p>
+
               }
             }
           </td>

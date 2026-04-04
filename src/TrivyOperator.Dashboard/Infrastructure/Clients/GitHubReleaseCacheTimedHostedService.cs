@@ -45,6 +45,7 @@ public sealed class GitHubReleaseCacheTimedHostedService(
 
         if (executingTask == null || executingTask.IsCompleted)
         {
+            logger.LogInformation("GitHub Release Cache Timed Hosted Service stopped.");
             return;
         }
 
@@ -56,6 +57,8 @@ public sealed class GitHubReleaseCacheTimedHostedService(
         {
             await executingTask.WaitAsync(cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
         }
+        
+        logger.LogInformation("GitHub Release Cache Timed Hosted Service stopped.");
     }
 
     ~GitHubReleaseCacheTimedHostedService()

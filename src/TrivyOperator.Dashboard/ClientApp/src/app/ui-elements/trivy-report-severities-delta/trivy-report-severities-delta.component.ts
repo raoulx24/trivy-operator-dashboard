@@ -7,12 +7,12 @@ import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 import { MiniBarChartDataDto } from '../mini-bar-chart/mini-bar-chart.types';
 
 @Component({
-  selector: 'app-tr-history-tooltip',
+  selector: 'app-trivy-report-severities-delta',
   imports: [Tag, SeverityDifCssStyleByIdPipe, CounterIconPipe, VulnerabilityCountPipe],
-  templateUrl: `./tr-history-tooltip.component.html`,
-  styleUrl: 'tr-history-tooltip.component.css',
+  templateUrl: `./trivy-report-severities-delta.component.html`,
+  styleUrl: 'trivy-report-severities-delta.component.css',
 })
-export class TrHistoryTooltipComponent {
+export class TrivyReportSeveritiesDeltaComponent {
   data = model<MiniBarChartDataDto | undefined>(undefined);
   staticLabel = model<string>('Date:');
   background = model<string | undefined>(undefined);

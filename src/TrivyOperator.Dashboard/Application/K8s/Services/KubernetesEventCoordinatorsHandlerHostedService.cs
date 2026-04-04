@@ -11,6 +11,7 @@ public sealed class KubernetesEventCoordinatorsHandlerHostedService(
     {
         logger.LogInformation("Kubernetes Watcher Hosted Service is stopping.");
         await base.StopAsync(stoppingToken);
+        logger.LogInformation("Kubernetes Watcher Hosted Service stopped.");
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)

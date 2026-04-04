@@ -60,6 +60,7 @@ export interface TrivyTableColumn extends Column {
     | 'counter'
     | 'miniChart'
     | 'severityDifValue'
+    | 'doubleStackedSpans'
     | 'doubleSeverityDifValue';
   extraFields?: string[];
 }

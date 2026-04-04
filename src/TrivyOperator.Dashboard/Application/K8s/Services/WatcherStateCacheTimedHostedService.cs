@@ -44,6 +44,7 @@ public sealed class WatcherStateCacheTimedHostedService(
 
         if (executingTask?.IsCompleted ?? true)
         {
+            logger.LogInformation("Watcher State Cache Timed Hosted Service stopped.");
             return;
         }
 
@@ -55,6 +56,8 @@ public sealed class WatcherStateCacheTimedHostedService(
         {
             await executingTask.WaitAsync(cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
         }
+        
+        logger.LogInformation("Watcher State Cache Timed Hosted Service stopped.");
     }
 
     ~WatcherStateCacheTimedHostedService()

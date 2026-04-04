@@ -99,7 +99,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   isFooterVisible = input<boolean | undefined>(false);
   multiHeaderActions = input<MultiHeaderAction[]>([]);
   rowExpandData = input<TrivyTableExpandRowData<TData>>();
-  rowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
+  rowExpansionRender = input<'messages' | 'table' | 'vrHistory' | undefined>(undefined);
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
   style = input<{ [klass: string]: any } | undefined>({});
   stateKey = input<string | undefined>(undefined);

@@ -287,3 +287,48 @@ After job completion:
 - Retention is enforced via background job
 - Repair is integrated into retention flow
 - Hot path (scan ingestion) remains simple and fast
+
+## Temp
+
+```html
+<p-table [value]="rows">
+
+  <!-- HEADER -->
+  <ng-template pTemplate="header">
+    <tr>
+
+      <th>Name</th>
+      <th>Repo</th>
+
+      @for (h of rows[0].history; track h.moment) {
+        <th>History</th>
+      }
+
+    </tr>
+  </ng-template>
+
+
+  <!-- BODY -->
+  <ng-template pTemplate="body" let-row>
+    <tr>
+
+      @let name = row.imageName;
+      @let repo = row.imageRepository;
+
+      <td>{{ name }}</td>
+      <td>{{ repo }}</td>
+
+      @for (h of row.history; track h.moment) {
+        <td>
+          <tod-history-tooltip
+            [data]="h"
+            [staticLabel]="'History'"
+          />
+        </td>
+      }
+
+    </tr>
+  </ng-template>
+
+</p-table>
+```
