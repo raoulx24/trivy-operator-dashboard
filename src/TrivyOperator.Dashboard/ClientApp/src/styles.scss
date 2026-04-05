@@ -246,6 +246,12 @@ p-splitter.tod-splitter-no-borders {
   color: var(--p-text-muted-color);
 }
 
+tr.p-datatable-row-selected .tod-text-muted-color,
+tr.p-treetable-row-selected .tod-text-muted-color {
+  color: var(--tod-text-revert-muted-color);
+}
+
+
 .tod-text-primary-color,
 tr:not(.p-datatable-row-selected):not(.p-treetable-row-selected) p-button.tod-text-primary-color button {
   color: var(--tod-text-primary-color);
