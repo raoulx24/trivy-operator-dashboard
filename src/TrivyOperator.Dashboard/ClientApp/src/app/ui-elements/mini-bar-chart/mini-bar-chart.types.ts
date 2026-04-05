@@ -1,5 +1,6 @@
 export interface MiniBarChartDataDto {
   moment: string;
-  newCount: number[];
-  removedCount: number[];
+
+  addedCount: number[];
+  droppedCount: number[];
 }

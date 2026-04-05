@@ -28,7 +28,7 @@ import { TrivyReportSeveritiesDeltaComponent } from '../trivy-report-severities-
 })
 export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   dataDtos = input<MiniBarChartDataDto[]>([]);
-  minHistoryDays = input<number>(0);
+  minHistoryDays = input<number>(14);
   tooltipTitle = input<string>('');
   height = input<number>(39);
   gap = input<number>(0.5);
@@ -39,7 +39,9 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   barWidth = signal(100);
   internalDataDtos = computed<MiniBarChartDataDto[]>(() => {
     const data = this.dataDtos() ?? [];
-    const minDays = this.minHistoryDays() ?? 0;
+
+    // TODO: change to backend settings service
+    const minDays = this.minHistoryDays();
 
     if (data.length === 0) return [];
 
@@ -87,16 +89,16 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
         const dto = uniqueDays[idx][1];
         result.push({
           moment: dayStr,
-          newCount: dto.newCount,
-          removedCount: dto.removedCount,
+          addedCount: dto.addedCount,
+          droppedCount: dto.droppedCount,
         });
         idx++;
       } else {
         // missing day → empty
         result.push({
           moment: dayStr,
-          newCount: [],
-          removedCount: [],
+          addedCount: [],
+          droppedCount: [],
         });
       }
 
@@ -109,8 +111,8 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   // stack: [critical, high, medium, low, unknown]
   bars = computed(() =>
     this.internalDataDtos().map((d) => {
-      const added = d.newCount;
-      const removed = d.removedCount.map(v => -v); // convert to negative
+      const added = d.addedCount;
+      const removed = d.droppedCount.map(v => -v); // convert to negative
 
       return [...added, ...removed]; // 10 values total
     })
@@ -120,8 +122,8 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   stackExtents = computed(() =>
     this.internalDataDtos().map((d) => {
       const values = [
-        ...d.newCount,
-        ...d.removedCount.map(v => -v)
+        ...d.addedCount,
+        ...d.droppedCount.map(v => -v)
       ];
 
       const positive = values.filter(v => v > 0).reduce((a, b) => a + b, 0);
@@ -276,8 +278,8 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
 
   hasData(d: MiniBarChartDataDto): boolean {
     return (
-      d.newCount.some(v => v !== 0) ||
-      d.removedCount.some(v => v !== 0)
+      d.addedCount.some(v => v !== 0) ||
+      d.droppedCount.some(v => v !== 0)
     );
   }
 }

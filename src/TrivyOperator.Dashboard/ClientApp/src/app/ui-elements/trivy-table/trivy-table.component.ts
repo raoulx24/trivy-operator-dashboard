@@ -99,12 +99,11 @@ export class TrivyTableComponent<TData> implements OnInit {
   isFooterVisible = input<boolean | undefined>(false);
   multiHeaderActions = input<MultiHeaderAction[]>([]);
   rowExpandData = input<TrivyTableExpandRowData<TData>>();
-  rowExpansionRender = input<'messages' | 'table' | 'vrHistory' | undefined>(undefined);
+  rowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
   style = input<{ [klass: string]: any } | undefined>({});
   stateKey = input<string | undefined>(undefined);
   rowHeight = input<number>(47);
-  minHistoryDays = input<number>(0);
 
   trivyTableColumns = input.required<TrivyTableColumn[]>();
   //
@@ -431,7 +430,6 @@ export class TrivyTableComponent<TData> implements OnInit {
 
       return items;
     });
-    console.log(this.trivyTableSelectedRecords());
   }
 
   private updateMultiHeaderActionCollapsed() {

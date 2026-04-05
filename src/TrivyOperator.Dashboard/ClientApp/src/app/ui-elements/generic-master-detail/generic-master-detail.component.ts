@@ -57,6 +57,7 @@ export class GenericMasterDetailComponent<
   mainTableStyle = input<{ [klass: string]: any } | undefined>({});
   mainTableStateKey = input<string | undefined>(undefined);
   mainTableDataKey = input<string | undefined>(undefined);
+  mainTableRowHeight = input<number>(47);
   mainTableRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
   mainTableExtraClasses = input<string | undefined>(undefined);
   mainTableMultiHeaderActions = input<MultiHeaderAction[]>([]);
@@ -72,6 +73,7 @@ export class GenericMasterDetailComponent<
   detailsStyle = input<{ [klass: string]: any } | undefined>({});
   detailsStateKey = input<string | undefined>(undefined);
   detailsDataKey = input<string | undefined>(undefined);
+  detailsRowHeight = input<number>(47);
   detailsRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
   detailsExtraClasses = input<string | undefined>(undefined);
   detailsMultiHeaderActions = input<MultiHeaderAction[]>([]);

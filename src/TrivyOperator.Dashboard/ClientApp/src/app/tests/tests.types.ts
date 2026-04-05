@@ -4,6 +4,7 @@ export interface VrHistoryDto {
   id: string;
   imageRepository: string;
   imageName: string;
+  resourceNamespace: string;
   digests: {
     imageTag: string;
     imageDigest: string;
@@ -12,16 +13,20 @@ export interface VrHistoryDto {
     firstMediumCount: number;
     firstLowCount: number;
     firstUnknownCount: number;
-    history: MiniBarChartDataDto[];
+    history: VrHistoryDetailDto[];
   }[];
 }
 
+export interface VrHistoryDetailDto {
+  moment: string;
+  addedCount: number[];
+  droppedCount: number[];
+}
+
 export interface VrHistoryDenormalizedDto {
-  id: string;
-  imageRepository: string;
-  imageName: string;
-  imageTag: string;
-  imageDigest: string;
+  uid: string;
+  resourceNamespace: string;
+  imageFull: string;
   firstCriticalCount: number;
   firstHighCount: number;
   firstMediumCount: number;
@@ -32,15 +37,31 @@ export interface VrHistoryDenormalizedDto {
   lastMediumCount: number;
   lastLowCount: number;
   lastUnknownCount: number;
-  criticalNew: number;
-  highNew: number;
-  mediumNew: number;
-  lowNew: number;
-  unknownNew: number;
-  criticalRemoved: number;
-  highRemoved: number;
-  mediumRemoved: number;
-  lowRemoved: number;
-  unknownRemoved: number;
+  criticalAdded: number;
+  highAdded: number;
+  mediumAdded: number;
+  lowAdded: number;
+  unknownAdded: number;
+  criticalDropped: number;
+  highDropped: number;
+  mediumDropped: number;
+  lowDropped: number;
+  unknownDropped: number;
+  details: VrHistoryDenormalizedDetailDto[];
   history: MiniBarChartDataDto[];
+}
+
+export interface VrHistoryDenormalizedDetailDto {
+  moment: string;
+
+  criticalAdded: number;
+  highAdded: number;
+  mediumAdded: number;
+  lowAdded: number;
+  unknownAdded: number;
+  criticalDropped: number;
+  highDropped: number;
+  mediumDropped: number;
+  lowDropped: number;
+  unknownDropped: number;
 }

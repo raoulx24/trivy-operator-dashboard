@@ -239,11 +239,9 @@
                 </a>
               }
               @case ('severityBadge') {
-                <p-tag
-                  value=" {{ rowData[col.field] | severityNameById }}"
-                  [rounded]="true"
-                  [style]="rowData[col.field] | severityCssStyleById: 1"
-                />
+                <p-tag value=" {{ rowData[col.field] | severityNameById }}"
+                       [rounded]="true"
+                       [style]="rowData[col.field] | severityCssStyleById: 1" />
               }
               @case ('severityMultiTags') {
                 <div style="display: flex; justify-content: space-between">
@@ -279,11 +277,11 @@
                 />
               }
               @case ('severityValue') {
-                <p-tag
-                  [rounded]="true"
-                  [style]="col.extraFields[0] ?? '' | severityCssStyleById: rowData[col.field] ?? -1"
-                  [value]="rowData[col.field] | vulnerabilityCount"
-                />
+                <div class="flex justify-end items-center w-full">
+                  <p-tag [rounded]="true"
+                         [style]="col.extraFields[0] ?? '' | severityCssStyleById: rowData[col.field] ?? -1"
+                         [value]="rowData[col.field] | vulnerabilityCount" />
+                </div>
               }
               @case ('multiline') {
                 <span [innerHTML]="rowData[col.field].join('<br>')"></span>
@@ -337,7 +335,6 @@
               }
               @case ('miniChart') {
                 <app-mini-bar-chart [dataDtos]="rowData[col.field]"
-                                    [minHistoryDays]="minHistoryDays()"
                                     tooltipTitle="mama"
                                     [height]="rowHeight()"
                                     [gap]="0.5" />
@@ -360,22 +357,33 @@
                     <span>{{ col.extraFields?.[1] ?? '' }}</span>
                   </div>
                 </div>
-            }
+              }
               @case ('doubleSeverityDifValue') {
                 @let showBorder = (col.extraFields?.[2] ?? 'true') === 'true';
                 @let showArrow = (col.extraFields?.[3] ?? 'true') === 'true';
-                <p-tag class="mb-2 mt-1"
-                       [rounded]="true"
-                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1 : showBorder"
-                       [icon]="showArrow ? (rowData[col.field] | counterIcon) : ''"
-                       [value]="rowData[col.field] | vulnerabilityCount : 'nonNegatives'" />
-                <hr class="tod-datatable-border-color" />
                 @let negativeCount = (rowData[col.extraFields?.[1]] ?? 0) * (-1);
-                <p-tag class="mt-2 mb-1"
-                       [rounded]="true"
-                       [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount : showBorder"
-                       [icon]="showArrow ? (negativeCount | counterIcon) : ''"
-                       [value]="negativeCount * (-1) | vulnerabilityCount : 'nonNegatives'" />
+                <div class="flex flex-col h-full" [style.height]="rowHeight()+'px'">
+                  <div class="flex-1 flex items-center justify-end">
+                    <p-tag class="mb-2 mt-1"
+                           [rounded]="true"
+                           [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1 : showBorder"
+                           [icon]="showArrow ? (rowData[col.field] | counterIcon) : ''"
+                           [value]="rowData[col.field] | vulnerabilityCount : 'nonNegatives'" />
+                  </div>
+                  <hr class="tod-datatable-border-color" />
+                  <div class="flex-1 flex items-center justify-end">
+                    <p-tag class="mt-2 mb-1"
+                           [rounded]="true"
+                           [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount : showBorder"
+                           [icon]="showArrow ? (negativeCount | counterIcon) : ''"
+                           [value]="negativeCount * (-1) | vulnerabilityCount : 'nonNegatives'" />
+                  </div>
+                </div>
+              }
+              @case ('imageFullAndDigest') {
+                @let data = rowData[col.field]?.split('|') ?? ['N/A', 'N/A'];
+                <span>{{ data[0] ?? 'N/A' }}</span><br />
+                <small class="tod-text-muted-color font-bold">{{ data[1] ?? 'N/A' }}</small>
               }
             }
           </td>
@@ -458,10 +466,6 @@
                     <li>{{ mess }}</li>
                   }
                 </div>
-              }
-              @case ('vrHistory') {
-                <p>Placeholder</p>
-
               }
             }
           </td>

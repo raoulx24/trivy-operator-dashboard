@@ -20,8 +20,8 @@
     </div>
 
 
-    <!-- Row 1: newCount -->
-    @for (data of currentData.newCount; track $index) {
+    <!-- Row 1: addedCount -->
+    @for (data of currentData.addedCount; track $index) {
       <div class="flex justify-center">
         <p-tag [rounded]="true"
                class="mx-1"
@@ -42,8 +42,8 @@
       <small class="tod-text-contrast-color font-bold">Removed</small>
     </div>
 
-    <!-- Row 3: removedCount -->
-    @for (data of currentData.removedCount; track $index) {
+    <!-- Row 3: droppedCount -->
+    @for (data of currentData.droppedCount; track $index) {
       <div class="flex justify-center">
         <p-tag [rounded]="true"
                class="mx-1"

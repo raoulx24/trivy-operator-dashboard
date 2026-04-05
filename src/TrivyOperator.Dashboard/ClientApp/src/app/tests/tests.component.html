@@ -1,16 +1,16 @@
 <div class="tod-content-border">
   <app-trivy-table
     [dataDtos]="dataExtendedDtos"
+    [activeNamespaces]="activeNamespaces"
     [isExportCsvVisible]="true"
     [isFooterVisible]="true"
     [isLoading]="isLoading"
     [isRefreshVisible]="false"
     [isResetFiltersVisible]="true"
     [stateKey]="'Tests1'"
-    [style]="{ width: '1465px' }"
+    [style]="{ width: '1260px' }"
     [trivyTableColumns]="trivyTableColumns"
     [selectionMode]="`single`"
     [rowHeight]="80"
-    [minHistoryDays]="minHistoryDays"
   />
 </div>

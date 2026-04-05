@@ -200,6 +200,11 @@ export const routes: Routes = [
     data: { title: 'Test' },
   },
   {
+    path: 'test2',
+    loadComponent: () => import('./trivy-reports/vulnerability-reports-history-digest/vulnerability-reports-history-digest.component').then((m) => m.VulnerabilityReportsHistoryDigestComponent),
+    data: { title: 'Test' },
+  },
+  {
     path: '**',
     redirectTo: '',
     pathMatch: 'full',
