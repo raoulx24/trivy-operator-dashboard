@@ -49,12 +49,28 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
     const sorted = [...data].sort((a, b) => a.moment.localeCompare(b.moment));
 
     // --- 2. Collapse duplicates (keep last of each day) ---
+    // --- 2. Collapse duplicates (sum per day) ---
     const byDay = new Map<string, MiniBarChartDataDto>();
 
     for (const d of sorted) {
       const day = d.moment.slice(0, 10); // yyyy-MM-dd
-      byDay.set(day, d); // overwrites previous → keeps last
+
+      if (!byDay.has(day)) {
+        // Create a fresh DTO for this day
+        byDay.set(day, {
+          moment: day,
+          addedCount: [...d.addedCount],
+          droppedCount: [...d.droppedCount],
+        });
+      } else {
+        // Sum element-wise
+        const existing = byDay.get(day)!;
+
+        existing.addedCount = this.sumArrays(existing.addedCount, d.addedCount);
+        existing.droppedCount = this.sumArrays(existing.droppedCount, d.droppedCount);
+      }
     }
+
 
     // Convert map back to sorted array of days
     const uniqueDays = [...byDay.entries()].sort((a, b) => a[0].localeCompare(b[0]));
@@ -281,5 +297,15 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
       d.addedCount.some(v => v !== 0) ||
       d.droppedCount.some(v => v !== 0)
     );
+  }
+
+  private sumArrays(a: number[], b: number[]): number[] {
+    const max = Math.max(a.length, b.length);
+    const result = new Array(max).fill(0);
+
+    for (let i = 0; i < max; i++) {
+      result[i] = (a[i] ?? 0) + (b[i] ?? 0);
+    }
+    return result;
   }
 }
