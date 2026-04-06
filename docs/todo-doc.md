@@ -46,9 +46,9 @@ https://api.github.com/repos/raoulx24/trivy-operator-dashboard/releases/latest
 
 Rearrange doc. Maybe wiki?
 
-## Redis/Valkey - Scan
+# Redis/Valkey - Scan
 
-### 1. Full scan snapshot (string key)
+## 1. Full scan snapshot
 Stores the Brotli‑compressed vulnerability report JSON.
 
 Key:
@@ -56,8 +56,7 @@ Key:
 vr:{<namespace>}:<digest>:<cvesHash>
 ```
 
-Value:
-- Brotli‑compressed VR DTO
+Value is of type `string`. It is brotli‑compressed VulnerabilityReportCr dto
 
 Created when:
 - A new scan produces a new cvesHash (i.e., fingerprint not seen before for this digest and namespace)
@@ -66,7 +65,7 @@ Updated when:
 - Never updated - immutable snapshot  
 - New scan with same cvesHash does not rewrite this key
 
-### 2. Fingerprint metadata (hash)
+## 2. Fingerprint metadata (hash)
 Tracks when each cvesHash was last seen for a given digest and namespace.
 
 Key:
@@ -74,23 +73,54 @@ Key:
 vrmeta:{<namespace>}:<digest>
 ```
 
-Fields:
+Value (fields) of type `hash`
 ```
-<cvesHash> = json with NamespaceName, Digest, Critical, High, Medium, Low, Unknown, Timestamp
+<cvesHash> = json with NamespaceName, Critical, High, Medium, Low, Unknown, CVEs (business names)
+```
+
+```typescript
+export interface VrMeta {
+  namespaceName: string;
+  criticalCount: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
+  unknownCount: number;
+  cves: string[];
+}
 ```
 
 Created when:
-- First time a digest is scanned in a namespace
+- First time a digest with cvesHash is scanned in a namespace
 
 Updated when:
-- On every scan:
-  - If cvesHash exists -> update timestamp  
-  - If cvesHash is new -> add new field
+- Never updated - immutable value  
+- New scan with same cvesHash does not rewrite this field
 
-### 3. Image lineage (hash)
+## 3. Last Seen CVE Hash
+Stores the last seen timestamp for e CVE hash
+
+Key:
+```
+vrmoment:{<namespace>}:<digest>
+```
+
+Value (fields) of type `hash`
+```
+<cvesHash> = timestamp (string)
+```
+
+Created when:
+- First time a digest with cvesHash is scanned in a namespace
+
+Updated when:
+- New scan with same cvesHash update the field
+
+
+## 4. Image lineage (hash)
 Tracks all digests ever seen for a given image in a given namespace. vrimage maintains a mapping between digest and its associated image:tag. It is used for grouping digests by image (ignoring tag) and for display purposes. It may be reconstructed from snapshots if missing.
-- During ingestion: reflects last observed `image:tag`
-- During repair: reconstructed from the latest snapshot by timestamp
+- During ingestion: reflects first observed `image:tag`
+- During repair: reconstructed from the oldest snapshot by timestamp (from vrmoment)
 
 It is not guaranteed to be historically accurate (as tag).
 
@@ -99,32 +129,43 @@ Key:
 vrimage:{<namespace>}
 ```
 
-Fields:
+Value (fields):
+- type: hash
 ```
-<digest> with json with RepositoryImage, Tag, Registry
+<digest> = json with Repository, Image, Tag, Registry
+```
+
+```typescript
+export interface RepositoryImage {
+  Repository: string;
+  Image: string;
+  Tags: string;
+  Registry: string;
+}
 ```
 
 Created when:
 - First time any digest of this image is scanned in this namespace
 
 Updated when:
-- On every scan:
-  - Add/update `<digest> = <container_registry>:<container_repo>:<image>:<tag>`
+- Never updated - immutable value  
+- New scan with same digest does not rewrite this field
 
 
-### 4. Full scan workflow (summary)
+## 4. Full scan workflow (summary)
 
 When a new scan arrives:
 1. Compute cvesHash from sorted CVEs  
 2. Check if key `vr:<namespace>:<digest>:<cvesHash>` exists
    - If No -> create string key `vr:<namespace>:<digest>:<cvesHash>` with Brotli JSON
-3. Insert/update in `vrmeta:<namespace>:<digest>` `<cvesHash>` with timestamp
-4. Add/update image lineage (tag is last seen)
-   - `HSET vrimage:<namespace> <digest> <container_registry>:<container_repo>:<image>:<tag>`
+3. Insert/update in `vrmoment:<namespace>:<digest>` `<cvesHash>` with timestamp
+4. Insert if not exist in `vrmeta:<namespace>:<digest>` `<cvesHash>` with json
+5. Insert if not exist image lineage (tag is last seen)
+   - `HSET vrimage:<namespace> <digest> json`
 
-## Redis/Valkey Retention & Repair Job
+# Redis/Valkey Retention & Repair Job
 
-### 1. Purpose
+## 1. Purpose
 
 The job ensures:
 - Old snapshots are cleaned according to retention rules
@@ -132,11 +173,11 @@ The job ensures:
 - Missing or partial metadata is repaired
 - At least one snapshot per (namespace, digest) is always preserved
 
-### 2. Source of truth
+## 2. Source of truth
 - Primary: snapshot keys - `vr:<namespace>:<digest>:<cvesHash>`
 - Secondary (rebuildable): metadata - `vrmeta:<namespace>:<digest>`
 
-### 3. Retention rules
+## 3. Retention rules
 
 For each (namespace, digest):
 - Always keep at least one snapshot
@@ -144,20 +185,21 @@ For each (namespace, digest):
 - Optionally keep the last K snapshots (e.g., last 2), regardless of age
 - Delete all others
 
-### 4. Job workflow (per digest)
+## 4. Job workflow (per digest)
 
-#### Step 1 - Discover snapshots
+### Step 1 - Discover snapshots
 
 ```redis
-SCAN vr:<namespace>:*
+SCAN 0 MATCH vr:{<namespace>}:*
 ```
 
 Group by <digest> is required before retention logic
 
-#### Step 2 - Foreach `<digest>` load metadata
+### Step 2 - Foreach `<digest>` load metadata
 
 ```redis
-HGETALL vrmeta:<namespace>:<digest>
+HGETALL vrmeta:{<namespace>}:<digest>
+HGETALL vrmoment:{<namespace>}:<digest>
 ````
 
 This gives `<cvesHash> = <timestamp>`
@@ -165,29 +207,25 @@ This gives `<cvesHash> = <timestamp>`
 #### Step 3 - Repair missing metadata (only when needed)
 
 For each snapshot `<cvesHash>`:
-- If `<cvesHash>` does not exist in `vrmeta`:
+- If `<cvesHash>` does not exist in `vrmeta` or `vrmoment`
   - Decompress snapshot
   - Extract timestamp from JSON
-  - Add to metadata:
+  - Add missing data
 
-    ```redis
-    HSET vrmeta:<ns>:<digest> <cvesHash> <timestamp>
-    ```
+If `<digest>` does not exist in `vrimage:<ns>` -> add missing data extracted from the snapshot with the oldest timestamp (per digest)
 
-If `<digest>` does not exist in `vrimage:<ns>` -> add `vrimage = image:tag` extracted from the snapshot with the latest timestamp (per digest)
-
-#### Step 4 - Build working set
+#### Step 4 - Build working set (start of cleanup part)
 
 Construct in-memory list - `(cvesHash, timestamp)`
 
 Source of timestamp:
-- Prefer metadata
+- Prefer vrmoment
 - Fallback to JSON (only if missing)
 
 #### Step 5 - Apply retention policy
 
 Sort by timestamp (descending). Select:
-1. Latest snapshot → always keep
+1. Latest snapshot -> always keep
 2. Snapshots within last N days
 3. Ensure at least K latest snapshots are kept
 
@@ -198,28 +236,31 @@ Mark remaining snapshots as **candidates for deletion**
 For each candidate:
 
 ```redis
-DEL vr:<namespace>:<digest>:<cvesHash>
-HDEL vrmeta:<namespace>:<digest> <cvesHash>
+DEL vr:{<namespace>}:<digest>:<cvesHash>
+HDEL vrmeta:{<namespace>}:<digest> <cvesHash>
+HDEL vrmoment:{<namespace>}:<digest> <cvesHash>
 ```
 
-#### Step 7 - Final metadata consistency
+### Step 7 - Final metadata consistency
 
 After deletions:
 - Ensure metadata contains only existing snapshots
 - Remove any orphaned hash fields:
 
   ```redis
-  HDEL vrmeta:<ns>:<digest> <cvesHash>
+  HDEL vrmeta:{<namespace>}:<digest> <cvesHash>
+  HDEL vrmoment:{<namespace>}:<digest> <cvesHash>
   ```
 
-#### Step 8 - VR Image Cleanup - Image-level Retention
+### Step 8 - VR Image Cleanup - Image-level Retention
 
 Step A - *Compute digest_last_seen*
 
 From:
 ```redis
-HGETALL vrmeta:<ns>:<digest>
+HGETALL vrmoment:{<namespace>}:<digest>
 ```
+
 ```
 digest_last_seen = max(timestamp)
 ```
@@ -230,7 +271,7 @@ From:
 ```redis
 HGETALL vrimage:<ns>
 ```
-For each `<digest> → <registry>:<repo>:<image>:<tag>` extract `image_key = <registry>:<repo>:<image>`. Group `image_key -> [digests...]`
+For each `<digest> -> <registry>:<repo>:<image>:<tag>` extract `image_key = <registry>:<repo>:<image>`. Group `image_key -> [digests...]`
 
 Step C - *apply retention per image*
 
@@ -244,16 +285,17 @@ Step D - *Full cleanup per digest*
 
 For each deleted digest:
 ```redis
-DEL vr:<ns>:<digest>:*
-DEL vrmeta:<ns>:<digest>
-HDEL vrimage:<ns> <digest>
+DEL vr:{<namespace>}:<digest>:*
+DEL vrmeta:{<namespace>}:<digest>
+DEL vrmoment:{<namespace>}:<digest>
+HDEL vrimage:{<namespace>} <digest>
 ```
 
 Step E - *implicit image cleanup*
 
 No extra step needed. Because if all digests of an image are deleted, they disappear from vrimage automatically
 
-### 5. Consistency guarantees
+## 5. Consistency guarantees
 
 After job completion:
 - Every snapshot has a corresponding metadata entry
@@ -261,74 +303,29 @@ After job completion:
 -- Retention rules are enforced
 -- At least one snapshot per digest exists
 
-### 6. Failure handling
+## 6. Failure handling
 
 - Job is idempotent - can be safely retried
 - Partial failures may leave:
   - extra snapshots (cleaned next run)
   - missing metadata (repaired next run)
 
-### 7. Performance considerations
+## 7. Performance considerations
 
 - Decompression occurs **only for snapshots missing in metadata**
 - Normal case: no decompression required
 - Worst case (full rebuild): all snapshots decompressed
 
-### 8. Execution strategy
+## 8. Execution strategy
 
 - Run periodically (configurable interval)
 - Process per `(namespace, digest)` independently
 - Can be parallelized safely across digests
 
-### 9. Summary
+## 9. Summary
 
 - Snapshots are authoritative and immutable
 - Metadata is a rebuildable index
 - Retention is enforced via background job
 - Repair is integrated into retention flow
 - Hot path (scan ingestion) remains simple and fast
-
-## Temp
-
-```html
-<p-table [value]="rows">
-
-  <!-- HEADER -->
-  <ng-template pTemplate="header">
-    <tr>
-
-      <th>Name</th>
-      <th>Repo</th>
-
-      @for (h of rows[0].history; track h.moment) {
-        <th>History</th>
-      }
-
-    </tr>
-  </ng-template>
-
-
-  <!-- BODY -->
-  <ng-template pTemplate="body" let-row>
-    <tr>
-
-      @let name = row.imageName;
-      @let repo = row.imageRepository;
-
-      <td>{{ name }}</td>
-      <td>{{ repo }}</td>
-
-      @for (h of row.history; track h.moment) {
-        <td>
-          <tod-history-tooltip
-            [data]="h"
-            [staticLabel]="'History'"
-          />
-        </td>
-      }
-
-    </tr>
-  </ng-template>
-
-</p-table>
-```
