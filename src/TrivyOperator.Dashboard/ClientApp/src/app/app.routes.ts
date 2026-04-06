@@ -106,6 +106,11 @@ export const routes: Routes = [
       ),
     data: { title: 'Vulnerability Reports Detailed' },
   },
+  {
+    path: 'vulnerability-reports-history-digest',
+    loadComponent: () => import('./trivy-reports/vulnerability-reports-history-digest/vulnerability-reports-history-digest.component').then((m) => m.VulnerabilityReportsHistoryDigestComponent),
+    data: { title: 'Vulnerability Reports History by Digest' },
+  },
 
   {
     path: 'cluster-compliance-reports',
@@ -211,11 +216,6 @@ export const routes: Routes = [
     path: 'test1',
     loadComponent: () => import('./tests/tests.component').then((m) => m.TestsComponent),
     data: { title: 'Test1' },
-  },
-  {
-    path: 'test2',
-    loadComponent: () => import('./trivy-reports/vulnerability-reports-history-digest/vulnerability-reports-history-digest.component').then((m) => m.VulnerabilityReportsHistoryDigestComponent),
-    data: { title: 'Test2' },
   },
   {
     path: '**',

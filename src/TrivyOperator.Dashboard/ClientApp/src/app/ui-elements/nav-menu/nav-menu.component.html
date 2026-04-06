@@ -32,7 +32,7 @@
     </div>
   </ng-template>
 </p-menubar>
-<p-drawer [baseZIndex]="10000" [closable]="false" [(visible)]="isDrawerVisible">
+<p-drawer [baseZIndex]="10000" [closable]="false" [(visible)]="isDrawerVisible" [style]="{ width: '330px' }">
   @if (contexts().length > 1) {
     <p-select
       class="w-full mb-2"
@@ -41,7 +41,7 @@
       (onChange)="onContextChange($event.value)"
     />
   }
-  <p-panelMenu class="w-full" [model]="items()" [multiple]="true">
+  <p-panelMenu class="w-1000px" [model]="items()" [multiple]="true">
     <ng-template #item let-item>
       <a pRipple class="flex items-center cursor-pointer text-color px-4 py-2">
         @if (item.icon) {
