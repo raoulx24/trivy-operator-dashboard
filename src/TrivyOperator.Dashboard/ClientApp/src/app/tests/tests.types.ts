@@ -37,6 +37,7 @@ export interface VrHistoryDenormalizedDto {
   lastMediumCount: number;
   lastLowCount: number;
   lastUnknownCount: number;
+  lastChangeMoment: string;
   criticalAdded: number;
   highAdded: number;
   mediumAdded: number;
