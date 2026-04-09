@@ -6,12 +6,12 @@ namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache;
 
 public static class DistributedCacheKeyExtensions
 {
-    public static string GetKey(this SnapshotIndexEntry metadata)
-        => $"vr:{{{metadata.NamespaceName}}}:{metadata.Digest}";
+    public static string GetKey(this SnapshotIndexEntry sie)
+        => $"vr:{{{sie.Key.NamespaceName}}}:{sie.Key.Digest}";
 
-    public static string GetKey(this Snapshot snapshot)
-        => $"vr:{{{snapshot.NamespaceName}}}:{snapshot.Digest}:{snapshot.CvesHash}";
+    public static string GetKey(this Snapshot s)
+        => $"vr:{{{s.Key.NamespaceName}}}:{s.Key.Digest}:{s.Key.CvesHash}";
 
-    public static string GetKey(this SnapshotKey snapshotKey) =>
-        $"vr:{{{snapshotKey.NamespaceName}}}:{snapshotKey.Digest}:{snapshotKey.CvesHash}";
+    public static string GetKey(this SnapshotKey sk) =>
+        $"vr:{{{sk.NamespaceName}}}:{sk.Digest}:{sk.CvesHash}";
 }

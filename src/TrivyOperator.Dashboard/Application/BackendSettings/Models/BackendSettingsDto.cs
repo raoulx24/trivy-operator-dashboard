@@ -7,6 +7,7 @@ public class BackendSettingsDto
     public bool IsDefaultContextUsed { get; init; } = true;
     public bool IsNamespaceListUsed { get; init; } = false;
     public bool IsFileRepositoryUsed { get; init; } = false;
+    public int VrHistoryMaxAgeDays { get; init; } = 14;
 }
 
 public class BackendSettingsTrivyReportConfigDto

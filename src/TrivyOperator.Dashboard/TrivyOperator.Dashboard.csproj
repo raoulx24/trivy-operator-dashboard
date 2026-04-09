@@ -55,7 +55,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Application\VulnerabilityReports\" />
+      <Folder Include="Application\VulnerabilityReportsHistory\Models\" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
