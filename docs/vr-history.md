@@ -123,7 +123,7 @@ For each (namespace, digest):
 - use LastSeenAt as moment
 - if all are older then N days, delete all
 - keep all snapshots newer than N days (configurable, default 14)
-- delete older then N days, but always keep at least a total of K (configurable, default 1) - newer and older. the delete is from older to newer
+- delete older then N days, but always keep at least a total of K (configurable, default 2) - newer and older. the delete is from older to newer
 
 ### 3. Job workflow (per namespace, digest)
 
