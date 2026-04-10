@@ -20,6 +20,7 @@ export class MainAppInitService {
     isFileRepositoryUsed: false,
     isKubeConfigUsed: false,
     isNamespaceListUsed: false,
+    vrHistoryMaxAgeDays: 14,
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
@@ -67,6 +68,7 @@ export class MainAppInitService {
         isNamespaceListUsed: this.defaultBackendSettingsDto?.isNamespaceListUsed ?? false,
         isKubeConfigUsed: this.defaultBackendSettingsDto?.isKubeConfigUsed ?? false,
         trivyReportConfigDtos: newTrivyReportConfig,
+        vrHistoryMaxAgeDays: 14,
       };
       return newItem;
     });

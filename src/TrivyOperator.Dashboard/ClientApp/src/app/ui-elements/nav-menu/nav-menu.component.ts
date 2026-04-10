@@ -107,7 +107,7 @@ export class NavMenuComponent {
             },
           },
           {
-            label: 'Vulnerabilities History - Digest',
+            label: 'Vulnerabilities History',
             icon: 'safety_check',
             disabled: false,
             command: () => {

@@ -374,7 +374,7 @@
                   <div class="flex-1 flex items-center justify-end">
                     <p-tag class="mt-2 mb-1"
                            [rounded]="true"
-                           [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount : showBorder"
+                           [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount : false"
                            [icon]="showArrow ? (negativeCount | counterIcon) : ''"
                            [value]="negativeCount * (-1) | vulnerabilityCount : 'nonNegatives'" />
                   </div>

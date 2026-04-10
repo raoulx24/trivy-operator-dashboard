@@ -1417,6 +1417,85 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/vulnerability-reports-history:
+    get:
+      tags:
+        - VulnerabilityReportHistory
+      operationId: GetVulnerabilityReportHistoryIndexEntries
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VulnerabilityReportsHistoryDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/vulnerability-reports-history/snapshots:
+    post:
+      tags:
+        - VulnerabilityReportHistory
+      operationId: GetVulnerabilityReportHistorySnapshots
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Digest'
+          text/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Digest'
+          application/*+json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Digest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VulnerabilityReportHistoryImageDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports:
     get:
       tags:
@@ -1693,6 +1772,9 @@ components:
           type: boolean
         isFileRepositoryUsed:
           type: boolean
+        vrHistoryMaxAgeDays:
+          type: integer
+          format: int32
       additionalProperties: false
     BackendSettingsTrivyReportConfigDto:
       type: object
@@ -2546,6 +2628,12 @@ components:
         name:
           type: string
         version:
+          type: string
+      additionalProperties: false
+    Digest:
+      type: object
+      properties:
+        value:
           type: string
       additionalProperties: false
     EsSeveritiesByNsSummaryDetailDto:
@@ -3589,6 +3677,35 @@ components:
             $ref: '#/components/schemas/VulnerabilityReportDetailDto'
           nullable: true
       additionalProperties: false
+    VulnerabilityReportHistoryImageDto:
+      required:
+        - details
+        - id
+        - imageDigest
+        - imageName
+        - imageRepository
+        - imageTag
+        - resourceNamespace
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resourceNamespace:
+          type: string
+        imageName:
+          type: string
+        imageTag:
+          type: string
+        imageDigest:
+          type: string
+        imageRepository:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/VulnerabilityReportDetailDto'
+      additionalProperties: false
     VulnerabilityReportImageDto:
       type: object
       properties:
@@ -3681,6 +3798,85 @@ components:
           items:
             $ref: '#/components/schemas/GenericSummaryDto'
       additionalProperties: false
+    VulnerabilityReportsDigestDto:
+      required:
+        - firstCriticalCount
+        - firstHighCount
+        - firstLowCount
+        - firstMediumCount
+        - firstUnknownCount
+        - history
+        - imageDigest
+        - imageTag
+      type: object
+      properties:
+        imageTag:
+          type: string
+        imageDigest:
+          type: string
+        firstCriticalCount:
+          type: integer
+          format: int64
+        firstHighCount:
+          type: integer
+          format: int64
+        firstMediumCount:
+          type: integer
+          format: int64
+        firstLowCount:
+          type: integer
+          format: int64
+        firstUnknownCount:
+          type: integer
+          format: int64
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/VulnerabilityReportsHistoryDetailDto'
+      additionalProperties: false
+    VulnerabilityReportsHistoryDetailDto:
+      required:
+        - addedCount
+        - droppedCount
+        - moment
+      type: object
+      properties:
+        moment:
+          type: string
+          format: date-time
+        addedCount:
+          type: array
+          items:
+            type: integer
+            format: int32
+        droppedCount:
+          type: array
+          items:
+            type: integer
+            format: int32
+      additionalProperties: false
+    VulnerabilityReportsHistoryDto:
+      required:
+        - digests
+        - id
+        - imageName
+        - imageRepository
+        - resourceNamespace
+      type: object
+      properties:
+        id:
+          type: string
+        imageRepository:
+          type: string
+        imageName:
+          type: string
+        resourceNamespace:
+          type: string
+        digests:
+          type: array
+          items:
+            $ref: '#/components/schemas/VulnerabilityReportsDigestDto'
+      additionalProperties: false
     WatcherStatusDto:
       type: object
       properties:
@@ -3722,5 +3918,6 @@ tags:
   - name: SbomReport
   - name: Severities
   - name: TrivyReportDependencies
+  - name: VulnerabilityReportHistory
   - name: VulnerabilityReports
   - name: WatcherStatus
