@@ -120,9 +120,10 @@ The job ensures that old snapshots are cleaned according to retention rules
 ### 2. Retention rules
 
 For each (namespace, digest):
-- Always keep at least one snapshot, but only if at least one is newer than N days
-- Keep all snapshots newer than N days (configurable)
-- Delete all others
+- use LastSeenAt as moment
+- if all are older then N days, delete all
+- keep all snapshots newer than N days (configurable, default 14)
+- delete older then N days, but always keep at least a total of K (configurable, default 1) - newer and older. the delete is from older to newer
 
 ### 3. Job workflow (per namespace, digest)
 
