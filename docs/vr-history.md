@@ -3,72 +3,76 @@
 ## Domain Entities
 
 ```csharp
+public readonly record struct CvesHash(string Value);
 public readonly record struct Digest(string Value);
 public readonly record struct NamespaceName(string Value);
-public readonly record struct CvesHash(string Value);
-public readonly record struct Timestamp(DateTime Value);
+public readonly record struct RetentionPolicy(int keepDays, int keepLast);
+public readonly record struct Timestamp(DateTime value); // in constructor is it enforced as UTC
+
+public readonly record struct SnapshotKey(NamespaceName NamespaceName, Digest Digest, CvesHash CvesHash);
 ```
 
 ```csharp
-public sealed class VrSnapshot
+public sealed class Snapshot
 {
-    public NamespaceName NamespaceName { get; } 
-    public Digest Digest { get; }
-    public CvesHash CvesHash { get; }
+    public SnapshotKey Key { get; }
     public VulnerabilityReportCr VulnerabilityReport { get; }
-    public VrMetadata Metadata { get; }
+    public Metadata Metadata { get; }
 
-    public VrSnapshot(VulnerabilityReportCr vrCr)
-    {
-        NamespaceName = new(vrCr.Metadata.NamespaceProperty());
-        Digest = new(vrCrReport?.Artifact?.Digest ?? string.Empty); // or throw
-        CvesHash = new(...);
-        VulnerabilityReport = vrCr;
-        Metadata = ...
-    }
+    public Snapshot(VulnerabilityReportCr vrCr)
+    { ... }
 }
 ```
 
 ```csharp
-public sealed class VrMetadata
+public sealed class Metadata
 {
     public NamespaceName NamespaceName { get; init; } = new(string.Empty);
-    public int CriticalCount { get; init; } = 0;
-    public int HighCount { get; init; } = 0;
-    public int MediumCount { get; init; } = 0;
-    public int LowCount { get; init; } = 0;
-    public int UnknownCount { get; init; } = 0;
-    public string[] Cves { get; init; } = [];
+    public string ImageRegistry { get; init; } = string.Empty;
+    public string ImageName { get; init; } = string.Empty;
+    public string ImageTag { get; init; } = string.Empty;
+    public long CriticalCount { get; init; } = 0;
+    public long HighCount { get; init; } = 0;
+    public long MediumCount { get; init; } = 0;
+    public long LowCount { get; init; } = 0;
+    public long UnknownCount { get; init; } = 0;
+    public Dictionary<TrivySeverity, HashSet<string>> CvesBySeverity { get; init; } = [];
+}
+
+public static class VulnerabilityReportMetadataExtensions
+{
+    public static Metadata ToVrMetadata(this VulnerabilityReportCr vrcr)
+    { ... }
 }
 ```
 
 ```csharp
-public sealed class VrSnapshotIndexEntry
+public sealed class SnapshotIndexEntry
 {
-    public NamespaceName NamespaceName { get; }
-    public Digest Digest { get; }
-    public CvesHash CvesHash { get; }
-    public VrMetadata Metadata { get; }
+    public SnapshotKey Key { get; } = key;
+    public Metadata Metadata { get; } = metadata;
+    public Timestamp FirstSeenAt { get; } = firstSeenAt;
+    public Timestamp LastSeenAt { get; } = lastSeenAt;
+}
+```
 
-    public Timestamp FirstSeenAt { get; }
-    public Timestamp LastSeenAt { get; }
+## IVulnerabilityReportsHistoryStore
+```csharp
+public interface IVulnerabilityReportsHistoryStore
+{
+    Task<IReadOnlyList<SnapshotIndexEntry>> 
+        GetSnapshotIndexesAsync(NamespaceName namespaceName, CancellationToken ct = default);
 
-    public VrSnapshotIndexEntry(
+    Task<IReadOnlyList<Snapshot>> GetSnapshotsAsync(
         NamespaceName namespaceName,
         Digest digest,
-        CvesHash cvesHash,
-        VrMetadata metadata,
-        Timestamp firstSeenAt,
-        Timestamp lastSeenAt)
-    {
-        NamespaceName = namespaceName;
-        Digest = digest;
-        CvesHash = cvesHash;
-        Metadata = metadata;
+        CancellationToken ct = default);
 
-        FirstSeenAt = firstSeenAt;
-        LastSeenAt = lastSeenAt;
-    }
+    Task DeleteSnapshotsAsync(
+        IEnumerable<SnapshotKey> snapshots,
+        CancellationToken ct = default);
+
+    Task AddOrUpdateSnapshotAsync(Snapshot snapshot, CancellationToken ct = default);
 }
 ```
 
@@ -81,7 +85,7 @@ Key:
 vr:{<namespace>}:<digest>:<cvesHash>
 ```
 
-Value is of type `hash`. It has 3 fields:
+Value is of type `hash`. It has 4 fields:
 - `snapshot` with value brotli‑compressed VulnerabilityReportCr dto
 - `metadata` with the value VrMeta as json
 - `firstSeenAt` with the value string (a DateTimeUTC as string) 
