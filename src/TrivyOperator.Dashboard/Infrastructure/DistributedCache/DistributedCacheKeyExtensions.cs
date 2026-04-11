@@ -12,6 +12,7 @@ public static class DistributedCacheKeyExtensions
     public static string GetKey(this Snapshot s)
         => s.Key.GetKey();
 
+    // change RedisVulnerabilityReportsHistoryStore.ParseSnapshotKey if this one changes
     public static string GetKey(this SnapshotKey sk) =>
         $"vr:{{{sk.NamespaceName}}}:{sk.Digest}:{sk.CvesHash}";
 }
