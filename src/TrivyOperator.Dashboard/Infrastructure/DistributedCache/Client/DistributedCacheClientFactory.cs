@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 using TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
@@ -16,17 +17,17 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
     private bool disposed;
 
     public DistributedCacheClientFactory(
-        string connectionString,
+        IOptions<DistributedCacheClientOptions> options,
         IHostApplicationLifetime lifetime,
         ILogger<DistributedCacheClientFactory> logger)
     {
-        if (string.IsNullOrWhiteSpace(connectionString))
+        if (string.IsNullOrWhiteSpace(options.Value.ConnectionString))
         {
             throw new ArgumentException("Redis connection string must not be empty.", nameof(connectionString));
         }
 
-        this.connectionString = connectionString;
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        connectionString = options.Value.ConnectionString;
+        this.logger = logger;
         
         // Cancel internal CTS when the app is shutting down
         lifetime.ApplicationStopping.Register(() => cts.Cancel());

@@ -101,10 +101,7 @@ public sealed class GitHubReleaseCacheTimedHostedService(
             if (latestRelease != null)
             {
                 GitHubRelease? release = releases.FirstOrDefault(x => x.Id == latestRelease.Id);
-                if (release != null)
-                {
-                    release.IsLatest = true;
-                }
+                release?.IsLatest = true;
             }
 
             cache.Clear();

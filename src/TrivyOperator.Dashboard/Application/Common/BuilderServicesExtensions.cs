@@ -60,6 +60,9 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport.Abstractions;
 using TrivyOperator.Dashboard.Application.TrivyReportDependencies.Services;
 using TrivyOperator.Dashboard.Application.TrivyReportDependencies.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.VulnerabilityReportsHistory.Retention;
+using TrivyOperator.Dashboard.Application.VulnerabilityReportsHistory.Services;
+using TrivyOperator.Dashboard.Application.VulnerabilityReportsHistory.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
@@ -80,11 +83,17 @@ using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Options;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
+using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory.Abstractions;
+using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory.Services;
+using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
+using TrivyOperator.Dashboard.Infrastructure.DistributedCache;
+using TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client;
+using TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
 
@@ -403,6 +412,30 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IConcurrentCache<string, WatcherStateInfo>, ConcurrentCache<string, WatcherStateInfo>>();
         //services.AddSingleton<IBackgroundQueue<WatcherStateInfo>, BackgroundQueue<WatcherStateInfo>>();
         services.AddScoped<IWatcherStatusService, WatcherStatusService>();
+    }
+
+    public static void AddHistoryServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
+        if (!isHistoryEnabled)
+            return;
+        
+        Logger?.LogInformation("Using DistributedCache for Vulnerability Reports History");
+        
+        services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache"));
+        services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache").GetSection("RetryOptions"));
+        services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
+        
+        services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
+        services.AddScoped<IDistributedCacheExecutor, DistributedCacheExecutor>();
+        
+        services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
+        services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
+
+        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
+        services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
+        
+        services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
     }
 
     public static void AddAlertsServices(this IServiceCollection services)

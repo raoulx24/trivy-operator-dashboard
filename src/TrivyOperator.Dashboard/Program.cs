@@ -74,6 +74,7 @@ builder.Services.AddControllersWithViews(ConfigureMvcOptions)
 builder.Services.AddCommons(configuration);
 builder.Services.AddAlertsServices();
 builder.Services.AddWatcherStateServices();
+builder.Services.AddHistoryServices(configuration);
 builder.Services.AddV1NamespaceServices(configuration);
 builder.Services.AddTrivyServices(configuration);
 
