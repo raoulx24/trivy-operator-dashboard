@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory;
+﻿using StackExchange.Redis;
+using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory.ValueObjects;
 
 
@@ -15,4 +16,10 @@ public static class DistributedCacheKeyExtensions
     // change RedisVulnerabilityReportsHistoryStore.ParseSnapshotKey if this one changes
     public static string GetKey(this SnapshotKey sk) =>
         $"vr:{{{sk.NamespaceName}}}:{sk.Digest}:{sk.CvesHash}";
+    
+    public static RedisKey ToRedisKey(this Snapshot s)
+        => (RedisKey)s.GetKey();
+    
+    public static RedisKey ToRedisKey(this SnapshotKey sk)
+        => (RedisKey)sk.GetKey();
 }

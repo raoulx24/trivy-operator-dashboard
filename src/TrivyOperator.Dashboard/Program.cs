@@ -193,7 +193,7 @@ app.MapHealthChecks(
 );
 app.MapFallbackToFile("index.html");
 
-await app.RunAsync().ConfigureAwait(false);
+await app.RunAsync();
 
 return 0;
 

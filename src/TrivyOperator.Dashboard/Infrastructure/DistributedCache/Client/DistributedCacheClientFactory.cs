@@ -70,7 +70,7 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
             if (Volatile.Read(ref connection) != null)
                 return;
 
-            await connectionLock.WaitAsync(cts.Token).ConfigureAwait(false);
+            await connectionLock.WaitAsync(cts.Token);
             try
             {
                 ThrowIfDisposed();
@@ -82,9 +82,7 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
                 {
                     logger.LogInformation("Connecting to Redis...");
 
-                    await using ConnectionMultiplexer conn = await ConnectionMultiplexer
-                        .ConnectAsync(connectionString)
-                        .ConfigureAwait(false);
+                    await using ConnectionMultiplexer conn = await ConnectionMultiplexer.ConnectAsync(connectionString);
 
                     WireEvents(conn);
 
@@ -112,7 +110,7 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
 
             try
             {
-                await Task.Delay(delay, cts.Token).ConfigureAwait(false);
+                await Task.Delay(delay, cts.Token);
             }
             catch (OperationCanceledException) when (cts.IsCancellationRequested)
             {
