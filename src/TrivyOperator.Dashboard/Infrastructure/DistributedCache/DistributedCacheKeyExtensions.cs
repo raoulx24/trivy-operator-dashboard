@@ -15,17 +15,17 @@ public static class DistributedCacheKeyExtensions
         $"{SnapshotKeyPrefix}:{{{sk.NamespaceName}}}:{sk.Digest.Value.Replace(':', '_')}:{sk.CvesHash}";
     
     private static string GetUnprocessedKey(this SnapshotKey sk) =>
-        $"{UnprocessedSnapshotKeyPrefix}:{{{sk.NamespaceName}}}:{sk.Digest.Value.Replace(':', '_')}:{sk.CvesHash}:{Guid.NewGuid()}";
-
+        $"{UnprocessedSnapshotKeyPrefix}:{{{sk.NamespaceName}}}:{sk.Digest.Value.Replace(':', '_')}:{sk.CvesHash}";
+    
     public const string SnapshotKeyPrefix = "vr";
     public const string UnprocessedSnapshotKeyPrefix = "vr-unprocessed";
         
-    public static RedisKey ToRedisKey(this Snapshot s)
-        => (RedisKey)s.GetKey();
+    public static RedisKey ToRedisKey(this Snapshot s) => (RedisKey)s.GetKey();
     
-    public static RedisKey ToRedisKey(this SnapshotKey sk)
-        => (RedisKey)sk.GetKey();
-    
-    public static RedisKey ToUnprocessedRedisKey(this SnapshotKey sk)
-        => (RedisKey)sk.GetUnprocessedKey();
+    extension(SnapshotKey sk)
+    {
+        public RedisKey ToRedisKey() => (RedisKey)sk.GetKey();
+
+        public RedisKey ToUnprocessedRedisKey() => (RedisKey)sk.GetUnprocessedKey();
+    }
 }
