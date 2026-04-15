@@ -7,19 +7,25 @@ namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache;
 
 public static class DistributedCacheKeyExtensions
 {
-    public static string GetKey(this SnapshotIndexEntry sie)
-        => $"vr:{{{sie.Key.NamespaceName}}}:{sie.Key.Digest}";
-
-    public static string GetKey(this Snapshot s)
+    private static string GetKey(this Snapshot s)
         => s.Key.GetKey();
 
-    // change RedisVulnerabilityReportsHistoryStore.ParseSnapshotKey if this one changes
-    public static string GetKey(this SnapshotKey sk) =>
-        $"vr:{{{sk.NamespaceName}}}:{sk.Digest}:{sk.CvesHash}";
+    // change DistributedCacheVulnerabilityReportsHistoryStore.ParseSnapshotKey if this two changes
+    private static string GetKey(this SnapshotKey sk) =>
+        $"{SnapshotKeyPrefix}:{{{sk.NamespaceName}}}:{sk.Digest.Value.Replace(':', '_')}:{sk.CvesHash}";
     
+    private static string GetUnprocessedKey(this SnapshotKey sk) =>
+        $"{UnprocessedSnapshotKeyPrefix}:{{{sk.NamespaceName}}}:{sk.Digest.Value.Replace(':', '_')}:{sk.CvesHash}:{Guid.NewGuid()}";
+
+    public const string SnapshotKeyPrefix = "vr";
+    public const string UnprocessedSnapshotKeyPrefix = "vr-unprocessed";
+        
     public static RedisKey ToRedisKey(this Snapshot s)
         => (RedisKey)s.GetKey();
     
     public static RedisKey ToRedisKey(this SnapshotKey sk)
         => (RedisKey)sk.GetKey();
+    
+    public static RedisKey ToUnprocessedRedisKey(this SnapshotKey sk)
+        => (RedisKey)sk.GetUnprocessedKey();
 }
