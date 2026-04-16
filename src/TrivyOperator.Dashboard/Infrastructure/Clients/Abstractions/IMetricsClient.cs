@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.Metrics;
+using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 
@@ -14,4 +15,6 @@ public interface IMetricsClient
         string? unit,
         string? description
     );
+
+    void RecordCveDeltas(Snapshot snapshot, string resourceKind);
 }
