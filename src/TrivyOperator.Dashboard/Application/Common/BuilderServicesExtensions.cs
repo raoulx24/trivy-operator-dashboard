@@ -419,10 +419,13 @@ public static class BuilderServicesExtensions
         bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
         bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
         bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
-        
+
         if (!isHistoryEnabled || !useDefaultContext || useFileRepository)
+        {
+            services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryNullService>();
             return;
-        
+        }
+
         Logger?.LogInformation("Using DistributedCache for Vulnerability Reports History");
         
         services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache"));
