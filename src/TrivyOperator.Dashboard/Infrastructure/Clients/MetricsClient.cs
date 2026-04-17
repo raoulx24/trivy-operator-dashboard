@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.Metrics;
+﻿using System.Diagnostics.Metrics;
 using TrivyOperator.Dashboard.Domain.Trivy;
 using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
@@ -31,7 +30,7 @@ public class MetricsClient : IMetricsClient
     public string AppName { get; }
 
     public Counter<long> WatcherProcessedMessagesCounter { get; }
-    public Counter<long> CveChangesCounter { get; }
+    private Counter<long> CveChangesCounter { get; }
 
     public void CreateObservableGauge(
         string name,
@@ -40,46 +39,46 @@ public class MetricsClient : IMetricsClient
         string? description
     ) => meter.CreateObservableGauge(name, observeValues, unit, description);
     
-    public void RecordCveDeltas(
-        Snapshot snapshot,
-        string resourceKind)
+    public void RecordCveDeltas(Snapshot snapshot, string resourceKind)
     {
         string namespaceName = snapshot.Metadata.NamespaceName.Value;
 
         foreach (TrivySeverity severity in Enum.GetValues<TrivySeverity>())
         {
             int index = (int)severity;
-            string severityLabel = severity.ToString().ToLowerInvariant();
-
             int added = snapshot.Metadata.AddedCvesDeltas[index];
             int dropped = snapshot.Metadata.DroppedCvesDeltas[index];
 
+            if (added == 0 && dropped == 0)
+                continue;
+
+            string severityLabel = severity.ToString().ToLowerInvariant();
+
             if (added > 0)
             {
-                var tags = new TagList
-                {
-                    { "resource_kind", resourceKind },
-                    { "namespace_name", namespaceName },
-                    { "severity", severityLabel },
-                    { "change_type", "added" }
-                };
-
-                CveChangesCounter.Add(added, tags);
+                CveChangesCounter.Add(
+                    added,
+                    [
+                        new KeyValuePair<string, object?>("resource_kind", resourceKind),
+                        new KeyValuePair<string, object?>("namespace_name", namespaceName),
+                        new KeyValuePair<string, object?>("severity", severityLabel),
+                        new KeyValuePair<string, object?>("change_type", "added")
+                    ]
+                );
             }
 
             if (dropped > 0)
             {
-                var tags = new TagList
-                {
-                    { "resource_kind", resourceKind },
-                    { "namespace_name", namespaceName },
-                    { "severity", severityLabel },
-                    { "change_type", "dropped" }
-                };
-
-                CveChangesCounter.Add(dropped, tags);
+                CveChangesCounter.Add(
+                    dropped,
+                    [
+                        new KeyValuePair<string, object?>("resource_kind", resourceKind),
+                        new KeyValuePair<string, object?>("namespace_name", namespaceName),
+                        new KeyValuePair<string, object?>("severity", severityLabel),
+                        new KeyValuePair<string, object?>("change_type", "dropped")
+                    ]
+                );
             }
         }
     }
-
 }
