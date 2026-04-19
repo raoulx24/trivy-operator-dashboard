@@ -82,7 +82,7 @@ public sealed class DistributedCacheClientFactory : IDistributedCacheClientFacto
                 {
                     logger.LogInformation("Connecting to Redis...");
 
-                    await using ConnectionMultiplexer conn = await ConnectionMultiplexer.ConnectAsync(connectionString);
+                    ConnectionMultiplexer conn = await ConnectionMultiplexer.ConnectAsync(connectionString);
 
                     WireEvents(conn);
 
