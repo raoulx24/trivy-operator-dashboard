@@ -3861,11 +3861,19 @@ components:
       additionalProperties: false
     VulnerabilityReportsHistoryDenormalizedDto:
       required:
-        - addedCount
+        - addedCritical
+        - addedHigh
+        - addedLow
+        - addedMedium
+        - addedUnknown
         - criticalCount
         - cvesHash
         - digest
-        - droppedCount
+        - droppedCritical
+        - droppedHigh
+        - droppedLow
+        - droppedMedium
+        - droppedUnknown
         - firstSeenAt
         - highCount
         - id
@@ -3875,14 +3883,14 @@ components:
         - lastSeenAt
         - lowCount
         - mediumCount
-        - namespaceName
+        - resourceNamespace
         - unknownCount
       type: object
       properties:
         id:
           type: string
           format: uuid
-        namespaceName:
+        resourceNamespace:
           type: string
         digest:
           type: string
@@ -3909,16 +3917,36 @@ components:
         unknownCount:
           type: integer
           format: int64
-        addedCount:
-          type: array
-          items:
-            type: integer
-            format: int32
-        droppedCount:
-          type: array
-          items:
-            type: integer
-            format: int32
+        addedCritical:
+          type: integer
+          format: int64
+        addedHigh:
+          type: integer
+          format: int64
+        addedMedium:
+          type: integer
+          format: int64
+        addedLow:
+          type: integer
+          format: int64
+        addedUnknown:
+          type: integer
+          format: int64
+        droppedCritical:
+          type: integer
+          format: int64
+        droppedHigh:
+          type: integer
+          format: int64
+        droppedMedium:
+          type: integer
+          format: int64
+        droppedLow:
+          type: integer
+          format: int64
+        droppedUnknown:
+          type: integer
+          format: int64
         firstSeenAt:
           type: string
           format: date-time
