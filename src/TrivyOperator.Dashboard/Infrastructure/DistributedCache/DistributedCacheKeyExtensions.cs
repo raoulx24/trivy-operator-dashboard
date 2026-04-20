@@ -12,10 +12,10 @@ public static class DistributedCacheKeyExtensions
 
     // change DistributedCacheVulnerabilityReportsHistoryStore.ParseSnapshotKey if this two changes
     private static string GetKey(this SnapshotKey sk) =>
-        $"{SnapshotKeyPrefix}:{{{sk.NamespaceName.Value}}}:{sk.Digest.Value.Replace(':', '_')}:{sk.CvesHash.Value}";
+        $"{SnapshotKeyPrefix}:{{{sk.NamespaceName.Value}}}:{sk.Digest.Value}:{sk.CvesHash.Value}";
     
     private static string GetUnprocessedKey(this SnapshotKey sk) =>
-        $"{UnprocessedSnapshotKeyPrefix}:{{{sk.NamespaceName.Value}}}:{sk.Digest.Value.Replace(':', '_')}:{sk.CvesHash.Value}";
+        $"{UnprocessedSnapshotKeyPrefix}:{{{sk.NamespaceName.Value}}}:{sk.Digest.Value}:{sk.CvesHash.Value}";
     
     public const string SnapshotKeyPrefix = "vr";
     public const string UnprocessedSnapshotKeyPrefix = "vr-unprocessed";

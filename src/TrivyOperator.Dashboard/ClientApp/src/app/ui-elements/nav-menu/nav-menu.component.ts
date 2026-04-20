@@ -111,7 +111,7 @@ export class NavMenuComponent {
             icon: 'safety_check',
             disabled: false,
             command: () => {
-              this.router.navigate(['vulnerability-reports-history-digest']);
+              this.router.navigate(['vulnerability-reports-history']);
               this.isDrawerVisible.set(false);
             },
           },

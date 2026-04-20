@@ -107,9 +107,9 @@ export const routes: Routes = [
     data: { title: 'Vulnerability Reports Detailed' },
   },
   {
-    path: 'vulnerability-reports-history-digest',
-    loadComponent: () => import('./trivy-reports/vulnerability-reports-history-digest/vulnerability-reports-history-digest.component').then((m) => m.VulnerabilityReportsHistoryDigestComponent),
-    data: { title: 'Vulnerability Reports History by Digest' },
+    path: 'vulnerability-reports-history',
+    loadComponent: () => import('./trivy-reports/vulnerability-reports-history/vulnerability-reports-history.component').then((m) => m.VulnerabilityReportsHistoryComponent),
+    data: { title: 'Vulnerability Reports History' },
   },
 
   {
