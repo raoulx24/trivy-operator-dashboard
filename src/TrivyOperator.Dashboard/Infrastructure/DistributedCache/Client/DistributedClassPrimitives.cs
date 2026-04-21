@@ -254,6 +254,23 @@ public static class DistributedCachePrimitives
         } while (cursor != "0");
     }
 
+    public static async Task<bool> KeyPatternExistsAsync(
+        IDatabase db,
+        string pattern,
+        int pageSize = 1000,
+        CancellationToken ct = default)
+    {
+        await foreach (var key in ScanKeysAsync(db, pattern, pageSize, ct)
+                           .WithCancellation(ct)
+                           .ConfigureAwait(false))
+        {
+            // If we get even one key, the pattern exists
+            return true;
+        }
+
+        return false;
+    }
+
 
     // ------------------------------------------------------------------------
     // Private Brotli helpers
