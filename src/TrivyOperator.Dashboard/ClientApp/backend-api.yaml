@@ -3705,15 +3705,16 @@ components:
     VulnerabilityReportHistoryImageDto:
       required:
         - details
-        - id
         - imageDigest
         - imageName
         - imageRepository
         - imageTag
+        - lastSeenAt
         - resourceNamespace
+        - uid
       type: object
       properties:
-        id:
+        uid:
           type: string
           format: uuid
         resourceNamespace:
@@ -3726,6 +3727,9 @@ components:
           type: string
         imageRepository:
           type: string
+        lastSeenAt:
+          type: string
+          format: date-time
         details:
           type: array
           items:
@@ -3825,33 +3829,33 @@ components:
       additionalProperties: false
     VulnerabilityReportsDigestDto:
       required:
-        - firstCriticalCount
-        - firstHighCount
-        - firstLowCount
-        - firstMediumCount
-        - firstUnknownCount
+        - criticalCount
+        - highCount
         - history
         - imageDigest
         - imageTag
+        - lowCount
+        - mediumCount
+        - unknownCount
       type: object
       properties:
         imageTag:
           type: string
         imageDigest:
           type: string
-        firstCriticalCount:
+        criticalCount:
           type: integer
           format: int64
-        firstHighCount:
+        highCount:
           type: integer
           format: int64
-        firstMediumCount:
+        mediumCount:
           type: integer
           format: int64
-        firstLowCount:
+        lowCount:
           type: integer
           format: int64
-        firstUnknownCount:
+        unknownCount:
           type: integer
           format: int64
         history:
@@ -3876,7 +3880,6 @@ components:
         - droppedUnknown
         - firstSeenAt
         - highCount
-        - id
         - imageName
         - imageRepository
         - imageTag
@@ -3884,10 +3887,11 @@ components:
         - lowCount
         - mediumCount
         - resourceNamespace
+        - uid
         - unknownCount
       type: object
       properties:
-        id:
+        uid:
           type: string
           format: uuid
         resourceNamespace:

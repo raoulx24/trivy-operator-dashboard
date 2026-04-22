@@ -385,6 +385,24 @@
                 <span>{{ data[0] ?? 'N/A' }}</span><br />
                 <small class="tod-text-muted-color font-bold">{{ data[1] ?? 'N/A' }}</small>
               }
+              @case ('severityStackedBadge') {
+                @let values = rowData[col.field]?.split('|') ?? ['10'];
+                @if (values.length === 1) {
+                  <p-tag [value]="values[0] | severityNameById"
+                         [rounded]="true"
+                         [style]="values[0] | severityCssStyleById : 1" />
+                } @else {
+                  <div class="flex items-center gap-2">
+                    <p-tag [value]="values[0] | severityNameById"
+                           [rounded]="true"
+                           [style]="values[0] | severityCssStyleById : 1" />
+                    <span class="text-xs opacity-70">⇄</span>
+                    <p-tag [value]="values[1] | severityNameById"
+                           [rounded]="true"
+                           [style]="values[1] | severityCssStyleById : 1" />
+                  </div>
+                }
+              }
             }
           </td>
         }

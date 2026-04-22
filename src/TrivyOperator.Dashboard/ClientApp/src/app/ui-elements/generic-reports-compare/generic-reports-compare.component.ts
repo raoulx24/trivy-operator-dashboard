@@ -40,6 +40,8 @@ export class GenericReportsCompareComponent<
   firstSelectedDto = input<TTrivyReportComparableDto | undefined>();
   secondSelectedDto = input<TTrivyReportComparableDto | undefined>();
 
+  firstInSelectorLonger = input<boolean>(false);
+
   firstDtoRequested = output<string>();
   secondDtoRequested = output<string>();
 

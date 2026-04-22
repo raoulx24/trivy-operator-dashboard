@@ -6,6 +6,7 @@ import { TagModule } from 'primeng/tag';
 
 import { IconComponent } from '../icon/icon.component';
 import { NamespacedImageDto } from './namespace-image-selector.types';
+import { NgClass } from '@angular/common';
 
 interface ImageDto {
   uid: string;
@@ -23,6 +24,7 @@ export const nonExistingNamespace = 'N/A';
     SelectModule,
     TagModule,
     IconComponent,
+    NgClass,
   ],
   templateUrl: './namespace-image-selector.component.html',
   styleUrl: './namespace-image-selector.component.scss',
@@ -36,6 +38,7 @@ export class NamespaceImageSelectorComponent {
 
   namespacePlaceholder = input<string>('Select namespace');
   imagePlaceholder = input<string>('Select image');
+  firstLonger = input<boolean>(false);
 
   private initialImageIdHandled = false;
 

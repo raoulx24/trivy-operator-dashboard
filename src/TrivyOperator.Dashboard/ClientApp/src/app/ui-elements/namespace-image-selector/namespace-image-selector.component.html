@@ -1,6 +1,6 @@
 <div class="grid grid-cols-12 gap-2 items-stretch">
   <!-- Namespace selector -->
-  <div class="col-span-4 flex w-full">
+  <div class="flex w-full" [ngClass]="firstLonger() ? 'col-span-8' : 'col-span-4'">
     <p-select
       class="text-sm w-full"
       [disabled]="disabled() || activeNamespaces().length === 0"
@@ -14,7 +14,7 @@
   </div>
 
   <!-- Image selector -->
-  <div class="col-span-8 flex items-center gap-2 justify-center">
+  <div class="flex items-center gap-2 justify-center" [ngClass]="firstLonger() ? 'col-span-4' : 'col-span-8'">
     <p-select
       appendTo="body"
       optionLabel="mainLabel"
