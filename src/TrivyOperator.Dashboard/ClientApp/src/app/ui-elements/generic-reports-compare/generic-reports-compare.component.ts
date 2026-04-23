@@ -94,7 +94,7 @@ export class GenericReportsCompareComponent<
 
   ngOnInit() {
     this._groupedFields = this.comparedTableColumns()
-      .filter((col) => col.renderType == 'compareStacked')
+      .filter((col) => col.renderType.toLowerCase().includes("stacked"))
       .map((col) => col.field);
   }
 
