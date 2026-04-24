@@ -316,10 +316,12 @@
               }
               @case ('compareStacked') {
                 @if (rowData[col.field]?.split('|').length === 2) {
+                  <div class="border-l-4 border-blue-500/40">
                   @let first = rowData[col.field].split('|')[0].split('__').join(', ');
                   @let second = rowData[col.field].split('|')[1].split('__').join(', ');
-                  <small class="tod-text-muted-color">1st: <span class="font-bold">{{ first }}</span></small><br />
-                  <small class="tod-text-muted-color">2nd: <span class="font-bold">{{ second }}</span></small>
+                  <small><span class="tod-text-muted-color ml-1">1st: </span><span class="font-bold">{{ first }}</span></small><br />
+                  <small><span class="tod-text-muted-color ml-1">2nd: </span><span class="font-bold">{{ second }}</span></small>
+                  </div>
                 } @else {
                   @let splitData = rowData[col.field].split('__');
                   @if (splitData.length > 1) {
