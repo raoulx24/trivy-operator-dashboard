@@ -5,6 +5,7 @@
     [imagePlaceholder]="imagePlaceholder()"
     [namespacePlaceholder]="namespacePlaceholder()"
     [firstLonger]="firstInSelectorLonger()"
+    [disabled]="isWalkingEnabledInternal()"
     [(selectedImageId)]="firstSelectedTrivyReportId"
   />
   <app-namespace-image-selector
@@ -13,8 +14,36 @@
     [imagePlaceholder]="imagePlaceholder()"
     [namespacePlaceholder]="namespacePlaceholder()"
     [firstLonger]="firstInSelectorLonger()"
+    [disabled]="isWalkingEnabledInternal()"
     [(selectedImageId)]="secondSelectedTrivyReportId"
   />
+  <div class="col-span-12 xl:col-span-4 lg:col-span-6">
+  @if (!isWalkingEnabledInternal()) {
+    <p-button icon="pi pi-arrow-right-arrow-left"
+              raised
+              size="small"
+              text
+              [disabled]="(!firstSelectedTrivyReportId() || !secondSelectedTrivyReportId())"
+              label="Swap items"
+              (onClick)="swapFirstAndSecond()" />
+  } @else {
+      <p-button icon="pi pi-arrow-left"
+                raised
+                size="small"
+                text
+                [disabled]="!canWalkLeft()"
+                label="Walk left"
+                (onClick)="walk('left')" />
+
+      <p-button icon="pi pi-arrow-right"
+                raised
+                size="small"
+                text
+                [disabled]="!canWalkRight()"
+                label="Walk right"
+                (onClick)="walk('right')" />
+  }
+  </div>
 </div>
 <div class="tod-content-border">
   <app-trivy-table
@@ -28,3 +57,4 @@
     [trivyTableColumns]="comparedTableColumns()"
   />
 </div>
+

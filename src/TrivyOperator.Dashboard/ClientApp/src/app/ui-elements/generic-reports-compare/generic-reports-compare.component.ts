@@ -1,26 +1,32 @@
-import { Component, effect, input, model, OnInit, output } from '@angular/core';
+import { Component, computed, effect, input, model, output } from '@angular/core';
 
+import { ButtonModule } from 'primeng/button';
 import { TrivyReportComparable, TrivyReportComparableDetail } from '../../trivy-reports/abstracts/trivy-report';
 import { NamespaceImageSelectorComponent } from '../namespace-image-selector/namespace-image-selector.component';
 import { NamespacedImageDto } from '../namespace-image-selector/namespace-image-selector.types';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../trivy-table/trivy-table.types';
 
-type TrivyReportDetailComparedDto = TrivyReportComparableDetail & { first?: boolean; second?: boolean };
+type TrivyReportDetailComparedDto = TrivyReportComparableDetail & {
+  first?: boolean;
+  second?: boolean;
+  modified?: boolean;
+};
 
 @Component({
   selector: 'app-generic-reports-compare',
-  imports: [NamespaceImageSelectorComponent, TrivyTableComponent],
+  imports: [NamespaceImageSelectorComponent, TrivyTableComponent, ButtonModule],
   templateUrl: './generic-reports-compare.component.html',
   styleUrl: './generic-reports-compare.component.scss',
 })
 export class GenericReportsCompareComponent<
   TTrivyReportComparableDto extends TrivyReportComparable<TTrivyReportDetailComparableDto>,
   TTrivyReportDetailComparableDto extends TrivyReportComparableDetail,
-> implements OnInit {
+> {
   dataDtos = input.required<TTrivyReportComparableDto[] | undefined>();
   comparedTableColumns = input.required<TrivyTableColumn[]>();
   namespacedImageDtos = input.required<NamespacedImageDto[] | undefined>();
+  walkingIsEnabled = input<boolean>(false);
 
   firstSelectedTrivyReportId = model<string | undefined>();
   secondSelectedTrivyReportId = model<string | undefined>();
@@ -45,75 +51,80 @@ export class GenericReportsCompareComponent<
   firstDtoRequested = output<string>();
   secondDtoRequested = output<string>();
 
-  private _dataDtos?: TTrivyReportComparableDto[];
-  private _groupedFields: string[] = [];
-  private _firstSelectedTrivyReportId?: string;
-  private _secondSelectedTrivyReportId?: string;
+  protected isWalkingEnabledInternal = computed(() => {
+    return this.walkingIsEnabled() && !this.isDependantOnExternalData();
+  })
 
-  private _isDependantOnExternalData?: boolean;
-  private _firstSelectedDto?: TTrivyReportComparableDto;
-  private _secondSelectedDto?: TTrivyReportComparableDto;
+  protected canWalkLeft = computed(() => this.canWalk('left'));
+  protected canWalkRight = computed(() => this.canWalk('right'))
+
+  // now reactive, no mirrors
+  private _groupedFields: (keyof TTrivyReportDetailComparableDto)[] = [];
 
   constructor() {
+    // grouped fields react to column changes
     effect(() => {
-      this._isDependantOnExternalData = this.isDependantOnExternalData();
+      this._groupedFields = this.comparedTableColumns()
+        .filter((col) => col.renderType.toLowerCase().includes('stacked'))
+        .map((col) => col.field as keyof TTrivyReportDetailComparableDto);
     });
+
+    // single effect orchestrating everything
     effect(() => {
-      this._firstSelectedTrivyReportId = this.firstSelectedTrivyReportId();
-      if (this._isDependantOnExternalData) {
-        this._firstSelectedDto = undefined;
-        if (this._firstSelectedTrivyReportId) {
-          this.firstDtoRequested.emit(this._firstSelectedTrivyReportId);
+      const isDep = this.isDependantOnExternalData();
+      const data = this.dataDtos();
+      const firstId = this.firstSelectedTrivyReportId();
+      const secondId = this.secondSelectedTrivyReportId();
+      const firstDto = this.firstSelectedDto();
+      const secondDto = this.secondSelectedDto();
+
+      if (isDep) {
+        if (firstId && !firstDto) {
+          this.firstDtoRequested.emit(firstId);
+        }
+        if (secondId && !secondDto) {
+          this.secondDtoRequested.emit(secondId);
         }
       }
-      this.compareSelectedTrivyReports();
-    });
-    effect(() => {
-      this._secondSelectedTrivyReportId = this.secondSelectedTrivyReportId();
-      if (this._isDependantOnExternalData) {
-        this._secondSelectedDto = undefined;
-        if (this._secondSelectedTrivyReportId) {
-          this.secondDtoRequested.emit(this._secondSelectedTrivyReportId);
-        }
-      }
-      this.compareSelectedTrivyReports();
-    });
-    effect(() => {
-      this._dataDtos = this.dataDtos();
-      this.compareSelectedTrivyReports();
-    });
-    effect(() => {
-      this._firstSelectedDto = this.firstSelectedDto();
-      this.compareSelectedTrivyReports();
-    });
-    effect(() => {
-      this._secondSelectedDto = this.secondSelectedDto();
-      this.compareSelectedTrivyReports();
+
+      this.compareSelectedTrivyReports({
+        isDependantOnExternalData: isDep,
+        dataDtos: data,
+        firstSelectedTrivyReportId: firstId,
+        secondSelectedTrivyReportId: secondId,
+        firstSelectedDto: firstDto,
+        secondSelectedDto: secondDto,
+      });
     });
   }
 
-  ngOnInit() {
-    this._groupedFields = this.comparedTableColumns()
-      .filter((col) => col.renderType.toLowerCase().includes("stacked"))
-      .map((col) => col.field);
-  }
+  private compareSelectedTrivyReports(args: {
+    isDependantOnExternalData: boolean;
+    dataDtos?: TTrivyReportComparableDto[];
+    firstSelectedTrivyReportId?: string;
+    secondSelectedTrivyReportId?: string;
+    firstSelectedDto?: TTrivyReportComparableDto;
+    secondSelectedDto?: TTrivyReportComparableDto;
+  }) {
+    const {
+      isDependantOnExternalData,
+      dataDtos,
+      firstSelectedTrivyReportId,
+      secondSelectedTrivyReportId,
+      firstSelectedDto,
+      secondSelectedDto,
+    } = args;
 
-  compareSelectedTrivyReports() {
-    if (
-      (!this._dataDtos && !this._isDependantOnExternalData) ||
-      (!this._firstSelectedTrivyReportId && !this._secondSelectedTrivyReportId)
-    ) {
-      if (this.trivyReportDetailsCompared) {
-        this.trivyReportDetailsCompared = undefined;
-      }
+    if ((!dataDtos && !isDependantOnExternalData) || (!firstSelectedTrivyReportId && !secondSelectedTrivyReportId)) {
+      this.trivyReportDetailsCompared = undefined;
       return;
     }
 
     const detailSet = new Map<string, TrivyReportDetailComparedDto>();
 
-    const firstDto = this._isDependantOnExternalData
-      ? this._firstSelectedDto
-      : this._dataDtos?.find((tr) => tr.uid === this._firstSelectedTrivyReportId);
+    const firstDto = isDependantOnExternalData
+      ? firstSelectedDto
+      : dataDtos?.find((tr) => tr.uid === firstSelectedTrivyReportId);
 
     if (firstDto) {
       firstDto.details?.forEach((detail) => {
@@ -121,7 +132,7 @@ export class GenericReportsCompareComponent<
         if (existing) {
           this.mergeValues(existing, detail, true);
         } else {
-          const clone = { ...detail, first: true };
+          const clone: TrivyReportDetailComparedDto = { ...detail, first: true };
           this._groupedFields.forEach((field) => {
             const value = this.getPropertyAsString(clone, field);
             if (value) {
@@ -133,9 +144,9 @@ export class GenericReportsCompareComponent<
       });
     }
 
-    const secondDto = this._isDependantOnExternalData
-      ? this._secondSelectedDto
-      : this._dataDtos?.find((tr) => tr.uid === this._secondSelectedTrivyReportId);
+    const secondDto = isDependantOnExternalData
+      ? secondSelectedDto
+      : dataDtos?.find((tr) => tr.uid === secondSelectedTrivyReportId);
 
     if (secondDto) {
       secondDto.details?.forEach((detail) => {
@@ -144,7 +155,7 @@ export class GenericReportsCompareComponent<
           existing.second = true;
           this.mergeValues(existing, detail, false);
         } else {
-          const clone = { ...detail, second: true };
+          const clone: TrivyReportDetailComparedDto = { ...detail, second: true };
           this._groupedFields.forEach((field) => {
             const value = this.getPropertyAsString(clone, field);
             if (value) {
@@ -157,22 +168,66 @@ export class GenericReportsCompareComponent<
     }
 
     detailSet.forEach((item) => {
-      if (this._firstSelectedTrivyReportId) {
+      if (firstSelectedTrivyReportId) {
         item.first = item.first ?? false;
       }
-      if (this._secondSelectedTrivyReportId) {
+      if (secondSelectedTrivyReportId) {
         item.second = item.second ?? false;
       }
     });
 
-    this.trivyReportDetailsCompared = Array.from(detailSet.values());
+    const compared = Array.from(detailSet.values());
+    compared.forEach((x) => {
+      x.modified = x.modified || x.first !== x.second;
+    });
+
+    this.trivyReportDetailsCompared = compared;
   }
 
-  private mergeValues(
-    existing: TrivyReportComparableDetail,
-    incoming: TrivyReportComparableDetail,
+  swapFirstAndSecond() {
+    const first = this.firstSelectedTrivyReportId();
+    const second = this.secondSelectedTrivyReportId();
+    if (!first || !second) return;
+
+    this.firstSelectedTrivyReportId.set(second);
+    this.secondSelectedTrivyReportId.set(first);
+  }
+
+  walk(direction: 'left' | 'right') {
+    const list = this.namespacedImageDtos();
+    if (!list) return;
+
+    const firstId = this.firstSelectedTrivyReportId();
+    const secondId = this.secondSelectedTrivyReportId();
+    if (!firstId || !secondId) return;
+
+    const firstIndex = list.findIndex(x => x.uid === firstId);
+    const secondIndex = list.findIndex(x => x.uid === secondId);
+
+    // Template guarantees adjacency, so we don't validate it here.
+
+    let newFirstIndex: number;
+    let newSecondIndex: number;
+
+    if (direction === 'left') {
+      newFirstIndex = firstIndex - 1;
+      newSecondIndex = firstIndex;
+    } else {
+      newFirstIndex = secondIndex;
+      newSecondIndex = secondIndex + 1;
+    }
+
+    this.firstSelectedTrivyReportId.set(list[newFirstIndex].uid);
+    this.secondSelectedTrivyReportId.set(list[newSecondIndex].uid);
+  }
+
+    private mergeValues(
+    existing: TrivyReportDetailComparedDto,
+    incoming: TrivyReportDetailComparedDto,
     isFirst: boolean,
   ): void {
+    let modified = false;
+
     this._groupedFields.forEach((field) => {
       const existingValue = this.getPropertyAsString(existing, field);
       const incomingValue = this.getPropertyAsString(incoming, field);
@@ -185,7 +240,6 @@ export class GenericReportsCompareComponent<
       const incomingParts = incomingValue?.split('__').filter(Boolean) ?? [];
 
       const mergedFirst = isFirst ? Array.from(new Set([...firstPart, ...incomingParts])).sort() : firstPart;
-
       const mergedSecond = !isFirst ? Array.from(new Set([...secondPart, ...incomingParts])).sort() : secondPart;
 
       (existing as any)[field] = [
@@ -194,11 +248,35 @@ export class GenericReportsCompareComponent<
       ]
         .filter(Boolean)
         .join('|');
+
+      if (mergedFirst.join() !== mergedSecond.join()) {
+        modified = true;
+      }
     });
+
+    existing.modified = modified;
   }
 
-  private getPropertyAsString(dto: TrivyReportComparableDetail, key: string): string | undefined {
-    const value = (dto as any)[key];
+  private getPropertyAsString(dto: any, key: string | number | symbol): string | undefined {
+    const value = dto[key];
     return value != null ? value.toString() : undefined;
+  }
+
+  private canWalk(direction: 'left' | 'right'): boolean {
+    const list = this.namespacedImageDtos();
+    if (!list) return false;
+
+    const firstId = this.firstSelectedTrivyReportId();
+    const secondId = this.secondSelectedTrivyReportId();
+    if (!firstId || !secondId) return false;
+
+    const firstIndex = list.findIndex(x => x.uid === firstId);
+    const secondIndex = list.findIndex(x => x.uid === secondId);
+
+    if (direction === 'left') {
+      return firstIndex > 0;
+    }
+
+    return secondIndex < list.length - 1;
   }
 }
