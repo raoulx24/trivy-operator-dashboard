@@ -104,6 +104,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   style = input<{ [klass: string]: any } | undefined>({});
   stateKey = input<string | undefined>(undefined);
   rowHeight = input<number>(47);
+  miniChartMinDays = input<number>(14);
 
   trivyTableColumns = input.required<TrivyTableColumn[]>();
   //

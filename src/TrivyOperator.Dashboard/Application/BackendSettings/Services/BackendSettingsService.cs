@@ -2,11 +2,17 @@
 using TrivyOperator.Dashboard.Application.BackendSettings.Models;
 using TrivyOperator.Dashboard.Application.BackendSettings.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
+using TrivyOperator.Dashboard.Application.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Options;
+using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory;
 
 namespace TrivyOperator.Dashboard.Application.BackendSettings.Services;
 
-public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOptions<FileRepositoryOptions> frOptions)
+public class BackendSettingsService(
+    IOptions<KubernetesOptions> k8sOptions, 
+    IOptions<FileRepositoryOptions> frOptions,
+    IOptions<RetentionOptions> historyRetentionOptions,
+    IOptions<VulnerabilityReportsHistoryOptions> vrHistoryOptions)
     : IBackendSettingsService
 {
     public Task<BackendSettingsDto> GetBackendSettings()
@@ -126,11 +132,18 @@ public class BackendSettingsService(IOptions<KubernetesOptions> k8sOptions, IOpt
                         frOptions.Value.VulnerabilityReportCrSubpath
                     ),
                 },
+                new BackendSettingsTrivyReportConfigDto
+                {
+                    Id = "vrh",
+                    Name = "Vulnerability Report History",
+                    Enabled = vrHistoryOptions.Value.Enabled,
+                },
             ],
             IsDefaultContextUsed = k8sOptions.Value.UseDefaultContext,
             IsKubeConfigUsed = !string.IsNullOrWhiteSpace(k8sOptions.Value.KubeConfigFileName),
             IsNamespaceListUsed = !string.IsNullOrWhiteSpace(k8sOptions.Value.NamespaceList),
             IsFileRepositoryUsed = !string.IsNullOrWhiteSpace(frOptions.Value.BasePath),
+            VrHistoryMaxAgeDays = historyRetentionOptions.Value.KeepDays,
         };
 
         return Task.FromResult(backendSettingsDto);

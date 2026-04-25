@@ -339,6 +339,7 @@
                 <app-mini-bar-chart [dataDtos]="rowData[col.field]"
                                     tooltipTitle="mama"
                                     [height]="rowHeight()"
+                                    [minHistoryDays]="miniChartMinDays()"
                                     [gap]="0.5" />
               }
               @case ('severityDifValue') {

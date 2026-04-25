@@ -61,6 +61,7 @@ export class GenericMasterDetailComponent<
   mainTableRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
   mainTableExtraClasses = input<string | undefined>(undefined);
   mainTableMultiHeaderActions = input<MultiHeaderAction[]>([]);
+  mainTableMiniChartMinDays = input<number>(14);
 
   detailsIsClearSelectionVisible = input<boolean | undefined>(false);
   detailsIsCollapseAllVisible = input<boolean | undefined>(false);

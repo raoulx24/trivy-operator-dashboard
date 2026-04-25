@@ -83,6 +83,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Options;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
+using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory.Abstractions;
 using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory.Services.Abstractions;
@@ -419,6 +420,9 @@ public static class BuilderServicesExtensions
         bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
         bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
         bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
+        
+        services.Configure<VulnerabilityReportsHistoryOptions>(configuration.GetSection("History"));
+        services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
 
         if (!isHistoryEnabled || !useDefaultContext || useFileRepository)
         {
@@ -430,7 +434,7 @@ public static class BuilderServicesExtensions
         
         services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache"));
         services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache").GetSection("RetryOptions"));
-        services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
+        
         
         services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
         services.AddScoped<IDistributedCacheExecutor, DistributedCacheExecutor>();

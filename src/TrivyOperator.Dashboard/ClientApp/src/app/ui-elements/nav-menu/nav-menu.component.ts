@@ -109,7 +109,7 @@ export class NavMenuComponent {
           {
             label: 'Vulnerabilities History',
             icon: 'safety_check',
-            disabled: false,
+            disabled: !this.enabledTrivyReports().includes('vrh'),
             command: () => {
               this.router.navigate(['vulnerability-reports-history']);
               this.isDrawerVisible.set(false);
