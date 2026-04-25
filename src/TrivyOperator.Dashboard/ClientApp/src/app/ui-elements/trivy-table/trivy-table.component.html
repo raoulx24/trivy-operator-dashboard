@@ -2,7 +2,7 @@
   <p-table
     #trivyTable
     columnResizeMode="expand"
-    scrollHeight="flex"
+    [scrollHeight]="isFlex() ? 'flex' : undefined"
     sortMode="multiple"
     stateStorage="local"
     class="p-datatable-xs"
@@ -11,7 +11,7 @@
     [expandedRowKeys]="expandedRows()"
     [exportFilename]="_csvFileName()"
     [loading]="isLoading()"
-    [ngStyle]="{ 'flex-grow': '1', display: 'flex', 'flex-direction': 'column' }"
+    [ngStyle]="isFlex() ? _flexStyles() : {}"
     [reorderableColumns]="true"
     [resizableColumns]="true"
     [scrollable]="true"
@@ -20,8 +20,8 @@
     [stateKey]="tableStateKey"
     [tableStyle]="style()"
     [value]="_dataDtos()"
-    [virtualScroll]="true"
-    [virtualScrollItemSize]="rowHeight()"
+    [virtualScroll]="isFlex()"
+    [virtualScrollItemSize]="isFlex() ? rowHeight() : undefined"
     (onFilter)="onFilter()"
     (onRowCollapse)="onRowCollapse($event)"
     (onRowExpand)="onRowExpand($event)"

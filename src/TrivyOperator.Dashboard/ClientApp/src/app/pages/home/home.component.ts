@@ -13,6 +13,7 @@ import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-home',
@@ -26,6 +27,7 @@ import { KubernetesContextStateService } from '../../services/kubernetes-context
     TabsModule,
     ToggleSwitchModule,
     ButtonModule,
+    NgClass,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',

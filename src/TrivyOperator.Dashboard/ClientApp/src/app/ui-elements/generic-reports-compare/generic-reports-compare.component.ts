@@ -1,11 +1,15 @@
-import { Component, computed, effect, input, model, output } from '@angular/core';
+import { Component, computed, effect, input, model, output, signal } from '@angular/core';
 
 import { ButtonModule } from 'primeng/button';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TrivyReportComparable, TrivyReportComparableDetail } from '../../trivy-reports/abstracts/trivy-report';
 import { NamespaceImageSelectorComponent } from '../namespace-image-selector/namespace-image-selector.component';
 import { NamespacedImageDto } from '../namespace-image-selector/namespace-image-selector.types';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../trivy-table/trivy-table.types';
+import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import { LocalStorageUtils } from '../../utils/local-storage.utils';
 
 type TrivyReportDetailComparedDto = TrivyReportComparableDetail & {
   first?: boolean;
@@ -15,7 +19,7 @@ type TrivyReportDetailComparedDto = TrivyReportComparableDetail & {
 
 @Component({
   selector: 'app-generic-reports-compare',
-  imports: [NamespaceImageSelectorComponent, TrivyTableComponent, ButtonModule],
+  imports: [NamespaceImageSelectorComponent, TrivyTableComponent, ButtonModule, ToggleSwitchModule, FormsModule, NgClass,],
   templateUrl: './generic-reports-compare.component.html',
   styleUrl: './generic-reports-compare.component.scss',
 })
@@ -31,7 +35,10 @@ export class GenericReportsCompareComponent<
   firstSelectedTrivyReportId = model<string | undefined>();
   secondSelectedTrivyReportId = model<string | undefined>();
 
-  trivyReportDetailsCompared?: TrivyReportDetailComparedDto[];
+  protected showOnlyModified = signal<boolean>(false);
+
+  protected fullTrivyReportDetailsCompared = signal<TrivyReportDetailComparedDto[]>([]);
+
 
   compareIsCollapseAllVisible = input<boolean | undefined>(false);
   compareIsResetFiltersVisible = input<boolean | undefined>(false);
@@ -58,6 +65,12 @@ export class GenericReportsCompareComponent<
   protected canWalkLeft = computed(() => this.canWalk('left'));
   protected canWalkRight = computed(() => this.canWalk('right'))
 
+  protected trivyReportDetailsCompared = computed(() =>
+    this.showOnlyModified()
+      ? this.fullTrivyReportDetailsCompared().filter((x) => x.modified)
+      : this.fullTrivyReportDetailsCompared()
+  );
+
   // now reactive, no mirrors
   private _groupedFields: (keyof TTrivyReportDetailComparableDto)[] = [];
 
@@ -77,6 +90,7 @@ export class GenericReportsCompareComponent<
       const secondId = this.secondSelectedTrivyReportId();
       const firstDto = this.firstSelectedDto();
       const secondDto = this.secondSelectedDto();
+      const showOnlyModified = this.showOnlyModified();
 
       if (isDep) {
         if (firstId && !firstDto) {
@@ -96,6 +110,19 @@ export class GenericReportsCompareComponent<
         secondSelectedDto: secondDto,
       });
     });
+
+    effect(() => {
+      const showOnlyModified = this.showOnlyModified();
+      const keyName = LocalStorageUtils.toCamelCase(`${this.compareStateKey()}.Show Only Modified`);
+      localStorage.setItem(keyName, showOnlyModified.toString());
+    });
+  }
+
+  ngOnInit() {
+    if (this.compareStateKey()) {
+      const keyName = LocalStorageUtils.toCamelCase(`${this.compareStateKey()}.Show Only Modified`);
+      this.showOnlyModified.set(LocalStorageUtils.getBoolKeyValue(keyName) ?? true);
+    }
   }
 
   private compareSelectedTrivyReports(args: {
@@ -116,7 +143,7 @@ export class GenericReportsCompareComponent<
     } = args;
 
     if ((!dataDtos && !isDependantOnExternalData) || (!firstSelectedTrivyReportId && !secondSelectedTrivyReportId)) {
-      this.trivyReportDetailsCompared = undefined;
+      this.fullTrivyReportDetailsCompared.set([]);
       return;
     }
 
@@ -181,7 +208,7 @@ export class GenericReportsCompareComponent<
       x.modified = x.modified || x.first !== x.second;
     });
 
-    this.trivyReportDetailsCompared = compared;
+    this.fullTrivyReportDetailsCompared.set(compared);
   }
 
   swapFirstAndSecond() {

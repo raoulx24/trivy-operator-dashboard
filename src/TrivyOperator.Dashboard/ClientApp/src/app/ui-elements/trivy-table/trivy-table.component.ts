@@ -107,8 +107,9 @@ export class TrivyTableComponent<TData> implements OnInit {
   miniChartMinDays = input<number>(14);
 
   trivyTableColumns = input.required<TrivyTableColumn[]>();
-  //
   isLoading = input<boolean>(false);
+
+  isFlex = input<boolean>(true);
 
   multiHeaderActionRequested = output<string>();
   refreshRequested = output<TrivyFilterData>();
@@ -149,6 +150,11 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   protected _dataDtos = signal<TData[]>([]);
   protected _csvFileName = signal(this.csvFileName());
+  protected _flexStyles = signal({
+    'display': 'flex',
+    'flex-direction': 'column',
+    'flex-grow': '1'
+  })
   protected _rowExpandMap = new ReactiveMap<TData, TrivyTableExpandRowData<TData>>();
 
   trivyTableTotalRecords = computed(() => this._dataDtos().length);

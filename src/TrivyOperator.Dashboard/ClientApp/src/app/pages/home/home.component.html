@@ -37,7 +37,7 @@
         (onClick)="onRefreshData()"
       />
       <p-toggleswitch inputId="distinctSwitch" [(ngModel)]="showDistinctValues" />
-      <label for="distinctSwitch" class="">Distinct values</label>
+      <label for="distinctSwitch" [ngClass]="showDistinctValues() ? '' : 'text-muted-color'">Distinct values</label>
     </div>
   </p-tabpanels>
 </p-tabs>

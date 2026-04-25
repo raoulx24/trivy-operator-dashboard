@@ -44,4 +44,14 @@ export class LocalStorageUtils {
 
     return isNaN(parsedNumber) ? null : parsedNumber;
   }
+
+  public static toCamelCase(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^a-zA-Z0-9.]+/g, ' ') // keep letters, digits, dot; turn others into spaces
+      .trim()
+      .split(/\s+/) // split on spaces
+      .map((word, index) => (index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+      .join('');
+  }
 }

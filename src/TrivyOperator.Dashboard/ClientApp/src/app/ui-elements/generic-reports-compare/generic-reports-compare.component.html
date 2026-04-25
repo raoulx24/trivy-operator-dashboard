@@ -17,16 +17,16 @@
     [disabled]="isWalkingEnabledInternal()"
     [(selectedImageId)]="secondSelectedTrivyReportId"
   />
-  <div class="col-span-12 xl:col-span-4 lg:col-span-6">
-  @if (!isWalkingEnabledInternal()) {
-    <p-button icon="pi pi-arrow-right-arrow-left"
-              raised
-              size="small"
-              text
-              [disabled]="(!firstSelectedTrivyReportId() || !secondSelectedTrivyReportId())"
-              label="Swap items"
-              (onClick)="swapFirstAndSecond()" />
-  } @else {
+  <div class="col-span-12 xl:col-span-4 lg:col-span-6 flex items-center text-sm gap-4">
+    @if (!isWalkingEnabledInternal()) {
+      <p-button icon="pi pi-arrow-right-arrow-left"
+                raised
+                size="small"
+                text
+                [disabled]="(!firstSelectedTrivyReportId() || !secondSelectedTrivyReportId())"
+                label="Swap items"
+                (onClick)="swapFirstAndSecond()" />
+    } @else {
       <p-button icon="pi pi-arrow-left"
                 raised
                 size="small"
@@ -42,14 +42,19 @@
                 [disabled]="!canWalkRight()"
                 label="Walk right"
                 (onClick)="walk('right')" />
-  }
+
+
+    }
+    <p-toggleswitch [ngModel]="showOnlyModified()"
+                    (ngModelChange)="showOnlyModified.set($event)"/>
+    <span class="text-sm" [ngClass]="showOnlyModified() ? '' : 'text-muted-color'">Only Modified</span>
   </div>
 </div>
 <div class="tod-content-border">
   <app-trivy-table
     class="row"
     [activeNamespaces]="[]"
-    [dataDtos]="trivyReportDetailsCompared"
+    [dataDtos]="trivyReportDetailsCompared()"
     [extraClasses]="compareExtraClasses()"
     [isCollapseAllVisible]="compareIsCollapseAllVisible()"
     [isResetFiltersVisible]="compareIsResetFiltersVisible()"

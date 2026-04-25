@@ -1,32 +1,28 @@
 <div class="grid grid-cols-12 gap-2 items-stretch">
   <!-- Namespace selector -->
   <div class="flex w-full" [ngClass]="firstLonger() ? 'col-span-8' : 'col-span-4'">
-    <p-select
-      class="text-sm w-full"
-      [disabled]="disabled() || activeNamespaces().length === 0"
-      [filter]="true"
-      [ngModel]="selectedNamespace()"
-      [options]="activeNamespaces()"
-      [placeholder]="namespacePlaceholder()"
-      [showClear]="true"
-      (ngModelChange)="selectedNamespace.set($event)"
-    ></p-select>
+    <p-select class="text-sm w-full"
+              [disabled]="disabled() || activeNamespaces().length === 0"
+              [filter]="true"
+              [ngModel]="selectedNamespace()"
+              [options]="activeNamespaces()"
+              [placeholder]="namespacePlaceholder()"
+              [showClear]="true"
+              (ngModelChange)="selectedNamespace.set($event)" />
   </div>
 
   <!-- Image selector -->
   <div class="flex items-center gap-2 justify-center" [ngClass]="firstLonger() ? 'col-span-4' : 'col-span-8'">
-    <p-select
-      appendTo="body"
-      optionLabel="mainLabel"
-      class="text-sm w-full"
-      [disabled]="disabled() || activeNamespaces().length === 0"
-      [filter]="true"
-      [ngModel]="selectedImageDto()"
-      [options]="imageDtos()"
-      [placeholder]="imagePlaceholder()"
-      [showClear]="true"
-      (ngModelChange)="setImage($event?.uid)"
-    >
+    <p-select appendTo="body"
+              optionLabel="mainLabel"
+              class="text-sm w-full"
+              [disabled]="disabled() || activeNamespaces().length === 0"
+              [filter]="true"
+              [ngModel]="selectedImageDto()"
+              [options]="imageDtos()"
+              [placeholder]="imagePlaceholder()"
+              [showClear]="true"
+              (ngModelChange)="setImage($event?.uid)" >
       <ng-template let-imageDto pTemplate="item">
         <div class="flex items-center gap-2 w-full overflow-hidden text-sm">
           @if (imageDto.group) {
