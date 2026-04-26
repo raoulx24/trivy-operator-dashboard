@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.Metrics;
-using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 

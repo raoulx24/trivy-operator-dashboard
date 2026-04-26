@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.Metrics;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Clients;

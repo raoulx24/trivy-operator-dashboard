@@ -109,12 +109,12 @@ export const routes: Routes = [
 
   {
     path: 'vulnerability-reports-history',
-    loadComponent: () => import('./trivy-reports/vulnerability-reports-history/vulnerability-reports-history.component').then((m) => m.VulnerabilityReportsHistoryComponent),
+    loadComponent: () => import('./history-reports/vulnerability-reports-history/vulnerability-reports-history.component').then((m) => m.VulnerabilityReportsHistoryComponent),
     data: { title: 'Vulnerability Reports History' },
   },
   {
     path: 'vulnerability-reports-history-detailed',
-    loadComponent: () => import('./trivy-reports/vulnerability-reports-history-detailed/vulnerability-reports-history-detailed.component').then((m) => m.VulnerabilityReportsHistoryDetailedComponent),
+    loadComponent: () => import('./history-reports/vulnerability-reports-history-detailed/vulnerability-reports-history-detailed.component').then((m) => m.VulnerabilityReportsHistoryDetailedComponent),
     data: { title: 'Vulnerability Reports History Detailed' },
   },
 
