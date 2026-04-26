@@ -1,0 +1,13 @@
+{{- if and .Values.history.enabled .Values.history.distributedCache.sidecar.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "trivy-operator-dashboard.fullname" . }}-dc-data
+spec:
+  accessModes:
+  - {{ .Values.history.distributedCache.sidecar.pvc.accessModes }}
+  storageClassName: managed-csi-premium
+  resources:
+    requests:
+      storage: {{ .Values.history.distributedCache.sidecar.pvc.size }}
+{{- end }}

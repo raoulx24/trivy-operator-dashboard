@@ -91,6 +91,24 @@ spec:
         - name: FILEREPOSITORY__VULNERABILITYREPORTCRSUBPATH
           value: {{ .Values.fileRepository.vulnerabilityReportCrSubpath | quote }}
         {{- end }}
+        - name: HISTORY__ENABLED
+          value: "{{ .Values.history.enabled }}"
+        {{- if .Values.history.enabled }}
+        - name: HISTORY__RETENTION__RUNINTERVALINMINUTES
+          value: "{{ .Values.history.retention.runIntervalInMinutes }}"
+        - name: HISTORY__RETENTION__KEEPDAYS
+          value: "{{ .Values.history.retention.keepDays }}"
+        - name: HISTORY__RETENTION__KEEPLAST
+          value: "{{ .Values.history.retention.keepLast }}"
+        - name: HISTORY__DISTRIBUTEDCACHE__CONNECTIONSTRING
+          value: "{{ .Values.history.distributedCache.connectionString }}"
+        - name: HISTORY__DISTRIBUTEDCACHE__RETRYOPTIONS__MAXRETRIES
+          value: "{{ .Values.history.distributedCache.retryOptions.maxRetries }}"
+        - name: HISTORY__DISTRIBUTEDCACHE__RETRYOPTIONS__INITIALDELAY
+          value: "{{ .Values.history.distributedCache.retryOptions.initialDelay }}"
+        - name: HISTORY__DISTRIBUTEDCACHE__RETRYOPTIONS__MAXDELAY
+          value: "{{ .Values.history.distributedCache.retryOptions.maxDelay }}"
+        {{- end }}
         - name: GITHUB__SERVERCHECKFORUPDATES
           value: {{ .Values.gitHub.serverCheckForUpdates | quote }}
         - name: GITHUB__CHECKFORUPDATESINTERVALINMINUTES
@@ -145,6 +163,24 @@ spec:
           {{- toYaml .Values.readinessProbe | nindent 10 }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
+      {{- if and .Values.history.enabled .Values.history.distributedCache.sidecar.enabled }}
+      - name: distributed-cache
+        image: {{ .Values.history.distributedCache.sidecar.image.name }}:{{ .Values.history.distributedCache.sidecar.image.tag }}
+        args:
+        - "valkey-server"
+        - "--bind"
+        - "127.0.0.1"
+        - "--port"
+        - "6379"
+        - "--save"
+        - "60"
+        - "100"
+        volumeMounts:
+        - name: dc-data
+          mountPath: /data
+        securityContext:
+          {{- toYaml .Values.history.distributedCache.sidecar.securityContext | nindent 10 }}
+      {{- end }}
       volumes:
       - name: tmp-volume
         emptyDir:
@@ -161,6 +197,11 @@ spec:
       - name: file-repo
         persistentVolumeClaim:
           claimName: {{ .Values.fileRepository.pvcName }} 
+      {{- end }}
+      {{- if and .Values.history.enabled .Values.history.distributedCache.sidecar.enabled }}
+      - name: dc-data
+        persistentVolumeClaim:
+          claimName:  {{ include "trivy-operator-dashboard.fullname" . }}-dc-data
       {{- end }}
       
       {{- with .Values.nodeSelector }}

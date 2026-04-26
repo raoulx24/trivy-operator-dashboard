@@ -25,8 +25,8 @@ kubernetes:
 fileRepository:
   enabled: false                                          # true, false
   # important: if enabled, you should also set affinity and user (now, trivy user id in TO is 10000)
-  # as of 2026-01-18, only the ones with Subpath not empty work
-  # see https://github.com/raoulx24/trivy-operator-dashboard/issues/7
+  # important: as of 2026-01-18, only the ones with Subpath not empty work
+  #   see https://github.com/raoulx24/trivy-operator-dashboard/issues/7
   pvcName: "trivy-operator-pvc"                           # the pvc name of trivy operator
   basePath: "/var/lib/trivy-operator"                     # where the pcv will be mounted and consumed by TOD
   clusterComplianceReportCrSubpath: "cluster_compliance_report"
@@ -40,7 +40,34 @@ fileRepository:
   rbacAssessmentReportCrSubpath: ""
   sbomReportCrSubpath: "sbom_reports"
   vulnerabilityReportCrSubpath: "vulnerability_reports"
- 
+
+history:
+  enabled: true
+  retention:
+    runIntervalInMinutes: 360
+    keepDays: 14
+    keepLast: 2
+  distributedCache:
+    connectionString: "localhost:6379,ssl=False,abortConnect=False"
+    retryOptions:
+      maxRetries: 5
+      initialDelay: "50ms"
+      maxDelay: "1s"
+    sidecar:
+      enabled: true
+      image:
+        name: valkey/valkey
+        tag: 7.2
+      pvc:
+        accessModes: ReadWriteOnce
+        size: 1Gi
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
 
 gitHub:
   serverCheckForUpdates: true
@@ -66,7 +93,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/raoulx24/trivy-operator-dashboard
   pullPolicy: Always
-  tag: "1.8.0"
+  tag: "1.9.0"
 
 imagePullSecrets: []
 
@@ -86,16 +113,16 @@ podLabels:
   app.kubernetes.io/component: web
   app.kubernetes.io/part-of: trivy-operator
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  fsGroup: 1000
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 10000
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
 
 service:
   type: ClusterIP
