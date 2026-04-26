@@ -434,7 +434,9 @@ public static class BuilderServicesExtensions
         
         services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache"));
         services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache").GetSection("RetryOptions"));
-        
+
+        services.AddSingleton<DistributedCacheConnectionProvider>();
+        services.AddHostedService<DistributedCacheConnectionProvider>();
         
         services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
         services.AddScoped<IDistributedCacheExecutor, DistributedCacheExecutor>();

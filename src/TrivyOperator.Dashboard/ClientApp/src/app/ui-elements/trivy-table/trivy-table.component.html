@@ -399,10 +399,10 @@
                     <p-tag [value]="values[0] | severityNameById"
                            [rounded]="true"
                            [style]="values[0] | severityCssStyleById : 1" />
-                    <span class="text-xs opacity-70">⇅</span>
+                    <span class="text-lg opacity-70">{{ values[0] < values[1] ? '⮝' : '⮟' }}</span>
                     <p-tag [value]="values[1] | severityNameById"
                            [rounded]="true"
-                           [style]="values[1] | severityCssStyleById : 1" />
+                           [style]="values[1] | severityCssStyleById : 1 " />
                   </div>
                 }
               }

@@ -11,6 +11,13 @@ public class DistributedCacheExecutor(
     ILogger<DistributedCacheExecutor> logger)
     : IDistributedCacheExecutor
 {
+    // WARNING: This operation may be retried on transient Redis failures.
+    // The provided delegate MUST be idempotent and safe to execute multiple times
+    // without causing inconsistent state or duplicate side effects
+    // Example:
+    // var value = await executor.ExecuteAsync(db => db.StringGetAsync(key));
+    // var updated = Transform(value);
+    // await executor.ExecuteAsync(db => db.StringSetAsync(key, updated));
     public async Task<T> ExecuteAsync<T>(Func<IDatabase, Task<T>> action, CancellationToken ct = default)
     {
         int attempt = 0;
@@ -20,27 +27,31 @@ public class DistributedCacheExecutor(
         {
             try
             {
-                return await action(factory.GetDatabase());
+                IDatabase db = await factory.GetDatabase(ct);
+                return await action(db);
             }
-            catch (RedisConnectionException ex) when (attempt < options.Value.MaxRetries)
+            catch (Exception ex) when (ex is RedisConnectionException or RedisTimeoutException &&
+                                       attempt < options.Value.MaxRetries)
             {
                 if (attempt == 0)
                 {
-                    logger.LogWarning(ex, "Transient DistributedCache connection failure on attempt. Retrying...");    
+                    logger.LogWarning(
+                        ex,
+                        "Distributed Cache failure (attempt {Attempt}/{MaxRetries}). Retrying in {Delay}...",
+                        attempt + 1,
+                        options.Value.MaxRetries,
+                        delay
+                    );
                 }
+
                 delay = Backoff.DecorrelatedJitter(delay, options.Value.InitialDelay, options.Value.MaxDelay);
-                await Task.Delay(delay, ct);
                 attempt++;
+                await Task.Delay(delay, ct);
             }
-            catch (RedisTimeoutException ex) when (attempt < options.Value.MaxRetries)
+            catch (Exception ex) when (ex is not RedisConnectionException and not RedisTimeoutException)
             {
-                if (attempt == 0)
-                {
-                    logger.LogWarning(ex, "Timeout DistributedCache connection failure on attempt. Retrying...");    
-                }
-                delay = Backoff.DecorrelatedJitter(delay, options.Value.InitialDelay, options.Value.MaxDelay);
-                await Task.Delay(delay, ct);
-                attempt++;
+                logger.LogError(ex, "Non-retryable Distributed Cache error.");
+                throw;
             }
         }
     }

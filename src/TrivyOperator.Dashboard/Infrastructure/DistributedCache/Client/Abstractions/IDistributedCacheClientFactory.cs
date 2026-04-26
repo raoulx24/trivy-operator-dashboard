@@ -4,7 +4,6 @@ namespace TrivyOperator.Dashboard.Infrastructure.DistributedCache.Client.Abstrac
 
 public interface IDistributedCacheClientFactory
 {
-    IDatabase GetDatabase();
-    ISubscriber GetSubscriber();
-    void Dispose();
+    Task<IDatabase> GetDatabase(CancellationToken ct = default);
+    Task<ISubscriber> GetSubscriber(CancellationToken ct = default);
 }
