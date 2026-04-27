@@ -42,7 +42,7 @@ public static class DistributedCachePrimitives
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to cast RedisValue to byte[] for key {redisKey}, field {field}",
+                "Failed to cast RedisValue to byte[] for key {distributedCacheKey}, field {field}",
                 key.ToString(), field.ToString());
             return null;
         }
@@ -67,7 +67,7 @@ public static class DistributedCachePrimitives
         if (value.IsNullOrEmpty)
         {
             logger.LogError(
-                "Field {field} in key {redisKey} is null or empty when expecting JSON for type {type}",
+                "Field {field} in key {distributedCacheKey} is null or empty when expecting JSON for type {type}",
                 field.ToString(), key.ToString(), typeof(T).FullName);
             return default;
         }
@@ -80,7 +80,7 @@ public static class DistributedCachePrimitives
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to deserialize JSON for key {redisKey}, field {field}, type {type}",
+                "Failed to deserialize JSON for key {distributedCacheKey}, field {field}, type {type}",
                 key.ToString(), field.ToString(), typeof(T).FullName);
             return default;
         }
@@ -105,7 +105,7 @@ public static class DistributedCachePrimitives
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to decompress or deserialize compressed JSON for key {redisKey}, field {field}, type {type}",
+                "Failed to decompress or deserialize compressed JSON for key {distributedCacheKey}, field {field}, type {type}",
                 key.ToString(), field.ToString(), typeof(T).FullName);
             return default;
         }
@@ -130,7 +130,7 @@ public static class DistributedCachePrimitives
         if (value.IsNullOrEmpty)
         {
             logger.LogError(
-                "Field {field} in key {redisKey} is null or empty when expecting string",
+                "Field {field} in key {distributedCacheKey} is null or empty when expecting string",
                 field.ToString(), key.ToString());
             return null;
         }
@@ -142,7 +142,7 @@ public static class DistributedCachePrimitives
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to convert RedisValue to string for key {redisKey}, field {field}",
+                "Failed to convert RedisValue to string for key {distributedCacheKey}, field {field}",
                 key.ToString(), field.ToString());
             return null;
         }
@@ -165,7 +165,7 @@ public static class DistributedCachePrimitives
         }
 
         logger.LogError(
-            "Invalid timestamp format in key {redisKey}, field {field}, value {value}",
+            "Invalid timestamp format in key {distributedCacheKey}, field {field}, value {value}",
             key.ToString(), field.ToString(), value);
         return null;
     }
@@ -193,7 +193,7 @@ public static class DistributedCachePrimitives
             return false;
 
         logger.LogError(
-            "Invalid boolean format in key {redisKey}, field {field}, value {value}",
+            "Invalid boolean format in key {distributedCacheKey}, field {field}, value {value}",
             key.ToString(), field.ToString(), value);
         return null;
     }

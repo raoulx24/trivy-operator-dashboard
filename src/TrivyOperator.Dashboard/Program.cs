@@ -327,7 +327,7 @@ static async Task CheckDistributedCacheConnectivity(IConfiguration configuration
 
             conn.Dispose();
 
-            Logger?.LogInformation("Redis connectivity check succeeded.");
+            Logger?.LogInformation("Distributed Cache connectivity check succeeded.");
             return;
         }
         catch (OperationCanceledException) when (overallCts.IsCancellationRequested)
@@ -336,7 +336,7 @@ static async Task CheckDistributedCacheConnectivity(IConfiguration configuration
         }
         catch (Exception ex)
         {
-            Logger?.LogWarning(ex, "Redis not reachable, retrying in {Delay}", delay);
+            Logger?.LogWarning(ex, "Distributed Cache (Redis/Valkey) is not reachable, retrying in {Delay}", delay);
 
             try
             {

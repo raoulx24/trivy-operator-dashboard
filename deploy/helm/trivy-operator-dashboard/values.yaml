@@ -60,7 +60,7 @@ history:
         tag: 7.2
       pvc:
         accessModes: ReadWriteOnce
-        size: 1Gi
+        size: 10Gi
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
