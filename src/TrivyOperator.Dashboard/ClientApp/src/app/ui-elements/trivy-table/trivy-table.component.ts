@@ -103,7 +103,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
   style = input<{ [klass: string]: any } | undefined>({});
   stateKey = input<string | undefined>(undefined);
-  rowHeight = input<number>(47);
+  rowHeight = input<number>(39);
   miniChartMinDays = input<number>(14);
 
   trivyTableColumns = input.required<TrivyTableColumn[]>();
@@ -170,6 +170,8 @@ export class TrivyTableComponent<TData> implements OnInit {
   });
 
   protected rowHeightPx = computed(() => { return `${this.rowHeight()}px` });
+  protected fullRowHeight = computed(() => { return this.rowHeight() + 8 });
+  protected fullRowHeightPx = computed(() => { return `${this.rowHeight() + 8}px` });
 
   constructor() {
     effect(() => {

@@ -21,7 +21,7 @@
     [tableStyle]="style()"
     [value]="_dataDtos()"
     [virtualScroll]="isFlex()"
-    [virtualScrollItemSize]="isFlex() ? rowHeight() : undefined"
+    [virtualScrollItemSize]="isFlex() ? fullRowHeight() : undefined"
     (onFilter)="onFilter()"
     (onRowCollapse)="onRowCollapse($event)"
     (onRowExpand)="onRowExpand($event)"
@@ -200,7 +200,7 @@
       </tr>
     </ng-template>
     <ng-template let-columns="columns" let-expanded="expanded" let-rowData let-rowIndex="rowIndex" pTemplate="body">
-      <tr [style.height] = rowHeightPx() [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
+      <tr [style.height] = fullRowHeightPx() [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
         @if (dataKey()) {
           <td style="max-width: 50px">
             <p-button
@@ -349,7 +349,7 @@
                        [value]="rowData[col.field] | vulnerabilityCount : 'hideZeroes'" />
               }
               @case ('doubleStackedSpans') {
-                 <div class="flex flex-col h-full" [style.height]="rowHeight()+'px'">
+                 <div class="flex flex-col h-full" [style.height]="rowHeightPx()">
                   <div class="flex-1 flex items-center justify-left">
                     <span>{{ col.extraFields?.[0] ?? '' }}</span>
                   </div>
@@ -365,7 +365,7 @@
                 @let showBorder = (col.extraFields?.[2] ?? 'true') === 'true';
                 @let showArrow = (col.extraFields?.[3] ?? 'true') === 'true';
                 @let negativeCount = (rowData[col.extraFields?.[1]] ?? 0) * (-1);
-                <div class="flex flex-col h-full" [style.height]="rowHeight()+'px'">
+                <div class="flex flex-col h-full" [style.height]="rowHeightPx()">
                   <div class="flex-1 flex items-center justify-end">
                     <p-tag class="mb-2 mt-1"
                            [rounded]="true"
