@@ -1,5 +1,4 @@
 ﻿using k8s;
-using k8s.Autorest;
 using k8s.Models;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Abstractions;
@@ -36,10 +35,11 @@ public class FileTrivyReportPassThroughDomainService<TTrivyReport, TTrivyReportL
     public Task<IList<TTrivyReport>> GetResources(string namespaceName, CancellationToken? cancellationToken = null) =>
         fileTrivyReportDomainService.GetAllReportsAsync(namespaceName, cancellationToken);
 
-    public Task<HttpOperationResponse<TTrivyReportList>> GetResourceWatchList(
+    public IAsyncEnumerable<WatchEvent<TTrivyReport>> GetResourceWatchList(
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
+        Action<Exception> onError = null,
         CancellationToken? cancellationToken = null
     ) => throw new NotImplementedException();
 }

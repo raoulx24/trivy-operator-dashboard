@@ -1,6 +1,6 @@
 ﻿using k8s;
-using k8s.Autorest;
 using k8s.Models;
+using System.Text.Json;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
@@ -62,21 +62,33 @@ public class NamespacedTrivyReportDomainService<TKubernetesObject>(
             cancellationToken ?? CancellationToken.None
         );
 
-    public override Task<HttpOperationResponse<CustomResourceList<TKubernetesObject>>> GetResourceWatchList(
+    public override async IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
+        Action<Exception> onError = null,
         CancellationToken? cancellationToken = null
-    ) => GetKubernetesClient()
-        .CustomObjects.ListNamespacedCustomObjectWithHttpMessagesAsync<CustomResourceList<TKubernetesObject>>(
-            TrivyReportCrd.Group,
-            TrivyReportCrd.Version,
-            namespaceName,
-            TrivyReportCrd.PluralName,
-            watch: true,
-            resourceVersion: lastResourceVersion,
-            allowWatchBookmarks: true,
-            timeoutSeconds: timeoutSeconds,
-            cancellationToken: cancellationToken ?? CancellationToken.None
-        );
+    )
+    {
+        IAsyncEnumerable<(WatchEventType, object)> watchStream = GetKubernetesClient()
+            .CustomObjects.WatchListNamespacedCustomObjectAsync(
+                TrivyReportCrd.Group,
+                TrivyReportCrd.Version,
+                namespaceName,
+                TrivyReportCrd.PluralName,
+                resourceVersion: lastResourceVersion,
+                allowWatchBookmarks: true,
+                timeoutSeconds: timeoutSeconds,
+                onError: onError,
+                cancellationToken: cancellationToken ?? CancellationToken.None
+            );
+        await foreach ((WatchEventType type, object item) in watchStream)
+        {
+            yield return new WatchEvent<TKubernetesObject>
+            {
+                Type = type,
+                Object = KubernetesJson.Deserialize<TKubernetesObject>(((JsonElement)item).GetRawText()),
+            };
+        }
+    }
 }

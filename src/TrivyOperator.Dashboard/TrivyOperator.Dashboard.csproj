@@ -5,7 +5,7 @@
         <Runtimeidentifiers>win-x64;linux-x64;linux-arm64</Runtimeidentifiers>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <SpaRoot>ClientApp\</SpaRoot>
+        <SpaRoot>ClientApp/</SpaRoot>
         <SpaProxyServerUrl>http://localhost:4200</SpaProxyServerUrl>
         <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -17,7 +17,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="KubernetesClient" Version="18.0.13" />
+        <PackageReference Include="KubernetesClient" Version="19.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.7" />
         <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.7" />
         <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.15.3" />
@@ -45,8 +45,8 @@
         <!-- Don't publish the SPA source files, but do show them in the project files list -->
         <Content Remove="$(SpaRoot)**" />
         <None Remove="$(SpaRoot)**" />
-        <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
-        <Content Update="wwwroot\favicon.ico">
+        <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules/**" />
+        <Content Update="wwwroot/favicon.ico">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <None Include="packages.lock.json">
@@ -71,9 +71,9 @@
 
         <!-- Include the newly-built files in the publish output -->
         <ItemGroup>
-            <DistFiles Include="$(SpaRoot)dist\**; $(SpaRoot)dist-server\**" />
+            <DistFiles Include="$(SpaRoot)dist/**; $(SpaRoot)dist-server/**" />
             <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
-                <RelativePath>wwwroot\%(RecursiveDir)%(FileName)%(Extension)</RelativePath>
+                <RelativePath>wwwroot/%(RecursiveDir)%(FileName)%(Extension)</RelativePath>
                 <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
                 <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
             </ResolvedFileToPublish>

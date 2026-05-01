@@ -1,5 +1,4 @@
 ﻿using k8s;
-using k8s.Autorest;
 using k8s.Models;
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstractions;
@@ -30,13 +29,15 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
     where TKubernetesWatcherEvent : IWatcherEvent<TKubernetesObject>, new()
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
-    protected override Task<HttpOperationResponse<TKubernetesObjectList>> GetKubernetesObjectWatchList(
+    protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         string watcherKey,
         string? lastResourceVersion,
+        Action<Exception> onError = null,
         CancellationToken? cancellationToken = null
     ) => clusterScopResourceWatchDomainService.GetResourceWatchList(
         lastResourceVersion,
         GetWatcherRandomTimeout(),
+        onError,
         cancellationToken
     );
 

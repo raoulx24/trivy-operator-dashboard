@@ -1,5 +1,4 @@
 ﻿using k8s;
-using k8s.Autorest;
 using k8s.Models;
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstractions;
@@ -42,14 +41,16 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
         await Task.WhenAll(tasks);
     }
 
-    protected override Task<HttpOperationResponse<TKubernetesObjectList>> GetKubernetesObjectWatchList(
+    protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         string watcherKey,
         string? lastResourceVersion,
+        Action<Exception> onError = null,
         CancellationToken? cancellationToken = null
     ) => namespacedResourceWatchDomainService.GetResourceWatchList(
         watcherKey,
         lastResourceVersion,
         GetWatcherRandomTimeout(),
+        onError,
         cancellationToken
     );
 

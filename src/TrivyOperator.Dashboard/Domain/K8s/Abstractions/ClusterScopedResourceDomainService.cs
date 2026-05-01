@@ -1,5 +1,4 @@
 ﻿using k8s;
-using k8s.Autorest;
 using k8s.Models;
 using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
 
@@ -30,9 +29,10 @@ public abstract class ClusterScopedResourceDomainService<TKubernetesObject, TKub
         CancellationToken? cancellationToken = null
     );
 
-    public abstract Task<HttpOperationResponse<TKubernetesObjectList>> GetResourceWatchList(
+    public abstract IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
+        Action<Exception> onError = null,
         CancellationToken? cancellationToken = null
     );
 }

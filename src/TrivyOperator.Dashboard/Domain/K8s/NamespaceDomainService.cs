@@ -1,5 +1,4 @@
 ﻿using k8s;
-using k8s.Autorest;
 using k8s.Models;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
@@ -24,16 +23,28 @@ public class NamespaceDomainService(IKubernetesClientFactory kubernetesClientFac
             cancellationToken: cancellationToken ?? CancellationToken.None
         );
 
-    public override Task<HttpOperationResponse<V1NamespaceList>> GetResourceWatchList(
+    public override async IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
+        Action<Exception> onError = null,
         CancellationToken? cancellationToken = null
-    ) => GetKubernetesClient()
-        .CoreV1.ListNamespaceWithHttpMessagesAsync(
-            watch: true,
-            resourceVersion: lastResourceVersion,
-            allowWatchBookmarks: true,
-            timeoutSeconds: timeoutSeconds,
-            cancellationToken: cancellationToken ?? CancellationToken.None
-        );
+    )
+    {
+        IAsyncEnumerable<(WatchEventType, V1Namespace)> watchStream = GetKubernetesClient()
+            .CoreV1.WatchListNamespaceAsync(
+                resourceVersion: lastResourceVersion,
+                allowWatchBookmarks: true,
+                timeoutSeconds: timeoutSeconds,
+                onError: onError,
+                cancellationToken: cancellationToken ?? CancellationToken.None
+            );
+        await foreach ((WatchEventType type, V1Namespace item) in watchStream)
+        {
+            yield return new WatchEvent<V1Namespace>
+            {
+                Type = type,
+                Object = item,
+            };
+        }
+    }
 }

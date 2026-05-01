@@ -1,5 +1,4 @@
 ﻿using k8s;
-using k8s.Autorest;
 using k8s.Models;
 
 namespace TrivyOperator.Dashboard.Domain.K8s.Abstractions;
@@ -24,10 +23,11 @@ public interface INamespacedResourceWatchDomainService<TKubernetesObject, TKuber
     Task<IList<TKubernetesObject>> GetResources(CancellationToken? cancellationToken = null);
     Task<IList<TKubernetesObject>> GetResources(string namespaceName, CancellationToken? cancellationToken = null);
 
-    Task<HttpOperationResponse<TKubernetesObjectList>> GetResourceWatchList(
+    IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
+        Action<Exception> onError = null,
         CancellationToken? cancellationToken = null
     );
 }
