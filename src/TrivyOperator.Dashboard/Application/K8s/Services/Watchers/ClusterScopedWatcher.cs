@@ -32,7 +32,7 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
     protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         string watcherKey,
         string? lastResourceVersion,
-        Action<Exception> onError = null,
+        Action<Exception>? onError = null,
         CancellationToken? cancellationToken = null
     ) => clusterScopResourceWatchDomainService.GetResourceWatchList(
         lastResourceVersion,

@@ -56,7 +56,7 @@ public class ClusterScopedTrivyReportDomainService<TKubernetesObject>(
     public override async IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        Action<Exception> onError = null,
+        Action<Exception>? onError = null,
         CancellationToken? cancellationToken = null
     )
     {

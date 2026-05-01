@@ -44,7 +44,7 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
     protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         string watcherKey,
         string? lastResourceVersion,
-        Action<Exception> onError = null,
+        Action<Exception>? onError = null,
         CancellationToken? cancellationToken = null
     ) => namespacedResourceWatchDomainService.GetResourceWatchList(
         watcherKey,

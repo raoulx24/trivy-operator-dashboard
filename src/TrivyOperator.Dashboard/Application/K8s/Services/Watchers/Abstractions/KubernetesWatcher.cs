@@ -316,8 +316,8 @@ public abstract class
     protected abstract IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         string watcherKey,
         string? lastResourceVersion,
-        Action<Exception> onError,
-        CancellationToken? cancellationToken
+        Action<Exception>? onError = null,
+        CancellationToken? cancellationToken = null
     );
 
     protected virtual void ProcessReceivedKubernetesObject(TKubernetesObject kubernetesObject)

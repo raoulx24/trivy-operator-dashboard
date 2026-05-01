@@ -26,7 +26,7 @@ public class NamespaceDomainService(IKubernetesClientFactory kubernetesClientFac
     public override async IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        Action<Exception> onError = null,
+        Action<Exception>? onError = null,
         CancellationToken? cancellationToken = null
     )
     {
