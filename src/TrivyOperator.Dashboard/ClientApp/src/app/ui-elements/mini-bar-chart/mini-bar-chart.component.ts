@@ -32,6 +32,7 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   tooltipTitle = input<string>('');
   height = input<number>(39);
   gap = input<number>(0.5);
+  highlightedDays = input<number>(4);
 
   @ViewChild('miniBarChart', { static: false })
   private tooltipComponentRef?: ComponentRef<TrivyReportSeveritiesDeltaComponent>;
@@ -162,6 +163,21 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
     const y = (max / range) * this.height();
     return Math.min(this.height() - 1, Math.max(1, y));
   });
+
+  highlightMask = computed(() => {
+    const days = this.internalDataDtos();
+    const n = this.highlightedDays();
+
+    if (days.length === 0 || n <= 0) {
+      return days.map(() => false);
+    }
+
+    // Highlight last N entries
+    const startIndex = Math.max(0, days.length - n);
+
+    return days.map((_, i) => i >= startIndex);
+  });
+
 
   private overlayRef?: OverlayRef;
 

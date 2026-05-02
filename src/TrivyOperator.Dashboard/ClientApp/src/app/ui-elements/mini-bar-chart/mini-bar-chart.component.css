@@ -9,3 +9,8 @@
   stroke: var(--tod-text-primary-color);
   stroke-width: 0.25px;
 }
+
+.mini-bar-chart-hover-effect {
+  transition: opacity 0.25s ease-in-out, transform 0.15s ease, filter 0.15s ease;
+  /*transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);*/
+}
