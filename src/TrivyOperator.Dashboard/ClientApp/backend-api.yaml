@@ -1704,6 +1704,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/vulnerability-reports-history/reprocess-snapshots:
+    post:
+      tags:
+        - VulnerabilityReportsHistory
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/watcher-status:
     get:
       tags:
@@ -3705,11 +3729,11 @@ components:
     VulnerabilityReportHistoryImageDto:
       required:
         - details
+        - firstSeenAt
         - imageDigest
         - imageName
         - imageRepository
         - imageTag
-        - lastSeenAt
         - resourceNamespace
         - uid
       type: object
@@ -3727,7 +3751,7 @@ components:
           type: string
         imageRepository:
           type: string
-        lastSeenAt:
+        firstSeenAt:
           type: string
           format: date-time
         details:
