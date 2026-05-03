@@ -246,6 +246,10 @@ p-splitter.tod-splitter-no-borders {
   color: var(--p-text-muted-color);
 }
 
+//.tod-text-muted-color:hover {
+//  color: var(--tod-text-primary-color);
+//}
+
 tr.p-datatable-row-selected .tod-text-muted-color,
 tr.p-treetable-row-selected .tod-text-muted-color {
   color: var(--tod-text-revert-muted-color);
@@ -363,4 +367,24 @@ p-select.text-sm input.p-select-filter {
   border-radius: 4px;
   padding: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+/* p-inputnumber */
+.p-inputnumber-sm {
+  font-size: 0.875rem; /* text-sm */
+}
+
+.p-inputnumber-sm .p-inputtext {
+  @apply text-sm py-1 px-2;
+  height: 2rem; /* shrink height */
+  width: 80px;
+}
+
+.p-inputnumber-sm .p-button {
+  width: 2rem;
+  height: 2rem;
+}
+
+.p-inputnumber-sm .p-inputnumber-input {
+  @apply text-sm;
 }
