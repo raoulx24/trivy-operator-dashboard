@@ -1,27 +1,33 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { DatePipe } from '@angular/common';
 
 @Pipe({
-  name: 'localTime',
+  name: 'friendlyTime',
   standalone: true,
 })
-export class LocalTimePipe implements PipeTransform {
-  transform(data: string | undefined): string {
+export class FriendlyTimePipe implements PipeTransform {
+  private datePipe = new DatePipe('en-US');
+
+  transform(data: string | undefined, local: boolean = false): string {
     if (!data) {
       return '';
     }
-    return this.formatUtcToLocal(data);
+    return this.formatUtcToFriendly(data, local);
   }
 
-  private formatUtcToLocal(utcDateString: string): string {
-    const date = new Date(utcDateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+  private formatUtcToFriendly(utcDateString: string, local: boolean): string {
+    const timezone = local ? undefined : 'UTC';
+    const timeFormat = local ? 'yyyy-MM-dd HH:mm' : 'yyyy-MM-dd HH:mm:ss';
 
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const formatted = this.datePipe.transform(utcDateString, timeFormat, timezone);
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    if (!formatted) {
+      return 'Invalid date';
+    }
+
+    // const suffix = local ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC';
+    const suffix = local ? '(local)' : 'UTC';
+
+    return `${formatted} ${suffix}`;
   }
 }

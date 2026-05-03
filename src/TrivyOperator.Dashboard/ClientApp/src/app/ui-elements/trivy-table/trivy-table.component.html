@@ -30,7 +30,7 @@
     (selectionChange)="onSelectionChange($event)"
   >
     <ng-template pTemplate="caption">
-      <div>
+      <div class="flex items-center gap-2">
         @if (isRefreshVisible() && !isRefreshFilterable()) {
           <p-button icon="pi pi-refresh" label="Refresh" raised size="small" text (onClick)="onFilterRefresh($event)" />
         }
@@ -112,6 +112,9 @@
             (onClick)="multiHeaderActionGetCommand(multiHeaderActions()[0])()"
           />
         }
+        <div class="ng-table-header">
+          <ng-content select="[ng-table-header]"></ng-content>
+        </div>
       </div>
     </ng-template>
     <ng-template let-columns pTemplate="header">
@@ -225,7 +228,8 @@
                 <span>{{ rowData[col.field] | date: 'yyyy-MM-dd' }}</span>
               }
               @case ('dateTime') {
-                <span>{{ rowData[col.field] | localTime }}</span>
+                <span>{{ rowData[col.field] | friendlyTime }}</span><br />
+                <small class="tod-text-muted-color">{{ rowData[col.field] | friendlyTime : true }}</small>
               }
               @case ('imageNameTag') {
                 <span>{{ rowData[col.field] }}:{{ rowData[col.extraFields[0]] }}</span>
@@ -340,6 +344,7 @@
                                     tooltipTitle="mama"
                                     [height]="rowHeight()"
                                     [minHistoryDays]="miniChartMinDays()"
+                                    [highlightedDays]="miniChartHighlightedDays()"
                                     [gap]="0.5" />
               }
               @case ('severityDifValue') {
@@ -464,7 +469,7 @@
                                   />
                                 }
                                 @if (cell.localTime) {
-                                  <span class="pr-1">{{ cell.localTime | localTime }}</span>
+                                  <span class="pr-1">{{ cell.localTime | friendlyTime }}</span>
                                 }
                                 @if (cell.cron) {
                                   <span class="pr-1">{{ cell.cron | cron }}</span>

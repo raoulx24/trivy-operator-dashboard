@@ -34,7 +34,7 @@ import { BooleanCssStylePipe } from '../../pipes/boolean-css-style.pipe';
 import { CapitalizeFirstPipe } from '../../pipes/capitalize-first.pipe';
 import { CounterIconPipe } from '../../pipes/counter-icon.pipe';
 import { CronPipe } from '../../pipes/cron.pipe';
-import { LocalTimePipe } from '../../pipes/local-time.pipe';
+import { FriendlyTimePipe } from '../../pipes/local-time.pipe';
 import { SemaphoreCssStyleByNamePipe } from '../../pipes/semaphore-css-style-by-name.pipe';
 import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '../../pipes/severity-name-by-id.pipe';
@@ -69,7 +69,7 @@ import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by
     SemaphoreCssStyleByNamePipe,
     CounterIconPipe,
     CronPipe,
-    LocalTimePipe,
+    FriendlyTimePipe,
     SeverityNameByIdPipe,
     SeverityNamesMaxDisplayPipe,
     UnPascalCasePipe,
@@ -105,6 +105,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   stateKey = input<string | undefined>(undefined);
   rowHeight = input<number>(39);
   miniChartMinDays = input<number>(14);
+  miniChartHighlightedDays = input<number>(14);
 
   trivyTableColumns = input.required<TrivyTableColumn[]>();
   isLoading = input<boolean>(false);

@@ -42,24 +42,20 @@
         <ng-template pTemplate="footer">
           <tr>
             <td colspan="6">
-              <p-button
-                icon="pi pi-check-square"
-                label="Clear Selected"
-                raised
-                size="small"
-                text
-                [disabled]="clearTablesOptions().length == 0"
-                (onClick)="onClearTableStatesSelected($event)"
-              />
-              <p-button
-                icon="pi pi-trash"
-                label="Clear All"
-                raised
-                size="small"
-                text
-                [disabled]="clearTablesOptions().length == 0"
-                (onClick)="onClearTableStatesAll($event)"
-              />
+              <p-button icon="pi pi-check-square"
+                        label="Clear Selected"
+                        raised
+                        size="small"
+                        text
+                        [disabled]="clearTablesOptions().length == 0"
+                        (onClick)="onClearTableStatesSelected($event)" />
+              <p-button icon="pi pi-trash"
+                        label="Clear All"
+                        raised
+                        size="small"
+                        text
+                        [disabled]="clearTablesOptions().length == 0"
+                        (onClick)="onClearTableStatesAll($event)" />
             </td>
           </tr>
         </ng-template>
@@ -78,13 +74,11 @@
       @for (file of csvFileNames(); track file) {
         <div class="field pb-1">
           <label for="{{ file.dataKey }}" class="text-sm">{{ file.description }}</label>
-          <input
-            id="{{ file.dataKey }}"
-            pInputText
-            pSize="small"
-            class="text-sm w-full"
-            [(ngModel)]="file.savedCsvName"
-          />
+          <input id="{{ file.dataKey }}"
+                 pInputText
+                 pSize="small"
+                 class="text-sm w-full"
+                 [(ngModel)]="file.savedCsvName" />
         </div>
       }
       @if (csvFileNames().length == 0) {
@@ -92,15 +86,13 @@
           <p class="italic text-muted-color text-sm">No data: no CSV files saved...</p>
         </div>
       }
-      <p-button
-        icon="pi pi-file-check"
-        label="Update Names"
-        raised
-        size="small"
-        text
-        [disabled]="csvFileNames().length == 0"
-        (onClick)="onUpdateCsvFileNames($event)"
-      />
+      <p-button icon="pi pi-file-check"
+                label="Update Names"
+                raised
+                size="small"
+                text
+                [disabled]="csvFileNames().length == 0"
+                (onClick)="onUpdateCsvFileNames($event)" />
       <ng-template #footer>
         <p class="text-sm">
           <i class="pi pi-info-circle"></i>
@@ -126,11 +118,9 @@
               <p-checkbox binary="true" [disabled]="true" [(ngModel)]="item.backendEnabled"></p-checkbox>
             </td>
             <td style="width: 60px; min-width: 60px">
-              <p-checkbox
-                binary="true"
-                [disabled]="!item.backendEnabled"
-                [(ngModel)]="item.frontendEnabled"
-              ></p-checkbox>
+              <p-checkbox binary="true"
+                          [disabled]="!item.backendEnabled"
+                          [(ngModel)]="item.frontendEnabled" />
             </td>
           </tr>
         </ng-template>
@@ -144,14 +134,12 @@
         <ng-template pTemplate="footer">
           <tr>
             <td colspan="6">
-              <p-button
-                icon="pi pi-check-square"
-                label="Save"
-                raised
-                size="small"
-                text
-                (onClick)="onUpdateTrivyReportsStates($event)"
-              />
+              <p-button icon="pi pi-check-square"
+                        label="Save"
+                        raised
+                        size="small"
+                        text
+                        (onClick)="onUpdateTrivyReportsStates($event)" />
             </td>
           </tr>
         </ng-template>
@@ -170,29 +158,20 @@
       <div class="flex flex-col">
         <span class="text-lg font-semibold pb-2">Severities</span>
         <span class="font-semibold pb-2">Select Severity display option</span>
-        <p-selectButton
-          optionLabel="label"
-          optionValue="id"
-          unselectable="true"
-          class="text-sm"
-          [options]="severityCssStyleByIdOptions()"
-          [(ngModel)]="severityCssStyleByIdOptionValue"
-          (onOptionClick)="onSeverityCssStyleByIdOptionsClick($event)"
-        />
+        <p-selectButton optionLabel="label"
+                        optionValue="id"
+                        unselectable="true"
+                        class="text-sm"
+                        [options]="severityCssStyleByIdOptions()"
+                        [(ngModel)]="severityCssStyleByIdOptionValue"
+                        (onOptionClick)="onSeverityCssStyleByIdOptionsClick($event)" />
         <span class="font-semibold pt-2">Sample</span>
         <div class="py-2">
           @for (sampleValue of [1, 0, -1]; track sampleValue) {
-            <p-tag
-              class="mr-1"
-              [rounded]="true"
-              [style]="
-                3
-                  | severityCssStyleById
-                    : sampleValue
-                    : severityCssStyleByIdOptions()[severityCssStyleByIdOptionIndex].id
-              "
-              [value]="sampleValue | vulnerabilityCount"
-            />
+            <p-tag class="mr-1"
+                   [rounded]="true"
+                   [style]="3 | severityCssStyleById : sampleValue : severityCssStyleByIdOptions()[severityCssStyleByIdOptionIndex].id"
+                   [value]="sampleValue | vulnerabilityCount" />
           }
           <span class="text-sm">{{ severityCssStyleByIdOptionDescription }}</span>
         </div>
