@@ -2,7 +2,7 @@
   stateStorage="local"
   class="mb-8"
   [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
-  [panelSizes]="[35, 65]"
+  [panelSizes]="splitterPanelSizes()"
   [stateKey]="splitterStorageKey() && screenSize !== 'sm' ? 'splitter.' + splitterStorageKey() : undefined"
 >
   <ng-template #panel>

@@ -35,6 +35,7 @@ export class GenericMasterDetailComponent<
   detailsTableColumns = input.required<TrivyTableColumn[]>();
   singleSelectDataDto = input<TTrivyReport | undefined>();
   splitterStorageKey = input<string | undefined>();
+  splitterPanelSizes = input<[number, number]>([35, 65]);
 
   protected _singleSelectDataDto?: TTrivyReport;
 
