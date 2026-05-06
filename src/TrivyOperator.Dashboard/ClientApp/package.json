@@ -73,7 +73,7 @@
     "karma-coverage": "~2.2.1",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "^2.2.0",
-    "ng-openapi-gen": "^1.0.5",
+    "ng-openapi-gen": "^0.53.0",
     "prettier": "^3.8.1",
     "prettier-plugin-multiline-arrays": "^4.0.3",
     "prettier-plugin-organize-attributes": "^1.0.0",

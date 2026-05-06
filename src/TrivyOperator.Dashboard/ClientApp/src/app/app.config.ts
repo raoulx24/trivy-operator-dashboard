@@ -1,6 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   ApplicationConfig,
+  importProvidersFrom,
   inject,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
@@ -11,7 +12,7 @@ import { provideRouter } from '@angular/router';
 
 import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
-import { provideApiConfiguration } from "../api/api-configuration";
+import { ApiModule } from '../api/api.module';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { kubernetesContextInterceptor } from './interceptors/kubernetes-context.interceptor';
@@ -25,7 +26,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([kubernetesContextInterceptor])),
     provideRouter(routes),
-    provideApiConfiguration(environment.baseUrl),
+    importProvidersFrom(ApiModule.forRoot({ rootUrl: environment.baseUrl })),
     MainAppInitService,
     Title,
     MessageService,
