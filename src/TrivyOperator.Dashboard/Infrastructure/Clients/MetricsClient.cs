@@ -62,7 +62,7 @@ public class MetricsClient : IMetricsClient
                         new KeyValuePair<string, object?>("resource_kind", resourceKind),
                         new KeyValuePair<string, object?>("namespace_name", namespaceName),
                         new KeyValuePair<string, object?>("severity", severityLabel),
-                        new KeyValuePair<string, object?>("change_type", "added")
+                        new KeyValuePair<string, object?>("change_type", "added"),
                     ]
                 );
             }
@@ -75,7 +75,7 @@ public class MetricsClient : IMetricsClient
                         new KeyValuePair<string, object?>("resource_kind", resourceKind),
                         new KeyValuePair<string, object?>("namespace_name", namespaceName),
                         new KeyValuePair<string, object?>("severity", severityLabel),
-                        new KeyValuePair<string, object?>("change_type", "dropped")
+                        new KeyValuePair<string, object?>("change_type", "dropped"),
                     ]
                 );
             }
