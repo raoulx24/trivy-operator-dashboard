@@ -130,14 +130,16 @@ export class GenericMasterDetailComponent<
     if (this.mainTable) {
       this.mainTable.onTableClearSelected();
     }
+    const lastUid = this.selectedDataDto?.uid;
+    this.selectedDataDto = null;
     this._dataDtos = dataDtos;
 
-    let newSelectedDataDto: TTrivyReport | null = null;
-    if (this.selectedDataDto) {
-      newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === this.selectedDataDto?.uid) || null;
-      this._singleSelectDataDto = newSelectedDataDto ?? undefined;
-    }
-    this.selectedDataDto = newSelectedDataDto;
+    const newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === lastUid) || null;
+    this._singleSelectDataDto = newSelectedDataDto ?? undefined;
+    setTimeout(() =>
+    {
+      this.selectedDataDto = newSelectedDataDto;
+    }, 100);
 
     this._isMainTableLoading = false;
   }

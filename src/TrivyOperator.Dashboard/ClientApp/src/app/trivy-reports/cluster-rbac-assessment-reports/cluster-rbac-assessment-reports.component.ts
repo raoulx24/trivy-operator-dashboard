@@ -26,7 +26,7 @@ import {
 })
 export class ClusterRbacAssessmentReportsComponent extends DataPageBase implements OnInit {
   dataDtos: ClusterRbacAssessmentReportDto[] = [];
-  selectedTrivyReportDto: ClusterRbacAssessmentReportDto | null = null;
+  selectedTrivyReportDto?: ClusterRbacAssessmentReportDto;
 
   mainTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportColumns];
   isMainTableLoading: boolean = true;
@@ -64,7 +64,7 @@ export class ClusterRbacAssessmentReportsComponent extends DataPageBase implemen
   }
 
   onMainTableSelectedRowChanged(event: ClusterRbacAssessmentReportDto | null) {
-    this.selectedTrivyReportDto = event;
+    this.selectedTrivyReportDto = event ?? undefined;
   }
 
   onMainTableMultiHeaderActionRequested(event: string) {

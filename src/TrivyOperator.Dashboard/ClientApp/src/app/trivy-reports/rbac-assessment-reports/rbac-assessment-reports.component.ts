@@ -116,5 +116,6 @@ export class RbacAssessmentReportsComponent extends DataPageBase implements OnIn
 
   onMainTableSelectedRowChanged(event: RbacAssessmentReportDto | null) {
     this.selectedTrivyReportDto = event ?? undefined;
+    //this.singleSelectDataDto = event ?? undefined;
   }
 }
