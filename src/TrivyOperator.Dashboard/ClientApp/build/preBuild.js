@@ -1,12 +1,16 @@
-const $RefParser = require('@apidevtools/json-schema-ref-parser');
-const NgOpenApiGen = require('ng-openapi-gen').NgOpenApiGen;
+import {$RefParser} from '@apidevtools/json-schema-ref-parser';
+import {NgOpenApiGen} from 'ng-openapi-gen';
 
-generateApi();
+await generateApi();
 
 async function generateApi() {
   const options = {
     input: 'backend-api.yaml',
     output: 'src/api',
+    services: true,
+    apiService: null,
+    enumStyle: 'pascal',
+    promises: false
   };
   // load the openapi-spec and resolve all $refs
   const RefParser = new $RefParser();
