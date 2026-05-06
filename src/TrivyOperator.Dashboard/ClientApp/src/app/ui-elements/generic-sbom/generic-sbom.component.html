@@ -14,6 +14,7 @@
         <app-trivy-table
           [dataDtos]="dependsOnBoms"
           [dataKey]="'bomRef'"
+          [disableAutoScroll]="false"
           [extraClasses]="'trivy-with-filters-half'"
           [isLoading]="isTableLoading()"
           [isRefreshVisible]="!isStatic()"

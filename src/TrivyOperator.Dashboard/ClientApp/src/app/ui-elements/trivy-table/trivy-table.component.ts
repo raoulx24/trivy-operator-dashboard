@@ -112,6 +112,9 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   isFlex = input<boolean>(true);
 
+  disableAutoScroll = input<boolean>(true);
+  private localDisableAutoScroll: boolean = this.disableAutoScroll();
+
   multiHeaderActionRequested = output<string>();
   refreshRequested = output<TrivyFilterData>();
   rowExpandActionCallback = output<TData>();
@@ -179,6 +182,7 @@ export class TrivyTableComponent<TData> implements OnInit {
       const data = this.dataDtos();
 
       this._dataDtos.set(data ?? []);
+      this.localDisableAutoScroll = false;
       this.updateMultiHeaderActionOnDataChanged();
       this.newData();
     });
@@ -507,6 +511,11 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   scrollToDto(value: TData) {
+    if (this.localDisableAutoScroll)
+      return;
+
+    this.localDisableAutoScroll = this.disableAutoScroll();
+
     setTimeout(() => {
       const index = this._dataDtos()?.indexOf(value);
       if (index !== -1 && this.trivyTable) {
