@@ -138,6 +138,13 @@ export class FcoseComponent implements AfterViewInit, OnInit {
 
   constructor() {
     effect(() => {
+      const isDark = this.darkModeService.isDarkMode();
+      this.darkLightMode = isDark ? 'Dark' : 'Light';
+      const newMode = isDark ? 'Dark' : 'Light';
+      const oldMode = isDark ? 'Light' : 'Dark';
+      this.swapClassDarkLikghtMode(oldMode, newMode);
+    });
+    effect(() => {
       const nodeDataDtos = this.nodeDataDtos();
       this.isLayoutRedraw = true;
       if (nodeDataDtos.length == 0) {
@@ -192,12 +199,6 @@ export class FcoseComponent implements AfterViewInit, OnInit {
           this.graphSelectedNodes[0].unselect();
         }
       }
-    });
-    effect(() => {
-      const isDark = this.darkModeService.isDarkMode();
-      const newMode = isDark ? 'Dark' : 'Light';
-      const oldMode = isDark ? 'Light' : 'Dark';
-      this.swapClassDarkLikghtMode(oldMode, newMode);
     });
   }
 
