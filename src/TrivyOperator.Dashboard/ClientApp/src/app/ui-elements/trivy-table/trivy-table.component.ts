@@ -115,6 +115,9 @@ export class TrivyTableComponent<TData> implements OnInit {
   disableAutoScroll = input<boolean>(true);
   private localDisableAutoScroll: boolean = this.disableAutoScroll();
 
+  rowDimmer = input<((row: TData) => boolean) | undefined>();
+  readonly defaultRowDimmer = () => false;
+
   multiHeaderActionRequested = output<string>();
   refreshRequested = output<TrivyFilterData>();
   rowExpandActionCallback = output<TData>();

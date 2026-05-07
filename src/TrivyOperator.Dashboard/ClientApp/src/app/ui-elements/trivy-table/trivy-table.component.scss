@@ -62,3 +62,7 @@ $default-breakpoint: 640px;
   text-overflow: ellipsis;
   white-space: normal;
 }
+
+.trivy-table-row-dimmed {
+  opacity: 0.5;
+}

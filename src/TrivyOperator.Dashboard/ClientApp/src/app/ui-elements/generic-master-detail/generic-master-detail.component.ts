@@ -64,6 +64,7 @@ export class GenericMasterDetailComponent<
   mainTableMultiHeaderActions = input<MultiHeaderAction[]>([]);
   mainTableMiniChartMinDays = input<number>(14);
   mainTableMiniChartHighlightedDays = input<number>(14);
+  mainTableRowDimmer = input<((row: TTrivyReport) => boolean) | undefined>();
 
   detailsIsClearSelectionVisible = input<boolean | undefined>(false);
   detailsIsCollapseAllVisible = input<boolean | undefined>(false);
@@ -80,6 +81,7 @@ export class GenericMasterDetailComponent<
   detailsRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
   detailsExtraClasses = input<string | undefined>(undefined);
   detailsMultiHeaderActions = input<MultiHeaderAction[]>([]);
+  detailsRowDimmer = input<((row: TTrivyReportDetail) => boolean) | undefined>();
 
   detailsTableMultiHeaderActionRequested = output<string>();
 
@@ -136,8 +138,7 @@ export class GenericMasterDetailComponent<
 
     const newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === lastUid) || null;
     this._singleSelectDataDto = newSelectedDataDto ?? undefined;
-    setTimeout(() =>
-    {
+    setTimeout(() => {
       this.selectedDataDto = newSelectedDataDto;
     }, 100);
 

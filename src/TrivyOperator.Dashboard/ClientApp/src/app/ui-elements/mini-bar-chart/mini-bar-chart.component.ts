@@ -173,7 +173,7 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
     }
 
     // Highlight last N entries
-    const startIndex = Math.max(0, days.length - n);
+    const startIndex = Math.max(0, days.length - n - 1);
 
     return days.map((_, i) => i >= startIndex);
   });

@@ -203,7 +203,11 @@
       </tr>
     </ng-template>
     <ng-template let-columns="columns" let-expanded="expanded" let-rowData let-rowIndex="rowIndex" pTemplate="body">
-      <tr [style.height] = fullRowHeightPx() [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
+      @let isRowDimmed = (rowDimmer() ?? defaultRowDimmer)(rowData);
+      <tr [style.height] = fullRowHeightPx()
+          [pSelectableRow]="rowData"
+          [pSelectableRowIndex]="rowIndex"
+          [class.trivy-table-row-dimmed]="isRowDimmed">
         @if (dataKey()) {
           <td style="max-width: 50px">
             <p-button
@@ -369,7 +373,8 @@
               @case ('doubleSeverityDifValue') {
                 @let showBorder = (col.extraFields?.[2] ?? 'true') === 'true';
                 @let showArrow = (col.extraFields?.[3] ?? 'true') === 'true';
-                @let negativeCount = (rowData[col.extraFields?.[1]] ?? 0) * (-1);
+                @let droppedCount = rowData[col.extraFields?.[1]] ?? 0;
+                @let droppedCountNegative = (rowData[col.extraFields?.[1]] ?? 0) * (-1);
                 <div class="flex flex-col h-full" [style.height]="rowHeightPx()">
                   <div class="flex-1 flex items-center justify-end">
                     <p-tag class="mb-2 mt-1"
@@ -382,9 +387,9 @@
                   <div class="flex-1 flex items-center justify-end">
                     <p-tag class="mt-2 mb-1"
                            [rounded]="true"
-                           [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: negativeCount : false"
-                           [icon]="showArrow ? (negativeCount | counterIcon) : ''"
-                           [value]="negativeCount * (-1) | vulnerabilityCount : 'nonNegatives'" />
+                           [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: (isRowDimmed ? droppedCount : droppedCountNegative) : false"
+                           [icon]="showArrow ? (droppedCountNegative | counterIcon) : ''"
+                           [value]="droppedCount | vulnerabilityCount : 'nonNegatives'" />
                   </div>
                 </div>
               }
