@@ -371,15 +371,16 @@
                 </div>
               }
               @case ('doubleSeverityDifValue') {
+                @let severity = col.extraFields?.[0] ?? "-1";
                 @let showBorder = (col.extraFields?.[2] ?? 'true') === 'true';
                 @let showArrow = (col.extraFields?.[3] ?? 'true') === 'true';
                 @let droppedCount = rowData[col.extraFields?.[1]] ?? 0;
-                @let droppedCountNegative = (rowData[col.extraFields?.[1]] ?? 0) * (-1);
+                @let droppedCountNegative = (rowData[col.extraFields?.[1]] ?? 0) * (severity === "-1" ? 1 : -1);
                 <div class="flex flex-col h-full" [style.height]="rowHeightPx()">
                   <div class="flex-1 flex items-center justify-end">
                     <p-tag class="mb-2 mt-1"
                            [rounded]="true"
-                           [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: rowData[col.field] ?? -1 : showBorder"
+                           [style]="severity | severityDifCssStyleById: rowData[col.field] ?? -1 : showBorder"
                            [icon]="showArrow ? (rowData[col.field] | counterIcon) : ''"
                            [value]="rowData[col.field] | vulnerabilityCount : 'nonNegatives'" />
                   </div>
@@ -387,7 +388,7 @@
                   <div class="flex-1 flex items-center justify-end">
                     <p-tag class="mt-2 mb-1"
                            [rounded]="true"
-                           [style]="col.extraFields[0] ?? '' | severityDifCssStyleById: (isRowDimmed ? droppedCount : droppedCountNegative) : false"
+                           [style]="severity | severityDifCssStyleById: (isRowDimmed ? droppedCount : droppedCountNegative) : false"
                            [icon]="showArrow ? (droppedCountNegative | counterIcon) : ''"
                            [value]="droppedCount | vulnerabilityCount : 'nonNegatives'" />
                   </div>
