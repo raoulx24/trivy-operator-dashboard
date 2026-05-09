@@ -2,14 +2,14 @@
 
 ## Windows with Visual Studio
 
-- Install [Visual Studio 2026 version 18.2.0 or newer](https://visualstudio.microsoft.com/vs/):
+- Install [Visual Studio 2026 version 18.5.2 or newer](https://visualstudio.microsoft.com/vs/):
     - Select the following workloads:
         - `ASP.NET and web development` workload.
 
 ## Prerequisites
 
 - A valid kube config file should be available for Kubernetes cluster access.
-- If needed, the [k8s.create.kubeconfig.for.sa.ps1](tools/k8s.create.kubeconfig.for.sa.ps1) script can be used for
+- If needed, the [k8s.create.kubeconfig.for.sa.ps1](tools/k8s.create.kubeconfig.for.sa.ps1) script can be used for the
   creation of custom kube config file(s).
 
 # Frontend
@@ -18,14 +18,14 @@
 
 - Install [nvm version 1.1.12](https://github.com/coreybutler/nvm-windows/releases/tag/1.1.12):
     - Install Node.js LTS:
-        - `nvm install 24.13.0`.
+        - `nvm install 24.14.0`.
     - Use Node.js LTS:
-        - `nvm use 24.13.0`.
+        - `nvm use 24.14.0`.
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change
-any of the source files.
+Run `npm start` or directly `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will
+automatically reload if you change any of the source files.
 
 ## Code scaffolding
 
@@ -70,11 +70,12 @@ npm run lint:fix
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Run `npm run build` or directly `ng build` to build the project. The build artifacts will be stored in the `dist/`
+directory.
 
 ## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `npm test` or directly `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
 ## Running end-to-end tests
 
