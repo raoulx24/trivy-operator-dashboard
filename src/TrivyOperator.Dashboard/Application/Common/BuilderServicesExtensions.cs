@@ -147,7 +147,8 @@ public static class BuilderServicesExtensions
 
             return;
         }
-
+        
+        // else - useDefaultContext
         services.AddSingleton<IConcurrentDictionaryCache<V1Namespace>, ConcurrentDictionaryCache<V1Namespace>>();
         services.AddSingleton<IKubernetesBackgroundQueue<V1Namespace>, KubernetesBackgroundQueue<V1Namespace>>();
         if (!useNamespaceList)

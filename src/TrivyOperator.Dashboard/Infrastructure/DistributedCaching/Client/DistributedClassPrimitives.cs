@@ -115,7 +115,7 @@ public static class DistributedCachePrimitives
     // High-level typed helpers
     // ------------------------------------------------------------------------
 
-    public static async Task<string?> GetStringAsync(
+    public static async Task<string?> GetHSetStringAsync(
         IDatabase db,
         RedisKey key,
         RedisValue field,
@@ -148,14 +148,14 @@ public static class DistributedCachePrimitives
         }
     }
 
-    public static async Task<DateTime?> GetTimestampAsync(
+    public static async Task<DateTime?> GetHSetTimestampAsync(
         IDatabase db,
         RedisKey key,
         RedisValue field,
         ILogger logger,
         CancellationToken ct = default)
     {
-        string? value = await GetStringAsync(db, key, field, logger, ct);
+        string? value = await GetHSetStringAsync(db, key, field, logger, ct);
         if (value is null)
             return null;
 
@@ -170,14 +170,14 @@ public static class DistributedCachePrimitives
         return null;
     }
 
-    public static async Task<bool?> GetBoolAsync(
+    public static async Task<bool?> GetHSetBoolAsync(
         IDatabase db,
         RedisKey key,
         RedisValue field,
         ILogger logger,
         CancellationToken ct = default)
     {
-        string? value = await GetStringAsync(db, key, field, logger, ct);
+        string? value = await GetHSetStringAsync(db, key, field, logger, ct);
         if (value is null)
             return null;
 
@@ -196,6 +196,58 @@ public static class DistributedCachePrimitives
             "Invalid boolean format in key {distributedCacheKey}, field {field}, value {value}",
             key.ToString(), field.ToString(), value);
         return null;
+    }
+    
+    public static async Task<IReadOnlyList<string>> GetSetMembersAsync(
+        IDatabase db,
+        RedisKey key,
+        ILogger logger,
+        CancellationToken ct = default)
+    {
+        RedisValue[] values = await db.SetMembersAsync(key);
+
+        List<string> result = [];
+
+        foreach (RedisValue value in values)
+        {
+            if (value.IsNullOrEmpty)
+            {
+                logger.LogError(
+                    "Set member in key {distributedCacheKey} is null or empty",
+                    key.ToString());
+
+                continue;
+            }
+
+            result.Add(value.ToString());
+        }
+
+        return result;
+    }
+    
+    public static async Task AddToSetAsync(
+        IDatabase db,
+        RedisKey key,
+        string value,
+        CancellationToken ct = default)
+    {
+        await db.SetAddAsync(key, value);
+    }
+    
+    public static async Task RemoveFromSetAsync(
+        IDatabase db,
+        RedisKey key,
+        IEnumerable<string> values,
+        CancellationToken ct = default)
+    {
+        RedisValue[] redisValues = values
+            .Select(x => (RedisValue)x)
+            .ToArray();
+
+        if (redisValues.Length == 0)
+            return;
+
+        await db.SetRemoveAsync(key, redisValues);
     }
 
     // ------------------------------------------------------------------------

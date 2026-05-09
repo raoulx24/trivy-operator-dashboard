@@ -6,6 +6,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.DistributedCaching;
 
 public static class DistributedCacheKeyExtensions
 {
+    // VR History
     private static string GetKey(this Snapshot s)
         => s.Key.GetKey();
 
@@ -27,4 +28,11 @@ public static class DistributedCacheKeyExtensions
 
         public RedisKey ToUnprocessedRedisKey() => (RedisKey)sk.GetUnprocessedKey();
     }
+    
+    
+    // Namespace History
+    public const string NamespacesKey = "vr:namespaces";
+    
+    public static RedisKey ToNamespacesRedisKey()
+        => (RedisKey)NamespacesKey;
 }
