@@ -14,6 +14,7 @@ using TrivyOperator.Dashboard.Application.BackendSettings.Services;
 using TrivyOperator.Dashboard.Application.BackendSettings.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Common.BackgroundQueues;
 using TrivyOperator.Dashboard.Application.Common.HealthChecks;
+using TrivyOperator.Dashboard.Application.History.NamespaceHistory.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services.Abstractions;
@@ -63,6 +64,7 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies
 using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport.Abstractions;
+using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
@@ -442,9 +444,11 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
         services.AddScoped<IDistributedCacheExecutor, DistributedCacheExecutor>();
         
+        services.AddScoped<INamespaceHistoryStore, DistributedCacheNamespaceHistoryStore>();
         services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
         services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
 
+        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespaceHistoryRefresher>();
         services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
         services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
         
