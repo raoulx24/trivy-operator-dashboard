@@ -63,7 +63,8 @@ export interface TrivyTableColumn extends Column {
     | 'doubleStackedSpans'
     | 'doubleSeverityDifValue'
     | 'imageFullAndDigest'
-    | 'severityStackedBadge';
+    | 'severityStackedBadge'
+    | 'dateTimeStacked';
   extraFields?: string[];
 }
 

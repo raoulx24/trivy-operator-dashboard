@@ -3986,10 +3986,14 @@ components:
       required:
         - addedCount
         - droppedCount
+        - lastMoment
         - moment
       type: object
       properties:
         moment:
+          type: string
+          format: date-time
+        lastMoment:
           type: string
           format: date-time
         addedCount:

@@ -417,6 +417,23 @@
                   </div>
                 }
               }
+              @case ('dateTimeStacked') {
+                @let secondDate = rowData[col.extraFields?.[0] ?? ''] ?? '';
+                <div class="flex flex-col h-full" [style.height]="rowHeightPx()">
+                  <div class="flex-1 flex items-start">
+                    <div>
+                      <span>{{ rowData[col.field] | friendlyTime }}</span><br />
+                      <small class="tod-text-muted-color">{{ rowData[col.field] | friendlyTime : true }}</small>
+                    </div>
+                  </div>
+                  <div class="flex-1 flex items-center">
+                    <div class="tod-text-muted-color">
+                      <small>{{ col.extraFields?.[1] ?? '' }}</small><br>
+                      <small>{{ secondDate | friendlyTime }}</small>
+                    </div>
+                  </div>
+                </div>
+              }
             }
           </td>
         }

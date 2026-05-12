@@ -22,7 +22,7 @@ export class FriendlyTimePipe implements PipeTransform {
     const formatted = this.datePipe.transform(utcDateString, timeFormat, timezone);
 
     if (!formatted) {
-      return '';
+      return 'N/A';
     }
 
     // const suffix = local ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC';
