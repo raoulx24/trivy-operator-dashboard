@@ -86,10 +86,15 @@ export class TrivyTableComponent<TData> implements OnInit {
   dataDtos = input<TData[] | null | undefined>([]);
   activeNamespaces = input<string[]>([]);
   // layout
+  stateKey = input<string | undefined>(undefined);
   csvStorageKey = input<string>('default');
   csvFileName = input<string>('Default.csv.FileName');
+
   dataKey = input<string | undefined>(undefined);
+
   extraClasses = input<string | undefined>(undefined);
+  style = input<{ [klass: string]: any } | undefined>({});
+
   isClearSelectionVisible = input<boolean | undefined>(false);
   isCollapseAllVisible = input<boolean | undefined>(false);
   isResetFiltersVisible = input<boolean | undefined>(false);
@@ -97,15 +102,16 @@ export class TrivyTableComponent<TData> implements OnInit {
   isRefreshVisible = input<boolean | undefined>(false);
   isRefreshFilterable = input<boolean | undefined>(false);
   isFooterVisible = input<boolean | undefined>(false);
+
   multiHeaderActions = input<MultiHeaderAction[]>([]);
+
   rowExpandData = input<TrivyTableExpandRowData<TData>>();
   rowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
+
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
-  style = input<{ [klass: string]: any } | undefined>({});
-  stateKey = input<string | undefined>(undefined);
+
   rowHeight = input<number>(39);
-  miniChartMinDays = input<number>(14);
-  miniChartHighlightedDays = input<number>(14);
+
 
   trivyTableColumns = input.required<TrivyTableColumn[]>();
   isLoading = input<boolean>(false);

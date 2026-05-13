@@ -9,6 +9,7 @@ import {
   ComponentRef,
   OnChanges,
   AfterViewInit,
+  effect,
 } from '@angular/core';
 import { Overlay, OverlayModule, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
@@ -17,6 +18,7 @@ import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.p
 import { MiniBarChartDataDto } from './mini-bar-chart.types';
 
 import { TrivyReportSeveritiesDeltaComponent } from '../trivy-report-severities-delta/trivy-report-severities-delta.component';
+import { MiniBarChartService } from '../../services/mini-bar-chart.service';
 
 @Component({
   selector: 'app-mini-bar-chart',
@@ -37,12 +39,20 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   @ViewChild('miniBarChart', { static: false })
   private tooltipComponentRef?: ComponentRef<TrivyReportSeveritiesDeltaComponent>;
 
+  protected internalMinHistoryDays = computed(() => {
+    return this.miniBarChartService.minDays() ?? this.minHistoryDays();
+  });
+
+  protected internalHighlightedDays = computed(() => {
+    return this.miniBarChartService.highlightedDays() ?? this.highlightedDays();
+  });
+
   barWidth = signal(100);
-  internalDataDtos = computed<MiniBarChartDataDto[]>(() => {
+  protected internalDataDtos = computed<MiniBarChartDataDto[]>(() => {
     const data = this.dataDtos() ?? [];
 
     // TODO: change to backend settings service
-    const minDays = this.minHistoryDays();
+    const minDays = this.internalMinHistoryDays();
 
     if (data.length === 0) return [];
 
@@ -136,7 +146,7 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   );
 
 
-  stackExtents = computed(() =>
+  protected stackExtents = computed(() =>
     this.internalDataDtos().map((d) => {
       const values = [
         ...d.addedCount,
@@ -151,11 +161,11 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
   );
 
 
-  minTotal = computed(() => Math.min(0, ...this.stackExtents().map(e => e.negative)));
-  maxTotal = computed(() => Math.max(0, ...this.stackExtents().map(e => e.positive)));
+  protected minTotal = computed(() => Math.min(0, ...this.stackExtents().map(e => e.negative)));
+  protected maxTotal = computed(() => Math.max(0, ...this.stackExtents().map(e => e.positive)));
 
   // baseline Y (0 value)
-  zeroY = computed(() => {
+  protected zeroY = computed(() => {
     const min = this.minTotal();
     const max = this.maxTotal();
     const range = max - min || 1;
@@ -164,9 +174,9 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
     return Math.min(this.height() - 1, Math.max(1, y));
   });
 
-  highlightMask = computed(() => {
+  protected highlightMask = computed(() => {
     const days = this.internalDataDtos();
-    const n = this.highlightedDays();
+    const n = this.internalHighlightedDays();
 
     if (days.length === 0 || n <= 0) {
       return days.map(() => false);
@@ -183,10 +193,11 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
 
   private readonly overlay = inject(Overlay);
   private readonly overlayPositionBuilder = inject(OverlayPositionBuilder);
+  private readonly miniBarChartService = inject(MiniBarChartService);
 
   private containerStyles!: CSSStyleDeclaration;
 
-  hoveredIndex?: number;
+  protected hoveredIndex?: number;
 
   ngAfterViewInit() {
     this.containerStyles = getComputedStyle(document.documentElement);

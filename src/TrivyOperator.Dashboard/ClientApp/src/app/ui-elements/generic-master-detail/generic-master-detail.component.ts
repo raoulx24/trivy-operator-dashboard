@@ -62,8 +62,6 @@ export class GenericMasterDetailComponent<
   mainTableRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
   mainTableExtraClasses = input<string | undefined>(undefined);
   mainTableMultiHeaderActions = input<MultiHeaderAction[]>([]);
-  mainTableMiniChartMinDays = input<number>(14);
-  mainTableMiniChartHighlightedDays = input<number>(14);
   mainTableRowDimmer = input<((row: TTrivyReport) => boolean) | undefined>();
 
   detailsIsClearSelectionVisible = input<boolean | undefined>(false);
