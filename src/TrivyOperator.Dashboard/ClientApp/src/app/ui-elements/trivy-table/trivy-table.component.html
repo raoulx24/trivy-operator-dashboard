@@ -9,9 +9,9 @@
     [columns]="trivyTableColumns()"
     [dataKey]="dataKey()"
     [expandedRowKeys]="expandedRows()"
-    [exportFilename]="_csvFileName()"
+    [exportFilename]="internalCsvFileName()"
     [loading]="isLoading()"
-    [ngStyle]="isFlex() ? _flexStyles() : {}"
+    [ngStyle]="isFlex() ? flexStyles : {}"
     [reorderableColumns]="true"
     [resizableColumns]="true"
     [scrollable]="true"
@@ -19,7 +19,7 @@
     [selectionMode]="selectionMode()"
     [stateKey]="tableStateKey"
     [tableStyle]="style()"
-    [value]="_dataDtos()"
+    [value]="dataDtos()"
     [virtualScroll]="isFlex()"
     [virtualScrollItemSize]="isFlex() ? fullRowHeight() : undefined"
     (onFilter)="onFilter()"
@@ -52,7 +52,7 @@
             label="Clear Selected"
             size="small"
             text
-            [disabled]="!isTableRowsSelected"
+            [disabled]="!isTableRowsSelected()"
             (onClick)="onTableClearSelected()"
           />
         }
@@ -535,7 +535,7 @@
     <div style="width: 300px">
       <div class="field">
         <label for="csvFileName" class="text-sm">CSV File Name</label>
-        <input id="csvFileName" pInputText class="text-sm w-full" [(ngModel)]="_csvFileName" />
+        <input id="csvFileName" pInputText class="text-sm w-full" [(ngModel)]="internalCsvFileName" />
       </div>
       <div class="grid grid-cols-12 gap-4">
         <div class="col-span-6">

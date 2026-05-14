@@ -20,7 +20,7 @@ import { namespacedColumns } from '../constants/generic.constants';
   styleUrl: './sbom-reports-detailed.component.scss',
 })
 export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  dataDtos: SbomReportImageDto[] | null = null;
+  dataDtos: SbomReportImageDto[] = [];
   activeNamespaces: string[] = [];
   selectedDataDtos: SbomReportImageDto[] | null = null;
   isTableLoading: boolean = false;

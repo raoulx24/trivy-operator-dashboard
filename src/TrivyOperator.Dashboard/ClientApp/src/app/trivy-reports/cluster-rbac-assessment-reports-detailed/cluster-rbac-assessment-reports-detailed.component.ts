@@ -17,7 +17,7 @@ import { rbacAssessmentReportDenormalizedColumns } from '../constants/rbac-asses
   styleUrl: './cluster-rbac-assessment-reports-detailed.component.scss',
 })
 export class ClusterRbacAssessmentReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  public dataDtos?: ClusterRbacAssessmentReportDenormalizedDto[] | null;
+  public dataDtos: ClusterRbacAssessmentReportDenormalizedDto[] = [];
   public severityDtos: SeverityDto[] = [];
   public activeNamespaces: string[] = [];
   public isLoading: boolean = false;

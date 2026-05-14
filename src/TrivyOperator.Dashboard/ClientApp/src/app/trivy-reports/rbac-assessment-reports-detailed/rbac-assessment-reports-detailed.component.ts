@@ -18,7 +18,7 @@ import { namespacedColumns } from '../constants/generic.constants';
   styleUrl: './rbac-assessment-reports-detailed.component.scss',
 })
 export class RbacAssessmentReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  dataDtos?: RbacAssessmentReportDenormalizedDto[] | null;
+  dataDtos: RbacAssessmentReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
   isLoading: boolean = false;

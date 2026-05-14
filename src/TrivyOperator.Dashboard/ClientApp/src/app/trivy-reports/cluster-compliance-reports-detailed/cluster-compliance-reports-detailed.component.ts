@@ -17,7 +17,7 @@ import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster
   styleUrl: './cluster-compliance-reports-detailed.component.scss',
 })
 export class ClusterComplianceReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  dataDtos?: ClusterComplianceReportDenormalizedDto[];
+  dataDtos: ClusterComplianceReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
   isLoading: boolean = false;
 

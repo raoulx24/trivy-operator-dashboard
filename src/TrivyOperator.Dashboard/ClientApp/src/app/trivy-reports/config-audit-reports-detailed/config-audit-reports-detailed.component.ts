@@ -18,7 +18,7 @@ import { namespacedColumns } from '../constants/generic.constants';
   styleUrl: './config-audit-reports-detailed.component.scss',
 })
 export class ConfigAuditReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  dataDtos?: ConfigAuditReportDenormalizedDto[];
+  dataDtos: ConfigAuditReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
   isLoading: boolean = false;

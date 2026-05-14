@@ -18,7 +18,7 @@ import { namespacedColumns } from '../constants/generic.constants';
   styleUrl: './exposed-secret-reports-detailed.component.scss',
 })
 export class ExposedSecretReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  public dataDtos?: ExposedSecretReportDenormalizedDto[];
+  public dataDtos: ExposedSecretReportDenormalizedDto[] = [];
   public severityDtos: SeverityDto[] = [];
   public activeNamespaces: string[] = [];
   public isLoading: boolean = false;

@@ -42,7 +42,7 @@ import { GenericReportsCompareComponent } from '../generic-reports-compare/gener
 export class GenericSbomComponent {
   private readonly kubernetesContextService = inject(KubernetesContextStateService);
 
-  dataDtos = input<GenericSbomReportMinimalDto[] | undefined>();
+  dataDtos = input<GenericSbomReportMinimalDto[]>([]);
   fullSbomDataDto = input<GenericSbomReportDto | undefined>();
   isStatic = input<boolean>(false);
   multiHeaderActions = input<MultiHeaderAction[]>([]);
@@ -67,7 +67,7 @@ export class GenericSbomComponent {
 
   // region dependsOnTable data
   selectedSbomDetailDto?: GenericSbomReportDetailDto;
-  dependsOnBoms?: GenericSbomReportDetailDto[];
+  dependsOnBoms: GenericSbomReportDetailDto[] = [];
   deletedDependsOnBom: GenericSbomReportDetailDto[] = [];
 
   dependsOnTableColumns: TrivyTableColumn[] = [...genericSbomReportDetailColumns];
@@ -135,7 +135,7 @@ export class GenericSbomComponent {
 
   private resetAllRelatedData() {
     // this.fullSbomDataDto = undefined;
-    this.dependsOnBoms = undefined;
+    this.dependsOnBoms = [];
     this.deletedDependsOnBom = [];
     this.nodeDataDtos = [];
   }
@@ -157,7 +157,7 @@ export class GenericSbomComponent {
   // #region Get Parent and Children Nodes
   private getDataDtosByNodeId(nodeId: string) {
     this.isTableLoading.set(true);
-    this.dependsOnBoms = undefined;
+    this.dependsOnBoms = [];
     this.deletedDependsOnBom = [];
     const sbomDetailDtos: GenericSbomReportDetailDto[] = [];
     const rootSbomDetailDto = this.fullSbomDataDto()?.details?.find((x) => x.bomRef == nodeId);

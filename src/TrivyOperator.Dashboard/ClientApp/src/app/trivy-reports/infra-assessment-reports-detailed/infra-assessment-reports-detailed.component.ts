@@ -18,7 +18,7 @@ import { infraAssessmentReportDenormalizedColumns } from '../constants/infra-ass
   styleUrl: './infra-assessment-reports-detailed.component.scss',
 })
 export class InfraAssessmentReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  dataDtos?: InfraAssessmentReportDenormalizedDto[];
+  dataDtos: InfraAssessmentReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
   isLoading: boolean = false;
