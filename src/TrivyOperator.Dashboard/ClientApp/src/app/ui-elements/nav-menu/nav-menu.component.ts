@@ -229,6 +229,15 @@ export class NavMenuComponent {
             },
           },
           {
+            label: 'Vulnerabilities History',
+            icon: 'safety_check',
+            disabled: !this.enabledTrivyReports().includes('vrh'),
+            command: () => {
+              this.router.navigate(['vulnerability-reports-history-detailed']);
+              this.isDrawerVisible.set(false);
+            },
+          },
+          {
             label: 'SBOMs',
             icon: 'graph_3',
             disabled: !this.enabledTrivyReports().includes('sr'),
