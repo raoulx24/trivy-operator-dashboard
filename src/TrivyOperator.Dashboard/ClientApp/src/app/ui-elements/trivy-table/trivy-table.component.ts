@@ -5,6 +5,7 @@ import {
   computed,
   effect,
   input,
+  model,
   OnInit,
   output,
   signal,
@@ -97,7 +98,6 @@ export class TrivyTableComponent<TData> implements OnInit {
   rowHeight = input<number>(39);
   isFlex = input<boolean>(true);
   isLoading = input<boolean>(false);
-  disableAutoScroll = input<boolean>(true);
 
   // columns
   trivyTableColumns = input.required<TrivyTableColumn[]>();
@@ -131,7 +131,9 @@ export class TrivyTableComponent<TData> implements OnInit {
   rowExpandActionCallback = output<TData>();
   rowExpandDataChange = output<TData>();
   rowActionRequested = output<{ row: TData; col: string }>();
-  selectedRowsChanged = output<TData[]>();
+
+  // models
+  selectedDataDtos = model<TData[]>([]);
 
   // view child
   @ViewChild('trivyTable') trivyTable!: Table;
@@ -154,10 +156,7 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   protected multiHeaderActionItems = signal<(MenuItem & { initialData: MultiHeaderAction })[]>([]);
 
-  protected selectedDataDtos = signal<TData[]>([]);
   protected isTableRowsSelected = computed(() => this.selectedDataDtos().length > 0);
-  private _lastSingleSelectDataDto?: TData | undefined;
-  singleSelectDataDto = input<TData | undefined>();
 
   // table state key for browser local storage
   protected tableStateKey?: string;
@@ -171,7 +170,6 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   protected trivyTableTotalRecords = computed(() => this.dataDtos().length);
   protected trivyTableFilteredRecords = signal<number>(this.trivyTableTotalRecords())
-  protected trivyTableSelectedRecords = computed(() => this.selectedDataDtos().length);
 
   protected rowHeightPx = computed(() => { return `${this.rowHeight()}px` });
   protected fullRowHeight = computed(() => { return this.rowHeight() + 8 });
@@ -179,40 +177,59 @@ export class TrivyTableComponent<TData> implements OnInit {
 
 
   // we'll see
-  private localDisableAutoScroll: boolean = this.disableAutoScroll();
+  private disableAutoScroll: boolean = false;
+  private previousDataDtos: TData[] = [];
+  private previousSelectedDataDtos: TData[] = [];
 
   constructor() {
+    // new dataDtos()
     effect(() => {
-      const data = this.dataDtos();
-      console.log("mama01", data.length);
+      const value = this.dataDtos();
+      if (this.arraysEqual(this.previousDataDtos, value)) {
+        // nothing changed
+        return;
+      }
+      console.log('effect dataDtos', this.disableAutoScroll);
 
-      this.localDisableAutoScroll = false;
+      this.previousDataDtos = value;
+      this.disableAutoScroll = false;
       this.updateMultiHeaderActionOnDataChanged();
       this.newData();
     });
+    // new rowExpandData (callback)
     effect(() => {
       const rowExpandDataResponse = this.rowExpandData();
       if (rowExpandDataResponse) {
         this._rowExpandMap.set(rowExpandDataResponse.rowKey, rowExpandDataResponse);
       }
     });
+    // csvFileName
     effect(() => {
       this.initCsvFileName();
     });
+    // selectedDataDtos
     effect(() => {
-      const value = this.singleSelectDataDto();
-      this._lastSingleSelectDataDto = value;
-
-      if (this.selectedDataDtos()[0] === value) {
-        return; // avoid (re)selection
+      const value = this.selectedDataDtos();
+      console.log('effect selectedDataDtos', value, this.previousSelectedDataDtos, this.disableAutoScroll);
+      if (this.arraysEqual(this.previousSelectedDataDtos, value)) {
+        // avoid double selection
+        return;
       }
-      this.selectedDataDtos.set(value ? [value] : []);
+
+      this.previousSelectedDataDtos = value;
       this.updateMultiHeaderActionSelectionChanged();
-      if (value) {
-        this.scrollToDto(value);
-        this.selectedRowsChanged.emit([value]);
+      if (value[0]) {
+        this.scrollToDto();
       }
     });
+    effect(() => {
+      const value = this.isLoading();
+      console.log('effect isLoading', value, this.previousSelectedDataDtos, this.disableAutoScroll);
+      if (value) {
+        this.previousDataDtos = [];
+        this.previousSelectedDataDtos = [];
+      }
+    })
   }
 
   ngOnInit() {
@@ -225,68 +242,25 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   // table main actions
 
-  public onTableClearSelected() {
+  onTableClearSelected() {
     this.trivyTable.selection = [];
     this.trivyTable.selectionKeys = {};
     this.selectedDataDtos.set([]);
     this.updateMultiHeaderActionSelectionChanged();
   }
 
-  onSelectionChange(event: any): void {
-    this.selectedDataDtos.set(event);
-    this.updateMultiHeaderActionSelectionChanged();
-    if (!event) {
-      this.selectedRowsChanged.emit([]);
-      return;
-    }
-    if (this.selectionMode() === 'single') {
-      this.selectedRowsChanged.emit([event]);
-    } else {
-      this.selectedRowsChanged.emit(event);
-    }
-  }
-
-  onFilterRefresh(_event: MouseEvent) {
+  protected onFilterRefresh(_event: MouseEvent) {
     this.onFilterData();
   }
 
-  onFilterDropdownClick(_event: Event) {
-    // if (this.refreshSplitButton?.menu) {
-    //   setTimeout(() => {
-    //     this.refreshSplitButton?.menu?.hide();
-    //   }, 0);
-    // }
-    this.serverFilterDataOp?.toggle(_event);
-  }
-
-  onFilterData() {
-    this.serverFilterDataOp?.hide();
-    this.refreshRequested.emit(this.getActualFilterData());
-  }
-
-  getActualFilterData(): TrivyFilterData {
-    return {
-      namespaceName: this.filterRefreshActiveNamespace(),
-      selectedSeverityIds: this.filterRefreshSeverities()?.map((x) => x.id) ?? [],
-    };
-  }
-
-  onFilterReset() {
+  protected onFilterReset() {
     this.filterRefreshSeverities.set([...this.severityDtos]);
     if (this.filterNamespacesSelect) {
       this.filterNamespacesSelect.clear();
     }
   }
 
-  public onOverlayToggle() {
-    this.overlayVisible.update((value) => !value);
-  }
-
-  onTrivyDetailsTableCallback(dto: TData) {
-    this.rowExpandActionCallback.emit(dto);
-  }
-
-  onTableCollapseAll() {
+  protected onTableCollapseAll() {
     this.expandedRows.set({});
     this.updateMultiHeaderActionCollapsed();
     const stateKey = this.stateKey();
@@ -303,12 +277,76 @@ export class TrivyTableComponent<TData> implements OnInit {
     }
   }
 
-  onRowExpandCollapse(_event: any) {
-    this.updateMultiHeaderActionCollapsed();
+  protected onFilterDropdownClick(_event: Event) {
+    this.serverFilterDataOp?.toggle(_event);
+  }
+
+  protected onFilterData() {
+    this.serverFilterDataOp?.hide();
+    this.refreshRequested.emit(this.getActualFilterData());
+  }
+
+
+  protected onSelectionChange(event: any): void {
+    let value: TData[] = [];
+    if (event) {
+      value = this.selectionMode() === 'single' ? [event] : event;
+    }
+    console.log('onSelectionChange', value, this.previousSelectedDataDtos, this.disableAutoScroll);
+    if (this.arraysEqual(this.previousSelectedDataDtos, value)) {
+      // avoid double selection
+      return;
+    }
+
+    this.disableAutoScroll = true;
+    this.selectedDataDtos.set(value);
+    this.updateMultiHeaderActionSelectionChanged();
+  }
+
+  scrollToDto() {
+    this.previousSelectedDataDtos = this.selectedDataDtos();
+    if (this.disableAutoScroll || this.selectedDataDtos().length === 0) {
+      this.disableAutoScroll = false;
+      return;
+    }
+
+    const value = this.selectedDataDtos()[0];
+
+    setTimeout(() => {
+      const index = this.dataDtos()?.indexOf(value);
+      if (index !== -1 && this.trivyTable) {
+          this.trivyTable.scrollToVirtualIndex(index);
+      }
+      this.disableAutoScroll = false;
+    }, 0);
+  }
+
+  private arraysEqual(a: TData[], b: TData[]): boolean {
+    if (a.length !== b.length) return false;
+    const x = a.every((x, i) => x === b[i]);
+    console.log("arraysEqual", x);
+    return x;
+  }
+
+
+
+  protected getActualFilterData(): TrivyFilterData {
+    return {
+      namespaceName: this.filterRefreshActiveNamespace(),
+      selectedSeverityIds: this.filterRefreshSeverities()?.map((x) => x.id) ?? [],
+    };
+  }
+
+  protected onOverlayToggle() {
+    this.overlayVisible.update((value) => !value);
+  }
+
+  protected onTrivyDetailsTableCallback(dto: TData) {
+    this.rowExpandActionCallback.emit(dto);
   }
 
   // csv export
-  onExportToCsv(exportType: string) {
+  protected onExportToCsv(exportType: string) {
     localStorage.setItem(LocalStorageUtils.csvFileNameKeyPrefix + this.csvStorageKey(), this.internalCsvFileName());
     switch (exportType) {
       case 'all':
@@ -322,14 +360,13 @@ export class TrivyTableComponent<TData> implements OnInit {
       this.csvExportOp.hide();
     }
   }
-
   private initCsvFileName() {
     const savedCsvFileName =
       localStorage.getItem(LocalStorageUtils.csvFileNameKeyPrefix + this.csvStorageKey()) ?? this.csvFileName();
     this.internalCsvFileName.set(savedCsvFileName);
   }
 
-  public onTableStateSave() {
+  protected onTableStateSave() {
     if (!this.selectionMode()) {
       return;
     }
@@ -346,6 +383,7 @@ export class TrivyTableComponent<TData> implements OnInit {
     localStorage.setItem(this.tableStateKey, JSON.stringify(tableState));
   }
 
+  // multiHeader actions
   private multiHeaderActionInit() {
     const multiHeaderActions = this.multiHeaderActions();
     if (multiHeaderActions && (multiHeaderActions.length ?? 0) > 1) {
@@ -397,7 +435,7 @@ export class TrivyTableComponent<TData> implements OnInit {
     return actionItem.icon ?? '';
   }
 
-  isMultiHeaderActionDisabled(actionItem: MultiHeaderAction): boolean {
+  private isMultiHeaderActionDisabled(actionItem: MultiHeaderAction): boolean {
     if (actionItem.enabledIfDataLoaded) {
       return this.dataDtos().length === 0;
     }
@@ -461,33 +499,34 @@ export class TrivyTableComponent<TData> implements OnInit {
       return items;
     });
   }
+  // end of multiHeader actions
 
-  onSort() {
+  protected onSort() {
     this.updateMultiHeaderActionClearSortFilters();
   }
 
-  onFilter() {
+  protected onFilter() {
     const table = this.trivyTable;
     this.trivyTableFilteredRecords.set(table?.filteredValue?.length ?? this.trivyTableTotalRecords());
     this.updateMultiHeaderActionClearSortFilters();
   }
 
-  onRowAction(rowDto: TData, columnName: string) {
+  protected onRowAction(rowDto: TData, columnName: string) {
     this.rowActionRequested.emit({ row: rowDto, col: columnName });
   }
 
-  onRowExpand(event: TableRowExpandEvent) {
+  protected onRowExpand(event: TableRowExpandEvent) {
     if (!this._rowExpandMap.hasKey(event.data)) {
       this.rowExpandDataChange.emit(event.data);
     }
-    this.onRowExpandCollapse(event);
+    this.updateMultiHeaderActionCollapsed();
   }
 
-  onRowCollapse(event: TableRowCollapseEvent) {
-    this.onRowExpandCollapse(event);
+  protected onRowCollapse(_event: TableRowCollapseEvent) {
+    this.updateMultiHeaderActionCollapsed();
   }
 
-  public isTableFilteredOrSorted(): boolean {
+  protected isTableFilteredOrSorted(): boolean {
     if (!this.trivyTable || this.isLoading()) {
       return false;
     }
@@ -515,20 +554,6 @@ export class TrivyTableComponent<TData> implements OnInit {
       localStorage.setItem(stateKey, JSON.stringify(tableStateJson));
     }
     this.updateMultiHeaderActionClearSortFilters();
-  }
-
-  scrollToDto(value: TData) {
-    if (this.localDisableAutoScroll)
-      return;
-
-    this.localDisableAutoScroll = this.disableAutoScroll();
-
-    setTimeout(() => {
-      const index = this.dataDtos()?.indexOf(value);
-      if (index !== -1 && this.trivyTable) {
-        this.trivyTable.scrollToVirtualIndex(index);
-      }
-    }, 0);
   }
 
   // force resize event - bug as table is not properly sized and, on row expand, it doesn't look ok

@@ -86,7 +86,7 @@ export class GenericMasterDetailComponent<
   @ViewChild('mainTable', { static: true }) mainTable?: TrivyTableComponent<TTrivyReport>;
 
   dataDtos = input<TTrivyReport[]>([]);
-  selectedDataDto: TTrivyReport | null = null;
+  selectedDataDto?: TTrivyReport;
 
   screenSize: string = this.getScreenSize();
 
@@ -131,11 +131,11 @@ export class GenericMasterDetailComponent<
       this.mainTable.onTableClearSelected();
     }
     const lastUid = this.selectedDataDto?.uid;
-    this.selectedDataDto = null;
+    this.selectedDataDto = undefined;
     this._dataDtos = dataDtos;
 
-    const newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === lastUid) || null;
-    this._singleSelectDataDto = newSelectedDataDto ?? undefined;
+    const newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === lastUid);
+    this._singleSelectDataDto = newSelectedDataDto;
     setTimeout(() => {
       this.selectedDataDto = newSelectedDataDto;
     }, 100);
@@ -145,7 +145,7 @@ export class GenericMasterDetailComponent<
 
   onMainTableSelectionChange(event: TTrivyReport[]) {
     if (event == null || event.length == 0) {
-      this.selectedDataDto = null;
+      this.selectedDataDto = undefined;
       this.mainTableSelectedRowChanged.emit(null);
       return;
     } else {

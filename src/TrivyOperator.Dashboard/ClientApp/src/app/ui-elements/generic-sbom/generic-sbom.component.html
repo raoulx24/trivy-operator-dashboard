@@ -14,7 +14,6 @@
         <app-trivy-table
           [dataDtos]="dependsOnBoms"
           [dataKey]="'bomRef'"
-          [disableAutoScroll]="false"
           [extraClasses]="'trivy-with-filters-half'"
           [isLoading]="isTableLoading()"
           [isRefreshVisible]="!isStatic()"
@@ -22,14 +21,14 @@
           [rowExpandData]="rowExpandResponse"
           [rowExpansionRender]="'table'"
           [selectionMode]="'single'"
-          [singleSelectDataDto]="selectedSbomDetailDto"
+          [selectedDataDtos]="selectedSbomDetailDto ? [selectedSbomDetailDto] : []"
           [stateKey]="`${stateKey()} - Depends On`"
           [style]="{ width: '930px' }"
           [trivyTableColumns]="dependsOnTableColumns"
           (multiHeaderActionRequested)="onMultiHeaderActionRequested($event)"
           (refreshRequested)="onRefreshRequested()"
           (rowExpandDataChange)="onRowExpandChange($event)"
-          (selectedRowsChanged)="onTableSelectedRowChange($event)"
+          (selectedDataDtosChange)="onTableSelectedRowChange($event)"
         />
       </div>
     </div>

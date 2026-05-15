@@ -25,7 +25,7 @@
                        [rowExpansionRender]="mainTableRowExpansionRender()"
                        [rowDimmer]="mainTableRowDimmer()"
                        [selectionMode]="mainTableSelectionMode()"
-                       [singleSelectDataDto]="_singleSelectDataDto"
+                       [selectedDataDtos]="_singleSelectDataDto ? [_singleSelectDataDto] : []"
                        [stateKey]="mainTableStateKey()"
                        [rowHeight]="mainTableRowHeight()"
                        [style]="mainTableStyle()"
@@ -34,7 +34,7 @@
                        (refreshRequested)="onRefreshRequested($event)"
                        (rowExpandActionCallback)="onMainTableExpandCallback($event)"
                        (rowExpandDataChange)="onMainTableRowExpandChange($event)"
-                       (selectedRowsChanged)="onMainTableSelectionChange($event)">
+                       (selectedDataDtosChange)="onMainTableSelectionChange($event)">
         <ng-container ngProjectAs="[ng-table-header]">
           <ng-content select="[ng-table-header]"></ng-content>
         </ng-container>
