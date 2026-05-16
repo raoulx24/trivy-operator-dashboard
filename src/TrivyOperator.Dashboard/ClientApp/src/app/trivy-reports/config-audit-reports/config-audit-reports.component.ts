@@ -52,9 +52,10 @@ export class ConfigAuditReportsComponent extends DataPageBase implements OnInit 
   private readonly messageService = inject(MessageService);
 
   ngOnInit() {
-    this.activatedRoute.queryParamMap.subscribe((params) => {
-      this.queryUid = params.get('uid') ?? undefined;
-    });
+    const state = history.state;
+
+    this.queryUid = state.uid;
+
     this.isPreselected = !!this.queryUid;
     this.getDataDtos();
   }

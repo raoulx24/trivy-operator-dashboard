@@ -217,6 +217,12 @@ export const routes: Routes = [
     data: { title: 'Alerts' },
   },
 
+  {
+    path: 'open/:target',
+    loadComponent: () => import('./pages/open-trivy-report/open-trivy-report.component').then((m) => m.OpenTrivyReportComponent),
+    data: { title: 'Open Trivy Report' },
+  },
+
 
   {
     path: 'test1',

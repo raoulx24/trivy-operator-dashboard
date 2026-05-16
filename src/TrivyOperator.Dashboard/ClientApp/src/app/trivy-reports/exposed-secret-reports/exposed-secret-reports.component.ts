@@ -75,10 +75,11 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   private readonly messageService = inject(MessageService);
 
   ngOnInit() {
-    this.activatedRoute.queryParamMap.subscribe((params) => {
-      this.queryNamespaceName = params.get('namespaceName') ?? undefined;
-      this.queryDigest = params.get('digest') ?? undefined;
-    });
+    const state = history.state;
+
+    this.queryNamespaceName = state.namespaceName;
+    this.queryDigest = state.digest;
+
     this.isPreselected = !!(this.queryNamespaceName && this.queryDigest);
     this.getDataDtos();
   }
