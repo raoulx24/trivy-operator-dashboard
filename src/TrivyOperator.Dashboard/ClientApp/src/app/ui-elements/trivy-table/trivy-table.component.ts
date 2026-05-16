@@ -208,16 +208,10 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected fullRowHeight = computed(() => { return this.rowHeight() + 8 });
   protected fullRowHeightPx = computed(() => { return `${this.rowHeight() + 8}px` });
 
-
-  // we'll see
-  private disableAutoScroll: boolean = false;
-  private previousSelectedDataDtos: TData[] = [];
-
   constructor() {
     // new dataDtos()
     effect(() => {
       const value = this.dataDtos();
-      console.log('effect dataDtos', this.disableAutoScroll);
 
       this.newData();
     });
@@ -235,23 +229,8 @@ export class TrivyTableComponent<TData> implements OnInit {
     // selectedDataDtos
     effect(() => {
       const value = this.selectedData().selectedDtos;
-      console.log('effect selectedDataDtos', value, this.previousSelectedDataDtos, this.disableAutoScroll);
-      if (this.arraysEqual(this.previousSelectedDataDtos, value)) {
-        // avoid double selection
-        return;
-      }
 
-      this.previousSelectedDataDtos = value;
-      if (value[0]) {
-        this.scrollToDto();
-      }
-    });
-    effect(() => {
-      const value = this.isLoading();
-      console.log('effect isLoading', value, this.previousSelectedDataDtos, this.disableAutoScroll);
-      if (value) {
-        this.previousSelectedDataDtos = [];
-      }
+      this.scrollToDto();
     });
   }
 
@@ -266,7 +245,6 @@ export class TrivyTableComponent<TData> implements OnInit {
     this.trivyTable.selection = [];
     this.trivyTable.selectionKeys = {};
     this.selectedData.set({selectedDtos: [], source: 'user'});
-    // this.updateMultiHeaderActionSelectionChanged();
   }
 
   protected onFilterReset() {
@@ -309,43 +287,21 @@ export class TrivyTableComponent<TData> implements OnInit {
     if (event) {
       value = this.selectionMode() === 'single' ? [event] : event;
     }
-    console.log('onSelectionChange', value, this.previousSelectedDataDtos, this.disableAutoScroll);
-    if (this.arraysEqual(this.previousSelectedDataDtos, value)) {
-      // avoid double selection
-      return;
-    }
-
-    this.disableAutoScroll = true;
     this.selectedData.set({selectedDtos: value, source: 'user'});
-    // this.updateMultiHeaderActionSelectionChanged();
   }
 
   scrollToDto() {
-    this.previousSelectedDataDtos = this.selectedData().selectedDtos;
-    if (this.disableAutoScroll || this.selectedData().selectedDtos.length === 0) {
-      this.disableAutoScroll = false;
-      return;
-    }
+    if (this.selectedData().source === 'programmatic' && this.selectedData().selectedDtos.length > 0) {
+      const value = this.selectedData().selectedDtos[0];
 
-    const value = this.selectedData().selectedDtos[0];
-
-    setTimeout(() => {
-      const index = this.dataDtos()?.indexOf(value);
-      if (index !== -1 && this.trivyTable) {
+      setTimeout(() => {
+        const index = this.dataDtos()?.indexOf(value);
+        if (index !== -1 && this.trivyTable) {
           this.trivyTable.scrollToVirtualIndex(index);
-      }
-      this.disableAutoScroll = false;
-    }, 0);
+        }
+      }, 100);
+    }
   }
-
-  private arraysEqual(a: TData[], b: TData[]): boolean {
-    if (a.length !== b.length) return false;
-    const x = a.every((x, i) => x === b[i]);
-    console.log("arraysEqual", x);
-    return x;
-  }
-
-
 
   protected getActualFilterData(): TrivyFilterData {
     return {

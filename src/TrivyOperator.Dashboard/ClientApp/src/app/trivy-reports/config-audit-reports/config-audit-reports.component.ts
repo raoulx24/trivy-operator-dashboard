@@ -38,7 +38,7 @@ export class ConfigAuditReportsComponent extends DataPageBase implements OnInit 
   detailsTableColumns: TrivyTableColumn[] = [...configAuditReportDetailColumns];
 
   queryUid?: string;
-  isSingleMode: boolean = false;
+  isPreselected: boolean = false;
   selectedTrivyReportDto?: ConfigAuditReportDto;
 
   isTrivyReportsCompareVisible = signal<boolean>(false);
@@ -55,7 +55,7 @@ export class ConfigAuditReportsComponent extends DataPageBase implements OnInit 
     this.activatedRoute.queryParamMap.subscribe((params) => {
       this.queryUid = params.get('uid') ?? undefined;
     });
-    this.isSingleMode = !!this.queryUid;
+    this.isPreselected = !!this.queryUid;
     this.getDataDtos();
   }
 

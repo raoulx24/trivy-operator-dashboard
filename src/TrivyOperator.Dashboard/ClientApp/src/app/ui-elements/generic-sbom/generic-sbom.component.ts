@@ -301,13 +301,15 @@ export class GenericSbomComponent {
   onNodeIdChange(nodeId: string | undefined) {
     if (nodeId) {
       const sbomReportDetailDto = this.dependsOnBoms?.find((x) => x.bomRef == nodeId);
+      const prevSelectedDto = this.selectedSbomDetailBomRef;
+      const source = prevSelectedDto === sbomReportDetailDto?.bomRef ? 'user' : 'programmatic';
       if (sbomReportDetailDto) {
         this.selectedSbomDetailDto = sbomReportDetailDto;
-        this.selectedSbomDetail = { source: 'programmatic', selectedDtos: [sbomReportDetailDto] };
+        this.selectedSbomDetail = { source: source, selectedDtos: [sbomReportDetailDto] };
       }
     } else {
       this.selectedSbomDetailDto = undefined;
-      this.selectedSbomDetail = { source: 'programmatic', selectedDtos: [] };
+      this.selectedSbomDetail = { source: 'user', selectedDtos: [] };
     }
   }
 

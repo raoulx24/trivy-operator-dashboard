@@ -84,8 +84,7 @@ export class GenericMasterDetailComponent<
   @ViewChild('mainTable', { static: true }) mainTable?: TrivyTableComponent<TTrivyReport>;
 
   dataDtos = input<TTrivyReport[]>([]);
-  //selectedDataDto?: TTrivyReport;
-  selectedDataEvent: SelectedDtosEvent<TTrivyReport> = { source: 'programmatic', selectedDtos: [] };
+  selectedDataEvent: SelectedDtosEvent<TTrivyReport> = { source: 'user', selectedDtos: [] };
   private lastKnownSelectedUid?: string;
 
   screenSize: string = this.getScreenSize();
@@ -102,6 +101,13 @@ export class GenericMasterDetailComponent<
     effect(() => {
       const dataDtos = this.dataDtos();
       this.onGetTDataDtos(dataDtos);
+    });
+    effect(() => {
+      const value = this.singleSelectDataDto();
+      if (this.lastKnownSelectedUid !== value?.uid) {
+        this.lastKnownSelectedUid = value?.uid;
+        this.selectedDataEvent = { source: 'programmatic', selectedDtos: value ? [value] : [] };
+      }
     });
     effect(() => {
       const ctx = this.kubernetesContextService.selectedContext();
@@ -132,10 +138,11 @@ export class GenericMasterDetailComponent<
     this._dataDtos = dataDtos;
 
     const newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === lastUid);
-    setTimeout(() => {
-      this.lastKnownSelectedUid = newSelectedDataDto?.uid;
+    this.lastKnownSelectedUid = newSelectedDataDto?.uid;
+
+    // setTimeout(() => {
       this.selectedDataEvent = { source: 'programmatic', selectedDtos: newSelectedDataDto ? [newSelectedDataDto] : [] };
-    }, 100);
+    // }, 400);
 
     this._isMainTableLoading = false;
   }
@@ -144,13 +151,13 @@ export class GenericMasterDetailComponent<
     if (event == null || event.selectedDtos.length == 0) {
       this.lastKnownSelectedUid = undefined;
       this.mainTableSelectedRowChanged.emit(null);
-      this.selectedDataEvent = {source: 'programmatic', selectedDtos: []};
+      this.selectedDataEvent = {source: 'user', selectedDtos: []};
       return;
     } else {
       const selectedDto = event.selectedDtos[0];
       this.lastKnownSelectedUid = selectedDto.uid;
       this.mainTableSelectedRowChanged.emit(selectedDto);
-      this.selectedDataEvent = {source: 'programmatic', selectedDtos: [selectedDto]};
+      this.selectedDataEvent = {source: 'user', selectedDtos: [selectedDto]};
     }
   }
 

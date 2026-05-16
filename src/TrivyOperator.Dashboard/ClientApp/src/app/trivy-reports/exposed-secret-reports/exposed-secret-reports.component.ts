@@ -57,7 +57,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
 
   queryNamespaceName?: string;
   queryDigest?: string;
-  isSingleMode: boolean = false;
+  isPreselected: boolean = false;
   selectedTrivyReportDto?: ExposedSecretReportImageDto;
 
   isTrivyReportsCompareVisible = signal<boolean>(false);
@@ -79,7 +79,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
       this.queryNamespaceName = params.get('namespaceName') ?? undefined;
       this.queryDigest = params.get('digest') ?? undefined;
     });
-    this.isSingleMode = !!(this.queryNamespaceName && this.queryDigest);
+    this.isPreselected = !!(this.queryNamespaceName && this.queryDigest);
     this.getDataDtos();
   }
 
@@ -94,7 +94,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   private onGetDataDtos(dtos: ExposedSecretReportImageDto[]) {
     this.dataDtos = dtos;
     this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
-    if (this.isSingleMode) {
+    if (this.isPreselected) {
       this.selectedTrivyReportDto = dtos.find(
         (x) => x.imageDigest == this.queryDigest && x.resourceNamespace == this.queryNamespaceName,
       );

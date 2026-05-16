@@ -47,7 +47,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
 
   queryNamespaceName?: string;
   queryDigest?: string;
-  isStatic: boolean = false;
+  isPreselected: boolean = false;
 
   compareFirstSelectedDto?: SbomReportDto;
   compareSecondSelectedDto?: SbomReportDto;
@@ -74,7 +74,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
       this.queryDigest = params.get('digest') ?? undefined;
     });
 
-    this.isStatic = !!(this.queryNamespaceName && this.queryDigest);
+    this.isPreselected = !!(this.queryNamespaceName && this.queryDigest);
 
     this.getTableDataDtos();
   }
@@ -88,7 +88,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
 
   onGetDataDtos(dtos: SbomReportImageMinimalDto[]) {
     this.dataDtos = dtos;
-    if (this.isStatic) {
+    if (this.isPreselected) {
       const queryDto = dtos.find(
         (x) => x.imageDigest == this.queryDigest && x.resourceNamespace == this.queryNamespaceName,
       );
