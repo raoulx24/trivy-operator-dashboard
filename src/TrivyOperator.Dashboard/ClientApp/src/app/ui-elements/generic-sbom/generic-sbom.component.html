@@ -21,14 +21,14 @@
           [rowExpandData]="rowExpandResponse"
           [rowExpansionRender]="'table'"
           [selectionMode]="'single'"
-          [selectedDataDtos]="selectedSbomDetailDto ? [selectedSbomDetailDto] : []"
+          [selectedData]="selectedSbomDetail"
           [stateKey]="`${stateKey()} - Depends On`"
           [style]="{ width: '930px' }"
           [trivyTableColumns]="dependsOnTableColumns"
           (multiHeaderActionRequested)="onMultiHeaderActionRequested($event)"
           (refreshRequested)="onRefreshRequested()"
           (rowExpandDataChange)="onRowExpandChange($event)"
-          (selectedDataDtosChange)="onTableSelectedRowChange($event)"
+          (selectedDataChange)="onTableSelectedRowChange($event)"
         />
       </div>
     </div>

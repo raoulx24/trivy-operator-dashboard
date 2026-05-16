@@ -6,7 +6,7 @@ import { SbomReportService } from '../../../api/services';
 import { sbomReportDenormalizedColumns } from '../constants/sbom-reports.constans';
 
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
-import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
+import { SelectedDtosEvent, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 
 import { MessageService } from 'primeng/api';
 import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
@@ -49,8 +49,8 @@ export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase imple
     this.isTableLoading = false;
   }
 
-  onTableSelectedRowChange(event: SbomReportImageDto[]) {
-    this.selectedDataDtos = event;
+  onTableSelectedRowChange(event: SelectedDtosEvent<SbomReportImageDto>) {
+    this.selectedDataDtos = event.selectedDtos;
   }
 
   onMultiHeaderActionRequested(event: string) {

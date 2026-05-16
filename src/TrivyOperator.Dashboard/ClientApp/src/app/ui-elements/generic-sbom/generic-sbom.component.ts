@@ -14,7 +14,12 @@ import {
 } from '../namespace-image-selector/namespace-image-selector.component';
 import { NamespacedImageDto } from '../namespace-image-selector/namespace-image-selector.types';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
-import { MultiHeaderAction, TrivyTableColumn, TrivyTableExpandRowData } from '../trivy-table/trivy-table.types';
+import {
+  MultiHeaderAction,
+  SelectedDtosEvent,
+  TrivyTableColumn,
+  TrivyTableExpandRowData,
+} from '../trivy-table/trivy-table.types';
 
 import { DialogModule } from 'primeng/dialog';
 import { SplitterModule } from 'primeng/splitter';
@@ -66,6 +71,7 @@ export class GenericSbomComponent {
   namespacedImageDtos?: NamespacedImageDto[];
 
   // region dependsOnTable data
+  selectedSbomDetail: SelectedDtosEvent<GenericSbomReportDetailDto> = { source: 'programmatic', selectedDtos: [] };
   selectedSbomDetailDto?: GenericSbomReportDetailDto;
   dependsOnBoms: GenericSbomReportDetailDto[] = [];
   deletedDependsOnBom: GenericSbomReportDetailDto[] = [];
@@ -260,6 +266,7 @@ export class GenericSbomComponent {
       const selectedSbomDetailDto = this.dependsOnBoms?.find((x) => x.level == 'Base');
       this.selectedSbomDetailDto = selectedSbomDetailDto;
       this.selectedSbomDetailBomRef = selectedSbomDetailDto?.bomRef ?? undefined;
+      this.selectedSbomDetail = { source: 'programmatic', selectedDtos: (selectedSbomDetailDto ? [selectedSbomDetailDto] : []) }
     }
   }
 
@@ -280,13 +287,14 @@ export class GenericSbomComponent {
     return '';
   }
 
-  onTableSelectedRowChange(data: GenericSbomReportDetailDto[]) {
-    if (data.length == 0) {
+  onTableSelectedRowChange(event: SelectedDtosEvent<GenericSbomReportDetailDto>) {
+    if (event.selectedDtos.length == 0) {
       this.selectedSbomDetailDto = undefined;
       this.selectedSbomDetailBomRef = undefined;
     } else {
-      this.selectedSbomDetailDto = data[0];
-      this.selectedSbomDetailBomRef = data[0].bomRef ?? undefined;
+      const dataDto = event.selectedDtos[0];
+      this.selectedSbomDetailDto = dataDto;
+      this.selectedSbomDetailBomRef = dataDto.bomRef ?? undefined;
     }
   }
 
@@ -295,9 +303,11 @@ export class GenericSbomComponent {
       const sbomReportDetailDto = this.dependsOnBoms?.find((x) => x.bomRef == nodeId);
       if (sbomReportDetailDto) {
         this.selectedSbomDetailDto = sbomReportDetailDto;
+        this.selectedSbomDetail = { source: 'programmatic', selectedDtos: [sbomReportDetailDto] };
       }
     } else {
       this.selectedSbomDetailDto = undefined;
+      this.selectedSbomDetail = { source: 'programmatic', selectedDtos: [] };
     }
   }
 

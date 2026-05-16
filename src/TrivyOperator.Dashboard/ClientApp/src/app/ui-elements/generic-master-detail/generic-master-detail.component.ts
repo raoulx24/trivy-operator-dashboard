@@ -5,7 +5,7 @@ import { TrivyReport, TrivyReportDetail } from '../../trivy-reports/abstracts/tr
 import { SeverityUtils } from '../../utils/severity.utils';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import {
-  MultiHeaderAction,
+  MultiHeaderAction, SelectedDtosEvent,
   TrivyFilterData,
   TrivyTableColumn,
   TrivyTableExpandRowData,
@@ -36,8 +36,6 @@ export class GenericMasterDetailComponent<
   singleSelectDataDto = input<TTrivyReport | undefined>();
   splitterStorageKey = input<string | undefined>();
   splitterPanelSizes = input<[number, number]>([35, 65]);
-
-  protected _singleSelectDataDto?: TTrivyReport;
 
   refreshRequested = output<TrivyFilterData>();
   private _lastEvent?: TrivyFilterData;
@@ -86,7 +84,9 @@ export class GenericMasterDetailComponent<
   @ViewChild('mainTable', { static: true }) mainTable?: TrivyTableComponent<TTrivyReport>;
 
   dataDtos = input<TTrivyReport[]>([]);
-  selectedDataDto?: TTrivyReport;
+  //selectedDataDto?: TTrivyReport;
+  selectedDataEvent: SelectedDtosEvent<TTrivyReport> = { source: 'programmatic', selectedDtos: [] };
+  private lastKnownSelectedUid?: string;
 
   screenSize: string = this.getScreenSize();
 
@@ -102,9 +102,6 @@ export class GenericMasterDetailComponent<
     effect(() => {
       const dataDtos = this.dataDtos();
       this.onGetTDataDtos(dataDtos);
-    });
-    effect(() => {
-      this._singleSelectDataDto = this.singleSelectDataDto();
     });
     effect(() => {
       const ctx = this.kubernetesContextService.selectedContext();
@@ -130,27 +127,30 @@ export class GenericMasterDetailComponent<
     if (this.mainTable) {
       this.mainTable.onTableClearSelected();
     }
-    const lastUid = this.selectedDataDto?.uid;
-    this.selectedDataDto = undefined;
+    const lastUid = this.lastKnownSelectedUid;
+    this.selectedDataEvent = {source: 'programmatic', selectedDtos: []};
     this._dataDtos = dataDtos;
 
     const newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === lastUid);
-    this._singleSelectDataDto = newSelectedDataDto;
     setTimeout(() => {
-      this.selectedDataDto = newSelectedDataDto;
+      this.lastKnownSelectedUid = newSelectedDataDto?.uid;
+      this.selectedDataEvent = { source: 'programmatic', selectedDtos: newSelectedDataDto ? [newSelectedDataDto] : [] };
     }, 100);
 
     this._isMainTableLoading = false;
   }
 
-  onMainTableSelectionChange(event: TTrivyReport[]) {
-    if (event == null || event.length == 0) {
-      this.selectedDataDto = undefined;
+  onMainTableSelectionChange(event: SelectedDtosEvent<TTrivyReport> | null) {
+    if (event == null || event.selectedDtos.length == 0) {
+      this.lastKnownSelectedUid = undefined;
       this.mainTableSelectedRowChanged.emit(null);
+      this.selectedDataEvent = {source: 'programmatic', selectedDtos: []};
       return;
     } else {
-      this.selectedDataDto = event[0];
-      this.mainTableSelectedRowChanged.emit(event[0]);
+      const selectedDto = event.selectedDtos[0];
+      this.lastKnownSelectedUid = selectedDto.uid;
+      this.mainTableSelectedRowChanged.emit(selectedDto);
+      this.selectedDataEvent = {source: 'programmatic', selectedDtos: [selectedDto]};
     }
   }
 

@@ -1,20 +1,3 @@
-// export interface TrivyTableOptions {
-//   isClearSelectionVisible: boolean;
-//   isCollapseAllVisible?: boolean;
-//   isResetFiltersVisible: boolean;
-//   isExportCsvVisible: boolean;
-//   isRefreshVisible: boolean;
-//   isRefreshFilterable: boolean;
-//   isFooterVisible: boolean;
-//   tableSelectionMode?: 'single' | 'multiple';
-//   tableStyle: { [klass: string]: any };
-//   stateKey?: string;
-//   dataKey?: string;
-//   rowExpansionRender?: 'messages' | 'table';
-//   extraClasses: string;
-//   multiHeaderActions?: MultiHeaderAction[];
-// }
-
 export interface MultiHeaderAction {
   label: string;
   enabledIfRowSelected?: boolean;
@@ -73,16 +56,6 @@ export interface TrivyFilterData {
   selectedSeverityIds: number[];
 }
 
-export interface TrivyTableCellCustomOptions {
-  value: string;
-  style: string;
-  buttonLink: string | undefined;
-  badge: string | undefined;
-  url: string | undefined;
-  cron?: string;
-  localTime?: string;
-}
-
 export interface TrivyTableExpandRowData<TData> {
   rowKey: TData;
   colStyles: { [klass: string]: any }[];
@@ -102,4 +75,9 @@ export interface TrivyTableExpandRowData<TData> {
       link: string;
     };
   }[][];
+}
+
+export interface SelectedDtosEvent<TData> {
+  selectedDtos: TData[];
+  source: 'user' | 'programmatic';
 }

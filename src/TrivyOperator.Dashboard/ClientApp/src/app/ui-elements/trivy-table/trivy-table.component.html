@@ -15,7 +15,7 @@
     [reorderableColumns]="true"
     [resizableColumns]="true"
     [scrollable]="true"
-    [selection]="selectedDataDtos()"
+    [selection]="selectedData().selectedDtos"
     [selectionMode]="selectionMode()"
     [stateKey]="tableStateKey"
     [tableStyle]="style()"
@@ -32,7 +32,7 @@
     <ng-template pTemplate="caption">
       <div class="flex items-center gap-2">
         @if (isRefreshVisible() && !isRefreshFilterable()) {
-          <p-button icon="pi pi-refresh" label="Refresh" raised size="small" text (onClick)="onFilterRefresh($event)" />
+          <p-button icon="pi pi-refresh" label="Refresh" raised size="small" text (onClick)="onRefreshData()" />
         }
         @if (isRefreshVisible() && isRefreshFilterable()) {
           <p-splitbutton
@@ -42,7 +42,7 @@
             raised
             size="small"
             text
-            (onClick)="onFilterRefresh($event)"
+            (onClick)="onRefreshData()"
             (onDropdownClick)="onFilterDropdownClick($event)"
           />
         }
@@ -74,7 +74,7 @@
             raised
             size="small"
             text
-            [disabled]="!isTableFilteredOrSorted()"
+            [disabled]="!checkIfTableIsFilteredOrSorted()"
             (onClick)="onClearSortFilters()"
           />
         }
@@ -628,7 +628,7 @@
                 size="small"
                 text
                 class="w-full"
-                (onClick)="onFilterData()"
+                (onClick)="onRefreshData()"
               />
             </div>
           </div>

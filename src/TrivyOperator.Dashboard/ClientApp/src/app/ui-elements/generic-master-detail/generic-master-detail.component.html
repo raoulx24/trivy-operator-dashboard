@@ -25,7 +25,7 @@
                        [rowExpansionRender]="mainTableRowExpansionRender()"
                        [rowDimmer]="mainTableRowDimmer()"
                        [selectionMode]="mainTableSelectionMode()"
-                       [selectedDataDtos]="_singleSelectDataDto ? [_singleSelectDataDto] : []"
+                       [selectedData]="selectedDataEvent"
                        [stateKey]="mainTableStateKey()"
                        [rowHeight]="mainTableRowHeight()"
                        [style]="mainTableStyle()"
@@ -34,7 +34,7 @@
                        (refreshRequested)="onRefreshRequested($event)"
                        (rowExpandActionCallback)="onMainTableExpandCallback($event)"
                        (rowExpandDataChange)="onMainTableRowExpandChange($event)"
-                       (selectedDataDtosChange)="onMainTableSelectionChange($event)">
+                       (selectedDataChange)="onMainTableSelectionChange($event)">
         <ng-container ngProjectAs="[ng-table-header]">
           <ng-content select="[ng-table-header]"></ng-content>
         </ng-container>
@@ -46,7 +46,7 @@
       <app-trivy-table
         class="row"
         [activeNamespaces]="activeNamespaces()"
-        [dataDtos]="selectedDataDto?.details ?? []"
+        [dataDtos]="selectedDataEvent.selectedDtos[0]?.details ?? []"
         [dataKey]="detailsDataKey()"
         [extraClasses]="detailsExtraClasses()"
         [isClearSelectionVisible]="detailsIsClearSelectionVisible()"
