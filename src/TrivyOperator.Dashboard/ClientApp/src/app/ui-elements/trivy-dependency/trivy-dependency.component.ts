@@ -174,7 +174,7 @@ export class TrivyDependencyComponent {
         id: histGroupId,
         objectType: 'History',
         description: 'Vulnerability Report History',
-        isTrivyReport: false,
+        isTrivyReport: true,
         hasSeverities: false,
         critical: 0,
         high: 0,
@@ -190,7 +190,7 @@ export class TrivyDependencyComponent {
             e.id,
             'HistoryEntry',
             `First seen: ${e.firstSeenAt.replace(/[TZ]/g, ' ')}`,
-            true,
+            false,
             true,
             e.criticalCount,
             e.highCount,
@@ -374,32 +374,41 @@ export class TrivyDependencyComponent {
     const ns = this.trivyReportDependencyDto?.digest.namespaceName;
     const digest = this.trivyReportDependencyDto?.digest.imageDigest;
 
-    const map: Record<string, { path: string; params: any }> = {
+    const map: Record<string, { page: string; params: any }> = {
       vulnerability: {
-        path: 'open/vulnerability-reports',
+        page: 'vulnerability-reports',
         params: { namespaceName: ns, digest },
       },
       configaudit: {
-        path: 'open/config-audit-reports',
+        page: 'config-audit-reports',
         params: { uid: n.id },
       },
       exposedsecret: {
-        path: 'open/exposed-secret-reports',
+        page: 'exposed-secret-reports',
         params: { namespaceName: ns, digest },
       },
       sbom: {
-        path: 'open/sbom-reports',
+        page: 'sbom-reports',
         params: { namespaceName: ns, digest },
       },
-      historyentry: {
-        path: 'open/vulnerability-reports-history',
+      history: {
+        page: 'vulnerability-reports-history',
         params: { namespaceName: ns, digest },
       },
     };
 
     const entry = map[n.objectType.toLowerCase()];
+
     if (entry) {
-      const url = this.router.serializeUrl(this.router.createUrlTree([entry.path], { queryParams: entry.params }));
+      const url = this.router.serializeUrl(
+        this.router.createUrlTree(['/open-trivy-rep'], {
+          queryParams: {
+            page: entry.page,
+            ...entry.params,
+          },
+        }),
+      );
+
       window.open(url, '_blank');
     }
   }

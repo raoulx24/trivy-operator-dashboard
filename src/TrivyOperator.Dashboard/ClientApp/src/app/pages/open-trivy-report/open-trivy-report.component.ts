@@ -11,7 +11,7 @@ export class OpenTrivyReportComponent implements OnInit {
   private readonly router = inject(Router);
 
   ngOnInit(): void {
-    const target = this.route.snapshot.paramMap.get('target');
+    const target = this.route.snapshot.queryParamMap.get('page');
 
     const allowedTargets = new Set([
       'config-audit-reports',
@@ -29,10 +29,12 @@ export class OpenTrivyReportComponent implements OnInit {
     const state: Record<string, unknown> = {};
 
     for (const key of this.route.snapshot.queryParamMap.keys) {
-      state[key] = this.route.snapshot.queryParamMap.get(key);
+      if (key !== 'page') {
+        state[key] = this.route.snapshot.queryParamMap.get(key);
+      }
     }
 
-    this.router.navigate([target], {
+    this.router.navigate(['/', target], {
       state,
       replaceUrl: true,
     });
