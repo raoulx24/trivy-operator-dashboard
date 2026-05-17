@@ -96,6 +96,8 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
         this.selectedImageId = queryDto.uid;
       }
       this.onSelectedImageIdChange(this.selectedImageId);
+
+      this.isPreselected = false;
     }
   }
 
