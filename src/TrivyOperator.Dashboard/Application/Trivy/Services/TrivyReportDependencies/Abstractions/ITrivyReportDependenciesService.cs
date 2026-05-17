@@ -4,5 +4,9 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependen
 
 public interface ITrivyReportDependenciesService
 {
-    Task<TrivyReportDependencyDto?> GetTrivyReportDependencies(string imageDigest, string namespaceName);
+    Task<TrivyDependencyTreeDto?> GetTrivyDependencyTreeAsync(
+        string imageDigest,
+        string namespaceName,
+        CancellationToken ct = default
+    );
 }

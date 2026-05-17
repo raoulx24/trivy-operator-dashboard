@@ -11,4 +11,5 @@ public class ExposedSecretReportCr : CustomResource, ITrivyReportWithImage
 
     public IArtifact? ImageArtifact => Report?.Artifact;
     public IRegistry? ImageRegistry => Report?.Registry;
+    public DateTime? UpdateTimestamp => Report?.UpdateTimestamp ?? Metadata.CreationTimestamp;
 }

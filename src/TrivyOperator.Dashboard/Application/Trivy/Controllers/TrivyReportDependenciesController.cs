@@ -9,14 +9,14 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 public class TrivyReportDependenciesController(ITrivyReportDependenciesService trivyReportDependenciesServiceService)
     : ControllerBase
 {
-    [HttpGet("digest", Name = "GetTrivyReportDependecyDtoByDigestNamespace")]
-    [ProducesResponseType<TrivyReportDependencyDto>(StatusCodes.Status200OK)]
+    [HttpGet("digest", Name = "GetTrivyReportDependencyDtoByDigestNamespace")]
+    [ProducesResponseType<TrivyDependencyTreeDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetByDigestNamespace([FromQuery] string digest, [FromQuery] string namespaceName)
+    public async Task<IActionResult> GetByDigestNamespace([FromQuery] string digest, [FromQuery] string namespaceName, CancellationToken ct)
     {
-        TrivyReportDependencyDto? trivyReportDependencyDto =
-            await trivyReportDependenciesServiceService.GetTrivyReportDependencies(digest, namespaceName);
+        TrivyDependencyTreeDto? trivyReportDependencyDto =
+            await trivyReportDependenciesServiceService.GetTrivyDependencyTreeAsync(digest, namespaceName, ct);
 
         return trivyReportDependencyDto is null ? NotFound() : Ok(trivyReportDependencyDto);
     }

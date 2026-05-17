@@ -1,166 +1,115 @@
-﻿using k8s;
-using k8s.Models;
-using TrivyOperator.Dashboard.Domain.Trivy.ConfigAuditReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
-using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
-using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
+﻿using System;
 using TrivyOperator.Dashboard.Domain.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Models;
 
-public class TrivyReportDependencyDto
+// Root DTO
+public sealed class TrivyDependencyTreeDto
 {
-    public TrivyReportImageDto Image { get; set; } = new();
-    public TrivyReportDependencyKubernetesResourceLinkDto[] KubernetesDependencies { get; set; } = [];
+    public required DigestNode Digest { get; init; }
 }
 
-public class TrivyReportImageDto
+// D-N: Digest node (root)
+public sealed class DigestNode
 {
-    public Guid Id => GuidUtils.GetDeterministicGuid(NamespaceName, ImageDigest, ImageName, ImageTag, ImageRepository);
-    public string NamespaceName { get; set; } = string.Empty;
-    public string ImageDigest { get; set; } = string.Empty;
-    public string ImageName { get; set; } = string.Empty;
-    public string ImageTag { get; set; } = string.Empty;
-    public string ImageRepository { get; set; } = string.Empty;
+    public required string Code { get; init; } = "D-N";
+    public required string Type { get; init; } = "Digest";
+    public required string Description { get; init; }
+
+    public Guid Id => GuidUtils.GetDeterministicGuid(
+        NamespaceName,
+        ImageDigest,
+        ImageName,
+        ImageTag,
+        ImageRepository
+    );
+
+    public required string NamespaceName { get; init; }
+    public required string ImageDigest { get; init; }
+    public required string ImageName { get; init; }
+    public required string ImageTag { get; init; }
+    public required string ImageRepository { get; init; }
+
+    public required TrivyReportNode[] TrivyReports { get; set; }
+    public required WorkloadsNode Workloads { get; set; }
+    public required VrHistoryNode VrHistory { get; set; }
 }
 
-public class TrivyReportDependencyKubernetesResourceLinkDto
+// TR: Trivy report (vr, es, sbom)
+public sealed class TrivyReportNode
 {
-    public TrivyReportDependencyKubernetesResourceDto KubernetesResource { get; set; } = new();
-    public TrivyReportDependencyDetailDto[] TrivyReportDependencies { get; set; } = [];
+    public required string Code { get; init; } = "TR";
+    public required string Type { get; init; }   // "Vulnerability", "ExposedSecret", "Sbom"
+    public required string Description { get; init; }
+
+    public required long CriticalCount { get; init; }
+    public required long HighCount { get; init; }
+    public required long MediumCount { get; init; }
+    public required long LowCount { get; init; }
+    public required long UnknownCount { get; init; }
 }
 
-public class TrivyReportDependencyKubernetesResourceBindingDto
+// W-N: Workloads aggregator node
+public sealed class WorkloadsNode
 {
-    public TrivyReportDependencyKubernetesResourceDto KubernetesResource { get; set; } = new();
-    public TrivyReportDependencyDetailDto TrivyReportDependency { get; set; } = new();
+    public required string Code { get; init; } = "W-N";
+    public required string Type { get; init; } = "Workloads";
+    public required string Description { get; init; }
+
+    public required WorkloadNode[] Workloads { get; init; }
 }
 
-public class TrivyReportDependencyKubernetesResourceDto : IEquatable<TrivyReportDependencyKubernetesResourceDto>
+// W: Workload node
+public sealed class WorkloadNode
 {
-    public Guid Id => GuidUtils.GetDeterministicGuid(ResourceContainerName, ResourceKind, ResourceName);
-    public string ResourceContainerName { get; set; } = string.Empty;
-    public string ResourceKind { get; set; } = string.Empty;
-    public string ResourceName { get; set; } = string.Empty;
+    public required string Code { get; init; } = "W";
+    public required string Type { get; init; }   // resource kind
+    public required string Description { get; init; }
 
-    public bool Equals(TrivyReportDependencyKubernetesResourceDto? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
+    public required string ResourceKind { get; init; }
+    public required string ResourceName { get; init; }
+    public required string ContainerName { get; init; }
 
-        return ResourceContainerName == other.ResourceContainerName &&
-               ResourceKind == other.ResourceKind &&
-               ResourceName == other.ResourceName;
-    }
-
-    public override bool Equals(object? obj) => Equals(obj as TrivyReportDependencyKubernetesResourceDto);
-
-    public override int GetHashCode() =>
-        HashCode.Combine(ResourceContainerName, ResourceKind, ResourceName);
+    public required ConfigAuditNode ConfigAudit { get; init; }
 }
 
-public class TrivyReportDependencyDetailDto
+// CA: Config audit node per workload
+public sealed class ConfigAuditNode
 {
-    public string Uid { get; init; } = Guid.NewGuid().ToString();
-    public TrivyReport TrivyReport { get; set; } = TrivyReport.Unknown;
-    public long CriticalCount { get; set; } = -1;
-    public long HighCount { get; set; } = -1;
-    public long MediumCount { get; set; } = -1;
-    public long LowCount { get; set; } = -1;
-    public long UnknownCount { get; set; } = -1;
+    public required string Code { get; init; } = "CA";
+    public required string Type { get; init; } = "ConfigAudit";
+    public required string Description { get; init; }
+
+    public required long CriticalCount { get; init; }
+    public required long HighCount { get; init; }
+    public required long MediumCount { get; init; }
+    public required long LowCount { get; init; }
 }
 
-public enum TrivyReport
+// VRH-N: VR history aggregator node
+public sealed class VrHistoryNode
 {
-    ConfigAudit,
-    ExposedSecret,
-    Sbom,
-    Vulnerability,
-    Unknown,
+    public required string Code { get; init; } = "VRH-N";
+    public required string Type { get; init; } = "VulnerabilityReportHistory";
+    public required string Description { get; init; }
+
+    public required VrHistoryEntryNode[] Entries { get; init; }
 }
 
-public static class TrivyReportDependencyDtoExtensions
+// VRH: Single VR history entry
+public sealed class VrHistoryEntryNode
 {
-    public static readonly string NotAvailable = "N/A";
+    public required string Code { get; init; } = "VRH";
+    public required string Type { get; init; } = "VulnerabilityReportSnapshot";
+    public required string Description { get; init; }
 
-    public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
-        this ConfigAuditReportCr tr
-    ) => new()
-    {
-        KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
-        TrivyReportDependency = new TrivyReportDependencyDetailDto
-        {
-            Uid = tr.Uid(),
-            TrivyReport = TrivyReport.ConfigAudit,
-            CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
-            HighCount = tr.Report?.Summary?.HighCount ?? -1,
-            MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
-            LowCount = tr.Report?.Summary?.LowCount ?? -1,
-        },
-    };
+    public required string Name { get; init; }
+    public required DateTime FirstSeenAt { get; init; }
+    public required DateTime LastSeenAt { get; init; }
 
-    public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
-        this ExposedSecretReportCr tr
-    ) => new()
-    {
-        KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
-        TrivyReportDependency = new TrivyReportDependencyDetailDto
-        {
-            Uid = tr.Uid(),
-            TrivyReport = TrivyReport.ExposedSecret,
-            CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
-            HighCount = tr.Report?.Summary?.HighCount ?? -1,
-            MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
-            LowCount = tr.Report?.Summary?.LowCount ?? -1,
-        },
-    };
-
-    public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
-        this VulnerabilityReportCr tr
-    ) => new()
-    {
-        KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
-        TrivyReportDependency = new TrivyReportDependencyDetailDto
-        {
-            Uid = tr.Uid(),
-            TrivyReport = TrivyReport.Vulnerability,
-            CriticalCount = tr.Report?.Summary?.CriticalCount ?? -1,
-            HighCount = tr.Report?.Summary?.HighCount ?? -1,
-            MediumCount = tr.Report?.Summary?.MediumCount ?? -1,
-            LowCount = tr.Report?.Summary?.LowCount ?? -1,
-            UnknownCount = tr.Report?.Summary?.UnknownCount ?? -1,
-        },
-    };
-
-    public static TrivyReportDependencyKubernetesResourceBindingDto ToTrivyReportDependencyKubernetesResourceBindingDto(
-        this SbomReportCr tr
-    ) => new()
-    {
-        KubernetesResource = GetTrivyReportDependencyKubernetesResourceDto(tr),
-        TrivyReportDependency = new TrivyReportDependencyDetailDto
-        {
-            Uid = tr.Uid(),
-            TrivyReport = TrivyReport.Sbom,
-        },
-    };
-
-    private static TrivyReportDependencyKubernetesResourceDto GetTrivyReportDependencyKubernetesResourceDto(
-        IKubernetesObject<V1ObjectMeta> report
-    ) => new()
-    {
-        ResourceKind =
-            report.Metadata.Labels != null &&
-            report.Metadata.Labels.TryGetValue("trivy-operator.resource.kind", out string? resourceKind) ? resourceKind
-                : NotAvailable,
-        ResourceName =
-            report.Metadata.Labels != null &&
-            report.Metadata.Labels.TryGetValue("trivy-operator.resource.name", out string? resourceName) ? resourceName
-                : NotAvailable,
-        ResourceContainerName =
-            report.Metadata.Labels != null &&
-            report.Metadata.Labels.TryGetValue("trivy-operator.container.name", out string? resourceContainerName)
-                ? resourceContainerName : NotAvailable,
-    };
+    public required long CriticalCount { get; init; }
+    public required long HighCount { get; init; }
+    public required long MediumCount { get; init; }
+    public required long LowCount { get; init; }
+    public required long UnknownCount { get; init; }
 }

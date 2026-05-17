@@ -430,6 +430,7 @@ public static class BuilderServicesExtensions
         if (!isHistoryEnabled || !useDefaultContext || useFileRepository)
         {
             services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryNullService>();
+            services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryNullStore>();
             return;
         }
 
