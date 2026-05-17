@@ -208,6 +208,7 @@
           [pSelectableRow]="rowData"
           [pSelectableRowIndex]="rowIndex"
           [class.trivy-table-row-dimmed]="isRowDimmed">
+        @let localRefreshValue = refreshValue();
         @if (dataKey()) {
           <td style="max-width: 50px">
             <p-button
@@ -305,19 +306,14 @@
                 />
               }
               @case ('boolean') {
-                <p-tag
-                  [icon]="
-                    'pi ' +
-                    (rowData[col.field] === undefined
-                      ? 'pi-question-circle'
-                      : rowData[col.field]
-                        ? 'pi-verified'
-                        : 'pi-times-circle')
-                  "
-                  [rounded]="true"
-                  [style]="rowData[col.field] | booleanCssStyle"
-                  [value]="rowData[col.field]?.toString() ?? 'N/A' | capitalizeFirst"
-                />
+                <p-tag [icon]="'pi ' +  (rowData[col.field] === undefined
+                                  ? 'pi-question-circle'
+                                  : rowData[col.field]
+                                    ? 'pi-verified'
+                                    : 'pi-times-circle')"
+                       [rounded]="true"
+                       [style]="rowData[col.field] | booleanCssStyle"
+                       [value]="rowData[col.field]?.toString() ?? 'N/A' | capitalizeFirst" />
               }
               @case ('unPascalCase') {
                 <span>{{ rowData[col.field] | unPascalCase: col.extraFields?.[0] ?? [] }}</span>

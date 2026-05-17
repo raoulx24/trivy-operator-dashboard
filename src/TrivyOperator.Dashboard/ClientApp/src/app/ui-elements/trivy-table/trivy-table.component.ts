@@ -130,6 +130,8 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
 
+  refreshValue = input<number | undefined>(undefined);
+
   // output signals
   multiHeaderActionRequested = output<string>();
   refreshRequested = output<TrivyFilterData>();

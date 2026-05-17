@@ -61,6 +61,7 @@ export class GenericMasterDetailComponent<
   mainTableExtraClasses = input<string | undefined>(undefined);
   mainTableMultiHeaderActions = input<MultiHeaderAction[]>([]);
   mainTableRowDimmer = input<((row: TTrivyReport) => boolean) | undefined>();
+  mainTableRefreshValue = input<number | undefined>(undefined);
 
   detailsIsClearSelectionVisible = input<boolean | undefined>(false);
   detailsIsCollapseAllVisible = input<boolean | undefined>(false);
@@ -78,6 +79,7 @@ export class GenericMasterDetailComponent<
   detailsExtraClasses = input<string | undefined>(undefined);
   detailsMultiHeaderActions = input<MultiHeaderAction[]>([]);
   detailsRowDimmer = input<((row: TTrivyReportDetail) => boolean) | undefined>();
+  detailsTableRefreshValue = input<number | undefined>(undefined);
 
   detailsTableMultiHeaderActionRequested = output<string>();
 
