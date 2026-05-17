@@ -1388,7 +1388,7 @@ paths:
     get:
       tags:
         - TrivyReportDependencies
-      operationId: GetTrivyReportDependecyDtoByDigestNamespace
+      operationId: GetTrivyReportDependencyDtoByDigestNamespace
       parameters:
         - name: digest
           in: query
@@ -1404,7 +1404,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TrivyReportDependencyDto'
+                $ref: '#/components/schemas/TrivyDependencyTreeDto'
         '400':
           description: Bad Request
           content:
@@ -2446,6 +2446,36 @@ components:
           items:
             $ref: '#/components/schemas/ClusterVulnerabilityReportDetailDto'
       additionalProperties: false
+    ConfigAuditNode:
+      required:
+        - code
+        - criticalCount
+        - description
+        - highCount
+        - lowCount
+        - mediumCount
+        - type
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        criticalCount:
+          type: integer
+          format: int64
+        highCount:
+          type: integer
+          format: int64
+        mediumCount:
+          type: integer
+          format: int64
+        lowCount:
+          type: integer
+          format: int64
+      additionalProperties: false
     ConfigAuditReportDenormalizedDto:
       type: object
       properties:
@@ -2684,6 +2714,50 @@ components:
           type: string
         version:
           type: string
+      additionalProperties: false
+    DigestNode:
+      required:
+        - code
+        - description
+        - imageDigest
+        - imageName
+        - imageRepository
+        - imageTag
+        - namespaceName
+        - trivyReports
+        - type
+        - vrHistory
+        - workloads
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        namespaceName:
+          type: string
+        imageDigest:
+          type: string
+        imageName:
+          type: string
+        imageTag:
+          type: string
+        imageRepository:
+          type: string
+        trivyReports:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrivyReportNode'
+        workloads:
+          $ref: '#/components/schemas/WorkloadsNode'
+        vrHistory:
+          $ref: '#/components/schemas/VrHistoryNode'
       additionalProperties: false
     EsSeveritiesByNsSummaryDetailDto:
       type: object
@@ -3421,21 +3495,32 @@ components:
         relatedSpdxElement:
           type: string
       additionalProperties: false
-    TrivyReport:
-      enum:
-        - ConfigAudit
-        - ExposedSecret
-        - Sbom
-        - Vulnerability
-        - Unknown
-      type: string
-    TrivyReportDependencyDetailDto:
+    TrivyDependencyTreeDto:
+      required:
+        - digest
       type: object
       properties:
-        uid:
+        digest:
+          $ref: '#/components/schemas/DigestNode'
+      additionalProperties: false
+    TrivyReportNode:
+      required:
+        - code
+        - criticalCount
+        - description
+        - highCount
+        - lowCount
+        - mediumCount
+        - type
+        - unknownCount
+      type: object
+      properties:
+        code:
           type: string
-        trivyReport:
-          $ref: '#/components/schemas/TrivyReport'
+        type:
+          type: string
+        description:
+          type: string
         criticalCount:
           type: integer
           format: int64
@@ -3451,58 +3536,6 @@ components:
         unknownCount:
           type: integer
           format: int64
-      additionalProperties: false
-    TrivyReportDependencyDto:
-      type: object
-      properties:
-        image:
-          $ref: '#/components/schemas/TrivyReportImageDto'
-        kubernetesDependencies:
-          type: array
-          items:
-            $ref: '#/components/schemas/TrivyReportDependencyKubernetesResourceLinkDto'
-      additionalProperties: false
-    TrivyReportDependencyKubernetesResourceDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        resourceContainerName:
-          type: string
-        resourceKind:
-          type: string
-        resourceName:
-          type: string
-      additionalProperties: false
-    TrivyReportDependencyKubernetesResourceLinkDto:
-      type: object
-      properties:
-        kubernetesResource:
-          $ref: '#/components/schemas/TrivyReportDependencyKubernetesResourceDto'
-        trivyReportDependencies:
-          type: array
-          items:
-            $ref: '#/components/schemas/TrivyReportDependencyDetailDto'
-      additionalProperties: false
-    TrivyReportImageDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        namespaceName:
-          type: string
-        imageDigest:
-          type: string
-        imageName:
-          type: string
-        imageTag:
-          type: string
-        imageRepository:
-          type: string
       additionalProperties: false
     VRSeveritiesByNsSummaryDetailDto:
       type: object
@@ -3541,6 +3574,70 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/VRSeveritiesByNsSummaryDetailDto'
+      additionalProperties: false
+    VrHistoryEntryNode:
+      required:
+        - code
+        - criticalCount
+        - description
+        - firstSeenAt
+        - highCount
+        - lastSeenAt
+        - lowCount
+        - mediumCount
+        - name
+        - type
+        - unknownCount
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        name:
+          type: string
+        firstSeenAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        criticalCount:
+          type: integer
+          format: int64
+        highCount:
+          type: integer
+          format: int64
+        mediumCount:
+          type: integer
+          format: int64
+        lowCount:
+          type: integer
+          format: int64
+        unknownCount:
+          type: integer
+          format: int64
+      additionalProperties: false
+    VrHistoryNode:
+      required:
+        - code
+        - description
+        - entries
+        - type
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/VrHistoryEntryNode'
       additionalProperties: false
     VulnerabilityReportDenormalizedDto:
       type: object
@@ -4051,6 +4148,51 @@ components:
         eventsGauge:
           type: integer
           format: int64
+      additionalProperties: false
+    WorkloadNode:
+      required:
+        - code
+        - configAudit
+        - containerName
+        - description
+        - resourceKind
+        - resourceName
+        - type
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        resourceKind:
+          type: string
+        resourceName:
+          type: string
+        containerName:
+          type: string
+        configAudit:
+          $ref: '#/components/schemas/ConfigAuditNode'
+      additionalProperties: false
+    WorkloadsNode:
+      required:
+        - code
+        - description
+        - type
+        - workloads
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        workloads:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkloadNode'
       additionalProperties: false
 tags:
   - name: Alerts

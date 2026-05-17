@@ -18,6 +18,7 @@ export class OpenTrivyReportComponent implements OnInit {
       'exposed-secret-reports',
       'sbom-reports',
       'vulnerability-reports',
+      'vulnerability-reports-history',
     ]);
 
     if (!target || !allowedTargets.has(target)) {
