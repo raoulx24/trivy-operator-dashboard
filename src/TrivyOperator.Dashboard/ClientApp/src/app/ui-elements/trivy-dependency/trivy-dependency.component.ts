@@ -1,13 +1,9 @@
 import { Component, HostListener, effect, input } from '@angular/core';
 import { Router } from '@angular/router';
 import { TreeNode, TreeTableNode } from 'primeng/api';
-import { v4 as uuid } from 'uuid';
 
 import { DigestNode } from '../../../api/models/digest-node';
 import { TrivyDependencyTreeDto } from '../../../api/models/trivy-dependency-tree-dto';
-import { TrivyReportNode } from '../../../api/models/trivy-report-node';
-import { VrHistoryEntryNode } from '../../../api/models/vr-history-entry-node';
-import { WorkloadNode } from '../../../api/models/workload-node';
 import { TrivyReportDependenciesService } from '../../../api/services/trivy-report-dependencies.service';
 
 import { NodeDataDto } from '../fcose/fcose.types';
@@ -118,10 +114,9 @@ export class TrivyDependencyComponent {
   // ---------------------------------------------------------------------
 
   private buildTree(root: DigestNode): TreeNode<TrivyReportTreeNodeData>[] {
-    const rootId = this.idRoot(root);
 
     const rootNode = this.node(
-      rootId,
+      root.id,
       'Image',
       `${root.imageRepository}/${root.imageName}:${root.imageTag}`,
       false,
@@ -137,12 +132,11 @@ export class TrivyDependencyComponent {
   }
 
   private buildTrivyReports(root: DigestNode): TreeNode<TrivyReportTreeNodeData> {
-    const groupId = this.idTrivyReportsGroup(root);
-
+    const trGroupId = this.idTrivyReportsGroup(root);
     return {
-      key: groupId,
+      key: trGroupId,
       data: {
-        id: groupId,
+        id: trGroupId,
         objectType: 'TrivyReports',
         description: 'Trivy Reports',
         isTrivyReport: false,
@@ -154,9 +148,9 @@ export class TrivyDependencyComponent {
         unknown: 0,
       },
       expanded: true,
-      children: root.trivyReports.map((r, i) =>
+      children: root.trivyReports.map((r) =>
         this.node(
-          this.idTrivyReport(root, r, i),
+          r.id,
           r.type,
           r.description,
           true,
@@ -166,18 +160,18 @@ export class TrivyDependencyComponent {
           r.mediumCount,
           r.lowCount,
           r.unknownCount,
-        )
+        ),
       ),
     };
   }
 
   private buildHistory(root: DigestNode): TreeNode<TrivyReportTreeNodeData> {
-    const groupId = this.idHistoryGroup(root);
+    const histGroupId = this.idHistoryGroup(root);
 
     return {
-      key: groupId,
+      key: histGroupId,
       data: {
-        id: groupId,
+        id: histGroupId,
         objectType: 'History',
         description: 'Vulnerability Report History',
         isTrivyReport: false,
@@ -191,9 +185,9 @@ export class TrivyDependencyComponent {
       expanded: true,
       children: root.vrHistory.entries
         .sort((a, b) => a.firstSeenAt.localeCompare(b.firstSeenAt))
-        .map((e, i) =>
+        .map((e) =>
           this.node(
-            this.idHistoryEntry(root, e, i),
+            e.id,
             'HistoryEntry',
             `First seen: ${e.firstSeenAt.replace(/[TZ]/g, ' ')}`,
             true,
@@ -209,12 +203,12 @@ export class TrivyDependencyComponent {
   }
 
   private buildWorkloads(root: DigestNode): TreeNode<TrivyReportTreeNodeData> {
-    const groupId = this.idWorkloadsGroup(root);
+    const wlGroupId = this.idWorkloadsGroup(root);
 
     return {
-      key: groupId,
+      key: wlGroupId,
       data: {
-        id: groupId,
+        id: wlGroupId,
         objectType: 'Workloads',
         description: 'Workloads',
         isTrivyReport: false,
@@ -226,31 +220,23 @@ export class TrivyDependencyComponent {
         unknown: 0,
       },
       expanded: true,
-      children: root.workloads.workloads.map((w, i) => {
-        const wlId = this.idWorkload(root, w, i);
-        const caId = this.idConfigAudit(root, w, i);
+      children: root.workloads.workloads.map((w) => {
+        const wlNode = this.node(w.id, w.resourceKind, `${w.resourceKind}/${w.resourceName}`, false);
 
-        const wlNode = this.node(
-          wlId,
-          w.resourceKind,
-          `${w.resourceKind}/${w.resourceName}`,
-          false,
-        );
-
-        wlNode.children = [
-          this.node(
-            caId,
+        wlNode.children = w.configAudits.map((ca) => {
+          return this.node(
+            ca.id,
             'ConfigAudit',
-            w.configAudit.description,
+            ca.description,
             true,
             true,
-            w.configAudit.criticalCount,
-            w.configAudit.highCount,
-            w.configAudit.mediumCount,
-            w.configAudit.lowCount,
+            ca.criticalCount,
+            ca.highCount,
+            ca.mediumCount,
+            ca.lowCount,
             0,
-          ),
-        ];
+          );
+        });
 
         return wlNode;
       }),
@@ -264,7 +250,6 @@ export class TrivyDependencyComponent {
   private buildGraph(root: DigestNode): NodeDataDto[] {
     const nodes: NodeDataDto[] = [];
 
-    const rootId = this.idRoot(root);
     const trGroupId = this.idTrivyReportsGroup(root);
     const histGroupId = this.idHistoryGroup(root);
     const wlGroupId = this.idWorkloadsGroup(root);
@@ -274,18 +259,18 @@ export class TrivyDependencyComponent {
     // root
     nodes.push(
       this.graphNode(
-        rootId,
+        root.id,
         `${root.imageName}:${root.imageTag}`,
         [trGroupId, histGroupId, wlGroupId],
-        'sunbeam-yellow'
-      )
+        'sunbeam-yellow',
+      ),
     );
 
     // TrivyReports group
     dependsOn = [];
 
-    root.trivyReports.forEach((r, i) => {
-      const id = this.idTrivyReport(root, r, i);
+    root.trivyReports.forEach((r) => {
+      const id = r.id;
       nodes.push(
         this.graphNode(
           id,
@@ -303,12 +288,12 @@ export class TrivyDependencyComponent {
     // History group
     dependsOn = [];
 
-    root.vrHistory.entries.forEach((e, i) => {
-      const id = this.idHistoryEntry(root, e, i);
+    root.vrHistory.entries.forEach((h) => {
+      const id = h.id;
       nodes.push(
         this.graphNode(
           id,
-          `Seen: ${e.firstSeenAt.replace(/[TZ]/g, ' ')} (${e.criticalCount}/${e.highCount}/${e.mediumCount}/${e.lowCount}/${e.unknownCount})`,
+          `Seen: ${h.firstSeenAt.replace(/[TZ]/g, ' ')} (${h.criticalCount}/${h.highCount}/${h.mediumCount}/${h.lowCount}/${h.unknownCount})`,
           [],
           'burnt-sienna',
           'Vulnerability Reports History',
@@ -322,22 +307,19 @@ export class TrivyDependencyComponent {
     // Workloads group
     dependsOn = [];
 
-    root.workloads.workloads.forEach((w, i) => {
-      const wlId = this.idWorkload(root, w, i);
-      const caId = this.idConfigAudit(root, w, i);
+    root.workloads.workloads.forEach((w) => {
+      nodes.push(this.graphNode(w.id, `${w.resourceKind}/${w.resourceName}`, w.configAudits.map(x => x.id), 'buttermilk', 'Workloads'));
 
-      nodes.push(this.graphNode(wlId, `${w.resourceKind}/${w.resourceName}`, [caId], 'buttermilk', 'Workloads'));
-
-      nodes.push(
-        this.graphNode(
-          caId,
-          `ConfigAudit (${w.configAudit.criticalCount}/${w.configAudit.highCount}/${w.configAudit.mediumCount}/${w.configAudit.lowCount})`,
+      nodes.push(... w.configAudits.map((c) => {
+        return this.graphNode(
+          c.id,
+          `ConfigAudit (${c.criticalCount}/${c.highCount}/${c.mediumCount}/${c.lowCount})`,
           [],
           'spiced-apricot',
           'Workloads',
-        ),
-      );
-      dependsOn.push(wlId);
+        );
+      }));
+      dependsOn.push(w.id);
     });
 
     nodes.push(this.graphNode(wlGroupId, 'Workloads', dependsOn, 'harvest-orange', 'Workloads'));
@@ -377,31 +359,6 @@ export class TrivyDependencyComponent {
         unknown: u,
       },
       expanded: true,
-    };
-  }
-
-  private groupNode(
-    type: string,
-    description: string,
-    children: TreeNode<TrivyReportTreeNodeData>[],
-  ): TreeNode<TrivyReportTreeNodeData> {
-    const id = uuid();
-    return {
-      key: id,
-      data: {
-        id,
-        objectType: type,
-        description,
-        isTrivyReport: false,
-        hasSeverities: false,
-        critical: 0,
-        high: 0,
-        medium: 0,
-        low: 0,
-        unknown: 0,
-      },
-      expanded: true,
-      children,
     };
   }
 
@@ -504,10 +461,6 @@ export class TrivyDependencyComponent {
       .replace(/^-+|-+$/g, '');      // trim leading/trailing -
   }
 
-  private idRoot(root: DigestNode): string {
-    return this.sanitize(`root-${root.id}`);
-  }
-
   private idTrivyReportsGroup(root: DigestNode): string {
     return this.sanitize(`root-${root.id}-trivy-reports`);
   }
@@ -518,25 +471,5 @@ export class TrivyDependencyComponent {
 
   private idWorkloadsGroup(root: DigestNode): string {
     return this.sanitize(`root-${root.id}-workloads`);
-  }
-
-  private idTrivyReport(root: DigestNode, r: TrivyReportNode, index: number): string {
-    return this.sanitize(`root-${root.id}-tr-${r.type}-${index}`);
-  }
-
-  private idHistoryEntry(root: DigestNode, e: VrHistoryEntryNode, index: number): string {
-    return this.sanitize(`root-${root.id}-vrh-${e.name}-${index}`);
-  }
-
-  private idWorkload(root: DigestNode, w: WorkloadNode, index: number): string {
-    return this.sanitize(
-      `root-${root.id}-wl-${w.resourceKind}-${w.resourceName}-${w.containerName}-${index}`
-    );
-  }
-
-  private idConfigAudit(root: DigestNode, w: WorkloadNode, index: number): string {
-    return this.sanitize(
-      `root-${root.id}-wl-${w.resourceKind}-${w.resourceName}-${w.containerName}-${index}-configaudit`
-    );
   }
 }

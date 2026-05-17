@@ -2452,11 +2452,14 @@ components:
         - criticalCount
         - description
         - highCount
+        - id
         - lowCount
         - mediumCount
         - type
       type: object
       properties:
+        id:
+          type: string
         code:
           type: string
         type:
@@ -2738,7 +2741,6 @@ components:
           type: string
         id:
           type: string
-          format: uuid
           readOnly: true
         namespaceName:
           type: string
@@ -3509,12 +3511,15 @@ components:
         - criticalCount
         - description
         - highCount
+        - id
         - lowCount
         - mediumCount
         - type
         - unknownCount
       type: object
       properties:
+        id:
+          type: string
         code:
           type: string
         type:
@@ -3582,6 +3587,7 @@ components:
         - description
         - firstSeenAt
         - highCount
+        - id
         - lastSeenAt
         - lowCount
         - mediumCount
@@ -3590,6 +3596,8 @@ components:
         - unknownCount
       type: object
       properties:
+        id:
+          type: string
         code:
           type: string
         type:
@@ -3625,9 +3633,12 @@ components:
         - code
         - description
         - entries
+        - id
         - type
       type: object
       properties:
+        id:
+          type: string
         code:
           type: string
         type:
@@ -4152,14 +4163,16 @@ components:
     WorkloadNode:
       required:
         - code
-        - configAudit
-        - containerName
+        - configAudits
         - description
+        - id
         - resourceKind
         - resourceName
         - type
       type: object
       properties:
+        id:
+          type: string
         code:
           type: string
         type:
@@ -4170,19 +4183,22 @@ components:
           type: string
         resourceName:
           type: string
-        containerName:
-          type: string
-        configAudit:
-          $ref: '#/components/schemas/ConfigAuditNode'
+        configAudits:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigAuditNode'
       additionalProperties: false
     WorkloadsNode:
       required:
         - code
         - description
+        - id
         - type
         - workloads
       type: object
       properties:
+        id:
+          type: string
         code:
           type: string
         type:

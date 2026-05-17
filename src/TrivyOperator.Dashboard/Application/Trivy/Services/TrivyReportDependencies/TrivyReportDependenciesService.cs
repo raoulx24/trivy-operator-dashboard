@@ -130,6 +130,7 @@ public sealed class TrivyReportDependenciesService(
             TrivyReports = [],
             Workloads = new WorkloadsNode
             {
+                Id = Guid.NewGuid().ToString().ToLowerInvariant(),
                 Code = "W-N",
                 Type = "Workloads",
                 Description = "Workloads using this image",
@@ -137,6 +138,7 @@ public sealed class TrivyReportDependenciesService(
             },
             VrHistory = new VrHistoryNode
             {
+                Id = Guid.NewGuid().ToString().ToLowerInvariant(),
                 Code = "VRH-N",
                 Type = "VulnerabilityReportHistory",
                 Description = "History of vulnerability reports",
@@ -157,6 +159,7 @@ public sealed class TrivyReportDependenciesService(
         {
             list.Add(new TrivyReportNode
             {
+                Id = vr.Metadata.Uid,
                 Code = "TR",
                 Type = "Vulnerability",
                 Description = "Latest vulnerability report",
@@ -173,6 +176,7 @@ public sealed class TrivyReportDependenciesService(
         {
             list.Add(new TrivyReportNode
             {
+                Id = esr.Metadata.Uid,
                 Code = "TR",
                 Type = "ExposedSecret",
                 Description = "Latest exposed secret report",
@@ -189,6 +193,7 @@ public sealed class TrivyReportDependenciesService(
         {
             list.Add(new TrivyReportNode
             {
+                Id = sbom.Metadata.Uid,
                 Code = "TR",
                 Type = "Sbom",
                 Description = "Latest SBOM report",
@@ -212,43 +217,44 @@ public sealed class TrivyReportDependenciesService(
     {
         ITrivyReportWithImage[] all = [.. vr.Cast<ITrivyReportWithImage>().Concat(esr).Concat(sbom),];
 
-        IEnumerable<IGrouping<(string, string, string), ITrivyReportWithImage>> groups = all.GroupBy(r =>
+        IEnumerable<IGrouping<(string, string), ITrivyReportWithImage>> groups = all.GroupBy(r =>
         {
             IDictionary<string, string> labels = r.Metadata.Labels ?? new Dictionary<string, string>();
             labels.TryGetValue("trivy-operator.resource.kind", out string? kind);
             labels.TryGetValue("trivy-operator.resource.name", out string? name);
-            labels.TryGetValue("trivy-operator.container.name", out string? container);
-            return (kind ?? "N/A", name ?? "N/A", container ?? "N/A");
+            return (kind ?? "N/A", name ?? "N/A");
         });
 
         List<WorkloadNode> workloadNodes = [];
 
-        foreach (IGrouping<(string, string, string), ITrivyReportWithImage> g in groups)
+        foreach (IGrouping<(string, string), ITrivyReportWithImage> g in groups)
         {
-            (string kind, string name, string container) = g.Key;
+            (string kind, string name) = g.Key;
 
-            ConfigAuditReportCr[] matchingCar = car.Where(c =>
+            ConfigAuditReportCr[] matchingCar = [.. car.Where(c =>
             {
-                var labels = c.Metadata.Labels ?? new Dictionary<string, string>();
-                return labels.TryGetValue("trivy-operator.resource.kind", out string? k) && k == kind &&
-                       labels.TryGetValue("trivy-operator.resource.name", out string? n) && n == name &&
-                       labels.TryGetValue("trivy-operator.container.name", out string? cn) && cn == container;
-            }).ToArray();
+                IDictionary<string, string> labels = c.Metadata.Labels ?? new Dictionary<string, string>();
+                return labels.TryGetValue("trivy-operator.resource.kind", out string? k) &&
+                       k == kind &&
+                       labels.TryGetValue("trivy-operator.resource.name", out string? n) &&
+                       n == name;
+            }),];
 
             workloadNodes.Add(new WorkloadNode
             {
+                Id = Guid.NewGuid().ToString().ToLowerInvariant(),
                 Code = "W",
                 Type = kind,
                 Description = $"{kind}/{name}",
                 ResourceKind = kind,
                 ResourceName = name,
-                ContainerName = container,
-                ConfigAudit = BuildConfigAuditNode(matchingCar),
+                ConfigAudits = BuildConfigAuditNode(matchingCar),
             });
         }
 
         return new WorkloadsNode
         {
+            Id = Guid.NewGuid().ToString().ToLowerInvariant(),
             Code = "W",
             Type = "Workloads",
             Description = "Workloads using this image",
@@ -256,12 +262,13 @@ public sealed class TrivyReportDependenciesService(
         };
     }
 
-    private static ConfigAuditNode BuildConfigAuditNode(ConfigAuditReportCr[] cars)
+    private static ConfigAuditNode[] BuildConfigAuditNode(ConfigAuditReportCr[] cars)
     {
         if (cars.Length == 0)
         {
-            return new ConfigAuditNode
+            return [new ConfigAuditNode
             {
+                Id = Guid.NewGuid().ToString().ToLowerInvariant(),
                 Code = "CA",
                 Type = "ConfigAudit",
                 Description = "No config audit reports",
@@ -269,29 +276,28 @@ public sealed class TrivyReportDependenciesService(
                 HighCount = 0,
                 MediumCount = 0,
                 LowCount = 0,
+            },];
+        }
+        
+        List<ConfigAuditNode> result = [];
+
+        foreach (ConfigAuditReportCr c in cars)
+        {
+            ConfigAuditNode can = new()
+            {
+                Id = c.Metadata.Uid,
+                Code = "CA",
+                Type = "ConfigAudit",
+                Description = "Config audit report",
+                CriticalCount = c.Report?.Summary?.CriticalCount ?? 0,
+                HighCount = c.Report?.Summary?.HighCount ?? 0,
+                MediumCount = c.Report?.Summary?.MediumCount ?? 0,
+                LowCount = c.Report?.Summary?.LowCount ?? 0,
             };
+            result.Add(can);
         }
 
-        long crit = 0, high = 0, med = 0, low = 0;
-
-        foreach (var c in cars)
-        {
-            crit += c.Report?.Summary?.CriticalCount ?? 0;
-            high += c.Report?.Summary?.HighCount ?? 0;
-            med += c.Report?.Summary?.MediumCount ?? 0;
-            low += c.Report?.Summary?.LowCount ?? 0;
-        }
-
-        return new ConfigAuditNode
-        {
-            Code = "CA",
-            Type = "ConfigAudit",
-            Description = "Aggregated config audit for workload",
-            CriticalCount = crit,
-            HighCount = high,
-            MediumCount = med,
-            LowCount = low
-        };
+        return [.. result,];
     }
 
     private static VrHistoryNode BuildVrHistoryNode(IReadOnlyList<SnapshotIndexEntry> snapshots)
@@ -305,6 +311,7 @@ public sealed class TrivyReportDependenciesService(
 
                     return new VrHistoryEntryNode
                     {
+                        Id = Guid.NewGuid().ToString().ToLowerInvariant(),
                         Code = "VRH",
                         Type = "VulnerabilityReportSnapshot",
                         Description = $"Snapshot at {s.FirstSeenAt.Value:O}",
@@ -323,6 +330,7 @@ public sealed class TrivyReportDependenciesService(
 
         return new VrHistoryNode
         {
+            Id = Guid.NewGuid().ToString().ToLowerInvariant(),
             Code = "VRH-N",
             Type = "VulnerabilityReportHistory",
             Description = "History of vulnerability reports",
