@@ -178,7 +178,7 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
     const days = this.internalDataDtos();
     const n = this.internalHighlightedDays();
 
-    if (days.length === 0 || n <= 0) {
+    if (days.length === 0 || n < 0) {
       return days.map(() => false);
     }
 

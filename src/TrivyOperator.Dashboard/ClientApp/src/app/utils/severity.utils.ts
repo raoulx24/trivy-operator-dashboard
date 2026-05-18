@@ -11,7 +11,7 @@ export class SeverityUtils {
     { id: 2, name: 'MEDIUM', short: 'MED' },
     { id: 3, name: 'LOW', short: 'LOW' },
     { id: 4, name: 'UNKNOWN', short: 'UNK' },
-    { id: 10, name: 'N/A', short: 'NA'},
+    { id: 9, name: 'N/A', short: 'NA'},
   ];
   static severityShortDtos: ReadonlyArray<SeverityExtendedDto> = [
     { id: 0, name: 'CRITICAL', short: 'CRIT' },
@@ -68,6 +68,8 @@ export class SeverityUtils {
   }
 
   public static getCapitalizedName(severityId: number): string {
+    if (severityId === 9)
+      return SeverityUtils.getName(severityId);
     const severityName = SeverityUtils.getName(severityId).toLowerCase();
     return this.getCapitalizedString(severityName);
   }

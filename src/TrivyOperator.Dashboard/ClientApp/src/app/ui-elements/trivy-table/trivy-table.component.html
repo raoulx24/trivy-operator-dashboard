@@ -209,6 +209,7 @@
           [pSelectableRowIndex]="rowIndex"
           [class.trivy-table-row-dimmed]="isRowDimmed">
         @let localRefreshValue = refreshValue();
+        <ng-template>{{ localRefreshValue }}</ng-template>
         @if (dataKey()) {
           <td style="max-width: 50px">
             <p-button
@@ -394,20 +395,22 @@
                 <small class="tod-text-muted-color font-bold">{{ data[1] ?? 'N/A' }}</small>
               }
               @case ('severityStackedBadge') {
-                @let values = rowData[col.field]?.split('|') ?? ['10'];
+                @let values = rowData[col.field]?.split('|') ?? ['9'];
                 @if (values.length === 1) {
                   <p-tag [value]="values[0] | severityNameById"
                          [rounded]="true"
                          [style]="values[0] | severityCssStyleById : 1" />
                 } @else {
                   <div class="flex items-center gap-2">
-                    <p-tag [value]="values[0] | severityNameById"
+                    @let first = isNaN(+values[0]) ? 9 : +values[0];
+                    @let second = isNaN(+values[1]) ? 9 : +values[1];
+                    <p-tag [value]="first | severityNameById"
                            [rounded]="true"
-                           [style]="values[0] | severityCssStyleById : 1" />
-                    <span class="text-lg opacity-70">{{ values[0] < values[1] ? '⮝' : '⮟' }}</span>
-                    <p-tag [value]="values[1] | severityNameById"
+                           [style]="first | severityCssStyleById : 1" />
+                    <span class="text-lg opacity-70">{{ first < second ? '⮝' : '⮟' }}</span>
+                    <p-tag [value]="second | severityNameById"
                            [rounded]="true"
-                           [style]="values[1] | severityCssStyleById : 1 " />
+                           [style]="second | severityCssStyleById : 1 " />
                   </div>
                 }
               }
@@ -427,6 +430,19 @@
                     </div>
                   </div>
                 </div>
+              }
+              @case ('compareDateStacked') {
+                @let values = rowData[col.field]?.split('|');
+                @if (values.length === 2) {
+                  <div class="border-l-4 border-blue-500/40">
+                    @let first = values[0] === "N/A" ? "N/A" : values[0].substring(0, 10);
+                    @let second = values[1] === "N/A" ? "N/A" : values[1].substring(0, 10);
+                    <small><span class="tod-text-muted-color ml-1">1st: </span><span class="font-bold">{{ first }}</span></small><br />
+                    <small><span class="tod-text-muted-color ml-1">2nd: </span><span class="font-bold">{{ second }}</span></small>
+                  </div>
+                } @else {
+                  <span>{{ values[0] | date: 'yyyy-MM-dd' }}</span>
+                }
               }
             }
           </td>

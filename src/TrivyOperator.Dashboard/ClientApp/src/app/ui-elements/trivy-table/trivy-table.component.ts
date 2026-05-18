@@ -458,6 +458,8 @@ export class TrivyTableComponent<TData> implements OnInit {
       window.dispatchEvent(new Event('resize'));
     }, 0);
   }
+
+  protected readonly isNaN = isNaN;
 }
 
 // clear filters on reset table: https://stackoverflow.com/questions/51395624/reset-filter-value-on-primeng-table

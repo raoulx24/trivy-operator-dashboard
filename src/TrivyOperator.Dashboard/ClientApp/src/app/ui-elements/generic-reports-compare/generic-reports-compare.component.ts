@@ -142,7 +142,10 @@ export class GenericReportsCompareComponent<
       secondSelectedDto,
     } = args;
 
-    if ((!dataDtos && !isDependantOnExternalData) || (!firstSelectedTrivyReportId && !secondSelectedTrivyReportId)) {
+    if (
+      (!dataDtos && !isDependantOnExternalData) ||
+      (!firstSelectedTrivyReportId && !secondSelectedTrivyReportId)
+    ) {
       this.fullTrivyReportDetailsCompared.set([]);
       return;
     }
@@ -157,14 +160,12 @@ export class GenericReportsCompareComponent<
       firstDto.details?.forEach((detail) => {
         const existing = detailSet.get(detail.matchKey);
         if (existing) {
-          this.mergeValues(existing, detail, true);
+          this.mergeValues(existing, detail as any, true);
         } else {
-          const clone: TrivyReportDetailComparedDto = { ...detail, first: true };
+          const clone: TrivyReportDetailComparedDto = { ...(detail as any), first: true };
+          // keep raw values for grouped fields so we can infer type later
           this._groupedFields.forEach((field) => {
-            const value = this.getPropertyAsString(clone, field);
-            if (value) {
-              (clone as any)[field] = value;
-            }
+            (clone as any)[field] = (detail as any)[field];
           });
           detailSet.set(detail.matchKey, clone);
         }
@@ -180,20 +181,19 @@ export class GenericReportsCompareComponent<
         const existing = detailSet.get(detail.matchKey);
         if (existing) {
           existing.second = true;
-          this.mergeValues(existing, detail, false);
+          this.mergeValues(existing, detail as any, false);
         } else {
-          const clone: TrivyReportDetailComparedDto = { ...detail, second: true };
+          const clone: TrivyReportDetailComparedDto = { ...(detail as any), second: true };
+          // keep raw values for grouped fields so we can infer type later
           this._groupedFields.forEach((field) => {
-            const value = this.getPropertyAsString(clone, field);
-            if (value) {
-              (clone as any)[field] = value;
-            }
+            (clone as any)[field] = (detail as any)[field];
           });
           detailSet.set(detail.matchKey, clone);
         }
       });
     }
 
+    // normalize first/second flags
     detailSet.forEach((item) => {
       if (firstSelectedTrivyReportId) {
         item.first = item.first ?? false;
@@ -201,6 +201,23 @@ export class GenericReportsCompareComponent<
       if (secondSelectedTrivyReportId) {
         item.second = item.second ?? false;
       }
+    });
+
+    // ensure all grouped fields are in split form, even if only one side exists
+    detailSet.forEach((item) => {
+      this._groupedFields.forEach((field) => {
+        const current = (item as any)[field];
+
+        // if mergeValues already ran, it's already "left | right"
+        if (typeof current === 'string' && current.includes('|')) {
+          return;
+        }
+
+        const left = item.first ? current : undefined;
+        const right = item.second ? current : undefined;
+
+        (item as any)[field] = this.compareField(left, right);
+      });
     });
 
     const compared = Array.from(detailSet.values());
@@ -248,7 +265,7 @@ export class GenericReportsCompareComponent<
     this.secondSelectedTrivyReportId.set(list[newSecondIndex].uid);
   }
 
-    private mergeValues(
+  private mergeValues(
     existing: TrivyReportDetailComparedDto,
     incoming: TrivyReportDetailComparedDto,
     isFirst: boolean,
@@ -256,32 +273,17 @@ export class GenericReportsCompareComponent<
     let modified = false;
 
     this._groupedFields.forEach((field) => {
-      const existingValue = this.getPropertyAsString(existing, field);
-      const incomingValue = this.getPropertyAsString(incoming, field);
+      const left = (existing as any)[field];   // raw value from first side
+      const right = (incoming as any)[field];  // raw value from second side
 
-      if (existingValue === incomingValue) return;
+      (existing as any)[field] = this.compareField(left, right);
 
-      const [firstRaw = '', secondRaw = ''] = existingValue?.split('|') ?? [];
-      const firstPart = firstRaw.split('__').filter(Boolean);
-      const secondPart = secondRaw.split('__').filter(Boolean);
-      const incomingParts = incomingValue?.split('__').filter(Boolean) ?? [];
-
-      const mergedFirst = isFirst ? Array.from(new Set([...firstPart, ...incomingParts])).sort() : firstPart;
-      const mergedSecond = !isFirst ? Array.from(new Set([...secondPart, ...incomingParts])).sort() : secondPart;
-
-      (existing as any)[field] = [
-        mergedFirst.length ? mergedFirst.join('__') : '',
-        mergedSecond.length ? mergedSecond.join('__') : '',
-      ]
-        .filter(Boolean)
-        .join('|');
-
-      if (mergedFirst.join() !== mergedSecond.join()) {
+      if (left !== right) {
         modified = true;
       }
     });
 
-    existing.modified = modified;
+    existing.modified = existing.modified || modified;
   }
 
   private getPropertyAsString(dto: any, key: string | number | symbol): string | undefined {
@@ -305,5 +307,26 @@ export class GenericReportsCompareComponent<
     }
 
     return secondIndex < list.length - 1;
+  }
+
+  // core split helper for compareSelectedTrivyReports
+  private compareField(left: any, right: any): string {
+    const normalize = (v: any) => {
+      // Only null/undefined become N/A
+      return (v === undefined || v === null)
+        ? "N/A"
+        : v; // empty string stays empty
+    };
+
+    const L = normalize(left);
+    const R = normalize(right);
+
+    // If both sides are equal -> return the value (even if it's "")
+    if (L === R) {
+      return `${L}`;
+    }
+
+    // Otherwise → split
+    return `${L}|${R}`;
   }
 }
