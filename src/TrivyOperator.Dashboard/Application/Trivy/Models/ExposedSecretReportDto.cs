@@ -48,7 +48,7 @@ public class ExposedSecretReportImageResourceDto
 
 public class ExposedSecretReportDetailDto
 {
-    public Guid Id => GuidUtils.GetDeterministicGuid($"{SeverityId}{Category}{RuleId}{Target}");
+    public Guid Id => GuidUtils.GetDeterministicGuid(SeverityId, Category, RuleId, Target);
     public Guid MatchKey => Id;
     public string Category { get; init; } = string.Empty;
     public string Match { get; init; } = string.Empty;

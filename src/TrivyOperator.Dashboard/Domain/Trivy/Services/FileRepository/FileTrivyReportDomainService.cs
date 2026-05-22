@@ -72,8 +72,7 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                         if (item?.Metadata != null)
                         {
                             item.Metadata.Uid = GuidUtils.GetDeterministicGuid(
-                                    $"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}-{typeof(TTrivyReport).Name}"
-                                )
+                                    item.Metadata.Name, item.Metadata.NamespaceProperty, typeof(TTrivyReport).Name)
                                 .ToString();
                             results.Add(item);
                             isValidFile = true;
@@ -109,8 +108,7 @@ public class FileTrivyReportDomainService<TTrivyReport>(
                                 if (item?.Metadata != null)
                                 {
                                     item.Metadata.Uid = GuidUtils.GetDeterministicGuid(
-                                            $"{item.Metadata.Name}-{item.Metadata.NamespaceProperty}-{typeof(TTrivyReport).Name}"
-                                        )
+                                            item.Metadata.Name, item.Metadata.NamespaceProperty, typeof(TTrivyReport).Name)
                                         .ToString();
                                     results.Add(item);
                                     isValidFile = true;

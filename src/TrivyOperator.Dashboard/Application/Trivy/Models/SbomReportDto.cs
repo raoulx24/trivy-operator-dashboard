@@ -66,10 +66,10 @@ public class SbomReportImageMinimalDto
 
 public class SbomReportDetailDto : ISBomReportDetailDto
 {
-    public Guid Id => GuidUtils.GetDeterministicGuid(Purl);
+    public Guid Id => GuidUtils.GetDeterministicGuid(Purl, Properties);
 
     public Guid MatchKey =>
-        GuidUtils.GetDeterministicGuid($"{(string.IsNullOrEmpty(Purl.Split('@')[0]) ? Name : Purl.Split('@')[0])}");
+        GuidUtils.GetDeterministicGuid((string.IsNullOrEmpty(Purl.Split('@')[0]) ? Name : Purl.Split('@')[0]));
 
     public string Name { get; set; } = string.Empty;
     public string Purl { get; set; } = string.Empty;
