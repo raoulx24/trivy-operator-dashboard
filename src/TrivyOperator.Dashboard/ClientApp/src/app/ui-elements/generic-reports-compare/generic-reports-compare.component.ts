@@ -150,7 +150,7 @@ export class GenericReportsCompareComponent<
       return;
     }
 
-    const detailSet = new Map<string, TrivyReportDetailComparedDto>();
+    const detailSet = new Map<string, any>();
 
     const firstDto = isDependantOnExternalData
       ? firstSelectedDto
@@ -160,13 +160,15 @@ export class GenericReportsCompareComponent<
       firstDto.details?.forEach((detail) => {
         const existing = detailSet.get(detail.matchKey);
         if (existing) {
-          this.mergeValues(existing, detail as any, true);
+          this.mergeValues(existing, detail, true);
         } else {
-          const clone: TrivyReportDetailComparedDto = { ...(detail as any), first: true };
-          // keep raw values for grouped fields so we can infer type later
+          const clone: any = { ...detail, first: true };
+
           this._groupedFields.forEach((field) => {
-            (clone as any)[field] = (detail as any)[field];
+            const fieldKey = String(field);
+            this.mergeSideValue(clone, field, (detail as any)[fieldKey], true);
           });
+
           detailSet.set(detail.matchKey, clone);
         }
       });
@@ -181,43 +183,39 @@ export class GenericReportsCompareComponent<
         const existing = detailSet.get(detail.matchKey);
         if (existing) {
           existing.second = true;
-          this.mergeValues(existing, detail as any, false);
+          this.mergeValues(existing, detail, false);
         } else {
-          const clone: TrivyReportDetailComparedDto = { ...(detail as any), second: true };
-          // keep raw values for grouped fields so we can infer type later
+          const clone: any = { ...detail, second: true };
+
           this._groupedFields.forEach((field) => {
-            (clone as any)[field] = (detail as any)[field];
+            const fieldKey = String(field);
+            this.mergeSideValue(clone, field, (detail as any)[fieldKey], false);
           });
+
           detailSet.set(detail.matchKey, clone);
         }
       });
     }
 
-    // normalize first/second flags
     detailSet.forEach((item) => {
-      if (firstSelectedTrivyReportId) {
-        item.first = item.first ?? false;
-      }
-      if (secondSelectedTrivyReportId) {
-        item.second = item.second ?? false;
-      }
-    });
+      const firstStore: Record<string, string> | undefined = (item as any).__first;
+      const secondStore: Record<string, string> | undefined = (item as any).__second;
 
-    // ensure all grouped fields are in split form, even if only one side exists
-    detailSet.forEach((item) => {
       this._groupedFields.forEach((field) => {
-        const current = (item as any)[field];
+        const fieldKey = String(field);
 
-        // if mergeValues already ran, it's already "left | right"
-        if (typeof current === 'string' && current.includes('|')) {
-          return;
+        const left = item.first ? firstStore?.[fieldKey] : undefined;
+        const right = item.second ? secondStore?.[fieldKey] : undefined;
+
+        item[fieldKey] = this.compareField(left, right);
+
+        if (left !== undefined && right !== undefined && left !== right) {
+          item.modified = true;
         }
-
-        const left = item.first ? current : undefined;
-        const right = item.second ? current : undefined;
-
-        (item as any)[field] = this.compareField(left, right);
       });
+
+      delete (item as any).__first;
+      delete (item as any).__second;
     });
 
     const compared = Array.from(detailSet.values());
@@ -265,27 +263,6 @@ export class GenericReportsCompareComponent<
     this.secondSelectedTrivyReportId.set(list[newSecondIndex].uid);
   }
 
-  private mergeValues(
-    existing: TrivyReportDetailComparedDto,
-    incoming: TrivyReportDetailComparedDto,
-    isFirst: boolean,
-  ): void {
-    let modified = false;
-
-    this._groupedFields.forEach((field) => {
-      const left = (existing as any)[field];   // raw value from first side
-      const right = (incoming as any)[field];  // raw value from second side
-
-      (existing as any)[field] = this.compareField(left, right);
-
-      if (left !== right) {
-        modified = true;
-      }
-    });
-
-    existing.modified = existing.modified || modified;
-  }
-
   private getPropertyAsString(dto: any, key: string | number | symbol): string | undefined {
     const value = dto[key];
     return value != null ? value.toString() : undefined;
@@ -311,22 +288,75 @@ export class GenericReportsCompareComponent<
 
   // core split helper for compareSelectedTrivyReports
   private compareField(left: any, right: any): string {
-    const normalize = (v: any) => {
-      // Only null/undefined become N/A
-      return (v === undefined || v === null)
-        ? "N/A"
-        : v; // empty string stays empty
-    };
+    const normalize = (v: any) =>
+      v === undefined || v === null ? 'N/A' : String(v);
 
     const L = normalize(left);
     const R = normalize(right);
 
-    // If both sides are equal -> return the value (even if it's "")
-    if (L === R) {
-      return `${L}`;
+    return L === R ? L : `${L}|${R}`;
+  }
+
+  private normalizeRawValue(value: any): string {
+    if (value === null || value === undefined || value === '') {
+      return 'N/A';
+    }
+    return String(value).replace(/[|_]/g, ' ');
+  }
+
+  private mergeSideValue(
+    existing: any,
+    field: keyof TTrivyReportDetailComparableDto,
+    raw: any,
+    isFirst: boolean,
+  ): void {
+    const normalized = this.normalizeRawValue(raw);
+    const key = isFirst ? '__first' : '__second';
+
+    const store: Record<string, string> =
+      ((existing as any)[key] ?? ((existing as any)[key] = {}));
+
+    const fieldKey = String(field); // <- stringify generic key
+
+    const current = store[fieldKey];
+    let values = current ? current.split('__') : [];
+
+    if (!values.includes(normalized)) {
+      values.push(normalized);
+      values.sort(); // string sort
     }
 
-    // Otherwise → split
-    return `${L}|${R}`;
+    store[fieldKey] = values.join('__');
+  }
+
+  private mergeValues(
+    existing: any,
+    incoming: any,
+    isFirst: boolean,
+  ): void {
+    let modified = false;
+
+    this._groupedFields.forEach((field) => {
+      const fieldKey = String(field);
+      const raw = incoming[fieldKey];
+
+      const key = isFirst ? '__first' : '__second';
+      const store: Record<string, string> =
+        ((existing as any)[key] ?? ((existing as any)[key] = {}));
+
+      const before = store[fieldKey];
+      this.mergeSideValue(existing, field, raw, isFirst);
+      const after = store[fieldKey];
+
+      if (before !== undefined && before !== after) {
+        modified = true;
+      }
+    });
+
+    existing.modified = existing.modified || modified;
+  }
+
+  private asKey(field: keyof TTrivyReportDetailComparableDto): string {
+    return String(field);
   }
 }

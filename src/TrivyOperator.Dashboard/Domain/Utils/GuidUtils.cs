@@ -18,7 +18,7 @@ public static class GuidUtils
                     break;
 
                 case string[] arr:
-                    foreach (string s2 in arr)
+                    foreach (string s2 in arr.Order())
                         AppendString(hasher, s2);
                     break;
 

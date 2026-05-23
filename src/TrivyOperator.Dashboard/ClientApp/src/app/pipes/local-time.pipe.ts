@@ -8,18 +8,28 @@ import { DatePipe } from '@angular/common';
 export class FriendlyTimePipe implements PipeTransform {
   private datePipe = new DatePipe('en-US');
 
-  transform(data: string | undefined, local: boolean = false): string {
+  transform(data: string | undefined, local: boolean = false, justDate: boolean = false): string {
     if (!data) {
-      return '';
+      return 'N/A';
     }
-    return this.formatUtcToFriendly(data, local);
+    return this.formatUtcToFriendly(data, local, justDate);
   }
 
-  private formatUtcToFriendly(utcDateString: string, local: boolean): string {
+  private formatUtcToFriendly(utcDateString: string, local: boolean, justDate: boolean): string {
     const timezone = local ? undefined : 'UTC';
-    const timeFormat = local ? 'yyyy-MM-dd HH:mm' : 'yyyy-MM-dd HH:mm:ss';
+    let timeFormat = 'yyyy-MM-dd';
+    if (!justDate) {
+      timeFormat = local ? 'yyyy-MM-dd HH:mm' : 'yyyy-MM-dd HH:mm:ss';
+    }
 
-    const formatted = this.datePipe.transform(utcDateString, timeFormat, timezone);
+    let formatted: string | null = null;
+
+    try {
+      formatted = this.datePipe.transform(utcDateString, timeFormat, timezone);
+    } catch {
+      // swallow the error
+      return 'N/A';
+    }
 
     if (!formatted) {
       return 'N/A';

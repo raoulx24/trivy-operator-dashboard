@@ -332,7 +332,7 @@
                   @if (splitData.length > 1) {
                     <small class="tod-text-muted-color font-semibold">{{ splitData.length }} Versions</small>
                   }
-                  <span class="truncate-ellipsis">{{ rowData[col.field].split('__').join(', ') }}</span>
+                  <span class="truncate-ellipsis">{{ rowData[col.field]?.split('__').join(', ') ?? 'N/A' }}</span>
                 }
               }
               @case ('counter') {
@@ -441,7 +441,7 @@
                     <small><span class="tod-text-muted-color ml-1">2<sup>nd</sup>: </span><span class="font-bold">{{ second }}</span></small>
                   </div>
                 } @else {
-                  <span>{{ values[0] | date: 'yyyy-MM-dd' }}</span>
+                  <span>{{ values[0] | friendlyTime: false : true }}</span>
                 }
               }
             }
