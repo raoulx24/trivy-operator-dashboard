@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, model, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, model, output, signal } from '@angular/core';
 
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
@@ -10,6 +10,7 @@ import { TrivyTableColumn } from '../trivy-table/trivy-table.types';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { LocalStorageUtils } from '../../utils/local-storage.utils';
+import {TrivyReportCompareService} from "../../services/trivy-report-compare.service";
 
 type TrivyReportDetailComparedDto = TrivyReportComparableDetail & {
   first?: boolean;
@@ -74,6 +75,8 @@ export class GenericReportsCompareComponent<
   // now reactive, no mirrors
   private _groupedFields: (keyof TTrivyReportDetailComparableDto)[] = [];
 
+  private trivyReportCompareService = inject(TrivyReportCompareService);
+
   constructor() {
     // grouped fields react to column changes
     effect(() => {
@@ -101,15 +104,19 @@ export class GenericReportsCompareComponent<
         }
       }
 
-      this.compareSelectedTrivyReports({
+      const compared = this.trivyReportCompareService.compareReports({
         isDependantOnExternalData: isDep,
         dataDtos: data,
         firstSelectedTrivyReportId: firstId,
         secondSelectedTrivyReportId: secondId,
         firstSelectedDto: firstDto,
         secondSelectedDto: secondDto,
+        groupedFields: this._groupedFields,
       });
+
+      this.fullTrivyReportDetailsCompared.set(showOnlyModified ? compared.filter((x) => x.modified) : compared);
     });
+
 
     effect(() => {
       const showOnlyModified = this.showOnlyModified();
@@ -125,115 +132,9 @@ export class GenericReportsCompareComponent<
     }
   }
 
-  private compareSelectedTrivyReports(args: {
-    isDependantOnExternalData: boolean;
-    dataDtos?: TTrivyReportComparableDto[];
-    firstSelectedTrivyReportId?: string;
-    secondSelectedTrivyReportId?: string;
-    firstSelectedDto?: TTrivyReportComparableDto;
-    secondSelectedDto?: TTrivyReportComparableDto;
-  }) {
-    const {
-      isDependantOnExternalData,
-      dataDtos,
-      firstSelectedTrivyReportId,
-      secondSelectedTrivyReportId,
-      firstSelectedDto,
-      secondSelectedDto,
-    } = args;
-
-    if (
-      (!dataDtos && !isDependantOnExternalData) ||
-      (!firstSelectedTrivyReportId && !secondSelectedTrivyReportId)
-    ) {
-      this.fullTrivyReportDetailsCompared.set([]);
-      return;
-    }
-
-    const detailSet = new Map<string, any>();
-
-    const firstDto = isDependantOnExternalData
-      ? firstSelectedDto
-      : dataDtos?.find((tr) => tr.uid === firstSelectedTrivyReportId);
-
-    if (firstDto) {
-      firstDto.details?.forEach((detail) => {
-        const existing = detailSet.get(detail.matchKey);
-        if (existing) {
-          this.mergeValues(existing, detail, true);
-        } else {
-          const clone: any = { ...detail, first: true };
-
-          this._groupedFields.forEach((field) => {
-            const fieldKey = String(field);
-            this.mergeSideValue(clone, field, (detail as any)[fieldKey], true);
-          });
-
-          detailSet.set(detail.matchKey, clone);
-        }
-      });
-    }
-
-    const secondDto = isDependantOnExternalData
-      ? secondSelectedDto
-      : dataDtos?.find((tr) => tr.uid === secondSelectedTrivyReportId);
-
-    if (secondDto) {
-      secondDto.details?.forEach((detail) => {
-        const existing = detailSet.get(detail.matchKey);
-        if (existing) {
-          existing.second = true;
-          this.mergeValues(existing, detail, false);
-        } else {
-          const clone: any = { ...detail, second: true };
-
-          this._groupedFields.forEach((field) => {
-            const fieldKey = String(field);
-            this.mergeSideValue(clone, field, (detail as any)[fieldKey], false);
-          });
-
-          detailSet.set(detail.matchKey, clone);
-        }
-      });
-    }
-
-    detailSet.forEach((item) => {
-      const firstStore: Record<string, string> | undefined = (item as any).__first;
-      const secondStore: Record<string, string> | undefined = (item as any).__second;
-
-      this._groupedFields.forEach((field) => {
-        const fieldKey = String(field);
-
-        const left = item.first ? firstStore?.[fieldKey] : undefined;
-        const right = item.second ? secondStore?.[fieldKey] : undefined;
-
-        item[fieldKey] = this.compareField(left, right);
-
-        if (left !== undefined && right !== undefined && left !== right) {
-          item.modified = true;
-        }
-      });
-
-      delete (item as any).__first;
-      delete (item as any).__second;
-    });
-
-    const compared = Array.from(detailSet.values());
-    compared.forEach((x) => {
-      x.modified = x.modified || x.first !== x.second;
-    });
-
-    this.fullTrivyReportDetailsCompared.set(compared);
-  }
-
-  swapFirstAndSecond() {
-    const first = this.firstSelectedTrivyReportId();
-    const second = this.secondSelectedTrivyReportId();
-    if (!first || !second) return;
-
-    this.firstSelectedTrivyReportId.set(second);
-    this.secondSelectedTrivyReportId.set(first);
-  }
+  // -------------------------
+  // walk methods
+  // -------------------------
 
   walk(direction: 'left' | 'right') {
     const list = this.namespacedImageDtos();
@@ -263,11 +164,6 @@ export class GenericReportsCompareComponent<
     this.secondSelectedTrivyReportId.set(list[newSecondIndex].uid);
   }
 
-  private getPropertyAsString(dto: any, key: string | number | symbol): string | undefined {
-    const value = dto[key];
-    return value != null ? value.toString() : undefined;
-  }
-
   private canWalk(direction: 'left' | 'right'): boolean {
     const list = this.namespacedImageDtos();
     if (!list) return false;
@@ -286,77 +182,12 @@ export class GenericReportsCompareComponent<
     return secondIndex < list.length - 1;
   }
 
-  // core split helper for compareSelectedTrivyReports
-  private compareField(left: any, right: any): string {
-    const normalize = (v: any) =>
-      v === undefined || v === null ? 'N/A' : String(v);
+  swapFirstAndSecond() {
+    const first = this.firstSelectedTrivyReportId();
+    const second = this.secondSelectedTrivyReportId();
+    if (!first || !second) return;
 
-    const L = normalize(left);
-    const R = normalize(right);
-
-    return L === R ? L : `${L}|${R}`;
-  }
-
-  private normalizeRawValue(value: any): string {
-    if (value === null || value === undefined || value === '') {
-      return 'N/A';
-    }
-    return String(value).replace(/[|_]/g, ' ');
-  }
-
-  private mergeSideValue(
-    existing: any,
-    field: keyof TTrivyReportDetailComparableDto,
-    raw: any,
-    isFirst: boolean,
-  ): void {
-    const normalized = this.normalizeRawValue(raw);
-    const key = isFirst ? '__first' : '__second';
-
-    const store: Record<string, string> =
-      ((existing as any)[key] ?? ((existing as any)[key] = {}));
-
-    const fieldKey = String(field); // <- stringify generic key
-
-    const current = store[fieldKey];
-    let values = current ? current.split('__') : [];
-
-    if (!values.includes(normalized)) {
-      values.push(normalized);
-      values.sort(); // string sort
-    }
-
-    store[fieldKey] = values.join('__');
-  }
-
-  private mergeValues(
-    existing: any,
-    incoming: any,
-    isFirst: boolean,
-  ): void {
-    let modified = false;
-
-    this._groupedFields.forEach((field) => {
-      const fieldKey = String(field);
-      const raw = incoming[fieldKey];
-
-      const key = isFirst ? '__first' : '__second';
-      const store: Record<string, string> =
-        ((existing as any)[key] ?? ((existing as any)[key] = {}));
-
-      const before = store[fieldKey];
-      this.mergeSideValue(existing, field, raw, isFirst);
-      const after = store[fieldKey];
-
-      if (before !== undefined && before !== after) {
-        modified = true;
-      }
-    });
-
-    existing.modified = existing.modified || modified;
-  }
-
-  private asKey(field: keyof TTrivyReportDetailComparableDto): string {
-    return String(field);
+    this.firstSelectedTrivyReportId.set(second);
+    this.secondSelectedTrivyReportId.set(first);
   }
 }
