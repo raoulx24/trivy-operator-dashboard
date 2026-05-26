@@ -23,6 +23,8 @@ export type ComparableWorkingItem<TDetail> =
   TDetail & {
   first?: boolean;
   second?: boolean;
+  firstCount?: number;
+  secondCount?: number;
   modified?: boolean;
   __first?: SideStore;
   __second?: SideStore;
@@ -118,14 +120,21 @@ export class TrivyReportCompareService {
 
       if (existing) {
         existing[side] = true;
+        if (side === 'first') {
+          existing.firstCount = (existing.firstCount ?? 0) + 1;
+        } else {
+          existing.secondCount = (existing.secondCount ?? 0) + 1;
+        }
         this.mergeValues(existing, detail, side === 'first', groupedFields);
       } else {
         const clone: ComparableWorkingItem<TDetail> = {
           ...(detail as TDetail),
-          [side]: true
+          [side]: true,
+          firstCount: side === 'first' ? 1 : 0,
+          secondCount: side === 'second' ? 1 : 0,
         };
 
-        groupedFields.forEach(field => {
+        groupedFields.forEach((field) => {
           const raw = (detail as any)[String(field)];
           this.mergeSideValue(clone, field, raw, side === 'first');
         });
@@ -163,6 +172,9 @@ export class TrivyReportCompareService {
 
       delete item.__first;
       delete item.__second;
+
+      item.first = item.first === true;
+      item.second = item.second === true;
     });
 
     const compared = Array.from(detailSet.values());

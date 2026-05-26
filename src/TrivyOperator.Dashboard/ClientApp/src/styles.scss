@@ -310,6 +310,10 @@ p-tag.only-icon {
   display: unset;
 }
 
+p-tag.border-primary-color {
+  border: 2px solid var(--p-primary-contrast-color)
+}
+
 /* blockquote classes */
 blockquote {
   padding-top: 1rem;

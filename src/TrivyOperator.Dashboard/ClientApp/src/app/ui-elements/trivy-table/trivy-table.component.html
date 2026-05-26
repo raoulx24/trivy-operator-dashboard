@@ -314,7 +314,15 @@
                                     : 'pi-times-circle')"
                        [rounded]="true"
                        [style]="rowData[col.field] | booleanCssStyle"
-                       [value]="rowData[col.field]?.toString() ?? 'N/A' | capitalizeFirst" />
+                       [value]="(rowData[col.field]?.toString() ?? 'N/A')  | capitalizeFirst" >
+                </p-tag>
+                @let extraCount = rowData[col.extraFields[0]] ?? 0;
+                @if (extraCount > 1)
+                {
+                  <p-tag value="{{extraCount}}x" [rounded]="true"
+                         [style]="11 | severityCssStyleById: 1"
+                         class="-ml-3 shadow-[-3px_0_6px_3px_rgba(0,0,0,0.3)] border-primary-color"></p-tag>
+                }
               }
               @case ('unPascalCase') {
                 <span>{{ rowData[col.field] | unPascalCase: col.extraFields?.[0] ?? [] }}</span>

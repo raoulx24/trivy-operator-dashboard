@@ -23,7 +23,11 @@ export class SeverityUtils {
 
   public static getCssColor(severityId: number): string {
     const documentStyle = getComputedStyle(document.documentElement);
-    const color: string = '--p-' + this.getColor(severityId) + '-' + (this.colorIntensity + 100);
+    let colorIntensity = this.colorIntensity;
+    // if (severityId === 11) {
+    //   colorIntensity = colorIntensity - 100;
+    // }
+    const color: string = '--p-' + this.getColor(severityId) + '-' + (colorIntensity + 100);
 
     return documentStyle.getPropertyValue(color);
   }
@@ -54,6 +58,8 @@ export class SeverityUtils {
         return 'blue';
       case 10:
         return 'gray';
+      case 11:
+        return 'sky';
       default:
         return '';
     }
