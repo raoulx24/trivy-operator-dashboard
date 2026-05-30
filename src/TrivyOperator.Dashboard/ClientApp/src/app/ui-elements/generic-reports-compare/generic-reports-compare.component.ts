@@ -10,7 +10,7 @@ import { TrivyTableColumn } from '../trivy-table/trivy-table.types';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { LocalStorageUtils } from '../../utils/local-storage.utils';
-import {TrivyReportCompareService} from "../../services/trivy-report-compare.service";
+import { ComparableWorkingItem, TrivyReportCompareService } from '../../services/trivy-report-compare.service';
 
 type TrivyReportDetailComparedDto = TrivyReportComparableDetail & {
   first?: boolean;
@@ -104,7 +104,7 @@ export class GenericReportsCompareComponent<
         }
       }
 
-      const compared = this.trivyReportCompareService.compareReports({
+      let compared = this.trivyReportCompareService.compareReports({
         isDependantOnExternalData: isDep,
         dataDtos: data,
         firstSelectedTrivyReportId: firstId,
@@ -113,6 +113,8 @@ export class GenericReportsCompareComponent<
         secondSelectedDto: secondDto,
         groupedFields: this._groupedFields,
       });
+
+      compared = this.postProcessComparedData(compared);
 
       this.fullTrivyReportDetailsCompared.set(showOnlyModified ? compared.filter((x) => x.modified) : compared);
     });
@@ -190,4 +192,42 @@ export class GenericReportsCompareComponent<
     this.firstSelectedTrivyReportId.set(second);
     this.secondSelectedTrivyReportId.set(first);
   }
+
+  private postProcessComparedData<
+    TDetail extends TrivyReportComparableDetail
+  >(
+    compared: ComparableWorkingItem<TDetail>[]
+  ): ComparableWorkingItem<TDetail>[] {
+
+    const severityFields = this.comparedTableColumns()
+      .filter(col => col.renderType === 'severityStackedBadge')
+      .map(col => col.field as string);
+
+    if (severityFields.length === 0) return compared;
+
+    return compared.map(row => {
+      const clone = { ...row };
+      const rowAny = clone as Record<string, any>;
+
+      for (const field of severityFields) {
+        const raw = rowAny[field];
+        if (typeof raw !== 'string') continue;
+
+        const parts = raw.split('|');
+
+        if (parts.length === 1) {
+          rowAny[field] = `${parts[0]}|9`;
+        }
+        if (parts.length === 2 && parts[0] === 'N/A') {
+          rowAny[field] = `8|${parts[1]}`;
+        }
+        if (parts.length === 2 && parts[1] === 'N/A') {
+          rowAny[field] = `${parts[0]}|8`;
+        }
+      }
+
+      return clone;
+    });
+  }
+
 }

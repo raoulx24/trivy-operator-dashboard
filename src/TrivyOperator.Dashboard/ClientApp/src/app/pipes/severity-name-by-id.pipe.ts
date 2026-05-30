@@ -7,7 +7,7 @@ import { SeverityUtils } from '../utils/severity.utils';
 })
 export class SeverityNameByIdPipe implements PipeTransform {
   transform(severityId: number | string, shortName: boolean = false): string {
-    const id = typeof severityId === 'string' ? (!isNaN(Number(severityId)) ? Number(severityId) : 9) : severityId;
+    const id = typeof severityId === 'string' ? (!isNaN(Number(severityId)) ? Number(severityId) : 8) : severityId;
     return shortName ? SeverityUtils.getCapitalizedShortName(id) : SeverityUtils.getCapitalizedName(id);
   }
 }

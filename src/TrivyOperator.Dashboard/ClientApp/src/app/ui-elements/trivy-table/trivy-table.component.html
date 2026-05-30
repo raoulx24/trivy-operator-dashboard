@@ -330,17 +330,21 @@
               @case ('compareStacked') {
                 @if (rowData[col.field]?.split('|').length === 2) {
                   <div class="border-l-4 border-blue-500/40">
-                  @let first = rowData[col.field].split('|')[0].split('__').join(', ');
-                  @let second = rowData[col.field].split('|')[1].split('__').join(', ');
-                  <small><span class="tod-text-muted-color ml-1">1<sup>st</sup>: </span><span class="font-bold">{{ first }}</span></small><br />
-                  <small><span class="tod-text-muted-color ml-1">2<sup>nd</sup>: </span><span class="font-bold">{{ second }}</span></small>
+                    @let first = rowData[col.field].split('|')[0].split('__').join(', ');
+                    @let second = rowData[col.field].split('|')[1].split('__').join(', ');
+                    <small><span class="tod-text-muted-color ml-1">1<sup>st</sup>: </span><span class="font-bold">{{ first }}</span></small><br />
+                    <small><span class="tod-text-muted-color ml-1">2<sup>nd</sup>: </span><span class="font-bold">{{ second }}</span></small>
                   </div>
                 } @else {
                   @let splitData = rowData[col.field].split('__');
                   @if (splitData.length > 1) {
-                    <small class="tod-text-muted-color font-semibold">{{ splitData.length }} Versions</small>
+                    <div class="border-l-4 border-blue-500/40">
+                      <small class="tod-text-muted-color font-semibold ml-1">{{ splitData.length }} Values</small>
+                      <span class="truncate-ellipsis ml-1 font-bold">{{ rowData[col.field]?.split('__').join(', ') ?? 'N/A' }}</span>
+                    </div>
+                  } @else {
+                    <span class="truncate-ellipsis">{{ rowData[col.field]?.split('__').join(', ') ?? 'N/A' }}</span>
                   }
-                  <span class="truncate-ellipsis">{{ rowData[col.field]?.split('__').join(', ') ?? 'N/A' }}</span>
                 }
               }
               @case ('counter') {
@@ -403,22 +407,24 @@
                 <small class="tod-text-muted-color font-bold">{{ data[1] ?? 'N/A' }}</small>
               }
               @case ('severityStackedBadge') {
-                @let values = rowData[col.field]?.split('|') ?? ['9'];
+                @let values = rowData[col.field]?.split('|') ?? ['8'];
                 @if (values.length === 1) {
                   <p-tag [value]="values[0] | severityNameById"
                          [rounded]="true"
                          [style]="values[0] | severityCssStyleById : 1" />
                 } @else {
                   <div class="flex items-center gap-2">
-                    @let first = isNaN(+values[0]) ? 9 : +values[0];
-                    @let second = isNaN(+values[1]) ? 9 : +values[1];
+                    @let first = isNaN(+values[0]) ? 8 : +values[0];
+                    @let second = isNaN(+values[1]) ? 8 : +values[1];
                     <p-tag [value]="first | severityNameById"
                            [rounded]="true"
                            [style]="first | severityCssStyleById : 1" />
-                    <span class="text-lg opacity-70">{{ first < second ? '⮝' : '⮟' }}</span>
-                    <p-tag [value]="second | severityNameById"
-                           [rounded]="true"
-                           [style]="second | severityCssStyleById : 1 " />
+                    @if (second !== 9) {
+                      <span class="text-lg opacity-70">{{ first < second ? '⮝' : '⮟' }}</span>
+                      <p-tag [value]="second | severityNameById"
+                             [rounded]="true"
+                             [style]="second | severityCssStyleById : 1 " />
+                    }
                   </div>
                 }
               }
