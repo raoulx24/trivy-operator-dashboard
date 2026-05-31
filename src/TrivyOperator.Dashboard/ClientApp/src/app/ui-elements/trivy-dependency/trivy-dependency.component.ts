@@ -295,34 +295,42 @@ export class TrivyDependencyComponent {
           id,
           `Seen: ${h.firstSeenAt.replace(/[TZ]/g, ' ')} (${h.criticalCount}/${h.highCount}/${h.mediumCount}/${h.lowCount}/${h.unknownCount})`,
           [],
-          'burnt-sienna',
+          'spiced-apricot',
           'Vulnerability Reports History',
         ),
       );
       dependsOn.push(id);
     });
 
-    nodes.push(this.graphNode(histGroupId, 'History', dependsOn, 'amber-glow', 'Vulnerability Reports History'));
+    nodes.push(this.graphNode(histGroupId, 'History', dependsOn, 'buttermilk', 'Vulnerability Reports History'));
 
     // Workloads group
     dependsOn = [];
 
     root.workloads.workloads.forEach((w) => {
-      nodes.push(this.graphNode(w.id, `${w.resourceKind}/${w.resourceName}`, w.configAudits.map(x => x.id), 'buttermilk', 'Workloads'));
+      nodes.push(
+        this.graphNode(
+          w.id,
+          `${w.resourceKind}/${w.resourceName}`,
+          w.configAudits.map((x) => x.id),
+          'spiced-apricot',
+          'Workloads',
+        ),
+      );
 
       nodes.push(... w.configAudits.map((c) => {
         return this.graphNode(
           c.id,
           `ConfigAudit (${c.criticalCount}/${c.highCount}/${c.mediumCount}/${c.lowCount})`,
           [],
-          'spiced-apricot',
+          'amber-glow',
           'Workloads',
         );
       }));
       dependsOn.push(w.id);
     });
 
-    nodes.push(this.graphNode(wlGroupId, 'Workloads', dependsOn, 'harvest-orange', 'Workloads'));
+    nodes.push(this.graphNode(wlGroupId, 'Workloads', dependsOn, 'buttermilk', 'Workloads'));
 
     return nodes;
   }

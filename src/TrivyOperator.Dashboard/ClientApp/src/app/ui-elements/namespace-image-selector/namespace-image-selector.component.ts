@@ -40,7 +40,8 @@ export class NamespaceImageSelectorComponent {
   imagePlaceholder = input<string>('Select image');
   firstLonger = input<boolean>(false);
 
-  private initialImageIdHandled = false;
+  // private initialImageIdHandled = false;
+  private previousImageId?: string;
 
   constructor() {
     effect(() => {
@@ -50,17 +51,17 @@ export class NamespaceImageSelectorComponent {
       const images = this.imageDtos();
       const selectedImg = this.selectedImageId();
 
-      // --- RULE 4: Reset when datasource is cleared ---
+      // --- RULE 1: Reset when datasource is cleared ---
       if (!dtos || dtos.length === 0) {
-        this.initialImageIdHandled = false;
+        this.previousImageId = undefined;
         this.selectedNamespace.set(undefined);
         this.selectedImageId.set(undefined);
         return;
       }
 
-      // --- RULE 1: Parent-provided selectedImageId wins (only once) ---
-      if (!this.initialImageIdHandled && selectedImg) {
-        this.initialImageIdHandled = true;
+      // --- RULE 2: Parent-provided selectedImageId wins  ---
+      if (this.previousImageId !=selectedImg && selectedImg) {
+        this.previousImageId = selectedImg;
 
         const dto = dtos.find((x) => x.uid === selectedImg);
         if (dto) {
@@ -69,13 +70,13 @@ export class NamespaceImageSelectorComponent {
         return;
       }
 
-      // --- RULE 2: Auto-select namespace if only one and none selected ---
+      // --- RULE 3: Auto-select namespace if only one and none selected ---
       if (namespaces.length === 1 && !selectedNs) {
         this.selectedNamespace.set(namespaces[0]);
         return;
       }
 
-      // --- RULE 3: Auto-select image if only one and none selected ---
+      // --- RULE 4: Auto-select image if only one and none selected ---
       if (images.length === 1 && !selectedImg) {
         this.selectedImageId.set(images[0].uid);
         return;
