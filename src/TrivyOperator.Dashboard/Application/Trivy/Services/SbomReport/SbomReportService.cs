@@ -430,18 +430,23 @@ public class SbomReportService(
                              .ToArray() ??
                          [];
 
+            // build lookup once - and then search dict o(1)
+            Dictionary<string, IGrouping<string, SbomReportDetailDto>>? lookup = sbomReportDto.Details?
+                .GroupBy(x => x.Purl)
+                .ToDictionary(g => g.Key, g => g);
+
             foreach (var item in result)
             {
-                SbomReportDetailDto? sbomReportDetailDto =
-                    sbomReportDto.Details?.FirstOrDefault(x => x.Purl == item.PackagePurl);
-
-                if (sbomReportDetailDto != null)
+                if (lookup != null && lookup.TryGetValue(item.PackagePurl, out IGrouping<string, SbomReportDetailDto>? matches))
                 {
-                    sbomReportDetailDto.CriticalCount = item.CriticalCount;
-                    sbomReportDetailDto.HighCount = item.HighCount;
-                    sbomReportDetailDto.MediumCount = item.MediumCount;
-                    sbomReportDetailDto.LowCount = item.LowCount;
-                    sbomReportDetailDto.UnknownCount = item.UnknownCount;
+                    foreach (SbomReportDetailDto sbomReportDetailDto in matches)
+                    {
+                        sbomReportDetailDto.CriticalCount = item.CriticalCount;
+                        sbomReportDetailDto.HighCount = item.HighCount;
+                        sbomReportDetailDto.MediumCount = item.MediumCount;
+                        sbomReportDetailDto.LowCount = item.LowCount;
+                        sbomReportDetailDto.UnknownCount = item.UnknownCount;
+                    }
                 }
                 else
                 {
@@ -453,6 +458,7 @@ public class SbomReportService(
                     );
                 }
             }
+
         }
     }
 }
