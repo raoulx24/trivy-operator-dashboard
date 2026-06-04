@@ -9,4 +9,10 @@ public interface ITrivyReportDependenciesService
         string namespaceName,
         CancellationToken ct = default
     );
+
+    Task<bool> TrivyDependenciesExistAsync(
+        string imageDigest,
+        string namespaceName,
+        CancellationToken ct = default
+    );
 }

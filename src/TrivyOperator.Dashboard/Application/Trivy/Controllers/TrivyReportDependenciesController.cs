@@ -20,4 +20,16 @@ public class TrivyReportDependenciesController(ITrivyReportDependenciesService t
 
         return trivyReportDependencyDto is null ? NotFound() : Ok(trivyReportDependencyDto);
     }
+    
+    [HttpGet("digest/check", Name = "CheckIfTrivyDependenciesExistByDigestNamespace")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CheckIfTrivyDependenciesExist([FromQuery] string digest, [FromQuery] string namespaceName, CancellationToken ct)
+    {
+        bool result =
+            await trivyReportDependenciesServiceService.TrivyDependenciesExistAsync(digest, namespaceName, ct);
+
+        return result ? Ok() : NotFound();
+    }
 }

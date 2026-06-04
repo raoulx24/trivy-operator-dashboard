@@ -9,4 +9,8 @@ export abstract class DataPageBase {
   protected onError(err: any) {
     this.trivyMessageService.pushSimple('Error on getting data.', this.routerEventEmitterService.title(), 'error', err);
   }
+
+  protected showErrorToast(message: string, title: string) {
+    this.trivyMessageService.pushSimple(message, title, 'error');
+  }
 }

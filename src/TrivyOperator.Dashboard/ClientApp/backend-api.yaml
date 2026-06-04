@@ -1417,6 +1417,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/trivy-report-dependencies/digest/check:
+    get:
+      tags:
+        - TrivyReportDependencies
+      operationId: CheckIfTrivyDependenciesExistByDigestNamespace
+      parameters:
+        - name: digest
+          in: query
+          schema:
+            type: string
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports:
     get:
       tags:
@@ -3748,6 +3777,8 @@ components:
           type: string
           format: date-time
           nullable: true
+        packageUrl:
+          type: string
         primaryLink:
           type: string
           format: uri

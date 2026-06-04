@@ -77,6 +77,26 @@ public sealed class TrivyReportDependenciesService(
         };
     }
 
+    public Task<bool> TrivyDependenciesExistAsync(
+        string imageDigest,
+        string namespaceName,
+        CancellationToken ct = default
+    )
+    {
+        VulnerabilityReportCr[] vrReports = GetReports(vrCache, namespaceName, imageDigest);
+        if (vrReports.Length != 0)
+        {
+            return Task.FromResult(true);
+        }
+        ExposedSecretReportCr[] esrReports = GetReports(esrCache, namespaceName, imageDigest);
+        if (esrReports.Length != 0)
+        {
+            return Task.FromResult(true);
+        }
+        SbomReportCr[] srReports = GetReports(srCache, namespaceName, imageDigest);
+        return Task.FromResult(srReports.Length != 0);
+    }
+
     // ---------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------
