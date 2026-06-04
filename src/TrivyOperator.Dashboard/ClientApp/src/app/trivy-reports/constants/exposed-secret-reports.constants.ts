@@ -230,6 +230,7 @@ export const exposedSecretReportComparedTableColumns: readonly TrivyTableColumn[
     multiSelectType: 'none',
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
+    extraFields: ['firstCount'],
   },
   {
     field: 'second',
@@ -239,6 +240,7 @@ export const exposedSecretReportComparedTableColumns: readonly TrivyTableColumn[
     multiSelectType: 'none',
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
+    extraFields: ['secondCount'],
   },
   ...exposedSecretReportDetailColumns,
 ];

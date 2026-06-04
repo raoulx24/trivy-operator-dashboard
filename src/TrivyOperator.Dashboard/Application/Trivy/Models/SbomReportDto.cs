@@ -68,9 +68,19 @@ public class SbomReportDetailDto : ISBomReportDetailDto
 {
     public Guid Id => GuidUtils.GetDeterministicGuid(Purl, Properties);
 
-    public Guid MatchKey =>
-        GuidUtils.GetDeterministicGuid((string.IsNullOrEmpty(Purl.Split('@')[0]) ? Name : Purl.Split('@')[0]));
-
+    public Guid MatchKey {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Purl) && string.IsNullOrWhiteSpace(Version))
+            {
+                return GuidUtils.GetDeterministicGuid(Name.Split('/')[^1]);
+            }
+            
+            return GuidUtils.GetDeterministicGuid(
+                (string.IsNullOrEmpty(Purl.Split('@')[0]) ? Name : Purl.Split('@')[0])
+            );
+        }
+    }
     public string Name { get; set; } = string.Empty;
     public string Purl { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;

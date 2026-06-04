@@ -96,10 +96,10 @@ export class GenericReportsCompareComponent<
       const showOnlyModified = this.showOnlyModified();
 
       if (isDep) {
-        if (firstId && !firstDto) {
+        if (firstId && firstId !== firstDto?.uid) {
           this.firstDtoRequested.emit(firstId);
         }
-        if (secondId && !secondDto) {
+        if (secondId && secondId !== secondDto?.uid) {
           this.secondDtoRequested.emit(secondId);
         }
       }

@@ -125,6 +125,7 @@ export const sbomReportDenormalizedColumns: readonly TrivyTableColumn[] = [
     multiSelectType: 'none',
     style: 'width: 130px; max-width: 130px;',
     renderType: 'boolean',
+    extraFields: ['none'],
   },
   {
     field: 'criticalCount',
@@ -187,6 +188,7 @@ export const sbomReportComparedTableColumns: readonly TrivyTableColumn[] = [
     multiSelectType: 'none',
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
+    extraFields: ['firstCount'],
   },
   {
     field: 'second',
@@ -196,6 +198,7 @@ export const sbomReportComparedTableColumns: readonly TrivyTableColumn[] = [
     multiSelectType: 'none',
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
+    extraFields: ['secondCount'],
   },
   {
     field: 'name',
@@ -214,14 +217,5 @@ export const sbomReportComparedTableColumns: readonly TrivyTableColumn[] = [
     multiSelectType: 'none',
     style: 'width: 130px; max-width: 130px;',
     renderType: 'compareStacked',
-  },
-  {
-    field: 'purl',
-    header: 'A purl',
-    isFilterable: true,
-    isSortable: true,
-    multiSelectType: 'none',
-    style: 'width: 200px; max-width: 200px;',
-    renderType: 'standard',
   },
 ];

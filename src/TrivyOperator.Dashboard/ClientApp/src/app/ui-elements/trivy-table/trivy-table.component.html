@@ -316,7 +316,7 @@
                        [style]="rowData[col.field] | booleanCssStyle"
                        [value]="(rowData[col.field]?.toString() ?? 'N/A')  | capitalizeFirst" >
                 </p-tag>
-                @let extraCount = rowData[col.extraFields[0]] ?? 0;
+                @let extraCount = rowData[col.extraFields[0] ?? 'smth'] ?? 0;
                 @if (extraCount > 1)
                 {
                   <p-tag value="{{extraCount}}x" [rounded]="true"

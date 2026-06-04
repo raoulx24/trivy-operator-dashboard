@@ -211,6 +211,7 @@ export const infraAssessmentReportComparedTableColumns: readonly TrivyTableColum
     multiSelectType: 'none',
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
+    extraFields: ['firstCount'],
   },
   {
     field: 'second',
@@ -220,6 +221,7 @@ export const infraAssessmentReportComparedTableColumns: readonly TrivyTableColum
     multiSelectType: 'none',
     style: 'width: 90px; max-width: 90px;',
     renderType: 'boolean',
+    extraFields: ['secondCount'],
   },
   ...infraAssessmentReportDetailColumns,
 ];
