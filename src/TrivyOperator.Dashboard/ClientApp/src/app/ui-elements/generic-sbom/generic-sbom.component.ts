@@ -311,6 +311,7 @@ export class GenericSbomComponent {
       this.selectedSbomDetailDto = undefined;
       this.selectedSbomDetail = { source: 'user', selectedDtos: [] };
     }
+    this.selectedSbomDetailBomRef = nodeId;
   }
 
   onDeletedNodeIds(nodeIds: string[] | undefined) {
