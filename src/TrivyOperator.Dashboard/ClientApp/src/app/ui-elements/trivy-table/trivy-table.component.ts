@@ -89,7 +89,7 @@ import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by
 })
 export class TrivyTableComponent<TData> implements OnInit {
   // data
-  dataDtos = input<TData[]>([]);
+  dataDtos = model<TData[]>([]);
   activeNamespaces = input<string[]>([]);
 
   // browser storage keys
@@ -131,6 +131,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
 
   refreshValue = input<number | undefined>(undefined);
+  private previousRefreshValue?: number;
 
   // output signals
   multiHeaderActionRequested = output<string>();
@@ -233,6 +234,17 @@ export class TrivyTableComponent<TData> implements OnInit {
       const value = this.selectedData().selectedDtos;
 
       this.scrollToDto();
+    });
+    effect(() => {
+      const value = this.refreshValue();
+      // avoid changing of dataDtos()
+      if (value === this.previousRefreshValue) {
+        return;
+      }
+      if (this.isTableSorted()) {
+        this.dataDtos.set([... this.dataDtos()]);
+      }
+      this.previousRefreshValue = value;
     });
   }
 
@@ -439,6 +451,7 @@ export class TrivyTableComponent<TData> implements OnInit {
     const table = this.trivyTable;
     this.trivyTableFilteredRecords.set(table?.filteredValue?.length ?? this.trivyTableTotalRecords());
     this.isTableFilteredSorted.set(this.checkIfTableIsFilteredOrSorted());
+    this.newData();
   }
 
   // is sorted or filtered helper
@@ -450,6 +463,13 @@ export class TrivyTableComponent<TData> implements OnInit {
       !!this.trivyTable.filteredValue ||
       (this.trivyTable.multiSortMeta == null ? false : this.trivyTable.multiSortMeta.length > 0)
     );
+  }
+
+  protected isTableSorted(): boolean {
+    if (this.trivyTable){
+      return this.trivyTable.multiSortMeta == null ? false : this.trivyTable.multiSortMeta.length > 0;
+    }
+    return false;
   }
 
   // force resize event - bug as table is not properly sized and, on row expand, it doesn't look ok
