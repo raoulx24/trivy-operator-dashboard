@@ -23,7 +23,7 @@ export interface TrivyTableColumn extends Column {
   isFilterable: boolean;
   isCounter?: boolean;
   style: string;
-  multiSelectType: 'none' | 'namespaces' | 'severities';
+  multiSelectType: 'none' | 'namespaces' | 'severities' | 'booleans';
   renderType:
     | 'standard'
     | 'severityBadge'

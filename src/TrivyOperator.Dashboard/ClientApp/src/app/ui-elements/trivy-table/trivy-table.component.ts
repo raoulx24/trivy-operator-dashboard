@@ -158,8 +158,13 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   // table custom filters
   protected filterSeverityOptions: number[] = [];
+  filterBooleanOptions = [
+    { name: 'True', value: true },
+    { name: 'False', value: false }
+  ];
   protected filterSelectedSeverityIds = signal<number[]>([]);
   protected filterSelectedActiveNamespaces = signal<string[]>([]);
+  protected filterSelectedBooleans = signal<boolean[]>([]);
   protected filterRefreshActiveNamespace = signal<string>('');
   protected filterRefreshSeverities = signal<SeverityDto[] | undefined>([]);
   protected severityDtos: SeverityDto[] = [...SeverityUtils.severityDtos];
@@ -428,6 +433,7 @@ export class TrivyTableComponent<TData> implements OnInit {
     this.trivyTable.clear();
     this.filterSelectedActiveNamespaces.set([]);
     this.filterSelectedSeverityIds.set([]);
+    this.filterSelectedBooleans.set([]);
     this.isTableFilteredSorted.set(this.checkIfTableIsFilteredOrSorted());
     // this.updateMultiHeaderActionClearSortFilters();
     const stateKey = this.stateKey();

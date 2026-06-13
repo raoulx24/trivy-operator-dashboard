@@ -3997,6 +3997,7 @@ components:
         - history
         - imageDigest
         - imageTag
+        - isInUse
         - lowCount
         - mediumCount
         - unknownCount
@@ -4006,6 +4007,8 @@ components:
           type: string
         imageDigest:
           type: string
+        isInUse:
+          type: boolean
         criticalCount:
           type: integer
           format: int64
@@ -4046,6 +4049,7 @@ components:
         - imageName
         - imageRepository
         - imageTag
+        - isInUse
         - lastSeenAt
         - lowCount
         - mediumCount
@@ -4120,6 +4124,8 @@ components:
         lastSeenAt:
           type: string
           format: date-time
+        isInUse:
+          type: boolean
       additionalProperties: false
     VulnerabilityReportsHistoryDetailDto:
       required:

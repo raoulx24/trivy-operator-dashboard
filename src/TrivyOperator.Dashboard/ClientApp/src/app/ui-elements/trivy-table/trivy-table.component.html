@@ -198,6 +198,38 @@
                 </ng-template>
               </p-columnFilter>
             }
+            @if (col.isFilterable && col.multiSelectType === 'booleans') {
+              <p-columnFilter
+                display="menu"
+                matchMode="in"
+                class="sm-filterIcon"
+                [field]="col.field"
+                [showAddButton]="false"
+                [showMatchModes]="false"
+                [showOperator]="false"
+              >
+                <ng-template let-filter="filterCallback" let-value pTemplate="filter">
+                  <p-multiSelect
+                    optionLabel="name"
+                    placeholder="Any"
+                    class="text-sm"
+                    [filter]="false"
+                    [options]="filterBooleanOptions"
+                    [showHeader]="false"
+                    [showToggleAll]="false"
+                    [style]="{ width: '200px' }"
+                    [(ngModel)]="filterSelectedBooleans"
+                    (onChange)="filter($event.value.map(v => v.value))"
+                  >
+                    <ng-template let-option pTemplate="item">
+                      <div class="flex items-center gap-2" [style]="{ 'font-size': '14px' }">
+                        {{ option.name }}
+                      </div>
+                    </ng-template>
+                  </p-multiSelect>
+                </ng-template>
+              </p-columnFilter>
+            }
           </th>
         }
       </tr>
@@ -307,6 +339,10 @@
                 />
               }
               @case ('boolean') {
+                @let value = rowData[col.field];
+                @let trueLabel = col.extraFields[1]?.split('|')[0] ?? 'true';
+                @let falseLabel = col.extraFields[1]?.split('|')[1] ?? 'false';
+                @let displayValue = value === undefined ? 'N/A' : (value ? trueLabel : falseLabel);
                 <p-tag [icon]="'pi ' +  (rowData[col.field] === undefined
                                   ? 'pi-question-circle'
                                   : rowData[col.field]
@@ -314,7 +350,7 @@
                                     : 'pi-times-circle')"
                        [rounded]="true"
                        [style]="rowData[col.field] | booleanCssStyle"
-                       [value]="(rowData[col.field]?.toString() ?? 'N/A')  | capitalizeFirst" >
+                       [value]="displayValue | capitalizeFirst" >
                 </p-tag>
                 @let extraCount = rowData[col.extraFields[0] ?? 'smth'] ?? 0;
                 @if (extraCount > 1)
