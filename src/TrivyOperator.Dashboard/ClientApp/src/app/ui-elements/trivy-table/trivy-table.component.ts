@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -158,13 +159,10 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   // table custom filters
   protected filterSeverityOptions: number[] = [];
-  filterBooleanOptions = [
-    { name: 'True', value: true },
-    { name: 'False', value: false }
-  ];
+  protected filterBooleanOptions?: {label: string, value: boolean}[];
   protected filterSelectedSeverityIds = signal<number[]>([]);
   protected filterSelectedActiveNamespaces = signal<string[]>([]);
-  protected filterSelectedBooleans = signal<boolean[]>([]);
+  protected filterSelectedBoolean = signal<boolean | undefined>(undefined);
   protected filterRefreshActiveNamespace = signal<string>('');
   protected filterRefreshSeverities = signal<SeverityDto[] | undefined>([]);
   protected severityDtos: SeverityDto[] = [...SeverityUtils.severityDtos];
@@ -257,6 +255,13 @@ export class TrivyTableComponent<TData> implements OnInit {
     this.tableStateKey = LocalStorageUtils.trivyTableKeyPrefix + this.stateKey();
     this.filterSeverityOptions = this.severityDtos.map((x) => x.id);
     this.filterRefreshSeverities.set([...this.severityDtos]);
+
+    const boolLabels = this.trivyTableColumns().find(x => x.multiSelectType === 'booleans')?.extraFields?.[1]?.split('|');
+    if (boolLabels && boolLabels.length == 2) {
+      this.filterBooleanOptions = [
+        { label: boolLabels[0], value: true },
+        { label: boolLabels[1], value: false },]
+    }
   }
 
   // table main actions
@@ -433,7 +438,7 @@ export class TrivyTableComponent<TData> implements OnInit {
     this.trivyTable.clear();
     this.filterSelectedActiveNamespaces.set([]);
     this.filterSelectedSeverityIds.set([]);
-    this.filterSelectedBooleans.set([]);
+    this.filterSelectedBoolean.set(undefined);
     this.isTableFilteredSorted.set(this.checkIfTableIsFilteredOrSorted());
     // this.updateMultiHeaderActionClearSortFilters();
     const stateKey = this.stateKey();

@@ -199,35 +199,25 @@
               </p-columnFilter>
             }
             @if (col.isFilterable && col.multiSelectType === 'booleans') {
-              <p-columnFilter
-                display="menu"
-                matchMode="in"
-                class="sm-filterIcon"
-                [field]="col.field"
-                [showAddButton]="false"
-                [showMatchModes]="false"
-                [showOperator]="false"
-              >
-                <ng-template let-filter="filterCallback" let-value pTemplate="filter">
-                  <p-multiSelect
-                    optionLabel="name"
-                    placeholder="Any"
-                    class="text-sm"
-                    [filter]="false"
-                    [options]="filterBooleanOptions"
-                    [showHeader]="false"
-                    [showToggleAll]="false"
-                    [style]="{ width: '200px' }"
-                    [(ngModel)]="filterSelectedBooleans"
-                    (onChange)="filter($event.value.map(v => v.value))"
-                  >
-                    <ng-template let-option pTemplate="item">
-                      <div class="flex items-center gap-2" [style]="{ 'font-size': '14px' }">
-                        {{ option.name }}
-                      </div>
-                    </ng-template>
-                  </p-multiSelect>
+              <p-columnFilter [field]="col.field"
+                              type="boolean"
+                              matchMode="equals"
+                              display="menu"
+                              [showMatchModes]="false"
+                              [showOperator]="false"
+                              [showAddButton]="false">
+                <ng-template pTemplate="filter" let-filter="filterCallback">
+                  <p-select [options]="filterBooleanOptions"
+                            optionLabel="label"
+                            placeholder="Any"
+                            [(ngModel)]="filterSelectedBoolean"
+                            [checkmark]="true"
+                            [showClear]="true"
+                            (onChange)="filter($event.value?.value)"
+                            style="width: 200px">
+                  </p-select>
                 </ng-template>
+
               </p-columnFilter>
             }
           </th>

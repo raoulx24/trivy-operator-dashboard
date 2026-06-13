@@ -122,10 +122,10 @@ export const sbomReportDenormalizedColumns: readonly TrivyTableColumn[] = [
     header: 'Has VRs',
     isFilterable: true,
     isSortable: true,
-    multiSelectType: 'none',
+    multiSelectType: 'booleans',
     style: 'width: 130px; max-width: 130px;',
     renderType: 'boolean',
-    extraFields: ['none'],
+    extraFields: ['none','Yes|No'],
   },
   {
     field: 'criticalCount',

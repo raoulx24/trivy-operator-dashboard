@@ -136,14 +136,14 @@ export class GenericMasterDetailComponent<
       this.mainTable.onTableClearSelected();
     }
     const lastUid = this.lastKnownSelectedUid;
-    this.selectedDataEvent = {source: 'programmatic', selectedDtos: []};
+    this.selectedDataEvent = { source: 'programmatic', selectedDtos: [] };
     this._dataDtos = dataDtos;
 
     const newSelectedDataDto = this._dataDtos.find((dto) => dto.uid === lastUid);
     this.lastKnownSelectedUid = newSelectedDataDto?.uid;
 
     // setTimeout(() => {
-      this.selectedDataEvent = { source: 'programmatic', selectedDtos: newSelectedDataDto ? [newSelectedDataDto] : [] };
+    this.selectedDataEvent = { source: 'programmatic', selectedDtos: newSelectedDataDto ? [newSelectedDataDto] : [] };
     // }, 400);
 
     this._isMainTableLoading = false;
@@ -153,13 +153,13 @@ export class GenericMasterDetailComponent<
     if (event == null || event.selectedDtos.length == 0) {
       this.lastKnownSelectedUid = undefined;
       this.mainTableSelectedRowChanged.emit(null);
-      this.selectedDataEvent = {source: 'user', selectedDtos: []};
+      this.selectedDataEvent = { source: 'user', selectedDtos: [] };
       return;
     } else {
       const selectedDto = event.selectedDtos[0];
       this.lastKnownSelectedUid = selectedDto.uid;
       this.mainTableSelectedRowChanged.emit(selectedDto);
-      this.selectedDataEvent = {source: 'user', selectedDtos: [selectedDto]};
+      this.selectedDataEvent = { source: 'user', selectedDtos: [selectedDto] };
     }
   }
 
