@@ -53,6 +53,110 @@ In this mode, all data is denormalized in a single large table, with all info fr
 ![](imgs/vr-detailed.png)
 <br>*Detailed page*
 
+### Vulnerability Reports History
+
+This page provides historical visibility into how Vulnerability Reports evolve over time. CVEs change frequently - severities shift, packages are updated, and new issues appear or disappear. Tracking these changes manually is difficult, so this view consolidates all snapshots of each Vulnerability Report and highlights meaningful differences across time.
+
+![](imgs/vr-hist.png)
+<br>*Vulnerability Reports History page*
+
+At the top, you will find the standard action buttons, together with several controls specific to history analysis. The `Highlight Days` control defines the time window used for computations and visual emphasis. Values range from 0 days (today only) up to the maximum configured history window. All snapshots within this period are considered “highlighted” and are shown normally; older ones remain visible but dimmed. The two `Last Visits` indicators show the previous two days (excluding today) when this page was opened, helping you correlate what changed since your last inspection.
+
+The `Main table` groups snapshots by `Namespace` and `Image` (repository, name, tag, and digest). For each image, the table shows the first and last snapshots within the `Highlight Days` window, together with an `In Use` indicator. An image is considered `Active` if a `Vulnerability Report` currently exists for that digest in that namespace. It is marked `Stale` if no such report exists at the moment - for example, if the previous report expired and the operator has not yet produced a new one or the workload disappeared.
+
+The `Last Moment` column displays the timestamp of the most recent scan that matched this snapshot.
+
+The `Count` column shows how many snapshots fall inside the `Highlight Days` window, out of the total number of retained snapshots for that digest (e.g., 3/7). The denominator includes all retained snapshots, even those outside the Highlight Days window.
+
+The `Delta History` column provides a compact, per‑day stacked bar chart summarizing added and removed CVEs. Bars above the axis represent added CVEs; bars below represent removed ones. Severities are color‑coded, and tooltips reveal exact counts per severity. Multiple snapshots occurring on the same day are aggregated into a single daily bar.
+
+If an image shows +3 `High` and –1 `Medium` in the `Delta History`, it means that within the `Highlight Days` window, three High‑severity CVEs appeared and one Medium‑severity CVE was removed.
+
+Per‑severity delta columns (`C‑Dif`, `H‑Dif` etc.) show the exact number of CVEs added or removed for each severity between the First and Last snapshots in the `Highlight Days` window. `Sum Deltas` aggregates all added and removed CVEs across severities within the `Highlight Days` window.
+
+The `Details table` lists all snapshots for the selected image. Snapshots outside the `Highlight Days` window are dimmed but remain visible. The `Moment` column displays two stacked timestamps: the time when the snapshot was created, and the last time it was observed (i.e., when the system last matched a scan to this snapshot). Sorting and filtering behave as in other pages, and sorting by creation time is typically the most useful when analyzing how CVEs evolved.
+
+#### Business Spec
+
+A **snapshot** is created on each scan, but only when meaningful changes occur. The comparison uses a compound key consisting of **severity**, **CVE**, **resource name**, and **installed version** (and **target**, but that is empty for the time being). If any of these fields differ from the previous snapshot, a new snapshot is created. If they match, extended fields such as **fixed version** or **scoring** details are checked; if only these change, the existing snapshot is updated instead. This avoids noise from metadata churn and ensures that snapshots represent real vulnerability changes.
+
+A **retention service** periodically removes older snapshots based on two backend parameters: the `Retention period` and the `Minimum number of snapshots to keep`. Retention is applied per digest within each namespace. Snapshots newer than the retention period are always kept. If there are enough newer snapshots to satisfy the minimum count, all older ones are removed. Otherwise, the oldest older snapshots are kept until the minimum count is reached, and the rest are deleted. Snapshots removed by retention are permanently deleted and no longer appear in charts or tables.
+
+A Prometheus metric, `trivyoperatordashboard_history_cve_changes_count_cves_total`, is incremented whenever a new snapshot is created. It records `added` or `removed` CVEs by `severity` and `namespace` and is intended primarily for alerting on meaningful vulnerability changes.
+
+#### Data Flow Diagram
+```
+┌─ Trivy Operator Scan ──┐
+│ Produces VR            │
+└───────────┬────────────┘
+            │
+            ▼
+┌──── Normalize VR ──────┐
+│ Extract compound key   │
+│ (sev, CVE, res, ver)   │
+└───────────┬────────────┘
+            │
+            ▼
+╭────────────────────────╮                  ╭──────────────────────────╮
+│ Compare with previous  ├─── Same Key ────►│ Extended fields changed? │
+│ snapshot (ns + digest) │                  ╰────┬───────────────┬─────╯
+╰───────────┬────────────╯                       │               │
+            │                                   Yes             No
+       Key differs                        ┌──────┘               └─────┐
+            │                             ▼                            ▼
+            ▼                 ┌────────────────────────┐   ┌────────────────────────┐
+┌──── NEW Snapshot ──────┐    │ Update existing        │   │ Only update LastSeenAt │
+│ Set values:            │    │ snapshot               │   └───────────┬────────────┘
+│ CreatedAt = now        │    │ LastSeenAt = now       │               │
+│ LastSeenAt = now       │    └───────────┬────────────┘               │
+│ Compute deltas         │                │                            │
+│ Increment metric       │                ▼                            │
+└───────────┬────────────┘                ◦◄───────────────────────────┘
+            │                             │
+            ▼                             │
+┌──── Delta Engine ──────┐                │              ┌─── Retention Policy ───┐
+│ - added/removed CVEs   │                │              │ (per ns+digest)        │
+│ - aggregate per day    │                │              │ - Retention period     │
+└───────────┬────────────┘                │              │ - Min snapshots (MS)   │
+            │                             │              └───────────┬────────────┘
+            ▼                             │                          │
+┌─────── Metric ─────────┐                │                          ▼
+│ trivyoperatordashboard_│                │              ╭────────────────────────╮
+│ history_cve_changes_   │                │              │ If all older than RP   │
+│ count_cves_total       │                │              │ -> delete all          │
+│ - incremented on new   │                │              ├────────────────────────┤
+│   snapshot             │                │              │ If newer >= MS         │
+└───────────┬────────────┘                │              │ -> delete all older    │
+            │                             │              ├────────────────────────┤
+            ▼                             │              │ Else                   │
+            ◦◄────────────────────────────┘              │ -> keep oldest older   │
+            │                                            │    until MS, delete    │
+            ▼                                            │    the rest            │
+┌───── Save Snapshot ────┐                               ╰────────────────────────╯
+│ Store snapshot in      │
+│ history (per ns+digest)│
+└───────────┬────────────┘
+            │
+         Web UI
+            │
+            ▼
+┌── Highlight Days (UI) ─┐
+│ - defines First/Last   │
+│ - dims older rows      │
+│ - affects delta totals │
+└───────────┬────────────┘
+			│
+			▼
+╒═════ Main Table ═══════╕       ╒════ Details Table ═════╕
+│ - NS, Image            ├──────►│ - all snapshots        │
+│ - First/Last in HD     │       │ - dimmed outside HD    │
+│ - In Use               │       │ - Moment = CreatedAt   │
+│ - Last Moment          │       │  + LastSeenAt stacked  │
+│ - Count (HD/total)     │       ╘════════════════════════╛
+│ - Delta History chart  │
+╘════════════════════════╛
+```
+
 ### Compare Trivy Reports
 
 If needed, two Trivy Reports can be compared to quickly identify differences. The comparison is performed by displaying report details side by side and using compound keys for existence-based comparison. For example, in Vulnerability Reports, the comparison key includes the CVE, the associated Resource, and its version.
