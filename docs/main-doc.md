@@ -7,7 +7,7 @@ Inspect mode (Browse) and Detailed. Each is described in detail below.
 
 > **Note:** All examples in this documentation are from Vulnerability Reports pages, as all Trivy Reports related pages are similar as layout and functionalities, with one big exception, SBOM Reports.
 
-### Home - Overview mode
+## Home - Overview mode
 
 It is the "at-a-glance" page, where various statistics related to Trivy Reports can be seen.
 
@@ -25,7 +25,7 @@ The `Refresh Data` button **(4)** reloads data from the backend.
 
 The `Distinct values` **(5)** groups identical values in order to provide a clearer understanding of the reports; i.e. in Vulnerability Reports Statistics, severities are shown as distinct (unique) values, which means that if the same Vulnerability is found in many containers, it will be counted as one.
 
-### Inspect mode (Browse)
+## Inspect mode (Browse)
 
 The layout is a classic master **(1)** - details **(2)** one. This page groups reports to simplify inspection, if needed. Between the two tables, there is a splitter **(3)**, that allows fast changing of their ratio/size.
 
@@ -46,45 +46,56 @@ Depending on the case, some tables support row expansion **(7)**, if more info c
 ![](imgs/vr-image-usage.png)
 <br>*Image usage in namespace*
 
-### Detailed
+## Detailed
 
 In this mode, all data is denormalized in a single large table, with all info from Reports. Filtering, sorting and CSV export are available. This view is ideal when data needs to be accessed or used outside the application.
 
 ![](imgs/vr-detailed.png)
 <br>*Detailed page*
 
-### Vulnerability Reports History
+## Vulnerability Reports History
 
 This page provides historical visibility into how Vulnerability Reports evolve over time. CVEs change frequently - severities shift, packages are updated, and new issues appear or disappear. Tracking these changes manually is difficult, so this view consolidates all snapshots of each Vulnerability Report and highlights meaningful differences across time.
 
 ![](imgs/vr-hist.png)
 <br>*Vulnerability Reports History page*
 
-At the top, you will find the standard action buttons, together with several controls specific to history analysis. The `Highlight Days` control defines the time window used for computations and visual emphasis. Values range from 0 days (today only) up to the maximum configured history window. All snapshots within this period are considered “highlighted” and are shown normally; older ones remain visible but dimmed. The two `Last Visits` indicators show the previous two days (excluding today) when this page was opened, helping you correlate what changed since your last inspection.
+At the top, you will find the standard action buttons, along with several controls specific to history analysis. There are two comparison options, as well as `Go to Detailed` and `Dependency tree`.
 
-The `Main table` groups snapshots by `Namespace` and `Image` (repository, name, tag, and digest). For each image, the table shows the first and last snapshots within the `Highlight Days` window, together with an `In Use` indicator. An image is considered `Active` if a `Vulnerability Report` currently exists for that digest in that namespace. It is marked `Stale` if no such report exists at the moment - for example, if the previous report expired and the operator has not yet produced a new one or the workload disappeared.
+The first option, `Inspect image deltas`, disables image selection for comparison and allows only incremental comparisons between snapshots that belong to the same digest, based on their `Modify Moment`.
+
+The second option, `Compare images`, allows image selection, but only for images with the same repository and name. It is intended for comparing different versions of the same image.
+
+The `Highlight Days` **(1)** control defines the time window used for computations and visual emphasis. Values range from 0 days (today only) up to the maximum configured history window. All snapshots within this period are considered “highlighted” and are shown normally; older ones remain visible but dimmed.
+
+The two `Last Visits` **(2)** indicators show the previous two days (excluding today) when this page was opened, helping you correlate what changed since your last inspection.
+
+The `Main table` groups snapshots by `Namespace` and `Image` (repository, name, tag, and digest) **(3)**. For each image, the table shows the first and last snapshots within the `Highlight Days` window with their severities **(4)**, together with an `In Use`**(5)** indicator. An image is considered `Active` if a `Vulnerability Report` currently exists for that digest in that namespace. It is marked `Stale` if no such report exists at the moment - for example, if the previous report expired and the operator has not yet produced a new one or the workload disappeared.
 
 The `Last Moment` column displays the timestamp of the most recent scan that matched this snapshot.
 
-The `Count` column shows how many snapshots fall inside the `Highlight Days` window, out of the total number of retained snapshots for that digest (e.g., 3/7). The denominator includes all retained snapshots, even those outside the Highlight Days window.
+The `Count` **(6)** column shows how many snapshots fall inside the `Highlight Days` window, out of the total number of retained snapshots for that digest (e.g., 3/7). The denominator includes all retained snapshots, even those outside the Highlight Days window.
 
-The `Delta History` column provides a compact, per‑day stacked bar chart summarizing added and removed CVEs. Bars above the axis represent added CVEs; bars below represent removed ones. Severities are color‑coded, and tooltips reveal exact counts per severity. Multiple snapshots occurring on the same day are aggregated into a single daily bar.
+The `Delta History` **(7)** column provides a compact, per‑day stacked bar chart summarizing added and removed CVEs. Bars above the axis represent added CVEs; bars below represent removed ones. Severities are color‑coded, and tooltips reveal exact counts per severity. Multiple snapshots occurring on the same day are aggregated into a single daily bar. When hovered over, a tooltip displays the count of relevant severities for that day.
 
-If an image shows +3 `High` and –1 `Medium` in the `Delta History`, it means that within the `Highlight Days` window, three High‑severity CVEs appeared and one Medium‑severity CVE was removed.
+> **Note:** If an image shows +3 `High` and –1 `Medium` in the `Delta History`, it means that within the `Highlight Days` window, three High‑severity CVEs appeared and one Medium‑severity CVE was removed.
 
-Per‑severity delta columns (`C‑Dif`, `H‑Dif` etc.) show the exact number of CVEs added or removed for each severity between the First and Last snapshots in the `Highlight Days` window. `Sum Deltas` aggregates all added and removed CVEs across severities within the `Highlight Days` window.
+Per‑severity delta columns (`C‑Dif`, `H‑Dif` etc.) **(8)** show the exact number of CVEs added or removed for each severity between the First and Last snapshots in the `Highlight Days` window. `Sum Deltas` zone aggregates all added and removed CVEs across severities within the `Highlight Days` window.
 
-The `Details table` lists all snapshots for the selected image. Snapshots outside the `Highlight Days` window are dimmed but remain visible. The `Moment` column displays two stacked timestamps: the time when the snapshot was created, and the last time it was observed (i.e., when the system last matched a scan to this snapshot). Sorting and filtering behave as in other pages, and sorting by creation time is typically the most useful when analyzing how CVEs evolved.
+The `Details table` lists all snapshots for the selected image. Snapshots outside the `Highlight Days` window are dimmed but remain visible. The `Moment` **(9)** column displays two stacked timestamps: the time when the snapshot was created, and the last time it was observed (i.e., when the system last matched a scan to this snapshot). Sorting and filtering behave as in other pages, and sorting by creation time is typically the most useful when analyzing how CVEs evolved.
 
-#### Business Spec
+### Business Rules Specification
 
-A **snapshot** is created on each scan, but only when meaningful changes occur. The comparison uses a compound key consisting of **severity**, **CVE**, **resource name**, and **installed version** (and **target**, but that is empty for the time being). If any of these fields differ from the previous snapshot, a new snapshot is created. If they match, extended fields such as **fixed version** or **scoring** details are checked; if only these change, the existing snapshot is updated instead. This avoids noise from metadata churn and ensures that snapshots represent real vulnerability changes.
+A **snapshot** is created on each scan, but only when meaningful changes occur. The comparison uses a **compound key** consisting of **severity**, **CVE**, **resource name**, and **installed version** (and **target**, but that is empty for the time being). If any of these fields differ from the previous snapshot, a new snapshot is created. If they match, extended fields such as **fixed version** or **scoring** details are checked; if only these change, the existing snapshot is updated instead. This avoids noise from metadata churn and ensures that snapshots represent real vulnerability changes.
+> **Note:** The first snapshot created for a digest within a namespace will have all CVE delta values set to 0, as there is no previous snapshot to compare it against.
+
+> **Important:** For consistency, all entries that share the same **compound key** are collapsed into a single record. This helps account for a behavior in the Trivy Operator where the same CVE for the same resource may occasionally be reported multiple times, even though the resource exists only once. While this can affect CVE delta counts, it ensures that comparisons remain accurate and that no vulnerability changes are missed. And also, as a result, the displayed total severities may, on rare occasions, differ from the raw scan output.
 
 A **retention service** periodically removes older snapshots based on two backend parameters: the `Retention period` and the `Minimum number of snapshots to keep`. Retention is applied per digest within each namespace. Snapshots newer than the retention period are always kept. If there are enough newer snapshots to satisfy the minimum count, all older ones are removed. Otherwise, the oldest older snapshots are kept until the minimum count is reached, and the rest are deleted. Snapshots removed by retention are permanently deleted and no longer appear in charts or tables.
 
 A Prometheus metric, `trivyoperatordashboard_history_cve_changes_count_cves_total`, is incremented whenever a new snapshot is created. It records `added` or `removed` CVEs by `severity` and `namespace` and is intended primarily for alerting on meaningful vulnerability changes.
 
-#### Data Flow Diagram
+### Vulnerability Report Snapshot Lifecycle Data Flow Diagram
 ```
 ┌─ Trivy Operator Scan ──┐
 │ Produces VR            │
@@ -136,9 +147,9 @@ A Prometheus metric, `trivyoperatordashboard_history_cve_changes_count_cves_tota
 │ Store snapshot in      │
 │ history (per ns+digest)│
 └───────────┬────────────┘
-            │
-         Web UI
-            │
+            │                              Backend
+────────────│──────────────────────────────────────────────────────────────────────
+            │                          Frontend - Web UI
             ▼
 ┌── Highlight Days (UI) ─┐
 │ - defines First/Last   │
@@ -176,7 +187,7 @@ To get an "at-a-glance" view of all Trivy Reports related to an image within a n
 ![](imgs/trivy-report-dependency.png)
 <br>*Trivy Reports Dependency page*
 
-> Note: Since the dependency tree is centered around the container image, it is accessible from Vulnerability Reports, Exposed Secrets Reports, and SBOM Reports. However, it is not available from Config Audit Reports, as a single audit report may be associated with a resource (e.g., a ReplicaSet) that includes multiple containers - and therefore, multiple images.
+> **Note:** Since the dependency tree is centered around the container image, it is accessible from Vulnerability Reports, Exposed Secrets Reports, and SBOM Reports. However, it is not available from Config Audit Reports, as a single audit report may be associated with a resource (e.g., a ReplicaSet) that includes multiple containers - and therefore, multiple images.
 
 ## SBOM Reports
 
