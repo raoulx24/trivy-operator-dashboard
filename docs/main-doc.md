@@ -96,7 +96,7 @@ A **retention service** periodically removes older snapshots based on two backen
 A Prometheus metric, `trivyoperatordashboard_history_cve_changes_count_cves_total`, is incremented whenever a new snapshot is created. It records `added` or `removed` CVEs by `severity` and `namespace` and is intended primarily for alerting on meaningful vulnerability changes.
 
 ### Vulnerability Report Snapshot Lifecycle Data Flow Diagram
-```
+```text
 ┌─ Trivy Operator Scan ──┐
 │ Produces VR            │
 └───────────┬────────────┘
@@ -166,6 +166,44 @@ A Prometheus metric, `trivyoperatordashboard_history_cve_changes_count_cves_tota
 │ - Count (HD/total)     │       ╘════════════════════════╛
 │ - Delta History chart  │
 ╘════════════════════════╛
+```
+
+```mermaid
+flowchart TD
+
+MAIN[<b><em>Trivy Operator Scan</em></b><br/>Produces VR] --> COMPUTE[<b><em>Normalize VR</em></b><br/>extract compound key<br/>sev, CVE, res, ver]
+
+COMPUTE --> COMPARE[Compare with previous snapshot<br/>ns + digest]
+
+COMPARE --> SAMEKEY{Same key?}
+
+SAMEKEY -->|Yes| OLDKEY{Extended fields<br/>changed?}
+
+SAMEKEY -->|No| NEWKEY[<b><em>New Snapshot</em></b><br/>CreatedAt = now<br/>LastSeenAt = now<br/>Compute deltas<br/>Increment metric]
+
+OLDKEY -->|Yes| G[Update existing snapshot<br/>LastSeenAt = now]
+OLDKEY -->|No| H[Only update LastSeenAt]
+
+NEWKEY --> I[<b><em>Delta Engine</em></b><br/>added/removed CVEs<br/>aggregate per day]
+
+
+G --> K
+H --> K
+
+I --> J[Metric Update<br/>increment CVE change counters]
+
+J --> K[Save Snapshot<br/>store in history]
+```
+
+```mermaid
+flowchart TD
+
+R1[<b>Retention Engine</b><br/>evaluate snapshots] --> R2{Retention rule}
+
+R2 -->|All older than RP| R3[Delete all]
+R2 -->|Newer >= MS| R4[Delete older snapshots]
+R2 -->|Else| R5[Keep minimum snapshots]
+
 ```
 
 ### Compare Trivy Reports
