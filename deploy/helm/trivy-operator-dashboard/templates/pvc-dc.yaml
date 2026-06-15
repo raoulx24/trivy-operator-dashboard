@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
   - {{ .Values.history.distributedCache.sidecar.pvc.accessModes }}
-  storageClassName: managed-csi-premium
+  storageClassName: {{ .Values.history.distributedCache.sidecar.pvc.storageClassName }}
   resources:
     requests:
       storage: {{ .Values.history.distributedCache.sidecar.pvc.size }}

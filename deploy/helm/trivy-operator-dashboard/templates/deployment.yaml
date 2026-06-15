@@ -103,7 +103,10 @@ spec:
         - name: HISTORY__RETENTION__KEEPLAST
           value: "{{ .Values.history.retention.keepLast }}"
         - name: HISTORY__DISTRIBUTEDCACHE__CONNECTIONSTRING
-          value: "{{ .Values.history.distributedCache.connectionString }}"
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "trivy-operator-dashboard.fullname" . }}
+              key: DC_CONN_STRING
         - name: HISTORY__DISTRIBUTEDCACHE__RETRYOPTIONS__MAXRETRIES
           value: "{{ .Values.history.distributedCache.retryOptions.maxRetries }}"
         - name: HISTORY__DISTRIBUTEDCACHE__RETRYOPTIONS__INITIALDELAY
@@ -198,12 +201,12 @@ spec:
       {{- if include "trivy-operator-dashboard.fileRepositoryAllValuesSet" . }}
       - name: file-repo
         persistentVolumeClaim:
-          claimName: {{ .Values.fileRepository.pvcName }} 
+          claimName: {{ .Values.fileRepository.pvcName }}
       {{- end }}
       {{- if and .Values.history.enabled .Values.history.distributedCache.sidecar.enabled }}
       - name: dc-data
         persistentVolumeClaim:
-          claimName:  {{ include "trivy-operator-dashboard.fullname" . }}-dc-data
+          claimName: {{ include "trivy-operator-dashboard.fullname" . }}-dc-data
       {{- end }}
       
       {{- with .Values.nodeSelector }}

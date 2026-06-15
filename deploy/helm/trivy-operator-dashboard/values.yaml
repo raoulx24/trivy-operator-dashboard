@@ -59,6 +59,7 @@ history:
         name: valkey/valkey
         tag: 7.2
       pvc:
+        storageClassName: managed-csi-premium
         accessModes: ReadWriteOnce
         size: 10Gi
       securityContext:

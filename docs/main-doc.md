@@ -158,11 +158,15 @@ If needed, two Trivy Reports can be compared to quickly identify differences bet
 ![](imgs/vr-compare.png)
 <br>*Vulnerability Reports Compare page*
 
-The comparison view includes two presence columns (1st and 2nd) **(3)** indicating whether a **compound key** exists in the first report, the second report, or both. Navigation controls **(3)** can be used when direct selection is unavailable, while `Swap items` can be used when free selection is enabled **(1)** and **(2)**. The `Only Modified` filter **(5)** can be used to display only entries containing differences.
+The comparison view includes two presence columns (`1st` and `2nd`) **(3)** indicating whether a **compound key** exists in the first report, the second report, or both. Navigation controls **(3)** can be used when direct selection is unavailable, while `Swap items` can be used when free selection is enabled - **(1)** and **(2)**. The `Only Modified` filter **(5)** can be used to display only entries containing differences.
 
 If multiple entries share the same **compound key** within a report, a duplicate indicator is displayed **(6)**. When severity values differ between reports, they are shown side by side **(7)**. Other modified fields are displayed as stacked values with a visual marker **(8)**. When multiple values exist for the same field under a shared **compound key**, the values are displayed as a list **(9)**.
 
-> **Example:** In the provided image, first two lines are the same CVE, same Resouce, but different Installed version - resulting in separate comparison entries; also, for the first line, there are 8 lines in Trivy Report, with 2 Scores (same for third line). On fourth line, the severity dropped from High to Medium, and also the score. On sixth line, a new severity appeared (same for seventh line). On last line, only score changed 
+> **Example:** In the provided image, first two lines are the same CVE, same Resouce, but different Installed version - resulting in separate comparison entries; also, for the first line, there are 8 lines in Trivy Report, with 2 Scores (same for third line). On fourth line, the severity dropped from High to Medium, and also the score. On sixth line, a new severity appeared (same for seventh line). On last line, only score changed.
+
+> **Important:** In some cases, the same CVE may appear multiple times for the same Resource and Installed Version. This can occur because the affected component genuinely exists multiple times within the image, or due to an observed Trivy Operator behavior where duplicate entries may be reported for the same vulnerability. In rare cases, these entries may even contain different score values. The application displays the data as reported by the scanner and applies normalization only where necessary to improve comparison accuracy and reduce duplicate noise.
+
+> **Note:** When investigating unexpected entries, the raw Trivy Report should be considered the source of truth.
 
 ## Trivy Reports Dependency
 
@@ -171,7 +175,7 @@ To get an "at-a-glance" view of all Trivy Reports related to an image within a n
 ![](imgs/trivy-report-dependency.png)
 <br>*Trivy Reports Dependency page*
 
-> **Note:** Since the dependency tree is centered around the container image, it is accessible from Vulnerability Reports, Exposed Secrets Reports, and SBOM Reports. However, it is not available from Config Audit Reports, as a single audit report may be associated with a resource (e.g., a ReplicaSet) that includes multiple containers - and therefore, multiple images.
+> **Note:** Since the dependency tree is centered around the container image, it is accessible from Vulnerability Reports, Vulnerability Reports History, Exposed Secrets Reports, and SBOM Reports. However, it is not available from Config Audit Reports, as a single audit report may be associated with a resource (e.g., a ReplicaSet) that includes multiple containers - and therefore, multiple images.
 
 ## SBOM Reports
 

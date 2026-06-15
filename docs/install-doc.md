@@ -57,6 +57,33 @@ In Helm values file, the following sections are app related
 | useDefaultContext               | if `true`, only the default context is used and watchers are enabled. <br>if `false`, all contexts are used, but watchers are disabled
 | trivyUse*TrivyReportName*Report | enables or disables the specific *Trivy Report* module - for brevity, the full list is not provided here; in Helm values they are fully provided |
 
+### `history` section
+| key name                        | description |
+| --------------------------------|-------------|
+| enabled              | enables or disables the history feature |
+
+#### `retention` subsection
+| key name                        | description |
+| --------------------------------|-------------|
+| runIntervalInMinutes  | execution interval of the retention job, in minutes |
+| keepDays              | number of days to retain vulnerability history. minimum value: 1 |
+| keepLast              | minimum number of history entries to retain, regardless of age. minimum value: 2 |
+
+#### `distributedCache` subsection
+| key name                        | description |
+| --------------------------------|-------------|
+| connectionString  | connection string for Redis or Valkey |
+| retryOptions      | retry configurations used when connection attempts to Redis or Valkey fail |
+
+#### `sidecar` subsection
+| key name                        | description |
+| --------------------------------|-------------|
+| enabled  | deploys Valkey as a sidecar container |
+| image  | container image name and tag |
+| pvc  | persistent volume claim (PVC) configuration options |
+| securityContext | security context applied to the sidecar container |
+
+
 ### `fileRepository` section
 
 | key name                        | description |
@@ -103,6 +130,18 @@ In Helm values file, the following sections are app related
 > **Note: default context**  
 
 If set to `true`, only default context will be used and watchers are activated. If set to `false`, all contexts are provided and watchers are disabled (a "passthrough mode" is activated). As a side effect, **all reqs are slower**, as all data from all namespaces is queried in most cases
+
+> **Note: history**
+
+1. **Recommendation:** the sidecar deployment is the recommended installation method. In typical environments, the additional memory consumption is less than 10 MB, even when storing several hundred snapshots
+2. **Security:** the bundled Valkey sidecar is configured for pod-local access only and runs with all Linux capabilities dropped
+3. Tested versions include Redis 7.2, Valkey 7.2, and Valkey 9
+4. Redis is supported but has not been tested as extensively as Valkey. If Redis is already available in the cluster, it can be reused instead of deploying the sidecar
+5. TLS connections are supported by the application but have not been validated in all deployment scenarios
+6. Redis and Valkey cluster deployments are supported but have not been tested as extensively as standalone deployments. If a cluster deployment already exists in the environment, it can be reused
+7. A PVC is required to ensure data persistence. A block-storage-backed volume is recommended; network file systems (NFS and similar solutions) have not been validated. Based on observed workloads, approximately 50 IOPS should be sufficient for most installations
+8. **Capacity:** history storage usage is lightweight. In observed environments, ~600 snapshots consume approximately 12MB of memory in Valkey, with RDB persistence being even smaller. Overall growth is bounded by retention settings (keepDays, keepLast) and does not scale linearly without limits.
+
 
 > **Note: file repository**
 
