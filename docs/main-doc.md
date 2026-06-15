@@ -86,139 +86,85 @@ The `Details table` lists all snapshots for the selected image. Snapshots outsid
 
 ### Business Rules Specification
 
-A **snapshot** is created on each scan, but only when meaningful changes occur. The comparison uses a **compound key** consisting of **severity**, **CVE**, **resource name**, and **installed version** (and **target**, but that is empty for the time being). If any of these fields differ from the previous snapshot, a new snapshot is created. If they match, extended fields such as **fixed version** or **scoring** details are checked; if only these change, the existing snapshot is updated instead. This avoids noise from metadata churn and ensures that snapshots represent real vulnerability changes.
+Each Trivy scan triggers an evaluation of the current vulnerability state against the previous **snapshot**. A new **snapshot** is created only when a meaningful change is detected. The comparison uses a **compound key** consisting of **severity**, **CVE**, **resource name**, **installed version**, and **target** (currently empty).
+
+If any of these fields differ from the previous snapshot, a new **snapshot** is created. If the **compound key** matches, extended fields such as **fixed version** or **score** are compared instead. Changes only to these extended fields update the existing **snapshot** rather than creating a new one. If no fields change, only `LastSeenAt` is updated.
+
+This approach avoids noise from metadata churn and ensures snapshots represent actual vulnerability state changes.
+
 > **Note:** The first snapshot created for a digest within a namespace will have all CVE delta values set to 0, as there is no previous snapshot to compare it against.
 
-> **Important:** For consistency, all entries that share the same **compound key** are collapsed into a single record. This helps account for a behavior in the Trivy Operator where the same CVE for the same resource may occasionally be reported multiple times, even though the resource exists only once. While this can affect CVE delta counts, it ensures that comparisons remain accurate and that no vulnerability changes are missed. And also, as a result, the displayed total severities may, on rare occasions, differ from the raw scan output.
+> **Note:** Comparisons are performed within the same **namespace** and **image digest** scope.
 
+> **Important:** To ensure consistent comparisons, all vulnerability entries sharing the same **compound key** are collapsed into a single record before processing. This compensates for an observed Trivy Operator behavior where the same CVE for the same resource may occasionally be reported multiple times, even though the resource exists only once. As a result, CVE delta counts remain accurate and vulnerability state changes are not missed. In rare cases, however, the displayed severity totals may differ slightly from the raw scan output because duplicate entries are removed during normalization.
+
+A Prometheus metric, `trivyoperatordashboard_history_cve_changes_count_cves_total`, is incremented whenever a new **snapshot** is created. It records `added` or `removed` CVEs by `severity` and `namespace` and is intended primarily for alerting on meaningful vulnerability changes.
+
+Vulnerability Report Snapshot Lifecycle Data Flow Diagram
+```mermaid
+flowchart TD
+
+MAIN[<b><em>Trivy Operator Scan</em></b><br/>Produces VR] 
+COMPUTE[<b><em>Normalize VR</em></b><br/>extract compound key<br/>sev, CVE, res, ver]
+
+COMPARE{Compare with<br/>previous snapshot<br/><em>per ns & digest</em><br/>Same key?}
+
+NEWKEY[<b><em>New Snapshot<hr/>Delta Engine<hr/>Metric Update</em></b><br/>]
+
+OLDKEY{Extended fields<br/>changed?}
+UPDATEFULL[Update existing snapshot<br/>Set LastSeenAt = now]
+UPDATELASTSEEN[Only set LastSeenAt = now]
+
+SAVE[<b><em>Save Snapshot</em></b><br/>store in history]
+
+MAIN --> COMPUTE
+COMPUTE --> COMPARE
+
+COMPARE --> |Yes| OLDKEY
+COMPARE --> |No| NEWKEY
+
+OLDKEY --> |Yes| UPDATEFULL
+OLDKEY --> |No| UPDATELASTSEEN
+
+UPDATEFULL --> SAVE
+UPDATELASTSEEN --> SAVE
+
+NEWKEY --> SAVE
+```
 A **retention service** periodically removes older snapshots based on two backend parameters: the `Retention period` and the `Minimum number of snapshots to keep`. Retention is applied per digest within each namespace. Snapshots newer than the retention period are always kept. If there are enough newer snapshots to satisfy the minimum count, all older ones are removed. Otherwise, the oldest older snapshots are kept until the minimum count is reached, and the rest are deleted. Snapshots removed by retention are permanently deleted and no longer appear in charts or tables.
 
-A Prometheus metric, `trivyoperatordashboard_history_cve_changes_count_cves_total`, is incremented whenever a new snapshot is created. It records `added` or `removed` CVEs by `severity` and `namespace` and is intended primarily for alerting on meaningful vulnerability changes.
-
-### Vulnerability Report Snapshot Lifecycle Data Flow Diagram
-```text
-┌─ Trivy Operator Scan ──┐
-│ Produces VR            │
-└───────────┬────────────┘
-            │
-            ▼
-┌──── Normalize VR ──────┐
-│ Extract compound key   │
-│ (sev, CVE, res, ver)   │
-└───────────┬────────────┘
-            │
-            ▼
-╭────────────────────────╮                  ╭──────────────────────────╮
-│ Compare with previous  ├─── Same Key ────►│ Extended fields changed? │
-│ snapshot (ns + digest) │                  ╰────┬───────────────┬─────╯
-╰───────────┬────────────╯                       │               │
-            │                                   Yes             No
-       Key differs                        ┌──────┘               └─────┐
-            │                             ▼                            ▼
-            ▼                 ┌────────────────────────┐   ┌────────────────────────┐
-┌──── NEW Snapshot ──────┐    │ Update existing        │   │ Only update LastSeenAt │
-│ Set values:            │    │ snapshot               │   └───────────┬────────────┘
-│ CreatedAt = now        │    │ LastSeenAt = now       │               │
-│ LastSeenAt = now       │    └───────────┬────────────┘               │
-│ Compute deltas         │                │                            │
-│ Increment metric       │                ▼                            │
-└───────────┬────────────┘                ◦◄───────────────────────────┘
-            │                             │
-            ▼                             │
-┌──── Delta Engine ──────┐                │              ┌─── Retention Policy ───┐
-│ - added/removed CVEs   │                │              │ (per ns+digest)        │
-│ - aggregate per day    │                │              │ - Retention period     │
-└───────────┬────────────┘                │              │ - Min snapshots (MS)   │
-            │                             │              └───────────┬────────────┘
-            ▼                             │                          │
-┌─────── Metric ─────────┐                │                          ▼
-│ trivyoperatordashboard_│                │              ╭────────────────────────╮
-│ history_cve_changes_   │                │              │ If all older than RP   │
-│ count_cves_total       │                │              │ -> delete all          │
-│ - incremented on new   │                │              ├────────────────────────┤
-│   snapshot             │                │              │ If newer >= MS         │
-└───────────┬────────────┘                │              │ -> delete all older    │
-            │                             │              ├────────────────────────┤
-            ▼                             │              │ Else                   │
-            ◦◄────────────────────────────┘              │ -> keep oldest older   │
-            │                                            │    until MS, delete    │
-            ▼                                            │    the rest            │
-┌───── Save Snapshot ────┐                               ╰────────────────────────╯
-│ Store snapshot in      │
-│ history (per ns+digest)│
-└───────────┬────────────┘
-            │                              Backend
-────────────│──────────────────────────────────────────────────────────────────────
-            │                          Frontend - Web UI
-            ▼
-┌── Highlight Days (UI) ─┐
-│ - defines First/Last   │
-│ - dims older rows      │
-│ - affects delta totals │
-└───────────┬────────────┘
-			│
-			▼
-╒═════ Main Table ═══════╕       ╒════ Details Table ═════╕
-│ - NS, Image            ├──────►│ - all snapshots        │
-│ - First/Last in HD     │       │ - dimmed outside HD    │
-│ - In Use               │       │ - Moment = CreatedAt   │
-│ - Last Moment          │       │  + LastSeenAt stacked  │
-│ - Count (HD/total)     │       ╘════════════════════════╛
-│ - Delta History chart  │
-╘════════════════════════╛
-```
-
+Retention Service Flow Diagram
 ```mermaid
 flowchart TD
 
-MAIN[<b><em>Trivy Operator Scan</em></b><br/>Produces VR] --> COMPUTE[<b><em>Normalize VR</em></b><br/>extract compound key<br/>sev, CVE, res, ver]
+R1[<b><em>Retention Engine</em></b><br/>evaluate snapshots] --> R2{Retention rule}
 
-COMPUTE --> COMPARE[Compare with previous snapshot<br/>ns + digest]
+R2 -->|All older than RP| R3[<b><em>RULE 1</em></b><br/>Delete all]
+R2 -->|Newer >= MS| R4[<b><em>RULE 2</em></b><br/>Delete older snapshots]
+R2 -->|Else| R5[<b><em>RULE 3</em></b><br/>Keep minimum snapshots]
 
-COMPARE --> SAMEKEY{Same key?}
-
-SAMEKEY -->|Yes| OLDKEY{Extended fields<br/>changed?}
-
-SAMEKEY -->|No| NEWKEY[<b><em>New Snapshot</em></b><br/>CreatedAt = now<br/>LastSeenAt = now<br/>Compute deltas<br/>Increment metric]
-
-OLDKEY -->|Yes| G[Update existing snapshot<br/>LastSeenAt = now]
-OLDKEY -->|No| H[Only update LastSeenAt]
-
-NEWKEY --> I[<b><em>Delta Engine</em></b><br/>added/removed CVEs<br/>aggregate per day]
-
-
-G --> K
-H --> K
-
-I --> J[Metric Update<br/>increment CVE change counters]
-
-J --> K[Save Snapshot<br/>store in history]
+R3 --> EXIT
+R4 --> EXIT
+R5 --> EXIT
+EXIT[Done]
 ```
 
-```mermaid
-flowchart TD
+## Compare Trivy Reports
 
-R1[<b>Retention Engine</b><br/>evaluate snapshots] --> R2{Retention rule}
+If needed, two Trivy Reports can be compared to quickly identify differences between scans. The comparison is performed by displaying report details side by side and matching entries using a **compound key**.
 
-R2 -->|All older than RP| R3[Delete all]
-R2 -->|Newer >= MS| R4[Delete older snapshots]
-R2 -->|Else| R5[Keep minimum snapshots]
-
-```
-
-### Compare Trivy Reports
-
-If needed, two Trivy Reports can be compared to quickly identify differences. The comparison is performed by displaying report details side by side and using compound keys for existence-based comparison. For example, in Vulnerability Reports, the comparison key includes the CVE, the associated Resource, and its version.
+> Example: For Vulnerability Reports, the **compound key** consists of the Severity, CVE, Resource Name, and Installed Version. Entries sharing the same compound key are considered the same vulnerability instance and are compared directly. Entries that exist in only one report are marked as present only in that report.
 
 ![](imgs/vr-compare.png)
 <br>*Vulnerability Reports Compare page*
 
-The items belonging to **(1)** will appear as `True` in the `1st` column **(3)**, and those from **(2)** will appear in the `2nd` column **(4)**. An important detail to note is that if there are differences in values - such as the Installed Version in Vulnerability Reports - they will be displayed stacked for clarity **(5)**. Additionally, there are cases where the same item appears multiple times within a single Trivy Report (e.g., the same component listed with different versions). These versions will also be shown, stacked if necessary. A good example can be seen in SBOM Compare **(6)**, where the same component has multiple versions.
+The comparison view includes two presence columns (1st and 2nd) **(3)** indicating whether a **compound key** exists in the first report, the second report, or both. Navigation controls **(3)** can be used when direct selection is unavailable, while `Swap items` can be used when free selection is enabled **(1)** and **(2)**. The `Only Modified` filter **(5)** can be used to display only entries containing differences.
 
-![](imgs/sbom-compare.png)
-<br>*SBOM Reports Compare page*
+If multiple entries share the same **compound key** within a report, a duplicate indicator is displayed **(6)**. When severity values differ between reports, they are shown side by side **(7)**. Other modified fields are displayed as stacked values with a visual marker **(8)**. When multiple values exist for the same field under a shared **compound key**, the values are displayed as a list **(9)**.
 
-### Trivy Reports Dependency
+> **Example:** In the provided image, first two lines are the same CVE, same Resouce, but different Installed version - resulting in separate comparison entries; also, for the first line, there are 8 lines in Trivy Report, with 2 Scores (same for third line). On fourth line, the severity dropped from High to Medium, and also the score. On sixth line, a new severity appeared (same for seventh line). On last line, only score changed 
+
+## Trivy Reports Dependency
 
 To get an "at-a-glance" view of all Trivy Reports related to an image within a namespace, you can use Trivy Reports Dependency. This view allows easy navigation to specific Trivy Reports using the `Open` button.
 
