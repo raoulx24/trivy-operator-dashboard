@@ -140,7 +140,7 @@ If set to `true`, only default context will be used and watchers are activated. 
 5. TLS connections are supported by the application but have not been validated in all deployment scenarios
 6. Redis and Valkey cluster deployments are supported but have not been tested as extensively as standalone deployments. If a cluster deployment already exists in the environment, it can be reused
 7. A PVC is required to ensure data persistence. A block-storage-backed volume is recommended; network file systems (NFS and similar solutions) have not been validated. Based on observed workloads, approximately 50 IOPS should be sufficient for most installations
-8. **Capacity:** history storage usage is lightweight. In observed environments, ~600 snapshots consume approximately 12MB of memory in Valkey, with RDB persistence being even smaller. Overall growth is bounded by retention settings (keepDays, keepLast) and does not scale linearly without limits.
+8. **Capacity:** history storage usage is lightweight. In observed environments, ~1000 snapshots consume approximately 15MB of memory in Valkey, with RDB persistence being even smaller. Overall growth is bounded by retention settings (keepDays, keepLast) and does not scale linearly without limits. CVE payloads are stored in compressed form (Brotli), which significantly reduces memory and persistence footprint. Other metadata contributes minimally to overall usage.
 
 
 > **Note: file repository**

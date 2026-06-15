@@ -5,11 +5,33 @@ kind: ServiceAccount
 metadata:
   name: release-name-trivy-operator-dashboard
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.8.0
+    helm.sh/chart: trivy-operator-dashboard-1.9.0
     app.kubernetes.io/name: trivy-operator-dashboard
     app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: "1.8.0"
+    app.kubernetes.io/version: "1.9.0"
     app.kubernetes.io/managed-by: Helm
+---
+# Source: trivy-operator-dashboard/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-trivy-operator-dashboard
+type: Opaque
+data:
+  DC_CONN_STRING: "bG9jYWxob3N0OjYzNzksc3NsPUZhbHNlLGFib3J0Q29ubmVjdD1GYWxzZQ=="
+---
+# Source: trivy-operator-dashboard/templates/pvc-dc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: release-name-trivy-operator-dashboard-dc-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: managed-csi-premium
+  resources:
+    requests:
+      storage: 10Gi
 ---
 # Source: trivy-operator-dashboard/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -36,7 +58,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: release-name-trivy-operator-dashboard
-  namespace: default
+  namespace: test
 ---
 # Source: trivy-operator-dashboard/templates/service.yaml
 apiVersion: v1
@@ -44,10 +66,10 @@ kind: Service
 metadata:
   name: release-name-trivy-operator-dashboard
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.8.0
+    helm.sh/chart: trivy-operator-dashboard-1.9.0
     app.kubernetes.io/name: trivy-operator-dashboard
     app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: "1.8.0"
+    app.kubernetes.io/version: "1.9.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   type: ClusterIP
@@ -66,10 +88,10 @@ kind: Deployment
 metadata:
   name: release-name-trivy-operator-dashboard
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.8.0
+    helm.sh/chart: trivy-operator-dashboard-1.9.0
     app.kubernetes.io/name: trivy-operator-dashboard
     app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: "1.8.0"
+    app.kubernetes.io/version: "1.9.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
@@ -77,25 +99,32 @@ spec:
     matchLabels:
       app.kubernetes.io/name: trivy-operator-dashboard
       app.kubernetes.io/instance: release-name
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        helm.sh/chart: trivy-operator-dashboard-1.8.0
+        helm.sh/chart: trivy-operator-dashboard-1.9.0
         app.kubernetes.io/name: trivy-operator-dashboard
         app.kubernetes.io/instance: release-name
-        app.kubernetes.io/version: "1.8.0"
+        app.kubernetes.io/version: "1.9.0"
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: web
         app.kubernetes.io/part-of: trivy-operator
     spec:
       serviceAccountName: release-name-trivy-operator-dashboard
       securityContext:
-        {}
+        fsGroup: 1000
       containers:
       - name: trivy-operator-dashboard
         securityContext:
-          {}
-        image: "ghcr.io/raoulx24/trivy-operator-dashboard:1.8.0"
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+        image: "ghcr.io/raoulx24/trivy-operator-dashboard:1.9.0"
         imagePullPolicy: Always
         env:
         - name: MAINAPPPORT
@@ -130,6 +159,25 @@ spec:
           value: "true"
         - name: FILEREPOSITORY__BASEPATH
           value: ""
+        - name: HISTORY__ENABLED
+          value: "true"
+        - name: HISTORY__RETENTION__RUNINTERVALINMINUTES
+          value: "360"
+        - name: HISTORY__RETENTION__KEEPDAYS
+          value: "14"
+        - name: HISTORY__RETENTION__KEEPLAST
+          value: "2"
+        - name: HISTORY__DISTRIBUTEDCACHE__CONNECTIONSTRING
+          valueFrom:
+            secretKeyRef:
+              name: release-name-trivy-operator-dashboard
+              key: DC_CONN_STRING
+        - name: HISTORY__DISTRIBUTEDCACHE__RETRYOPTIONS__MAXRETRIES
+          value: "5"
+        - name: HISTORY__DISTRIBUTEDCACHE__RETRYOPTIONS__INITIALDELAY
+          value: "50ms"
+        - name: HISTORY__DISTRIBUTEDCACHE__RETRYOPTIONS__MAXDELAY
+          value: "1s"
         - name: GITHUB__SERVERCHECKFORUPDATES
           value: "true"
         - name: GITHUB__CHECKFORUPDATESINTERVALINMINUTES
@@ -175,10 +223,35 @@ spec:
           periodSeconds: 30
         resources:
           {}
+      - name: distributed-cache
+        image: valkey/valkey:7.2
+        args:
+        - "valkey-server"
+        - "--bind"
+        - "127.0.0.1"
+        - "--port"
+        - "6379"
+        - "--save"
+        - "60"
+        - "100"
+        volumeMounts:
+        - name: dc-data
+          mountPath: /data
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
       volumes:
       - name: tmp-volume
         emptyDir:
           sizeLimit: 1024Mi
+      - name: dc-data
+        persistentVolumeClaim:
+          claimName: release-name-trivy-operator-dashboard-dc-data
 ---
 # Source: trivy-operator-dashboard/templates/ingress.yaml
 apiVersion: networking.k8s.io/v1
@@ -186,10 +259,10 @@ kind: Ingress
 metadata:
   name: release-name-trivy-operator-dashboard
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.8.0
+    helm.sh/chart: trivy-operator-dashboard-1.9.0
     app.kubernetes.io/name: trivy-operator-dashboard
     app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: "1.8.0"
+    app.kubernetes.io/version: "1.9.0"
     app.kubernetes.io/managed-by: Helm
 spec:
   ingressClassName: nginx
@@ -211,10 +284,10 @@ kind: Pod
 metadata:
   name: "release-name-trivy-operator-dashboard-test-connection"
   labels:
-    helm.sh/chart: trivy-operator-dashboard-1.8.0
+    helm.sh/chart: trivy-operator-dashboard-1.9.0
     app.kubernetes.io/name: trivy-operator-dashboard
     app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: "1.8.0"
+    app.kubernetes.io/version: "1.9.0"
     app.kubernetes.io/managed-by: Helm
   annotations:
     "helm.sh/hook": test
