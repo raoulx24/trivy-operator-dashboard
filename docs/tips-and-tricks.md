@@ -86,3 +86,25 @@ https://my-host/my-path/
 ### Additional note
 
 Other ingress controllers also support URL rewrite functionality. Traefik, HAProxy, Istio, and several others provide mechanisms for path rewriting, though each uses its own syntax and configuration model. Because implementations differ, checking the documentation for your specific ingress controller is the most reliable approach.
+
+## Alerts on Vulnerability Reports History
+
+Alerts can be triggered when new CVEs are detected in Vulnerability Reports History. Below is a sample Prometheus alert that fires when a high or critical CVE is added:
+
+```yaml
+groups:
+- name: trivy-operator-dashboard-alerts
+  rules:
+  - alert: TrivyNewHighOrCriticalCVEs
+    expr: |
+      trivyoperatordashboard_history_cve_changes_count_cves_total{
+        change_type="added",
+        severity=~"high|critical"
+      } > 0
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: "New high/critical CVEs detected"
+      description: "A new high or critical CVE was added in namespace {{ $labels.namespace_name }} (severity={{ $labels.severity }})."
+```

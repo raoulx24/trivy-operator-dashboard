@@ -139,9 +139,29 @@ If set to `true`, only default context will be used and watchers are activated. 
 4. Redis is supported but has not been tested as extensively as Valkey. If Redis is already available in the cluster, it can be reused instead of deploying the sidecar
 5. TLS connections are supported by the application but have not been validated in all deployment scenarios
 6. Redis and Valkey cluster deployments are supported but have not been tested as extensively as standalone deployments. If a cluster deployment already exists in the environment, it can be reused
-7. A PVC is required to ensure data persistence. A block-storage-backed volume is recommended; network file systems (NFS and similar solutions) have not been validated. Based on observed workloads, approximately 50 IOPS should be sufficient for most installations
-8. **Capacity:** history storage usage is lightweight. In observed environments, ~1000 snapshots consume approximately 15MB of memory in Valkey, with RDB persistence being even smaller. Overall growth is bounded by retention settings (keepDays, keepLast) and does not scale linearly without limits. CVE payloads are stored in compressed form (Brotli), which significantly reduces memory and persistence footprint. Other metadata contributes minimally to overall usage.
+7. If the sidecar is enabled, a PVC is required to ensure data persistence. A block-storage-backed volume is recommended; network file systems (NFS and similar solutions) have not been validated. Based on observed workloads, approximately 50 IOPS should be sufficient for most installations
+8. **Capacity:** history storage usage is lightweight. In observed environments, ~1000 snapshots consume approximately 15MB of memory in Valkey, with RDB persistence being even smaller. Overall growth is bounded by retention settings (keepDays, keepLast) and does not scale linearly without limits. CVE payloads are stored in compressed form (Brotli), which significantly reduces memory and persistence footprint. Other metadata contributes minimally to overall usage
+9. Alerts can be defined for detected changes on CVEs. More on [Tips & Tricks - Alerts](./tips-and-tricks.md#alerts-on-vulnerability-reports-history)
+10. Redis/Valkey ACL - matrix and command
 
+    | Purpose | Commands | Key Patterns |
+    | --------|----------|--------------|
+    | Read/write snapshots | HGET, HSET | vr:{\*}:\*:\* |
+    | Read/write unprocessed snapshots | HGET, HSET | vr-unprocessed:{\*}:\*:\* |
+    | Manage namespace set | SMEMBERS, SADD, SREM | vr:namespaces |
+    | TTL | EXPIRE | all above |
+    | Scanning | SCAN | all above |
+
+    ```redis
+    ACL SETUSER yourappuser on >yourpassword \
+      +HGET +HSET \
+      +SMEMBERS +SADD +SREM \
+      +SCAN +EXPIRE \
+      ~vr:{*}:*:* \
+      ~vr-unprocessed:{*}:*:* \
+      ~vr:namespaces \
+      -@admin -@dangerous -@scripting -@slow -@pubsub -@connection
+    ```
 
 > **Note: file repository**
 
@@ -177,7 +197,7 @@ The parameters described above have corresponding entries in appsettings.json. T
 
 ## Tips & Tricks
 
-Additional documentation (such as how to perform on‑demand scans or how to use the app with an ingress path) can be found in [Tips & Tricks](./tips-and-tricks.md).
+Additional documentation (such as how to perform on‑demand scans, how to use the app with an ingress path, and how to set up alerts for new CVEs) can be found in [Tips & Tricks](./tips-and-tricks.md).
 
 ## Considerations
 

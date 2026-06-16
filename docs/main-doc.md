@@ -68,17 +68,17 @@ The second option, `Compare images`, allows image selection, but only for images
 
 The `Highlight Days` **(1)** control defines the time window used for computations and visual emphasis. Values range from 0 days (today only) up to the maximum configured history window. All snapshots within this period are considered “highlighted” and are shown normally; older ones remain visible but dimmed.
 
-The two `Last Visits` **(2)** indicators show the previous two days (excluding today) when this page was opened, helping you correlate what changed since your last inspection.
+The two `Last Visits` **(2)** indicators display the previous two days (excluding today) on which the page was accessed, enabling correlation with changes made since the last inspection. During the initial visit, no historical data is available, so it is hidden; they begin populating starting with the second day of access. When the page is opened multiple times within the same day, only the most recent visit for that day is recorded, as all same‑day visits are collapsed into a single entry.
 
-The `Main table` groups snapshots by `Namespace` and `Image` (repository, name, tag, and digest) **(3)**. For each image, the table shows the first and last snapshots within the `Highlight Days` window with their severities **(4)**, together with an `In Use`**(5)** indicator. An image is considered `Active` if a `Vulnerability Report` currently exists for that digest in that namespace. It is marked `Stale` if no such report exists at the moment - for example, if the previous report expired and the operator has not yet produced a new one or the workload disappeared.
+The `Main table` groups snapshots by `Namespace` and `Image` (repository, name, tag, and digest) **(3)**. For each image, the table shows the first and last snapshots within the `Highlight Days` window with their severities **(4)**, together with an `In Use`**(5)** indicator. An image is considered `Active` if a `Vulnerability Report` currently exists for that digest in that namespace. It is marked `Stale` if no such report exists at the moment - for example, if the workload disappeared or the previous report expired and the operator has not yet produced a new one.
 
 The `Last Moment` column displays the timestamp of the most recent scan that matched this snapshot.
 
-The `Count` **(6)** column shows how many snapshots fall inside the `Highlight Days` window, out of the total number of retained snapshots for that digest (e.g., 3/7). The denominator includes all retained snapshots, even those outside the Highlight Days window.
+The `Count` **(6)** column shows how many snapshots fall inside the `Highlight Days` window, out of the total number of retained snapshots for that digest (e.g., 3/7). The denominator includes all retained snapshots, even those outside the `Highlight Days` window.
 
-The `Delta History` **(7)** column provides a compact, per‑day stacked bar chart summarizing added and removed CVEs. Bars above the axis represent added CVEs; bars below represent removed ones. Severities are color‑coded, and tooltips reveal exact counts per severity. Multiple snapshots occurring on the same day are aggregated into a single daily bar. When hovered over, a tooltip displays the count of relevant severities for that day.
+The `Delta History` **(7)** column provides a compact, per‑day stacked bar chart summarizing added and removed CVEs. Bars above the axis represent added CVEs; bars below represent removed ones. Severities are color‑coded. Multiple snapshots occurring on the same day are aggregated into a single daily bar. When hovered over, a tooltip displays the count of relevant severities for that day.
 
-> **Note:** If an image shows +3 `High` and –1 `Medium` in the `Delta History`, it means that within the `Highlight Days` window, three High‑severity CVEs appeared and one Medium‑severity CVE was removed.
+> **Note:** If an image shows +3 `High` and –1 `Medium` in the `Delta History`, it means that in that day, three High‑severity CVEs appeared and one Medium‑severity CVE was removed.
 
 Per‑severity delta columns (`C‑Dif`, `H‑Dif` etc.) **(8)** show the exact number of CVEs added or removed for each severity between the First and Last snapshots in the `Highlight Days` window. `Sum Deltas` zone aggregates all added and removed CVEs across severities within the `Highlight Days` window.
 
@@ -131,7 +131,9 @@ UPDATELASTSEEN --> SAVE
 
 NEWKEY --> SAVE
 ```
-A **retention service** periodically removes older snapshots based on two backend parameters: the `Retention period` and the `Minimum number of snapshots to keep`. Retention is applied per digest within each namespace. Snapshots newer than the retention period are always kept. If there are enough newer snapshots to satisfy the minimum count, all older ones are removed. Otherwise, the oldest older snapshots are kept until the minimum count is reached, and the rest are deleted. Snapshots removed by retention are permanently deleted and no longer appear in charts or tables.
+A **retention service** periodically removes older snapshots based on two backend parameters: the `Retention period` and the `Minimum number of snapshots to keep`. Retention is applied per digest within each namespace. Snapshots newer than the retention period are always kept. If there are enough newer snapshots to satisfy the minimum count, all older ones are removed. Otherwise, the oldest snapshots beyond the retention period are kept until the minimum count is reached, and the rest are deleted. Snapshots removed by retention are permanently deleted and no longer appear in charts or tables.
+
+> **Important:** The `Minimum number of snapshots to keep` is fixed at 2 to ensure that at least two snapshots remain available for diff‑based comparison, even when one of them lies far outside the `Retention period` window.
 
 Retention Service Flow Diagram
 ```mermaid

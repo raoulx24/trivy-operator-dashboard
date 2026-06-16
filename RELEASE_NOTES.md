@@ -1,6 +1,13 @@
 Release Notes
 ===========================
 
+Version 1.9 Kleio (June 2026)
+------------------------
+* **Vulnerability Reports History** - introduces a historical timeline of Vulnerability Reports, highlighting how CVEs evolve across snapshots, including severity shifts, package updates, and appearance/disappearance of issues.
+* Compare Trivy Reports - comparison of two Trivy Reports is now a first-class feature. Entries are matched using a compound key for accurate side-by-side diffs, a capability heavily used by Vulnerability Reports History.
+* Trivy Reports Dependency - the dependency graph has been fully rebuilt and now integrates with Vulnerability Reports History. Provides an at-a-glance overview of all Trivy Reports associated with an image within a namespace, with direct navigation via the Open button.
+* New Prometheus Metric - added a metric, `trivyoperatordashboard_history_cve_changes_count_cves_total`, that increments on each new snapshot and tracks added/removed CVEs by severity and namespace, enabling alerting on meaningful vulnerability changes.
+
 Version 1.8 Iapetus (January 2026)
 ------------------------
 * New Reports - added support for the final two missing Trivy report types, **Cluster Infra Assessment Reports** and **Infra Assessment Reports** (finally! 🙂)
