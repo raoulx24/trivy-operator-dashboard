@@ -1,0 +1,18 @@
+﻿using k8s;
+using k8s.Models;
+using System.Text.Json.Serialization;
+
+namespace TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
+
+public class CustomResourceList<T> : IKubernetesObject<V1ListMeta>, IItems<T>
+    where T : Domain.Trivy.CustomResources.Abstractions.CustomResource
+{
+    [JsonPropertyName("items")]
+    public IList<T> Items { get; set; } = [];
+
+    [JsonPropertyName("metadata")]
+    public V1ListMeta Metadata { get; set; } = new();
+
+    public string ApiVersion { get; set; } = string.Empty;
+    public string Kind { get; set; } = string.Empty;
+}
