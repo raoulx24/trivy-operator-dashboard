@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.Abstractions;
+using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.DistributedCaching.Client;
 using TrivyOperator.Dashboard.Infrastructure.DistributedCaching.Client.Abstractions;

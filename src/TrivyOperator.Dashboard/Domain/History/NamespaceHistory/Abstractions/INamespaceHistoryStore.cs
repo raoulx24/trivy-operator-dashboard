@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.ValueObjects;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Domain.History.NamespaceHistory.Abstractions;
 

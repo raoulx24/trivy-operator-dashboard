@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies.Abstractions;
+using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
@@ -10,6 +11,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Report.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
 using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
+using Metadata = TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Metadata;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies;
 
