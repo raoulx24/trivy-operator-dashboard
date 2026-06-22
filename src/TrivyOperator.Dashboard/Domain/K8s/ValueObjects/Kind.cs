@@ -10,4 +10,6 @@ public readonly record struct Kind
     }
 
     public override string ToString() => Value;
+
+    public static string RbacAssessment => "rbacassessmentreport";
 }
