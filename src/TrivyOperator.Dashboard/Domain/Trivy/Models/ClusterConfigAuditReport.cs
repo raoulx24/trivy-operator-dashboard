@@ -3,23 +3,19 @@ using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Models.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.Models.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Models;
 
-public sealed record VulnerabilityReport(
-    ReportMetadata Metadata,    
+public sealed record ClusterConfigAuditReport(
+    ReportMetadata Metadata,
     Resource Resource,
-    
-    ImageUsage ImageUsage,
-    Os Os,
     Scanner Scanner,
     Summary Summary,
-    
     Timestamp UpdateTimestamp,
-    
-    Vulnerability[] Vulnerabilities
-) : TrivyReportBase(Metadata)
+    IReadOnlyList<Check> Checks)
+    : TrivyReportBase(Metadata)
 {
-    protected override Kind ExpectedKind => ReportKinds.Vulnerability;
-    protected override bool IsClusterScoped => false;
+    protected override Kind ExpectedKind => ReportKinds.ClusterConfigAudit;
+    protected override bool IsClusterScoped => true;
 }
