@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Models.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ExposedSecrets;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Models.Factories;
@@ -19,13 +20,21 @@ public static class TrivyReportFactory
     {
         TrivyReportBase result = typeof(T) switch
         {
+            var t when t == typeof(ClusterConfigAuditReport)
+                => new ClusterConfigAuditReport(metadata, resource, scanner, summary, updateTimestamp, checks),
+            var t when t == typeof(ClusterInfraAssessmentReport)
+                => new ClusterInfraAssessmentReport(metadata, resource, scanner, summary, updateTimestamp, checks),
             var t when t == typeof(ClusterRbacAssessmentReport)
                 => new ClusterRbacAssessmentReport(metadata, resource, scanner, summary, updateTimestamp, checks),
             
+            var t when t == typeof(ConfigAuditReport)
+                => new ConfigAuditReport(metadata, resource, scanner, summary, updateTimestamp, checks),
+            var t when t == typeof(InfraAssessmentReport)
+                => new InfraAssessmentReport(metadata, resource, scanner, summary, updateTimestamp, checks),
             var t when t == typeof(RbacAssessmentReport)
                 => new RbacAssessmentReport(metadata, resource, scanner, summary, updateTimestamp, checks),
 
-            _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}")
+            _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}"),
         };
 
         result.Validate();
@@ -50,6 +59,29 @@ public static class TrivyReportFactory
                 => new VulnerabilityReport(metadata, resource, imageUsage, os, scanner, summary, updateTimestamp, vulnerabilities),
             var t when t == typeof(ClusterVulnerabilityReport)
                 => new ClusterVulnerabilityReport(metadata, resource, imageUsage, os, scanner, summary, updateTimestamp, vulnerabilities),
+
+            _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}")
+        };
+
+        result.Validate();
+
+        return (T)result;
+    }
+    
+    public static T CreateExposedSecretReport<T>(
+        ReportMetadata metadata,    
+        Resource resource,
+        ImageUsage imageUsage,
+        Scanner scanner,
+        Summary summary,
+        Timestamp updateTimestamp,
+        Secret[] secrets)
+        where T : TrivyReportBase
+    {
+        TrivyReportBase result = typeof(T) switch
+        {
+            var t when t == typeof(ExposedSecretReport)
+                => new ExposedSecretReport(metadata, resource, imageUsage, scanner, summary, updateTimestamp, secrets),
 
             _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}")
         };

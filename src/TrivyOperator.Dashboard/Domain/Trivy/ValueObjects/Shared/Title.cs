@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
+﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 public readonly record struct Title
 {
@@ -9,7 +9,7 @@ public readonly record struct Title
 
     public Title(string value)
     {
-        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }
 
     public Title() : this(Sentinel) { }

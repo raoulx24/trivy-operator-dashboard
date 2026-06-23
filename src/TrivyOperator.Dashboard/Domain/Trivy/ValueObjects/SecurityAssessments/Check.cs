@@ -1,7 +1,9 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
+﻿using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+
+namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 
 public sealed record Check(
-    CategoryName Category,
+    Category Category,
     CheckId CheckId,
     Description Description,
     IReadOnlyList<string> Messages,
