@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
+namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 public readonly record struct ReportMetadata(
     ResourceName Name,

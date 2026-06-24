@@ -4,6 +4,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Models.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.Models.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Models;
 

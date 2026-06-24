@@ -1,5 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Models.Abstracts;
 

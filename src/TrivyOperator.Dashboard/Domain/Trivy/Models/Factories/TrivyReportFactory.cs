@@ -2,8 +2,12 @@
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Models.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ExposedSecrets;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
+using Summary = TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared.Summary;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Models.Factories;
 
@@ -60,7 +64,7 @@ public static class TrivyReportFactory
             var t when t == typeof(ClusterVulnerabilityReport)
                 => new ClusterVulnerabilityReport(metadata, resource, imageUsage, os, scanner, summary, updateTimestamp, vulnerabilities),
 
-            _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}")
+            _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}"),
         };
 
         result.Validate();
@@ -83,7 +87,28 @@ public static class TrivyReportFactory
             var t when t == typeof(ExposedSecretReport)
                 => new ExposedSecretReport(metadata, resource, imageUsage, scanner, summary, updateTimestamp, secrets),
 
-            _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}")
+            _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}"),
+        };
+
+        result.Validate();
+
+        return (T)result;
+    }
+    
+    public static T CreateClusterComplianceReport<T>(
+        ReportMetadata metadata,
+        ComplianceMetadata complianceMetadata,
+        ComplianceSummary summary,
+        Timestamp updateTimestamp,
+        IReadOnlyList<CheckResult> controlChecks)
+        where T : TrivyReportBase
+    {
+        TrivyReportBase result = typeof(T) switch
+        {
+            var t when t == typeof(ClusterComplianceReport)
+                => new ClusterComplianceReport(metadata, complianceMetadata, summary, updateTimestamp, controlChecks),
+
+            _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}"),
         };
 
         result.Validate();

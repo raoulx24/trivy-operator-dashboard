@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
+﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 public readonly record struct Summary
 {

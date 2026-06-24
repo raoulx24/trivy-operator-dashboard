@@ -4,6 +4,7 @@ namespace TrivyOperator.Dashboard.Domain.Trivy.Models.Factories;
 
 public static class ReportKinds
 {
+    public static readonly Kind ClusterCompliance =  new("ClusterComplianceReport");
     public static readonly Kind ClusterConfigAudit = new("ClusterConfigAuditReport");
     public static readonly Kind ClusterInfraAssessment = new("ClusterInfraAssessmentReport");
     public static readonly Kind ClusterRbacAssessment = new("ClusterRbacAssessmentReport");
