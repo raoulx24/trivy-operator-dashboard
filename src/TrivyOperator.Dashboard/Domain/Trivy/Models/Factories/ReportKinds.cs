@@ -15,5 +15,6 @@ public static class ReportKinds
     public static readonly Kind ExposedSecret = new("ExposedSecretReport");
     public static readonly Kind InfraAssessment = new("InfraAssessmentReport");
     public static readonly Kind RbacAssessment = new("RbacAssessmentReport");
+    public static readonly Kind Sbom =  new("SbomReport");
     public static readonly Kind Vulnerability = new("VulnerabilityReport");
 }

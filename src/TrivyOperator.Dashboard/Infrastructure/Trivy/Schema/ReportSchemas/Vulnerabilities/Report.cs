@@ -1,0 +1,28 @@
+﻿using System.Text.Json.Serialization;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
+
+namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Vulnerabilities;
+
+public class Report
+{
+    [JsonPropertyName("artifact")]
+    public Artifact? Artifact { get; set; }
+
+    [JsonPropertyName("os")]
+    public Os? Os { get; set; }
+
+    [JsonPropertyName("registry")]
+    public Registry? Registry { get; set; }
+
+    [JsonPropertyName("scanner")]
+    public Scanner? Scanner { get; set; }
+
+    [JsonPropertyName("summary")]
+    public Summary? Summary { get; set; }
+
+    [JsonPropertyName("updateTimestamp")]
+    public DateTime? UpdateTimestamp { get; set; }
+
+    [JsonPropertyName("vulnerabilities")]
+    public Vulnerability[]? Vulnerabilities { get; set; }
+}
