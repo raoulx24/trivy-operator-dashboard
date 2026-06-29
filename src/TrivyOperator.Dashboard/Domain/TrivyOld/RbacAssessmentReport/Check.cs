@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.RbacAssessmentReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
 
 public class Check
 {

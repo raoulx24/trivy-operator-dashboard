@@ -1,6 +1,6 @@
-﻿using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
+﻿using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.RbacAssessmentReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
 
 public class RbacAssessmentReportCrd : CustomResourceDefinition
 {

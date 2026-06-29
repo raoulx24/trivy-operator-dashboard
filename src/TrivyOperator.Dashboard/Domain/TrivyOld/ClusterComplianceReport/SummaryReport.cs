@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ClusterComplianceReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
 
 public class SummaryReport
 {

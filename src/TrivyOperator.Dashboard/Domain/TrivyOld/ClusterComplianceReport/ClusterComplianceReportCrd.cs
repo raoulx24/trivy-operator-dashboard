@@ -1,6 +1,6 @@
-﻿using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
+﻿using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ClusterComplianceReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
 
 public class ClusterComplianceReportCrd : CustomResourceDefinition
 {

@@ -9,9 +9,10 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.Options;
 using TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
-using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport;

@@ -16,7 +16,7 @@ public sealed record ExposedSecretReport(
     Scanner Scanner,
     Summary Summary,
     
-    Timestamp UpdateTimestamp,
+    Timestamp LastSeenAt,
     
     Secret[] Secrets
 ) : TrivyReportBase(Metadata)

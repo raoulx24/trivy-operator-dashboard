@@ -1,9 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ClusterComplianceReport;
-
-public class Check
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport
 {
-    [JsonPropertyName("id")]
-    public string Id { get; init; } = string.Empty;
+    public class Check
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; init; } = string.Empty;
+    }
 }

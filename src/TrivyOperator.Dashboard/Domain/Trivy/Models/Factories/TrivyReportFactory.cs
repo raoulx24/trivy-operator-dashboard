@@ -117,26 +117,23 @@ public static class TrivyReportFactory
     }
     
     public static T CreateSbomReport<T>(
-        ReportMetadata metadata,    
+        ReportMetadata metadata,
         Resource resource,
-    
         ImageUsage imageUsage,
         Scanner scanner,
         Summary summary,
-    
-        SbomSerialNumber serialNumber,
-        SbomComponent root,
-        IReadOnlyList<SbomComponent> components,
-        DependencyGraph dependencies,
-        SbomMetadata sbomMetadata)
+        SbomMetadata sbomMetadata,
+        ComponentId rootNodeBomRef,
+        Timestamp lastSeenAt,
+        IReadOnlyList<Component> components)
         where T : TrivyReportBase
     {
         TrivyReportBase result = typeof(T) switch
         {
             var t when t == typeof(SbomReport)
-                => new SbomReport(metadata, resource, imageUsage, scanner, summary, serialNumber, root, components, dependencies, sbomMetadata),
+                => new SbomReport(metadata, resource, imageUsage, scanner, summary, sbomMetadata, rootNodeBomRef,lastSeenAt, components),
             var t when t == typeof(ClusterSbomReport)
-                => new ClusterSbomReport(metadata, resource, imageUsage, scanner, summary, serialNumber, root, components, dependencies, sbomMetadata),
+                => new ClusterSbomReport(metadata, resource, imageUsage, scanner, summary, sbomMetadata, rootNodeBomRef,lastSeenAt, components),
 
             _ => throw new InvalidOperationException($"Unsupported type {typeof(T)}"),
         };

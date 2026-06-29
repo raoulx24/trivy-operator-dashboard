@@ -7,8 +7,8 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceR
 public class ClusterComplianceReportCr : CustomResource
 {
     [JsonPropertyName("spec")]
-    public Spec Spec { get; init; } = new();
+    public SpecCr SpecCr { get; init; } = new();
 
     [JsonPropertyName("status")]
-    public Status Status { get; init; } = new();
+    public StatusCr StatusCr { get; init; } = new();
 }

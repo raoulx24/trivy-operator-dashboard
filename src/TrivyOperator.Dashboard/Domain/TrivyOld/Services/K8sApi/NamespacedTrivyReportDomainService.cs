@@ -3,10 +3,10 @@ using k8s.Models;
 using System.Text.Json;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi;
 
 public class NamespacedTrivyReportDomainService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,

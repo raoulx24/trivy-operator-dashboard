@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.ClusterComplianceReport.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterComplianceReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ClusterComplianceReport;

@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Abstractions;
+﻿namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
 
 public interface IFolderNameFactory
 {

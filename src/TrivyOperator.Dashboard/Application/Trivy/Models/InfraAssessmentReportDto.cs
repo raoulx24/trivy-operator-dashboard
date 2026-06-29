@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.Trivy.InfraAssessmentReport;
+﻿using TrivyOperator.Dashboard.Domain.TrivyOld.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Models;

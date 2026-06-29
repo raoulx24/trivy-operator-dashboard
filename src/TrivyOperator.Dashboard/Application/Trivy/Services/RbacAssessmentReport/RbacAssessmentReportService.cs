@@ -1,7 +1,8 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.RbacAssessmentReport.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.Trivy.RbacAssessmentReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.RbacAssessmentReport;

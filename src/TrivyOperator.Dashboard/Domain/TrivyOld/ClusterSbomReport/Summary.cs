@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ClusterSbomReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ClusterSbomReport;
 
 public class Summary
 {

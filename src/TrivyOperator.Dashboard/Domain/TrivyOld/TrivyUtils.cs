@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy;
+﻿namespace TrivyOperator.Dashboard.Domain.TrivyOld;
 
 public static class TrivyUtils
 {

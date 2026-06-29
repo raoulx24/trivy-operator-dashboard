@@ -1,6 +1,6 @@
-﻿using TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
+﻿using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Services.K8sApi.Abstractions;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi.Abstractions;
 
 public interface ICustomResourceDefinitionFactory
 {

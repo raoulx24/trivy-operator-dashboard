@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Domain.Trivy.Report.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Report.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
 
 public class Registry : IRegistry
 {

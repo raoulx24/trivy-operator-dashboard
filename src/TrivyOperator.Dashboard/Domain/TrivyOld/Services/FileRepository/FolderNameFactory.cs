@@ -1,19 +1,19 @@
 ﻿using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterComplianceReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterInfraAssessmentReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterRbacAssessmentReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterSbomReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterVulnerabilityReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ConfigAuditReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
-using TrivyOperator.Dashboard.Domain.Trivy.InfraAssessmentReport;
-using TrivyOperator.Dashboard.Domain.Trivy.RbacAssessmentReport;
-using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
-using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Options;
-using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterInfraAssessmentReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterRbacAssessmentReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterSbomReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterVulnerabilityReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ConfigAuditReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.InfraAssessmentReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Options;
+using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository;
 
 public class FolderNameFactory(IOptions<FileRepositoryOptions> options) : IFolderNameFactory
 {

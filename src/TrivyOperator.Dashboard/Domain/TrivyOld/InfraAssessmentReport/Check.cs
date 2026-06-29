@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.InfraAssessmentReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.InfraAssessmentReport;
 
 public class Check
 {

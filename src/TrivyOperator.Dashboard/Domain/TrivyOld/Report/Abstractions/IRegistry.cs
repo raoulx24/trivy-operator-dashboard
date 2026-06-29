@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.Report.Abstractions;
+﻿namespace TrivyOperator.Dashboard.Domain.TrivyOld.Report.Abstractions;
 
 public interface IRegistry
 {

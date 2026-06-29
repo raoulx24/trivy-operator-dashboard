@@ -12,7 +12,7 @@ public class ControlCheck
     public string Name { get; init; } = string.Empty;
 
     [JsonPropertyName("severity")]
-    public TrivySeverity Severity { get; init; }
+    public SeverityCr SeverityCr { get; init; }
 
     [JsonPropertyName("totalFail")]
     public long TotalFail { get; init; } = 0;

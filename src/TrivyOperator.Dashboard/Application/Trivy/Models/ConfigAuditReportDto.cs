@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.Trivy.ConfigAuditReport;
+﻿using TrivyOperator.Dashboard.Domain.TrivyOld.ConfigAuditReport;
 using TrivyOperator.Dashboard.Domain.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Models;

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ConfigAuditReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ConfigAuditReport;
 
 public class Report
 {

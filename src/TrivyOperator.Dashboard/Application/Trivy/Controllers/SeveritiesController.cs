@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Domain.Trivy;
+using TrivyOperator.Dashboard.Domain.TrivyOld;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 

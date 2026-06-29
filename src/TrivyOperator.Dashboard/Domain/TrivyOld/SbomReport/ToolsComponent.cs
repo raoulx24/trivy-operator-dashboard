@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 
 public class ToolsComponent
 {

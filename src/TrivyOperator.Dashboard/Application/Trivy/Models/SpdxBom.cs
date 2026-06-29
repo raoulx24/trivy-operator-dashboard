@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using System.Xml.Serialization;
-using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Models;
 

@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport;
 

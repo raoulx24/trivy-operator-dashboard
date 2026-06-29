@@ -14,7 +14,7 @@ public sealed record ClusterComplianceReport(
     ComplianceMetadata ComplianceMetadata,
     ComplianceSummary Summary,
     
-    Timestamp UpdateTimestamp,
+    Timestamp LastSeenAt,
     
     IReadOnlyList<CheckResult> ControlChecks
 ) : TrivyReportBase(Metadata)

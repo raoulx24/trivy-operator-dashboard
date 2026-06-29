@@ -7,5 +7,5 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.InfraAssessmentRep
 public class ClusterInfraAssessmentReportCr : CustomResource
 {
     [JsonPropertyName("report")]
-    public Report? Report { get; init; }
+    public ReportCr? Report { get; init; }
 }

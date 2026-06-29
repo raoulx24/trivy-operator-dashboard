@@ -1,8 +1,9 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.ClusterSbomReport.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterSbomReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterVulnerabilityReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterSbomReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterVulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ClusterSbomReport;

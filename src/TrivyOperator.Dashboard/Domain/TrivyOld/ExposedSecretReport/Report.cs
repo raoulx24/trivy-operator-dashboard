@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
 
 public class Report
 {

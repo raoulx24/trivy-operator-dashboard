@@ -2,7 +2,8 @@
 using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.ExposedSecretReport.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ExposedSecretReport;

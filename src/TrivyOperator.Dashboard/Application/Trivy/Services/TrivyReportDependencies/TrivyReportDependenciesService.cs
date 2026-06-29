@@ -5,11 +5,11 @@ using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.ConfigAuditReport;
-using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
-using TrivyOperator.Dashboard.Domain.Trivy.Report.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.SbomReport;
-using TrivyOperator.Dashboard.Domain.Trivy.VulnerabilityReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ConfigAuditReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Report.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 using Metadata = TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Metadata;
 

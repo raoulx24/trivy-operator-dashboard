@@ -1,5 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterComplianceReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Models;
 

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ClusterRbacAssessmentReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ClusterRbacAssessmentReport;
 
 public class Check
 {

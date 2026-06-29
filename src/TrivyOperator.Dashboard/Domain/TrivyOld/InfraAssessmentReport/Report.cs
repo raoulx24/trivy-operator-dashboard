@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.InfraAssessmentReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.InfraAssessmentReport;
 
 public class Report
 {

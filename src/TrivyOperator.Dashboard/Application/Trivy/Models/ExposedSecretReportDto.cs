@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TrivyOperator.Dashboard.Domain.Trivy.ExposedSecretReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
 using TrivyOperator.Dashboard.Domain.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Models;

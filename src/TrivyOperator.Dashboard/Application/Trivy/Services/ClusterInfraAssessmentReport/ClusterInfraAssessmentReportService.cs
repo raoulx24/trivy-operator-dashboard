@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.ClusterInfraAssessmentReport.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.ClusterInfraAssessmentReport;
+using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterInfraAssessmentReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ClusterInfraAssessmentReport;

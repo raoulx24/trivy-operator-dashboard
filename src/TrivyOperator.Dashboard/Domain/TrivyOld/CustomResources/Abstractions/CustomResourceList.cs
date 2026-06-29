@@ -2,7 +2,7 @@
 using k8s.Models;
 using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.CustomResources.Abstractions;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 
 public class CustomResourceList<T> : IKubernetesObject<V1ListMeta>, IItems<T>
     where T : CustomResource

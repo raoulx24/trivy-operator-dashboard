@@ -13,7 +13,7 @@ public sealed record ClusterConfigAuditReport(
     Resource Resource,
     Scanner Scanner,
     Summary Summary,
-    Timestamp UpdateTimestamp,
+    Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
     : TrivyReportBase(Metadata)
 {

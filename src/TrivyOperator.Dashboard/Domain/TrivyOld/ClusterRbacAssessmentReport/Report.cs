@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.ClusterRbacAssessmentReport;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.ClusterRbacAssessmentReport;
 
 public class Report
 {

@@ -1,9 +1,9 @@
 ﻿using k8s;
 using k8s.Models;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Services.FileRepository;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository;
 
 public class FileTrivyReportPassThroughDomainService<TTrivyReport, TTrivyReportList>(
     IFileTrivyReportDomainService<TTrivyReport> fileTrivyReportDomainService

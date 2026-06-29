@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.Trivy.RbacAssessmentReport;
+﻿using TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Models;

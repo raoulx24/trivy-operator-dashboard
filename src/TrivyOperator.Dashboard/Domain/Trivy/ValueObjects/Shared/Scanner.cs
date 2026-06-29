@@ -7,48 +7,53 @@ public sealed record Scanner
     ScannerVersion Version
 );
 
-    
 public readonly record struct ScannerName
 {
+    private const string Sentinel = "N/A";
+    
     public string Value { get; }
+    public bool IsValid => Value != Sentinel;
 
     public ScannerName(string value)
     {
-        if (string.IsNullOrEmpty(value))
-            throw new ArgumentException("Value cannot be null or empty", nameof(value));
-        
-        Value = string.Intern(value);
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
-    
+
+    public ScannerName() : this(Sentinel) { }
+
     public override string ToString() => Value;
 }
 
 public readonly record struct ScannerVendor
 {
-    public string Value { get; }
+    private const string Sentinel = "N/A";
     
+    public string Value { get; }
+    public bool IsValid => Value != Sentinel;
+
     public ScannerVendor(string value)
     {
-        if (string.IsNullOrEmpty(value))
-            throw new ArgumentException("Value cannot be null or empty", nameof(value));
-        
-        Value = string.Intern(value);
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
+
+    public ScannerVendor() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }
 
 public readonly record struct ScannerVersion
 {
-    public string Value { get; }
+    private const string Sentinel = "N/A";
     
+    public string Value { get; }
+    public bool IsValid => Value != Sentinel;
+
     public ScannerVersion(string value)
     {
-        if (string.IsNullOrEmpty(value))
-            throw new ArgumentException("Value cannot be null or empty", nameof(value));
-        
-        Value = string.Intern(value);
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
+
+    public ScannerVersion() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }

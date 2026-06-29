@@ -4,35 +4,39 @@ public sealed record Os
 (
     OsFamily Family,
     OsName Name,
-    bool? Eosl
+    bool? IsEndOfLife
 );
 
 public readonly record struct OsFamily
 {
+    private const string Sentinel = "N/A";
+
     public string Value { get; }
+    public bool IsValid => Value != Sentinel;
 
     public OsFamily(string value)
     {
-        if (string.IsNullOrEmpty(value))
-            throw new ArgumentException("Value cannot be null or empty", nameof(value));
-        
-        Value = string.Intern(value);
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
-    
+
+    public OsFamily() : this(Sentinel) { }
+
     public override string ToString() => Value;
 }
 
 public readonly record struct OsName
 {
+    private const string Sentinel = "N/A";
+
     public string Value { get; }
-    
+    public bool IsValid => Value != Sentinel;
+
     public OsName(string value)
     {
-        if (string.IsNullOrEmpty(value))
-            throw new ArgumentException("Value cannot be null or empty", nameof(value));
-        
-        Value = string.Intern(value);
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
+
+    public OsName() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }
