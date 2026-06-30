@@ -6,19 +6,19 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Sbom
 public class ReportCr
 {
     [JsonPropertyName("artifact")]
-    public ArtifactCr ArtifactCr { get; init; } = new();
+    public ArtifactCr Artifact { get; init; } = new();
 
     [JsonPropertyName("components")]
-    public ComponentsCr ComponentsCr { get; init; } = new();
+    public ComponentsCr Components { get; init; } = new();
 
     [JsonPropertyName("registry")]
-    public RegistryCr RegistryCr { get; init; } = new();
+    public RegistryCr Registry { get; init; } = new();
 
     [JsonPropertyName("scanner")]
-    public ScannerCr ScannerCr { get; init; } = new();
+    public ScannerCr Scanner { get; init; } = new();
 
     [JsonPropertyName("summary")]
-    public SummaryCr SummaryCr { get; init; } = new();
+    public SummaryCr Summary { get; init; } = new();
 
     [JsonPropertyName("updateTimestamp")]
     public DateTime? UpdateTimestamp { get; init; }

@@ -1,14 +1,13 @@
 ﻿using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.Models.Abstracts;
-using TrivyOperator.Dashboard.Domain.Trivy.Models.Factories;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Models;
+namespace TrivyOperator.Dashboard.Domain.Trivy.Entities;
 
-public sealed record ClusterRbacAssessmentReport(
+public sealed record ClusterInfraAssessmentReport(
     ReportMetadata Metadata,
     Resource Resource,
     Scanner Scanner,
@@ -17,6 +16,6 @@ public sealed record ClusterRbacAssessmentReport(
     IReadOnlyList<Check> Checks)
     : TrivyReportBase(Metadata)
 {
-    protected override Kind ExpectedKind => ReportKinds.ClusterRbacAssessment;
-    protected override bool IsClusterScoped => true;
+    protected override Kind ExpectedKind => ReportKinds.ClusterInfraAssessment;
+    protected override bool IsClusterScoped => false;
 }

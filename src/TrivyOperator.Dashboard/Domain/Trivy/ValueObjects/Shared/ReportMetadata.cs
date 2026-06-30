@@ -6,8 +6,7 @@ namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 public readonly record struct ReportMetadata(
     ResourceName Name,
-    Kind Kind,
     NamespaceName NamespaceName,
     Timestamp CreationTimestamp,
-    Guid Guid
+    Guid Uid
 );

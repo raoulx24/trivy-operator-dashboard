@@ -9,11 +9,11 @@ public class ReportCr
     public CheckCr[] Checks { get; init; } = [];
 
     [JsonPropertyName("scanner")]
-    public ScannerCr? Scanner { get; init; }
+    public ScannerCr Scanner { get; init; } = new();
 
     [JsonPropertyName("summary")]
-    public SummaryCr? Summary { get; init; }
+    public SummaryCr Summary { get; init; } = new();
 
     [JsonPropertyName("updateTimestamp")]
-    public DateTime? UpdateTimestamp { get; init; }
+    public DateTime UpdateTimestamp { get; init; } = DateTime.UtcNow;
 }

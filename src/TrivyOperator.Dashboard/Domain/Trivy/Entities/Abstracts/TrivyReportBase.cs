@@ -1,8 +1,7 @@
 ﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Models.Abstracts;
+namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
 public abstract record TrivyReportBase(
     ReportMetadata Metadata)
@@ -18,9 +17,9 @@ public abstract record TrivyReportBase(
 
     protected void ValidateKind()
     {
-        if (Metadata.Kind != ExpectedKind)
-            throw new InvalidOperationException(
-                $"Expected '{ExpectedKind}', got '{Metadata.Kind}'");
+        // if (Metadata.Kind != ExpectedKind)
+        //     throw new InvalidOperationException(
+        //         $"Expected '{ExpectedKind}', got '{Metadata.Kind}'");
     }
 
     protected void ValidateNamespace()

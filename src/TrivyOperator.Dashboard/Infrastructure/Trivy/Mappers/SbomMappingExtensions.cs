@@ -1,10 +1,8 @@
 ﻿
 
 using System.Collections.Immutable;
-using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.Models;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Domain.Utils;
@@ -15,29 +13,61 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers;
 
 public static class SbomMappingExtensions
 {
-    public static SbomReport ToSbom(this SbomReportCr cr)
+    public static SbomReport ToSbom(this SbomReportCr cr, SbomReport? other)
     {
         if (cr.Report is null)
             throw new ArgumentNullException(nameof(cr.Report));
 
         // VO layer (cheap, isolated, reusable)
-        var metadata = ToReportMetadata(cr);
-        var resource = ToResource(cr);
-        var imageUsage = ToImageUsage(cr);
-        var scanner = new Scanner(
-            new ScannerName(cr.Report.ScannerCr.Name),
-            new ScannerVendor(cr.Report.ScannerCr.Vendor),
-            new ScannerVersion(cr.Report.ScannerCr.Version));
+        var metadata = cr.Metadata.ToReportMetadata();
+        var resource = cr.Metadata.ToResource();
+        var imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
+        var digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
+        var scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
 
         var summary = new Summary(0, 0, 0, 0, null, null);
         var sbomMetadata = ToSbomMetadata(cr);
+
+        var lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
+            cr.Report.UpdateTimestamp,
+            cr.Metadata.CreationTimestamp,
+            DateTime.UtcNow
+        );
+        
+        var occurrence = new ReportImageOccurrence(
+            metadata,
+            resource,
+            imageMeta);
+        
+        // check if other has same digest and ns
+        if (other is not null &&
+            (other.ImageDigest != digest ||
+            (other.Occurrences.Count > 0 && other.Occurrences[0].Metadata.NamespaceName != metadata.NamespaceName)))
+        {
+            other = null;
+        }
+
+        // Previous is newer -> keep it, only update occurrences
+        if (other is not null &&
+            other.LastSeenAt > lastSeenAt)
+        {
+            return other with
+            {
+                Occurrences = MergeOccurrences(
+                    occurrence,
+                    other.Occurrences,
+                    currentWins: false)
+            };
+        }
+
+        var occurrences = MergeOccurrences(occurrence, other?.Occurrences, currentWins: true);
 
         // Core SBOM materialization
         var allComponents = CollectAllComponents(cr);
         var idMap = BuildIdMap(allComponents);
 
         var sbomComponents = BuildDependencyLookup(
-            cr.Report.ComponentsCr,
+            cr.Report.Components,
             idMap);
 
         var components = BuildComponents(
@@ -47,62 +77,22 @@ public static class SbomMappingExtensions
 
         var root = ResolveRootNode(cr, idMap);
 
-        var lastSeenAt = new Timestamp(DateTime.UtcNow);
+        
 
         return new SbomReport(
-            metadata,
-            resource,
-            imageUsage,
+            occurrences,
+            digest,
+            lastSeenAt,
             scanner,
             summary,
             sbomMetadata,
             root,
-            lastSeenAt,
             components);
-    }
-    
-    
-    private static ReportMetadata ToReportMetadata(SbomReportCr cr)
-    {
-        return new ReportMetadata(
-            new ResourceName(cr.Metadata.Name),
-            new Kind(cr.Kind),
-            new NamespaceName(cr.Metadata.NamespaceProperty),
-            new Timestamp(cr.Metadata.CreationTimestamp ?? DateTime.MinValue),
-            Guid.TryParse(cr.Metadata.Uid, out var g) ? g : Guid.Empty);
-    }    
-    
-    private static Resource ToResource(SbomReportCr cr)
-    {
-        var labels = cr.Metadata.Labels;
-
-        string Get(string key)
-            => labels != null && labels.TryGetValue(key, out var v)
-                ? v
-                : string.Empty;
-
-        return new Resource(
-            new ResourceName(Get("trivy-operator.resource.name")),
-            new Kind(Get("trivy-operator.resource.kind")),
-            new NamespaceName(Get("trivy-operator.resource.namespace")),
-            new ContainerName(Get("trivy-operator.container.name")));
-    }
-    
-    private static ImageUsage ToImageUsage(SbomReportCr cr)
-    {
-        var artifact = cr.Report?.ArtifactCr;
-
-        if (artifact is null)
-            return new ImageUsage(new Digest(string.Empty), []);
-
-        return new ImageUsage(
-            new Digest(artifact.Digest),
-            []);
     }
     
     private static SbomMetadata ToSbomMetadata(SbomReportCr cr)
     {
-        var c = cr.Report?.ComponentsCr;
+        var c = cr.Report?.Components;
 
         if (c is null)
         {
@@ -143,7 +133,7 @@ public static class SbomMappingExtensions
 
         for (int i = 0; i < licenses.Length; i++)
         {
-            var l = licenses[i]?.License;
+            var l = licenses[i].License;
             if (l is null)
                 continue;
 
@@ -190,13 +180,13 @@ public static class SbomMappingExtensions
     {
         var list = new List<ComponentCr>();
 
-        var children = cr.Report?.ComponentsCr?.ChildComponents;
+        var children = cr.Report?.Components?.ChildComponents;
         if (children is not null)
         {
             list.AddRange(children);
         }
 
-        var root = cr.Report?.ComponentsCr?.MetadataCr?.ComponentCr;
+        var root = cr.Report?.Components?.MetadataCr?.ComponentCr;
         if (root is not null)
         {
             list.Add(root);
@@ -299,7 +289,7 @@ public static class SbomMappingExtensions
     
     private static ComponentId ResolveRootNode(SbomReportCr cr, Dictionary<string, ComponentId> idMap)
     {
-        var rootRef = cr.Report?.ComponentsCr?.MetadataCr?.ComponentCr?.BomRef;
+        var rootRef = cr.Report?.Components?.MetadataCr?.ComponentCr?.BomRef;
 
         if (string.IsNullOrWhiteSpace(rootRef))
             return new ComponentId();
@@ -308,9 +298,6 @@ public static class SbomMappingExtensions
             ? id
             : new ComponentId();
     }
-    
-    
-    
     
     private static Dictionary<string, ComponentId> CreateBomRefMap(
         IEnumerable<ComponentCr> components)
@@ -337,8 +324,6 @@ public static class SbomMappingExtensions
         return map;
     }
     
-    
-    
     private static ComponentId NormalizeComponentId(
         string? bomRef,
         IReadOnlyDictionary<string, ComponentId> map)
@@ -349,5 +334,29 @@ public static class SbomMappingExtensions
         return map.TryGetValue(bomRef, out var id)
             ? id
             : new ComponentId();
+    }
+    
+    private static IReadOnlyList<ReportImageOccurrence> MergeOccurrences(
+        ReportImageOccurrence current,
+        IReadOnlyList<ReportImageOccurrence>? existing,
+        bool currentWins)
+    {
+        if (existing is null)
+            return new[] { current };
+
+        var result = existing.ToList();
+
+        var index = result.FindIndex(x => x.Metadata.Uid == current.Metadata.Uid);
+
+        if (index < 0)
+        {
+            result.Add(current);
+        }
+        else if (currentWins)
+        {
+            result[index] = current;
+        }
+
+        return result;
     }
 }

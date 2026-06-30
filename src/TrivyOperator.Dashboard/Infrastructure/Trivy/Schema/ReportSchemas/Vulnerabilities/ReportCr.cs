@@ -6,23 +6,23 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Vuln
 public class ReportCr
 {
     [JsonPropertyName("artifact")]
-    public ArtifactCr? Artifact { get; set; }
+    public ArtifactCr Artifact { get; set; } = new();
 
     [JsonPropertyName("os")]
-    public OsCr? Os { get; set; }
+    public OsCr Os { get; set; } = new();
 
     [JsonPropertyName("registry")]
-    public RegistryCr? Registry { get; set; }
+    public RegistryCr Registry { get; set; } = new();
 
     [JsonPropertyName("scanner")]
-    public ScannerCr? Scanner { get; set; }
+    public ScannerCr Scanner { get; set; } = new();
 
     [JsonPropertyName("summary")]
-    public SummaryCr? Summary { get; set; }
+    public SummaryCr Summary { get; set; } = new();
 
     [JsonPropertyName("updateTimestamp")]
-    public DateTime? UpdateTimestamp { get; set; }
+    public DateTime UpdateTimestamp { get; set; } = DateTime.UtcNow;
 
     [JsonPropertyName("vulnerabilities")]
-    public VulnerabilityCr[]? Vulnerabilities { get; set; }
+    public VulnerabilityCr[] Vulnerabilities { get; set; } = [];
 }

@@ -3,7 +3,6 @@
 public sealed record ImageMeta(
     ImageRegistry Registry,
     ImageRepository Repo,
-    ImageName Name,
     ImageTag Tag
 );
 
@@ -37,23 +36,6 @@ public readonly record struct ImageRepository
     }
 
     public ImageRepository() : this(Sentinel) { }
-
-    public override string ToString() => Value;
-}
-
-public readonly record struct ImageName
-{
-    private const string Sentinel = "n/a";
-    
-    public string Value { get; }
-    public bool IsValid => Value != Sentinel;
-
-    public ImageName(string value)
-    {
-        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim().ToLowerInvariant();
-    }
-
-    public ImageName() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }

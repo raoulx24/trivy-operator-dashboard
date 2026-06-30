@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Models.Factories;
+namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
 
 public static class ReportKinds
 {

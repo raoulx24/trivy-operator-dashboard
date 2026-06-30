@@ -1,12 +1,11 @@
-﻿
-using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.Models.Abstracts;
-using TrivyOperator.Dashboard.Domain.Trivy.Models.Factories;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Domain.Trivy.Models;
+namespace TrivyOperator.Dashboard.Domain.Trivy.Entities;
 
 public sealed record ClusterComplianceReport(
     ReportMetadata Metadata,

@@ -6,20 +6,20 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Expo
 public class ReportCr
 {
     [JsonPropertyName("artifact")]
-    public ArtifactCr? Artifact { get; init; }
+    public ArtifactCr Artifact { get; init; } = new ArtifactCr();
 
     [JsonPropertyName("registry")]
-    public RegistryCr? Registry { get; init; }
+    public RegistryCr Registry { get; init; } = new RegistryCr();
 
     [JsonPropertyName("scanner")]
-    public ScannerCr? Scanner { get; init; }
+    public ScannerCr Scanner { get; init; } = new ScannerCr();
 
     [JsonPropertyName("secrets")]
-    public SecretCr[]? Secrets { get; init; }
+    public SecretCr[] Secrets { get; init; } = [];
 
     [JsonPropertyName("summary")]
-    public SummaryCr? Summary { get; init; }
+    public SummaryCr Summary { get; init; } = new SummaryCr();
 
     [JsonPropertyName("updateTimestamp")]
-    public DateTime? UpdateTimestamp { get; init; }
+    public DateTime UpdateTimestamp { get; init; } =  DateTime.UtcNow;
 }
