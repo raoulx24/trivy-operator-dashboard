@@ -5,11 +5,14 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shar
 public class ArtifactCr
 {
     [JsonPropertyName("digest")]
-    public string Digest { get; init; } = string.Empty;
+    public string? Digest { get; init; }
+    
+    [JsonPropertyName("mimeType")]
+    public string? MimeType { get; init; }
 
     [JsonPropertyName("repository")]
-    public string Repository { get; init; } = string.Empty;
+    public string? Repository { get; init; }
 
     [JsonPropertyName("tag")]
-    public string Tag { get; init; } = string.Empty;
+    public string? Tag { get; init; }
 }

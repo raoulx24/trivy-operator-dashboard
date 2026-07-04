@@ -1,3 +1,5 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+﻿using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 
-public abstract record ReportOccurrence(ReportMetadata Metadata);
+namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+
+public abstract record ReportOccurrence(ReportMetadata Metadata) : IReportOccurrence;

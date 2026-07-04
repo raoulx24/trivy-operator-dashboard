@@ -7,5 +7,5 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.RbacAssessmentRepo
 public class RbacAssessmentReportCr : CustomResource
 {
     [JsonPropertyName("report")]
-    public ReportCr? Report { get; init; }
+    public ReportCr Report { get; init; } = new();
 }

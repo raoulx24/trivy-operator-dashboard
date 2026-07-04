@@ -5,5 +5,5 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shar
 public class RegistryCr
 {
     [JsonPropertyName("server")]
-    public string Server { get; init; } = string.Empty;
+    public string? Server { get; init; }
 }

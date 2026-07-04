@@ -38,7 +38,7 @@ public readonly record struct ComponentName
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ComponentName(string value)
+    public ComponentName(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }
@@ -55,7 +55,7 @@ public readonly record struct ComponentVersion
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ComponentVersion(string value)
+    public ComponentVersion(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }
@@ -72,7 +72,7 @@ public readonly record struct ComponentType
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ComponentType(string value)
+    public ComponentType(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }

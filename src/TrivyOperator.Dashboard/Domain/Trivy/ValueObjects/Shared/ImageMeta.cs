@@ -13,7 +13,7 @@ public readonly record struct ImageRegistry
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ImageRegistry(string value)
+    public ImageRegistry(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim().ToLowerInvariant();
     }
@@ -30,7 +30,7 @@ public readonly record struct ImageRepository
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ImageRepository(string value)
+    public ImageRepository(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim().ToLowerInvariant();
     }
@@ -47,7 +47,7 @@ public readonly record struct ImageTag
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ImageTag(string value)
+    public ImageTag(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }

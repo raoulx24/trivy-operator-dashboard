@@ -5,11 +5,11 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Sbom
 public class MetadataCr
 {
     [JsonPropertyName("component")]
-    public ComponentCr ComponentCr { get; init; } = new();
+    public ComponentCr? ComponentCr { get; init; }
 
     [JsonPropertyName("timestamp")]
     public DateTime? Timestamp { get; init; }
 
     [JsonPropertyName("tools")]
-    public ToolsCr ToolsCr { get; init; } = new();
+    public ToolsCr? ToolsCr { get; init; }
 }

@@ -8,20 +8,20 @@ public class ComponentsCr
     public string BomFormat { get; init; } = string.Empty;
 
     [JsonPropertyName("components")]
-    public ComponentCr[] ChildComponents { get; set; } = [];
+    public ComponentCr[]? ChildComponents { get; set; }
 
     [JsonPropertyName("dependencies")]
-    public DependencyCr[] Dependencies { get; set; } = [];
+    public DependencyCr[]? Dependencies { get; set; }
 
     [JsonPropertyName("metadata")]
-    public MetadataCr MetadataCr { get; init; } = new();
+    public MetadataCr? MetadataCr { get; init; }
 
     [JsonPropertyName("serialNumber")]
-    public string SerialNumber { get; init; } = string.Empty;
+    public string? SerialNumber { get; init; }
 
     [JsonPropertyName("specVersion")]
     public string SpecVersion { get; init; } = string.Empty;
 
     [JsonPropertyName("version")]
-    public long Version { get; init; }
+    public long? Version { get; init; }
 }

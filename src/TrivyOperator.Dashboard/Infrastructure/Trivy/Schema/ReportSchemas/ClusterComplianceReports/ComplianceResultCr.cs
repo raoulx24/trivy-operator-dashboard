@@ -3,26 +3,23 @@ using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.ClusterComplianceReports;
 
-public class ControlCr
+public class ComplianceResultCr
 {
     [JsonPropertyName("checks")]
-    public CheckCr[]? Checks { get; init; }
-
-    [JsonPropertyName("commands")]
-    public CheckCr[]? Commands { get; init; }
-    
-    [JsonPropertyName("defaultStatus")]
-    public string? DefaultStatus { get; init; }
+    public SecurityAssessmentCheckCr[] Checks { get; init; } = [];
 
     [JsonPropertyName("description")]
     public string? Description { get; init; }
 
     [JsonPropertyName("id")]
-    public string Id { get; init; } = string.Empty;
+    public string? Id { get; init; }
 
     [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
+    public string? Name { get; init; }
 
     [JsonPropertyName("severity")]
-    public SeverityCr SeverityCr { get; init; }
+    public string? Severity { get; init; }
+
+    [JsonPropertyName("status")]
+    public string? Status { get; init; }
 }

@@ -21,5 +21,5 @@ public class ReportCr
     public SummaryCr Summary { get; init; } = new();
 
     [JsonPropertyName("updateTimestamp")]
-    public DateTime? UpdateTimestamp { get; init; }
+    public DateTime UpdateTimestamp { get; init; } = DateTime.MinValue;
 }

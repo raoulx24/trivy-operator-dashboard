@@ -18,7 +18,7 @@ public static class SbomMappingExtensions
         if (cr.Report is null)
             throw new ArgumentNullException(nameof(cr.Report));
 
-        // VO layer (cheap, isolated, reusable)
+        // vo layer
         var metadata = cr.Metadata.ToReportMetadata();
         var resource = cr.Metadata.ToResource();
         var imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
@@ -47,22 +47,22 @@ public static class SbomMappingExtensions
             other = null;
         }
 
-        // Previous is newer -> keep it, only update occurrences
+        // previous is newer -> keep it, only update occurrences
         if (other is not null &&
             other.LastSeenAt > lastSeenAt)
         {
             return other with
             {
-                Occurrences = MergeOccurrences(
+                Occurrences = TrivySharedMappingExtensions.MergeOccurrences(
                     occurrence,
                     other.Occurrences,
-                    currentWins: false)
+                    currentWins: false),
             };
         }
 
-        var occurrences = MergeOccurrences(occurrence, other?.Occurrences, currentWins: true);
+        var occurrences = TrivySharedMappingExtensions.MergeOccurrences(occurrence, other?.Occurrences, currentWins: true);
 
-        // Core SBOM materialization
+        // core sbom materialization
         var allComponents = CollectAllComponents(cr);
         var idMap = BuildIdMap(allComponents);
 
@@ -76,8 +76,6 @@ public static class SbomMappingExtensions
             sbomComponents);
 
         var root = ResolveRootNode(cr, idMap);
-
-        
 
         return new SbomReport(
             occurrences,
@@ -108,7 +106,7 @@ public static class SbomMappingExtensions
             c.BomFormat,
             c.SpecVersion,
             new SbomSerialNumber(c.SerialNumber),
-            c.Version,
+            c.Version ?? 0,
             new Timestamp(DateTime.MinValue)); // keep as-is until real source exists
     }
     
@@ -233,6 +231,8 @@ public static class SbomMappingExtensions
         {
             var d = deps[i];
 
+            if (d.Ref is null || d.DependsOn is null) continue;
+
             if (!idMap.TryGetValue(d.Ref, out var fromId))
                 continue;
 
@@ -266,6 +266,8 @@ public static class SbomMappingExtensions
         for (int i = 0; i < all.Count; i++)
         {
             var c = all[i];
+            
+            if (c.BomRef is null) continue;
 
             if (!idMap.TryGetValue(c.BomRef, out var id))
                 continue;
@@ -334,29 +336,5 @@ public static class SbomMappingExtensions
         return map.TryGetValue(bomRef, out var id)
             ? id
             : new ComponentId();
-    }
-    
-    private static IReadOnlyList<ReportImageOccurrence> MergeOccurrences(
-        ReportImageOccurrence current,
-        IReadOnlyList<ReportImageOccurrence>? existing,
-        bool currentWins)
-    {
-        if (existing is null)
-            return new[] { current };
-
-        var result = existing.ToList();
-
-        var index = result.FindIndex(x => x.Metadata.Uid == current.Metadata.Uid);
-
-        if (index < 0)
-        {
-            result.Add(current);
-        }
-        else if (currentWins)
-        {
-            result[index] = current;
-        }
-
-        return result;
     }
 }

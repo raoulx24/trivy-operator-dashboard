@@ -6,5 +6,5 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ExposedSecretRepor
 public class ExposedSecretReportCr
 {
     [JsonPropertyName("report")]
-    public ReportCr? Report { get; init; }
+    public ReportCr Report { get; init; } = new();
 }

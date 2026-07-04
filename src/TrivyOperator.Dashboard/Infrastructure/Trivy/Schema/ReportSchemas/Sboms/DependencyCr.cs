@@ -5,8 +5,8 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Sbom
 public class DependencyCr
 {
     [JsonPropertyName("dependsOn")]
-    public string[] DependsOn { get; init; } = [];
+    public string[]? DependsOn { get; init; }
 
     [JsonPropertyName("ref")]
-    public string Ref { get; init; } = string.Empty;
+    public string? Ref { get; init; }
 }

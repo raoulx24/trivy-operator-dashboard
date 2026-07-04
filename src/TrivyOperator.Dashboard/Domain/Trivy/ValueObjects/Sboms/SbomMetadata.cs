@@ -33,7 +33,19 @@ public sealed record SbomMetadata
     }
 }
 
-public readonly record struct SbomSerialNumber(string Value)
+public readonly record struct SbomSerialNumber
 {
+    private const string Sentinel = "N/A";
+    
+    public string Value { get; }
+    public bool IsValid => Value != Sentinel;
+    
+    public SbomSerialNumber(string? value)
+    {
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
+    }
+    
+    public SbomSerialNumber() : this(Sentinel) { }
+    
     public override string ToString() => Value;
 }

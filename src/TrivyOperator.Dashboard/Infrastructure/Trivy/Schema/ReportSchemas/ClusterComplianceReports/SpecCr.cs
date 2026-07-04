@@ -5,7 +5,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Clus
 public class SpecCr
 {
     [JsonPropertyName("compliance")]
-    ComplianceCr ComplianceCr { get; init; } = new();
+    public ComplianceCr ComplianceCr { get; init; } = new();
 
     [JsonPropertyName("cron")]
     public string Cron { get; init; } = string.Empty;

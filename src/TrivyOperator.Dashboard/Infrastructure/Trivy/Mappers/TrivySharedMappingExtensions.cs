@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
 
@@ -50,7 +51,7 @@ public static class TrivySharedMappingExtensions
     
     public static Digest ToDigest(ArtifactCr artifact)
     {
-        return new Digest(artifact.Digest);
+        return new Digest(artifact.Digest ?? string.Empty);
     }
 
     public static Scanner ToScanner(ScannerCr scanner)
@@ -81,5 +82,30 @@ public static class TrivySharedMappingExtensions
         }
 
         throw new InvalidOperationException("None of the provided timestamps were set.");
+    }
+    
+    public static IReadOnlyList<TReportOccurrence> MergeOccurrences<TReportOccurrence>(
+        TReportOccurrence current,
+        IReadOnlyList<TReportOccurrence>? existing,
+        bool currentWins)
+        where TReportOccurrence : IReportOccurrence
+    {
+        if (existing is null)
+            return new[] { current };
+
+        var result = existing.ToList();
+
+        var index = result.FindIndex(x => x.Metadata.Uid == current.Metadata.Uid);
+
+        if (index < 0)
+        {
+            result.Add(current);
+        }
+        else if (currentWins)
+        {
+            result[index] = current;
+        }
+
+        return result;
     }
 }

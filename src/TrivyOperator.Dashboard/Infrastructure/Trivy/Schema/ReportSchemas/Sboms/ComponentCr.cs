@@ -5,26 +5,32 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Sbom
 public class ComponentCr
 {
     [JsonPropertyName("bom-ref")]
-    public string BomRef { get; set; } = string.Empty;
+    public string? BomRef { get; init; }
+
+    [JsonPropertyName("group")]
+    public string? Group { get; init; }
+    
+    [JsonPropertyName("hashes")]
+    public HashCr[]? Hashes { get; init; }
 
     [JsonPropertyName("licenses")]
     public LicenseContainerCr[]? Licenses { get; init; }
 
     [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
+    public string? Name { get; init; }
 
     [JsonPropertyName("properties")]
-    public PropertyCr[] Properties { get; init; } = [];
+    public PropertyCr[]? Properties { get; init; }
 
     [JsonPropertyName("purl")]
-    public string Purl { get; init; } = string.Empty;
+    public string? Purl { get; init; }
 
     [JsonPropertyName("supplier")]
     public SupplierCr? Supplier { get; init; }
 
     [JsonPropertyName("type")]
-    public string Type { get; init; } = string.Empty;
+    public string? Type { get; init; }
 
     [JsonPropertyName("version")]
-    public string Version { get; init; } = string.Empty;
+    public string? Version { get; init; }
 }

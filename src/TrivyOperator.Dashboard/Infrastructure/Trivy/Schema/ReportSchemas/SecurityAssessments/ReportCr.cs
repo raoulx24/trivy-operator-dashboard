@@ -6,14 +6,14 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Secu
 public class ReportCr
 {
     [JsonPropertyName("checks")]
-    public CheckCr[] Checks { get; init; } = [];
+    public SecurityAssessmentCheckCr[] Checks { get; init; } = [];
 
     [JsonPropertyName("scanner")]
-    public ScannerCr Scanner { get; init; } = new();
+    public ScannerCr? Scanner { get; init; }
 
     [JsonPropertyName("summary")]
-    public SummaryCr Summary { get; init; } = new();
+    public SummaryCr? Summary { get; init; }
 
     [JsonPropertyName("updateTimestamp")]
-    public DateTime UpdateTimestamp { get; init; } = DateTime.UtcNow;
+    public DateTime? UpdateTimestamp { get; init; }
 }

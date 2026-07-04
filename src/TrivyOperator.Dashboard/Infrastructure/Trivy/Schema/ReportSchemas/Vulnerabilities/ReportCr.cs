@@ -12,7 +12,7 @@ public class ReportCr
     public OsCr Os { get; set; } = new();
 
     [JsonPropertyName("registry")]
-    public RegistryCr Registry { get; set; } = new();
+    public RegistryCr? Registry { get; set; }
 
     [JsonPropertyName("scanner")]
     public ScannerCr Scanner { get; set; } = new();

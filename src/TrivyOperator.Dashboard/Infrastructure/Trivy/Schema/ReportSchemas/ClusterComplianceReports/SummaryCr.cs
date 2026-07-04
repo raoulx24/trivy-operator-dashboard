@@ -5,8 +5,8 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Clus
 public class SummaryCr
 {
     [JsonPropertyName("failCount")]
-    public long FailCount { get; init; } = 0;
+    public int? FailCount { get; init; }
 
     [JsonPropertyName("passCount")]
-    public long PassCount { get; init; } = 0;
+    public int? PassCount { get; init; }
 }

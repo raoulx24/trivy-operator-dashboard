@@ -5,11 +5,11 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Clus
 public class StatusCr
 {
     [JsonPropertyName("summary")]
-    public SummaryCr SummaryCr { get; init; } = new();
+    public SummaryCr? SummaryCr { get; init; }
 
     [JsonPropertyName("summaryReport")]
-    public SummaryReportCr SummaryReportCr { get; init; } = new();
+    public SummaryReportCr? SummaryReportCr { get; init; }
 
     [JsonPropertyName("updateTimestamp")]
-    public DateTime? UpdateTimestamp { get; init; }
+    public DateTime UpdateTimestamp { get; init; } = DateTime.MinValue;
 }
