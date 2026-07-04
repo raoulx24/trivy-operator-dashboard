@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.History.NamespaceHistory.ValueObjects;
+﻿namespace TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
 public readonly record struct NamespaceName
 {

@@ -1,7 +1,7 @@
 ﻿using k8s.Models;
-using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
@@ -51,7 +51,7 @@ public static class TrivySharedMappingExtensions
     
     public static Digest ToDigest(ArtifactCr artifact)
     {
-        return new Digest(artifact.Digest ?? string.Empty);
+        return new Digest(artifact.Digest);
     }
 
     public static Scanner ToScanner(ScannerCr scanner)

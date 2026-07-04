@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
+﻿namespace TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 public readonly record struct Timestamp : IComparable<Timestamp>
 {
