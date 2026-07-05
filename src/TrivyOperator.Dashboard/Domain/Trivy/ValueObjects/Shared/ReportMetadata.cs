@@ -8,5 +8,5 @@ public readonly record struct ReportMetadata(
     ResourceName Name,
     NamespaceName NamespaceName,
     Timestamp CreationTimestamp,
-    Guid Uid
+    Uid Uid
 );

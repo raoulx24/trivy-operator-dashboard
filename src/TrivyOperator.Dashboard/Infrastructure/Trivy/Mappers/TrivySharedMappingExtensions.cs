@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
@@ -16,7 +17,7 @@ public static class TrivySharedMappingExtensions
             new ResourceName(metadata.Name),
             new NamespaceName(metadata.NamespaceProperty),
             new Timestamp(metadata.CreationTimestamp ?? DateTime.MinValue),
-            Guid.TryParse(metadata.Uid, out Guid g) ? g : Guid.Empty);
+            new Uid(metadata.Uid));
     }    
     
     public static Resource ToResource(this V1ObjectMeta metadata)
@@ -41,10 +42,10 @@ public static class TrivySharedMappingExtensions
                 : string.Empty;
     }
     
-    public static ImageMeta ToImageMeta(ArtifactCr artifact, RegistryCr registry)
+    public static ImageMeta ToImageMeta(ArtifactCr artifact, RegistryCr? registry)
     {
         return new ImageMeta(
-            new ImageRegistry(registry.Server),
+            new ImageRegistry(registry?.Server),
             new ImageRepository(artifact.Repository),
             new ImageTag(artifact.Tag));
     }
@@ -62,9 +63,21 @@ public static class TrivySharedMappingExtensions
             new ScannerVersion(scanner.Version));
     }
     
+    internal static Summary ToSummary(SummaryCr cr)
+    {
+        return new Summary(
+            criticalCount: cr.CriticalCount,
+            highCount: cr.HighCount,
+            mediumCount: cr.MediumCount,
+            lowCount: cr.LowCount,
+            unknownCount: cr.UnknownCount,
+            noneCount: cr.NoneCount
+        );
+    }
+    
     public static Timestamp ResolveTimestamp(params string?[] values)
     {
-        foreach (var value in values)
+        foreach (string? value in values)
         {
             if (DateTime.TryParse(value, out var timestamp))
                 return new Timestamp(timestamp);
@@ -75,7 +88,7 @@ public static class TrivySharedMappingExtensions
     
     public static Timestamp ResolveTimestamp(params DateTime?[] values)
     {
-        foreach (var value in values)
+        foreach (DateTime? value in values)
         {
             if (value is { } timestamp)
                 return new Timestamp(timestamp);
@@ -91,11 +104,11 @@ public static class TrivySharedMappingExtensions
         where TReportOccurrence : IReportOccurrence
     {
         if (existing is null)
-            return new[] { current };
+            return [current];
 
-        var result = existing.ToList();
+        List<TReportOccurrence> result = existing.ToList();
 
-        var index = result.FindIndex(x => x.Metadata.Uid == current.Metadata.Uid);
+        int index = result.FindIndex(x => x.Metadata.Uid == current.Metadata.Uid);
 
         if (index < 0)
         {
@@ -108,4 +121,10 @@ public static class TrivySharedMappingExtensions
 
         return result;
     }
+
+    public static bool IsOtherNewer(ITrivyReport? other, Timestamp currentLastSeen)
+        => other?.LastSeenAt > currentLastSeen;
+
+    public static bool HasOtherSameId(IDigestBasedReport? other, NamespaceName currentNs, Digest currentDigest)
+        => other is not null && (other.Id.Digest != currentDigest || other.Id.NamespaceName != currentNs);
 }

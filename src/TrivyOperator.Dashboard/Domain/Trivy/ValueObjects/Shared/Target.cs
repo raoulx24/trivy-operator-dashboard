@@ -7,7 +7,7 @@ public readonly record struct Target
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public Target(string value)
+    public Target(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim().ToLowerInvariant();
     }

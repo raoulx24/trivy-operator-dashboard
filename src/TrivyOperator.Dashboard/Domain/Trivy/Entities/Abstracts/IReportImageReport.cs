@@ -4,5 +4,5 @@ namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
 public interface IReportImageReport : ITrivyReport
 {
-    IReadOnlyList<ReportImageOccurrence> Occurrences { get; }
+    
 }

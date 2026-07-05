@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
@@ -16,12 +17,10 @@ public static class SbomMappingExtensions
 {
     public static SbomReport ToSbom(this SbomReportCr cr, SbomReport? other)
     {
-        if (cr.Report is null)
-            throw new ArgumentNullException(nameof(cr.Report));
-
         // vo layer
         var metadata = cr.Metadata.ToReportMetadata();
         var resource = cr.Metadata.ToResource();
+        var namespaceName = new NamespaceName(cr.Metadata.NamespaceProperty);
         var imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
         var digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
         var scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
@@ -35,22 +34,16 @@ public static class SbomMappingExtensions
             DateTime.UtcNow
         );
         
-        var occurrence = new ReportImageOccurrence(
-            metadata,
-            resource,
-            imageMeta);
+        var occurrence = new ReportImageOccurrence(metadata, resource, imageMeta);
         
         // check if other has same digest and ns
-        if (other is not null &&
-            (other.ImageDigest != digest ||
-            (other.Occurrences.Count > 0 && other.Occurrences[0].Metadata.NamespaceName != metadata.NamespaceName)))
+        if (TrivySharedMappingExtensions.HasOtherSameId(other, namespaceName, digest))
         {
             other = null;
         }
 
         // previous is newer -> keep it, only update occurrences
-        if (other is not null &&
-            other.LastSeenAt > lastSeenAt)
+        if (other is not null && TrivySharedMappingExtensions.IsOtherNewer(other, lastSeenAt))
         {
             return other with
             {
@@ -63,7 +56,7 @@ public static class SbomMappingExtensions
 
         var occurrences = TrivySharedMappingExtensions.MergeOccurrences(occurrence, other?.Occurrences, currentWins: true);
 
-        // core sbom materialization
+        // core sbom
         var allComponents = CollectAllComponents(cr);
         var idMap = BuildIdMap(allComponents);
 
@@ -80,6 +73,7 @@ public static class SbomMappingExtensions
 
         return new SbomReport(
             occurrences,
+            namespaceName,
             digest,
             lastSeenAt,
             scanner,

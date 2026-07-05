@@ -7,7 +7,7 @@ public readonly record struct Purl
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public Purl(string value)
+    public Purl(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }
