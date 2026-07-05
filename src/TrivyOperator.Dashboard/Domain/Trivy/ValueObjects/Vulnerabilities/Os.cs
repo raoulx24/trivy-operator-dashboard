@@ -14,7 +14,7 @@ public readonly record struct OsFamily
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public OsFamily(string value)
+    public OsFamily(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
@@ -31,7 +31,7 @@ public readonly record struct OsName
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public OsName(string value)
+    public OsName(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }

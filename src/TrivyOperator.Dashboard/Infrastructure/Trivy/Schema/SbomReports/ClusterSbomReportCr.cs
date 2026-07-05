@@ -7,5 +7,5 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.SbomReports;
 public class ClusterSbomReportCr : CustomResource
 {
     [JsonPropertyName("report")]
-    public ReportCr? Report { get; init; }
+    public ReportCr Report { get; init; } = new();
 }

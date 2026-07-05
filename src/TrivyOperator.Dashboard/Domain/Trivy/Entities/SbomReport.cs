@@ -16,7 +16,7 @@ public sealed record SbomReport(
     Timestamp LastSeenAt,
     
     Scanner Scanner,
-    Summary Summary,
+    SbomSummary Summary,
     SbomMetadata SbomMetadata,
     ComponentId RootNodeBomRef,
     

@@ -1,7 +1,4 @@
-﻿
-
-using System.Collections.Immutable;
-using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
+﻿using System.Collections.Immutable;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
@@ -25,8 +22,8 @@ public static class SbomMappingExtensions
         var digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
         var scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
 
-        var summary = new Summary(0, 0, 0, 0, null, null);
-        var sbomMetadata = ToSbomMetadata(cr);
+        var summary = cr.Report.Summary.ToSbomSummary();
+        var sbomMetadata = ToSbomMetadata(cr.Report.Components);
 
         var lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,
@@ -57,7 +54,7 @@ public static class SbomMappingExtensions
         var occurrences = TrivySharedMappingExtensions.MergeOccurrences(occurrence, other?.Occurrences, currentWins: true);
 
         // core sbom
-        var allComponents = CollectAllComponents(cr);
+        var allComponents = CollectAllComponents(cr.Report);
         var idMap = BuildIdMap(allComponents);
 
         var sbomComponents = BuildDependencyLookup(
@@ -69,7 +66,7 @@ public static class SbomMappingExtensions
             idMap,
             sbomComponents);
 
-        var root = ResolveRootNode(cr, idMap);
+        var root = ResolveRootNode(cr.Report, idMap);
 
         return new SbomReport(
             occurrences,
@@ -83,25 +80,61 @@ public static class SbomMappingExtensions
             components);
     }
     
-    private static SbomMetadata ToSbomMetadata(SbomReportCr cr)
+    public static ClusterSbomReport ToClusterSbom(this ClusterSbomReportCr cr, ClusterSbomReport? other)
     {
-        var c = cr.Report?.Components;
+        var lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
+            cr.Report.UpdateTimestamp,
+            cr.Metadata.CreationTimestamp,
+            DateTime.UtcNow
+        );
 
-        if (c is null)
-        {
-            return new SbomMetadata(
-                string.Empty,
-                string.Empty,
-                new SbomSerialNumber(string.Empty),
-                0,
-                new Timestamp(DateTime.MinValue));
-        }
+        // is other newer than current?
+        if (other is not null && lastSeenAt < other.LastSeenAt)
+            return other;
+        
+        // vo layer
+        var metadata = cr.Metadata.ToReportMetadata();
+        var resource = cr.Metadata.ToResource();
+        var imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
+        var scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
 
+        var summary = cr.Report.Summary.ToSbomSummary();
+        var sbomMetadata = ToSbomMetadata(cr.Report.Components);
+
+        var occurrence = new ReportImageOccurrence(metadata, resource, imageMeta);
+        
+        // core sbom
+        var allComponents = CollectAllComponents(cr.Report);
+        var idMap = BuildIdMap(allComponents);
+
+        var sbomComponents = BuildDependencyLookup(
+            cr.Report.Components,
+            idMap);
+
+        var components = BuildComponents(
+            allComponents,
+            idMap,
+            sbomComponents);
+
+        var root = ResolveRootNode(cr.Report, idMap);
+
+        return new ClusterSbomReport(
+            occurrence,
+            lastSeenAt,
+            scanner,
+            summary,
+            sbomMetadata,
+            root,
+            components);
+    }
+    
+    private static SbomMetadata ToSbomMetadata(ComponentsCr cr)
+    {
         return new SbomMetadata(
-            c.BomFormat,
-            c.SpecVersion,
-            new SbomSerialNumber(c.SerialNumber),
-            c.Version ?? 0,
+            cr.BomFormat,
+            cr.SpecVersion,
+            new SbomSerialNumber(cr.SerialNumber),
+            cr.Version ?? 0,
             new Timestamp(DateTime.MinValue)); // keep as-is until real source exists
     }
     
@@ -169,17 +202,17 @@ public static class SbomMappingExtensions
             ? uri
             : null;
     
-    private static List<ComponentCr> CollectAllComponents(SbomReportCr cr)
+    private static List<ComponentCr> CollectAllComponents(ReportCr cr)
     {
         var list = new List<ComponentCr>();
 
-        var children = cr.Report?.Components?.ChildComponents;
+        var children = cr.Components.ChildComponents;
         if (children is not null)
         {
             list.AddRange(children);
         }
 
-        var root = cr.Report?.Components?.MetadataCr?.ComponentCr;
+        var root = cr.Components.MetadataCr?.ComponentCr;
         if (root is not null)
         {
             list.Add(root);
@@ -284,9 +317,9 @@ public static class SbomMappingExtensions
         return result;
     }
     
-    private static ComponentId ResolveRootNode(SbomReportCr cr, Dictionary<string, ComponentId> idMap)
+    private static ComponentId ResolveRootNode(ReportCr cr, Dictionary<string, ComponentId> idMap)
     {
-        var rootRef = cr.Report?.Components?.MetadataCr?.ComponentCr?.BomRef;
+        var rootRef = cr.Components.MetadataCr?.ComponentCr?.BomRef;
 
         if (string.IsNullOrWhiteSpace(rootRef))
             return new ComponentId();
@@ -331,5 +364,12 @@ public static class SbomMappingExtensions
         return map.TryGetValue(bomRef, out var id)
             ? id
             : new ComponentId();
+    }
+    
+    public static SbomSummary ToSbomSummary(this SummaryCr source)
+    {
+        return new SbomSummary(
+            source.ComponentsCount,
+            source.DependenciesCount);
     }
 }
