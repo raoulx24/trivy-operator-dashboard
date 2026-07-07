@@ -5,6 +5,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared.Identities;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities;
 
@@ -15,8 +16,7 @@ public sealed record ConfigAuditReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : TrivyReportBase(Metadata)
+    : ITrivyReport
 {
-    protected override Kind ExpectedKind => ReportKinds.ConfigAudit;
-    protected override bool IsClusterScoped => false;
+    public NamespacedUid Id => new(Metadata.NamespaceName, Metadata.Uid);
 }

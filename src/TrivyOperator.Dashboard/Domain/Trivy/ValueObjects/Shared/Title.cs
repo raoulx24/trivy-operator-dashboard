@@ -7,7 +7,7 @@ public readonly record struct Title
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public Title(string value)
+    public Title(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }

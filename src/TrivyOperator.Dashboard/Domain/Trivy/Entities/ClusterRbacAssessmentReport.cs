@@ -15,8 +15,7 @@ public sealed record ClusterRbacAssessmentReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : TrivyReportBase(Metadata)
+    : ITrivyReport
 {
-    protected override Kind ExpectedKind => ReportKinds.ClusterRbacAssessment;
-    protected override bool IsClusterScoped => true;
+    public Uid Id => Metadata.Uid;
 }

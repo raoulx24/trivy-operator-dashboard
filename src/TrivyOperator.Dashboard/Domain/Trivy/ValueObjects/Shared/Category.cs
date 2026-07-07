@@ -7,7 +7,7 @@ public readonly record struct Category
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public Category(string value)
+    public Category(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }

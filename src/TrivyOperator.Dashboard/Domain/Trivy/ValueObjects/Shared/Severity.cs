@@ -18,8 +18,8 @@ public readonly record struct Severity : IComparable<Severity>
     {
         string normalized = value.ToUpperInvariant();
 
-        if (!SeverityRank.ContainsKey(normalized))
-            throw new ArgumentException($"Invalid severity: {value}");
+        if (!SeverityRank.TryGetValue(normalized, out _))
+            throw new ArgumentOutOfRangeException(nameof(value), value, "Invalid severity.");
 
         Value = string.Intern(normalized);
     }
@@ -43,4 +43,5 @@ public static class Severities
     public static readonly Severity Medium   = new("MEDIUM");
     public static readonly Severity Low      = new("LOW");
     public static readonly Severity Unknown  = new("UNKNOWN");
+    public static readonly Severity None     = new("NONE");
 }

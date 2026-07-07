@@ -15,8 +15,7 @@ public sealed record ClusterInfraAssessmentReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : TrivyReportBase(Metadata)
+    : ITrivyReport
 {
-    protected override Kind ExpectedKind => ReportKinds.ClusterInfraAssessment;
-    protected override bool IsClusterScoped => false;
+    public Uid Id => Metadata.Uid;
 }

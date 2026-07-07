@@ -55,23 +55,23 @@ public static class TrivySharedMappingExtensions
         return new Digest(artifact.Digest);
     }
 
-    public static Scanner ToScanner(ScannerCr scanner)
+    public static Scanner ToScanner(ScannerCr? scanner)
     {
         return new Scanner(
-            new ScannerName(scanner.Name),
-            new ScannerVendor(scanner.Vendor),
-            new ScannerVersion(scanner.Version));
+            new ScannerName(scanner?.Name),
+            new ScannerVendor(scanner?.Vendor),
+            new ScannerVersion(scanner?.Version));
     }
     
-    internal static Summary ToSummary(SummaryCr cr)
+    internal static Summary ToSummary(SummaryCr? cr)
     {
         return new Summary(
-            criticalCount: cr.CriticalCount,
-            highCount: cr.HighCount,
-            mediumCount: cr.MediumCount,
-            lowCount: cr.LowCount,
-            unknownCount: cr.UnknownCount,
-            noneCount: cr.NoneCount
+            criticalCount: cr?.CriticalCount ?? 0,
+            highCount: cr?.HighCount ?? 0,
+            mediumCount: cr?.MediumCount ?? 0,
+            lowCount: cr?.LowCount ?? 0,
+            unknownCount: cr?.UnknownCount,
+            noneCount: cr?.NoneCount
         );
     }
     

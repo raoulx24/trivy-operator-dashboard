@@ -7,7 +7,7 @@ public readonly record struct Remediation
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public Remediation(string value)
+    public Remediation(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }

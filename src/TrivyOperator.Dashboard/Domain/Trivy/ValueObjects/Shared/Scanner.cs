@@ -14,7 +14,7 @@ public readonly record struct ScannerName
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ScannerName(string value)
+    public ScannerName(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
@@ -31,7 +31,7 @@ public readonly record struct ScannerVendor
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ScannerVendor(string value)
+    public ScannerVendor(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
@@ -48,7 +48,7 @@ public readonly record struct ScannerVersion
     public string Value { get; }
     public bool IsValid => Value != Sentinel;
 
-    public ScannerVersion(string value)
+    public ScannerVersion(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }

@@ -15,8 +15,7 @@ public sealed record ClusterConfigAuditReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : TrivyReportBase(Metadata)
+    : ITrivyReport
 {
-    protected override Kind ExpectedKind => ReportKinds.ClusterConfigAudit;
-    protected override bool IsClusterScoped => true;
+    public Uid Id => Metadata.Uid;
 }
