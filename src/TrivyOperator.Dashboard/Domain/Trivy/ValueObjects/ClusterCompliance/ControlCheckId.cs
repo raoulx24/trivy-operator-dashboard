@@ -2,15 +2,17 @@
 
 public readonly record struct ControlCheckId
 {
+    private const string Sentinel = "N/A";
+
     public string Value { get; }
+    public bool IsValid => Value != Sentinel;
 
-    public ControlCheckId(string value)
+    public ControlCheckId(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Check id is required.");
-
-        Value = value.Trim();
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }
+
+    public ControlCheckId() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }

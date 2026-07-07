@@ -1,8 +1,6 @@
-﻿using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
@@ -13,12 +11,12 @@ public sealed record ClusterComplianceReport(
     
     ComplianceMetadata ComplianceMetadata,
     ComplianceSummary Summary,
+    CronSchedule Schedule,
     
     Timestamp LastSeenAt,
     
-    IReadOnlyList<CheckResult> ControlChecks
-) : TrivyReportBase(Metadata)
+    IReadOnlyList<ControlResult> ControlChecks
+) : ITrivyReport
 {
-    protected override Kind ExpectedKind => ReportKinds.ClusterCompliance;
-    protected override bool IsClusterScoped => true;
+    public Uid Id => Metadata.Uid;
 }

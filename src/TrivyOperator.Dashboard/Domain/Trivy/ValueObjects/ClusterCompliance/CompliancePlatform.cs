@@ -2,15 +2,19 @@
 
 public readonly record struct CompliancePlatform
 {
+    private const string Sentinel = "n/a";
+
     public string Value { get; }
+    public bool IsValid => Value != Sentinel;
 
-    public CompliancePlatform(string value)
+    public CompliancePlatform(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Platform is required.");
-
-        Value = value.Trim().ToLowerInvariant();
+        Value = string.IsNullOrWhiteSpace(value)
+            ? Sentinel
+            : value.Trim().ToLowerInvariant();
     }
+
+    public CompliancePlatform() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }

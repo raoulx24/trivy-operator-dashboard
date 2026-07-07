@@ -43,7 +43,7 @@ public readonly record struct SbomSerialNumber
     
     public SbomSerialNumber(string? value)
     {
-        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }
     
     public SbomSerialNumber() : this(Sentinel) { }

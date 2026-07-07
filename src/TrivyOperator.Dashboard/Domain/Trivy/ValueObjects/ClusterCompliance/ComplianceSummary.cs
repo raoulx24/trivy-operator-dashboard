@@ -15,4 +15,6 @@ public readonly record struct ComplianceSummary
         FailCount = failCount;
         PassCount = passCount;
     }
+    
+    public ComplianceSummary() : this(0, 0) { }
 }

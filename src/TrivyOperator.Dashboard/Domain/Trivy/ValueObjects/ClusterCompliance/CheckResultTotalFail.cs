@@ -10,6 +10,8 @@ public readonly record struct CheckResultTotalFail
 
         Value = value;
     }
+    
+    public CheckResultTotalFail() : this(0) { }
 
     public override string ToString() => Value.ToString();
 }

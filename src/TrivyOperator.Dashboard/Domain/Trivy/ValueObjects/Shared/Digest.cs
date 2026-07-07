@@ -10,10 +10,7 @@ public readonly record struct Digest
     public Digest(string? value)
     {
         Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim().ToLowerInvariant();
-        //Value = value.Replace(':','_').ToLowerInvariant();
     }
 
-    //public string ToOriginalString() => ToString();
-    //public override string ToString() => Value.Replace('_', ':');
     public override string ToString() => Value;
 }

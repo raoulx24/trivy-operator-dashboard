@@ -2,15 +2,19 @@
 
 public readonly record struct ComplianceType
 {
+    private const string Sentinel = "n/a";
+
     public string Value { get; }
+    public bool IsValid => Value != Sentinel;
 
-    public ComplianceType(string value)
+    public ComplianceType(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Compliance type is required.");
-
-        Value = value.Trim().ToLowerInvariant();
+        Value = string.IsNullOrWhiteSpace(value)
+            ? Sentinel
+            : value.Trim().ToLowerInvariant();
     }
+
+    public ComplianceType() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }

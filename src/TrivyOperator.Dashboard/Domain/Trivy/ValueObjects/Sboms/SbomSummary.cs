@@ -15,4 +15,6 @@ public readonly record struct SbomSummary
         ComponentsCount = componentsCount;
         DependenciesCount = dependenciesCount;
     }
+    
+    public SbomSummary() : this(0,0) { }
 }

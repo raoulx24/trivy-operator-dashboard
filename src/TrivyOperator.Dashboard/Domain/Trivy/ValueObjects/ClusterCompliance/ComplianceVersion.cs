@@ -2,15 +2,17 @@
 
 public readonly record struct ComplianceVersion
 {
+    private const string Sentinel = "N/A";
+
     public string Value { get; }
+    public bool IsValid => Value != Sentinel;
 
-    public ComplianceVersion(string value)
+    public ComplianceVersion(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Version is required.");
-
-        Value = value.Trim();
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim();
     }
+
+    public ComplianceVersion() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }
