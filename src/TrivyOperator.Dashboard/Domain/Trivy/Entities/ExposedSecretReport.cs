@@ -5,23 +5,22 @@ using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ExposedSecrets;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared.Identities;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities;
 
 public sealed record ExposedSecretReport(
-    ReportMetadata Metadata,    
-    Resource Resource,
-    
-    ImageMeta ImageUsage,
-
-    Scanner Scanner,
-    Summary Summary,
+    IReadOnlyList<ReportImageOccurrence> Occurrences,
+    NamespaceName NamespaceName,
+    Digest ImageDigest,
     
     Timestamp LastSeenAt,
     
-    Secret[] Secrets
-) : TrivyReportBase(Metadata)
+    Scanner Scanner,
+    Summary Summary,
+    
+    IReadOnlyList<Secret> Secrets
+) : IDigestBasedReport
 {
-    protected override Kind ExpectedKind => ReportKinds.ExposedSecret;
-    protected override bool IsClusterScoped => false;
+    public NamespacedDigest Id => new(NamespaceName, ImageDigest);
 }
