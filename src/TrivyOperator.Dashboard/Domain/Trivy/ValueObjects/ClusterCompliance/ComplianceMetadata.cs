@@ -1,4 +1,6 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
+﻿using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+
+namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
 
 public sealed record ComplianceMetadata(
     ComplianceId Id,

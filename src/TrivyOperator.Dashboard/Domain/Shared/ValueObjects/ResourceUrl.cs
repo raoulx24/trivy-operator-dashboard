@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
+﻿namespace TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 public readonly record struct ResourceUrl
 {

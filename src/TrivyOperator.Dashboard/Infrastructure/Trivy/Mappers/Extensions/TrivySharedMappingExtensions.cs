@@ -1,5 +1,4 @@
 ﻿using k8s.Models;
-using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
@@ -7,7 +6,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers;
+namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Extensions;
 
 public static class TrivySharedMappingExtensions
 {
@@ -106,7 +105,7 @@ public static class TrivySharedMappingExtensions
         if (existing is null)
             return [current];
 
-        List<TReportOccurrence> result = existing.ToList();
+        List<TReportOccurrence> result = [.. existing,];
 
         int index = result.FindIndex(x => x.Metadata.Uid == current.Metadata.Uid);
 

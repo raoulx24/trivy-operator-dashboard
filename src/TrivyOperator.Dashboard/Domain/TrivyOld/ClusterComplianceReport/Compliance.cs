@@ -17,7 +17,7 @@ public class Compliance
     public string Platform { get; init; } = string.Empty;
 
     [JsonPropertyName("relatedResources")]
-    public Uri[] RelatedResources { get; init; } = [];
+    public string[] RelatedResources { get; init; } = [];
 
     [JsonPropertyName("title")]
     public string Title { get; init; } = string.Empty;

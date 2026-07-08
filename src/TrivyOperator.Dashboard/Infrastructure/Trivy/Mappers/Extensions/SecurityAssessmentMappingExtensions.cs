@@ -1,0 +1,62 @@
+﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.Abstracts;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
+
+namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Extensions;
+
+public static class SecurityAssessmentMappingExtensions
+{
+    internal static TDest ToSecurityAssessmentReport<TSource, TDest>(this TSource cr, TDest? existing)
+    where TSource: CustomResource, ISecurityAssessmentReportCr 
+    where TDest: ITrivyReport
+    {
+        Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
+            cr.Report.UpdateTimestamp,
+            cr.Metadata.CreationTimestamp,
+            DateTime.UtcNow
+        );
+
+        // is existing newer than current?
+        if (existing is not null && lastSeenAt < existing.LastSeenAt)
+            return existing;
+        
+        ReportMetadata metadata = cr.Metadata.ToReportMetadata();
+        Resource resource = cr.Metadata.ToResource();
+        Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
+
+        Summary summary = TrivySharedMappingExtensions.ToSummary(cr.Report.Summary);
+
+        List<Check> checks = [.. cr.Report.Checks.Select(ToCheck),];
+
+        return TrivyReportFactory.CreateSecurityAssessment<TDest>(
+            metadata,
+            resource,
+            scanner,
+            summary,
+            lastSeenAt,
+            checks
+        );
+    }
+    
+    private static Check ToCheck(this SecurityAssessmentCheckCr? source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return new Check(
+            new Category(source.Category),
+            new CheckId(source.CheckId),
+            new Description(source.Description),
+            source.Messages ?? [],
+            new Remediation(source.Remediation),
+            new Severity(source.SeverityCr.ToString()),
+            source.Success,
+            new Title(source.Title)
+        );
+    }
+}
