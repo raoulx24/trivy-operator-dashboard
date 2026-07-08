@@ -1,60 +1,56 @@
 ﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ExposedSecrets;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ExposedSecretReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.ExposedSecrets;
 
-
-namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers;
+namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Extensions;
 
 public static class ExposedSecretMappingExtensions
 {
-    public static ExposedSecretReport ToVExposedSecretReport(this ExposedSecretReportCr cr, ExposedSecretReport? other)
+    public static ExposedSecretReport ToVExposedSecretReport(this ExposedSecretReportCr cr, ExposedSecretReport? existing)
     {
         // vo layer
-        var metadata = cr.Metadata.ToReportMetadata();
-        var resource = cr.Metadata.ToResource();
-        var namespaceName = new NamespaceName(cr.Metadata.NamespaceProperty);
-        var imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
-        var digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
-        var scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
+        ReportMetadata metadata = cr.Metadata.ToReportMetadata();
+        NamespaceName namespaceName = new(cr.Metadata.NamespaceProperty);
+        Resource resource = cr.Metadata.ToResource();
+        ImageMeta imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
+        Digest digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
 
-        var summary = TrivySharedMappingExtensions.ToSummary(cr.Report.Summary);
-
-        var lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
+        Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,
             cr.Metadata.CreationTimestamp,
             DateTime.UtcNow
         );
         
-        var occurrence = new ReportImageOccurrence(metadata, resource, imageMeta);
+        ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, resource, imageMeta);
         
-        // check if other has same digest and ns
-        if (TrivySharedMappingExtensions.HasOtherSameId(other, namespaceName, digest))
+        // check if existing has same digest and ns
+        if (TrivySharedMappingExtensions.HasOtherSameId(existing, namespaceName, digest))
         {
-            other = null;
+            existing = null;
         }
 
-        // previous is newer -> keep it, only update occurrences
-        if (other is not null && TrivySharedMappingExtensions.IsOtherNewer(other, lastSeenAt))
+        // existing is newer -> keep it, only update occurrences
+        if (existing is not null && TrivySharedMappingExtensions.IsOtherNewer(existing, lastSeenAt))
         {
-            return other with
+            return existing with
             {
                 Occurrences = TrivySharedMappingExtensions.MergeOccurrences(
                     occurrence,
-                    other.Occurrences,
+                    existing.Occurrences,
                     currentWins: false),
             };
         }
-
-        var occurrences = TrivySharedMappingExtensions.MergeOccurrences(occurrence, other?.Occurrences, currentWins: true);
+        
+        Summary summary = TrivySharedMappingExtensions.ToSummary(cr.Report.Summary);
+        Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
+        IReadOnlyList<ReportImageOccurrence> occurrences = TrivySharedMappingExtensions.MergeOccurrences(occurrence, existing?.Occurrences, currentWins: true);
 
         // core esr
-        var secrets = cr.Report.Secrets.Select(ToSecret).ToList();
+        List<Secret> secrets = [.. cr.Report.Secrets.Select(ToSecret),];
 
         return new ExposedSecretReport(
             occurrences,
@@ -82,6 +78,4 @@ public static class ExposedSecretMappingExtensions
             new Match(cr.Match),
             new Target(cr.Target));
     }
-    
-
 }

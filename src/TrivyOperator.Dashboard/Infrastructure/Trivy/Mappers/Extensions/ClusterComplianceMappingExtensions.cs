@@ -5,45 +5,42 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.ClusterComplianceReports;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers;
+namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Extensions;
 
 public static class ClusterComplianceMappingExtensions
 {
-    internal static ClusterComplianceReport ToClusterComplianceReport(this ClusterComplianceReportCr cr, ClusterComplianceReport? other)
+    public static ClusterComplianceReport ToClusterComplianceReport(this ClusterComplianceReportCr cr, ClusterComplianceReport? existing)
     {
-        var lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
+        Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.StatusCr.UpdateTimestamp,
             cr.Metadata.CreationTimestamp,
             DateTime.UtcNow
         );
 
-        // is other newer than current?
-        if (other is not null && lastSeenAt < other.LastSeenAt)
-            return other;
+        // is existing newer than current?
+        if (existing is not null && lastSeenAt < existing.LastSeenAt)
+            return existing;
 
         // vo layer
-        var metadata = cr.Metadata.ToReportMetadata();
+        ReportMetadata metadata = cr.Metadata.ToReportMetadata();
         
         // cluster compliance core
-        var complianceCr = cr.SpecCr.ComplianceCr;
-        var controls = complianceCr.Controls
-            .Select(ToControl)
-            .ToList();
-        var complianceMetadata = new ComplianceMetadata(
+        ComplianceCr complianceCr = cr.SpecCr.ComplianceCr;
+        List<Control> controls = [.. complianceCr.Controls.Select(ToControl),];
+        ComplianceMetadata complianceMetadata = new ComplianceMetadata(
             new ComplianceId(complianceCr.Id),
             new ComplianceTitle(complianceCr.Title),
             new ComplianceDescription(complianceCr.Description),
             new ComplianceType(complianceCr.Type),
             new CompliancePlatform(complianceCr.Platform),
             new ComplianceVersion(complianceCr.Version),
-            complianceCr.RelatedResources.Select(x => new ResourceUrl(x)).ToList(),
+            [.. complianceCr.RelatedResources.Select(x => new ResourceUrl(x)),],
             controls
         );
-        var cronSchedule = new CronSchedule(cr.SpecCr.Cron); 
-        var controlResults = cr.StatusCr.SummaryReportCr?.ControlCheck
-                                 .Select(x => x.ToControlResult(controls))
-                                 .ToList()
-                             ?? [];
+        CronSchedule cronSchedule = new CronSchedule(cr.SpecCr.Cron); 
+        List<ControlResult> controlResults = [.. cr.StatusCr.SummaryReportCr?.ControlCheck
+                                                 .Select(x => x.ToControlResult(controls))
+                                             ?? [],];
 
         return new ClusterComplianceReport(
             metadata,
@@ -58,23 +55,21 @@ public static class ClusterComplianceMappingExtensions
     private static Control ToControl(ControlCr cr)
     {
         return new Control(
-            Id: new ControlId(cr.Id),
-            ControlName: new ControlName(cr.Name),
+            new ControlId(cr.Id),
+            new ControlName(cr.Name),
             new ControlDescription(cr.Description),
             new Severity(cr.SeverityCr.ToString()),
-            cr.Checks?
-                .Select(x => new ControlCheckId(x.Id))
-                .ToList() ?? [],
-            Commands: cr.Commands?
-                .Select(x => new ControlCommandId(x.Id))
-                .ToList() ?? []
+            [.. cr.Checks?
+                .Select(x => new ControlCheckId(x.Id)) ?? [],],
+            [.. cr.Commands?
+                .Select(x => new ControlCommandId(x.Id)) ?? [],]
         );
     }
     
     private static ControlResult ToControlResult(this ControlCheck cr,
         IReadOnlyCollection<Control> controls)
     {
-        var control = controls
+        Control control = controls
             .Single(x => x.Id.Value == cr.Id);
 
         return new ControlResult(
