@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services;
 

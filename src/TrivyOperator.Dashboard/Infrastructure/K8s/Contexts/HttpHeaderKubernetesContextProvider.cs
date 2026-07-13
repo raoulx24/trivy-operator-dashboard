@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
+﻿using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
 

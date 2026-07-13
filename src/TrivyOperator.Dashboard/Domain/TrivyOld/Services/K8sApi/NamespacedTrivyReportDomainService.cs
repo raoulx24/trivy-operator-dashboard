@@ -2,21 +2,23 @@
 using k8s.Models;
 using System.Text.Json;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi;
 
-public class NamespacedTrivyReportDomainService<TKubernetesObject>(
+public class NamespacedTrivyReportService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
     IServiceScopeFactory scopeFactory,
     ICustomResourceDefinitionFactory customResourceDefinitionFactory,
-    IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList> namespaceDomainService
-) : NamespacedResourceDomainService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
+    IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList> namespaceService
+) : NamespacedResourceService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
     kubernetesClientFactory,
     scopeFactory,
-    namespaceDomainService
+    namespaceService
 )
     where TKubernetesObject : CustomResource
 {

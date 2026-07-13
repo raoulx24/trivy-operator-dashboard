@@ -13,14 +13,15 @@ using TrivyOperator.Dashboard.Domain.TrivyOld;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport;
 
 public class SbomReportService(
     IConcurrentDictionaryCache<SbomReportCr> cache,
     IConcurrentDictionaryCache<VulnerabilityReportCr> vrCache,
-    INamespacedResourceWatchDomainService<SbomReportCr, CustomResourceList<SbomReportCr>> domainService,
+    INamespacedResourceWatchService<SbomReportCr, CustomResourceList<SbomReportCr>> service,
     IOptions<FileExportOptions> fileExportOptions,
     ILogger<SbomReportService> logger
 ) : ISbomReportService
@@ -194,7 +195,7 @@ public class SbomReportService(
             try
             {
                 SbomReportDto sbomReportDto =
-                    (await domainService.GetResource(sr.Metadata.Name, sr.Metadata.NamespaceProperty))
+                    (await service.GetResource(sr.Metadata.Name, sr.Metadata.NamespaceProperty))
                     .ToSbomReportDto();
                 SetVulnerabilityReportStatistics(sbomReportDto);
                 return sbomReportDto;
@@ -245,7 +246,7 @@ public class SbomReportService(
             try
             {
                 CycloneDxBom cycloneDx =
-                    (await domainService.GetResource(sr.Metadata.Name, sr.Metadata.NamespaceProperty)).ToCycloneDx();
+                    (await service.GetResource(sr.Metadata.Name, sr.Metadata.NamespaceProperty)).ToCycloneDx();
                 return cycloneDx;
             }
             catch
@@ -272,7 +273,7 @@ public class SbomReportService(
             try
             {
                 SpdxBom spdx =
-                    (await domainService.GetResource(sr.Metadata.Name, sr.Metadata.NamespaceProperty)).ToSpdx();
+                    (await service.GetResource(sr.Metadata.Name, sr.Metadata.NamespaceProperty)).ToSpdx();
                 return spdx;
             }
             catch

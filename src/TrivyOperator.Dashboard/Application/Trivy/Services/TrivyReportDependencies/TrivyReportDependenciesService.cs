@@ -11,7 +11,7 @@ using TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Report.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
 using Metadata = TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Metadata;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies;

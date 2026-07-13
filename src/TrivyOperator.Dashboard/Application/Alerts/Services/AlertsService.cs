@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Application.Alerts.Hubs;
 using TrivyOperator.Dashboard.Application.Alerts.Models;
 using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Alerts.Services;
 

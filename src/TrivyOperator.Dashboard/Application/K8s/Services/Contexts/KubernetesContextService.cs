@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.K8s.Models;
 using TrivyOperator.Dashboard.Application.K8s.Services.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Contexts;
 

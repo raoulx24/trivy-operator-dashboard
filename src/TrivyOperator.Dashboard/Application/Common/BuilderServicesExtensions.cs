@@ -12,7 +12,6 @@ using TrivyOperator.Dashboard.Application.AppVersions.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.AppVersions.Services.Options;
 using TrivyOperator.Dashboard.Application.BackendSettings.Services;
 using TrivyOperator.Dashboard.Application.BackendSettings.Services.Abstractions;
-using TrivyOperator.Dashboard.Application.Common.BackgroundQueues;
 using TrivyOperator.Dashboard.Application.Common.HealthChecks;
 using TrivyOperator.Dashboard.Application.History.NamespaceHistory.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
@@ -71,7 +70,6 @@ using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Service
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.UpstreamAbstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterInfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterRbacAssessmentReport;
@@ -89,16 +87,22 @@ using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Options;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
+using TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.Caching;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
-using TrivyOperator.Dashboard.Infrastructure.DistributedCaching;
-using TrivyOperator.Dashboard.Infrastructure.DistributedCaching.Client;
-using TrivyOperator.Dashboard.Infrastructure.DistributedCaching.Client.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Common;
 
@@ -122,12 +126,13 @@ public static class BuilderServicesExtensions
             if (!useNamespaceList)
             {
                 Logger?.LogInformation("Using PassthroughCache for {kubernetesObjectType}", nameof(V1Namespace));
-                services.AddSingleton<NamespaceDomainService>();
-                services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(sp =>
-                    sp.GetRequiredService<NamespaceDomainService>()
-                );
-                services.AddSingleton<IClusterScopedResourceWatchDomainService<V1Namespace, V1NamespaceList>>(sp =>
-                    sp.GetRequiredService<NamespaceDomainService>()
+                services.AddSingleton<NamespaceService>();
+                // TODO: change this to normal singleton registration and remove static ns watcher
+                // services.AddSingleton<IClusterScopedResourceQueryService<V1Namespace, V1NamespaceList>>(sp =>
+                //     sp.GetRequiredService<NamespaceService>()
+                // );
+                services.AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>>(sp =>
+                    sp.GetRequiredService<NamespaceService>()
                 );
             }
             else
@@ -136,8 +141,8 @@ public static class BuilderServicesExtensions
                     "Using StaticNamespaceDomainService for {kubernetesObjectType}",
                     nameof(V1Namespace)
                 );
-                services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>,
-                    StaticNamespaceDomainService>();
+                services.AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>,
+                    StaticNamespaceService>();
                 services.AddSingleton<IClusterScopedWatcher<V1Namespace>, StaticNamespaceWatcher>();
             }
 
@@ -156,12 +161,12 @@ public static class BuilderServicesExtensions
         if (!useNamespaceList)
         {
             Logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", nameof(V1Namespace));
-            services.AddSingleton<NamespaceDomainService>();
-            services.AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>>(sp =>
-                sp.GetRequiredService<NamespaceDomainService>()
+            services.AddSingleton<NamespaceService>();
+            services.AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>>(sp =>
+                sp.GetRequiredService<NamespaceService>()
             );
-            services.AddSingleton<IClusterScopedResourceWatchDomainService<V1Namespace, V1NamespaceList>>(sp =>
-                sp.GetRequiredService<NamespaceDomainService>()
+            services.AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>>(sp =>
+                sp.GetRequiredService<NamespaceService>()
             );
             services.AddSingleton<IClusterScopedWatcher<V1Namespace>,
                 ClusterScopedWatcher<V1NamespaceList, V1Namespace, IKubernetesBackgroundQueue<V1Namespace>,
@@ -174,8 +179,8 @@ public static class BuilderServicesExtensions
                 nameof(V1Namespace)
             );
             services
-                .AddSingleton<IClusterScopedResourceQueryDomainService<V1Namespace, V1NamespaceList>,
-                    StaticNamespaceDomainService>();
+                .AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>,
+                    StaticNamespaceService>();
             services.AddSingleton<IClusterScopedWatcher<V1Namespace>, StaticNamespaceWatcher>();
         }
 
@@ -251,8 +256,8 @@ public static class BuilderServicesExtensions
             services.AddScoped<TAppServiceInterface, TAppService>();
             services
                 .AddSingleton<
-                    INamespacedResourceWatchDomainService<TNamespacedTrivyReportCr,
-                        CustomResourceList<TNamespacedTrivyReportCr>>, FileTrivyReportPassThroughDomainService<
+                    INamespacedResourceWatchService<TNamespacedTrivyReportCr,
+                        CustomResourceList<TNamespacedTrivyReportCr>>, FileTrivyReportPassThroughService<
                         TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
 
             return;
@@ -316,9 +321,9 @@ public static class BuilderServicesExtensions
 
         services
             .AddSingleton<
-                INamespacedResourceWatchDomainService<TNamespacedTrivyReportCr,
+                INamespacedResourceWatchService<TNamespacedTrivyReportCr,
                     CustomResourceList<TNamespacedTrivyReportCr>>,
-                NamespacedTrivyReportDomainService<TNamespacedTrivyReportCr>>();
+                NamespacedTrivyReportService<TNamespacedTrivyReportCr>>();
     }
 
     private static void AddClusterScopedTrivyServices<TClusterScopedTrivyReportCr, TAppServiceInterface, TNullAppService,
@@ -405,9 +410,9 @@ public static class BuilderServicesExtensions
         services.AddScoped<TAppServiceInterface, TAppService>();
         services
             .AddSingleton<
-                IClusterScopedResourceWatchDomainService<TClusterScopedTrivyReportCr,
+                IClusterScopedResourceWatchService<TClusterScopedTrivyReportCr,
                     CustomResourceList<TClusterScopedTrivyReportCr>>,
-                ClusterScopedTrivyReportDomainService<TClusterScopedTrivyReportCr>>();
+                ClusterScopedTrivyReportService<TClusterScopedTrivyReportCr>>();
     }
 
 

@@ -1,7 +1,7 @@
 ﻿using k8s.Models;
 using System.Collections.Concurrent;
 using TrivyOperator.Dashboard.Application.K8s.Services.Namespaces.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Namespaces;

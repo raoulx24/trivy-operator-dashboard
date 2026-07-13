@@ -5,14 +5,14 @@ public readonly record struct NamespaceName
     private const string Sentinel = "__none__";
     public string Value { get; }
 
-    public NamespaceName(string value)
+    public NamespaceName(string? value)
     {
-        Value = string.Intern(value.ToLowerInvariant());
+        Value = string.Intern(value?.ToLowerInvariant() ?? Sentinel);
     }
     
-    public NamespaceName() : this(Sentinel) { } // for default()
+    public NamespaceName() : this(Sentinel) { }
     
     public bool IsClusterScoped => Value == Sentinel;
 
-    public override string ToString() => Value;
+    public override string ToString() => Value ?? Sentinel;
 }
