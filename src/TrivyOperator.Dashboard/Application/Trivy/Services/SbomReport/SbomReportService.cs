@@ -7,7 +7,6 @@ using System.Xml.Serialization;
 using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.Options;
 using TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy;
 using TrivyOperator.Dashboard.Domain.TrivyOld;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;

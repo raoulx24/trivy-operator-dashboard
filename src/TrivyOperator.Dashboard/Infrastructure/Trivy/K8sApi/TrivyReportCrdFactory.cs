@@ -9,12 +9,12 @@ using TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi;
+namespace TrivyOperator.Dashboard.Infrastructure.Trivy.K8sApi;
 
-public class CustomResourceDefinitionFactory : ICustomResourceDefinitionFactory
+public class TrivyReportCrdFactory : ICrdFactory
 {
     public CustomResourceDefinition Get<TKubernetesObject>() => typeof(TKubernetesObject) switch
     {

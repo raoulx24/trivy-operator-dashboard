@@ -1,6 +1,6 @@
 using k8s;
 
-namespace TrivyOperator.Dashboard.Domain.K8s.Abstractions;
+namespace TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
 public record WatchEvent<TKubernetesObject>
 {

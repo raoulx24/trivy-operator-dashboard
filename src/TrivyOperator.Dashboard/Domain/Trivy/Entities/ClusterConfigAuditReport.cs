@@ -1,8 +1,6 @@
-﻿using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
@@ -15,7 +13,7 @@ public sealed record ClusterConfigAuditReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : ITrivyReport
+    : IClusterScopedTrivyReport
 {
     public Uid Id => Metadata.Uid;
 }

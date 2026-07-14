@@ -14,7 +14,7 @@ public sealed record ClusterSbomReport(
     SbomMetadata SbomMetadata,
     ComponentId RootNodeBomRef,
     IReadOnlyList<Component> Components
-) : ITrivyReport
+) : IClusterScopedTrivyReport
 {
     public Uid Id => Occurrence.Metadata.Uid;
 }

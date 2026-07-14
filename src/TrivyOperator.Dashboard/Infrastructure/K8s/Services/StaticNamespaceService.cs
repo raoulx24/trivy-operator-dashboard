@@ -3,7 +3,7 @@ using k8s.Models;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Utils;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
@@ -36,22 +36,20 @@ public class StaticNamespaceService(
     public Task<V1Namespace> GetResource(string resourceName, CancellationToken? cancellationToken = null) =>
         Task.FromResult(CreateNamespace(resourceName));
 
-    public Task<V1NamespaceList> GetResourceList(
+    public async Task<V1NamespaceList> GetResourceList(
         int? pageLimit = null,
         string? continueToken = null,
         CancellationToken? cancellationToken = null
-    ) => Task.FromResult(
-        new V1NamespaceList
+    ) => new()
+    {
+        ApiVersion = "v1",
+        Kind = "NamespaceList",
+        Metadata = new V1ListMeta
         {
-            ApiVersion = "v1",
-            Kind = "NamespaceList",
-            Metadata = new V1ListMeta
-            {
-                ResourceVersion = "1",
-            },
-            Items = GetResources().Result,
-        }
-    );
+            ResourceVersion = "1",
+        },
+        Items = await GetResources(),
+    };
     
     public IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
         string? lastResourceVersion = null,

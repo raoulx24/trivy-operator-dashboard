@@ -69,7 +69,6 @@ using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Abstrac
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterInfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterRbacAssessmentReport;
@@ -84,8 +83,6 @@ using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Options;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.Caching;
@@ -103,6 +100,7 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.K8sApi;
 
 namespace TrivyOperator.Dashboard.Application.Common;
 
@@ -197,7 +195,7 @@ public static class BuilderServicesExtensions
 
     public static void AddTrivyServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<ICustomResourceDefinitionFactory, CustomResourceDefinitionFactory>();
+        services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
 
         services.AddClusterScopedTrivyServices<ClusterComplianceReportCr, IClusterComplianceReportService,
             ClusterComplianceReportNullService, ClusterComplianceReportService>(configuration);
@@ -323,7 +321,7 @@ public static class BuilderServicesExtensions
             .AddSingleton<
                 INamespacedResourceWatchService<TNamespacedTrivyReportCr,
                     CustomResourceList<TNamespacedTrivyReportCr>>,
-                NamespacedTrivyReportService<TNamespacedTrivyReportCr>>();
+                NamespacedCustomResourceService<TNamespacedTrivyReportCr>>();
     }
 
     private static void AddClusterScopedTrivyServices<TClusterScopedTrivyReportCr, TAppServiceInterface, TNullAppService,
@@ -412,7 +410,7 @@ public static class BuilderServicesExtensions
             .AddSingleton<
                 IClusterScopedResourceWatchService<TClusterScopedTrivyReportCr,
                     CustomResourceList<TClusterScopedTrivyReportCr>>,
-                ClusterScopedTrivyReportService<TClusterScopedTrivyReportCr>>();
+                ClusterScopedCustomResourceService<TClusterScopedTrivyReportCr>>();
     }
 
 

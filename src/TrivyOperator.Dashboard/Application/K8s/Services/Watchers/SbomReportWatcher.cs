@@ -2,7 +2,6 @@
 using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;

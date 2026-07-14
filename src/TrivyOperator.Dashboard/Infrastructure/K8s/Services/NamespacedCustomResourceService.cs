@@ -1,60 +1,60 @@
 ﻿using k8s;
+using k8s.Models;
 using System.Text.Json;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
-namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.K8sApi;
+namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 
-public class ClusterScopedTrivyReportService<TKubernetesObject>(
+public class NamespacedCustomResourceService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
     IServiceScopeFactory scopeFactory,
-    ICustomResourceDefinitionFactory customResourceDefinitionFactory
-) : ClusterScopedResourceService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
+    ICrdFactory customResourceDefinitionFactory,
+    IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList> namespaceService
+) : NamespacedResourceService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
     kubernetesClientFactory,
-    scopeFactory
+    scopeFactory,
+    namespaceService
 )
     where TKubernetesObject : CustomResource
 {
-    private CustomResourceDefinition? trivyReportCrd;
-
-    protected CustomResourceDefinition TrivyReportCrd
-    {
-        get
-        {
-            trivyReportCrd ??= customResourceDefinitionFactory.Get<TKubernetesObject>();
-
-            return trivyReportCrd;
-        }
-    }
+    protected CustomResourceDefinition Crd =>
+        field ??= customResourceDefinitionFactory.Get<TKubernetesObject>();
 
     public override Task<CustomResourceList<TKubernetesObject>> GetResourceList(
+        string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
         CancellationToken? cancellationToken = null
     ) => GetKubernetesClient()
-        .ListClusterCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
-            TrivyReportCrd.Group,
-            TrivyReportCrd.Version,
-            TrivyReportCrd.PluralName,
+        .ListNamespacedCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
+            Crd.Group,
+            Crd.Version,
+            namespaceName,
+            Crd.PluralName,
             limit: pageLimit,
             continueParameter: continueToken,
             cancellationToken: cancellationToken ?? CancellationToken.None
         );
 
-    public override Task<TKubernetesObject>
-        GetResource(string resourceName, CancellationToken? cancellationToken = null) => GetKubernetesClient()
-        .CustomObjects.GetClusterCustomObjectAsync<TKubernetesObject>(
-            TrivyReportCrd.Group,
-            TrivyReportCrd.Version,
-            TrivyReportCrd.PluralName,
+    public override Task<TKubernetesObject> GetResource(
+        string resourceName,
+        string namespaceName,
+        CancellationToken? cancellationToken = null
+    ) => GetKubernetesClient()
+        .CustomObjects.GetNamespacedCustomObjectAsync<TKubernetesObject>(
+            Crd.Group,
+            Crd.Version,
+            namespaceName,
+            Crd.PluralName,
             resourceName,
             cancellationToken ?? CancellationToken.None
         );
 
     public override async IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
+        string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
         Action<Exception>? onError = null,
@@ -62,10 +62,11 @@ public class ClusterScopedTrivyReportService<TKubernetesObject>(
     )
     {
         IAsyncEnumerable<(WatchEventType, object)> watchStream = GetKubernetesClient()
-            .CustomObjects.WatchListClusterCustomObjectAsync(
-                TrivyReportCrd.Group,
-                TrivyReportCrd.Version,
-                TrivyReportCrd.PluralName,
+            .CustomObjects.WatchListNamespacedCustomObjectAsync(
+                Crd.Group,
+                Crd.Version,
+                namespaceName,
+                Crd.PluralName,
                 resourceVersion: lastResourceVersion,
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,

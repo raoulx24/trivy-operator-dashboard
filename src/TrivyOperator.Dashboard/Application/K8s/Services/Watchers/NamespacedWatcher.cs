@@ -5,7 +5,7 @@ using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstract
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 

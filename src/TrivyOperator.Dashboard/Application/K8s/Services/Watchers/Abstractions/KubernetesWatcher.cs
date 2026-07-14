@@ -9,7 +9,7 @@ using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents.Abstractions;
 using TrivyOperator.Dashboard.Application.Utils;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
