@@ -4,7 +4,7 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.ConfigAuditReport.Abstr
 using TrivyOperator.Dashboard.Domain.Trivy;
 using TrivyOperator.Dashboard.Domain.TrivyOld;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ConfigAuditReport;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ConfigAuditReport;
 

@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 public abstract class ResourcePassthroughCache<TValue> : IConcurrentDictionaryCache<TValue>
     where TValue : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>

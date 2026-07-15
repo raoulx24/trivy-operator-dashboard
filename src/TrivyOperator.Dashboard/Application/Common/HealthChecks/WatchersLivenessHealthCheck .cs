@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Common.HealthChecks;
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
 using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain.Abstracts;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.RawDomain;
 

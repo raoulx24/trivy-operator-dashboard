@@ -2,7 +2,6 @@
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-public interface INamespaceUidBasedTrivyReport : INamespacedTrivyReport
+public interface INamespaceUidBasedTrivyReport : INamespacedTrivyReport<NamespacedUid>
 {
-    NamespacedUid Id { get; }
 }

@@ -121,7 +121,7 @@ public static class TrivySharedMappingExtensions
         return result;
     }
 
-    public static bool IsOtherNewer(ITrivyReport? other, Timestamp currentLastSeen)
+    public static bool IsOtherNewer<TId>(ITrivyReport<TId>? other, Timestamp currentLastSeen)
         => other?.LastSeenAt > currentLastSeen;
 
     public static bool HasOtherSameId(IDigestBasedReport? other, NamespaceName currentNs, Digest currentDigest)

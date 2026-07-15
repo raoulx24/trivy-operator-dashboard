@@ -1,10 +1,10 @@
 ﻿using k8s;
 using k8s.Models;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld;
 
 public class NamespacedResourcePassthroughCache<TValue, TList>(
     INamespacedResourceWatchService<TValue, TList> domain

@@ -1,9 +1,9 @@
 ﻿using k8s;
 using k8s.Models;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld;
 
 public class FileResourcePassthroughCache<TTrivyReport>(IFileTrivyReportDomainService<TTrivyReport> domain)
     : ResourcePassthroughCache<TTrivyReport>

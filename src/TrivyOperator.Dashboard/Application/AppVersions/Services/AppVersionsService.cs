@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using TrivyOperator.Dashboard.Application.AppVersions.Models;
 using TrivyOperator.Dashboard.Application.AppVersions.Services.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
 
 namespace TrivyOperator.Dashboard.Application.AppVersions.Services;

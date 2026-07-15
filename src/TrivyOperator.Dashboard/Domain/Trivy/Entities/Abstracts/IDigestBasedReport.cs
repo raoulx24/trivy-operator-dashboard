@@ -3,8 +3,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared.Identities;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-public interface IDigestBasedReport : INamespacedTrivyReport
+public interface IDigestBasedReport : INamespacedTrivyReport<NamespacedDigest>
 {
     IReadOnlyList<ReportImageOccurrence> Occurrences { get; }
-    NamespacedDigest Id { get; }
 }

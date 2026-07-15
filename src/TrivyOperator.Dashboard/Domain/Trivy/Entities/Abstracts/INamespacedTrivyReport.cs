@@ -2,7 +2,7 @@
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-public interface INamespacedTrivyReport : ITrivyReport
+public interface INamespacedTrivyReport<out TId> : ITrivyReport<TId>
 {
     NamespaceName NamespaceName { get; }
 }

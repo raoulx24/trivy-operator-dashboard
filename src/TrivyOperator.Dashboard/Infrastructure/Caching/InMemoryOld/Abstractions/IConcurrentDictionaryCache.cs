@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 public interface IConcurrentDictionaryCache<TValue> : IConcurrentCache<string, ConcurrentDictionary<string, TValue>>;

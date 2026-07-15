@@ -12,7 +12,7 @@ using TrivyOperator.Dashboard.Domain.TrivyOld;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport;

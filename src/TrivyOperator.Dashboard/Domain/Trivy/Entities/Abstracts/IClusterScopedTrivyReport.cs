@@ -2,7 +2,6 @@
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-public interface IClusterScopedTrivyReport : ITrivyReport
+public interface IClusterScopedTrivyReport : ITrivyReport<Uid>
 {
-    Uid Id { get; }
 }

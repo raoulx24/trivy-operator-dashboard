@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.AppVersions.Services;
 using TrivyOperator.Dashboard.Application.AppVersions.Services.Options;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
 
