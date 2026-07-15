@@ -12,10 +12,10 @@ public class NamespacedResourcePassthroughCache<TValue, TList>(
     where TValue : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TList : IKubernetesObject<V1ListMeta>, IItems<TValue>
 {
-    protected override Task<IList<TValue>> FetchAllAsync(CancellationToken? cancellationToken = null) =>
+    protected override Task<IList<TValue>> FetchAllAsync(CancellationToken cancellationToken = default) =>
         domain.GetResources(cancellationToken);
 
-    protected override Task<IList<TValue>> FetchByKeyAsync(string key, CancellationToken? cancellationToken = null) =>
+    protected override Task<IList<TValue>> FetchByKeyAsync(string key, CancellationToken cancellationToken = default) =>
         key == CacheUtils.DefaultCacheRefreshKey ? domain.GetResources(cancellationToken)
             : domain.GetResources(key, cancellationToken);
 }

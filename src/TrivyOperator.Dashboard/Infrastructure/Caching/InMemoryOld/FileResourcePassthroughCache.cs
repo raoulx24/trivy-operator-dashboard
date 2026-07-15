@@ -9,11 +9,11 @@ public class FileResourcePassthroughCache<TTrivyReport>(IFileTrivyReportDomainSe
     : ResourcePassthroughCache<TTrivyReport>
     where TTrivyReport : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
 {
-    protected override Task<IList<TTrivyReport>> FetchAllAsync(CancellationToken? cancellationToken = null) =>
+    protected override Task<IList<TTrivyReport>> FetchAllAsync(CancellationToken cancellationToken = default) =>
         domain.GetAllReportsAsync(cancellationToken);
 
     protected override Task<IList<TTrivyReport>> FetchByKeyAsync(
         string key,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     ) => domain.GetAllReportsAsync(key, cancellationToken);
 }

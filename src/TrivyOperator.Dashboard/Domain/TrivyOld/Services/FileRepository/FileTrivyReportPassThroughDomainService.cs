@@ -15,7 +15,7 @@ public class FileTrivyReportPassThroughService<TTrivyReport, TTrivyReportList>(
     public async Task<TTrivyReport> GetResource(
         string resourceName,
         string namespaceName,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     )
     {
         IList<TTrivyReport> resources =
@@ -27,13 +27,13 @@ public class FileTrivyReportPassThroughService<TTrivyReport, TTrivyReportList>(
         string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     ) => throw new NotImplementedException();
 
-    public Task<IList<TTrivyReport>> GetResources(CancellationToken? cancellationToken = null) =>
+    public Task<IList<TTrivyReport>> GetResources(CancellationToken cancellationToken = default) =>
         fileTrivyReportDomainService.GetAllReportsAsync(cancellationToken);
 
-    public Task<IList<TTrivyReport>> GetResources(string namespaceName, CancellationToken? cancellationToken = null) =>
+    public Task<IList<TTrivyReport>> GetResources(string namespaceName, CancellationToken cancellationToken = default) =>
         fileTrivyReportDomainService.GetAllReportsAsync(namespaceName, cancellationToken);
 
     public IAsyncEnumerable<WatchEvent<TTrivyReport>> GetResourceWatchList(
@@ -41,6 +41,6 @@ public class FileTrivyReportPassThroughService<TTrivyReport, TTrivyReportList>(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
         Action<Exception>? onError = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     ) => throw new NotImplementedException();
 }

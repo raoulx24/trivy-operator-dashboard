@@ -1,8 +1,7 @@
 ﻿using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues;

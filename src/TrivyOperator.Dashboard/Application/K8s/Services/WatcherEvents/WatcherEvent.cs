@@ -1,5 +1,5 @@
 ﻿using k8s;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 

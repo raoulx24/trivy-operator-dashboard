@@ -77,8 +77,8 @@ public abstract class ResourcePassthroughCache<TValue> : IConcurrentDictionaryCa
     }
 
     public void Clear() { }
-    protected abstract Task<IList<TValue>> FetchAllAsync(CancellationToken? cancellationToken = null);
-    protected abstract Task<IList<TValue>> FetchByKeyAsync(string key, CancellationToken? cancellationToken = null);
+    protected abstract Task<IList<TValue>> FetchAllAsync(CancellationToken cancellationToken = default);
+    protected abstract Task<IList<TValue>> FetchByKeyAsync(string key, CancellationToken cancellationToken = default);
 
     protected static ConcurrentDictionary<string, TValue> BuildInner(IList<TValue> items) =>
         new(items.ToDictionary(x => x.Uid(), x => x));

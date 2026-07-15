@@ -4,10 +4,9 @@ using k8s.Models;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Net;
-using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents.Abstractions;
 using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
@@ -310,14 +309,14 @@ public abstract class
     protected abstract Task<TKubernetesObjectList> GetInitialResources(
         string watcherKey,
         string? continueToken,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 
     protected abstract IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         string watcherKey,
         string? lastResourceVersion,
         Action<Exception>? onError = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 
     protected virtual void ProcessReceivedKubernetesObject(TKubernetesObject kubernetesObject)

@@ -24,5 +24,5 @@ public abstract class KubernetesResourceService<TKubernetesObject>(
         return kubernetesClientFactory.GetClient(currentContext);
     }
 
-    public abstract Task<IList<TKubernetesObject>> GetResources(CancellationToken? cancellationToken = null);
+    public abstract Task<IList<TKubernetesObject>> GetResources(CancellationToken cancellationToken = default);
 }

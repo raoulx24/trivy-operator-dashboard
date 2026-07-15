@@ -2,7 +2,7 @@
 using k8s.Models;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
-namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
+namespace TrivyOperator.Dashboard.Application.K8s.Pipeline;
 
 public interface IKubernetesWatcher
 {

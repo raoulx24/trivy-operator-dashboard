@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Infrastructure.Utils;
+﻿using TrivyOperator.Dashboard.Application.K8s.Pipeline;
+using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
 

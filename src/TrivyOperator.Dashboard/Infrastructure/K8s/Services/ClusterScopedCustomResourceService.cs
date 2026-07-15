@@ -1,4 +1,5 @@
 ﻿using k8s;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
@@ -23,7 +24,7 @@ public class ClusterScopedCustomResourceService<TKubernetesObject>(
     public override Task<CustomResourceList<TKubernetesObject>> GetResourceList(
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     ) => GetKubernetesClient()
         .ListClusterCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
             Crd.Group,
@@ -31,24 +32,24 @@ public class ClusterScopedCustomResourceService<TKubernetesObject>(
             Crd.PluralName,
             limit: pageLimit,
             continueParameter: continueToken,
-            cancellationToken: cancellationToken ?? CancellationToken.None
+            cancellationToken: cancellationToken
         );
 
     public override Task<TKubernetesObject>
-        GetResource(string resourceName, CancellationToken? cancellationToken = null) => GetKubernetesClient()
+        GetResource(string resourceName, CancellationToken cancellationToken = default) => GetKubernetesClient()
         .CustomObjects.GetClusterCustomObjectAsync<TKubernetesObject>(
             Crd.Group,
             Crd.Version,
             Crd.PluralName,
             resourceName,
-            cancellationToken ?? CancellationToken.None
+            cancellationToken
         );
 
     public override async IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
         Action<Exception>? onError = null,
-        CancellationToken? cancellationToken = null
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
         IAsyncEnumerable<(WatchEventType, object)> watchStream = GetKubernetesClient()
@@ -60,8 +61,7 @@ public class ClusterScopedCustomResourceService<TKubernetesObject>(
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,
                 onError: onError,
-                cancellationToken: cancellationToken ?? CancellationToken.None
-            );
+                cancellationToken: cancellationToken);
         await foreach ((WatchEventType type, object item) in watchStream)
         {
             yield return new WatchEvent<TKubernetesObject>

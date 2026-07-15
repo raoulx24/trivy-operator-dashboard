@@ -1,6 +1,7 @@
 ﻿using k8s;
+using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 
-namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents.Abstractions;
+namespace TrivyOperator.Dashboard.Application.K8s.Pipeline;
 
 public interface IWatcherEvent<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject

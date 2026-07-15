@@ -1,5 +1,6 @@
 ﻿using k8s;
 using k8s.Models;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
@@ -27,7 +28,7 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
         string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     ) => GetKubernetesClient()
         .ListNamespacedCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
             Crd.Group,
@@ -36,13 +37,13 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
             Crd.PluralName,
             limit: pageLimit,
             continueParameter: continueToken,
-            cancellationToken: cancellationToken ?? CancellationToken.None
+            cancellationToken: cancellationToken
         );
 
     public override Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     ) => GetKubernetesClient()
         .CustomObjects.GetNamespacedCustomObjectAsync<TKubernetesObject>(
             Crd.Group,
@@ -50,7 +51,7 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
             namespaceName,
             Crd.PluralName,
             resourceName,
-            cancellationToken ?? CancellationToken.None
+            cancellationToken
         );
 
     public override async IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
@@ -58,7 +59,7 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
         Action<Exception>? onError = null,
-        CancellationToken? cancellationToken = null
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
         IAsyncEnumerable<(WatchEventType, object)> watchStream = GetKubernetesClient()
@@ -71,7 +72,7 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,
                 onError: onError,
-                cancellationToken: cancellationToken ?? CancellationToken.None
+                cancellationToken: cancellationToken
             );
         await foreach ((WatchEventType type, object item) in watchStream)
         {

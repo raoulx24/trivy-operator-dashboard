@@ -15,7 +15,7 @@ public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesOb
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    public override async Task<IList<TKubernetesObject>> GetResources(CancellationToken? cancellationToken = null)
+    public override async Task<IList<TKubernetesObject>> GetResources(CancellationToken cancellationToken = default)
     {
         IEnumerable<V1Namespace> v1Namespaces = await namespaceService.GetResources(cancellationToken);
         List<TKubernetesObject> trivyReports = [];
@@ -36,7 +36,7 @@ public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesOb
 
     public async Task<IList<TKubernetesObject>> GetResources(
         string namespaceName,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     )
     {
         TKubernetesObjectList kubernetesObjectList =
@@ -48,13 +48,13 @@ public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesOb
         string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 
     public abstract Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 
     public abstract IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
@@ -62,6 +62,6 @@ public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesOb
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
         Action<Exception>? onError = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 }

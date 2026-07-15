@@ -14,7 +14,7 @@ public class StaticNamespaceService(
     ILogger<StaticNamespaceService> logger
 ) : IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>
 {
-    public Task<IList<V1Namespace>> GetResources(CancellationToken? cancellationToken = null)
+    public Task<IList<V1Namespace>> GetResources(CancellationToken cancellationToken = default)
     {
         string configKubernetesNamespaces = kubernetesOptions.Value.NamespaceList;
 
@@ -33,13 +33,13 @@ public class StaticNamespaceService(
         return Task.FromResult<IList<V1Namespace>>(kubernetesNamespaces);
     }
 
-    public Task<V1Namespace> GetResource(string resourceName, CancellationToken? cancellationToken = null) =>
+    public Task<V1Namespace> GetResource(string resourceName, CancellationToken cancellationToken = default) =>
         Task.FromResult(CreateNamespace(resourceName));
 
     public async Task<V1NamespaceList> GetResourceList(
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     ) => new()
     {
         ApiVersion = "v1",
@@ -48,15 +48,8 @@ public class StaticNamespaceService(
         {
             ResourceVersion = "1",
         },
-        Items = await GetResources(),
+        Items = await GetResources(cancellationToken),
     };
-    
-    public IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
-        string? lastResourceVersion = null,
-        int? timeoutSeconds = null,
-        Action<Exception>? onError = null,
-        CancellationToken? cancellationToken = null
-    ) => throw new NotImplementedException();
     
     public async IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
     string? lastResourceVersion = null,

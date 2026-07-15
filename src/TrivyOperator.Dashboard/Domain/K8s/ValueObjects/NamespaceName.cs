@@ -12,7 +12,7 @@ public readonly record struct NamespaceName
     
     public NamespaceName() : this(Sentinel) { }
     
-    public bool IsClusterScoped => Value == Sentinel;
+    public bool IsClusterScoped => string.IsNullOrEmpty(Value) || Value == Sentinel;
 
     public override string ToString() => Value ?? Sentinel;
 }

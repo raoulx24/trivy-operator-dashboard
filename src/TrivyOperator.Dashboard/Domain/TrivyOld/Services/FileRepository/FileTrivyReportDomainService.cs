@@ -16,9 +16,9 @@ public class FileTrivyReportDomainService<TTrivyReport>(
 ) : IFileTrivyReportDomainService<TTrivyReport>
     where TTrivyReport : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
 {
-    public async Task<IList<TTrivyReport>> GetAllReportsAsync(CancellationToken? cancellationToken = null)
+    public async Task<IList<TTrivyReport>> GetAllReportsAsync(CancellationToken cancellationToken = default)
     {
-        CancellationToken ct = cancellationToken ?? CancellationToken.None;
+        CancellationToken ct = cancellationToken;
 
         string folder = folderNameFactory.Get<TTrivyReport>();
         string fullPath = Path.Combine(options.Value.BasePath, folder);
@@ -180,7 +180,7 @@ public class FileTrivyReportDomainService<TTrivyReport>(
         return [.. results,];
     }
 
-    public async Task<IList<TTrivyReport>> GetAllReportsAsync(string key, CancellationToken? cancellationToken = null)
+    public async Task<IList<TTrivyReport>> GetAllReportsAsync(string key, CancellationToken cancellationToken = default)
     {
         IList<TTrivyReport> resources = await GetAllReportsAsync(cancellationToken);
         return [.. resources.Where(r => r.Metadata.NamespaceProperty == key),];

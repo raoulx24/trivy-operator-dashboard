@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;

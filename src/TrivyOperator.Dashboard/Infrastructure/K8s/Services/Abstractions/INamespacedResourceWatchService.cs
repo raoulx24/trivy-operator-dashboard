@@ -11,24 +11,24 @@ public interface INamespacedResourceWatchService<TKubernetesObject, TKubernetesO
     Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 
     Task<TKubernetesObjectList> GetResourceList(
         string namespaceName,
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 
-    Task<IList<TKubernetesObject>> GetResources(CancellationToken? cancellationToken = null);
-    Task<IList<TKubernetesObject>> GetResources(string namespaceName, CancellationToken? cancellationToken = null);
+    Task<IList<TKubernetesObject>> GetResources(CancellationToken cancellationToken = default);
+    Task<IList<TKubernetesObject>> GetResources(string namespaceName, CancellationToken cancellationToken = default);
 
     IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
         Action<Exception>? onError = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;

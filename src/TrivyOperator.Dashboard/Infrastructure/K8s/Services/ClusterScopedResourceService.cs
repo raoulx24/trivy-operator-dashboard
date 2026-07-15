@@ -14,7 +14,7 @@ public abstract class ClusterScopedResourceService<TKubernetesObject, TKubernete
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    public override async Task<IList<TKubernetesObject>> GetResources(CancellationToken? cancellationToken = null)
+    public override async Task<IList<TKubernetesObject>> GetResources(CancellationToken cancellationToken = default)
     {
         TKubernetesObjectList kubernetesObjectList = await GetResourceList(cancellationToken: cancellationToken);
         return kubernetesObjectList.Items;
@@ -23,18 +23,18 @@ public abstract class ClusterScopedResourceService<TKubernetesObject, TKubernete
     public abstract Task<TKubernetesObjectList> GetResourceList(
         int? pageLimit = null,
         string? continueToken = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 
     public abstract Task<TKubernetesObject> GetResource(
         string resourceName,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 
     public abstract IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
         Action<Exception>? onError = null,
-        CancellationToken? cancellationToken = null
+        CancellationToken cancellationToken = default
     );
 }
