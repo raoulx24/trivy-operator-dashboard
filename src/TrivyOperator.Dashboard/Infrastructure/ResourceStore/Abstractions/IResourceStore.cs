@@ -2,9 +2,12 @@
 
 namespace TrivyOperator.Dashboard.Infrastructure.ResourceStore.Abstractions;
 
-public interface IResourceStore<in T>
+public interface IResourceStore<TResource, in TKey>
 {
-    Task UpsertResource(NamespaceName namespaceName, T resource);
+    Task UpsertResource(NamespaceName namespaceName, TResource resource);
 
-    Task DeleteResource(NamespaceName namespaceName, T resource);
+    Task DeleteResource(NamespaceName namespaceName, TResource resource);
+
+    Task<TResource?> GetResource(NamespaceName namespaceName, TKey key);
+    
 }

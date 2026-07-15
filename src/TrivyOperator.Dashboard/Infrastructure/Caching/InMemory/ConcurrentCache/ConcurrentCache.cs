@@ -44,6 +44,9 @@ public class ConcurrentCache<TKey, TValue> : IConcurrentCache<TKey, TValue>
 
     public bool TryRemove(TKey key, [MaybeNullWhen(false)] out TValue value) =>
         dictionary.TryRemove(key, out value);
+    
+    public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory) =>
+        dictionary.GetOrAdd(key, valueFactory);
 
     public bool ContainsKey(TKey key) => dictionary.ContainsKey(key);
 
