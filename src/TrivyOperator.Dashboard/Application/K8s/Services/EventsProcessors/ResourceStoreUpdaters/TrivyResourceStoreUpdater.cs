@@ -1,0 +1,133 @@
+﻿using TrivyOperator.Dashboard.Application.K8s.Services.CacheRefreshers;
+using TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
+using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents.Abstractions;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
+using TrivyOperator.Dashboard.Infrastructure.ResourceStore.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
+
+namespace TrivyOperator.Dashboard.Application.K8s.Services.EventsProcessors.ResourceStoreUpdaters;
+
+public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
+    IResourceStore<TResource, TKey> resourceStore,
+    ITrivyReportMapper<TKubernetesObject, TResource> mapper,
+    ITrivyReportKeyProvider<TKubernetesObject, TKey> keyProvider,
+    ILogger<CacheRefresher<TKubernetesObject>> logger
+) : IKubernetesEventProcessor<TKubernetesObject>
+    where TKubernetesObject : CustomResource
+    where TResource : ITrivyReport<TKey>, ITrivyReport
+{
+    public async Task ProcessKubernetesEvent(
+        IWatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken ctx
+    )
+    {
+        switch (watcherEvent.WatcherEventType)
+        {
+            case WatcherEventType.InitialAdded:
+            case WatcherEventType.Added:
+                await ProcessAddEvent(watcherEvent, ctx);
+                break;
+            case WatcherEventType.Deleted:
+                await ProcessDeleteEvent(watcherEvent, ctx);
+                break;
+            case WatcherEventType.Error:
+            case WatcherEventType.Flushed:
+                await ProcessErrorEvent(watcherEvent, ctx);
+                break;
+            case WatcherEventType.Modified:
+                await ProcessModifiedEvent(watcherEvent, ctx);
+                break;
+            case WatcherEventType.Initialized:
+                ProcessInitEvent(watcherEvent);
+                break;
+            case WatcherEventType.Unknown:
+                logger.LogWarning(
+                    "Unknown event type {eventType} for {kubernetesObjectType}.",
+                    watcherEvent.WatcherEventType,
+                    typeof(TKubernetesObject).Name
+                );
+                break;
+        }
+    }
+    
+    private async Task ProcessAddEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    {
+        TKubernetesObject? k8sObject = watcherEvent.KubernetesObject;
+        
+        if (k8sObject is null)
+        {
+            logger.LogWarning(
+                "ProcessAddEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
+                watcherEvent.WatcherKey,
+                typeof(TKubernetesObject).Name
+            );
+            return;
+        }
+
+        TKey domainKey = keyProvider.GetKey(k8sObject);
+        NamespaceName ns = new(k8sObject.Metadata.NamespaceProperty);
+
+        TResource? existing = await resourceStore.Get(ns, domainKey, ctx);
+        TResource resource = mapper.MapToDomain(k8sObject, existing);
+
+        await resourceStore.Upsert(ns, resource, ctx);
+    }
+
+    private async Task ProcessDeleteEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    {
+        TKubernetesObject? k8sObject = watcherEvent.KubernetesObject;
+        
+        if (k8sObject is null)
+        {
+            logger.LogWarning(
+                "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
+                watcherEvent.WatcherKey,
+                typeof(TKubernetesObject).Name
+            );
+            return;
+        }
+        
+        TKey domainKey = keyProvider.GetKey(k8sObject);
+        NamespaceName ns = new(k8sObject.Metadata.NamespaceProperty);
+
+        await resourceStore.Delete(ns, domainKey, ctx);
+    }
+    
+    private async Task ProcessErrorEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    {
+        TKubernetesObject? k8sObject = watcherEvent.KubernetesObject;
+        
+        if (k8sObject is null)
+        {
+            logger.LogWarning(
+                "ProcessErrorEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
+                watcherEvent.WatcherKey,
+                typeof(TKubernetesObject).Name
+            );
+            return;
+        }
+        
+        NamespaceName ns = new(k8sObject.Metadata.NamespaceProperty);
+
+        await resourceStore.ClearByNamespace(ns, ctx);
+    }
+    
+    private async Task ProcessModifiedEvent(
+        IWatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken cancellationToken
+    )
+    {
+        logger.LogDebug("ProcessModifiedEvent - redirecting to ProcessAddEvent.");
+        await ProcessAddEvent(watcherEvent, cancellationToken);
+    }
+
+    private void ProcessInitEvent(IWatcherEvent<TKubernetesObject> watcherEvent)
+    {
+        logger.LogDebug("ProcessInitEvent - for {watcherKey} {kubernetesObjectType}. Nothing to do",
+            watcherEvent.WatcherKey,
+            typeof(TKubernetesObject).Name);
+    }
+}

@@ -13,7 +13,7 @@ public class InMemoryCache<TResource, TKey>(
     where TKey : notnull
 
 {
-    public Task UpsertResource(NamespaceName namespaceName, TResource resource)
+    public Task Upsert(NamespaceName namespaceName, TResource resource, CancellationToken? ctx = null)
     {
         logger.LogDebug(
             "Upsert - {objectType} - {cacheKey}",
@@ -30,10 +30,10 @@ public class InMemoryCache<TResource, TKey>(
         return Task.CompletedTask;
     }
 
-    public Task DeleteResource(NamespaceName namespaceName, TResource resource)
+    public Task Delete(NamespaceName namespaceName, TKey key, CancellationToken? ctx = null)
     {
         logger.LogDebug(
-            "ProcessDeleteEvent - {objectType} - {cacheKey}",
+            "Delete - {objectType} - {cacheKey}",
             typeof(TResource).Name,
             namespaceName.ToString()
         );
@@ -46,13 +46,19 @@ public class InMemoryCache<TResource, TKey>(
             return Task.CompletedTask;
         }
 
-        kubernetesObjectsCache.TryRemove(resource.Id, out _);
+        kubernetesObjectsCache.TryRemove(key, out _);
 
         return Task.CompletedTask;
     }
 
-    public Task<TResource?> GetResource(NamespaceName namespaceName, TKey key)
+    public Task<TResource?> Get(NamespaceName namespaceName, TKey key, CancellationToken? ctx = null)
     {
+        logger.LogDebug(
+            "Get - {objectType} - {cacheKey}",
+            typeof(TResource).Name,
+            namespaceName.ToString()
+        );
+        
         if (!cache.TryGetValue(namespaceName, out ConcurrentDictionary<TKey, TResource>? innerCache))
         {
             return Task.FromResult<TResource?>(null);
@@ -61,5 +67,16 @@ public class InMemoryCache<TResource, TKey>(
         return innerCache.TryGetValue(key, out TResource? resource)
             ? Task.FromResult<TResource?>(resource) 
             : Task.FromResult<TResource?>(null);
+    }
+
+    public Task ClearByNamespace(NamespaceName namespaceName, CancellationToken? ctx = null)
+    {
+        logger.LogDebug(
+            "ClearByNs - {objectType} - {cacheKey}",
+            typeof(TResource).Name,
+            namespaceName.ToString()
+        );
+        cache.TryRemove(namespaceName, out _);
+        return Task.CompletedTask;
     }
 }

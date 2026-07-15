@@ -16,14 +16,14 @@ public sealed class NamespaceHistoryRefresher(
     private static string ResourceKind => nameof(V1Namespace).ToLowerInvariant();
     public async Task ProcessKubernetesEvent(
         IWatcherEvent<V1Namespace> watcherEvent,
-        CancellationToken cancellationToken)
+        CancellationToken ctx)
     {
         switch (watcherEvent.WatcherEventType)
         {
             case WatcherEventType.Added:
             case WatcherEventType.Modified:
             case WatcherEventType.InitialAdded:
-                await HandleUpsertAsync(watcherEvent, cancellationToken);
+                await HandleUpsertAsync(watcherEvent, ctx);
                 break;
             case WatcherEventType.Deleted:
             case WatcherEventType.Initialized:

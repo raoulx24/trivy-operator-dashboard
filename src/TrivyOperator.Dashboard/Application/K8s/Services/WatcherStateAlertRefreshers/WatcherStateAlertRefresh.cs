@@ -20,7 +20,7 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
 
     public async Task ProcessKubernetesEvent(
         IWatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken
+        CancellationToken ctx
     )
     {
         if (watcherEvent.IsStatic)
@@ -38,10 +38,10 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
             case WatcherEventType.WatcherConnected:
             case WatcherEventType.Flushed:
             case WatcherEventType.Initialized:
-                await RemoveAlert(watcherEvent, cancellationToken);
+                await RemoveAlert(watcherEvent, ctx);
                 break;
             case WatcherEventType.Error:
-                await AddAlert(watcherEvent, cancellationToken);
+                await AddAlert(watcherEvent, ctx);
                 break;
             case WatcherEventType.Unknown:
                 logger.LogWarning(

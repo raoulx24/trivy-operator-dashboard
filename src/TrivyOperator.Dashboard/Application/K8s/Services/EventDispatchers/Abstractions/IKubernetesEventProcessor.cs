@@ -7,5 +7,5 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers.Abst
 public interface IKubernetesEventProcessor<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
 {
-    Task ProcessKubernetesEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken);
+    Task ProcessKubernetesEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx);
 }

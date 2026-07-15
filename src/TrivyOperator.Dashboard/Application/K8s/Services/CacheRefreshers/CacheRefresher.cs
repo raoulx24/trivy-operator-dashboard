@@ -19,27 +19,27 @@ public class CacheRefresher<TKubernetesObject>(
 
     public async Task ProcessKubernetesEvent(
         IWatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken
+        CancellationToken ctx
     )
     {
         switch (watcherEvent.WatcherEventType)
         {
             case WatcherEventType.InitialAdded:
             case WatcherEventType.Added:
-                ProcessAddEvent(watcherEvent, cancellationToken);
+                ProcessAddEvent(watcherEvent, ctx);
                 break;
             case WatcherEventType.Deleted:
-                await ProcessDeleteEvent(watcherEvent, cancellationToken);
+                await ProcessDeleteEvent(watcherEvent, ctx);
                 break;
             case WatcherEventType.Error:
             case WatcherEventType.Flushed:
                 ProcessErrorEvent(watcherEvent);
                 break;
             case WatcherEventType.Modified:
-                ProcessModifiedEvent(watcherEvent, cancellationToken);
+                ProcessModifiedEvent(watcherEvent, ctx);
                 break;
             case WatcherEventType.Initialized:
-                await ProcessInitEvent(watcherEvent, cancellationToken);
+                await ProcessInitEvent(watcherEvent, ctx);
                 break;
             case WatcherEventType.Unknown:
                 logger.LogWarning(

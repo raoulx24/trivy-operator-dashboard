@@ -1,15 +1,33 @@
-﻿using k8s.Models;
+﻿using k8s;
+using k8s.Models;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared.Identities;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Extensions;
 
 public static class TrivySharedMappingExtensions
 {
+    public static Uid ToUidKey(this IKubernetesObject<V1ObjectMeta> cr)
+    {
+        return new Uid(cr.Metadata.Uid);
+    }
+
+    public static NamespacedUid ToNamespacedUidKey(this IKubernetesObject<V1ObjectMeta> cr)
+    {
+        return new NamespacedUid(new NamespaceName(cr.Metadata.NamespaceProperty), new Uid(cr.Metadata.Uid));
+    }
+
+    public static NamespacedDigest ToNamespacedDigestKey(this IHasArtifact cr)
+    {
+        return new NamespacedDigest(new NamespaceName(cr.Metadata.NamespaceProperty), new Digest(cr.Artifact.Digest));
+    }
+    
     public static ReportMetadata ToReportMetadata(this V1ObjectMeta metadata)
     {
         return new ReportMetadata(

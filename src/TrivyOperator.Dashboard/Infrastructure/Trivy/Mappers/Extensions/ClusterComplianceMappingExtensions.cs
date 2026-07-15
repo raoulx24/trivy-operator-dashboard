@@ -51,7 +51,7 @@ public static class ClusterComplianceMappingExtensions
             controlResults
         );
     }
-    
+
     private static Control ToControl(ControlCr cr)
     {
         return new Control(
