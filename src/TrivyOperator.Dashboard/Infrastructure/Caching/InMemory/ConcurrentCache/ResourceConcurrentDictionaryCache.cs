@@ -6,7 +6,7 @@ using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.ConcurrentCache;
 
-public class ResourceResourceConcurrentDictionaryCache<TKey, TValue>(IMetricsClient metricsClient)
+public class ResourceConcurrentDictionaryCache<TKey, TValue>(IMetricsClient metricsClient)
     : ConcurrentCache<NamespaceName, ConcurrentDictionary<TKey, TValue>>(metricsClient), IResourceConcurrentDictionaryCache<TKey, TValue>
 where TKey : notnull
 {

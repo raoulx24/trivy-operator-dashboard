@@ -90,6 +90,9 @@ builder.Services.AddOpenTelemetry(
     applicationName.Replace(".", string.Empty).ToLowerInvariant()
 );
 
+// TODO: move them appropriately
+builder.Services.AddVulnerabilityReports(configuration);
+
 builder.WebHost.ConfigureKestrel(options =>
     {
         if (!builder.Environment.IsProduction())
