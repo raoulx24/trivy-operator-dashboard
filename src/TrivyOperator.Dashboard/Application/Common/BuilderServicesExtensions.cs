@@ -650,7 +650,7 @@ public static class BuilderServicesExtensions
 
         string shortClassName = className.EndsWith("Cr", StringComparison.Ordinal) ? className[..^2] : className;
 
-        useService = config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName}") ?? false;
+        useService = config.GetValue<bool?>($"Kubernetes:TrivyUse{shortClassName.Replace("Old", "")}") ?? false;
 
         useDefaultContext = config.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
 

@@ -13,6 +13,18 @@ public readonly record struct Severity : IComparable<Severity>
     };
 
     public string Value { get; }
+    
+    public int Id =>
+        Value switch
+        {
+            "CRITICAL" => 0,
+            "HIGH" => 1,
+            "MEDIUM" => 2,
+            "LOW" => 3,
+            "UNKNOWN" => 4,
+            "NONE" => 5,
+            _ => throw new NullReferenceException(),
+};
 
     public Severity(string value)
     {
