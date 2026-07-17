@@ -50,11 +50,11 @@ public class ClusterInfraAssessmentReportDenormalizedDto
 public static class ClusterInfraAssessmentReportCrExtensions
 {
     public static ClusterInfraAssessmentReportDto ToClusterInfraAssessmentReportDto(
-        this ClusterInfraAssessmentReportCr clusterInfraAssessmentReportCr
+        this OldClusterInfraAssessmentReportCr oldClusterInfraAssessmentReportCr
     )
     {
         List<ClusterInfraAssessmentReportDetailDto> clusterInfraAssessmentReportDetailDtos = [];
-        foreach (Check check in clusterInfraAssessmentReportCr.Report?.Checks ?? [])
+        foreach (Check check in oldClusterInfraAssessmentReportCr.Report?.Checks ?? [])
         {
             ClusterInfraAssessmentReportDetailDto clusterInfraAssessmentReportDetailDto = new()
             {
@@ -73,24 +73,24 @@ public static class ClusterInfraAssessmentReportCrExtensions
         ClusterInfraAssessmentReportDto clusterInfraAssessmentReportDto = new()
         {
             Uid =
-                Guid.TryParse(clusterInfraAssessmentReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid
+                Guid.TryParse(oldClusterInfraAssessmentReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid
                     : new Guid(),
             ResourceName =
-                clusterInfraAssessmentReportCr.Metadata.Labels != null &&
-                clusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                oldClusterInfraAssessmentReportCr.Metadata.Labels != null &&
+                oldClusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.name",
                     out string? resourceName
                 ) ? resourceName : string.Empty,
             ResourceKind =
-                clusterInfraAssessmentReportCr.Metadata.Labels != null &&
-                clusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                oldClusterInfraAssessmentReportCr.Metadata.Labels != null &&
+                oldClusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.kind",
                     out string? resourceKind
                 ) ? resourceKind : string.Empty,
-            CriticalCount = clusterInfraAssessmentReportCr.Report?.Summary?.CriticalCount ?? 0,
-            HighCount = clusterInfraAssessmentReportCr.Report?.Summary?.HighCount ?? 0,
-            MediumCount = clusterInfraAssessmentReportCr.Report?.Summary?.MediumCount ?? 0,
-            LowCount = clusterInfraAssessmentReportCr.Report?.Summary?.LowCount ?? 0,
+            CriticalCount = oldClusterInfraAssessmentReportCr.Report?.Summary?.CriticalCount ?? 0,
+            HighCount = oldClusterInfraAssessmentReportCr.Report?.Summary?.HighCount ?? 0,
+            MediumCount = oldClusterInfraAssessmentReportCr.Report?.Summary?.MediumCount ?? 0,
+            LowCount = oldClusterInfraAssessmentReportCr.Report?.Summary?.LowCount ?? 0,
             Details = [.. clusterInfraAssessmentReportDetailDtos,],
         };
 
@@ -99,16 +99,16 @@ public static class ClusterInfraAssessmentReportCrExtensions
 
     public static IList<ClusterInfraAssessmentReportDenormalizedDto>
         ToClusterInfraAssessmentReportDetailDenormalizedDtos(
-            this ClusterInfraAssessmentReportCr clusterInfraAssessmentReportCr
+            this OldClusterInfraAssessmentReportCr oldClusterInfraAssessmentReportCr
         )
     {
-        if (clusterInfraAssessmentReportCr is null)
+        if (oldClusterInfraAssessmentReportCr is null)
         {
-            throw new ArgumentNullException(nameof(clusterInfraAssessmentReportCr));
+            throw new ArgumentNullException(nameof(oldClusterInfraAssessmentReportCr));
         }
 
         List<ClusterInfraAssessmentReportDenormalizedDto> clusterInfraAssessmentReportDenormalizedDtos = [];
-        foreach (Check check in clusterInfraAssessmentReportCr.Report?.Checks ?? [])
+        foreach (Check check in oldClusterInfraAssessmentReportCr.Report?.Checks ?? [])
         {
             ClusterInfraAssessmentReportDenormalizedDto clusterInfraAssessmentReportDenormalizedDto = new()
             {
@@ -120,16 +120,16 @@ public static class ClusterInfraAssessmentReportCrExtensions
                 SeverityId = (int)check.Severity,
                 Success = check.Success,
                 Title = check.Title,
-                Uid = new Guid(clusterInfraAssessmentReportCr?.Metadata?.Uid ?? string.Empty),
+                Uid = new Guid(oldClusterInfraAssessmentReportCr?.Metadata?.Uid ?? string.Empty),
                 ResourceName =
-                    clusterInfraAssessmentReportCr?.Metadata?.Labels != null &&
-                    clusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                    oldClusterInfraAssessmentReportCr?.Metadata?.Labels != null &&
+                    oldClusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                         "trivy-operator.resource.name",
                         out string? resourceName
                     ) ? resourceName : string.Empty,
                 ResourceKind =
-                    clusterInfraAssessmentReportCr?.Metadata?.Labels != null &&
-                    clusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                    oldClusterInfraAssessmentReportCr?.Metadata?.Labels != null &&
+                    oldClusterInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                         "trivy-operator.resource.kind",
                         out string? resourceKind
                     ) ? resourceKind : string.Empty,

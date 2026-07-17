@@ -52,11 +52,11 @@ public class InfraAssessmentReportDenormalizedDto
 public static class InfraAssessmentReportCrExtensions
 {
     public static InfraAssessmentReportDto ToInfraAssessmentReportDto(
-        this InfraAssessmentReportCr infraAssessmentReportCr
+        this OldInfraAssessmentReportCr oldInfraAssessmentReportCr
     )
     {
         List<InfraAssessmentReportDetailDto> infraAssessmentReportDetailDtos = [];
-        foreach (Check check in infraAssessmentReportCr.Report?.Checks ?? [])
+        foreach (Check check in oldInfraAssessmentReportCr.Report?.Checks ?? [])
         {
             InfraAssessmentReportDetailDto infraAssessmentReportDetailDto = new()
             {
@@ -74,29 +74,29 @@ public static class InfraAssessmentReportCrExtensions
 
         InfraAssessmentReportDto infraAssessmentReportDto = new()
         {
-            Uid = Guid.TryParse(infraAssessmentReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
+            Uid = Guid.TryParse(oldInfraAssessmentReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
             ResourceName =
-                infraAssessmentReportCr.Metadata.Labels != null &&
-                infraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                oldInfraAssessmentReportCr.Metadata.Labels != null &&
+                oldInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.name",
                     out string? resourceName
                 ) ? resourceName : string.Empty,
             ResourceNamespace =
-                infraAssessmentReportCr.Metadata.Labels != null &&
-                infraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                oldInfraAssessmentReportCr.Metadata.Labels != null &&
+                oldInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.namespace",
                     out string? resourceNamespace
                 ) ? resourceNamespace : string.Empty,
             ResourceKind =
-                infraAssessmentReportCr.Metadata.Labels != null &&
-                infraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                oldInfraAssessmentReportCr.Metadata.Labels != null &&
+                oldInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.kind",
                     out string? resourceKind
                 ) ? resourceKind : string.Empty,
-            CriticalCount = infraAssessmentReportCr.Report?.Summary?.CriticalCount ?? 0,
-            HighCount = infraAssessmentReportCr.Report?.Summary?.HighCount ?? 0,
-            MediumCount = infraAssessmentReportCr.Report?.Summary?.MediumCount ?? 0,
-            LowCount = infraAssessmentReportCr.Report?.Summary?.LowCount ?? 0,
+            CriticalCount = oldInfraAssessmentReportCr.Report?.Summary?.CriticalCount ?? 0,
+            HighCount = oldInfraAssessmentReportCr.Report?.Summary?.HighCount ?? 0,
+            MediumCount = oldInfraAssessmentReportCr.Report?.Summary?.MediumCount ?? 0,
+            LowCount = oldInfraAssessmentReportCr.Report?.Summary?.LowCount ?? 0,
             Details = [.. infraAssessmentReportDetailDtos,],
         };
 
@@ -104,16 +104,16 @@ public static class InfraAssessmentReportCrExtensions
     }
 
     public static IList<InfraAssessmentReportDenormalizedDto> ToInfraAssessmentReportDetailDenormalizedDtos(
-        this InfraAssessmentReportCr infraAssessmentReportCr
+        this OldInfraAssessmentReportCr oldInfraAssessmentReportCr
     )
     {
-        if (infraAssessmentReportCr is null)
+        if (oldInfraAssessmentReportCr is null)
         {
-            throw new ArgumentNullException(nameof(infraAssessmentReportCr));
+            throw new ArgumentNullException(nameof(oldInfraAssessmentReportCr));
         }
 
         List<InfraAssessmentReportDenormalizedDto> infraAssessmentReportDenormalizedDtos = [];
-        foreach (Check check in infraAssessmentReportCr.Report?.Checks ?? [])
+        foreach (Check check in oldInfraAssessmentReportCr.Report?.Checks ?? [])
         {
             InfraAssessmentReportDenormalizedDto infraAssessmentReportDenormalizedDto = new()
             {
@@ -125,22 +125,22 @@ public static class InfraAssessmentReportCrExtensions
                 SeverityId = (int)check.Severity,
                 Success = check.Success,
                 Title = check.Title,
-                Uid = new Guid(infraAssessmentReportCr?.Metadata?.Uid ?? string.Empty),
+                Uid = new Guid(oldInfraAssessmentReportCr?.Metadata?.Uid ?? string.Empty),
                 ResourceName =
-                    infraAssessmentReportCr?.Metadata?.Labels != null &&
-                    infraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                    oldInfraAssessmentReportCr?.Metadata?.Labels != null &&
+                    oldInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                         "trivy-operator.resource.name",
                         out string? resourceName
                     ) ? resourceName : string.Empty,
                 ResourceNamespace =
-                    infraAssessmentReportCr?.Metadata?.Labels != null &&
-                    infraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                    oldInfraAssessmentReportCr?.Metadata?.Labels != null &&
+                    oldInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                         "trivy-operator.resource.namespace",
                         out string? resourceNamespace
                     ) ? resourceNamespace : string.Empty,
                 ResourceKind =
-                    infraAssessmentReportCr?.Metadata?.Labels != null &&
-                    infraAssessmentReportCr.Metadata.Labels.TryGetValue(
+                    oldInfraAssessmentReportCr?.Metadata?.Labels != null &&
+                    oldInfraAssessmentReportCr.Metadata.Labels.TryGetValue(
                         "trivy-operator.resource.kind",
                         out string? resourceKind
                     ) ? resourceKind : string.Empty,

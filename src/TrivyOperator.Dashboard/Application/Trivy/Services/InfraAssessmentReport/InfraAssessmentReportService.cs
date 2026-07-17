@@ -8,7 +8,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.InfraAssessmentReport;
 
-public class InfraAssessmentReportService(IConcurrentDictionaryCache<InfraAssessmentReportCr> cache)
+public class InfraAssessmentReportService(IConcurrentDictionaryCache<OldInfraAssessmentReportCr> cache)
     : IInfraAssessmentReportService
 {
     public Task<IEnumerable<InfraAssessmentReportDto>> GetInfraAssessmentReportDtos(
@@ -21,7 +21,7 @@ public class InfraAssessmentReportService(IConcurrentDictionaryCache<InfraAssess
         bool hasExcludedSeverities = excludedSeveritiesArray.Length != 0;
         int[] includedSeverities = [.. Enum.GetValues<TrivySeverity>().Cast<int>().Except(excludedSeveritiesArray),];
 
-        IEnumerable<InfraAssessmentReportCr> cachedValues =
+        IEnumerable<OldInfraAssessmentReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),
@@ -55,12 +55,12 @@ public class InfraAssessmentReportService(IConcurrentDictionaryCache<InfraAssess
         {
             if (cache.TryGetValue(
                     namespaceName,
-                    out ConcurrentDictionary<string, InfraAssessmentReportCr>? InfraAssessmentReportCrs
+                    out ConcurrentDictionary<string, OldInfraAssessmentReportCr>? InfraAssessmentReportCrs
                 ))
             {
                 if (InfraAssessmentReportCrs.TryGetValue(
                         uid.ToString(),
-                        out InfraAssessmentReportCr? InfraAssessmentReportCr
+                        out OldInfraAssessmentReportCr? InfraAssessmentReportCr
                     ))
                 {
                     return Task.FromResult<InfraAssessmentReportDto?>(
@@ -78,7 +78,7 @@ public class InfraAssessmentReportService(IConcurrentDictionaryCache<InfraAssess
         string? namespaceName = null
     )
     {
-        IEnumerable<InfraAssessmentReportCr> cachedValues =
+        IEnumerable<OldInfraAssessmentReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),

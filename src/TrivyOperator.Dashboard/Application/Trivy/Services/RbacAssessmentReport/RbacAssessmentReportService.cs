@@ -7,7 +7,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.RbacAssessmentReport;
 
-public class RbacAssessmentReportService(IConcurrentDictionaryCache<RbacAssessmentReportCr> cache)
+public class RbacAssessmentReportService(IConcurrentDictionaryCache<OldRbacAssessmentReportCr> cache)
     : IRbacAssessmentReportService
 {
     public Task<IEnumerable<RbacAssessmentReportDto>> GetRbacAssessmentReportDtos(
@@ -19,7 +19,7 @@ public class RbacAssessmentReportService(IConcurrentDictionaryCache<RbacAssessme
         int[] excludedSeveritiesArray = [.. excludedSeverities,];
         int[] includedSeverities = [.. Enum.GetValues<TrivySeverity>().Cast<int>().Except(excludedSeveritiesArray),];
 
-        IEnumerable<RbacAssessmentReportCr> cachedValues =
+        IEnumerable<OldRbacAssessmentReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),
@@ -47,7 +47,7 @@ public class RbacAssessmentReportService(IConcurrentDictionaryCache<RbacAssessme
         string? namespaceName = null
     )
     {
-        IEnumerable<RbacAssessmentReportCr> cachedValues =
+        IEnumerable<OldRbacAssessmentReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),

@@ -103,13 +103,13 @@ public class SbomReportExportDto
 
 public static partial class SbomReportCrExtensions
 {
-    public static SbomReportDto ToSbomReportDto(this SbomReportCr sbomReportCr)
+    public static SbomReportDto ToSbomReportDto(this OldSbomReportCr oldSbomReportCr)
     {
-        ComponentsComponent[] allComponents = sbomReportCr.Report?.Components.Metadata.Component != null ?
+        ComponentsComponent[] allComponents = oldSbomReportCr.Report?.Components.Metadata.Component != null ?
         [
-            .. sbomReportCr.Report?.Components.ComponentsComponents ?? [],
-            sbomReportCr.Report?.Components.Metadata.Component!,
-        ] : [.. sbomReportCr.Report?.Components.ComponentsComponents ?? [],];
+            .. oldSbomReportCr.Report?.Components.ComponentsComponents ?? [],
+            oldSbomReportCr.Report?.Components.Metadata.Component!,
+        ] : [.. oldSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
 
         IEnumerable<SbomReportDetailDto> details = allComponents.Select(component =>
             {
@@ -119,7 +119,7 @@ public static partial class SbomReportCrExtensions
                     Name = component.Name,
                     Purl = component.Purl,
                     Version = component.Version,
-                    DependsOn = sbomReportCr.Report?.Components.Dependencies
+                    DependsOn = oldSbomReportCr.Report?.Components.Dependencies
                                     .FirstOrDefault(x => x.Ref == component.BomRef)
                                     ?.DependsOn ??
                                 [],
@@ -145,34 +145,34 @@ public static partial class SbomReportCrExtensions
 
         SbomReportDto result = new()
         {
-            Uid = Guid.TryParse(sbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
-            CreationTimestamp = sbomReportCr.Metadata.CreationTimestamp ?? DateTime.MinValue,
-            UpdateTimestamp = sbomReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
+            Uid = Guid.TryParse(oldSbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
+            CreationTimestamp = oldSbomReportCr.Metadata.CreationTimestamp ?? DateTime.MinValue,
+            UpdateTimestamp = oldSbomReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
             ResourceName =
-                sbomReportCr.Metadata.Labels != null &&
-                sbomReportCr.Metadata.Labels.TryGetValue("trivy-operator.resource.name", out string? resourceName)
+                oldSbomReportCr.Metadata.Labels != null &&
+                oldSbomReportCr.Metadata.Labels.TryGetValue("trivy-operator.resource.name", out string? resourceName)
                     ? resourceName : string.Empty,
             ResourceNamespace =
-                sbomReportCr.Metadata.Labels != null &&
-                sbomReportCr.Metadata.Labels.TryGetValue(
+                oldSbomReportCr.Metadata.Labels != null &&
+                oldSbomReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.namespace",
                     out string? resourceNamespace
                 ) ? resourceNamespace : string.Empty,
             ResourceKind =
-                sbomReportCr.Metadata.Labels != null &&
-                sbomReportCr.Metadata.Labels.TryGetValue("trivy-operator.resource.kind", out string? resourceKind)
+                oldSbomReportCr.Metadata.Labels != null &&
+                oldSbomReportCr.Metadata.Labels.TryGetValue("trivy-operator.resource.kind", out string? resourceKind)
                     ? resourceKind : string.Empty,
             ResourceContainerName =
-                sbomReportCr.Metadata.Labels != null &&
-                sbomReportCr.Metadata.Labels.TryGetValue(
+                oldSbomReportCr.Metadata.Labels != null &&
+                oldSbomReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.container.name",
                     out string? resourceContainerName
                 ) ? resourceContainerName : string.Empty,
-            ImageName = sbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
-            ImageTag = sbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
-            ImageDigest = sbomReportCr.Report?.Artifact?.Digest ?? string.Empty,
-            ImageRepository = sbomReportCr.Report?.Registry?.Server ?? string.Empty,
-            RootNodeBomRef = sbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
+            ImageName = oldSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
+            ImageTag = oldSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
+            ImageDigest = oldSbomReportCr.Report?.Artifact?.Digest ?? string.Empty,
+            ImageRepository = oldSbomReportCr.Report?.Registry?.Server ?? string.Empty,
+            RootNodeBomRef = oldSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
             Details = [.. details,],
         };
         CleanupPurlsFromBomRefs(result);
@@ -181,16 +181,16 @@ public static partial class SbomReportCrExtensions
     }
 
     public static SbomReportImageDto ToSbomReportImageDto(
-        this IGrouping<ImageGroupKey, SbomReportCr> groupedSbomReportCr
+        this IGrouping<ImageGroupKey, OldSbomReportCr> groupedSbomReportCr
     )
     {
         //SbomReportCr[] sbomReportCrs = [.. groupedSbomReportCr];
-        SbomReportCr firstSbomReportCr = groupedSbomReportCr.First();
-        ComponentsComponent[] allComponents = firstSbomReportCr.Report?.Components.Metadata.Component != null ?
+        OldSbomReportCr firstOldSbomReportCr = groupedSbomReportCr.First();
+        ComponentsComponent[] allComponents = firstOldSbomReportCr.Report?.Components.Metadata.Component != null ?
         [
-            .. firstSbomReportCr.Report?.Components.ComponentsComponents ?? [],
-            firstSbomReportCr.Report?.Components.Metadata.Component!,
-        ] : [.. firstSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
+            .. firstOldSbomReportCr.Report?.Components.ComponentsComponents ?? [],
+            firstOldSbomReportCr.Report?.Components.Metadata.Component!,
+        ] : [.. firstOldSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
         IEnumerable<SbomReportDetailDto> details = allComponents.Select(component =>
             {
                 SbomReportDetailDto detailDto = new()
@@ -199,7 +199,7 @@ public static partial class SbomReportCrExtensions
                     Name = component.Name,
                     Purl = component.Purl,
                     Version = component.Version,
-                    DependsOn = firstSbomReportCr.Report?.Components.Dependencies
+                    DependsOn = firstOldSbomReportCr.Report?.Components.Dependencies
                                     .FirstOrDefault(x => x.Ref == component.BomRef)
                                     ?.DependsOn ??
                                 [],
@@ -217,13 +217,13 @@ public static partial class SbomReportCrExtensions
         );
         SbomReportImageDto result = new()
         {
-            Uid = Guid.TryParse(firstSbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
-            CreationTimestamp = firstSbomReportCr.Metadata.CreationTimestamp ?? DateTime.MinValue,
-            ResourceNamespace = firstSbomReportCr.Metadata.NamespaceProperty,
-            ImageName = firstSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
-            ImageTag = firstSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
-            ImageDigest = firstSbomReportCr.Report?.Artifact?.Digest ?? string.Empty,
-            ImageRepository = firstSbomReportCr.Report?.Registry?.Server ?? string.Empty,
+            Uid = Guid.TryParse(firstOldSbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
+            CreationTimestamp = firstOldSbomReportCr.Metadata.CreationTimestamp ?? DateTime.MinValue,
+            ResourceNamespace = firstOldSbomReportCr.Metadata.NamespaceProperty,
+            ImageName = firstOldSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
+            ImageTag = firstOldSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
+            ImageDigest = firstOldSbomReportCr.Report?.Artifact?.Digest ?? string.Empty,
+            ImageRepository = firstOldSbomReportCr.Report?.Registry?.Server ?? string.Empty,
             Resources =
             [
                 .. groupedSbomReportCr.Select(sbomReportCr => new SbomReportImageResourceDto
@@ -249,7 +249,7 @@ public static partial class SbomReportCrExtensions
                     }
                 ),
             ],
-            RootNodeBomRef = firstSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
+            RootNodeBomRef = firstOldSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
             Details = [.. details,],
         };
         CleanupPurlsFromBomRefs(result);
@@ -257,33 +257,33 @@ public static partial class SbomReportCrExtensions
     }
 
     public static SbomReportImageMinimalDto ToSbomReportImageMinimalDto(
-        this IGrouping<ImageGroupKey, SbomReportCr> groupedSbomReportCr
+        this IGrouping<ImageGroupKey, OldSbomReportCr> groupedSbomReportCr
     )
     {
         //SbomReportCr[] sbomReportCrs = [.. groupedSbomReportCr];
-        SbomReportCr firstSbomReportCr = groupedSbomReportCr.First();
+        OldSbomReportCr firstOldSbomReportCr = groupedSbomReportCr.First();
         return new SbomReportImageMinimalDto
         {
-            Uid = Guid.TryParse(firstSbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
-            ImageName = firstSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
-            ImageTag = firstSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
-            ImageDigest = firstSbomReportCr.Report?.Artifact?.Digest ?? string.Empty,
-            ImageRepository = firstSbomReportCr.Report?.Registry?.Server ?? string.Empty,
-            ResourceNamespace = firstSbomReportCr.Metadata.NamespaceProperty,
+            Uid = Guid.TryParse(firstOldSbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
+            ImageName = firstOldSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
+            ImageTag = firstOldSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
+            ImageDigest = firstOldSbomReportCr.Report?.Artifact?.Digest ?? string.Empty,
+            ImageRepository = firstOldSbomReportCr.Report?.Registry?.Server ?? string.Empty,
+            ResourceNamespace = firstOldSbomReportCr.Metadata.NamespaceProperty,
         };
     }
 
-    public static SbomReportImageResourceDto ToSbomReportImageResourceDto(this SbomReportCr sbomReportCr) => new()
+    public static SbomReportImageResourceDto ToSbomReportImageResourceDto(this OldSbomReportCr oldSbomReportCr) => new()
     {
         Name =
-            sbomReportCr.Metadata.Labels != null &&
-            sbomReportCr.Metadata.Labels.TryGetValue("trivy-operator.resource.name", out string? resourceName)
+            oldSbomReportCr.Metadata.Labels != null &&
+            oldSbomReportCr.Metadata.Labels.TryGetValue("trivy-operator.resource.name", out string? resourceName)
                 ? resourceName : string.Empty,
-        Kind = sbomReportCr.Metadata.Labels != null &&
-               sbomReportCr.Metadata.Labels.TryGetValue("trivy-operator.resource.kind", out string? resourceKind)
+        Kind = oldSbomReportCr.Metadata.Labels != null &&
+               oldSbomReportCr.Metadata.Labels.TryGetValue("trivy-operator.resource.kind", out string? resourceKind)
             ? resourceKind : string.Empty,
-        ContainerName = sbomReportCr.Metadata.Labels != null &&
-                        sbomReportCr.Metadata.Labels.TryGetValue(
+        ContainerName = oldSbomReportCr.Metadata.Labels != null &&
+                        oldSbomReportCr.Metadata.Labels.TryGetValue(
                             "trivy-operator.container.name",
                             out string? containerName
                         ) ? containerName : string.Empty,

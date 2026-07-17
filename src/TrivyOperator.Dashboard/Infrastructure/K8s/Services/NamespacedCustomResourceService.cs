@@ -3,8 +3,8 @@ using k8s.Models;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
@@ -21,7 +21,7 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
 )
     where TKubernetesObject : CustomResource
 {
-    protected CustomResourceDefinition Crd =>
+    private CustomResourceDefinition Crd =>
         field ??= customResourceDefinitionFactory.Get<TKubernetesObject>();
 
     public override Task<CustomResourceList<TKubernetesObject>> GetResourceList(

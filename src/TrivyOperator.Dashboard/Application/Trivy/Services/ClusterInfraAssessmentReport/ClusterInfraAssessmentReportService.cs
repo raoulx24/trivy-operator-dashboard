@@ -5,12 +5,12 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ClusterInfraAssessmentReport;
 
-public class ClusterInfraAssessmentReportService(IConcurrentDictionaryCache<ClusterInfraAssessmentReportCr> cache)
+public class ClusterInfraAssessmentReportService(IConcurrentDictionaryCache<OldClusterInfraAssessmentReportCr> cache)
     : IClusterInfraAssessmentReportService
 {
     public Task<IEnumerable<ClusterInfraAssessmentReportDto>> GetClusterInfraAssessmentReportDtos()
     {
-        IEnumerable<ClusterInfraAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterInfraAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
 
         IEnumerable<ClusterInfraAssessmentReportDto> values =
             cachedValues.Select(cr => cr.ToClusterInfraAssessmentReportDto());
@@ -20,7 +20,7 @@ public class ClusterInfraAssessmentReportService(IConcurrentDictionaryCache<Clus
 
     public Task<ClusterInfraAssessmentReportDto?> GetClusterInfraAssessmentReportDtoByUid(Guid uid)
     {
-        IEnumerable<ClusterInfraAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterInfraAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
 
         ClusterInfraAssessmentReportDto? result = cachedValues.Select(cr => cr.ToClusterInfraAssessmentReportDto())
             .FirstOrDefault(dto => dto.Uid == uid);
@@ -32,7 +32,7 @@ public class ClusterInfraAssessmentReportService(IConcurrentDictionaryCache<Clus
     public Task<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>>
         GetClusterInfraAssessmentReportDenormalizedDtos()
     {
-        IEnumerable<ClusterInfraAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterInfraAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
         IEnumerable<ClusterInfraAssessmentReportDenormalizedDto> values =
             cachedValues.SelectMany(car => car.ToClusterInfraAssessmentReportDetailDenormalizedDtos());
 

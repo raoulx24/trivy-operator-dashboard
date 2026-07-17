@@ -58,11 +58,11 @@ public class ClusterRbacAssessmentReportSummaryDto
 public static class ClusterRbacAssessmentReportCrExtensions
 {
     public static ClusterRbacAssessmentReportDto ToClusterRbacAssessmentReportDto(
-        this ClusterRbacAssessmentReportCr clusterRbacAssessmentReportCr
+        this OldClusterRbacAssessmentReportCr oldClusterRbacAssessmentReportCr
     )
     {
         List<ClusterRbacAssessmentReportDetailDto> clusterRbacAssessmentReportDetailDtos = [];
-        foreach (Check check in clusterRbacAssessmentReportCr.Report?.Checks ?? [])
+        foreach (Check check in oldClusterRbacAssessmentReportCr.Report?.Checks ?? [])
         {
             ClusterRbacAssessmentReportDetailDto clusterRbacAssessmentReportDetailDto = new()
             {
@@ -81,24 +81,24 @@ public static class ClusterRbacAssessmentReportCrExtensions
         ClusterRbacAssessmentReportDto clusterRbacAssessmentReportDto = new()
         {
             Uid =
-                Guid.TryParse(clusterRbacAssessmentReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid
+                Guid.TryParse(oldClusterRbacAssessmentReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid
                     : new Guid(),
-            UpdateTimestamp = clusterRbacAssessmentReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
+            UpdateTimestamp = oldClusterRbacAssessmentReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
             ResourceName =
-                clusterRbacAssessmentReportCr.Metadata.Annotations != null &&
-                clusterRbacAssessmentReportCr.Metadata.Annotations.TryGetValue(
+                oldClusterRbacAssessmentReportCr.Metadata.Annotations != null &&
+                oldClusterRbacAssessmentReportCr.Metadata.Annotations.TryGetValue(
                     "trivy-operator.resource.name",
                     out string? resourceNameFromAnnotations
                 ) ? resourceNameFromAnnotations
-                : clusterRbacAssessmentReportCr.Metadata.Labels != null &&
-                  clusterRbacAssessmentReportCr.Metadata.Labels.TryGetValue(
+                : oldClusterRbacAssessmentReportCr.Metadata.Labels != null &&
+                  oldClusterRbacAssessmentReportCr.Metadata.Labels.TryGetValue(
                       "trivy-operator.resource.name",
                       out string? resourceNameFromLabels
-                  ) ? resourceNameFromLabels : $"[{clusterRbacAssessmentReportCr.Metadata.Name}]",
-            CriticalCount = clusterRbacAssessmentReportCr.Report?.Summary?.CriticalCount ?? 0,
-            HighCount = clusterRbacAssessmentReportCr.Report?.Summary?.HighCount ?? 0,
-            MediumCount = clusterRbacAssessmentReportCr.Report?.Summary?.MediumCount ?? 0,
-            LowCount = clusterRbacAssessmentReportCr.Report?.Summary?.LowCount ?? 0,
+                  ) ? resourceNameFromLabels : $"[{oldClusterRbacAssessmentReportCr.Metadata.Name}]",
+            CriticalCount = oldClusterRbacAssessmentReportCr.Report?.Summary?.CriticalCount ?? 0,
+            HighCount = oldClusterRbacAssessmentReportCr.Report?.Summary?.HighCount ?? 0,
+            MediumCount = oldClusterRbacAssessmentReportCr.Report?.Summary?.MediumCount ?? 0,
+            LowCount = oldClusterRbacAssessmentReportCr.Report?.Summary?.LowCount ?? 0,
             Details = [.. clusterRbacAssessmentReportDetailDtos,],
         };
 
@@ -106,11 +106,11 @@ public static class ClusterRbacAssessmentReportCrExtensions
     }
 
     public static IEnumerable<ClusterRbacAssessmentReportDenormalizedDto> ToClusterRbacAssessmentReportDenormalizedDtos(
-        this ClusterRbacAssessmentReportCr clusterRbacAssessmentReportCr
+        this OldClusterRbacAssessmentReportCr oldClusterRbacAssessmentReportCr
     )
     {
         IEnumerable<ClusterRbacAssessmentReportDenormalizedDto> clusterRbacAssessmentReportDetailDtos =
-            (clusterRbacAssessmentReportCr.Report?.Checks ?? []).Select(check =>
+            (oldClusterRbacAssessmentReportCr.Report?.Checks ?? []).Select(check =>
                 new ClusterRbacAssessmentReportDenormalizedDto
                 {
                     Category = check.Category,
@@ -121,22 +121,22 @@ public static class ClusterRbacAssessmentReportCrExtensions
                     SeverityId = (int)check.Severity,
                     Success = check.Success,
                     Title = check.Title,
-                    Uid = new Guid(clusterRbacAssessmentReportCr?.Metadata?.Uid ?? string.Empty),
+                    Uid = new Guid(oldClusterRbacAssessmentReportCr?.Metadata?.Uid ?? string.Empty),
                     ResourceName =
-                        clusterRbacAssessmentReportCr?.Metadata.Annotations != null &&
-                        clusterRbacAssessmentReportCr.Metadata.Annotations.TryGetValue(
+                        oldClusterRbacAssessmentReportCr?.Metadata.Annotations != null &&
+                        oldClusterRbacAssessmentReportCr.Metadata.Annotations.TryGetValue(
                             "trivy-operator.resource.name",
                             out string? resourceNameFromAnnotations
                         ) ? resourceNameFromAnnotations
-                        : clusterRbacAssessmentReportCr?.Metadata.Labels != null &&
-                          clusterRbacAssessmentReportCr.Metadata.Labels.TryGetValue(
+                        : oldClusterRbacAssessmentReportCr?.Metadata.Labels != null &&
+                          oldClusterRbacAssessmentReportCr.Metadata.Labels.TryGetValue(
                               "trivy-operator.resource.name",
                               out string? resourceNameFromLabels
-                          ) ? resourceNameFromLabels : $"[{clusterRbacAssessmentReportCr?.Metadata.Name}]",
-                    CriticalCount = clusterRbacAssessmentReportCr?.Report?.Summary?.CriticalCount ?? 0,
-                    HighCount = clusterRbacAssessmentReportCr?.Report?.Summary?.HighCount ?? 0,
-                    MediumCount = clusterRbacAssessmentReportCr?.Report?.Summary?.MediumCount ?? 0,
-                    LowCount = clusterRbacAssessmentReportCr?.Report?.Summary?.LowCount ?? 0,
+                          ) ? resourceNameFromLabels : $"[{oldClusterRbacAssessmentReportCr?.Metadata.Name}]",
+                    CriticalCount = oldClusterRbacAssessmentReportCr?.Report?.Summary?.CriticalCount ?? 0,
+                    HighCount = oldClusterRbacAssessmentReportCr?.Report?.Summary?.HighCount ?? 0,
+                    MediumCount = oldClusterRbacAssessmentReportCr?.Report?.Summary?.MediumCount ?? 0,
+                    LowCount = oldClusterRbacAssessmentReportCr?.Report?.Summary?.LowCount ?? 0,
                 }
             );
 

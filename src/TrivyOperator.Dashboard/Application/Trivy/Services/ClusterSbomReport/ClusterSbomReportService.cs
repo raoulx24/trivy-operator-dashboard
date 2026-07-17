@@ -9,14 +9,14 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ClusterSbomReport;
 
 public class ClusterSbomReportService(
-    IConcurrentDictionaryCache<ClusterSbomReportCr> cache,
-    IConcurrentDictionaryCache<ClusterVulnerabilityReportCr> cvrCache
+    IConcurrentDictionaryCache<OldClusterSbomReportCr> cache,
+    IConcurrentDictionaryCache<OldClusterVulnerabilityReportCr> cvrCache
 ) : IClusterSbomReportService
 {
     public Task<IEnumerable<ClusterSbomReportDto>> GetClusterSbomReportDtos()
     {
-        IEnumerable<ClusterSbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
-        IEnumerable<ClusterVulnerabilityReportCr> chachedCvrValues = [.. cvrCache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterSbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterVulnerabilityReportCr> chachedCvrValues = [.. cvrCache.SelectMany(kvp => kvp.Value.Values),];
 
         IEnumerable<ClusterSbomReportDto> values = cachedValues.Select(cr => cr.ToClusterSbomReportDto())
             .GroupJoin(
@@ -26,7 +26,7 @@ public class ClusterSbomReportService(
                 (sbom, cvrGroup) =>
                 {
                     ClusterSbomReportDto sbomDto = sbom;
-                    ClusterVulnerabilityReportCr? cvr = cvrGroup.FirstOrDefault();
+                    OldClusterVulnerabilityReportCr? cvr = cvrGroup.FirstOrDefault();
                     if (cvr != null)
                     {
                         sbomDto.HasVulnerabilities = true;
@@ -75,7 +75,7 @@ public class ClusterSbomReportService(
 
     public Task<IEnumerable<ClusterSbomReportDenormalizedDto>> GetClusterSbomReportDenormalizedDtos()
     {
-        IEnumerable<ClusterSbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterSbomReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
         IEnumerable<ClusterSbomReportDenormalizedDto> values =
             cachedValues.SelectMany(cr => cr.ToClusterSbomReportDenormalizedDtos());
         return Task.FromResult(values);

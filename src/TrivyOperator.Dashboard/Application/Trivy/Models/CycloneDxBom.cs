@@ -189,20 +189,20 @@ public class CycloneDxDependency
 
 public static partial class SbomReportCrExtensions
 {
-    public static CycloneDxBom ToCycloneDx(this SbomReportCr sbomReport)
+    public static CycloneDxBom ToCycloneDx(this OldSbomReportCr oldSbomReport)
     {
         CycloneDxBom bom = new()
         {
             BomFormat = "CycloneDX",
-            SpecVersion = sbomReport.Report?.Components.SpecVersion ?? "1.3",
-            SerialNumber = sbomReport.Report?.Components.SerialNumber ?? Guid.NewGuid().ToString(),
-            Version = sbomReport.Report?.Components.Version ?? 1,
+            SpecVersion = oldSbomReport.Report?.Components.SpecVersion ?? "1.3",
+            SerialNumber = oldSbomReport.Report?.Components.SerialNumber ?? Guid.NewGuid().ToString(),
+            Version = oldSbomReport.Report?.Components.Version ?? 1,
             Metadata = new CycloneDxMetadata
             {
-                Timestamp = sbomReport.Report?.Components.Metadata.Timestamp,
+                Timestamp = oldSbomReport.Report?.Components.Metadata.Timestamp,
                 Tools =
                 [
-                    .. sbomReport.Report?.Components.Metadata.Tools.Components.Select(tool => new CycloneDxTool
+                    .. oldSbomReport.Report?.Components.Metadata.Tools.Components.Select(tool => new CycloneDxTool
                            {
                                Vendor = tool.Group,
                                Name = tool.Name,
@@ -213,14 +213,14 @@ public static partial class SbomReportCrExtensions
                 ],
                 Component = new CycloneDxComponent
                 {
-                    Name = sbomReport.Report?.Artifact.Repository ?? string.Empty,
-                    Version = sbomReport.Report?.Artifact.Tag ?? string.Empty,
+                    Name = oldSbomReport.Report?.Artifact.Repository ?? string.Empty,
+                    Version = oldSbomReport.Report?.Artifact.Tag ?? string.Empty,
                     Type = "application",
-                    BomRef = sbomReport.Report?.Artifact.Digest ?? string.Empty,
-                    Purl = sbomReport.Report?.Components.Metadata.Component.Purl ?? string.Empty,
+                    BomRef = oldSbomReport.Report?.Artifact.Digest ?? string.Empty,
+                    Purl = oldSbomReport.Report?.Components.Metadata.Component.Purl ?? string.Empty,
                     Properties =
                     [
-                        .. sbomReport.Report?.Components.Metadata.Component.Properties.Select(prop =>
+                        .. oldSbomReport.Report?.Components.Metadata.Component.Properties.Select(prop =>
                                new CycloneDxProperty
                                {
                                    Name = prop.Name,
@@ -229,9 +229,9 @@ public static partial class SbomReportCrExtensions
                            ) ??
                            [],
                     ],
-                    LicensesXml = sbomReport.Report?.Components.Metadata.Component.Licenses == null ? null :
+                    LicensesXml = oldSbomReport.Report?.Components.Metadata.Component.Licenses == null ? null :
                     [
-                        .. sbomReport.Report?.Components.Metadata.Component.Licenses?.Select(lic => new CycloneDxLicense
+                        .. oldSbomReport.Report?.Components.Metadata.Component.Licenses?.Select(lic => new CycloneDxLicense
                                {
                                    Id = lic.License?.Id,
                                    Name = lic.License?.Name,
@@ -244,7 +244,7 @@ public static partial class SbomReportCrExtensions
             },
             Components =
             [
-                .. sbomReport.Report?.Components.ComponentsComponents.Select(comp => new CycloneDxComponent
+                .. oldSbomReport.Report?.Components.ComponentsComponents.Select(comp => new CycloneDxComponent
                        {
                            Name = comp.Name,
                            Version = comp.Version,
@@ -283,7 +283,7 @@ public static partial class SbomReportCrExtensions
             ],
             Dependencies =
             [
-                .. sbomReport.Report?.Components.Dependencies.Select(dep => new CycloneDxDependency
+                .. oldSbomReport.Report?.Components.Dependencies.Select(dep => new CycloneDxDependency
                        {
                            Ref = dep.Ref,
                            DependsOnXml =

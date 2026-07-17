@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 
 public class CustomResourceList<T> : IKubernetesObject<V1ListMeta>, IItems<T>
-    where T : Domain.TrivyOld.CustomResources.Abstractions.CustomResource
+    where T : CustomResource
 {
     [JsonPropertyName("items")]
     public IList<T> Items { get; set; } = [];

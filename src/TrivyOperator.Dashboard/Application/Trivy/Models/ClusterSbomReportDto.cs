@@ -75,9 +75,9 @@ public class ClusterSbomReportDenormalizedDto
 
 public static class ClusterSbomReportCrExtensions
 {
-    public static ClusterSbomReportDto ToClusterSbomReportDto(this ClusterSbomReportCr clusterSbomReportCr)
+    public static ClusterSbomReportDto ToClusterSbomReportDto(this OldClusterSbomReportCr oldClusterSbomReportCr)
     {
-        ComponentsComponent[] allComponents = GetAllComponents(clusterSbomReportCr);
+        ComponentsComponent[] allComponents = GetAllComponents(oldClusterSbomReportCr);
 
         IEnumerable<ClusterSbomReportDetailDto> details = allComponents.Select(component =>
             {
@@ -87,7 +87,7 @@ public static class ClusterSbomReportCrExtensions
                     Name = component.Name,
                     Purl = component.Purl,
                     Version = component.Version,
-                    DependsOn = clusterSbomReportCr.Report?.Components.Dependencies
+                    DependsOn = oldClusterSbomReportCr.Report?.Components.Dependencies
                                     .FirstOrDefault(x => x.Ref == component.BomRef)
                                     ?.DependsOn ??
                                 [],
@@ -107,12 +107,12 @@ public static class ClusterSbomReportCrExtensions
 
         ClusterSbomReportDto result = new()
         {
-            Uid = Guid.TryParse(clusterSbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
-            UpdateTimestamp = clusterSbomReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
-            ImageName = clusterSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
-            ImageTag = clusterSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
-            ImageRepository = clusterSbomReportCr.Report?.Registry?.Server ?? string.Empty,
-            RootNodeBomRef = clusterSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
+            Uid = Guid.TryParse(oldClusterSbomReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
+            UpdateTimestamp = oldClusterSbomReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
+            ImageName = oldClusterSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
+            ImageTag = oldClusterSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
+            ImageRepository = oldClusterSbomReportCr.Report?.Registry?.Server ?? string.Empty,
+            RootNodeBomRef = oldClusterSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
             Details = [.. details,],
         };
         SbomReportCrExtensions.CleanupPurlsFromBomRefs(result);
@@ -122,26 +122,26 @@ public static class ClusterSbomReportCrExtensions
     }
 
     public static IEnumerable<ClusterSbomReportDenormalizedDto> ToClusterSbomReportDenormalizedDtos(
-        this ClusterSbomReportCr clusterSbomReportCr
+        this OldClusterSbomReportCr oldClusterSbomReportCr
     )
     {
-        ComponentsComponent[] allComponents = GetAllComponents(clusterSbomReportCr);
+        ComponentsComponent[] allComponents = GetAllComponents(oldClusterSbomReportCr);
 
         IEnumerable<ClusterSbomReportDenormalizedDto> result = allComponents.Select(component =>
             {
                 ClusterSbomReportDenormalizedDto detailDto = new()
                 {
-                    CreationTimestamp = clusterSbomReportCr.Metadata.CreationTimestamp ?? DateTime.MinValue,
-                    ImageName = clusterSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
-                    ImageTag = clusterSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
-                    ImageRepository = clusterSbomReportCr.Report?.Registry?.Server ?? string.Empty,
-                    RootNodeBomRef = clusterSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
+                    CreationTimestamp = oldClusterSbomReportCr.Metadata.CreationTimestamp ?? DateTime.MinValue,
+                    ImageName = oldClusterSbomReportCr.Report?.Artifact?.Repository ?? string.Empty,
+                    ImageTag = oldClusterSbomReportCr.Report?.Artifact?.Tag ?? string.Empty,
+                    ImageRepository = oldClusterSbomReportCr.Report?.Registry?.Server ?? string.Empty,
+                    RootNodeBomRef = oldClusterSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
                     BomRef = component.BomRef,
                     Name = component.Name,
                     Purl = component.Purl,
                     Version = component.Version,
                     DependenciesCount =
-                        clusterSbomReportCr.Report?.Components.Dependencies
+                        oldClusterSbomReportCr.Report?.Components.Dependencies
                             .FirstOrDefault(x => x.Ref == component.BomRef)
                             ?.DependsOn.Length ??
                         0,
@@ -215,10 +215,10 @@ public static class ClusterSbomReportCrExtensions
     }
 
 
-    private static ComponentsComponent[] GetAllComponents(ClusterSbomReportCr clusterSbomReportCr) =>
-        clusterSbomReportCr.Report?.Components.Metadata.Component != null ?
+    private static ComponentsComponent[] GetAllComponents(OldClusterSbomReportCr oldClusterSbomReportCr) =>
+        oldClusterSbomReportCr.Report?.Components.Metadata.Component != null ?
         [
-            .. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],
-            clusterSbomReportCr.Report?.Components.Metadata.Component!,
-        ] : [.. clusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
+            .. oldClusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],
+            oldClusterSbomReportCr.Report?.Components.Metadata.Component!,
+        ] : [.. oldClusterSbomReportCr.Report?.Components.ComponentsComponents ?? [],];
 }

@@ -15,7 +15,7 @@ public interface ISbomReportService
     Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(
         string digest,
         string namespaceName,
-        IEnumerable<SbomReportCr>? cachedValues = null
+        IEnumerable<OldSbomReportCr>? cachedValues = null
     );
 
     Task<SpdxBom?> GetSpdxBomByDigestNamespace(string digest, string namespaceName);

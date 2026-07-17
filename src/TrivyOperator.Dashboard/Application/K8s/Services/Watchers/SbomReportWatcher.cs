@@ -2,24 +2,24 @@
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
-using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
 public class SbomReportWatcher(
-    INamespacedResourceWatchService<SbomReportCr, CustomResourceList<SbomReportCr>>
+    INamespacedResourceWatchService<OldSbomReportCr, CustomResourceList<OldSbomReportCr>>
         namespacedResourceWatchService,
-    IKubernetesBackgroundQueue<SbomReportCr> backgroundQueue,
+    IKubernetesBackgroundQueue<OldSbomReportCr> backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
     ILogger<SbomReportWatcher> logger
-) : NamespacedWatcher<CustomResourceList<SbomReportCr>, SbomReportCr, IKubernetesBackgroundQueue<SbomReportCr>,
-    WatcherEvent<SbomReportCr>>(namespacedResourceWatchService, backgroundQueue, options, metricsClient, logger)
+) : NamespacedWatcher<CustomResourceList<OldSbomReportCr>, OldSbomReportCr, IKubernetesBackgroundQueue<OldSbomReportCr>,
+    WatcherEvent<OldSbomReportCr>>(namespacedResourceWatchService, backgroundQueue, options, metricsClient, logger)
 {
-    protected override void ProcessReceivedKubernetesObject(SbomReportCr kubernetesObject)
+    protected override void ProcessReceivedKubernetesObject(OldSbomReportCr kubernetesObject)
     {
         if (kubernetesObject.Report != null)
         {

@@ -17,10 +17,10 @@ using Metadata = TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHist
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies;
 
 public sealed class TrivyReportDependenciesService(
-    IConcurrentDictionaryCache<ConfigAuditReportCr> carCache,
-    IConcurrentDictionaryCache<ExposedSecretReportCr> esrCache,
-    IConcurrentDictionaryCache<SbomReportCr> srCache,
-    IConcurrentDictionaryCache<VulnerabilityReportCr> vrCache,
+    IConcurrentDictionaryCache<OldConfigAuditReportCr> carCache,
+    IConcurrentDictionaryCache<OldExposedSecretReportCr> esrCache,
+    IConcurrentDictionaryCache<OldSbomReportCr> srCache,
+    IConcurrentDictionaryCache<OldVulnerabilityReportCr> vrCache,
     IVulnerabilityReportsHistoryStore vrHistoryStore
 ) : ITrivyReportDependenciesService
 {
@@ -32,12 +32,12 @@ public sealed class TrivyReportDependenciesService(
         //
         // 1. Load reports from caches
         //
-        ExposedSecretReportCr[] esrReports = GetReports(esrCache, namespaceName, imageDigest);
-        SbomReportCr[] srReports  = GetReports(srCache, namespaceName, imageDigest);
-        VulnerabilityReportCr[] vrReports  = GetReports(vrCache, namespaceName, imageDigest);
+        OldExposedSecretReportCr[] esrReports = GetReports(esrCache, namespaceName, imageDigest);
+        OldSbomReportCr[] srReports  = GetReports(srCache, namespaceName, imageDigest);
+        OldVulnerabilityReportCr[] vrReports  = GetReports(vrCache, namespaceName, imageDigest);
 
-        ConfigAuditReportCr[] carReports =
-            carCache.TryGetValue(namespaceName, out ConcurrentDictionary<string, ConfigAuditReportCr>? carDict)
+        OldConfigAuditReportCr[] carReports =
+            carCache.TryGetValue(namespaceName, out ConcurrentDictionary<string, OldConfigAuditReportCr>? carDict)
                 ? carDict.Values.ToArray()
                 : [];
 
@@ -86,17 +86,17 @@ public sealed class TrivyReportDependenciesService(
         CancellationToken ct = default
     )
     {
-        VulnerabilityReportCr[] vrReports = GetReports(vrCache, namespaceName, imageDigest);
+        OldVulnerabilityReportCr[] vrReports = GetReports(vrCache, namespaceName, imageDigest);
         if (vrReports.Length != 0)
         {
             return Task.FromResult(true);
         }
-        ExposedSecretReportCr[] esrReports = GetReports(esrCache, namespaceName, imageDigest);
+        OldExposedSecretReportCr[] esrReports = GetReports(esrCache, namespaceName, imageDigest);
         if (esrReports.Length != 0)
         {
             return Task.FromResult(true);
         }
-        SbomReportCr[] srReports = GetReports(srCache, namespaceName, imageDigest);
+        OldSbomReportCr[] srReports = GetReports(srCache, namespaceName, imageDigest);
         return Task.FromResult(srReports.Length != 0);
     }
 
@@ -126,9 +126,9 @@ public sealed class TrivyReportDependenciesService(
     private static DigestNode? BuildDigestNode(
         string ns,
         string digest,
-        VulnerabilityReportCr[] vr,
-        ExposedSecretReportCr[] esr,
-        SbomReportCr[] sbom
+        OldVulnerabilityReportCr[] vr,
+        OldExposedSecretReportCr[] esr,
+        OldSbomReportCr[] sbom
     )
     {
         ITrivyReportWithImage? latest =
@@ -171,9 +171,9 @@ public sealed class TrivyReportDependenciesService(
     }
 
     private static TrivyReportNode[] BuildTrivyReportNodes(
-        VulnerabilityReportCr[] vrReports,
-        ExposedSecretReportCr[] esrReports,
-        SbomReportCr[] srReports)
+        OldVulnerabilityReportCr[] vrReports,
+        OldExposedSecretReportCr[] esrReports,
+        OldSbomReportCr[] srReports)
     {
         List<TrivyReportNode> list = [];
 
@@ -232,10 +232,10 @@ public sealed class TrivyReportDependenciesService(
     }
 
     private static WorkloadsNode BuildWorkloadsNode(
-        VulnerabilityReportCr[] vr,
-        ExposedSecretReportCr[] esr,
-        SbomReportCr[] sbom,
-        ConfigAuditReportCr[] car
+        OldVulnerabilityReportCr[] vr,
+        OldExposedSecretReportCr[] esr,
+        OldSbomReportCr[] sbom,
+        OldConfigAuditReportCr[] car
     )
     {
         ITrivyReportWithImage[] all = [.. vr.Cast<ITrivyReportWithImage>().Concat(esr).Concat(sbom),];
@@ -254,7 +254,7 @@ public sealed class TrivyReportDependenciesService(
         {
             (string kind, string name) = g.Key;
 
-            ConfigAuditReportCr[] matchingCar = [.. car.Where(c =>
+            OldConfigAuditReportCr[] matchingCar = [.. car.Where(c =>
             {
                 IDictionary<string, string> labels = c.Metadata.Labels ?? new Dictionary<string, string>();
                 return labels.TryGetValue("trivy-operator.resource.kind", out string? k) &&
@@ -285,7 +285,7 @@ public sealed class TrivyReportDependenciesService(
         };
     }
 
-    private static ConfigAuditNode[] BuildConfigAuditNode(ConfigAuditReportCr[] cars)
+    private static ConfigAuditNode[] BuildConfigAuditNode(OldConfigAuditReportCr[] cars)
     {
         if (cars.Length == 0)
         {
@@ -304,7 +304,7 @@ public sealed class TrivyReportDependenciesService(
         
         List<ConfigAuditNode> result = [];
 
-        foreach (ConfigAuditReportCr c in cars)
+        foreach (OldConfigAuditReportCr c in cars)
         {
             ConfigAuditNode can = new()
             {

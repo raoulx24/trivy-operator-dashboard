@@ -67,14 +67,12 @@ using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterInfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterRbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterSbomReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ClusterVulnerabilityReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ConfigAuditReport;
-using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
@@ -84,7 +82,6 @@ using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractio
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Options;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
-using TrivyOperator.Dashboard.Infrastructure.Caching;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
@@ -93,10 +90,10 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
-using TrivyOperator.Dashboard.Infrastructure.K8s;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
+using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.K8sApi;
@@ -196,29 +193,29 @@ public static class BuilderServicesExtensions
     {
         services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
 
-        services.AddClusterScopedTrivyServices<ClusterComplianceReportCr, IClusterComplianceReportService,
+        services.AddClusterScopedTrivyServices<OldClusterComplianceReportCr, IClusterComplianceReportService,
             ClusterComplianceReportNullService, ClusterComplianceReportService>(configuration);
-        services.AddClusterScopedTrivyServices<ClusterInfraAssessmentReportCr, IClusterInfraAssessmentReportService,
+        services.AddClusterScopedTrivyServices<OldClusterInfraAssessmentReportCr, IClusterInfraAssessmentReportService,
             ClusterInfraAssessmentReportNullService, ClusterInfraAssessmentReportService>(configuration);
-        services.AddClusterScopedTrivyServices<ClusterRbacAssessmentReportCr, IClusterRbacAssessmentReportService,
+        services.AddClusterScopedTrivyServices<OldClusterRbacAssessmentReportCr, IClusterRbacAssessmentReportService,
             ClusterRbacAssessmentReportNullService, ClusterRbacAssessmentReportService>(configuration);
-        services.AddClusterScopedTrivyServices<ClusterSbomReportCr, IClusterSbomReportService,
+        services.AddClusterScopedTrivyServices<OldClusterSbomReportCr, IClusterSbomReportService,
             ClusterSbomReportNullService, ClusterSbomReportService>(configuration);
-        services.AddClusterScopedTrivyServices<ClusterVulnerabilityReportCr, IClusterVulnerabilityReportService,
+        services.AddClusterScopedTrivyServices<OldClusterVulnerabilityReportCr, IClusterVulnerabilityReportService,
             ClusterVulnerabilityReportNullService, ClusterVulnerabilityReportService>(configuration);
 
-        services.AddNamespacedTrivyServices<ConfigAuditReportCr, IConfigAuditReportService,
+        services.AddNamespacedTrivyServices<OldConfigAuditReportCr, IConfigAuditReportService,
             ConfigAuditReportNullService, ConfigAuditReportService>(configuration);
-        services.AddNamespacedTrivyServices<ExposedSecretReportCr, IExposedSecretReportService,
+        services.AddNamespacedTrivyServices<OldExposedSecretReportCr, IExposedSecretReportService,
             ExposedSecretReportNullService, ExposedSecretReportService>(configuration);
-        services.AddNamespacedTrivyServices<InfraAssessmentReportCr, IInfraAssessmentReportService,
+        services.AddNamespacedTrivyServices<OldInfraAssessmentReportCr, IInfraAssessmentReportService,
             InfraAssessmentReportNullService, InfraAssessmentReportService>(configuration);
-        services.AddNamespacedTrivyServices<RbacAssessmentReportCr, IRbacAssessmentReportService,
+        services.AddNamespacedTrivyServices<OldRbacAssessmentReportCr, IRbacAssessmentReportService,
             RbacAssessmentReportNullService, RbacAssessmentReportService>(configuration);
-        services.AddNamespacedTrivyServices<SbomReportCr, ISbomReportService, SbomReportNullService, SbomReportService>(
+        services.AddNamespacedTrivyServices<OldSbomReportCr, ISbomReportService, SbomReportNullService, SbomReportService>(
             configuration
         );
-        services.AddNamespacedTrivyServices<VulnerabilityReportCr, IVulnerabilityReportService,
+        services.AddNamespacedTrivyServices<OldVulnerabilityReportCr, IVulnerabilityReportService,
             VulnerabilityReportNullService, VulnerabilityReportService>(configuration);
     }
 
@@ -288,7 +285,7 @@ public static class BuilderServicesExtensions
                     KubernetesBackgroundQueue<TNamespacedTrivyReportCr>>();
             if (typeof(TNamespacedTrivyReportCr).Name == "SbomReportCr")
             {
-                services.AddSingleton<INamespacedWatcher<SbomReportCr>, SbomReportWatcher>();
+                services.AddSingleton<INamespacedWatcher<OldSbomReportCr>, SbomReportWatcher>();
             }
             else
             {
@@ -452,7 +449,7 @@ public static class BuilderServicesExtensions
         services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
 
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespaceHistoryRefresher>();
-        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
+        services.AddSingleton<IKubernetesEventProcessor<OldVulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
         services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
         
         services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();

@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Domain.TrivyOld.CustomResources.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 
 namespace TrivyOperator.Dashboard.Domain.TrivyOld.ClusterComplianceReport;
 
-public class ClusterComplianceReportCr : CustomResource
+public class OldClusterComplianceReportCr : CustomResource
 {
     [JsonPropertyName("spec")]
     public Spec Spec { get; init; } = new();

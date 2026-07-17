@@ -101,24 +101,24 @@ public class SpdxRelationship
 
 public static partial class SbomReportCrExtensions
 {
-    public static SpdxBom ToSpdx(this SbomReportCr sbomReport)
+    public static SpdxBom ToSpdx(this OldSbomReportCr oldSbomReport)
     {
         SpdxBom spdxDocument = new()
         {
-            Name = sbomReport.Report?.Artifact.Repository ?? "Unknown SBOM",
+            Name = oldSbomReport.Report?.Artifact.Repository ?? "Unknown SBOM",
             DocumentNamespace = $"http://spdx.org/spdxdocs/{Guid.NewGuid()}",
             CreationInfo = new SpdxCreationInfo
             {
                 Created = DateTime.UtcNow,
                 Creators =
                 [
-                    $"Tool: {sbomReport.Report?.Scanner.Name} {sbomReport.Report?.Scanner.Version}",
-                    $"Organization: {sbomReport.Report?.Registry.Server}",
+                    $"Tool: {oldSbomReport.Report?.Scanner.Name} {oldSbomReport.Report?.Scanner.Version}",
+                    $"Organization: {oldSbomReport.Report?.Registry.Server}",
                 ],
             },
             Packages =
             [
-                .. sbomReport.Report?.Components.ComponentsComponents.Select(comp => new SpdxPackage
+                .. oldSbomReport.Report?.Components.ComponentsComponents.Select(comp => new SpdxPackage
                        {
                            SPDXID = $"SPDXRef-{comp.BomRef}",
                            Name = comp.Name,
@@ -131,7 +131,7 @@ public static partial class SbomReportCrExtensions
             ],
             Relationships =
             [
-                .. sbomReport.Report?.Components.Dependencies.Select(dep => new SpdxRelationship
+                .. oldSbomReport.Report?.Components.Dependencies.Select(dep => new SpdxRelationship
                        {
                            SpdxElementId = $"SPDXRef-{dep.Ref}",
                            RelatedSpdxElement = string.Join(", ", dep.DependsOn.Select(d => $"SPDXRef-{d}")),

@@ -8,7 +8,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ExposedSecretReport;
 
-public class ExposedSecretReportService(IConcurrentDictionaryCache<ExposedSecretReportCr> cache)
+public class ExposedSecretReportService(IConcurrentDictionaryCache<OldExposedSecretReportCr> cache)
     : IExposedSecretReportService
 {
     public Task<IEnumerable<ExposedSecretReportDto>> GetExposedSecretReportDtos(
@@ -20,7 +20,7 @@ public class ExposedSecretReportService(IConcurrentDictionaryCache<ExposedSecret
         int[] excludedSeveritiesArray = [.. excludedSeverities,];
         int[] includedSeverities = [.. Enum.GetValues<TrivySeverity>().Cast<int>().Except(excludedSeveritiesArray),];
 
-        IEnumerable<ExposedSecretReportCr> cachedValues =
+        IEnumerable<OldExposedSecretReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),
@@ -49,7 +49,7 @@ public class ExposedSecretReportService(IConcurrentDictionaryCache<ExposedSecret
         string? namespaceName = null
     )
     {
-        IEnumerable<ExposedSecretReportCr> cachedValues =
+        IEnumerable<OldExposedSecretReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),
@@ -72,7 +72,7 @@ public class ExposedSecretReportService(IConcurrentDictionaryCache<ExposedSecret
         int[] excludedSeveritiesArray = [.. excludedSeverities,];
         int[] incudedSeverities = [.. Enum.GetValues<TrivySeverity>().Cast<int>().Except(excludedSeveritiesArray),];
 
-        IEnumerable<ExposedSecretReportCr> cachedValues =
+        IEnumerable<OldExposedSecretReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),
@@ -105,7 +105,7 @@ public class ExposedSecretReportService(IConcurrentDictionaryCache<ExposedSecret
         string namespaceName
     )
     {
-        IEnumerable<ExposedSecretReportCr> cachedValues =
+        IEnumerable<OldExposedSecretReportCr> cachedValues =
             [.. cache.Where(kvp => kvp.Key == namespaceName).SelectMany(kvp => kvp.Value.Values),];
         ExposedSecretReportImageDto? exposedSecretReportImageDto = cachedValues
             .Where(x => x.Report?.Artifact?.Digest == digest)
@@ -119,7 +119,7 @@ public class ExposedSecretReportService(IConcurrentDictionaryCache<ExposedSecret
     {
         int[] severityIds = [.. Enum.GetValues<TrivySeverity>().Cast<int>().Where(x => x < 4),];
 
-        ExposedSecretReportCr[] cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        OldExposedSecretReportCr[] cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
 
         IEnumerable<EsSeveritiesByNsSummaryDto> summaryDtos = cachedValues.SelectMany(es =>
                 (es.Report?.Secrets ?? []).Select(esd => new

@@ -8,7 +8,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ConfigAuditReport;
 
-public class ConfigAuditReportService(IConcurrentDictionaryCache<ConfigAuditReportCr> cache) : IConfigAuditReportService
+public class ConfigAuditReportService(IConcurrentDictionaryCache<OldConfigAuditReportCr> cache) : IConfigAuditReportService
 {
     public Task<IEnumerable<ConfigAuditReportDto>> GetConfigAuditReportDtos(
         string? namespaceName = null,
@@ -20,7 +20,7 @@ public class ConfigAuditReportService(IConcurrentDictionaryCache<ConfigAuditRepo
         bool hasExcludedSeverities = excludedSeveritiesArray.Length != 0;
         int[] includedSeverities = [.. Enum.GetValues<TrivySeverity>().Cast<int>().Except(excludedSeveritiesArray),];
 
-        IEnumerable<ConfigAuditReportCr> cachedValues =
+        IEnumerable<OldConfigAuditReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),
@@ -54,10 +54,10 @@ public class ConfigAuditReportService(IConcurrentDictionaryCache<ConfigAuditRepo
         {
             if (cache.TryGetValue(
                     namespaceName,
-                    out ConcurrentDictionary<string, ConfigAuditReportCr>? configAuditReportCrs
+                    out ConcurrentDictionary<string, OldConfigAuditReportCr>? configAuditReportCrs
                 ))
             {
-                if (configAuditReportCrs.TryGetValue(uid.ToString(), out ConfigAuditReportCr? configAuditReportCr))
+                if (configAuditReportCrs.TryGetValue(uid.ToString(), out OldConfigAuditReportCr? configAuditReportCr))
                 {
                     return Task.FromResult<ConfigAuditReportDto?>(configAuditReportCr.ToConfigAuditReportDto());
                 }
@@ -72,7 +72,7 @@ public class ConfigAuditReportService(IConcurrentDictionaryCache<ConfigAuditRepo
         string? namespaceName = null
     )
     {
-        IEnumerable<ConfigAuditReportCr> cachedValues =
+        IEnumerable<OldConfigAuditReportCr> cachedValues =
         [
             .. cache.Where(kvp => string.IsNullOrEmpty(namespaceName) || kvp.Key == namespaceName)
                 .SelectMany(kvp => kvp.Value.Values),
@@ -88,7 +88,7 @@ public class ConfigAuditReportService(IConcurrentDictionaryCache<ConfigAuditRepo
 
     public Task<IEnumerable<ConfigAuditReportSummaryDto>> GetConfigAuditReportSummaryDtos()
     {
-        ConfigAuditReportCr[] cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        OldConfigAuditReportCr[] cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
 
         var valuesByNs = cachedValues.Select(car => car.ToConfigAuditReportDto())
             .SelectMany(dto => dto.Details.Select(detail => new

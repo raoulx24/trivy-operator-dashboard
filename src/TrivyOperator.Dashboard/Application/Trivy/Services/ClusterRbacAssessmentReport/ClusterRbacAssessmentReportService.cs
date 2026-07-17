@@ -7,12 +7,12 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.ClusterRbacAssessmentReport;
 
-public class ClusterRbacAssessmentReportService(IConcurrentDictionaryCache<ClusterRbacAssessmentReportCr> cache)
+public class ClusterRbacAssessmentReportService(IConcurrentDictionaryCache<OldClusterRbacAssessmentReportCr> cache)
     : IClusterRbacAssessmentReportService
 {
     public Task<IEnumerable<ClusterRbacAssessmentReportDto>> GetClusterRbacAssessmentReportDtos()
     {
-        IEnumerable<ClusterRbacAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterRbacAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
         IEnumerable<ClusterRbacAssessmentReportDto> values =
             cachedValues.Select(x => x.ToClusterRbacAssessmentReportDto());
 
@@ -22,7 +22,7 @@ public class ClusterRbacAssessmentReportService(IConcurrentDictionaryCache<Clust
     public Task<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>>
         GetClusterRbacAssessmentReportDenormalizedDtos()
     {
-        IEnumerable<ClusterRbacAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterRbacAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
         IEnumerable<ClusterRbacAssessmentReportDenormalizedDto> values =
             cachedValues.SelectMany(cr => cr.ToClusterRbacAssessmentReportDenormalizedDtos());
 
@@ -33,7 +33,7 @@ public class ClusterRbacAssessmentReportService(IConcurrentDictionaryCache<Clust
     {
         int[] allSeverities = [.. Enum.GetValues<TrivySeverity>().Cast<int>().Where(x => x < 4),];
 
-        IEnumerable<ClusterRbacAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
+        IEnumerable<OldClusterRbacAssessmentReportCr> cachedValues = [.. cache.SelectMany(kvp => kvp.Value.Values),];
         IEnumerable<ClusterRbacAssessmentReportSummaryDto> actualValues = cachedValues
             .SelectMany(crar => crar.Report?.Checks ?? [])
             .GroupBy(key => key.Severity)

@@ -65,12 +65,12 @@ public class ClusterComplianceReportDenormalizedDto
 public static class ClusterComplianceReportCrExtensions
 {
     public static ClusterComplianceReportDto ToClusterComplianceReportDto(
-        this ClusterComplianceReportCr clusterComplianceReportCr
+        this OldClusterComplianceReportCr oldClusterComplianceReportCr
     )
     {
         ClusterComplianceReportDetailDto[] details =
         [
-            .. clusterComplianceReportCr.Spec.Compliance.Controls.Select(control => new ClusterComplianceReportDetailDto
+            .. oldClusterComplianceReportCr.Spec.Compliance.Controls.Select(control => new ClusterComplianceReportDetailDto
                 {
                     Id = control.Id,
                     Name = control.Name,
@@ -78,7 +78,7 @@ public static class ClusterComplianceReportCrExtensions
                     SeverityId = (int)control.Severity,
                     Checks = control.Checks.Select(check => check.Id).ToArray(),
                     Commands = control.Commands.Select(command => command.Id).ToArray(),
-                    TotalFail = clusterComplianceReportCr.Status.SummaryReport.ControlCheck
+                    TotalFail = oldClusterComplianceReportCr.Status.SummaryReport.ControlCheck
                                     .Where(x => x.Id == control.Id)
                                     .FirstOrDefault()
                                     ?.TotalFail ??
@@ -89,56 +89,56 @@ public static class ClusterComplianceReportCrExtensions
 
         return new ClusterComplianceReportDto
         {
-            Name = clusterComplianceReportCr.Metadata.Name,
-            Uid = Guid.TryParse(clusterComplianceReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
-            Description = clusterComplianceReportCr.Spec.Compliance.Description,
-            Platform = clusterComplianceReportCr.Spec.Compliance.Platform,
+            Name = oldClusterComplianceReportCr.Metadata.Name,
+            Uid = Guid.TryParse(oldClusterComplianceReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
+            Description = oldClusterComplianceReportCr.Spec.Compliance.Description,
+            Platform = oldClusterComplianceReportCr.Spec.Compliance.Platform,
             RelatedResources =
-                clusterComplianceReportCr.Spec.Compliance.RelatedResources.Select(x => x.ToString()).ToArray(),
-            Title = clusterComplianceReportCr.Spec.Compliance.Title,
-            Type = clusterComplianceReportCr.Spec.Compliance.Type,
-            Version = clusterComplianceReportCr.Spec.Compliance.Version,
-            Cron = clusterComplianceReportCr.Spec.Cron,
-            ReportType = clusterComplianceReportCr.Spec.ReportType,
-            TotalPassCount = clusterComplianceReportCr.Status.Summary.PassCount,
-            TotalFailCount = clusterComplianceReportCr.Status.Summary.FailCount,
+                oldClusterComplianceReportCr.Spec.Compliance.RelatedResources.Select(x => x.ToString()).ToArray(),
+            Title = oldClusterComplianceReportCr.Spec.Compliance.Title,
+            Type = oldClusterComplianceReportCr.Spec.Compliance.Type,
+            Version = oldClusterComplianceReportCr.Spec.Compliance.Version,
+            Cron = oldClusterComplianceReportCr.Spec.Cron,
+            ReportType = oldClusterComplianceReportCr.Spec.ReportType,
+            TotalPassCount = oldClusterComplianceReportCr.Status.Summary.PassCount,
+            TotalFailCount = oldClusterComplianceReportCr.Status.Summary.FailCount,
             TotalFailCriticalCount =
                 details.Where(x => x.SeverityId == (int)TrivySeverity.CRITICAL && x.TotalFail > 0).Count(),
             TotalFailHighCount = details.Where(x => x.SeverityId == (int)TrivySeverity.HIGH && x.TotalFail > 0).Count(),
             TotalFailMediumCount =
                 details.Where(x => x.SeverityId == (int)TrivySeverity.MEDIUM && x.TotalFail > 0).Count(),
             TotalFailLowCount = details.Where(x => x.SeverityId == (int)TrivySeverity.LOW && x.TotalFail > 0).Count(),
-            UpdateTimestamp = clusterComplianceReportCr.Status.UpdateTimestamp,
+            UpdateTimestamp = oldClusterComplianceReportCr.Status.UpdateTimestamp,
             Details = details,
         };
     }
 
     public static IEnumerable<ClusterComplianceReportDenormalizedDto> ToClusterComplianceReportDenormalizedDtos(
-        this ClusterComplianceReportCr clusterComplianceReportCr
+        this OldClusterComplianceReportCr oldClusterComplianceReportCr
     ) =>
-        clusterComplianceReportCr.Spec.Compliance.Controls.Select(control => new ClusterComplianceReportDenormalizedDto
+        oldClusterComplianceReportCr.Spec.Compliance.Controls.Select(control => new ClusterComplianceReportDenormalizedDto
             {
-                Name = clusterComplianceReportCr.Metadata.Name,
-                Uid = new Guid(clusterComplianceReportCr.Metadata.Uid),
-                Description = clusterComplianceReportCr.Spec.Compliance.Description,
-                Platform = clusterComplianceReportCr.Spec.Compliance.Platform,
+                Name = oldClusterComplianceReportCr.Metadata.Name,
+                Uid = new Guid(oldClusterComplianceReportCr.Metadata.Uid),
+                Description = oldClusterComplianceReportCr.Spec.Compliance.Description,
+                Platform = oldClusterComplianceReportCr.Spec.Compliance.Platform,
                 RelatedResources =
-                    clusterComplianceReportCr.Spec.Compliance.RelatedResources.Select(x => x.ToString()).ToArray(),
-                Title = clusterComplianceReportCr.Spec.Compliance.Title,
-                Type = clusterComplianceReportCr.Spec.Compliance.Type,
-                Version = clusterComplianceReportCr.Spec.Compliance.Version,
-                Cron = clusterComplianceReportCr.Spec.Cron,
-                ReportType = clusterComplianceReportCr.Spec.ReportType,
-                TotalPassCount = clusterComplianceReportCr.Status.Summary.PassCount,
-                TotalFailCount = clusterComplianceReportCr.Status.Summary.FailCount,
-                UpdateTimestamp = clusterComplianceReportCr.Status.UpdateTimestamp,
+                    oldClusterComplianceReportCr.Spec.Compliance.RelatedResources.Select(x => x.ToString()).ToArray(),
+                Title = oldClusterComplianceReportCr.Spec.Compliance.Title,
+                Type = oldClusterComplianceReportCr.Spec.Compliance.Type,
+                Version = oldClusterComplianceReportCr.Spec.Compliance.Version,
+                Cron = oldClusterComplianceReportCr.Spec.Cron,
+                ReportType = oldClusterComplianceReportCr.Spec.ReportType,
+                TotalPassCount = oldClusterComplianceReportCr.Status.Summary.PassCount,
+                TotalFailCount = oldClusterComplianceReportCr.Status.Summary.FailCount,
+                UpdateTimestamp = oldClusterComplianceReportCr.Status.UpdateTimestamp,
                 DetailId = control.Id,
                 DetailName = control.Name,
                 DetailDescription = control.Description,
                 SeverityId = (int)control.Severity,
                 Checks = control.Checks.Select(check => check.Id).ToArray(),
                 Commands = control.Commands.Select(command => command.Id).ToArray(),
-                TotalFail = clusterComplianceReportCr.Status.SummaryReport.ControlCheck.Where(x => x.Id == control.Id)
+                TotalFail = oldClusterComplianceReportCr.Status.SummaryReport.ControlCheck.Where(x => x.Id == control.Id)
                                 .FirstOrDefault()
                                 ?.TotalFail ??
                             0,

@@ -104,10 +104,10 @@ public class EsSeveritiesByNsSummaryDetailDto
 
 public static class ExposedSecretReportCrExtensions
 {
-    public static ExposedSecretReportDto ToExposedSecretReportDto(this ExposedSecretReportCr exposedSecretReportCr)
+    public static ExposedSecretReportDto ToExposedSecretReportDto(this OldExposedSecretReportCr oldExposedSecretReportCr)
     {
         List<ExposedSecretReportDetailDto> exposedSecretReportDetailDtos = [];
-        foreach (Secret secret in exposedSecretReportCr.Report?.Secrets ?? [])
+        foreach (Secret secret in oldExposedSecretReportCr.Report?.Secrets ?? [])
         {
             ExposedSecretReportDetailDto exposedSecretReportDetailDto = new()
             {
@@ -123,40 +123,40 @@ public static class ExposedSecretReportCrExtensions
 
         ExposedSecretReportDto exposedSecretReportDto = new()
         {
-            Uid = Guid.TryParse(exposedSecretReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
-            UpdateTimestamp = exposedSecretReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
+            Uid = Guid.TryParse(oldExposedSecretReportCr.Metadata.Uid, out Guid parsedGuid) ? parsedGuid : new Guid(),
+            UpdateTimestamp = oldExposedSecretReportCr.Report?.UpdateTimestamp ?? DateTime.MinValue,
             ResourceName =
-                exposedSecretReportCr.Metadata.Labels != null &&
-                exposedSecretReportCr.Metadata.Labels.TryGetValue(
+                oldExposedSecretReportCr.Metadata.Labels != null &&
+                oldExposedSecretReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.name",
                     out string? resourceName
                 ) ? resourceName : string.Empty,
             ResourceNamespace =
-                exposedSecretReportCr.Metadata.Labels != null &&
-                exposedSecretReportCr.Metadata.Labels.TryGetValue(
+                oldExposedSecretReportCr.Metadata.Labels != null &&
+                oldExposedSecretReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.namespace",
                     out string? resourceNamespace
                 ) ? resourceNamespace : string.Empty,
             ResourceKind =
-                exposedSecretReportCr.Metadata.Labels != null &&
-                exposedSecretReportCr.Metadata.Labels.TryGetValue(
+                oldExposedSecretReportCr.Metadata.Labels != null &&
+                oldExposedSecretReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.resource.kind",
                     out string? resourceKind
                 ) ? resourceKind : string.Empty,
             ResourceContainerName =
-                exposedSecretReportCr.Metadata.Labels != null &&
-                exposedSecretReportCr.Metadata.Labels.TryGetValue(
+                oldExposedSecretReportCr.Metadata.Labels != null &&
+                oldExposedSecretReportCr.Metadata.Labels.TryGetValue(
                     "trivy-operator.container.name",
                     out string? resourceContainerName
                 ) ? resourceContainerName : string.Empty,
-            ImageName = exposedSecretReportCr.Report?.Artifact?.Repository ?? string.Empty,
-            ImageTag = exposedSecretReportCr.Report?.Artifact?.Tag ?? string.Empty,
-            ImageDigest = exposedSecretReportCr.Report?.Artifact?.Digest ?? string.Empty,
-            ImageRepository = exposedSecretReportCr.Report?.Registry?.Server ?? string.Empty,
-            CriticalCount = exposedSecretReportCr.Report?.Summary?.CriticalCount ?? 0,
-            HighCount = exposedSecretReportCr.Report?.Summary?.HighCount ?? 0,
-            MediumCount = exposedSecretReportCr.Report?.Summary?.MediumCount ?? 0,
-            LowCount = exposedSecretReportCr.Report?.Summary?.LowCount ?? 0,
+            ImageName = oldExposedSecretReportCr.Report?.Artifact?.Repository ?? string.Empty,
+            ImageTag = oldExposedSecretReportCr.Report?.Artifact?.Tag ?? string.Empty,
+            ImageDigest = oldExposedSecretReportCr.Report?.Artifact?.Digest ?? string.Empty,
+            ImageRepository = oldExposedSecretReportCr.Report?.Registry?.Server ?? string.Empty,
+            CriticalCount = oldExposedSecretReportCr.Report?.Summary?.CriticalCount ?? 0,
+            HighCount = oldExposedSecretReportCr.Report?.Summary?.HighCount ?? 0,
+            MediumCount = oldExposedSecretReportCr.Report?.Summary?.MediumCount ?? 0,
+            LowCount = oldExposedSecretReportCr.Report?.Summary?.LowCount ?? 0,
             Details = [.. exposedSecretReportDetailDtos,],
         };
 
@@ -164,14 +164,14 @@ public static class ExposedSecretReportCrExtensions
     }
 
     public static ExposedSecretReportImageDto ToExposedSecretReportImageDto(
-        this IGrouping<ImageGroupKey, ExposedSecretReportCr> groupedExposedSecretReportCr,
+        this IGrouping<ImageGroupKey, OldExposedSecretReportCr> groupedExposedSecretReportCr,
         IEnumerable<int>? excludedSeverities = null
     )
     {
         excludedSeverities ??= [];
         int[] excludedSeveritiesArray = [.. excludedSeverities,];
         List<ExposedSecretReportImageResourceDto> eseirDtos = [];
-        foreach (ExposedSecretReportCr vr in groupedExposedSecretReportCr)
+        foreach (OldExposedSecretReportCr vr in groupedExposedSecretReportCr)
         {
             ExposedSecretReportImageResourceDto eseirDto = new()
             {
@@ -187,7 +187,7 @@ public static class ExposedSecretReportCrExtensions
             eseirDtos.Add(eseirDto);
         }
 
-        ExposedSecretReportCr? latestExposedSecretReportCr = groupedExposedSecretReportCr
+        OldExposedSecretReportCr? latestExposedSecretReportCr = groupedExposedSecretReportCr
             .OrderByDescending(x => x.Report?.UpdateTimestamp)
             .FirstOrDefault();
         List<ExposedSecretReportDetailDto> exposedSecretReportDetailDtos = [];
@@ -233,11 +233,11 @@ public static class ExposedSecretReportCrExtensions
     }
 
     public static IEnumerable<ExposedSecretReportDenormalizedDto> ToExposedSecretReportDenormalizedDtos(
-        this ExposedSecretReportCr exposedSecretReportCr
+        this OldExposedSecretReportCr oldExposedSecretReportCr
     )
     {
         IEnumerable<ExposedSecretReportDenormalizedDto> exposedSecretReportDenormalizedDtos =
-            (exposedSecretReportCr.Report?.Secrets ?? []).Select(secret => new ExposedSecretReportDenormalizedDto
+            (oldExposedSecretReportCr.Report?.Secrets ?? []).Select(secret => new ExposedSecretReportDenormalizedDto
                 {
                     Category = secret.Category,
                     Match = secret.Match,
@@ -245,39 +245,39 @@ public static class ExposedSecretReportCrExtensions
                     SeverityId = (int)secret.Severity,
                     Target = secret.Target,
                     Title = secret.Title,
-                    Uid = new Guid(exposedSecretReportCr?.Metadata?.Uid ?? string.Empty),
+                    Uid = new Guid(oldExposedSecretReportCr?.Metadata?.Uid ?? string.Empty),
                     ResourceName =
-                        exposedSecretReportCr?.Metadata?.Labels != null &&
-                        exposedSecretReportCr.Metadata.Labels.TryGetValue(
+                        oldExposedSecretReportCr?.Metadata?.Labels != null &&
+                        oldExposedSecretReportCr.Metadata.Labels.TryGetValue(
                             "trivy-operator.resource.name",
                             out string? resourceName
                         ) ? resourceName : string.Empty,
                     ResourceNamespace =
-                        exposedSecretReportCr?.Metadata?.Labels != null &&
-                        exposedSecretReportCr.Metadata.Labels.TryGetValue(
+                        oldExposedSecretReportCr?.Metadata?.Labels != null &&
+                        oldExposedSecretReportCr.Metadata.Labels.TryGetValue(
                             "trivy-operator.resource.namespace",
                             out string? resourceNamespace
                         ) ? resourceNamespace : string.Empty,
                     ResourceKind =
-                        exposedSecretReportCr?.Metadata?.Labels != null &&
-                        exposedSecretReportCr.Metadata.Labels.TryGetValue(
+                        oldExposedSecretReportCr?.Metadata?.Labels != null &&
+                        oldExposedSecretReportCr.Metadata.Labels.TryGetValue(
                             "trivy-operator.resource.kind",
                             out string? resourceKind
                         ) ? resourceKind : string.Empty,
                     ResourceContainerName =
-                        exposedSecretReportCr?.Metadata?.Labels != null &&
-                        exposedSecretReportCr.Metadata.Labels.TryGetValue(
+                        oldExposedSecretReportCr?.Metadata?.Labels != null &&
+                        oldExposedSecretReportCr.Metadata.Labels.TryGetValue(
                             "trivy-operator.container.name",
                             out string? resourceContainerName
                         ) ? resourceContainerName : string.Empty,
-                    ImageName = exposedSecretReportCr?.Report?.Artifact?.Repository ?? string.Empty,
-                    ImageTag = exposedSecretReportCr?.Report?.Artifact?.Tag ?? string.Empty,
-                    ImageDigest = exposedSecretReportCr?.Report?.Artifact?.Digest ?? string.Empty,
-                    ImageRepository = exposedSecretReportCr?.Report?.Registry?.Server ?? string.Empty,
-                    CriticalCount = exposedSecretReportCr?.Report?.Summary?.CriticalCount ?? 0,
-                    HighCount = exposedSecretReportCr?.Report?.Summary?.HighCount ?? 0,
-                    MediumCount = exposedSecretReportCr?.Report?.Summary?.MediumCount ?? 0,
-                    LowCount = exposedSecretReportCr?.Report?.Summary?.LowCount ?? 0,
+                    ImageName = oldExposedSecretReportCr?.Report?.Artifact?.Repository ?? string.Empty,
+                    ImageTag = oldExposedSecretReportCr?.Report?.Artifact?.Tag ?? string.Empty,
+                    ImageDigest = oldExposedSecretReportCr?.Report?.Artifact?.Digest ?? string.Empty,
+                    ImageRepository = oldExposedSecretReportCr?.Report?.Registry?.Server ?? string.Empty,
+                    CriticalCount = oldExposedSecretReportCr?.Report?.Summary?.CriticalCount ?? 0,
+                    HighCount = oldExposedSecretReportCr?.Report?.Summary?.HighCount ?? 0,
+                    MediumCount = oldExposedSecretReportCr?.Report?.Summary?.MediumCount ?? 0,
+                    LowCount = oldExposedSecretReportCr?.Report?.Summary?.LowCount ?? 0,
                 }
             );
 

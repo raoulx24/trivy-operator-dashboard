@@ -30,7 +30,7 @@ public class SbomReportNullService : ISbomReportService
     public Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(
         string digest,
         string namespaceName,
-        IEnumerable<SbomReportCr>? cachedValues = null
+        IEnumerable<OldSbomReportCr>? cachedValues = null
     ) =>
         Task.FromResult<CycloneDxBom?>(null);
 
