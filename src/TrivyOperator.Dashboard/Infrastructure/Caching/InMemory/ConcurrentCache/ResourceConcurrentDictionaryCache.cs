@@ -15,7 +15,7 @@ where TKey : notnull
         List<Measurement<long>> measurements = [];
         measurements.AddRange(
             Keys.Select(key => new Measurement<long>(
-                    this[key].Count,
+                    GetValueForMetrics(key).Count,
                     new KeyValuePair<string, object?>("value_kind", "concurrent_dictionary"),
                     new KeyValuePair<string, object?>("value_type", typeof(TValue).Name),
                     new KeyValuePair<string, object?>("key_name", key)
