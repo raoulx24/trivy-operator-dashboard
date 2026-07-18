@@ -2,12 +2,17 @@
 
 public readonly record struct ResourceName
 {
-    public string Value { get; }
+    private const string Sentinel = "n/a";
 
-    public ResourceName(string value)
+    public string Value { get; }
+    public bool IsValid => Value != Sentinel;
+
+    public ResourceName(string? value)
     {
-        Value = value.ToLowerInvariant();
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim().ToLowerInvariant();
     }
+
+    public ResourceName() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }

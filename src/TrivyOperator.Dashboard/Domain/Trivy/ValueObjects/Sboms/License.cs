@@ -11,8 +11,5 @@ public sealed record License
         Id = string.IsNullOrWhiteSpace(id) ? null : string.Intern(id.Trim());
         Name = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
         Url = url;
-
-        if (Id is null && Name is null && Url is null)
-            throw new ArgumentException("License must have at least one identifier.");
     }
 }

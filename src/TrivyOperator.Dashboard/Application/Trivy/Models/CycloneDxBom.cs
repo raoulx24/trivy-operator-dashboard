@@ -21,7 +21,7 @@ public class CycloneDxBom
 
     [JsonPropertyName("version")]
     [XmlAttribute("version")]
-    public long Version { get; set; } = 1;
+    public int Version { get; set; } = 1;
 
     [JsonPropertyName("metadata")]
     [XmlElement("metadata")]

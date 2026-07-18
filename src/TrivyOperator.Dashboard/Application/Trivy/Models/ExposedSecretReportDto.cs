@@ -15,10 +15,10 @@ public class ExposedSecretReportDto
     public string ImageTag { get; init; } = string.Empty;
     public string ImageDigest { get; init; } = string.Empty;
     public string ImageRepository { get; init; } = string.Empty;
-    public long CriticalCount { get; init; }
-    public long HighCount { get; init; }
-    public long MediumCount { get; init; }
-    public long LowCount { get; init; }
+    public int CriticalCount { get; init; }
+    public int HighCount { get; init; }
+    public int MediumCount { get; init; }
+    public int LowCount { get; init; }
     public DateTime? UpdateTimestamp { get; init; }
     public ExposedSecretReportDetailDto[] Details { get; set; } = [];
 }
@@ -32,10 +32,10 @@ public class ExposedSecretReportImageDto
     public string ImageDigest { get; init; } = string.Empty;
     public string ImageRepository { get; init; } = string.Empty;
     public List<ExposedSecretReportImageResourceDto> Resources { get; init; } = [];
-    public long CriticalCount { get; init; }
-    public long HighCount { get; init; }
-    public long MediumCount { get; init; }
-    public long LowCount { get; init; }
+    public int CriticalCount { get; init; }
+    public int HighCount { get; init; }
+    public int MediumCount { get; init; }
+    public int LowCount { get; init; }
     public ExposedSecretReportDetailDto[] Details { get; set; } = [];
 }
 
@@ -69,10 +69,10 @@ public class ExposedSecretReportDenormalizedDto
     public string ImageTag { get; init; } = string.Empty;
     public string ImageDigest { get; init; } = string.Empty;
     public string ImageRepository { get; init; } = string.Empty;
-    public long CriticalCount { get; init; }
-    public long HighCount { get; init; }
-    public long MediumCount { get; init; }
-    public long LowCount { get; init; }
+    public int CriticalCount { get; init; }
+    public int HighCount { get; init; }
+    public int MediumCount { get; init; }
+    public int LowCount { get; init; }
 
     public string Category { get; init; } = string.Empty;
     public string Match { get; init; } = string.Empty;

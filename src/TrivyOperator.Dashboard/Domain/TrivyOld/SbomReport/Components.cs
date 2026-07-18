@@ -23,5 +23,5 @@ public class Components
     public string SpecVersion { get; init; } = string.Empty;
 
     [JsonPropertyName("version")]
-    public long Version { get; init; }
+    public int Version { get; init; }
 }

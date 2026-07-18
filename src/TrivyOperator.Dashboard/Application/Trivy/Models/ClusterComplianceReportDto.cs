@@ -16,12 +16,12 @@ public class ClusterComplianceReportDto
     public string Version { get; init; } = string.Empty;
     public string Cron { get; init; } = string.Empty;
     public string ReportType { get; init; } = string.Empty;
-    public long TotalPassCount { get; init; }
-    public long TotalFailCount { get; init; }
-    public long TotalFailCriticalCount { get; init; }
-    public long TotalFailHighCount { get; init; }
-    public long TotalFailMediumCount { get; init; }
-    public long TotalFailLowCount { get; init; }
+    public int TotalPassCount { get; init; }
+    public int TotalFailCount { get; init; }
+    public int TotalFailCriticalCount { get; init; }
+    public int TotalFailHighCount { get; init; }
+    public int TotalFailMediumCount { get; init; }
+    public int TotalFailLowCount { get; init; }
     public DateTime? UpdateTimestamp { get; init; }
     public ClusterComplianceReportDetailDto[] Details { get; set; } = [];
 }
@@ -34,7 +34,7 @@ public class ClusterComplianceReportDetailDto
     public int SeverityId { get; init; }
     public string[] Checks { get; set; } = [];
     public string[] Commands { get; set; } = [];
-    public long TotalFail { get; init; }
+    public int TotalFail { get; init; }
 }
 
 public class ClusterComplianceReportDenormalizedDto
@@ -49,8 +49,8 @@ public class ClusterComplianceReportDenormalizedDto
     public string Version { get; init; } = string.Empty;
     public string Cron { get; init; } = string.Empty;
     public string ReportType { get; init; } = string.Empty;
-    public long TotalPassCount { get; init; }
-    public long TotalFailCount { get; init; }
+    public int TotalPassCount { get; init; }
+    public int TotalFailCount { get; init; }
     public DateTime? UpdateTimestamp { get; init; }
 
     public string DetailId { get; init; } = string.Empty;
@@ -59,7 +59,7 @@ public class ClusterComplianceReportDenormalizedDto
     public int SeverityId { get; init; }
     public string[] Checks { get; set; } = [];
     public string[] Commands { get; set; } = [];
-    public long TotalFail { get; init; }
+    public int TotalFail { get; init; }
 }
 
 public static class ClusterComplianceReportCrExtensions

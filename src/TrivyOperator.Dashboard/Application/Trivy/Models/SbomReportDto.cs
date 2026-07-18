@@ -32,11 +32,11 @@ public class SbomReportImageDto : ISbomReportDto<SbomReportDetailDto>
     public string ImageRepository { get; set; } = string.Empty;
     public SbomReportImageResourceDto[] Resources { get; set; } = [];
     public bool HasVulnerabilities { get; set; } = false;
-    public long CriticalCount { get; set; } = -1;
-    public long HighCount { get; set; } = -1;
-    public long MediumCount { get; set; } = -1;
-    public long LowCount { get; set; } = -1;
-    public long UnknownCount { get; set; } = -1;
+    public int CriticalCount { get; set; } = -1;
+    public int HighCount { get; set; } = -1;
+    public int MediumCount { get; set; } = -1;
+    public int LowCount { get; set; } = -1;
+    public int UnknownCount { get; set; } = -1;
     public string RootNodeBomRef { get; set; } = string.Empty;
     public SbomReportDetailDto[] Details { get; set; } = [];
 }
@@ -57,11 +57,11 @@ public class SbomReportImageMinimalDto
     public string ImageRepository { get; set; } = string.Empty;
     public string ResourceNamespace { get; init; } = string.Empty;
     public bool HasVulnerabilities { get; set; } = false;
-    public long CriticalCount { get; set; } = -1;
-    public long HighCount { get; set; } = -1;
-    public long MediumCount { get; set; } = -1;
-    public long LowCount { get; set; } = -1;
-    public long UnknownCount { get; set; } = -1;
+    public int CriticalCount { get; set; } = -1;
+    public int HighCount { get; set; } = -1;
+    public int MediumCount { get; set; } = -1;
+    public int LowCount { get; set; } = -1;
+    public int UnknownCount { get; set; } = -1;
 }
 
 public class SbomReportDetailDto : ISBomReportDetailDto
@@ -86,11 +86,11 @@ public class SbomReportDetailDto : ISBomReportDetailDto
     public string Version { get; set; } = string.Empty;
     public string[][] Properties { get; set; } = [];
     public string[] Licenses { get; set; } = [];
-    public long CriticalCount { get; set; } = -1;
-    public long HighCount { get; set; } = -1;
-    public long MediumCount { get; set; } = -1;
-    public long LowCount { get; set; } = -1;
-    public long UnknownCount { get; set; } = -1;
+    public int CriticalCount { get; set; } = -1;
+    public int HighCount { get; set; } = -1;
+    public int MediumCount { get; set; } = -1;
+    public int LowCount { get; set; } = -1;
+    public int UnknownCount { get; set; } = -1;
     public string BomRef { get; set; } = string.Empty;
     public string[] DependsOn { get; set; } = [];
 }

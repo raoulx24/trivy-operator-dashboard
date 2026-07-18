@@ -7,10 +7,10 @@ public class ClusterRbacAssessmentReportDto
 {
     public Guid Uid { get; init; } = Guid.Empty;
     public string ResourceName { get; init; } = string.Empty;
-    public long CriticalCount { get; init; }
-    public long HighCount { get; init; }
-    public long MediumCount { get; init; }
-    public long LowCount { get; init; }
+    public int CriticalCount { get; init; }
+    public int HighCount { get; init; }
+    public int MediumCount { get; init; }
+    public int LowCount { get; init; }
     public DateTime? UpdateTimestamp { get; init; }
     public ClusterRbacAssessmentReportDetailDto[] Details { get; init; } = [];
 }
@@ -33,10 +33,10 @@ public class ClusterRbacAssessmentReportDenormalizedDto
 {
     public Guid Uid { get; init; } = Guid.Empty;
     public string ResourceName { get; init; } = string.Empty;
-    public long CriticalCount { get; init; }
-    public long HighCount { get; init; }
-    public long MediumCount { get; init; }
-    public long LowCount { get; init; }
+    public int CriticalCount { get; init; }
+    public int HighCount { get; init; }
+    public int MediumCount { get; init; }
+    public int LowCount { get; init; }
 
     public string Category { get; init; } = string.Empty;
     public string CheckId { get; init; } = string.Empty;

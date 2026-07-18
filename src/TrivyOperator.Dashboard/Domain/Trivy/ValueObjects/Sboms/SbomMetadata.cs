@@ -5,25 +5,26 @@ namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 
 public sealed record SbomMetadata
 {
+    private const string Sentinel = "n/a";
     public string BomFormat { get; }
     public string SpecVersion { get; }
     public SbomSerialNumber SerialNumber { get; }
-    public long Version { get; }
+    public int Version { get; }
     public Timestamp GeneratedAt { get; }
 
     public SbomMetadata(
         string bomFormat,
         string specVersion,
         SbomSerialNumber serialNumber,
-        long version,
+        int version,
         Timestamp generatedAt)
     {
         BomFormat = string.IsNullOrWhiteSpace(bomFormat)
-            ? throw new ArgumentException(null, nameof(bomFormat))
+            ? Sentinel
             : string.Intern(bomFormat.Trim());
 
         SpecVersion = string.IsNullOrWhiteSpace(specVersion)
-            ? throw new ArgumentException(null, nameof(specVersion))
+            ? Sentinel
             : string.Intern(specVersion.Trim());
 
         SerialNumber = serialNumber;

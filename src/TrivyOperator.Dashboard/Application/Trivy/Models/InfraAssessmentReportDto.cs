@@ -9,11 +9,11 @@ public class InfraAssessmentReportDto
     public string ResourceName { get; init; } = string.Empty;
     public string ResourceNamespace { get; init; } = string.Empty;
     public string ResourceKind { get; init; } = string.Empty;
-    public long CriticalCount { get; init; }
-    public long HighCount { get; init; }
-    public long MediumCount { get; init; }
+    public int CriticalCount { get; init; }
+    public int HighCount { get; init; }
+    public int MediumCount { get; init; }
 
-    public long LowCount { get; init; }
+    public int LowCount { get; init; }
 
     //public DateTime? UpdateTimestamp { get; init; }
     public InfraAssessmentReportDetailDto[] Details { get; set; } = [];

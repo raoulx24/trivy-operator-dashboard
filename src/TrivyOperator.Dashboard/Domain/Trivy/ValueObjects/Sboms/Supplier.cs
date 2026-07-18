@@ -11,8 +11,5 @@ public sealed record Supplier
         Name = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
         Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
         Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
-
-        if (Name is null && Email is null && Phone is null)
-            throw new ArgumentException("Supplier must have at least one identifier.");
     }
 }

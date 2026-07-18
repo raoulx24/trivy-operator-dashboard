@@ -2,12 +2,17 @@
 
 public readonly record struct ContainerName
 {
-    public string Value { get; }
+    private const string Sentinel = "n/a";
 
-    public ContainerName(string value)
+    public string Value { get; }
+    public bool IsValid => Value != Sentinel;
+
+    public ContainerName(string? value)
     {
-        Value = value.ToLowerInvariant();
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim().ToLowerInvariant();
     }
+
+    public ContainerName() : this(Sentinel) { }
 
     public override string ToString() => Value;
 }

@@ -5,20 +5,20 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shar
 public class SummaryCr
 {
     [JsonPropertyName("criticalCount")]
-    public long CriticalCount { get; init; }
+    public int CriticalCount { get; init; }
 
     [JsonPropertyName("highCount")]
-    public long HighCount { get; init; }
+    public int HighCount { get; init; }
 
     [JsonPropertyName("mediumCount")]
-    public long MediumCount { get; init; }
+    public int MediumCount { get; init; }
     
     [JsonPropertyName("lowCount")]
-    public long LowCount { get; init; }
+    public int LowCount { get; init; }
     
     [JsonPropertyName("unknownCount")]
-    public long? UnknownCount { get; init; }
+    public int? UnknownCount { get; init; }
     
     [JsonPropertyName("noneCount")]
-    public long? NoneCount { get; init; }
+    public int? NoneCount { get; init; }
 }

@@ -42,11 +42,11 @@ public sealed class TrivyReportNode
     public required string Type { get; init; }   // "Vulnerability", "ExposedSecret", "Sbom"
     public required string Description { get; init; }
 
-    public required long CriticalCount { get; init; }
-    public required long HighCount { get; init; }
-    public required long MediumCount { get; init; }
-    public required long LowCount { get; init; }
-    public required long UnknownCount { get; init; }
+    public required int CriticalCount { get; init; }
+    public required int HighCount { get; init; }
+    public required int MediumCount { get; init; }
+    public required int LowCount { get; init; }
+    public required int UnknownCount { get; init; }
 }
 
 // W-N: Workloads aggregator node
@@ -83,10 +83,10 @@ public sealed class ConfigAuditNode
     public required string Type { get; init; } = "ConfigAudit";
     public required string Description { get; init; }
 
-    public required long CriticalCount { get; init; }
-    public required long HighCount { get; init; }
-    public required long MediumCount { get; init; }
-    public required long LowCount { get; init; }
+    public required int CriticalCount { get; init; }
+    public required int HighCount { get; init; }
+    public required int MediumCount { get; init; }
+    public required int LowCount { get; init; }
 }
 
 // VRH-N: VR history aggregator node
@@ -112,9 +112,9 @@ public sealed class VrHistoryEntryNode
     public required DateTime FirstSeenAt { get; init; }
     public required DateTime LastSeenAt { get; init; }
 
-    public required long CriticalCount { get; init; }
-    public required long HighCount { get; init; }
-    public required long MediumCount { get; init; }
-    public required long LowCount { get; init; }
-    public required long UnknownCount { get; init; }
+    public required int CriticalCount { get; init; }
+    public required int HighCount { get; init; }
+    public required int MediumCount { get; init; }
+    public required int LowCount { get; init; }
+    public required int UnknownCount { get; init; }
 }

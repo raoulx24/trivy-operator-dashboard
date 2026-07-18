@@ -8,11 +8,10 @@ public class ClusterInfraAssessmentReportDto
     public Guid Uid { get; init; }
     public string ResourceName { get; init; } = string.Empty;
     public string ResourceKind { get; init; } = string.Empty;
-    public long CriticalCount { get; init; }
-    public long HighCount { get; init; }
-    public long MediumCount { get; init; }
-
-    public long LowCount { get; init; }
+    public int CriticalCount { get; init; }
+    public int HighCount { get; init; }
+    public int MediumCount { get; init; }
+    public int LowCount { get; init; }
 
     //public DateTime? UpdateTimestamp { get; init; }
     public ClusterInfraAssessmentReportDetailDto[] Details { get; set; } = [];

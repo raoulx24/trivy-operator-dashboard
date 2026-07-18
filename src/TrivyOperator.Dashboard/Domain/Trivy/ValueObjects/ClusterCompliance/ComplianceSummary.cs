@@ -2,18 +2,15 @@
 
 public readonly record struct ComplianceSummary
 {
-    public long FailCount { get; }
-    public long PassCount { get; }
+    public int FailCount { get; }
+    public int PassCount { get; }
 
     public ComplianceSummary(
-        long failCount,
-        long passCount)
+        int? failCount,
+        int? passCount)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(failCount);
-        ArgumentOutOfRangeException.ThrowIfNegative(passCount);
-
-        FailCount = failCount;
-        PassCount = passCount;
+        FailCount = failCount is > 0 ? failCount.Value : 0;
+        PassCount = passCount is > 0 ? passCount.Value : 0;
     }
     
     public ComplianceSummary() : this(0, 0) { }

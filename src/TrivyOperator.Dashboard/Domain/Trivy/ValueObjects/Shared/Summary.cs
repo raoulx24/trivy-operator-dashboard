@@ -2,37 +2,26 @@
 
 public readonly record struct Summary
 {
-    public long CriticalCount { get; }
-    public long HighCount { get; }
-    public long MediumCount { get; }
-    public long LowCount { get; }
-    public long? UnknownCount { get; }
-    public long? NoneCount { get; }
+    public int CriticalCount { get; }
+    public int HighCount { get; }
+    public int MediumCount { get; }
+    public int LowCount { get; }
+    public int UnknownCount { get; }
+    public int NoneCount { get; }
 
     public Summary(
-        long criticalCount,
-        long highCount,
-        long mediumCount,
-        long lowCount,
-        long? unknownCount,
-        long? noneCount)
+        int criticalCount,
+        int highCount,
+        int mediumCount,
+        int lowCount,
+        int? unknownCount,
+        int? noneCount)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(criticalCount);
-        ArgumentOutOfRangeException.ThrowIfNegative(highCount);
-        ArgumentOutOfRangeException.ThrowIfNegative(mediumCount);
-        ArgumentOutOfRangeException.ThrowIfNegative(lowCount);
-
-        if (unknownCount is < 0)
-            throw new ArgumentOutOfRangeException(nameof(unknownCount));
-
-        if (noneCount is < 0)
-            throw new ArgumentOutOfRangeException(nameof(noneCount));
-
-        CriticalCount = criticalCount;
-        HighCount = highCount;
-        MediumCount = mediumCount;
-        LowCount = lowCount;
-        UnknownCount = unknownCount;
-        NoneCount = noneCount;
+        CriticalCount = criticalCount > 0 ? criticalCount : 0;
+        HighCount = highCount > 0 ? highCount : 0;
+        MediumCount = mediumCount > 0 ? mediumCount : 0;
+        LowCount = lowCount > 0 ? lowCount : 0;
+        UnknownCount = unknownCount is > 0 ? unknownCount.Value : 0;
+        NoneCount = noneCount is > 0 ? noneCount.Value : 0;
     }
 }

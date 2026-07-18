@@ -2,16 +2,18 @@
 
 public readonly record struct ResourceUrl
 {
+    private const string Sentinel = "n/a";
     public Uri? Value { get; }
-    public string? InitialValue { get; }
+    public string InitialValue { get; }
+    public bool IsValid => Value is not null;
 
     public ResourceUrl(string? value)
     {
         Uri.TryCreate(value, UriKind.Absolute, out Uri? uri);
         
         Value = uri;
-        InitialValue = value;
+        InitialValue = string.IsNullOrWhiteSpace(value) ? Sentinel : value;
     }
 
-    public override string ToString() => Value?.ToString() ?? string.Empty;
+    public override string ToString() => InitialValue?.ToString() ?? string.Empty;
 }

@@ -607,7 +607,7 @@ public static class BuilderServicesExtensions
                             {
                                 options.Endpoint = new Uri(otelEndpoint);
                                 options.Protocol =
-                                    (configuration.GetValue<string?>("OtelProtocol")?.ToLowerInvariant() ?? "grpc") ==
+                                    (configuration.GetValue<string?>("OTelProtocol")?.ToLowerInvariant() ?? "grpc") ==
                                     "grpc"
                                         ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
                             }

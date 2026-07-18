@@ -12,11 +12,11 @@ public class ClusterSbomReportDto : ISbomReportDto<ClusterSbomReportDetailDto>
     public string ImageTag { get; set; } = string.Empty;
     public string ImageRepository { get; set; } = string.Empty;
     public bool HasVulnerabilities { get; set; } = false;
-    public long CriticalCount { get; set; } = -1;
-    public long HighCount { get; set; } = -1;
-    public long MediumCount { get; set; } = -1;
-    public long LowCount { get; set; } = -1;
-    public long UnknownCount { get; set; } = -1;
+    public int CriticalCount { get; set; } = -1;
+    public int HighCount { get; set; } = -1;
+    public int MediumCount { get; set; } = -1;
+    public int LowCount { get; set; } = -1;
+    public int UnknownCount { get; set; } = -1;
     public string RootNodeBomRef { get; set; } = string.Empty;
     public ClusterSbomReportDetailDto[] Details { get; set; } = [];
 }
@@ -48,11 +48,11 @@ public class ClusterSbomReportDetailDto : ISBomReportDetailDto
     public string Purl { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
     public string[][] Properties { get; set; } = [];
-    public long CriticalCount { get; set; } = -1;
-    public long HighCount { get; set; } = -1;
-    public long MediumCount { get; set; } = -1;
-    public long LowCount { get; set; } = -1;
-    public long UnknownCount { get; set; } = -1;
+    public int CriticalCount { get; set; } = -1;
+    public int HighCount { get; set; } = -1;
+    public int MediumCount { get; set; } = -1;
+    public int LowCount { get; set; } = -1;
+    public int UnknownCount { get; set; } = -1;
     public string BomRef { get; set; } = string.Empty;
     public string[] DependsOn { get; set; } = [];
 }
@@ -69,8 +69,8 @@ public class ClusterSbomReportDenormalizedDto
     public string Name { get; set; } = string.Empty;
     public string Purl { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
-    public long DependenciesCount { get; set; }
-    public long PropertiesCount { get; set; }
+    public int DependenciesCount { get; set; }
+    public int PropertiesCount { get; set; }
 }
 
 public static class ClusterSbomReportCrExtensions

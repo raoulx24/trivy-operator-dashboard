@@ -15,5 +15,5 @@ public class ControlCheck
     public SeverityCr SeverityCr { get; init; }
 
     [JsonPropertyName("totalFail")]
-    public long TotalFail { get; init; } = 0;
+    public int TotalFail { get; init; } = 0;
 }

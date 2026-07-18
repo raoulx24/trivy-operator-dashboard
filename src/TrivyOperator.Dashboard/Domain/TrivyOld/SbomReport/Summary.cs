@@ -5,8 +5,8 @@ namespace TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 public class Summary
 {
     [JsonPropertyName("componentsCount")]
-    public long ComponentsCount { get; init; } = 0;
+    public int ComponentsCount { get; init; } = 0;
 
     [JsonPropertyName("dependenciesCount")]
-    public long DependenciesCount { get; init; } = 0;
+    public int DependenciesCount { get; init; } = 0;
 }

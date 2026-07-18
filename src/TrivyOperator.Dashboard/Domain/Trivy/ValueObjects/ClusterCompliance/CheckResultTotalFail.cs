@@ -2,13 +2,17 @@
 
 public readonly record struct CheckResultTotalFail
 {
-    public long Value { get; }
+    public int Value { get; }
 
-    public CheckResultTotalFail(long value)
+    public CheckResultTotalFail(int? value)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(value);
+        if (value is not { } r)
+        {
+            Value = 0;
+            return;
+        }
 
-        Value = value;
+        Value = r > 0 ? r : 0;
     }
     
     public CheckResultTotalFail() : this(0) { }

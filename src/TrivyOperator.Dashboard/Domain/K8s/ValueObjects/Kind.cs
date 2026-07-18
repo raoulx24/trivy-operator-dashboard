@@ -2,14 +2,17 @@
 
 public readonly record struct Kind
 {
-    public string Value { get; }
+    private const string Sentinel = "N/A";
 
-    public Kind(string value)
+    public string Value { get; }
+    public bool IsValid => Value != Sentinel;
+
+    public Kind(string? value)
     {
-        Value = string.Intern(value.ToLowerInvariant());
+        Value = string.IsNullOrWhiteSpace(value) ? Sentinel : string.Intern(value.Trim());
     }
 
-    public override string ToString() => Value;
+    public Kind() : this(Sentinel) { }
 
-    public static string RbacAssessment => "rbacassessmentreport";
+    public override string ToString() => Value;
 }

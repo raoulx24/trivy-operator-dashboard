@@ -5,14 +5,14 @@ namespace TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
 public class Summary
 {
     [JsonPropertyName("criticalCount")]
-    public long CriticalCount { get; init; } = 0;
+    public int CriticalCount { get; init; } = 0;
 
     [JsonPropertyName("highCount")]
-    public long HighCount { get; init; } = 0;
+    public int HighCount { get; init; } = 0;
 
     [JsonPropertyName("lowCount")]
-    public long LowCount { get; init; } = 0;
+    public int LowCount { get; init; } = 0;
 
     [JsonPropertyName("mediumCount")]
-    public long MediumCount { get; init; } = 0;
+    public int MediumCount { get; init; } = 0;
 }
