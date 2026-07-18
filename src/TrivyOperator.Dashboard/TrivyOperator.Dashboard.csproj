@@ -55,7 +55,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Infrastructure\DistributedCaching\" />
       <Folder Include="Infrastructure\Trivy\Services\" />
     </ItemGroup>
 

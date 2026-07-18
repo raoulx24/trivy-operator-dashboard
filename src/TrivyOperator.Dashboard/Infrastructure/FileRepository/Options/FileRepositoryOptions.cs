@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Options;
+﻿namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 
 public class FileRepositoryOptions
 {

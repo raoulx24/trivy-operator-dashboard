@@ -4,8 +4,8 @@ using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Options;
 using TrivyOperator.Dashboard.Domain.Utils;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 
 namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository;
 

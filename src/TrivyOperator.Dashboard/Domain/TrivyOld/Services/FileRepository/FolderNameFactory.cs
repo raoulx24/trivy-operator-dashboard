@@ -10,8 +10,8 @@ using TrivyOperator.Dashboard.Domain.TrivyOld.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Options;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 
 namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository;
 

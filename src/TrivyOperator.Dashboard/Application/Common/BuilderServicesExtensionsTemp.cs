@@ -39,11 +39,11 @@ public static class BuilderServicesExtensionsTemp
             .AddSingleton<IResourceConcurrentDictionaryCache<NamespacedDigest, VulnerabilityReport>,
                 ResourceConcurrentDictionaryCache<NamespacedDigest, VulnerabilityReport>>();     
         
-        services.AddSingleton<InMemoryCache<VulnerabilityReport, NamespacedDigest>>();
+        services.AddSingleton<InMemoryResourceCache<VulnerabilityReport, NamespacedDigest>>();
         services.AddSingleton<IResourceStore<VulnerabilityReport, NamespacedDigest>>(sp =>
-            sp.GetRequiredService<InMemoryCache<VulnerabilityReport, NamespacedDigest>>());
+            sp.GetRequiredService<InMemoryResourceCache<VulnerabilityReport, NamespacedDigest>>());
         services.AddSingleton<IResourceProvider<VulnerabilityReport>>(sp =>
-            sp.GetRequiredService<InMemoryCache<VulnerabilityReport, NamespacedDigest>>());
+            sp.GetRequiredService<InMemoryResourceCache<VulnerabilityReport, NamespacedDigest>>());
         
         // k8s infra service
         services

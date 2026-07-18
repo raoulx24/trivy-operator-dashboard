@@ -7,9 +7,9 @@ using TrivyOperator.Dashboard.Infrastructure.ResourceStore.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 
-public class InMemoryCache<TResource, TKey>(
+public class InMemoryResourceCache<TResource, TKey>(
     IResourceConcurrentDictionaryCache<TKey, TResource> cache,
-    ILogger<InMemoryCache<TResource, TKey>> logger) :
+    ILogger<InMemoryResourceCache<TResource, TKey>> logger) :
     IResourceStore<TResource, TKey>, IResourceProvider<TResource>
     
     where TResource: class, IEntity<TKey>
@@ -24,12 +24,32 @@ public class InMemoryCache<TResource, TKey>(
             namespaceName.ToString()
         );
         
+        ctx.ThrowIfCancellationRequested();
+        
         ConcurrentDictionary<TKey, TResource> innerCache = cache.GetOrAdd(
             namespaceName,
             _ => new ConcurrentDictionary<TKey, TResource>());
 
         innerCache[resource.Id] = resource;
         
+        return Task.CompletedTask;
+    }
+
+    public Task InitResources(NamespaceName namespaceName, IEnumerable<TResource> resources, CancellationToken ctx = default)
+    {
+        logger.LogDebug(
+            "InitResources - {objectType} - {cacheKey}",
+            typeof(TResource).Name,
+            namespaceName.ToString()
+        );
+        
+        ctx.ThrowIfCancellationRequested();
+
+        ConcurrentDictionary<TKey, TResource> newCache =
+            new(resources.ToDictionary(r => r.Id));
+
+        cache[namespaceName] = newCache;
+
         return Task.CompletedTask;
     }
 
@@ -40,6 +60,8 @@ public class InMemoryCache<TResource, TKey>(
             typeof(TResource).Name,
             namespaceName.ToString()
         );
+        
+        ctx.ThrowIfCancellationRequested();
 
         if (!cache.TryGetValue(
                 namespaceName,
@@ -62,6 +84,8 @@ public class InMemoryCache<TResource, TKey>(
             namespaceName.ToString()
         );
         
+        ctx.ThrowIfCancellationRequested();
+        
         if (!cache.TryGetValue(namespaceName, out ConcurrentDictionary<TKey, TResource>? innerCache))
         {
             return Task.FromResult<TResource?>(null);
@@ -79,12 +103,26 @@ public class InMemoryCache<TResource, TKey>(
             typeof(TResource).Name,
             namespaceName.ToString()
         );
+        
+        ctx.ThrowIfCancellationRequested();
+        
         cache.TryRemove(namespaceName, out _);
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<TResource>> GetResources(CancellationToken cancellationToken = default)
+    public Task ClearAll(CancellationToken ctx = default)
     {
+        ctx.ThrowIfCancellationRequested();
+        
+        cache.Clear();
+
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<TResource>> GetResources(CancellationToken ctx = default)
+    {
+        ctx.ThrowIfCancellationRequested();
+        
         IReadOnlyList<TResource> result = [.. cache.Values.SelectMany(x => x.Values),];
 
         return Task.FromResult(result);
@@ -92,9 +130,11 @@ public class InMemoryCache<TResource, TKey>(
 
     public Task<IReadOnlyList<TResource>> GetResources(
         NamespaceName namespaceName = default,
-        CancellationToken cancellationToken = default
+        CancellationToken ctx = default
     )
     {
+        ctx.ThrowIfCancellationRequested();
+        
         if (namespaceName == default) namespaceName = new NamespaceName();
 
         if (!cache.TryGetValue(namespaceName, out ConcurrentDictionary<TKey, TResource>? namespaceCache))

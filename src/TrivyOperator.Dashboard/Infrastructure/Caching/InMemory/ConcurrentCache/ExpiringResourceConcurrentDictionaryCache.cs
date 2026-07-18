@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.ConcurrentCache;
 
 public class ExpiringResourceConcurrentDictionaryCache<TKey, TValue> :
     ResourceConcurrentDictionaryCache<TKey, TValue>,
-    IDisposable
+    IDisposable,
+    IExpiringResourceConcurrentDictionaryCache<TKey, TValue>
     where TKey : notnull
 {
     private readonly TimeSpan expireAfter;
