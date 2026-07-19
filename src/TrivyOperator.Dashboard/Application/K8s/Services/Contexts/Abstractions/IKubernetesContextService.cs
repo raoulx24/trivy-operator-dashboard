@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.K8s.Models;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Contexts.Abstractions;
 
