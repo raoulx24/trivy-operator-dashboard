@@ -16,7 +16,6 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.ResourceStore.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.Models;

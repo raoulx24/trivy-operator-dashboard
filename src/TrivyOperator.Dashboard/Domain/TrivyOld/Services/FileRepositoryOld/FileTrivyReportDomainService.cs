@@ -3,11 +3,11 @@ using k8s.Models;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Text.Json;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepositoryOld.Abstractions;
 using TrivyOperator.Dashboard.Domain.Utils;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 
-namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepositoryOld;
 
 public class FileTrivyReportDomainService<TTrivyReport>(
     IFolderNameFactory folderNameFactory,

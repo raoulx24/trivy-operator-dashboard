@@ -1,7 +1,7 @@
 ﻿using k8s;
 using k8s.Models;
 
-namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepositoryOld.Abstractions;
 
 public interface IFileTrivyReportDomainService<TTrivyReport>
     where TTrivyReport : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>

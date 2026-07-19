@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
-namespace TrivyOperator.Dashboard.Infrastructure.ResourceStore.Abstractions;
+namespace TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 
 public interface IResourceStore<TResource, in TKey>
 {

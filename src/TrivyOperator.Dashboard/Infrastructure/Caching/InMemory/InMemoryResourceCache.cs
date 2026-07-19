@@ -3,15 +3,13 @@ using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.ResourceStore.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 
 public class InMemoryResourceCache<TResource, TKey>(
     IResourceConcurrentDictionaryCache<TKey, TResource> cache,
     ILogger<InMemoryResourceCache<TResource, TKey>> logger) :
-    IResourceStore<TResource, TKey>, IResourceProvider<TResource>
-    
+    IResourceRepository<TResource, TKey>
     where TResource: class, IEntity<TKey>
     where TKey : notnull
 

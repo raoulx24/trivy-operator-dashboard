@@ -9,11 +9,11 @@ using TrivyOperator.Dashboard.Domain.TrivyOld.ExposedSecretReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepositoryOld.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 
-namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository;
+namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepositoryOld;
 
 public class FolderNameFactory(IOptions<FileRepositoryOptions> options) : IFolderNameFactory
 {

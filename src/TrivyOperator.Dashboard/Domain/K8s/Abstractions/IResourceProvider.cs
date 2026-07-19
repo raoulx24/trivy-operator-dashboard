@@ -2,8 +2,8 @@
 
 namespace TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 
-public interface IResourceProvider<T>
+public interface IResourceProvider<TResource>
 {
-    Task<IReadOnlyList<T>> GetResources(CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<T>> GetResources(NamespaceName namespaceName = default, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TResource>> GetResources(CancellationToken ctx = default);
+    Task<IReadOnlyList<TResource>> GetResources(NamespaceName namespaceName = default, CancellationToken ctx = default);
 }

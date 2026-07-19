@@ -1,10 +1,10 @@
 ﻿using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.CacheRefreshers;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
+using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.ResourceStore.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.ResourceStoreUpdaters;
@@ -13,7 +13,7 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
     IResourceStore<TResource, TKey> resourceStore,
     ITrivyReportMapper<TKubernetesObject, TResource> mapper,
     ITrivyReportKeyProvider<TKubernetesObject, TKey> keyProvider,
-    ILogger<CacheRefresher<TKubernetesObject>> logger
+    ILogger<TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey>> logger
 ) : IKubernetesEventProcessor<TKubernetesObject>
     where TKubernetesObject : CustomResource
     where TResource : ITrivyReport<TKey>, ITrivyReport

@@ -1,6 +1,6 @@
 ﻿using k8s;
 using k8s.Models;
-using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepository.Abstractions;
+using TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepositoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld;
