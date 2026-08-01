@@ -9,10 +9,9 @@ using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared.Identities;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
@@ -38,11 +37,11 @@ public static class BuilderServicesExtensionsTemp
             .AddSingleton<IResourceConcurrentDictionaryCache<NamespacedDigest, VulnerabilityReport>,
                 ResourceConcurrentDictionaryCache<NamespacedDigest, VulnerabilityReport>>();     
         
-        services.AddSingleton<InMemoryResourceCache<VulnerabilityReport, NamespacedDigest>>();
+        services.AddSingleton<InMemoryEntityCache<VulnerabilityReport, NamespacedDigest>>();
         services.AddSingleton<IResourceStore<VulnerabilityReport, NamespacedDigest>>(sp =>
-            sp.GetRequiredService<InMemoryResourceCache<VulnerabilityReport, NamespacedDigest>>());
+            sp.GetRequiredService<InMemoryEntityCache<VulnerabilityReport, NamespacedDigest>>());
         services.AddSingleton<IResourceProvider<VulnerabilityReport>>(sp =>
-            sp.GetRequiredService<InMemoryResourceCache<VulnerabilityReport, NamespacedDigest>>());
+            sp.GetRequiredService<InMemoryEntityCache<VulnerabilityReport, NamespacedDigest>>());
         
         // k8s infra service
         services

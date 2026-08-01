@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 
 public interface IConcurrentCache<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
 {

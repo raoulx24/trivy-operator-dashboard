@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.ConcurrentCache;
+﻿namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 
 public class InMemoryCacheOptions
 {

@@ -55,7 +55,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Infrastructure\ResourceStore\Abstractions\" />
       <Folder Include="Infrastructure\Trivy\Services\" />
     </ItemGroup>
 

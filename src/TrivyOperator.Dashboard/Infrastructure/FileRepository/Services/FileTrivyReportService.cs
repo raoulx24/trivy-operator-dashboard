@@ -52,7 +52,7 @@ public class FileTrivyReportService<TKubernetesObject, TTrivyReport>(
             new ParallelOptions
             {
                 CancellationToken = ctx,
-                MaxDegreeOfParallelism = Environment.ProcessorCount
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
             },
             async (file, token) =>
             {

@@ -1,13 +1,13 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.ConcurrentCache;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 
 public class ResourceConcurrentDictionaryCache<TKey, TValue>(IMetricsClient metricsClient)
-    : ConcurrentCache<NamespaceName, ConcurrentDictionary<TKey, TValue>>(metricsClient), IResourceConcurrentDictionaryCache<TKey, TValue>
+    : ConcurrentCache<ContextName, ConcurrentDictionary<TKey, TValue>>(metricsClient), IResourceConcurrentDictionaryCache<TKey, TValue>
 where TKey : notnull
 {
     protected override IEnumerable<Measurement<long>> GetCacheMeasurements()

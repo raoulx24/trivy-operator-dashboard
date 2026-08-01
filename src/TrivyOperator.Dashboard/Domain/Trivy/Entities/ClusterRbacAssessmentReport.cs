@@ -13,7 +13,7 @@ public sealed record ClusterRbacAssessmentReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IClusterScopedTrivyReport
+    : IResourceReport
 {
     public Uid Id => Metadata.Uid;
 }

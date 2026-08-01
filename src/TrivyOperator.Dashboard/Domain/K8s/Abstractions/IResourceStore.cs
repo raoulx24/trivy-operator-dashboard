@@ -4,11 +4,13 @@ namespace TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 
 public interface IResourceStore<TResource, in TKey>
 {
-    Task Upsert(NamespaceName namespaceName, TResource resource, CancellationToken ctx = default);
+    Task Upsert(ContextName contextName, TResource resource, CancellationToken ctx = default);
 
-    Task Delete(NamespaceName namespaceName, TKey key, CancellationToken ctx = default);
+    Task Delete(ContextName contextName, TKey key, NamespaceName namespaceName, CancellationToken ctx = default);
 
-    Task<TResource?> Get(NamespaceName namespaceName, TKey key, CancellationToken ctx = default);
+    Task<TResource?> Get(ContextName contextName, TKey key, CancellationToken ctx = default);
+    
+    Task<TResource?> GetLight(ContextName contextName, TKey key, CancellationToken ctx = default);
 
-    Task ClearByNamespace(NamespaceName namespaceName, CancellationToken ctx = default);
+    Task ClearByNamespace(ContextName contextName, NamespaceName namespaceName, CancellationToken ctx = default);
 }

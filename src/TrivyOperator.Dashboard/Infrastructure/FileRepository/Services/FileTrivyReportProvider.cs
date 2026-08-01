@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
 
@@ -19,7 +19,7 @@ where TKey : notnull
 {
     private readonly SemaphoreSlim refreshLock = new(1, 1);
 
-    public async Task<IReadOnlyList<TTrivyReport>> GetResources(
+    public async Task<IReadOnlyList<TTrivyReport>> GetResources(ContextName context,
         CancellationToken ctx = default)
     {
         await EnsureCacheLoaded(ctx);
@@ -50,7 +50,7 @@ where TKey : notnull
             return [];
         }
 
-        return [.. resources.Values];
+        return [.. resources.Values,];
     }
 
     private async Task EnsureCacheLoaded(CancellationToken ctx)

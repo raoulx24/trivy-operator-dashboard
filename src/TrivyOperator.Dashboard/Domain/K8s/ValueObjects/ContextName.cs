@@ -15,5 +15,4 @@ public readonly record struct ContextName
     public ContextName() : this(Sentinel) { }
 
     public override string ToString() => Value;
-    
 }

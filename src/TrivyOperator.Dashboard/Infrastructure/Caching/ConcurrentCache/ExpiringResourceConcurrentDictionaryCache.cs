@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.ConcurrentCache;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 
 public class ExpiringResourceConcurrentDictionaryCache<TKey, TValue> :
     ResourceConcurrentDictionaryCache<TKey, TValue>,

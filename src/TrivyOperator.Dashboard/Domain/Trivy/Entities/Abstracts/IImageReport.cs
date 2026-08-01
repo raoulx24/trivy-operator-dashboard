@@ -1,9 +1,12 @@
 ﻿using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared.Identities;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-public interface IDigestBasedReport : INamespacedTrivyReport<NamespacedDigest>
+public interface IImageReport<out TSelf>
+    : ITrivyReport<Digest>
+    where TSelf : IImageReport<TSelf>
 {
     IReadOnlyList<ReportImageOccurrence> Occurrences { get; }
+
+    TSelf WithOccurrences(IReadOnlyList<ReportImageOccurrence> occurrences);
 }

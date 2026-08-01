@@ -2,10 +2,10 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.ConcurrentCache;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 
 public class ConcurrentCache<TKey, TValue> : IConcurrentCache<TKey, TValue>
     where TKey : notnull

@@ -5,7 +5,6 @@ using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared.Identities;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
 
@@ -17,17 +16,12 @@ public static class TrivySharedMappingExtensions
     {
         return new Uid(cr.Metadata.Uid);
     }
-
-    public static NamespacedUid ToNamespacedUidKey(this IKubernetesObject<V1ObjectMeta> cr)
-    {
-        return new NamespacedUid(new NamespaceName(cr.Metadata.NamespaceProperty), new Uid(cr.Metadata.Uid));
-    }
-
-    public static NamespacedDigest ToNamespacedDigestKey(this IHasArtifact cr)
-    {
-        return new NamespacedDigest(new NamespaceName(cr.Metadata.NamespaceProperty), new Digest(cr.Artifact.Digest));
-    }
     
+    public static Digest ToDigestKey(this IHasArtifact cr)
+    {
+        return new Digest(cr.Artifact.Digest);
+    }
+
     public static ReportMetadata ToReportMetadata(this V1ObjectMeta metadata)
     {
         return new ReportMetadata(
@@ -142,6 +136,4 @@ public static class TrivySharedMappingExtensions
     public static bool IsOtherNewer<TId>(ITrivyReport<TId>? other, Timestamp currentLastSeen)
         => other?.LastSeenAt > currentLastSeen;
 
-    public static bool HasOtherSameId(IDigestBasedReport? other, NamespaceName currentNs, Digest currentDigest)
-        => other is not null && (other.Id.Digest != currentDigest || other.Id.NamespaceName != currentNs);
 }

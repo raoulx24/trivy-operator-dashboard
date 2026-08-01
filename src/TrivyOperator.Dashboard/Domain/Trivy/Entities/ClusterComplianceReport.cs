@@ -16,7 +16,7 @@ public sealed record ClusterComplianceReport(
     Timestamp LastSeenAt,
     
     IReadOnlyList<ControlResult> ControlChecks
-) : IClusterScopedTrivyReport
+) : IResourceReport
 {
     public Uid Id => Metadata.Uid;
 }

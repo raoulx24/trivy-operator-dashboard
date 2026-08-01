@@ -14,7 +14,6 @@ public static class ExposedSecretMappingExtensions
     {
         // vo layer
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
-        NamespaceName namespaceName = new(cr.Metadata.NamespaceProperty);
         Resource resource = cr.Metadata.ToResource();
         ImageMeta imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
         Digest digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
@@ -27,8 +26,8 @@ public static class ExposedSecretMappingExtensions
         
         ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, resource, imageMeta);
         
-        // check if existing has same digest and ns
-        if (TrivySharedMappingExtensions.HasOtherSameId(existing, namespaceName, digest))
+        // check if existing has same digest
+        if (existing?.ImageDigest != digest)
         {
             existing = null;
         }
@@ -54,7 +53,6 @@ public static class ExposedSecretMappingExtensions
 
         return new ExposedSecretReport(
             occurrences,
-            namespaceName,
             digest,
             lastSeenAt,
             scanner,

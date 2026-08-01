@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Abstractions;
+﻿namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 
 public interface
     IExpiringResourceConcurrentDictionaryCache<TKey, TValue> : IResourceConcurrentDictionaryCache<TKey, TValue>
