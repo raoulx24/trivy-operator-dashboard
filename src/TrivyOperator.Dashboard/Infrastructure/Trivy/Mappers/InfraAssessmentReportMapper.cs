@@ -12,7 +12,7 @@ public class InfraAssessmentReportMapper :
 {
     public InfraAssessmentReport MapToDomain(InfraAssessmentReportCr cr, InfraAssessmentReport? existing)
     {
-        return cr.ToSecurityAssessmentReport(existing);
+        return cr.ToSecurityAssessmentReport<InfraAssessmentReportCr, InfraAssessmentReport, Uid>(existing);
     }
     
     public Uid GetKey(InfraAssessmentReportCr cr) => cr.ToUidKey();

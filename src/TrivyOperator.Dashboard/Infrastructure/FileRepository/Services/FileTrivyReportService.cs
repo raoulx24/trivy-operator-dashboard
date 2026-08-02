@@ -1,139 +1,156 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
 using System.Text.Json;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using System.Threading.Channels;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Utils;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Aggregators.Abstracts;
 
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 
-public class FileTrivyReportService<TKubernetesObject, TTrivyReport>(
-    ITrivyReportMapper<TKubernetesObject, TTrivyReport> mapper,
+public class FileTrivyReportService<TKubernetesObject, TReport, TKey>(
     IFolderNameFactory folderNameFactory,
     IOptions<FileRepositoryOptions> options,
-    ILogger<FileTrivyReportService<TKubernetesObject, TTrivyReport>> logger
-) : IFileTrivyReportService<TTrivyReport>
-    where TTrivyReport : class, ITrivyReport
+    ITrivyReportAggregator<TKubernetesObject, TReport, TKey> aggregator,
+    ILogger<FileTrivyReportService<TKubernetesObject, TReport, TKey>> logger)
+    : IFileTrivyReportService<TReport, TKey>
     where TKubernetesObject : CustomResource
+    where TReport : class, ITrivyReport<TKey>
+    where TKey : notnull
 {
-    public async Task<IReadOnlyDictionary<NamespaceName, IReadOnlyCollection<TTrivyReport>>> GetReportsByNamespaceAsync(
-        CancellationToken ctx = default
-    )
+    public async Task<IReadOnlyDictionary<TKey, TReport>> GetReportsAsync(
+        CancellationToken ctx = default)
     {
         string folder = folderNameFactory.Get<TKubernetesObject>();
         string fullPath = Path.Combine(options.Value.BasePath, folder);
 
         if (!Directory.Exists(fullPath))
         {
-            return new Dictionary<NamespaceName, IReadOnlyCollection<TTrivyReport>>();
+            return new Dictionary<TKey, TReport>();
         }
 
-        JsonSerializerOptions jsonSerializerOptions = JsonUtils.GetKubernetesJsonSerializerOptions();
-        JsonUtils.ConfigureJsonSerializerOptions(jsonSerializerOptions);
+        JsonSerializerOptions jsonOptions = JsonUtils.GetKubernetesJsonSerializerOptions();
+        JsonUtils.ConfigureJsonSerializerOptions(jsonOptions);
 
         string[] files = Directory.GetFiles(fullPath, "*.json");
 
         logger.LogDebug(
-            "Found {filesCount} files in {folderName} for report type {reportType}",
+            "Found {FilesCount} files in {Folder} for {ReportType}",
             files.Length,
             fullPath,
-            typeof(TTrivyReport).Name
-        );
+            typeof(TReport).Name);
 
-        ConcurrentDictionary<NamespaceName, ConcurrentBag<TTrivyReport>> results = new();
-
-        await Parallel.ForEachAsync(
-            files,
-            new ParallelOptions
-            {
-                CancellationToken = ctx,
-                MaxDegreeOfParallelism = Environment.ProcessorCount,
-            },
-            async (file, token) =>
-            {
-                try
+        Channel<TKubernetesObject> channel =
+            Channel.CreateBounded<TKubernetesObject>(
+                new BoundedChannelOptions(Environment.ProcessorCount * 4)
                 {
-                    await using FileStream stream = File.OpenRead(file);
+                    SingleReader = true,
+                    SingleWriter = false,
+                    FullMode = BoundedChannelFullMode.Wait
+                });
 
-                    char jsonRoot = await GetJsonRootCharacterAsync(stream, token);
+        Task<IReadOnlyDictionary<TKey, TReport>> aggregation =
+            aggregator.AggregateAsync(channel.Reader, ctx);
 
-                    stream.Position = 0;
+        Task[] readers = files
+            .Select(file => DeserializeFileAsync(
+                file,
+                channel.Writer,
+                jsonOptions,
+                ctx))
+            .ToArray();
 
-                    if (jsonRoot == '{')
-                    {
-                        TKubernetesObject? resource =
-                            await JsonSerializer.DeserializeAsync<TKubernetesObject>(
-                                stream,
-                                jsonSerializerOptions,
-                                token
-                            );
+        try
+        {
+            await Task.WhenAll(readers);
 
-                        if (resource != null)
-                        {
-                            AddReport(resource);
-                        }
-                    }
-                    else if (jsonRoot == '[')
-                    {
-                        List<TKubernetesObject>? resources =
-                            await JsonSerializer.DeserializeAsync<List<TKubernetesObject>>(
-                                stream,
-                                jsonSerializerOptions,
-                                token
-                            );
+            channel.Writer.Complete();
 
-                        if (resources != null)
-                        {
-                            foreach (TKubernetesObject resource in resources)
-                            {
-                                AddReport(resource);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        logger.LogWarning(
-                            "Skipped file {fileName}. Unexpected JSON root character {rootCharacter}",
-                            file,
-                            jsonRoot
-                        );
-                    }
+            return await aggregation;
+        }
+        catch (Exception ex)
+        {
+            channel.Writer.Complete(ex);
 
-                    void AddReport(TKubernetesObject resource)
-                    {
-                        NamespaceName namespaceName = new(resource.Metadata.NamespaceProperty);
-
-                        TTrivyReport report = mapper.MapToDomain(resource, existing: null);
-
-                        ConcurrentBag<TTrivyReport> reports = results.GetOrAdd(
-                            namespaceName,
-                            _ => new ConcurrentBag<TTrivyReport>()
-                        );
-
-                        reports.Add(report);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(
-                        ex,
-                        "Skipped invalid or unreadable file {fileName} for report type {reportType}",
-                        file,
-                        typeof(TTrivyReport).Name
-                    );
-                }
-            }
-        );
-
-        return results.ToDictionary(pair => pair.Key, pair => (IReadOnlyCollection<TTrivyReport>)pair.Value.ToArray());
+            throw;
+        }
     }
 
-    private static async Task<char> GetJsonRootCharacterAsync(Stream stream, CancellationToken cancellationToken)
+    private async Task DeserializeFileAsync(
+        string file,
+        ChannelWriter<TKubernetesObject> writer,
+        JsonSerializerOptions jsonOptions,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using FileStream stream = File.OpenRead(file);
+
+            char jsonRoot = await GetJsonRootCharacterAsync(stream, cancellationToken);
+
+            stream.Position = 0;
+
+            switch (jsonRoot)
+            {
+                case '{':
+                {
+                    TKubernetesObject? resource =
+                        await JsonSerializer.DeserializeAsync<TKubernetesObject>(
+                            stream,
+                            jsonOptions,
+                            cancellationToken);
+
+                    if (resource is not null)
+                    {
+                        await writer.WriteAsync(resource, cancellationToken);
+                    }
+
+                    break;
+                }
+
+                case '[':
+                {
+                    List<TKubernetesObject>? resources =
+                        await JsonSerializer.DeserializeAsync<List<TKubernetesObject>>(
+                            stream,
+                            jsonOptions,
+                            cancellationToken);
+
+                    if (resources is not null)
+                    {
+                        foreach (TKubernetesObject resource in resources)
+                        {
+                            await writer.WriteAsync(resource, cancellationToken);
+                        }
+                    }
+
+                    break;
+                }
+
+                default:
+                    logger.LogWarning(
+                        "Skipped file {File}. Unexpected JSON root character '{Root}'",
+                        file,
+                        jsonRoot);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(
+                ex,
+                "Skipped invalid or unreadable file {File} for report type {ReportType}",
+                file,
+                typeof(TReport).Name);
+        }
+    }
+
+    private static async Task<char> GetJsonRootCharacterAsync(
+        Stream stream,
+        CancellationToken cancellationToken)
     {
         byte[] buffer = new byte[256];
 
@@ -146,8 +163,10 @@ public class FileTrivyReportService<TKubernetesObject, TTrivyReport>(
 
         int offset = 0;
 
-        // Handle UTF-8 BOM if present
-        if (bytesRead >= 3 && buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF)
+        if (bytesRead >= 3 &&
+            buffer[0] == 0xEF &&
+            buffer[1] == 0xBB &&
+            buffer[2] == 0xBF)
         {
             offset = 3;
         }

@@ -12,9 +12,9 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Extensions;
 
 public static class SecurityAssessmentMappingExtensions
 {
-    internal static TDest ToSecurityAssessmentReport<TSource, TDest>(this TSource cr, TDest? existing)
+    internal static TDest ToSecurityAssessmentReport<TSource, TDest, TKeyDest>(this TSource cr, TDest? existing)
     where TSource: CustomResource, ISecurityAssessmentReportCr 
-    where TDest: ITrivyReport
+    where TDest: ITrivyReport<TKeyDest>
     {
         Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,

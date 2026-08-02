@@ -4,17 +4,15 @@ using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
 
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 
 public class FileTrivyReportProvider<TTrivyReport, TKey>(
     IExpiringResourceConcurrentDictionaryCache<TKey, TTrivyReport> cache,
-    IFileTrivyReportService<TTrivyReport> reportService,
-    ITrivyReportKeyProvider<TTrivyReport, TKey> keyProvider,
+    IFileTrivyReportService<TTrivyReport, TKey> reportService,
     ILogger<FileTrivyReportProvider<TTrivyReport, TKey>> logger
 ) : IResourceProvider<TTrivyReport>
-where TTrivyReport : ITrivyReport
+where TTrivyReport : ITrivyReport<TKey>
 where TKey : notnull
 {
     private readonly SemaphoreSlim refreshLock = new(1, 1);
@@ -34,25 +32,6 @@ where TKey : notnull
         return result;
     }
 
-    public async Task<IReadOnlyList<TTrivyReport>> GetResources(
-        NamespaceName namespaceName = default,
-        CancellationToken ctx = default)
-    {
-        await EnsureCacheLoaded(ctx);
-
-        if (namespaceName.Value == null)
-        {
-            namespaceName = new NamespaceName();
-        }
-
-        if (!cache.TryGetValue(namespaceName, out ConcurrentDictionary<TKey, TTrivyReport>? resources))
-        {
-            return [];
-        }
-
-        return [.. resources.Values,];
-    }
-
     private async Task EnsureCacheLoaded(CancellationToken ctx)
     {
         if (!cache.IsStale())
@@ -64,7 +43,6 @@ where TKey : notnull
 
         try
         {
-            // Double check after acquiring the lock.
             if (!cache.IsStale())
             {
                 return;
@@ -72,26 +50,19 @@ where TKey : notnull
 
             logger.LogInformation("Refreshing Trivy report cache");
 
-            IReadOnlyDictionary<NamespaceName, IReadOnlyCollection<TTrivyReport>> reports =
-                await reportService.GetReportsByNamespaceAsync(ctx);
+            IReadOnlyDictionary<TKey, TTrivyReport> reports =
+                await reportService.GetReportsAsync(ctx);
+
+            ConcurrentDictionary<TKey, TTrivyReport> contextCache =
+                new(reports);
 
             cache.Clear();
 
-            foreach ((NamespaceName namespaceName, IReadOnlyCollection<TTrivyReport> namespaceReports) in reports)
-            {
-                ConcurrentDictionary<TKey, TTrivyReport> namespaceCache = [];
-
-                foreach (TTrivyReport report in namespaceReports)
-                {
-                    namespaceCache[keyProvider.GetKey(report)] = report;
-                }
-
-                cache[namespaceName] = namespaceCache;
-            }
+            cache[new ContextName()] = contextCache;
 
             logger.LogInformation(
-                "Trivy report cache refreshed with {NamespaceCount} namespaces",
-                reports.Count);
+                "Trivy report cache refreshed with {ReportCount} reports",
+                contextCache.Count);
         }
         finally
         {

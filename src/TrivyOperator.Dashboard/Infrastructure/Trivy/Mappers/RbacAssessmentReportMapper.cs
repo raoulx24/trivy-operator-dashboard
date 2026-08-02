@@ -12,7 +12,7 @@ public class RbacAssessmentReportMapper :
 {
     public RbacAssessmentReport MapToDomain(RbacAssessmentReportCr cr, RbacAssessmentReport? existing)
     {
-        return cr.ToSecurityAssessmentReport(existing);
+        return cr.ToSecurityAssessmentReport<RbacAssessmentReportCr, RbacAssessmentReport, Uid>(existing);
     }
     
     public Uid GetKey(RbacAssessmentReportCr cr) => cr.ToUidKey();

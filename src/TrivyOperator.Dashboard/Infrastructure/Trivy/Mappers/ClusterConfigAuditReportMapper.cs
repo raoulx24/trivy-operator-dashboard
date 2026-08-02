@@ -12,7 +12,7 @@ public class ClusterConfigAuditReportMapper :
 {
     public ClusterConfigAuditReport MapToDomain(ClusterConfigAuditReportCr cr, ClusterConfigAuditReport? existing)
     {
-        return cr.ToSecurityAssessmentReport(existing);
+        return cr.ToSecurityAssessmentReport<ClusterConfigAuditReportCr, ClusterConfigAuditReport, Uid>(existing);
     }
     
     public Uid GetKey(ClusterConfigAuditReportCr cr) => cr.ToUidKey();

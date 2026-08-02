@@ -1,0 +1,25 @@
+﻿using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
+
+namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Aggregators;
+
+public class TrivyImageReportAggregator<TKubernetesObject, TReport>(
+    ITrivyReportMapper<TKubernetesObject, TReport> mapper,
+    ITrivyReportKeyProvider<TKubernetesObject, Digest> keyProvider)
+    : TrivyReportAggregator<TKubernetesObject, TReport, Digest>(
+        mapper,
+        keyProvider)
+    where TKubernetesObject : CustomResource
+    where TReport : class, IImageReport<TReport>
+{
+    protected override TReport? ResolveExisting(
+        Digest key,
+        Dictionary<Digest, TReport> reports)
+    {
+        reports.TryGetValue(key, out TReport? report);
+
+        return report;
+    }
+}

@@ -13,7 +13,7 @@ public class ClusterRbacAssessmentReportMapper :
 {
     public ClusterRbacAssessmentReport MapToDomain(ClusterRbacAssessmentReportCr cr, ClusterRbacAssessmentReport? existing)
     {
-        return cr.ToSecurityAssessmentReport(existing);
+        return cr.ToSecurityAssessmentReport<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport, Uid>(existing);
     }
     
     public Uid GetKey(ClusterRbacAssessmentReportCr cr) => cr.ToUidKey();

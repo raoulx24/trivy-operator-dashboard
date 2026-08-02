@@ -1,12 +1,9 @@
-﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+﻿using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
 
-public interface IFileTrivyReportService<TTrivyReport>
-where TTrivyReport : ITrivyReport
+public interface IFileTrivyReportService<TReport, TKey>
+where TReport : ITrivyReport<TKey>
 {
-    Task<IReadOnlyDictionary<NamespaceName, IReadOnlyCollection<TTrivyReport>>> GetReportsByNamespaceAsync(
-        CancellationToken ctx = default
-    );
+    Task<IReadOnlyDictionary<TKey, TReport>> GetReportsAsync(CancellationToken ctx = default);
 }

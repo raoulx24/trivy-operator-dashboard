@@ -12,7 +12,7 @@ public class ConfigAuditReportMapper :
 {
     public ConfigAuditReport MapToDomain(ConfigAuditReportCr cr, ConfigAuditReport? existing)
     {
-        return cr.ToSecurityAssessmentReport(existing);
+        return cr.ToSecurityAssessmentReport<ConfigAuditReportCr, ConfigAuditReport, Uid>(existing);
     }
     
     public Uid GetKey(ConfigAuditReportCr cr) => cr.ToUidKey();
