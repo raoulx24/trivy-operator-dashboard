@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Aggregators.Abstracts;
+namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators.Abstracts;
 
 public interface ITrivyReportAggregator<TKubernetesObject, TReport, TKey>
     where TKubernetesObject : CustomResource

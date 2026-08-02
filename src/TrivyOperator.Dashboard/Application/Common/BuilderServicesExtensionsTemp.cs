@@ -9,12 +9,18 @@ using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.Models;
@@ -29,19 +35,25 @@ public static class BuilderServicesExtensionsTemp
         services.AddSingleton<VulnerabilityReportMapper>();
         services.AddSingleton<ITrivyReportMapper<VulnerabilityReportCr, VulnerabilityReport>>(sp =>
             sp.GetRequiredService<VulnerabilityReportMapper>());
-        services.AddSingleton<ITrivyReportKeyProvider<VulnerabilityReportCr, NamespacedDigest>>(sp =>
+        services.AddSingleton<ITrivyReportKeyProvider<VulnerabilityReportCr, Digest>>(sp =>
             sp.GetRequiredService<VulnerabilityReportMapper>());
 
         // in memory cache
-        services
-            .AddSingleton<IResourceConcurrentDictionaryCache<NamespacedDigest, VulnerabilityReport>,
-                ResourceConcurrentDictionaryCache<NamespacedDigest, VulnerabilityReport>>();     
+        services.AddSingleton<ICacheEntityCodec, BrotliJsonCacheEntityCodec>();
         
-        services.AddSingleton<InMemoryEntityCache<VulnerabilityReport, NamespacedDigest>>();
-        services.AddSingleton<IResourceStore<VulnerabilityReport, NamespacedDigest>>(sp =>
-            sp.GetRequiredService<InMemoryEntityCache<VulnerabilityReport, NamespacedDigest>>());
+        services.AddSingleton<
+            ICacheEntryBuilder<VulnerabilityReport, Digest>,
+            VulnerabilityReportCacheEntryBuilder>();
+        
+        services
+            .AddSingleton<IResourceConcurrentDictionaryCache<Digest, CacheEntry<VulnerabilityReport, Digest>>,
+                ResourceConcurrentDictionaryCache<Digest, CacheEntry<VulnerabilityReport, Digest>>>();     
+        
+        services.AddSingleton<InMemoryImageReportCache<VulnerabilityReport>>();
+        services.AddSingleton<IResourceStore<VulnerabilityReport, Digest>>(sp =>
+            sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
         services.AddSingleton<IResourceProvider<VulnerabilityReport>>(sp =>
-            sp.GetRequiredService<InMemoryEntityCache<VulnerabilityReport, NamespacedDigest>>());
+            sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
         
         // k8s infra service
         services
@@ -72,6 +84,6 @@ public static class BuilderServicesExtensionsTemp
         // k8s event processor
         services
             .AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, 
-                TrivyResourceStoreUpdater<VulnerabilityReportCr,VulnerabilityReport,NamespacedDigest>>();
+                TrivyResourceStoreUpdater<VulnerabilityReportCr,VulnerabilityReport,Digest>>();
     }
 }

@@ -7,7 +7,7 @@ using TrivyOperator.Dashboard.Infrastructure.FileRepository.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Aggregators.Abstracts;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators.Abstracts;
 
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 

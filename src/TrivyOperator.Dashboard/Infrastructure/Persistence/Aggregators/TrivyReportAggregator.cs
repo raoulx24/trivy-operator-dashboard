@@ -1,10 +1,10 @@
 ﻿using System.Threading.Channels;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Aggregators.Abstracts;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Aggregators;
+namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators;
 
 public abstract class TrivyReportAggregator<TKubernetesObject, TReport, TKey>(
     ITrivyReportMapper<TKubernetesObject, TReport> mapper,

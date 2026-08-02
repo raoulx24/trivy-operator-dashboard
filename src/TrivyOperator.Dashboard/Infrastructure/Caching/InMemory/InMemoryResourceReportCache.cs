@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries.Builders.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 

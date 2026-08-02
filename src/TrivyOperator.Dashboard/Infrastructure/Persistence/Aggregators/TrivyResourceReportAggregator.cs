@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Aggregators;
+namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators;
 
 public class TrivyResourceReportAggregator<TKubernetesObject, TReport>(
     ITrivyReportMapper<TKubernetesObject, TReport> mapper,
