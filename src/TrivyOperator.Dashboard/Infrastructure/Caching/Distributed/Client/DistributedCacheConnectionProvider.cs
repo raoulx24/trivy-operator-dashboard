@@ -38,7 +38,10 @@ public sealed class DistributedCacheConnectionProvider(
         await EnsureConnectedAsync(ct);
 
         return connection 
-            ?? throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "Distributed Cache not available");
+            ?? throw new RedisConnectionException(
+                ConnectionFailureType.UnableToConnect,
+                CommandFlags.None,
+                "Distributed Cache not available");
     }
 
     private async Task EnsureConnectedAsync(CancellationToken ct)

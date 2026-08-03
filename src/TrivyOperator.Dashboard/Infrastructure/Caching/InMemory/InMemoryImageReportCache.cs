@@ -15,7 +15,7 @@ public class InMemoryImageReportCache<TResource>(
     : InMemoryEntityCache<TResource, Digest>(cache, cacheEntryBuilder, logger)
     where TResource: class, IImageReport<TResource>
 {
-    public override async Task ClearByNamespace(
+    public override Task ClearByNamespace(
         ContextName contextName,
         NamespaceName ns,
         CancellationToken ctx = default)
@@ -28,49 +28,63 @@ public class InMemoryImageReportCache<TResource>(
 
         ctx.ThrowIfCancellationRequested();
 
-        if (!cache.TryGetValue(
-                contextName,
-                out ConcurrentDictionary<Digest, CacheEntry<TResource, Digest>>? innerCache))
-        {
-            return;
-        }
-
-        foreach (Digest key in innerCache.Keys)
-        {
-            ctx.ThrowIfCancellationRequested();
-
-            await RemoveOccurrencesByNamespace(innerCache, key, ns, ctx);
-        }
-    }
-    
-    public override Task Delete(
-        ContextName contextName,
-        Digest key,
-        NamespaceName namespaceName,
-        CancellationToken ctx = default)
-    {
-        logger.LogDebug(
-            "Delete - {objectType} - {cacheKey} - {namespace}",
-            typeof(TResource).Name,
-            key,
-            namespaceName);
-
-        ctx.ThrowIfCancellationRequested();
-
-        if (!cache.TryGetValue(
+        if (!Cache.TryGetValue(
                 contextName,
                 out ConcurrentDictionary<Digest, CacheEntry<TResource, Digest>>? innerCache))
         {
             return Task.CompletedTask;
         }
 
-        return RemoveOccurrencesByNamespace(innerCache, key, namespaceName, ctx);
+        foreach (Digest key in innerCache.Keys)
+        {
+            ctx.ThrowIfCancellationRequested();
+            
+            RemoveOccurrences(
+                innerCache,
+                key,
+                o => o.Metadata.NamespaceName == ns,
+                ctx);
+        }
+
+        return Task.CompletedTask;
     }
     
-    private Task RemoveOccurrencesByNamespace(
+    public override Task Delete(
+        ContextName contextName,
+        Digest key,
+        Uid uid,
+        CancellationToken ctx = default)
+    {
+        logger.LogDebug(
+            "Delete - {objectType} - {cacheKey} - {uid}",
+            typeof(TResource).Name,
+            key,
+            uid);
+
+        ctx.ThrowIfCancellationRequested();
+
+        if (!Cache.TryGetValue(
+                contextName,
+                out ConcurrentDictionary<Digest, CacheEntry<TResource, Digest>>? innerCache))
+        {
+            return Task.CompletedTask;
+        }
+
+        RemoveOccurrences(
+            innerCache,
+            key,
+            o => o.Metadata.Uid == uid,
+            ctx);
+
+        return Task.CompletedTask;
+    }
+    
+    
+    
+    private static void RemoveOccurrences(
         ConcurrentDictionary<Digest, CacheEntry<TResource, Digest>> innerCache,
         Digest key,
-        NamespaceName namespaceName,
+        Func<ReportImageOccurrence, bool> shouldRemove,
         CancellationToken ctx)
     {
         while (true)
@@ -79,19 +93,18 @@ public class InMemoryImageReportCache<TResource>(
 
             if (!innerCache.TryGetValue(key, out CacheEntry<TResource, Digest>? oldEntry))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             IReadOnlyList<ReportImageOccurrence> remainingOccurrences =
             [
-                .. oldEntry.Entry.Occurrences
-                    .Where(o => o.Metadata.NamespaceName != namespaceName)
+                .. oldEntry.Entry.Occurrences.Where(o => !shouldRemove(o))
             ];
 
             // Nothing changed
             if (remainingOccurrences.Count == oldEntry.Entry.Occurrences.Count)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             // Last occurrence removed => remove whole report
@@ -100,7 +113,7 @@ public class InMemoryImageReportCache<TResource>(
                 if (innerCache.TryRemove(
                         new KeyValuePair<Digest, CacheEntry<TResource, Digest>>(key, oldEntry)))
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
 
                 // concurrent update, retry
@@ -115,7 +128,7 @@ public class InMemoryImageReportCache<TResource>(
 
             if (innerCache.TryUpdate(key, newEntry, oldEntry))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             // concurrent update, retry

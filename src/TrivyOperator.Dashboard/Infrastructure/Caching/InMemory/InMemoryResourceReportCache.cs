@@ -27,7 +27,7 @@ public class InMemoryResourceReportCache<TResource>(
 
         ctx.ThrowIfCancellationRequested();
 
-        if (!cache.TryGetValue(
+        if (!Cache.TryGetValue(
                 contextName,
                 out ConcurrentDictionary<Uid, CacheEntry<TResource, Uid>>? innerCache))
         {
@@ -50,18 +50,18 @@ public class InMemoryResourceReportCache<TResource>(
     public override Task Delete(
         ContextName contextName,
         Uid key,
-        NamespaceName namespaceName,
+        Uid uid,
         CancellationToken ctx = default)
     {
         logger.LogDebug(
-            "Delete - {objectType} - {cacheKey} - {namespace}",
+            "Delete - {objectType} - {cacheKey} - {uid}",
             typeof(TResource).Name,
             key,
-            namespaceName);
+            uid);
 
         ctx.ThrowIfCancellationRequested();
 
-        if (!cache.TryGetValue(
+        if (!Cache.TryGetValue(
                 contextName,
                 out ConcurrentDictionary<Uid, CacheEntry<TResource, Uid>>? innerCache))
         {

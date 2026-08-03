@@ -115,7 +115,7 @@ public static class TrivySharedMappingExtensions
         where TReportOccurrence : IReportOccurrence
     {
         if (existing is null)
-            return [current];
+            return [current,];
 
         List<TReportOccurrence> result = [.. existing,];
 

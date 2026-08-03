@@ -5,6 +5,7 @@ using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Extensions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.ResourceStoreUpdaters;
 
@@ -67,14 +68,10 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
 
         TKey domainKey = keyProvider.GetKey(k8sObject);
 
-        TResource? existing = await resourceStore.GetLight(watcherEvent.Context, domainKey, ctx);
+        TResource? existing = await resourceStore.Get(watcherEvent.Context, domainKey, ctx);
         TResource resource = mapper.MapToDomain(k8sObject, existing);
 
-        // different one
-        if (resource.LastSeenAt != existing?.LastSeenAt)
-        {
-            await resourceStore.Upsert(watcherEvent.Context, resource, ctx);    
-        }
+        await resourceStore.Upsert(watcherEvent.Context, resource, ctx);    
     }
 
     private async Task ProcessDeleteEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
@@ -92,9 +89,9 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         }
         
         TKey domainKey = keyProvider.GetKey(k8sObject);
-        NamespaceName ns = new(k8sObject.Metadata.NamespaceProperty);
+        Uid uid = k8sObject.ToUidKey();
 
-        await resourceStore.Delete(watcherEvent.Context, domainKey, ns, ctx);
+        await resourceStore.Delete(watcherEvent.Context, domainKey, uid, ctx);
     }
     
     private async Task ProcessErrorEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)

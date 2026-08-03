@@ -17,6 +17,8 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
     where TKey : notnull
 
 {
+    protected IResourceConcurrentDictionaryCache<TKey, CacheEntry<TResource, TKey>> Cache  => cache;
+    
     public Task Upsert(ContextName namespaceName, TResource resource, CancellationToken ctx = default)
     {
         logger.LogDebug(
@@ -35,24 +37,6 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
         
         return Task.CompletedTask;
     }
-
-    // public Task InitResources(ContextName contextName, IEnumerable<TResource> resources, CancellationToken ctx = default)
-    // {
-    //     logger.LogDebug(
-    //         "InitResources - {objectType} - {cacheKey}",
-    //         typeof(TResource).Name,
-    //         contextName.ToString()
-    //     );
-    //     
-    //     ctx.ThrowIfCancellationRequested();
-    //
-    //     ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>> newCache =
-    //         new(resources.ToDictionary(r => r.Id));
-    //
-    //     cache[contextName] = newCache;
-    //
-    //     return Task.CompletedTask;
-    // }
 
     public Task<TResource?> Get(ContextName contextName, TKey key, CancellationToken ctx = default)
     {
@@ -74,75 +58,29 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
             : Task.FromResult<TResource?>(null);
     }
     
-    public Task<TResource?> GetLight(ContextName contextName, TKey key, CancellationToken ctx = default)
-    {
-        logger.LogDebug(
-            "Get - {objectType} - {cacheKey}",
-            typeof(TResource).Name,
-            contextName.ToString()
-        );
-        
-        ctx.ThrowIfCancellationRequested();
-        
-        if (!cache.TryGetValue(contextName, out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
-        {
-            return Task.FromResult<TResource?>(null);
-        }
-
-        return innerCache.TryGetValue(key, out CacheEntry<TResource, TKey>? cacheEntry)
-            ? Task.FromResult<TResource?>(cacheEntry.Entry) 
-            : Task.FromResult<TResource?>(null);
-    }
+    // public Task<TResource?> GetLight(ContextName contextName, TKey key, CancellationToken ctx = default)
+    // {
+    //     logger.LogDebug(
+    //         "Get - {objectType} - {cacheKey}",
+    //         typeof(TResource).Name,
+    //         contextName.ToString()
+    //     );
+    //     
+    //     ctx.ThrowIfCancellationRequested();
+    //     
+    //     if (!cache.TryGetValue(contextName, out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
+    //     {
+    //         return Task.FromResult<TResource?>(null);
+    //     }
+    //
+    //     return innerCache.TryGetValue(key, out CacheEntry<TResource, TKey>? cacheEntry)
+    //         ? Task.FromResult<TResource?>(cacheEntry.Entry) 
+    //         : Task.FromResult<TResource?>(null);
+    // }
 
     public abstract Task ClearByNamespace(ContextName contextName, NamespaceName ns, CancellationToken ctx = default);
     
-    public abstract Task Delete(ContextName contextName, TKey key, NamespaceName namespaceName, CancellationToken ctx = default);
-
-    // public Task ClearByNamespace(ContextName contextName, NamespaceName ns, CancellationToken ctx = default)
-    // {
-    //     logger.LogDebug(
-    //         "ClearByNs - {objectType} - {cacheKey}",
-    //         typeof(TResource).Name,
-    //         contextName.ToString()
-    //     );
-    //     
-    //     ctx.ThrowIfCancellationRequested();
-    //     
-    //     cache.TryRemove(contextName, out _);
-    //     return Task.CompletedTask;
-    // }
-    
-    // public Task Delete(ContextName contextName, TKey key, CancellationToken ctx = default)
-    // {
-    //     logger.LogDebug(
-    //         "Delete - {objectType} - {cacheKey}",
-    //         typeof(TResource).Name,
-    //         contextName.ToString()
-    //     );
-    //     
-    //     ctx.ThrowIfCancellationRequested();
-    //
-    //     if (!cache.TryGetValue(
-    //             contextName,
-    //             out ConcurrentDictionary<TKey, TResource>? kubernetesObjectsCache
-    //         ))
-    //     {
-    //         return Task.CompletedTask;
-    //     }
-    //
-    //     kubernetesObjectsCache.TryRemove(key, out _);
-    //
-    //     return Task.CompletedTask;
-    // }
-
-    // public Task ClearAll(CancellationToken ctx = default)
-    // {
-    //     ctx.ThrowIfCancellationRequested();
-    //     
-    //     cache.Clear();
-    //
-    //     return Task.CompletedTask;
-    // }
+    public abstract Task Delete(ContextName contextName, TKey key, Uid uid, CancellationToken ctx = default);
 
     public Task<IReadOnlyList<TResource>> GetResources(ContextName contextName = default, CancellationToken ctx = default)
     {
