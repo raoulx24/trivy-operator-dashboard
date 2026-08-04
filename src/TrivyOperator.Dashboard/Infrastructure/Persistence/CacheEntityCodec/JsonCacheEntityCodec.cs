@@ -1,5 +1,4 @@
-﻿using System.IO.Compression;
-using System.Text.Json;
+﻿using System.Text.Json;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec;

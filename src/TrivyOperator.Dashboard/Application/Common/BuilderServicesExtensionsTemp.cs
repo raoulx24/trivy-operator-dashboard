@@ -39,16 +39,17 @@ public static class BuilderServicesExtensionsTemp
             sp.GetRequiredService<VulnerabilityReportMapper>());
 
         // in memory cache
-        services.AddSingleton<ICacheEntityCodec, BrotliJsonCacheEntityCodec>();
-        
+        // -- codec
+        services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
+        // -- cache entry builder
         services.AddSingleton<
             ICacheEntryBuilder<VulnerabilityReport, Digest>,
             VulnerabilityReportCacheEntryBuilder>();
-        
+        // -- concurrent cache
         services
             .AddSingleton<IResourceConcurrentDictionaryCache<Digest, CacheEntry<VulnerabilityReport, Digest>>,
                 ResourceConcurrentDictionaryCache<Digest, CacheEntry<VulnerabilityReport, Digest>>>();     
-        
+        // -- IResourceStore (in part) and IResourceProvider (out part)
         services.AddSingleton<InMemoryImageReportCache<VulnerabilityReport>>();
         services.AddSingleton<IResourceStore<VulnerabilityReport, Digest>>(sp =>
             sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
