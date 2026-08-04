@@ -7,6 +7,5 @@ public interface IImageReport<out TSelf>
     where TSelf : IImageReport<TSelf>
 {
     IReadOnlyList<ReportImageOccurrence> Occurrences { get; }
-
     TSelf WithOccurrences(IReadOnlyList<ReportImageOccurrence> occurrences);
 }

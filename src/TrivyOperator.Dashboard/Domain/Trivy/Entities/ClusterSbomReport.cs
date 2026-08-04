@@ -14,8 +14,10 @@ public sealed record ClusterSbomReport(
     SbomMetadata SbomMetadata,
     ComponentId RootNodeBomRef,
     IReadOnlyList<Component> Components
-) : IResourceReport
+) : IResourceReport, ISbomReport<ClusterSbomReport, Uid>
 {
     public Uid Id => Occurrence.Metadata.Uid;
     public ReportMetadata Metadata => Occurrence.Metadata;
+    public ClusterSbomReport WithComponents(IReadOnlyList<Component> components)
+        => this with { Components = components, };
 }

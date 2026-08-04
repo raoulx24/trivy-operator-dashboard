@@ -13,7 +13,9 @@ public sealed record ClusterConfigAuditReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport
+    : IResourceReport, ISecurityAssessmentReport<ClusterConfigAuditReport, Uid>
 {
     public Uid Id => Metadata.Uid;
+    public ClusterConfigAuditReport WithChecks(IReadOnlyList<Check> checks)
+        => this with { Checks = checks, };
 }

@@ -16,11 +16,12 @@ public sealed record SbomReport(
     SbomMetadata SbomMetadata,
     ComponentId RootNodeBomRef,
     
-    IReadOnlyList<Component> Components) : IImageReport<SbomReport>
+    IReadOnlyList<Component> Components) : IImageReport<SbomReport>, ISbomReport<SbomReport, Digest>
 {
     public Digest Id => ImageDigest;
-    
     public SbomReport WithOccurrences(
         IReadOnlyList<ReportImageOccurrence> occurrences)
         => this with { Occurrences = occurrences };
+    public SbomReport WithComponents(IReadOnlyList<Component> components)
+        => this with { Components = components, };
 }

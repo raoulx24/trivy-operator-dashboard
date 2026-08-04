@@ -13,7 +13,9 @@ public sealed record ConfigAuditReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport
+    : IResourceReport, ISecurityAssessmentReport<ConfigAuditReport, Uid>
 {
     public Uid Id => Metadata.Uid;
+    public ConfigAuditReport WithChecks(IReadOnlyList<Check> checks)
+        => this with { Checks = checks, };
 }

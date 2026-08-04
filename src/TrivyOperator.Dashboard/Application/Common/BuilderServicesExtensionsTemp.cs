@@ -44,7 +44,7 @@ public static class BuilderServicesExtensionsTemp
         // -- cache entry builder
         services.AddSingleton<
             ICacheEntryBuilder<VulnerabilityReport, Digest>,
-            VulnerabilityReportCacheEntryBuilder>();
+            VulnerabilityReportCacheEntryBuilder<VulnerabilityReport, Digest>>();
         // -- concurrent cache
         services
             .AddSingleton<IResourceConcurrentDictionaryCache<Digest, CacheEntry<VulnerabilityReport, Digest>>,

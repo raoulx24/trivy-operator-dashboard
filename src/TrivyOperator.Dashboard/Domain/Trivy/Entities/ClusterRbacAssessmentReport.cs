@@ -13,7 +13,9 @@ public sealed record ClusterRbacAssessmentReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport
+    : IResourceReport, ISecurityAssessmentReport<ClusterRbacAssessmentReport, Uid>
 {
     public Uid Id => Metadata.Uid;
+    public ClusterRbacAssessmentReport WithChecks(IReadOnlyList<Check> checks)
+        => this with { Checks = checks, };
 }

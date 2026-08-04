@@ -13,7 +13,9 @@ public sealed record InfraAssessmentReport(
     Summary Summary,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport
+    : IResourceReport, ISecurityAssessmentReport<InfraAssessmentReport, Uid>
 {
     public Uid Id => Metadata.Uid;
+    public InfraAssessmentReport WithChecks(IReadOnlyList<Check> checks)
+        => this with { Checks = checks, };
 }
