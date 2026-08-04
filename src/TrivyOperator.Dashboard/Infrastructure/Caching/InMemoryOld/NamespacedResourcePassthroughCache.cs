@@ -7,7 +7,7 @@ using TrivyOperator.Dashboard.Infrastructure.Utils;
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld;
 
 public class NamespacedResourcePassthroughCache<TValue, TList>(
-    INamespacedResourceWatchService<TValue, TList> domain
+    INamespacedResourceService<TValue, TList> domain
 ) : ResourcePassthroughCache<TValue>
     where TValue : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TList : IKubernetesObject<V1ListMeta>, IItems<TValue>

@@ -14,7 +14,29 @@ public abstract class TrivyReportAggregator<TKubernetesObject, TReport, TKey>(
     where TReport : class, ITrivyReport<TKey>
     where TKey : notnull
 {
-    public async Task<IReadOnlyDictionary<TKey, TReport>> AggregateAsync(
+    public IReadOnlyDictionary<TKey, TReport> AggregateAsync(
+        IEnumerable<TKubernetesObject> resources,
+        CancellationToken cancellationToken = default)
+    {
+        Dictionary<TKey, TReport> reports = new();
+
+        foreach (TKubernetesObject cr in resources)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            TKey key = keyProvider.GetKey(cr);
+
+            TReport? existing = ResolveExisting(key, reports);
+
+            TReport report = mapper.MapToDomain(cr, existing);
+
+            reports[key] = report;
+        }
+
+        return reports;
+    }
+    
+    public async Task<IReadOnlyDictionary<TKey, TReport>> AggregateFromChannelAsync(
         ChannelReader<TKubernetesObject> reader,
         CancellationToken cancellationToken = default)
     {

@@ -8,7 +8,7 @@ namespace TrivyOperator.Dashboard.Domain.TrivyOld.Services.FileRepositoryOld;
 
 public class FileTrivyReportPassThroughService<TTrivyReport, TTrivyReportList>(
     IFileTrivyReportDomainService<TTrivyReport> fileTrivyReportDomainService
-) : INamespacedResourceWatchService<TTrivyReport, TTrivyReportList>
+) : INamespacedResourceService<TTrivyReport, TTrivyReportList>
     where TTrivyReport : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TTrivyReportList : IKubernetesObject<V1ListMeta>, IItems<TTrivyReport>
 {

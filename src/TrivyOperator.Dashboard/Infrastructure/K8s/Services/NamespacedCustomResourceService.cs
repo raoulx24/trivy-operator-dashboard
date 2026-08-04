@@ -13,7 +13,7 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
     IServiceScopeFactory scopeFactory,
     ICrdFactory customResourceDefinitionFactory,
-    IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList> namespaceService
+    IClusterScopedResourceService<V1Namespace, V1NamespaceList> namespaceService
 ) : NamespacedResourceService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
     kubernetesClientFactory,
     scopeFactory,

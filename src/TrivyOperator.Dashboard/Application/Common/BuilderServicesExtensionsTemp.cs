@@ -59,7 +59,7 @@ public static class BuilderServicesExtensionsTemp
         // k8s infra service
         services
             .AddSingleton<
-                INamespacedResourceWatchService<VulnerabilityReportCr, CustomResourceList<VulnerabilityReportCr>>,
+                INamespacedResourceService<VulnerabilityReportCr, CustomResourceList<VulnerabilityReportCr>>,
                 NamespacedCustomResourceService<VulnerabilityReportCr>>();
         
         // k8s event coordinator

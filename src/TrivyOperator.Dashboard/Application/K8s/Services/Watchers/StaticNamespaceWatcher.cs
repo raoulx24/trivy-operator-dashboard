@@ -9,7 +9,7 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
 public class StaticNamespaceWatcher(
     IKubernetesBackgroundQueue<V1Namespace> backgroundQueue,
-    IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList> kubernetesNamespaceService
+    IClusterScopedResourceService<V1Namespace, V1NamespaceList> kubernetesNamespaceService
 ) : IClusterScopedWatcher<V1Namespace>
 {
     public async Task Add(CancellationToken cancellationToken, string watcherKey = CacheUtils.DefaultCacheRefreshKey)

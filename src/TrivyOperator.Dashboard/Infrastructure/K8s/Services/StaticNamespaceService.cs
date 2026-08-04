@@ -12,7 +12,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 public class StaticNamespaceService(
     IOptions<KubernetesOptions> kubernetesOptions,
     ILogger<StaticNamespaceService> logger
-) : IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>
+) : IClusterScopedResourceService<V1Namespace, V1NamespaceList>
 {
     public Task<IList<V1Namespace>> GetResources(CancellationToken cancellationToken = default)
     {

@@ -5,7 +5,8 @@ using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 public interface
-    IClusterScopedResourceWatchService<TKubernetesObject, TKubernetesObjectList>
+    IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>
+    : IKubernetesResourceService<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
@@ -17,8 +18,6 @@ public interface
         CancellationToken cancellationToken = default
     );
 
-    Task<IList<TKubernetesObject>> GetResources(CancellationToken cancellationToken = default);
-    
     IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,

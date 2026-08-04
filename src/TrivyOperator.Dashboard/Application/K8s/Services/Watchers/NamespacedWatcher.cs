@@ -11,8 +11,8 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
 public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
-    INamespacedResourceWatchService<TKubernetesObject, TKubernetesObjectList>
-        namespacedResourceWatchService,
+    INamespacedResourceService<TKubernetesObject, TKubernetesObjectList>
+        namespacedResourceService,
     TBackgroundQueue backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
@@ -46,7 +46,7 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
         string? lastResourceVersion,
         Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
-    ) => namespacedResourceWatchService.GetResourceWatchList(
+    ) => namespacedResourceService.GetResourceWatchList(
         watcherKey,
         lastResourceVersion,
         GetWatcherRandomTimeout(),
@@ -58,7 +58,7 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
         string watcherKey,
         string? continueToken,
         CancellationToken cancellationToken = default
-    ) => await namespacedResourceWatchService.GetResourceList(
+    ) => await namespacedResourceService.GetResourceList(
         watcherKey,
         resourceListPageSize,
         continueToken,

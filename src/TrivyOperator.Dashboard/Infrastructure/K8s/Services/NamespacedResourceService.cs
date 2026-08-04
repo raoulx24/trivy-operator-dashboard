@@ -9,9 +9,9 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesObjectList>(
     IKubernetesClientFactory kubernetesClientFactory,
     IServiceScopeFactory scopeFactory,
-    IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList> namespaceService
+    IClusterScopedResourceService<V1Namespace, V1NamespaceList> namespaceService
 ) : KubernetesResourceService<TKubernetesObject>(kubernetesClientFactory, scopeFactory),
-    INamespacedResourceWatchService<TKubernetesObject, TKubernetesObjectList>
+    INamespacedResourceService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {

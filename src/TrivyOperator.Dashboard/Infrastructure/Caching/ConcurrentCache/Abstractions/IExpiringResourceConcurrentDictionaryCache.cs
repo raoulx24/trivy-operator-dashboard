@@ -5,4 +5,6 @@ public interface
     where TKey : notnull
 {
     bool IsStale();
+
+    void ClearIfStale();
 }

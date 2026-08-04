@@ -27,6 +27,8 @@ public class ExpiringResourceConcurrentDictionaryCache<TKey, TValue> :
 
         checkInterval = TimeSpan.FromTicks(expireAfter.Ticks / 10);
     }
+    
+    // TODO: add in Options the possibility to switch between sliding or absolute expiration
 
     public bool IsStale()
     {
@@ -41,6 +43,11 @@ public class ExpiringResourceConcurrentDictionaryCache<TKey, TValue> :
 
             return false;
         }
+    }
+
+    public void ClearIfStale()
+    {
+        if (IsStale()) Clear();
     }
 
     protected override void OnAccess()

@@ -11,8 +11,8 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
 public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
-    IClusterScopedResourceWatchService<TKubernetesObject, TKubernetesObjectList>
-        clusterScopResourceWatchService,
+    IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>
+        clusterScopResourceService,
     TBackgroundQueue backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
@@ -34,7 +34,7 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
         string? lastResourceVersion,
         Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
-    ) => clusterScopResourceWatchService.GetResourceWatchList(
+    ) => clusterScopResourceService.GetResourceWatchList(
         lastResourceVersion,
         GetWatcherRandomTimeout(),
         onError,
@@ -45,7 +45,7 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
         string watcherKey,
         string? continueToken,
         CancellationToken cancellationToken = default
-    ) => await clusterScopResourceWatchService.GetResourceList(
+    ) => await clusterScopResourceService.GetResourceList(
         resourceListPageSize,
         continueToken,
         cancellationToken

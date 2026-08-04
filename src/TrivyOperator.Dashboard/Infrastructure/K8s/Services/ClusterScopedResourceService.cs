@@ -10,7 +10,7 @@ public abstract class ClusterScopedResourceService<TKubernetesObject, TKubernete
     IKubernetesClientFactory kubernetesClientFactory,
     IServiceScopeFactory scopeFactory
 ) : KubernetesResourceService<TKubernetesObject>(kubernetesClientFactory, scopeFactory),
-    IClusterScopedResourceWatchService<TKubernetesObject, TKubernetesObjectList>
+    IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {

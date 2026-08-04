@@ -53,7 +53,7 @@ public class FileTrivyReportService<TKubernetesObject, TReport, TKey>(
                 });
 
         Task<IReadOnlyDictionary<TKey, TReport>> aggregation =
-            aggregator.AggregateAsync(channel.Reader, ctx);
+            aggregator.AggregateFromChannelAsync(channel.Reader, ctx);
 
         Task[] readers = files
             .Select(file => DeserializeFileAsync(

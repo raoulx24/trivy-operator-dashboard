@@ -125,7 +125,7 @@ public static class BuilderServicesExtensions
                 // services.AddSingleton<IClusterScopedResourceQueryService<V1Namespace, V1NamespaceList>>(sp =>
                 //     sp.GetRequiredService<NamespaceService>()
                 // );
-                services.AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>>(sp =>
+                services.AddSingleton<IClusterScopedResourceService<V1Namespace, V1NamespaceList>>(sp =>
                     sp.GetRequiredService<NamespaceService>()
                 );
             }
@@ -135,7 +135,7 @@ public static class BuilderServicesExtensions
                     "Using StaticNamespaceDomainService for {kubernetesObjectType}",
                     nameof(V1Namespace)
                 );
-                services.AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>,
+                services.AddSingleton<IClusterScopedResourceService<V1Namespace, V1NamespaceList>,
                     StaticNamespaceService>();
                 services.AddSingleton<IClusterScopedWatcher<V1Namespace>, StaticNamespaceWatcher>();
             }
@@ -156,10 +156,10 @@ public static class BuilderServicesExtensions
         {
             Logger?.LogInformation("Using WatcherCache for {kubernetesObjectType}", nameof(V1Namespace));
             services.AddSingleton<NamespaceService>();
-            services.AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>>(sp =>
+            services.AddSingleton<IClusterScopedResourceService<V1Namespace, V1NamespaceList>>(sp =>
                 sp.GetRequiredService<NamespaceService>()
             );
-            services.AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>>(sp =>
+            services.AddSingleton<IClusterScopedResourceService<V1Namespace, V1NamespaceList>>(sp =>
                 sp.GetRequiredService<NamespaceService>()
             );
             services.AddSingleton<IClusterScopedWatcher<V1Namespace>,
@@ -173,7 +173,7 @@ public static class BuilderServicesExtensions
                 nameof(V1Namespace)
             );
             services
-                .AddSingleton<IClusterScopedResourceWatchService<V1Namespace, V1NamespaceList>,
+                .AddSingleton<IClusterScopedResourceService<V1Namespace, V1NamespaceList>,
                     StaticNamespaceService>();
             services.AddSingleton<IClusterScopedWatcher<V1Namespace>, StaticNamespaceWatcher>();
         }
@@ -250,7 +250,7 @@ public static class BuilderServicesExtensions
             services.AddScoped<TAppServiceInterface, TAppService>();
             services
                 .AddSingleton<
-                    INamespacedResourceWatchService<TNamespacedTrivyReportCr,
+                    INamespacedResourceService<TNamespacedTrivyReportCr,
                         CustomResourceList<TNamespacedTrivyReportCr>>, FileTrivyReportPassThroughService<
                         TNamespacedTrivyReportCr, CustomResourceList<TNamespacedTrivyReportCr>>>();
 
@@ -315,7 +315,7 @@ public static class BuilderServicesExtensions
 
         services
             .AddSingleton<
-                INamespacedResourceWatchService<TNamespacedTrivyReportCr,
+                INamespacedResourceService<TNamespacedTrivyReportCr,
                     CustomResourceList<TNamespacedTrivyReportCr>>,
                 NamespacedCustomResourceService<TNamespacedTrivyReportCr>>();
     }
@@ -404,7 +404,7 @@ public static class BuilderServicesExtensions
         services.AddScoped<TAppServiceInterface, TAppService>();
         services
             .AddSingleton<
-                IClusterScopedResourceWatchService<TClusterScopedTrivyReportCr,
+                IClusterScopedResourceService<TClusterScopedTrivyReportCr,
                     CustomResourceList<TClusterScopedTrivyReportCr>>,
                 ClusterScopedCustomResourceService<TClusterScopedTrivyReportCr>>();
     }

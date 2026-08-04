@@ -19,7 +19,7 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport;
 public class SbomReportService(
     IConcurrentDictionaryCache<OldSbomReportCr> cache,
     IConcurrentDictionaryCache<OldVulnerabilityReportCr> vrCache,
-    INamespacedResourceWatchService<OldSbomReportCr, CustomResourceList<OldSbomReportCr>> service,
+    INamespacedResourceService<OldSbomReportCr, CustomResourceList<OldSbomReportCr>> service,
     IOptions<FileExportOptions> fileExportOptions,
     ILogger<SbomReportService> logger
 ) : ISbomReportService

@@ -10,14 +10,14 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
 public class SbomReportWatcher(
-    INamespacedResourceWatchService<OldSbomReportCr, CustomResourceList<OldSbomReportCr>>
-        namespacedResourceWatchService,
+    INamespacedResourceService<OldSbomReportCr, CustomResourceList<OldSbomReportCr>>
+        namespacedResourceService,
     IKubernetesBackgroundQueue<OldSbomReportCr> backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
     ILogger<SbomReportWatcher> logger
 ) : NamespacedWatcher<CustomResourceList<OldSbomReportCr>, OldSbomReportCr, IKubernetesBackgroundQueue<OldSbomReportCr>,
-    WatcherEvent<OldSbomReportCr>>(namespacedResourceWatchService, backgroundQueue, options, metricsClient, logger)
+    WatcherEvent<OldSbomReportCr>>(namespacedResourceService, backgroundQueue, options, metricsClient, logger)
 {
     protected override void ProcessReceivedKubernetesObject(OldSbomReportCr kubernetesObject)
     {

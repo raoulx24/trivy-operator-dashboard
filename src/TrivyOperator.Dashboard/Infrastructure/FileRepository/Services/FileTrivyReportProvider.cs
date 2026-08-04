@@ -17,16 +17,16 @@ where TKey : notnull
 {
     private readonly SemaphoreSlim refreshLock = new(1, 1);
 
-    public async Task<IReadOnlyList<TTrivyReport>> GetResources(ContextName context,
+    public async Task<IReadOnlyList<TTrivyReport>> GetResources(ContextName context = default,
         CancellationToken ctx = default)
     {
         await EnsureCacheLoaded(ctx);
 
         List<TTrivyReport> result = [];
 
-        foreach (ConcurrentDictionary<TKey, TTrivyReport> namespaceResources in cache.Values)
+        foreach (ConcurrentDictionary<TKey, TTrivyReport> resources in cache.Values)
         {
-            result.AddRange(namespaceResources.Values);
+            result.AddRange(resources.Values);
         }
 
         return result;
