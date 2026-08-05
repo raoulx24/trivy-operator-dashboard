@@ -20,6 +20,8 @@ public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
     where TReport : class, ITrivyReport<TKey>
     where TKey : notnull
 {
+    // one refresh at a time by design. if multiple Kubernetes contexts are used concurrently,
+    // this may be replaced with per-context locks
     private readonly SemaphoreSlim refreshLock = new(1, 1);
 
     // TODO: remove context from IResourceProvider
@@ -60,7 +62,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
 
             IList<TKubernetesObject> resources = await resourceService.GetResources(ctx);
 
-            IReadOnlyDictionary<TKey, TReport> reports = aggregator.AggregateAsync(resources, ctx);
+            IReadOnlyDictionary<TKey, TReport> reports = aggregator.Aggregate(resources, ctx);
 
             cache[context] = new ConcurrentDictionary<TKey, TReport>(reports);
 

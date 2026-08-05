@@ -14,7 +14,7 @@ public abstract class TrivyReportAggregator<TKubernetesObject, TReport, TKey>(
     where TReport : class, ITrivyReport<TKey>
     where TKey : notnull
 {
-    public IReadOnlyDictionary<TKey, TReport> AggregateAsync(
+    public IReadOnlyDictionary<TKey, TReport> Aggregate(
         IEnumerable<TKubernetesObject> resources,
         CancellationToken cancellationToken = default)
     {

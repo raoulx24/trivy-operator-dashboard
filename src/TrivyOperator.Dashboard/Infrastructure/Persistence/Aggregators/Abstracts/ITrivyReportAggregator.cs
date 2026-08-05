@@ -9,7 +9,7 @@ public interface ITrivyReportAggregator<TKubernetesObject, TReport, TKey>
     where TReport : class, ITrivyReport<TKey>
     where TKey : notnull
 {
-    IReadOnlyDictionary<TKey, TReport> AggregateAsync(
+    IReadOnlyDictionary<TKey, TReport> Aggregate(
         IEnumerable<TKubernetesObject> resources,
         CancellationToken cancellationToken = default
     );

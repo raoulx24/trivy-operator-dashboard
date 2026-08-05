@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using TrivyOperator.Dashboard.Application.Alerts.Hubs;
 using TrivyOperator.Dashboard.Application.Common;
+using TrivyOperator.Dashboard.Application.Common.Serialization;
 using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
@@ -46,7 +47,7 @@ builder.Host.UseSerilog(Log.Logger);
 builder.WebHost.UseShutdownTimeout(TimeSpan.FromSeconds(10));
 builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
-builder.Services.Configure<JsonOptions>(options => ConfigureJsonSerializerOptions(options.SerializerOptions));
+builder.Services.Configure<JsonOptions>(options => ConfigureJson(options.SerializerOptions));
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
     {
         options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
@@ -75,7 +76,7 @@ if (!builder.Environment.IsProduction())
 }
 
 builder.Services.AddControllersWithViews(ConfigureMvcOptions)
-    .AddJsonOptions(options => ConfigureJsonSerializerOptions(options.JsonSerializerOptions));
+    .AddJsonOptions(options => ConfigureJson(options.JsonSerializerOptions));
 builder.Services.AddCommons(configuration);
 builder.Services.AddAlertsServices();
 builder.Services.AddWatcherStateServices();
@@ -244,8 +245,13 @@ static void ConfigureLogging(IConfiguration configuration)
     TaskScheduler.UnobservedTaskException += TaskSchedulerUnobservedTaskException;
 }
 
-static void ConfigureJsonSerializerOptions(JsonSerializerOptions options)
+static void ConfigureJson(JsonSerializerOptions options)
 {
+    // TODO: remove after migration of all json contracts 
+    options.TypeInfoResolverChain.Clear();
+    
+    options.TypeInfoResolverChain.Insert(0, ApiJsonContext.Default);
+    
     options.Converters.Add(new JsonStringEnumConverter());
     options.Converters.Add(new DateTimeJsonConverter());
     options.Converters.Add(new DateTimeNullableJsonConverter());
