@@ -8,8 +8,8 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 
 public abstract class ClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>(
     IKubernetesClientFactory kubernetesClientFactory,
-    IServiceScopeFactory scopeFactory
-) : KubernetesResourceService<TKubernetesObject>(kubernetesClientFactory, scopeFactory),
+    IKubernetesContextResolver contextResolver
+) : KubernetesResourceService<TKubernetesObject>(kubernetesClientFactory, contextResolver),
     IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>

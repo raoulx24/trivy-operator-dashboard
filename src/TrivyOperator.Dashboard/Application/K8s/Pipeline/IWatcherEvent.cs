@@ -10,7 +10,6 @@ public interface IWatcherEvent<TKubernetesObject>
     WatcherEventType WatcherEventType { get; init; }
     TKubernetesObject? KubernetesObject { get; init; }
     string WatcherKey { get; init; }
-    ContextName Context { get; init; }
     Exception? Exception { get; init; }
     bool IsStatic { get; init; }
 }

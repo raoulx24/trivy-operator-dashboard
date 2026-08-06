@@ -248,7 +248,7 @@ static void ConfigureLogging(IConfiguration configuration)
 static void ConfigureJson(JsonSerializerOptions options)
 {
     // TODO: remove after migration of all json contracts 
-    options.TypeInfoResolverChain.Clear();
+    // options.TypeInfoResolverChain.Clear();
     
     options.TypeInfoResolverChain.Insert(0, ApiJsonContext.Default);
     

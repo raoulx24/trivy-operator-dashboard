@@ -11,14 +11,13 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 
 public class NamespacedCustomResourceService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
-    IServiceScopeFactory scopeFactory,
+    IKubernetesContextResolver contextResolver,
     ICrdFactory customResourceDefinitionFactory,
     IClusterScopedResourceService<V1Namespace, V1NamespaceList> namespaceService
 ) : NamespacedResourceService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
     kubernetesClientFactory,
-    scopeFactory,
-    namespaceService
-)
+    contextResolver, namespaceService)
+
     where TKubernetesObject : CustomResource
 {
     private CustomResourceDefinition Crd =>

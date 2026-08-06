@@ -68,10 +68,10 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
 
         TKey domainKey = keyProvider.GetKey(k8sObject);
 
-        TResource? existing = await resourceStore.Get(watcherEvent.Context, domainKey, ctx);
+        TResource? existing = await resourceStore.Get(domainKey, ctx);
         TResource resource = mapper.MapToDomain(k8sObject, existing);
 
-        await resourceStore.Upsert(watcherEvent.Context, resource, ctx);    
+        await resourceStore.Upsert(resource, ctx);    
     }
 
     private async Task ProcessDeleteEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
@@ -91,7 +91,7 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         TKey domainKey = keyProvider.GetKey(k8sObject);
         Uid uid = k8sObject.ToUidKey();
 
-        await resourceStore.Delete(watcherEvent.Context, domainKey, uid, ctx);
+        await resourceStore.Delete(domainKey, uid, ctx);
     }
     
     private async Task ProcessErrorEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
@@ -110,7 +110,7 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         
         NamespaceName ns = new(k8sObject.Metadata.NamespaceProperty);
 
-        await resourceStore.ClearByNamespace(watcherEvent.Context, ns, ctx);
+        await resourceStore.ClearByNamespace(ns, ctx);
     }
     
     private async Task ProcessModifiedEvent(

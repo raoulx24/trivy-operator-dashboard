@@ -7,16 +7,13 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 
 public abstract class KubernetesResourceService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
-    IServiceScopeFactory scopeFactory
+    IKubernetesContextResolver contextResolver
 )
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
 {
     protected Kubernetes GetKubernetesClient()
     {
-        using IServiceScope scope = scopeFactory.CreateScope();
-        IKubernetesContextProvider kubernetesContextProviderService =
-            scope.ServiceProvider.GetRequiredService<IKubernetesContextProvider>();
-        if (!kubernetesContextProviderService.TryGetCurrentContext(out ContextName currentContext))
+        if (!contextResolver.TryResolveCurrentContext(out ContextName currentContext))
         {
             currentContext = kubernetesClientFactory.GetCurrentContext();
         }

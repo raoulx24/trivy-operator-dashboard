@@ -3,6 +3,7 @@ using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators.Abstracts;
@@ -12,6 +13,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s.Providers;
 public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
     IExpiringResourceConcurrentDictionaryCache<TKey, TReport> cache,
     IKubernetesResourceService<TKubernetesObject> resourceService,
+    IKubernetesContextResolver contextResolver,
     ITrivyReportAggregator<TKubernetesObject, TReport, TKey> aggregator,
     ILogger<KubernetesResourceProvider<TKubernetesObject, TReport, TKey>> logger
 )
@@ -24,14 +26,12 @@ public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
     // this may be replaced with per-context locks
     private readonly SemaphoreSlim refreshLock = new(1, 1);
 
-    // TODO: remove context from IResourceProvider
-    public async Task<IReadOnlyList<TReport>> GetResources(
-        ContextName context = default,
-        CancellationToken ctx = default)
+    public async Task<IReadOnlyList<TReport>> GetResources(CancellationToken ctx = default)
     {
-        await EnsureCacheLoaded(context, ctx);
+        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        await EnsureCacheLoaded(contextName, ctx);
 
-        return cache[context].Values.ToList();
+        return cache[contextName].Values.ToList();
     }
 
     private async Task EnsureCacheLoaded(

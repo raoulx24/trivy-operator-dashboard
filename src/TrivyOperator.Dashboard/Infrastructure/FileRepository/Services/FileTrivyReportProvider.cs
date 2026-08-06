@@ -17,8 +17,7 @@ where TKey : notnull
 {
     private readonly SemaphoreSlim refreshLock = new(1, 1);
 
-    public async Task<IReadOnlyList<TTrivyReport>> GetResources(ContextName context = default,
-        CancellationToken ctx = default)
+    public async Task<IReadOnlyList<TTrivyReport>> GetResources(CancellationToken ctx = default)
     {
         await EnsureCacheLoaded(ctx);
 

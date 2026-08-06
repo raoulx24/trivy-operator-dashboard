@@ -6,8 +6,8 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 
-public class NamespaceService(IKubernetesClientFactory kubernetesClientFactory, IServiceScopeFactory scopeFactory)
-    : ClusterScopedResourceService<V1Namespace, V1NamespaceList>(kubernetesClientFactory, scopeFactory)
+public class NamespaceService(IKubernetesClientFactory kubernetesClientFactory, IKubernetesContextResolver contextResolver)
+    : ClusterScopedResourceService<V1Namespace, V1NamespaceList>(kubernetesClientFactory, contextResolver)
 {
     public override Task<V1Namespace> GetResource(string resourceName, CancellationToken cancellationToken = default) =>
         GetKubernetesClient()

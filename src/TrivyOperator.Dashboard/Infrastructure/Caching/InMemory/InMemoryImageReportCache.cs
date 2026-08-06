@@ -4,6 +4,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
@@ -11,15 +12,15 @@ namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 public class InMemoryImageReportCache<TResource>(
     IResourceConcurrentDictionaryCache<Digest, CacheEntry<TResource, Digest>> cache,
     ICacheEntryBuilder<TResource, Digest> cacheEntryBuilder,
+    IKubernetesContextResolver contextResolver,
     ILogger<InMemoryImageReportCache<TResource>> logger)
-    : InMemoryEntityCache<TResource, Digest>(cache, cacheEntryBuilder, logger)
+    : InMemoryEntityCache<TResource, Digest>(cache, cacheEntryBuilder, contextResolver, logger)
     where TResource: class, IImageReport<TResource>
 {
-    public override Task ClearByNamespace(
-        ContextName contextName,
-        NamespaceName ns,
-        CancellationToken ctx = default)
+    public override Task ClearByNamespace(NamespaceName ns, CancellationToken ctx = default)
     {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        
         logger.LogDebug(
             "ClearByNamespace - {objectType} - {cacheKey} - {namespace}",
             typeof(TResource).Name,
@@ -49,12 +50,10 @@ public class InMemoryImageReportCache<TResource>(
         return Task.CompletedTask;
     }
     
-    public override Task Delete(
-        ContextName contextName,
-        Digest key,
-        Uid uid,
-        CancellationToken ctx = default)
+    public override Task Delete(Digest key, Uid uid, CancellationToken ctx = default)
     {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        
         logger.LogDebug(
             "Delete - {objectType} - {cacheKey} - {uid}",
             typeof(TResource).Name,

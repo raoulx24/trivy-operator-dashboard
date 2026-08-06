@@ -4,6 +4,7 @@ using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
@@ -11,6 +12,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 public abstract class InMemoryEntityCache<TResource, TKey>(
     IResourceConcurrentDictionaryCache<TKey, CacheEntry<TResource, TKey>> cache,
     ICacheEntryBuilder<TResource, TKey> cacheEntryBuilder,
+    IKubernetesContextResolver contextResolver,
     ILogger<InMemoryEntityCache<TResource, TKey>> logger) :
     IResourceRepository<TResource, TKey>
     where TResource: class, IEntity<TKey>
@@ -18,19 +20,21 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
 
 {
     protected IResourceConcurrentDictionaryCache<TKey, CacheEntry<TResource, TKey>> Cache  => cache;
+    protected IKubernetesContextResolver ContextResolver => contextResolver;
     
-    public Task Upsert(ContextName namespaceName, TResource resource, CancellationToken ctx = default)
+    public Task Upsert(TResource resource, CancellationToken ctx = default)
     {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
         logger.LogDebug(
             "Upsert - {objectType} - {cacheKey}",
             typeof(TResource).Name,
-            namespaceName.ToString()
+            contextName.ToString()
         );
         
         ctx.ThrowIfCancellationRequested();
         
         ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>> innerCache = cache.GetOrAdd(
-            namespaceName,
+            contextName,
             _ => new ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>());
 
         innerCache[resource.Id] = cacheEntryBuilder.ToCacheEntry(resource);
@@ -38,8 +42,10 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
         return Task.CompletedTask;
     }
 
-    public Task<TResource?> Get(ContextName contextName, TKey key, CancellationToken ctx = default)
+    public Task<TResource?> Get(TKey key, CancellationToken ctx = default)
     {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        
         logger.LogDebug(
             "Get - {objectType} - {cacheKey}",
             typeof(TResource).Name,
@@ -58,32 +64,13 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
             : Task.FromResult<TResource?>(null);
     }
     
-    // public Task<TResource?> GetLight(ContextName contextName, TKey key, CancellationToken ctx = default)
-    // {
-    //     logger.LogDebug(
-    //         "Get - {objectType} - {cacheKey}",
-    //         typeof(TResource).Name,
-    //         contextName.ToString()
-    //     );
-    //     
-    //     ctx.ThrowIfCancellationRequested();
-    //     
-    //     if (!cache.TryGetValue(contextName, out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
-    //     {
-    //         return Task.FromResult<TResource?>(null);
-    //     }
-    //
-    //     return innerCache.TryGetValue(key, out CacheEntry<TResource, TKey>? cacheEntry)
-    //         ? Task.FromResult<TResource?>(cacheEntry.Entry) 
-    //         : Task.FromResult<TResource?>(null);
-    // }
-
-    public abstract Task ClearByNamespace(ContextName contextName, NamespaceName ns, CancellationToken ctx = default);
+    public abstract Task ClearByNamespace(NamespaceName ns, CancellationToken ctx = default);
     
-    public abstract Task Delete(ContextName contextName, TKey key, Uid uid, CancellationToken ctx = default);
+    public abstract Task Delete(TKey key, Uid uid, CancellationToken ctx = default);
 
-    public Task<IReadOnlyList<TResource>> GetResources(ContextName contextName = default, CancellationToken ctx = default)
+    public Task<IReadOnlyList<TResource>> GetResources(CancellationToken ctx = default)
     {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
         ctx.ThrowIfCancellationRequested();
         
         if (contextName == default) contextName = new ContextName();

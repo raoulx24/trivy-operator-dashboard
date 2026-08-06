@@ -3,9 +3,9 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
 
-public class HttpHeaderKubernetesContextProvider(IHttpContextAccessor httpContextAccessor) : IKubernetesContextProvider
+public class HttpHeaderKubernetesContextResolver(IHttpContextAccessor httpContextAccessor) : IKubernetesContextResolver
 {
-    public bool TryGetCurrentContext(out ContextName context)
+    public bool TryResolveCurrentContext(out ContextName context)
     {
         string? httpContext = httpContextAccessor.HttpContext?.Request.Headers["X-Kubernetes-Context"].FirstOrDefault();
 

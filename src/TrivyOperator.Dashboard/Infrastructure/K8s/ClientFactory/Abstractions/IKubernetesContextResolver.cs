@@ -2,7 +2,7 @@
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 
-public interface IKubernetesContextProvider
+public interface IKubernetesContextResolver
 {
-    bool TryGetCurrentContext(out ContextName context);
+    bool TryResolveCurrentContext(out ContextName context);
 }

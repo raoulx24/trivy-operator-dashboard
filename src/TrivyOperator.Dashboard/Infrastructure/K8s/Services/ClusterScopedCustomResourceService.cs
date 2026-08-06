@@ -10,12 +10,10 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 
 public class ClusterScopedCustomResourceService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
-    IServiceScopeFactory scopeFactory,
+    IKubernetesContextResolver contextResolver,
     ICrdFactory customResourceDefinitionFactory
 ) : ClusterScopedResourceService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
-    kubernetesClientFactory,
-    scopeFactory
-)
+    kubernetesClientFactory, contextResolver)
     where TKubernetesObject : CustomResource
 {
     private CustomResourceDefinition Crd =>
