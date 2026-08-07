@@ -19,6 +19,7 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
     ILogger<NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>>
         logger
 ) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+    namespacedResourceService,
     backgroundQueue,
     options,
     metricsClient,

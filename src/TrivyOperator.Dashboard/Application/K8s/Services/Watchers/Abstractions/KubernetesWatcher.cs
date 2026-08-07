@@ -10,12 +10,14 @@ using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 
 public abstract class
     KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+        IKubernetesResourceService<TKubernetesObject> kubernetesservice,
         TBackgroundQueue backgroundQueue,
         IOptions<WatchersOptions> options,
         IMetricsClient metricsClient,
@@ -33,10 +35,14 @@ public abstract class
     protected readonly double maxBackoffSeconds = 60;
     protected readonly int resourceListPageSize = 500;
     protected readonly ConcurrentDictionary<string, TaskWithCts> Watchers = [];
+    
+    // TODO: it's not ok here, it should come from above
+    protected ContextName CurrentContextName = new();
 
     public Task Add(CancellationToken cancellationToken, string watcherKey = CacheUtils.DefaultCacheRefreshKey)
     {
         watcherKey = string.IsNullOrWhiteSpace(watcherKey) ? CacheUtils.DefaultCacheRefreshKey : watcherKey;
+        CurrentContextName = kubernetesservice.GetCurrentContext();
 
         if (Watchers.TryGetValue(watcherKey, out _))
         {
@@ -368,6 +374,7 @@ public abstract class
             TKubernetesWatcherEvent kubernetesWatcherEvent = new()
             {
                 KubernetesObject = kubernetesObject,
+                ContextName = CurrentContextName,
                 WatcherEventType = watchEventType,
                 WatcherKey = watcherKey,
                 Exception = exception,

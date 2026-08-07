@@ -92,7 +92,7 @@ builder.Services.AddOpenTelemetry(
 );
 
 // TODO: move them appropriately
-builder.Services.AddVulnerabilityReports(configuration);
+builder.Services.AddTrivyReports(configuration);
 
 builder.WebHost.ConfigureKestrel(options =>
     {

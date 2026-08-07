@@ -13,12 +13,17 @@ public abstract class KubernetesResourceService<TKubernetesObject>(
 {
     protected Kubernetes GetKubernetesClient()
     {
+        return kubernetesClientFactory.GetClient(GetCurrentContext());
+    }
+
+    public ContextName GetCurrentContext()
+    {
         if (!contextResolver.TryResolveCurrentContext(out ContextName currentContext))
         {
             currentContext = kubernetesClientFactory.GetCurrentContext();
         }
 
-        return kubernetesClientFactory.GetClient(currentContext);
+        return currentContext;
     }
 
     public abstract Task<IList<TKubernetesObject>> GetResources(CancellationToken cancellationToken = default);

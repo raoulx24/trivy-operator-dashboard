@@ -33,6 +33,8 @@ public class FileTrivyReportPassThroughService<TTrivyReport, TTrivyReportList>(
     public Task<IList<TTrivyReport>> GetResources(CancellationToken cancellationToken = default) =>
         fileTrivyReportDomainService.GetAllReportsAsync(cancellationToken);
 
+    public ContextName GetCurrentContext() => new();
+
     public Task<IList<TTrivyReport>> GetResources(string namespaceName, CancellationToken cancellationToken = default) =>
         fileTrivyReportDomainService.GetAllReportsAsync(namespaceName, cancellationToken);
 

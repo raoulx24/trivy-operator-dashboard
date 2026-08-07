@@ -475,7 +475,8 @@ public static class BuilderServicesExtensions
         services.AddHostedService<WatcherStateCacheTimedHostedService>();
 
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
-        services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();
+        //services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();
+        services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
 
         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))

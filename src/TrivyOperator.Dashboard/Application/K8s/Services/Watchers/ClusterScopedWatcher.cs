@@ -19,6 +19,7 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
     ILogger<ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>>
         logger
 ) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+    clusterScopResourceService,
     backgroundQueue,
     options,
     metricsClient,

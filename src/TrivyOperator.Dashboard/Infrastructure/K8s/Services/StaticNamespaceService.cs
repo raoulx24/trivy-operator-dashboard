@@ -33,6 +33,8 @@ public class StaticNamespaceService(
         return Task.FromResult<IList<V1Namespace>>(kubernetesNamespaces);
     }
 
+    public ContextName GetCurrentContext() => new();
+
     public Task<V1Namespace> GetResource(string resourceName, CancellationToken cancellationToken = default) =>
         Task.FromResult(CreateNamespace(resourceName));
 
