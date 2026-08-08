@@ -1,8 +1,8 @@
 ﻿using k8s;
 using k8s.Models;
 using System.Collections.Concurrent;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
@@ -12,12 +12,12 @@ public class CacheRefresher<TKubernetesObject>(
     IConcurrentDictionaryCache<TKubernetesObject> cache,
     ILogger<CacheRefresher<TKubernetesObject>> logger
 ) : IKubernetesEventProcessor<TKubernetesObject>
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
+    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
 {
     protected IConcurrentDictionaryCache<TKubernetesObject> cache = cache;
 
     public async Task ProcessKubernetesEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken ctx
     )
     {
@@ -51,7 +51,7 @@ public class CacheRefresher<TKubernetesObject>(
     }
 
     protected virtual void ProcessAddEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken cancellationToken
     )
     {
@@ -92,7 +92,7 @@ public class CacheRefresher<TKubernetesObject>(
     }
 
     protected virtual Task ProcessDeleteEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken cancellationToken
     )
     {
@@ -126,7 +126,7 @@ public class CacheRefresher<TKubernetesObject>(
         return Task.CompletedTask;
     }
 
-    protected virtual void ProcessErrorEvent(IWatcherEvent<TKubernetesObject> watcherEvent)
+    protected virtual void ProcessErrorEvent(WatcherEvent<TKubernetesObject> watcherEvent)
     {
         string watcherKey = CacheUtils.GetCacheRefreshKey(watcherEvent.KubernetesObject);
         logger.LogDebug(
@@ -138,7 +138,7 @@ public class CacheRefresher<TKubernetesObject>(
     }
 
     protected virtual void ProcessModifiedEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken cancellationToken
     )
     {
@@ -147,7 +147,7 @@ public class CacheRefresher<TKubernetesObject>(
     }
 
     protected virtual Task ProcessInitEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken cancellationToken
     ) => Task.CompletedTask;
 }

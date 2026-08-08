@@ -1,6 +1,6 @@
 ﻿using k8s;
 
-namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
+namespace TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 
 public enum WatcherEventType
 {

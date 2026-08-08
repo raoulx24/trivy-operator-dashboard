@@ -1,5 +1,5 @@
-﻿using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
+﻿using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
+using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
@@ -15,11 +15,11 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
     ITrivyReportKeyProvider<TKubernetesObject, TKey> keyProvider,
     ILogger<TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey>> logger
 ) : IKubernetesEventProcessor<TKubernetesObject>
-    where TKubernetesObject : CustomResource
+    where TKubernetesObject : CustomResource, new()
     where TResource : ITrivyReport<TKey>, ITrivyReport
 {
     public async Task ProcessKubernetesEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken ctx
     )
     {
@@ -52,7 +52,7 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         }
     }
     
-    private async Task ProcessAddEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    private async Task ProcessAddEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
     {
         TKubernetesObject? k8sObject = watcherEvent.KubernetesObject;
         
@@ -74,7 +74,7 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         await resourceStore.Upsert(resource, ctx);    
     }
 
-    private async Task ProcessDeleteEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    private async Task ProcessDeleteEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
     {
         TKubernetesObject? k8sObject = watcherEvent.KubernetesObject;
         
@@ -94,7 +94,7 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         await resourceStore.Delete(domainKey, uid, ctx);
     }
     
-    private async Task ProcessErrorEvent(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    private async Task ProcessErrorEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
     {
         TKubernetesObject? k8sObject = watcherEvent.KubernetesObject;
         
@@ -114,7 +114,7 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
     }
     
     private async Task ProcessModifiedEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken cancellationToken
     )
     {
@@ -122,7 +122,7 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         await ProcessAddEvent(watcherEvent, cancellationToken);
     }
 
-    private void ProcessInitEvent(IWatcherEvent<TKubernetesObject> watcherEvent)
+    private void ProcessInitEvent(WatcherEvent<TKubernetesObject> watcherEvent)
     {
         logger.LogDebug("ProcessInitEvent - for {watcherKey} {kubernetesObjectType}. Nothing to do",
             watcherEvent.WatcherKey,

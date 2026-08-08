@@ -4,9 +4,9 @@ using k8s.Models;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Net;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
@@ -16,17 +16,16 @@ using TrivyOperator.Dashboard.Infrastructure.Utils;
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 
 public abstract class
-    KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+    KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
         IKubernetesResourceService<TKubernetesObject> kubernetesservice,
         TBackgroundQueue backgroundQueue,
         IOptions<WatchersOptions> options,
         IMetricsClient metricsClient,
-        ILogger<KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>>
+        ILogger<KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>>
             logger
     ) : IKubernetesWatcher<TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
-    where TKubernetesWatcherEvent : IWatcherEvent<TKubernetesObject>, new()
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 
 {
@@ -71,7 +70,6 @@ public abstract class
                 typeof(TKubernetesObject).Name,
                 watcherKey
             );
-            return Task.CompletedTask;
         }
 
         return Task.CompletedTask;
@@ -371,7 +369,7 @@ public abstract class
                 ProcessReceivedKubernetesObject(kubernetesObject);
             }
 
-            TKubernetesWatcherEvent kubernetesWatcherEvent = new()
+            WatcherEvent<TKubernetesObject> kubernetesWatcherEvent = new()
             {
                 KubernetesObject = kubernetesObject,
                 ContextName = CurrentContextName,

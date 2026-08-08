@@ -1,6 +1,6 @@
 ﻿using k8s.Models;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
@@ -14,7 +14,7 @@ public sealed class NamespaceHistoryRefresher(
 {
     private static string ResourceKind => nameof(V1Namespace).ToLowerInvariant();
     public async Task ProcessKubernetesEvent(
-        IWatcherEvent<V1Namespace> watcherEvent,
+        WatcherEvent<V1Namespace> watcherEvent,
         CancellationToken ctx)
     {
         switch (watcherEvent.WatcherEventType)
@@ -42,7 +42,7 @@ public sealed class NamespaceHistoryRefresher(
     }
     
     private async Task HandleUpsertAsync(
-        IWatcherEvent<V1Namespace> watcherEvent,
+        WatcherEvent<V1Namespace> watcherEvent,
         CancellationToken cancellationToken)
     {
         V1Namespace? ns = watcherEvent.KubernetesObject;
@@ -91,7 +91,7 @@ public sealed class NamespaceHistoryRefresher(
     }
     
     private async Task HandleDeleteAsync(
-        IWatcherEvent<V1Namespace> watcherEvent,
+        WatcherEvent<V1Namespace> watcherEvent,
         CancellationToken cancellationToken)
     {
         V1Namespace? ns = watcherEvent.KubernetesObject;

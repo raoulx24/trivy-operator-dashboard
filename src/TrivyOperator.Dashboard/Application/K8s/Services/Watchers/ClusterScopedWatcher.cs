@@ -10,15 +10,15 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
-public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
     IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>
         clusterScopResourceService,
     TBackgroundQueue backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
-    ILogger<ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>>
+    ILogger<ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>>
         logger
-) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
     clusterScopResourceService,
     backgroundQueue,
     options,
@@ -27,7 +27,6 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
 ), IClusterScopedWatcher<TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
-    where TKubernetesWatcherEvent : IWatcherEvent<TKubernetesObject>, new()
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
     protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(

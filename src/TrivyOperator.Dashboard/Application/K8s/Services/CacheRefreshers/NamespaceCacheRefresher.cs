@@ -1,8 +1,8 @@
 ﻿using k8s.Models;
 using System.Collections.Concurrent;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
@@ -15,7 +15,7 @@ public class NamespaceCacheRefresher(
 ) : CacheRefresher<V1Namespace>(cache, logger)
 {
     protected override void ProcessAddEvent(
-        IWatcherEvent<V1Namespace> watcherEvent,
+        WatcherEvent<V1Namespace> watcherEvent,
         CancellationToken cancellationToken
     )
     {
@@ -41,7 +41,7 @@ public class NamespaceCacheRefresher(
     }
 
     protected override void ProcessModifiedEvent(
-        IWatcherEvent<V1Namespace> watcherEvent,
+        WatcherEvent<V1Namespace> watcherEvent,
         CancellationToken cancellationToken
     )
     {
@@ -59,7 +59,7 @@ public class NamespaceCacheRefresher(
     }
 
     protected override async Task ProcessDeleteEvent(
-        IWatcherEvent<V1Namespace> watcherEvent,
+        WatcherEvent<V1Namespace> watcherEvent,
         CancellationToken cancellationToken
     )
     {
@@ -83,7 +83,7 @@ public class NamespaceCacheRefresher(
     }
 
     protected override async Task ProcessInitEvent(
-        IWatcherEvent<V1Namespace> watcherEvent,
+        WatcherEvent<V1Namespace> watcherEvent,
         CancellationToken cancellationToken
     )
     {

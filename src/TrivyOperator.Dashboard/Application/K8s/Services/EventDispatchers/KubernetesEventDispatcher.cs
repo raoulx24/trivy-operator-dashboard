@@ -1,5 +1,6 @@
 ﻿using k8s;
 using k8s.Models;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers;
@@ -9,7 +10,7 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
     TBackgroundQueue backgroundQueue,
     ILogger<KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>> logger
 ) : IKubernetesEventDispatcher<TKubernetesObject>
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
+    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
     protected Task? dispatcherQueueProcessor;
@@ -39,7 +40,7 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
         {
             try
             {
-                IWatcherEvent<TKubernetesObject>? watcherEvent = await backgroundQueue.DequeueAsync(cancellationToken);
+                WatcherEvent<TKubernetesObject>? watcherEvent = await backgroundQueue.DequeueAsync(cancellationToken);
 
                 if (watcherEvent is null)
                 {

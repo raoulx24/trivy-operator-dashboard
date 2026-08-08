@@ -1,7 +1,7 @@
 ﻿using k8s;
 using k8s.Models;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
@@ -11,12 +11,12 @@ public class WatcherState<TKubernetesObject>(
     IConcurrentCache<string, WatcherStateInfo> cache,
     ILogger<WatcherState<TKubernetesObject>> logger
 ) : IKubernetesEventProcessor<TKubernetesObject>
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
+    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
 {
     private readonly DictionaryCounter eventsGauge = new();
 
     public Task ProcessKubernetesEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken ctx
     )
     {
@@ -63,7 +63,7 @@ public class WatcherState<TKubernetesObject>(
         return Task.CompletedTask;
     }
 
-    private void ProcessGreenEvent(IWatcherEvent<TKubernetesObject> watcherEvent)
+    private void ProcessGreenEvent(WatcherEvent<TKubernetesObject> watcherEvent)
     {
         WatcherStateInfo watcherStateInfo = new()
         {
@@ -78,7 +78,7 @@ public class WatcherState<TKubernetesObject>(
         cache[GetCacheKey(watcherEvent)] = watcherStateInfo;
     }
 
-    private void ProcessRedEvent(IWatcherEvent<TKubernetesObject> watcherEvent)
+    private void ProcessRedEvent(WatcherEvent<TKubernetesObject> watcherEvent)
     {
         WatcherStateInfo watcherStateInfo = new()
         {
@@ -93,9 +93,9 @@ public class WatcherState<TKubernetesObject>(
         cache[GetCacheKey(watcherEvent)] = watcherStateInfo;
     }
 
-    private void ProcessFlushedEvent(IWatcherEvent<TKubernetesObject> watcherEvent) =>
+    private void ProcessFlushedEvent(WatcherEvent<TKubernetesObject> watcherEvent) =>
         cache.TryRemove(GetCacheKey(watcherEvent), out _);
 
-    private static string GetCacheKey(IWatcherEvent<TKubernetesObject> watcherEvent) =>
+    private static string GetCacheKey(WatcherEvent<TKubernetesObject> watcherEvent) =>
         $"{typeof(TKubernetesObject).Name}|{watcherEvent.WatcherKey}";
 }

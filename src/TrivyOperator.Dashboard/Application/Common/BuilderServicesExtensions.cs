@@ -31,7 +31,6 @@ using TrivyOperator.Dashboard.Application.K8s.Services.Namespaces.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain;
 using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain.Abstracts;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStateAlertRefreshers;
@@ -163,8 +162,7 @@ public static class BuilderServicesExtensions
                 sp.GetRequiredService<NamespaceService>()
             );
             services.AddSingleton<IClusterScopedWatcher<V1Namespace>,
-                ClusterScopedWatcher<V1NamespaceList, V1Namespace, IKubernetesBackgroundQueue<V1Namespace>,
-                    WatcherEvent<V1Namespace>>>();
+                ClusterScopedWatcher<V1NamespaceList, V1Namespace, IKubernetesBackgroundQueue<V1Namespace>>>();
         }
         else
         {
@@ -291,7 +289,7 @@ public static class BuilderServicesExtensions
             {
                 services.AddSingleton<INamespacedWatcher<TNamespacedTrivyReportCr>, NamespacedWatcher<
                     CustomResourceList<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr,
-                    IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>, WatcherEvent<TNamespacedTrivyReportCr>>>();
+                    IKubernetesBackgroundQueue<TNamespacedTrivyReportCr>>>();
             }
 
             services.AddSingleton<INamespacedKubernetesEventCoordinator,
@@ -382,7 +380,7 @@ public static class BuilderServicesExtensions
                     KubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>();
             services.AddSingleton<IClusterScopedWatcher<TClusterScopedTrivyReportCr>, ClusterScopedWatcher<
                 CustomResourceList<TClusterScopedTrivyReportCr>, TClusterScopedTrivyReportCr,
-                IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>, WatcherEvent<TClusterScopedTrivyReportCr>>>();
+                IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>>();
 
             services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
                 ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<TClusterScopedTrivyReportCr>,

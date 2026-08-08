@@ -1,10 +1,9 @@
 ﻿using k8s;
-using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
-namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
+namespace TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 
-public class WatcherEvent<TKubernetesObject> : IWatcherEvent<TKubernetesObject>
+public class WatcherEvent<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject, new()
 {
     public WatcherEventType WatcherEventType { get; init; }

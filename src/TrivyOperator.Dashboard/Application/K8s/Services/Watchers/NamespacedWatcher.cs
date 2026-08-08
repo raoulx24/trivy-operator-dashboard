@@ -10,15 +10,15 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
-public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
     INamespacedResourceService<TKubernetesObject, TKubernetesObjectList>
         namespacedResourceService,
     TBackgroundQueue backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
-    ILogger<NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>>
+    ILogger<NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>>
         logger
-) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue, TKubernetesWatcherEvent>(
+) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
     namespacedResourceService,
     backgroundQueue,
     options,
@@ -27,7 +27,6 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
 ), INamespacedWatcher<TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
-    where TKubernetesWatcherEvent : IWatcherEvent<TKubernetesObject>, new()
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
     // TODO: new for ns cleanup

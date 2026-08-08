@@ -4,7 +4,6 @@ using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.ResourceStoreUpdaters;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
@@ -99,7 +98,7 @@ public static class BuilderServicesExtensionsTemp
         // watcher
         services.AddSingleton<INamespacedWatcher<TReportCr>, NamespacedWatcher<
             CustomResourceList<TReportCr>, TReportCr,
-            IKubernetesBackgroundQueue<TReportCr>, WatcherEvent<TReportCr>>>();
+            IKubernetesBackgroundQueue<TReportCr>>>();
         
         // background queue
         services

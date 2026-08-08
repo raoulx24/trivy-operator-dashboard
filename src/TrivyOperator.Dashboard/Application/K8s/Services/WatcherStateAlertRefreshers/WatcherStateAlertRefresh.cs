@@ -2,8 +2,8 @@
 using k8s.Models;
 using TrivyOperator.Dashboard.Application.Alerts.Services;
 using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherEvents;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStateAlertRefreshers;
@@ -12,13 +12,13 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
     IAlertsService alertService,
     ILogger<WatcherStateAlertRefresh<TKubernetesObject>> logger
 ) : IKubernetesEventProcessor<TKubernetesObject>
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
+    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
 {
     private const string AlertEmitter = "Watcher";
     private static readonly HashSet<string> ActiveAlerts = [];
 
     public async Task ProcessKubernetesEvent(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken ctx
     )
     {
@@ -53,7 +53,7 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
         }
     }
 
-    private async ValueTask AddAlert(IWatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
+    private async ValueTask AddAlert(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
     {
         if (ActiveAlerts.Contains(watcherEvent.WatcherKey))
         {
@@ -78,7 +78,7 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
     }
 
     private async ValueTask RemoveAlert(
-        IWatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TKubernetesObject> watcherEvent,
         CancellationToken cancellationToken
     )
     {
@@ -97,6 +97,6 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
         }
     }
 
-    private static string GetCacheKey(IWatcherEvent<TKubernetesObject> watcherEvent) =>
+    private static string GetCacheKey(WatcherEvent<TKubernetesObject> watcherEvent) =>
         $"{typeof(TKubernetesObject).Name}|{watcherEvent.WatcherKey}";
 }
