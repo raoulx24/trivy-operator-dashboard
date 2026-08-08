@@ -2,14 +2,13 @@
 
 public readonly record struct ContextName
 {
-    private const string Sentinel = "default";
+    private const string Sentinel = "";
     public string Value { get; }
-    public bool IsDefault { get; }
+    public bool IsUnset => string.IsNullOrEmpty(Value);
 
     public ContextName(string? value)
     {
         Value = string.Intern(value?.Trim() ?? Sentinel);
-        IsDefault = string.IsNullOrWhiteSpace(value);
     }
 
     public ContextName() : this(Sentinel) { }

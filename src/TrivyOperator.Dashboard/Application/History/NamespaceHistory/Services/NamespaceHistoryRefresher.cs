@@ -2,7 +2,6 @@
 using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.Abstractions;
-using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.History.NamespaceHistory.Services;
@@ -13,9 +12,7 @@ public sealed class NamespaceHistoryRefresher(
 ) : IKubernetesEventProcessor<V1Namespace>
 {
     private static string ResourceKind => nameof(V1Namespace).ToLowerInvariant();
-    public async Task ProcessKubernetesEvent(
-        WatcherEvent<V1Namespace> watcherEvent,
-        CancellationToken ctx)
+    public async Task ProcessKubernetesEvent(WatcherEvent<V1Namespace> watcherEvent, CancellationToken ctx = default)
     {
         switch (watcherEvent.WatcherEventType)
         {
@@ -41,17 +38,15 @@ public sealed class NamespaceHistoryRefresher(
         }
     }
     
-    private async Task HandleUpsertAsync(
-        WatcherEvent<V1Namespace> watcherEvent,
-        CancellationToken cancellationToken)
+    private async Task HandleUpsertAsync(WatcherEvent<V1Namespace> watcherEvent, CancellationToken ctx = default)
     {
         V1Namespace? ns = watcherEvent.KubernetesObject;
 
         if (ns is null)
         {
             logger.LogWarning(
-                "HandleUpsertAsync - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
+                "HandleUpsertAsync - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
+                watcherEvent.Key,
                 ResourceKind);
 
             return;
@@ -62,8 +57,8 @@ public sealed class NamespaceHistoryRefresher(
         if (string.IsNullOrWhiteSpace(namespaceValue))
         {
             logger.LogWarning(
-                "HandleUpsertAsync - Namespace name is null or empty for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
+                "HandleUpsertAsync - Namespace name is null or empty for {watcherKey} - {kubernetesObjectType}. Ignoring",
+                watcherEvent.Key,
                 ResourceKind);
 
             return;
@@ -71,14 +66,11 @@ public sealed class NamespaceHistoryRefresher(
 
         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
 
-        INamespaceHistoryStore store =
-            scope.ServiceProvider.GetRequiredService<INamespaceHistoryStore>();
+        INamespaceHistoryStore store = scope.ServiceProvider.GetRequiredService<INamespaceHistoryStore>();
 
         try
         {
-            await store.AddOrUpdateNamespaceAsync(
-                new NamespaceName(namespaceValue),
-                cancellationToken);
+            await store.AddOrUpdateNamespaceAsync(new NamespaceName(namespaceValue), ctx);
         }
         catch (Exception ex)
         {
@@ -86,57 +78,7 @@ public sealed class NamespaceHistoryRefresher(
                 ex,
                 "Failed to upsert namespace for {kubernetesObjectType} in {watcherKey}.",
                 ResourceKind,
-                watcherEvent.WatcherKey);
-        }
-    }
-    
-    private async Task HandleDeleteAsync(
-        WatcherEvent<V1Namespace> watcherEvent,
-        CancellationToken cancellationToken)
-    {
-        V1Namespace? ns = watcherEvent.KubernetesObject;
-
-        if (ns is null)
-        {
-            logger.LogWarning(
-                "HandleDeleteAsync - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
-                ResourceKind);
-
-            return;
-        }
-
-        string? namespaceValue = ns.Metadata?.Name;
-
-        if (string.IsNullOrWhiteSpace(namespaceValue))
-        {
-            logger.LogWarning(
-                "HandleDeleteAsync - Namespace name is null or empty for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
-                ResourceKind);
-
-            return;
-        }
-
-        await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-
-        INamespaceHistoryStore store =
-            scope.ServiceProvider.GetRequiredService<INamespaceHistoryStore>();
-
-        try
-        {
-            await store.DeleteNamespacesAsync(
-            [
-                new NamespaceName(namespaceValue)
-            ], cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(
-                ex,
-                "Failed to delete namespace for {kubernetesObjectType} in {watcherKey}.",
-                ResourceKind,
-                watcherEvent.WatcherKey);
+                watcherEvent.Key);
         }
     }
 }

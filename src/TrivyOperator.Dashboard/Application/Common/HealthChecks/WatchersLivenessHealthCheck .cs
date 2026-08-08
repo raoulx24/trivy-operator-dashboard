@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
@@ -7,7 +8,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 namespace TrivyOperator.Dashboard.Application.Common.HealthChecks;
 
 public class WatchersLivenessHealthCheck(
-    IConcurrentCache<string, WatcherStateInfo> cache,
+    IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
     IOptions<WatchersOptions> options,
     ILogger<WatchersLivenessHealthCheck> logger
 ) : IHealthCheck

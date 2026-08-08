@@ -1,10 +1,11 @@
-﻿using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Infrastructure.Utils;
+﻿using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
+using TrivyOperator.Dashboard.Application.K8s.Pipeline;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
 
 public interface INamespacedKubernetesEventCoordinator : IKubernetesEventCoordinator
 {
-    Task Stop(CancellationToken cancellationToken, string watcherKey = CacheUtils.DefaultCacheRefreshKey);
-    Task ReconcileWatchers(string[] newNamespaceNames, CancellationToken cancellationToken);
+    Task Stop(WatcherKey key, CancellationToken ctx = default);
+    Task ReconcileWatchers(ContextName contextName, NamespaceName[] newNamespaceNames, CancellationToken ctx = default);
 }

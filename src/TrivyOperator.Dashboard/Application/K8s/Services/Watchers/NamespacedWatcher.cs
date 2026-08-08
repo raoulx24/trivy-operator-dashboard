@@ -1,6 +1,7 @@
 ﻿using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
@@ -11,15 +12,13 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
 public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
-    INamespacedResourceService<TKubernetesObject, TKubernetesObjectList>
-        namespacedResourceService,
+    INamespacedResourceService<TKubernetesObject, TKubernetesObjectList> namespacedResourceService,
     TBackgroundQueue backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
     ILogger<NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>>
         logger
 ) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
-    namespacedResourceService,
     backgroundQueue,
     options,
     metricsClient,
@@ -30,24 +29,24 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
     // TODO: new for ns cleanup
-    public async Task ReconcileNamespaces(string[] newNamespaceNames, CancellationToken cancellationToken)
+    public async Task ReconcileNamespaces(ContextName contextName, NamespaceName[] newNamespaceNames, CancellationToken ctx = default)
     {
-        string[] existingWatcherKeys = Watchers.Select(kvp => kvp.Key).ToArray();
-        IEnumerable<string> newWatcherKeys = newNamespaceNames.Except(existingWatcherKeys);
-        IEnumerable<string> staleWatcherKeys = existingWatcherKeys.Except(newNamespaceNames);
+        NamespaceName[] existing = Watchers.Where(kvp => kvp.Key.ContextName == contextName).Select(kvp => kvp.Key.NamespaceName).ToArray();
+        IEnumerable<NamespaceName> toAdd = newNamespaceNames.Except(existing);
+        IEnumerable<NamespaceName> toDelete = existing.Except(newNamespaceNames);
         List<Task> tasks = [];
-        tasks.AddRange(newWatcherKeys.Select(watcherKey => Add(cancellationToken, watcherKey)));
-        tasks.AddRange(staleWatcherKeys.Select(watcherKey => Delete(watcherKey, cancellationToken)));
+        tasks.AddRange(toAdd.Select(namespaceName => Add(new WatcherKey(contextName, namespaceName), ctx)));
+        tasks.AddRange(toDelete.Select(namespaceName => Delete(new WatcherKey(contextName, namespaceName), ctx)));
         await Task.WhenAll(tasks);
     }
 
     protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
-        string watcherKey,
+        WatcherKey key,
         string? lastResourceVersion,
         Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
     ) => namespacedResourceService.GetResourceWatchList(
-        watcherKey,
+        key.NamespaceName.Value,
         lastResourceVersion,
         GetWatcherRandomTimeout(),
         onError,
@@ -55,12 +54,12 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
     );
 
     protected override async Task<TKubernetesObjectList> GetInitialResources(
-        string watcherKey,
+        WatcherKey key,
         string? continueToken,
         CancellationToken cancellationToken = default
     ) => await namespacedResourceService.GetResourceList(
-        watcherKey,
-        resourceListPageSize,
+        key.NamespaceName.Value,
+        ResourceListPageSize,
         continueToken,
         cancellationToken
     );

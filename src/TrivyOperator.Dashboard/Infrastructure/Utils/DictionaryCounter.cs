@@ -1,12 +1,14 @@
-﻿namespace TrivyOperator.Dashboard.Infrastructure.Utils;
+﻿using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
+
+namespace TrivyOperator.Dashboard.Infrastructure.Utils;
 
 public class DictionaryCounter
 {
-    private readonly Dictionary<string, int> data = [];
+    private readonly Dictionary<WatcherKey, int> data = [];
 
-    public void SetValue(string key, int value) => data[key] = value;
+    public void SetValue(WatcherKey key, int value) => data[key] = value;
 
-    public void OffsetValue(string key, int offset)
+    public void OffsetValue(WatcherKey key, int offset)
     {
         if (offset == 0)
         {
@@ -19,9 +21,9 @@ public class DictionaryCounter
         }
     }
 
-    public bool RemoveKey(string key) => data.Remove(key);
+    public bool RemoveKey(WatcherKey key) => data.Remove(key);
 
-    public int? GetValue(string key) => data.TryGetValue(key, out int value) ? value : null;
+    public int? GetValue(WatcherKey key) => data.TryGetValue(key, out int value) ? value : null;
 
     public void Clear() => data.Clear();
 }

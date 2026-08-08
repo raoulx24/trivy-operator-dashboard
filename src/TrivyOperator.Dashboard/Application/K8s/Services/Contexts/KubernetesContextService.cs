@@ -9,14 +9,14 @@ public class KubernetesContextService(IKubernetesClientFactory kubernetesClientF
 {
     public Task<IEnumerable<string>> GetContexts() => Task.FromResult(kubernetesClientFactory.GetContexts().Select(x => x.Value));
 
-    public Task<string> GetCurrentContext() => Task.FromResult(kubernetesClientFactory.GetCurrentContext().Value);
+    public Task<string> GetCurrentContext() => Task.FromResult(kubernetesClientFactory.GetDefaultContext().Value);
 
     public Task<KubernetesContextsDto> GetKubernetesContextsDto()
     {
         KubernetesContextsDto contextDto = new()
         {
             Contexts = [.. kubernetesClientFactory.GetContexts().Select(x => x.Value),],
-            Current = kubernetesClientFactory.GetCurrentContext().Value,
+            Current = kubernetesClientFactory.GetDefaultContext().Value,
         };
 
         return Task.FromResult(contextDto);

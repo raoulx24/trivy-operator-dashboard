@@ -12,7 +12,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 {
     private readonly Dictionary<ContextName, Kubernetes> clients;
     private readonly ILogger<KubernetesClientFactory> logger;
-    private ContextName currentContextName = new();
+    private ContextName defaultContextName = new();
     private K8SConfiguration? loadedKubeConfig;
 
     static KubernetesClientFactory()
@@ -36,7 +36,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
         logger.LogInformation(
             "Current context: {context}. Loaded {count} contexts: {list}",
-            currentContextName,
+            defaultContextName,
             clients.Count,
             string.Join(", ", clients.Keys)
         );
@@ -44,6 +44,11 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
     public Kubernetes GetClient(ContextName context)
     {
+        if (context.IsUnset)
+        {
+            context = defaultContextName;
+        }
+        
         if (clients.TryGetValue(context, out Kubernetes? client))
         {
             return client;
@@ -53,7 +58,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
     }
 
     public IEnumerable<ContextName> GetContexts() => [.. clients.Keys,];
-    public ContextName GetCurrentContext() => currentContextName;
+    public ContextName GetDefaultContext() => defaultContextName;
 
     private void InitializeWithDefaultContext(KubernetesOptions options)
     {
@@ -65,7 +70,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             {
                 LoadSingleDefaultContextFromFile(options.KubeConfigFileName);
 
-                logger.LogInformation("Using default context from file: {contextName}", currentContextName);
+                logger.LogInformation("Using default context from file: {contextName}", defaultContextName);
             }
             catch (Exception ex)
             {
@@ -91,7 +96,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         if (hasConfigFile)
         {
             SetContextsFromConfig(options.KubeConfigFileName);
-            currentContextName = GetCurrentContextFromConfig(options.KubeConfigFileName);
+            defaultContextName = GetCurrentContextFromConfig(options.KubeConfigFileName);
         }
         else
         {
@@ -99,12 +104,12 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             {
                 KubernetesClientConfiguration? defaultConfig = KubernetesClientConfiguration.InClusterConfig();
                 defaultConfig.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
-                clients[currentContextName] = new Kubernetes(defaultConfig);
+                clients[defaultContextName] = new Kubernetes(defaultConfig);
             }
             else
             {
                 SetContextsFromConfig();
-                currentContextName = GetCurrentContextFromConfig();
+                defaultContextName = GetCurrentContextFromConfig();
             }
         }
     }
@@ -117,13 +122,13 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
         defaultConfig.AddJsonOptions(JsonUtils.ConfigureJsonSerializerOptions);
 
-        currentContextName = defaultConfig.CurrentContext is null ? currentContextName
+        defaultContextName = defaultConfig.CurrentContext is null ? defaultContextName
             : new ContextName(defaultConfig.CurrentContext);
 
         clients.Clear();
-        clients[currentContextName] = new Kubernetes(defaultConfig);
+        clients[defaultContextName] = new Kubernetes(defaultConfig);
 
-        logger.LogInformation("Using fallback context - {contextName}", currentContextName);
+        logger.LogInformation("Using fallback context - {contextName}", defaultContextName);
     }
 
     private void LoadSingleDefaultContextFromFile(string kubeConfigFileName)
@@ -150,7 +155,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         clients.Clear();
         clients[contextName] = new Kubernetes(config);
 
-        currentContextName = contextName;
+        defaultContextName = contextName;
     }
 
     private void SetContextsFromConfig(string? kubeConfigFileName = null)

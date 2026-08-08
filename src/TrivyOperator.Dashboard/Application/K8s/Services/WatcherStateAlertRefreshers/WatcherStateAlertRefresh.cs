@@ -15,12 +15,9 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
 {
     private const string AlertEmitter = "Watcher";
-    private static readonly HashSet<string> ActiveAlerts = [];
+    private static readonly HashSet<WatcherKey> ActiveAlerts = [];
 
-    public async Task ProcessKubernetesEvent(
-        WatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken ctx
-    )
+    public async Task ProcessKubernetesEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx = default)
     {
         if (watcherEvent.IsStatic)
         {
@@ -53,27 +50,25 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
         }
     }
 
-    private async ValueTask AddAlert(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken cancellationToken)
+    private async ValueTask AddAlert(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx = default)
     {
-        if (ActiveAlerts.Contains(watcherEvent.WatcherKey))
+        if (ActiveAlerts.Contains(watcherEvent.Key))
         {
             return;
         }
 
-        ActiveAlerts.Add(watcherEvent.WatcherKey);
+        ActiveAlerts.Add(watcherEvent.Key);
 
-        string namespaceName = watcherEvent.WatcherKey == CacheUtils.DefaultCacheRefreshKey ? "n/a"
-            : watcherEvent.WatcherKey;
         await alertService.AddAlert(
             AlertEmitter,
             new Alert
             {
                 EmitterKey = GetCacheKey(watcherEvent),
-                Message = $"Watcher for {typeof(TKubernetesObject).Name} and Namespace {namespaceName} failed.",
+                Message = $"Watcher for {typeof(TKubernetesObject).Name}, context {watcherEvent.Key.ContextName} and {watcherEvent.Key.NamespaceName} failed.",
                 Severity = Severity.Error,
                 Category = "Watcher Failed",
             },
-            cancellationToken
+            ctx
         );
     }
 
@@ -82,9 +77,9 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
         CancellationToken cancellationToken
     )
     {
-        if (ActiveAlerts.Contains(watcherEvent.WatcherKey))
+        if (ActiveAlerts.Contains(watcherEvent.Key))
         {
-            ActiveAlerts.Remove(watcherEvent.WatcherKey);
+            ActiveAlerts.Remove(watcherEvent.Key);
 
             await alertService.RemoveAlert(
                 AlertEmitter,
@@ -98,5 +93,5 @@ public class WatcherStateAlertRefresh<TKubernetesObject>(
     }
 
     private static string GetCacheKey(WatcherEvent<TKubernetesObject> watcherEvent) =>
-        $"{typeof(TKubernetesObject).Name}|{watcherEvent.WatcherKey}";
+        $"{typeof(TKubernetesObject).Name}|{watcherEvent.Key.ContextName}|{watcherEvent.Key.NamespaceName}";
 }

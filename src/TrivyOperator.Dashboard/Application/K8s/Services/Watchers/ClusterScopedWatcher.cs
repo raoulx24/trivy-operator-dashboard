@@ -1,6 +1,7 @@
 ﻿using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
@@ -11,15 +12,13 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
 public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
-    IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>
-        clusterScopResourceService,
+    IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList> clusterScopResourceService,
     TBackgroundQueue backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
     ILogger<ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>>
         logger
 ) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
-    clusterScopResourceService,
     backgroundQueue,
     options,
     metricsClient,
@@ -30,7 +29,7 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
     protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
-        string watcherKey,
+        WatcherKey key,
         string? lastResourceVersion,
         Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
@@ -42,11 +41,11 @@ public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBac
     );
 
     protected override async Task<TKubernetesObjectList> GetInitialResources(
-        string watcherKey,
+        WatcherKey key,
         string? continueToken,
         CancellationToken cancellationToken = default
     ) => await clusterScopResourceService.GetResourceList(
-        resourceListPageSize,
+        ResourceListPageSize,
         continueToken,
         cancellationToken
     );

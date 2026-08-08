@@ -14,13 +14,12 @@ public class CacheRefresher<TKubernetesObject>(
 ) : IKubernetesEventProcessor<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
 {
-    protected IConcurrentDictionaryCache<TKubernetesObject> cache = cache;
+    protected readonly IConcurrentDictionaryCache<TKubernetesObject> Cache = cache;
 
-    public async Task ProcessKubernetesEvent(
-        WatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken ctx
-    )
+    public async Task ProcessKubernetesEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx = default)
     {
+        ctx.ThrowIfCancellationRequested();
+        
         switch (watcherEvent.WatcherEventType)
         {
             case WatcherEventType.InitialAdded:
@@ -50,30 +49,27 @@ public class CacheRefresher<TKubernetesObject>(
         }
     }
 
-    protected virtual void ProcessAddEvent(
-        WatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken
-    )
+    protected virtual void ProcessAddEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx = default)
     {
         if (watcherEvent.KubernetesObject == null)
         {
             logger.LogWarning(
-                "ProcessAddEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
+                "ProcessAddEvent - KubernetesObject is null for {key} {kubernetesObjectType}. Ignoring",
+                watcherEvent.Key,
                 typeof(TKubernetesObject).Name
             );
             return;
         }
 
         logger.LogDebug(
-            "ProcessAddEvent - {kubernetesObjectType} - {watcherKey} - {kubernetesObjectName}",
+            "ProcessAddEvent - {kubernetesObjectType} - {key} - {kubernetesObjectName}",
             typeof(TKubernetesObject).Name,
-            watcherEvent.WatcherKey,
+            watcherEvent.Key,
             watcherEvent.KubernetesObject.Metadata.Name
         );
 
-        if (cache.TryGetValue(
-                watcherEvent.WatcherKey,
+        if (Cache.TryGetValue(
+                watcherEvent.Key.NamespaceName.Value,
                 out ConcurrentDictionary<string, TKubernetesObject>? kubernetesObjectsCache
             ))
         {
@@ -81,8 +77,8 @@ public class CacheRefresher<TKubernetesObject>(
         }
         else // first time, the cache is really empty
         {
-            cache.TryAdd(
-                watcherEvent.WatcherKey,
+            Cache.TryAdd(
+                watcherEvent.Key.NamespaceName.Value,
                 new ConcurrentDictionary<string, TKubernetesObject>
                 {
                     [watcherEvent.KubernetesObject.Uid()] = watcherEvent.KubernetesObject,
@@ -93,28 +89,28 @@ public class CacheRefresher<TKubernetesObject>(
 
     protected virtual Task ProcessDeleteEvent(
         WatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken
+        CancellationToken ctx = default
     )
     {
         if (watcherEvent.KubernetesObject == null)
         {
             logger.LogWarning(
-                "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
+                "ProcessDeleteEvent - KubernetesObject is null for {Key} - {kubernetesObjectType}. Ignoring",
+                watcherEvent.Key,
                 typeof(TKubernetesObject).Name
             );
             return Task.CompletedTask;
         }
 
         logger.LogDebug(
-            "ProcessDeleteEvent - {kubernetesObjectType} - {watcherKey} - {kubernetesObjectName}",
+            "ProcessDeleteEvent - {kubernetesObjectType} - {key} - {kubernetesObjectName}",
             typeof(TKubernetesObject).Name,
-            watcherEvent.WatcherKey,
+            watcherEvent.Key,
             watcherEvent.KubernetesObject.Metadata.Name
         );
 
-        if (!cache.TryGetValue(
-                watcherEvent.WatcherKey,
+        if (!Cache.TryGetValue(
+                watcherEvent.Key.NamespaceName.Value,
                 out ConcurrentDictionary<string, TKubernetesObject>? kubernetesObjectsCache
             ))
         {
@@ -128,26 +124,26 @@ public class CacheRefresher<TKubernetesObject>(
 
     protected virtual void ProcessErrorEvent(WatcherEvent<TKubernetesObject> watcherEvent)
     {
-        string watcherKey = CacheUtils.GetCacheRefreshKey(watcherEvent.KubernetesObject);
+        string watcherKey = watcherEvent.Key.NamespaceName.Value;
         logger.LogDebug(
-            "ProcessErrorEvent - {kubernetesObjectType} - {watcherKey}",
+            "ProcessErrorEvent - {kubernetesObjectType} - {key}",
             typeof(TKubernetesObject).Name,
-            watcherKey
+            watcherEvent.Key
         );
-        cache.TryRemove(watcherKey, out _);
+        Cache.TryRemove(watcherKey, out _);
     }
 
     protected virtual void ProcessModifiedEvent(
         WatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken
+        CancellationToken ctx = default
     )
     {
         logger.LogDebug("ProcessModifiedEvent - redirecting to ProcessAddEvent.");
-        ProcessAddEvent(watcherEvent, cancellationToken);
+        ProcessAddEvent(watcherEvent, ctx);
     }
 
     protected virtual Task ProcessInitEvent(
         WatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken
+        CancellationToken ctx = default
     ) => Task.CompletedTask;
 }

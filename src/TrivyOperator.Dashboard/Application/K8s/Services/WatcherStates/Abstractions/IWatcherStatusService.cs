@@ -6,5 +6,5 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstrac
 public interface IWatcherStatusService
 {
     Task<IEnumerable<WatcherStatusDto>> GetWatcherStatusDtos();
-    Task<OperationResult> RecreateWatcher(string kubernetesObjectType, string? namespaceName);
+    Task<OperationResult> RecreateWatcher(string kubernetesObjectType, string? contextName, string namespaceName, CancellationToken ctx = default);
 }

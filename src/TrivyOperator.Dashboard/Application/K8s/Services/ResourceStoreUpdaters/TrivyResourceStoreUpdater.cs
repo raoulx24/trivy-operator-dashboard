@@ -59,8 +59,8 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         if (k8sObject is null)
         {
             logger.LogWarning(
-                "ProcessAddEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
+                "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
+                watcherEvent.Key,
                 typeof(TKubernetesObject).Name
             );
             return;
@@ -81,8 +81,8 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         if (k8sObject is null)
         {
             logger.LogWarning(
-                "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
+                "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
+                watcherEvent.Key,
                 typeof(TKubernetesObject).Name
             );
             return;
@@ -101,8 +101,8 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         if (k8sObject is null)
         {
             logger.LogWarning(
-                "ProcessErrorEvent - KubernetesObject is null for {watcherKey} {kubernetesObjectType}. Ignoring",
-                watcherEvent.WatcherKey,
+                "ProcessErrorEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
+                watcherEvent.Key,
                 typeof(TKubernetesObject).Name
             );
             return;
@@ -124,8 +124,8 @@ public class TrivyResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
 
     private void ProcessInitEvent(WatcherEvent<TKubernetesObject> watcherEvent)
     {
-        logger.LogDebug("ProcessInitEvent - for {watcherKey} {kubernetesObjectType}. Nothing to do",
-            watcherEvent.WatcherKey,
+        logger.LogDebug("ProcessInitEvent - for {watcherKey} - {kubernetesObjectType}. Nothing to do",
+            watcherEvent.Key,
             typeof(TKubernetesObject).Name);
     }
 }

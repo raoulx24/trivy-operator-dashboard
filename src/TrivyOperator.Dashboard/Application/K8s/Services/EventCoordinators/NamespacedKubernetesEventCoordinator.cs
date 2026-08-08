@@ -1,8 +1,10 @@
 ﻿using k8s;
 using k8s.Models;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators;
 
@@ -20,16 +22,16 @@ public class NamespacedKubernetesEventCoordinator<TKubernetesEventDispatcher, TK
     where TKubernetesWatcher : INamespacedWatcher<TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>
 {
-    public async Task Stop(CancellationToken cancellationToken, string watcherKey)
+    public async Task Stop(WatcherKey key, CancellationToken ctx = default)
     {
         Logger.LogDebug(
-            "Removing Watcher for {kubernetesObjectType} - {watcherKey}.",
+            "Removing Watcher for {kubernetesObjectType} - {key}.",
             typeof(TKubernetesObject).Name,
-            watcherKey
+            key
         );
-        await KubernetesWatcher.Delete(watcherKey, cancellationToken);
+        await KubernetesWatcher.Delete(key, ctx);
     }
 
-    public async Task ReconcileWatchers(string[] newNamespaceNames, CancellationToken cancellationToken) =>
-        await KubernetesWatcher.ReconcileNamespaces(newNamespaceNames, cancellationToken);
+    public async Task ReconcileWatchers(ContextName contextName, NamespaceName[] newNamespaceNames, CancellationToken ctx = default) =>
+        await KubernetesWatcher.ReconcileNamespaces(contextName, newNamespaceNames, ctx);
 }

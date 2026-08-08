@@ -37,6 +37,7 @@ public class WatcherStatusController(IWatcherStatusService watcherStateInfoServi
 
         OperationResult result = await watcherStateInfoService.RecreateWatcher(
             request.KubernetesObjectType,
+            request.ContextName,
             request.NamespaceName
         );
 

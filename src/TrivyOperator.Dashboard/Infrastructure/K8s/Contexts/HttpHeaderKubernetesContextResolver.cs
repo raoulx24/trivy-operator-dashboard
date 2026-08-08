@@ -1,5 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
 
@@ -11,6 +12,6 @@ public class HttpHeaderKubernetesContextResolver(IHttpContextAccessor httpContex
 
         context = new ContextName(httpContext);
 
-        return !context.IsDefault;
+        return !context.IsUnset;
     }
 }

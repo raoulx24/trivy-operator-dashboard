@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
@@ -8,7 +9,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 namespace TrivyOperator.Dashboard.Application.K8s.Services;
 
 public sealed class WatcherStateCacheTimedHostedService(
-    IConcurrentCache<string, WatcherStateInfo> cache,
+    IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
     IServiceProvider serviceProvider,
     IOptions<WatchersOptions> options,
     ILogger<WatcherStateCacheTimedHostedService> logger
@@ -75,12 +76,12 @@ public sealed class WatcherStateCacheTimedHostedService(
         else
         {
             logger.LogInformation(
-                "Watcher State Cache Timed Hosted Service is still running previous execution, wait for next cycle."
+                "Watcher State Cache Timed Hosted Service is still running previous execution, skip for next cycle."
             );
         }
     }
 
-    private async Task ExecuteAsync(CancellationToken cancellationToken)
+    private async Task ExecuteAsync(CancellationToken ctx = default)
     {
         try
         {
@@ -99,8 +100,10 @@ public sealed class WatcherStateCacheTimedHostedService(
 
                 if (watcherService is IKubernetesWatcher watcher)
                 {
-                    await watcher.Recreate(cancellationToken, expiredWatcherState.WatcherKey);
+                    await watcher.Recreate(expiredWatcherState.Key, ctx);
                 }
+                
+                ctx.ThrowIfCancellationRequested();
             }
         }
         catch (Exception ex)

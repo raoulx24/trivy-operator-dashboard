@@ -17,6 +17,7 @@ using TrivyOperator.Dashboard.Application.History.NamespaceHistory.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services;
 using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues;
@@ -92,6 +93,7 @@ using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
@@ -182,7 +184,7 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IKubernetesEventDispatcher<V1Namespace>,
             KubernetesEventDispatcher<V1Namespace, IKubernetesBackgroundQueue<V1Namespace>>>();
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespaceCacheRefresher>();
-        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, WatcherState<V1Namespace>>();
+        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, WatcherStateEventProcessor<V1Namespace>>();
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, WatcherStateAlertRefresh<V1Namespace>>();
         services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceService>();
     }
@@ -303,7 +305,7 @@ public static class BuilderServicesExtensions
                     CacheRefresher<TNamespacedTrivyReportCr>>();
             services
                 .AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>,
-                    WatcherState<TNamespacedTrivyReportCr>>();
+                    WatcherStateEventProcessor<TNamespacedTrivyReportCr>>();
             services
                 .AddSingleton<IKubernetesEventProcessor<TNamespacedTrivyReportCr>,
                     WatcherStateAlertRefresh<TNamespacedTrivyReportCr>>();
@@ -393,7 +395,7 @@ public static class BuilderServicesExtensions
                     CacheRefresher<TClusterScopedTrivyReportCr>>();
             services
                 .AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>,
-                    WatcherState<TClusterScopedTrivyReportCr>>();
+                    WatcherStateEventProcessor<TClusterScopedTrivyReportCr>>();
             services
                 .AddSingleton<IKubernetesEventProcessor<TClusterScopedTrivyReportCr>,
                     WatcherStateAlertRefresh<TClusterScopedTrivyReportCr>>();
@@ -410,7 +412,7 @@ public static class BuilderServicesExtensions
 
     public static void AddWatcherStateServices(this IServiceCollection services)
     {
-        services.AddSingleton<IConcurrentCache<string, WatcherStateInfo>, ConcurrentCache<string, WatcherStateInfo>>();
+        services.AddSingleton<IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
         //services.AddSingleton<IBackgroundQueue<WatcherStateInfo>, BackgroundQueue<WatcherStateInfo>>();
         services.AddScoped<IWatcherStatusService, WatcherStatusService>();
     }
@@ -474,7 +476,10 @@ public static class BuilderServicesExtensions
 
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
         //services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();
+        
         services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
+        services.AddSingleton<IKubernetesContextAccessor, KubernetesContextAccessor>();
+        
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
 
         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))

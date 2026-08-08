@@ -1,9 +1,11 @@
-﻿namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
+﻿using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
+
+namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
 
 public class WatcherStateInfo
 {
     public required Type WatchedKubernetesObjectType { get; init; }
-    public string WatcherKey { get; init; } = string.Empty;
+    public WatcherKey Key { get; init; } = new();
     public WatcherStateStatus Status { get; init; }
     public Exception? LastException { get; init; }
     public DateTime LastEventMoment { get; init; } = DateTime.UtcNow;

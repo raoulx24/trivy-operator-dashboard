@@ -1,19 +1,19 @@
 ﻿using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.K8s.Models;
+using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.TrivyOld;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
 
 public class WatcherStatusService(
-    IConcurrentCache<string, WatcherStateInfo> cache,
+    IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
     IOptions<WatchersOptions> options,
     IServiceProvider serviceProvider
 ) : IWatcherStatusService
@@ -31,7 +31,7 @@ public class WatcherStatusService(
         return Task.FromResult((IEnumerable<WatcherStatusDto>)cachedValues);
     }
 
-    public async Task<OperationResult> RecreateWatcher(string kubernetesObjectType, string? namespaceName)
+    public async Task<OperationResult> RecreateWatcher(string kubernetesObjectType, string? contextName, string namespaceName, CancellationToken ctx = default)
     {
         if (string.IsNullOrWhiteSpace(kubernetesObjectType))
         {
@@ -41,7 +41,16 @@ public class WatcherStatusService(
                 Message = "KubernetesObjectType is required.",
             };
         }
-
+        
+        if (string.IsNullOrWhiteSpace(namespaceName))
+        {
+            return new OperationResult
+            {
+                Success = false,
+                Message = "NamespaceName is required.",
+            };
+        }
+        
         string fullTypeName = kubernetesObjectType == "V1Namespace" 
             ? $"k8s.Models.{kubernetesObjectType}" // the only known type that is not a Trivy Report
             : $"{TrivyDomainUtils.TrivyDomainNamespace}.{kubernetesObjectType.TrimEnd('C', 'r')}.{kubernetesObjectType}";
@@ -64,22 +73,24 @@ public class WatcherStatusService(
             ? serviceProvider.GetServices(clusteredScopedWatcherType).FirstOrDefault() 
             : serviceProvider.GetServices(namespacedWatcherType).FirstOrDefault();
 
+        WatcherKey watcherKey = new WatcherKey(new ContextName(contextName), new NamespaceName(namespaceName));
+        
         if (watcherService is IKubernetesWatcher watcher)
         {
-            await watcher.Recreate(new CancellationToken(), namespaceName ?? CacheUtils.DefaultCacheRefreshKey);
+            await watcher.Recreate(watcherKey, ctx);
 
             return new OperationResult
             {
                 Success = true,
                 Message =
-                    $"Watcher for {kubernetesObjectType} in namespace '{namespaceName ?? "all"}' has been recreated.",
+                    $"Watcher for {kubernetesObjectType} in {watcherKey} has been recreated.",
             };
         }
 
         return new OperationResult
         {
             Success = false,
-            Message = $"No watcher found for {kubernetesObjectType} in namespace '{namespaceName ?? "all"}'.",
+            Message = $"No watcher found for {kubernetesObjectType} in {watcherKey}.",
         };
     }
 }

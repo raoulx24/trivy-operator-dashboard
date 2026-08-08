@@ -2,15 +2,16 @@
 using k8s.Models;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 
 public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesObjectList>(
     IKubernetesClientFactory kubernetesClientFactory,
-    IKubernetesContextResolver contextResolver,
+    IKubernetesContextAccessor contextAccessor,
     IClusterScopedResourceService<V1Namespace, V1NamespaceList> namespaceService
-) : KubernetesResourceService<TKubernetesObject>(kubernetesClientFactory, contextResolver),
+) : KubernetesResourceService<TKubernetesObject>(kubernetesClientFactory, contextAccessor),
     INamespacedResourceService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>

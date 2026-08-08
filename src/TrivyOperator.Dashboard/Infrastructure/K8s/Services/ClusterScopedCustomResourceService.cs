@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
@@ -10,10 +11,10 @@ namespace TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 
 public class ClusterScopedCustomResourceService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
-    IKubernetesContextResolver contextResolver,
+    IKubernetesContextAccessor contextAccessor,
     ICrdFactory customResourceDefinitionFactory
 ) : ClusterScopedResourceService<TKubernetesObject, CustomResourceList<TKubernetesObject>>(
-    kubernetesClientFactory, contextResolver)
+    kubernetesClientFactory, contextAccessor)
     where TKubernetesObject : CustomResource
 {
     private CustomResourceDefinition Crd =>
