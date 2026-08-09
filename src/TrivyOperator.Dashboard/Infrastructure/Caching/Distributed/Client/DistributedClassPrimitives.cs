@@ -325,7 +325,7 @@ public static class DistributedCachePrimitives
 
 
     // ------------------------------------------------------------------------
-    // Private Brotli helpers
+    // Brotli helpers
     // ------------------------------------------------------------------------
 
     private static byte[] CompressToBrotli(byte[] data)
@@ -338,7 +338,7 @@ public static class DistributedCachePrimitives
         return output.ToArray();
     }
 
-    private static MemoryStream DecompressToStream(byte[] data)
+    public static MemoryStream DecompressToStream(byte[] data)
     {
         MemoryStream output = new();
 

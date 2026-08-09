@@ -14,6 +14,7 @@ using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.Common.Serialization;
 using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
@@ -119,7 +120,22 @@ builder.WebHost.ConfigureKestrel(options =>
     }
 );
 
+// TODO: move the migrations registration
+if (false)
+{
+    builder.Services.AddSingleton<IVulnerabilityPersistenceV1Migrator, VulnerabilityPersistenceV1Migrator>();
+
+    builder.Services.AddSingleton<PersistenceMigrationRunner>();
+}
+// end of migrations registration
+
 WebApplication app = builder.Build();
+
+// TODO: move the migrations in a dedicated extension class
+if (false)
+{
+    await app.Services.GetRequiredService<PersistenceMigrationRunner>().RunAsync();
+}
 
 app.Lifetime.ApplicationStarted.Register(OnStarted);
 app.Lifetime.ApplicationStopping.Register(OnStopping);
