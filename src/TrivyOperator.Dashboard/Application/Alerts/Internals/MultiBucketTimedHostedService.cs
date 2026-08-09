@@ -1,11 +1,12 @@
-﻿using TrivyOperator.Dashboard.Application.Alerts.Services;
-using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
+using TrivyOperator.Dashboard.Application.Alerts.Models;
+using TrivyOperator.Dashboard.Application.Alerts.Services;
 
 namespace TrivyOperator.Dashboard.Application.Alerts.Internals;
 
 public class MultiBucketTimedHostedService(
     ILogger<MultiBucketTimedHostedService> logger,
-    IAlertsService alertService,
+    IAlertPublisher alertPublisher,
     string bucketName,
     string[] categories,
     string subBucket,
@@ -46,11 +47,11 @@ public class MultiBucketTimedHostedService(
                 string category = categories[_random.Next(categories.Length)];
                 string message = $"{bucketName} [{category}] {severity} alert on key {key}.";
 
-                await alertService.AddAlert(
+                await alertPublisher.AddAlert(
                     bucketName,
                     new Alert
                     {
-                        EmitterKey = key,
+                        Key = new EmitterKey([key,]),
                         Message = message,
                         Severity = severity,
                         Category = category,
@@ -69,11 +70,11 @@ public class MultiBucketTimedHostedService(
 
                 logger.LogInformation("[-] {bucketName} alert removed: {keyToRemove}", bucketName, keyToRemove);
 
-                await alertService.RemoveAlert(
+                await alertPublisher.RemoveAlert(
                     bucketName,
                     new Alert
                     {
-                        EmitterKey = keyToRemove,
+                        Key = new EmitterKey([keyToRemove,]),
                     },
                     cancellationToken
                 );

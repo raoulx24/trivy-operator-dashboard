@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 

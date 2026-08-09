@@ -1,9 +1,10 @@
-﻿using TrivyOperator.Dashboard.Application.Alerts.Services;
-using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
+using TrivyOperator.Dashboard.Application.Alerts.Models;
+using TrivyOperator.Dashboard.Application.Alerts.Services;
 
 namespace TrivyOperator.Dashboard.Application.Alerts.Internals;
 
-public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedService> logger, IAlertsService alertService)
+public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedService> logger, IAlertPublisher alertPublisher)
     : IHostedService, IDisposable
 {
     private const string AlertEmitter = "SingleBucket";
@@ -38,11 +39,11 @@ public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedServi
             {
                 Severity severity = GetRandomSeverity();
 
-                await alertService.AddAlert(
+                await alertPublisher.AddAlert(
                     AlertEmitter,
                     new Alert
                     {
-                        EmitterKey = key,
+                        Key = new EmitterKey([key,]),
                         Message = $"SingleBucket and key {key} has something.",
                         Severity = severity,
                         Category = "Test",
@@ -61,11 +62,11 @@ public class SingleBucketTimedHostedService(ILogger<SingleBucketTimedHostedServi
 
                 logger.LogInformation($"[-] Alert removed: {keyToRemove}");
 
-                await alertService.RemoveAlert(
+                await alertPublisher.RemoveAlert(
                     AlertEmitter,
                     new Alert
                     {
-                        EmitterKey = keyToRemove,
+                        Key = new EmitterKey([keyToRemove,]),
                         // message and severity not required for removal
                     },
                     cancellationToken

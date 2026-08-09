@@ -9,7 +9,7 @@ using StackExchange.Redis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Application.Alerts.Hubs;
+using TrivyOperator.Dashboard.Api.Alerts.Hubs;
 using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.Common.Serialization;
 using TrivyOperator.Dashboard.Application.Utils;

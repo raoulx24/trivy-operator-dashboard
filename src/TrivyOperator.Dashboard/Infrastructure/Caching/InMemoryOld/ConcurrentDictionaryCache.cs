@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld;
 

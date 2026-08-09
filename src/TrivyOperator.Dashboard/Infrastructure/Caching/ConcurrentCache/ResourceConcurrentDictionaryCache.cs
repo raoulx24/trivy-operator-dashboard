@@ -2,7 +2,7 @@
 using System.Diagnostics.Metrics;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 

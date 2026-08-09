@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 

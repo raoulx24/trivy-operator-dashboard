@@ -60,6 +60,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Api\Alerts\" />
+      <Folder Include="Api\History\VulnerabilityReportsHistory\" />
       <Folder Include="Infrastructure\Trivy\Services\" />
     </ItemGroup>
 

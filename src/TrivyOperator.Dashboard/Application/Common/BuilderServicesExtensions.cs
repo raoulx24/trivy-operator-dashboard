@@ -5,18 +5,25 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
+using TrivyOperator.Dashboard.Api.Alerts.Models;
+using TrivyOperator.Dashboard.Api.Alerts.Services;
+using TrivyOperator.Dashboard.Api.Alerts.Services.Abstractions;
+using TrivyOperator.Dashboard.Api.AppVersions.Services;
+using TrivyOperator.Dashboard.Api.AppVersions.Services.Abstractions;
+using TrivyOperator.Dashboard.Api.BackendSettings.Services;
+using TrivyOperator.Dashboard.Api.BackendSettings.Services.Abstractions;
+using TrivyOperator.Dashboard.Api.History.Services;
+using TrivyOperator.Dashboard.Api.History.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
+using TrivyOperator.Dashboard.Application.Alerts.Models;
+using TrivyOperator.Dashboard.Application.Alerts.Refresher;
 using TrivyOperator.Dashboard.Application.Alerts.Services;
-using TrivyOperator.Dashboard.Application.Alerts.Services.Abstractions;
-using TrivyOperator.Dashboard.Application.AppVersions.Services;
-using TrivyOperator.Dashboard.Application.AppVersions.Services.Abstractions;
-using TrivyOperator.Dashboard.Application.AppVersions.Services.Options;
-using TrivyOperator.Dashboard.Application.BackendSettings.Services;
-using TrivyOperator.Dashboard.Application.BackendSettings.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Common.HealthChecks;
+using TrivyOperator.Dashboard.Application.GitHub.Options;
+using TrivyOperator.Dashboard.Application.GitHub.Services;
 using TrivyOperator.Dashboard.Application.History.NamespaceHistory.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services;
-using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services;
@@ -34,7 +41,6 @@ using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain;
 using TrivyOperator.Dashboard.Application.K8s.Services.RawDomain.Abstracts;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStateAlertRefreshers;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.ClusterComplianceReport;
@@ -87,8 +93,11 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstract
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Models;
+using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub;
+using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Models;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
@@ -458,7 +467,8 @@ public static class BuilderServicesExtensions
     public static void AddAlertsServices(this IServiceCollection services)
     {
         services.AddSignalR();
-        services.AddSingleton<IConcurrentCache<string, Alert>, ConcurrentCache<string, Alert>>();
+        services.AddSingleton<IConcurrentCache<AlertKey, Alert>, ConcurrentCache<AlertKey, Alert>>();
+        services.AddSingleton<IAlertPublisher, AlertPublisher>();
         services.AddTransient<IAlertsService, AlertsService>();
     }
 

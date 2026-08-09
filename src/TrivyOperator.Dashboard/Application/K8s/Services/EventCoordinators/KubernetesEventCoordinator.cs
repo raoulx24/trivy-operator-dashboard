@@ -2,10 +2,6 @@
 using k8s.Models;
 using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
-using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators;
 
