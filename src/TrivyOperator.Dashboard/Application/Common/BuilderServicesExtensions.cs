@@ -107,6 +107,7 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.K8sApi;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.Models;
 
 namespace TrivyOperator.Dashboard.Application.Common;
 
@@ -458,7 +459,7 @@ public static class BuilderServicesExtensions
         services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
 
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespaceHistoryRefresher>();
-        services.AddSingleton<IKubernetesEventProcessor<OldVulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
+        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
         services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
         
         services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();

@@ -1,4 +1,6 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+﻿using System.Globalization;
+
+namespace TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 public readonly record struct Timestamp : IComparable<Timestamp>
 {
@@ -16,13 +18,12 @@ public readonly record struct Timestamp : IComparable<Timestamp>
     }
 
     public static Timestamp Now() => new(DateTime.UtcNow);
-    
-    public int CompareTo(Timestamp other)
-        => Value.CompareTo(other.Value);
 
-    public static bool operator >(Timestamp left, Timestamp right)
-        => left.Value > right.Value;
+    public override string ToString() => Value.ToString("O", CultureInfo.InvariantCulture);
 
-    public static bool operator <(Timestamp left, Timestamp right)
-        => left.Value < right.Value;
+    public int CompareTo(Timestamp other) => Value.CompareTo(other.Value);
+
+    public static bool operator >(Timestamp left, Timestamp right) => left.Value > right.Value;
+
+    public static bool operator <(Timestamp left, Timestamp right) => left.Value < right.Value;
 }
