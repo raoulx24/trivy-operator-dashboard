@@ -1,10 +1,21 @@
 ﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-public sealed record ImageMeta(
-    ImageRegistry Registry,
-    ImageRepository Repo,
-    ImageTag Tag
-);
+public sealed record ImageMeta
+{
+    public ImageRegistry Registry { get; } = new();
+    public ImageRepository Repo { get; } = new();
+    public ImageTag Tag { get; } = new();
+
+    public ImageMeta(ImageRegistry registry, ImageRepository repo, ImageTag tag)
+    {
+        Registry = registry;
+        Repo = repo;
+        Tag = tag;
+    }
+    
+    public ImageMeta()
+    { }
+}
 
 public readonly record struct ImageRegistry
 {

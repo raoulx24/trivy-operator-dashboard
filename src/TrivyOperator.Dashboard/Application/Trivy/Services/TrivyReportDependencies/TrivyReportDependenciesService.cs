@@ -12,7 +12,6 @@ using TrivyOperator.Dashboard.Domain.TrivyOld.Report.Abstractions;
 using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Domain.TrivyOld.VulnerabilityReport;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
-using Metadata = TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Metadata;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies;
 
@@ -329,8 +328,10 @@ public sealed class TrivyReportDependenciesService(
         [
             .. snapshots.Select(s =>
                 {
-                    Metadata m = s.Metadata;
-                    string name = string.IsNullOrWhiteSpace(m.ImageTag) ? m.ImageName : $"{m.ImageName}:{m.ImageTag}";
+                    HistoryMetadata m = s.HistoryMetadata;
+                    string name = string.IsNullOrWhiteSpace(m.ImageMeta.Tag.Value) 
+                        ? m.ImageMeta.Repo.Value
+                        : $"{m.ImageMeta.Repo}:{m.ImageMeta.Tag}";
 
                     return new VrHistoryEntryNode
                     {
@@ -341,11 +342,11 @@ public sealed class TrivyReportDependenciesService(
                         Name = name,
                         FirstSeenAt = s.FirstSeenAt.Value,
                         LastSeenAt = s.LastSeenAt.Value,
-                        CriticalCount = m.CriticalCount,
-                        HighCount = m.HighCount,
-                        MediumCount = m.MediumCount,
-                        LowCount = m.LowCount,
-                        UnknownCount = m.UnknownCount,
+                        CriticalCount = m.Current.CriticalCount,
+                        HighCount = m.Current.HighCount,
+                        MediumCount = m.Current.MediumCount,
+                        LowCount = m.Current.LowCount,
+                        UnknownCount = m.Current.UnknownCount,
                     };
                 }
             ),

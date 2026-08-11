@@ -30,7 +30,7 @@ public static class SecurityAssessmentMappingExtensions
         Resource resource = cr.Metadata.ToResource();
         Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
 
-        Summary summary = TrivySharedMappingExtensions.ToSummary(cr.Report.Summary);
+        SeverityCounters severityCounters = TrivySharedMappingExtensions.ToSeverityCounters(cr.Report.Summary);
 
         List<Check> checks = [.. cr.Report.Checks.Select(ToCheck),];
 
@@ -38,7 +38,7 @@ public static class SecurityAssessmentMappingExtensions
             metadata,
             resource,
             scanner,
-            summary,
+            severityCounters,
             lastSeenAt,
             checks
         );

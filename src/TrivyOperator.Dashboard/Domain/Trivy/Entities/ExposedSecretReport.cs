@@ -12,7 +12,7 @@ public sealed record ExposedSecretReport(
     Timestamp LastSeenAt,
     
     Scanner Scanner,
-    Summary Summary,
+    SeverityCounters SeverityCounters,
     
     IReadOnlyList<Secret> Secrets
 ) : IImageReport<ExposedSecretReport>

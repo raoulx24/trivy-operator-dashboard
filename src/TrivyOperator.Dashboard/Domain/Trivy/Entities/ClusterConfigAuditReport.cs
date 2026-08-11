@@ -10,7 +10,7 @@ public sealed record ClusterConfigAuditReport(
     ReportMetadata Metadata,
     Resource Resource,
     Scanner Scanner,
-    Summary Summary,
+    SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
     : IResourceReport, ISecurityAssessmentReport<ClusterConfigAuditReport, Uid>

@@ -74,15 +74,15 @@ public static class TrivySharedMappingExtensions
             new ScannerVersion(scanner?.Version));
     }
     
-    internal static Summary ToSummary(SummaryCr? cr)
+    internal static SeverityCounters ToSeverityCounters(SummaryCr? cr)
     {
-        return new Summary(
+        return new SeverityCounters(
             criticalCount: cr?.CriticalCount ?? 0,
             highCount: cr?.HighCount ?? 0,
             mediumCount: cr?.MediumCount ?? 0,
             lowCount: cr?.LowCount ?? 0,
-            unknownCount: cr?.UnknownCount,
-            noneCount: cr?.NoneCount
+            unknownCount: cr?.UnknownCount ?? 0,
+            noneCount: cr?.NoneCount ?? 0
         );
     }
     

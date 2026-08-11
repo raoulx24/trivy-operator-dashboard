@@ -44,7 +44,7 @@ public static class ExposedSecretMappingExtensions
             };
         }
         
-        Summary summary = TrivySharedMappingExtensions.ToSummary(cr.Report.Summary);
+        SeverityCounters severityCounters = TrivySharedMappingExtensions.ToSeverityCounters(cr.Report.Summary);
         Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
         IReadOnlyList<ReportImageOccurrence> occurrences = TrivySharedMappingExtensions.MergeOccurrences(occurrence, existing?.Occurrences, currentWins: true);
 
@@ -56,7 +56,7 @@ public static class ExposedSecretMappingExtensions
             digest,
             lastSeenAt,
             scanner,
-            summary,
+            severityCounters,
             secrets);
     }
     

@@ -42,14 +42,16 @@ public class MetricsClient : IMetricsClient
     public void RecordCveDeltas(Snapshot snapshot, string resourceKind)
     {
         string namespaceName = snapshot.Key.NamespaceName.Value;
-        int addedLength = snapshot.Metadata.AddedCvesDeltas.Length;
-        int droppedLength = snapshot.Metadata.DroppedCvesDeltas.Length;
+        IReadOnlyList<int> addedCounters = snapshot.Metadata.AddedCvesDeltas.Values;
+        IReadOnlyList<int> droppedCounters = snapshot.Metadata.DroppedCvesDeltas.Values; 
+        int addedLength = addedCounters.Count;
+        int droppedLength = droppedCounters.Count;
 
         foreach (TrivySeverity severity in Enum.GetValues<TrivySeverity>())
         {
             int index = (int)severity;
-            int added = addedLength >= index ? snapshot.Metadata.AddedCvesDeltas[index] : 0;
-            int dropped = droppedLength >= index ? snapshot.Metadata.DroppedCvesDeltas[index] : 0;
+            int added = addedLength >= index ? addedCounters[index] : 0;
+            int dropped = droppedLength >= index ? droppedCounters[index] : 0;
 
             if (added == 0 && dropped == 0)
                 continue;

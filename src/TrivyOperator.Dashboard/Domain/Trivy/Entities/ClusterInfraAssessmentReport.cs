@@ -10,7 +10,7 @@ public sealed record ClusterInfraAssessmentReport(
     ReportMetadata Metadata,
     Resource Resource,
     Scanner Scanner,
-    Summary Summary,
+    SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
     : IResourceReport, ISecurityAssessmentReport<ClusterInfraAssessmentReport, Uid>
