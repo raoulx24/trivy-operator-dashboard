@@ -1,11 +1,13 @@
 ﻿using System.IO.Compression;
 using System.Text.Json;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec;
+namespace TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs;
 
 public sealed class BrotliJsonCacheEntityCodec(CompressionLevel compressionLevel = CompressionLevel.Fastest) : ICacheEntityCodec
 {
+    public const string Name = "BrotliJson";
+    
     public byte[] Encode<T>(T data)
     {
         using MemoryStream output = new();
@@ -28,4 +30,6 @@ public sealed class BrotliJsonCacheEntityCodec(CompressionLevel compressionLevel
         return result ?? throw new JsonException(
             $"Failed to deserialize '{typeof(T).FullName}'.");
     }
+
+    public string CodecName => Name;
 }

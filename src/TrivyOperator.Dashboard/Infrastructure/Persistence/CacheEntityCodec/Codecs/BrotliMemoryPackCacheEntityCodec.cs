@@ -1,13 +1,15 @@
 ﻿using MemoryPack;
 using System.IO.Compression;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec;
+namespace TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs;
 
 public sealed class BrotliMemoryPackCacheEntityCodec(
     CompressionLevel compressionLevel = CompressionLevel.Fastest)
     : ICacheEntityCodec
 {
+    public const string Name = "BrotliMemory";
+    
     public byte[] Encode<T>(T data)
     {
         var bytes = MemoryPackSerializer.Serialize(data);
@@ -34,4 +36,6 @@ public sealed class BrotliMemoryPackCacheEntityCodec(
                ?? throw new InvalidOperationException(
                    $"Failed to deserialize '{typeof(T).FullName}'.");
     }
+    
+    public string CodecName => Name;
 }

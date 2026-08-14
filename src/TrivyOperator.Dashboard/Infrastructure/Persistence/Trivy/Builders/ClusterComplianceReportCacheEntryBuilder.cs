@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Entities;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Mappers;

@@ -3,7 +3,7 @@ using System.Text.Json;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.OldEntities;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Entities;
 

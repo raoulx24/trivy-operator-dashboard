@@ -322,6 +322,39 @@ public static class DistributedCachePrimitives
 
         return false;
     }
+    
+    // ------------------------------------------------------------------------
+    // DELETE keys by pattern helper
+    // ------------------------------------------------------------------------
+    
+    public static async Task DeleteKeysAsync(
+        IDatabase db,
+        string pattern,
+        int pageSize = 1000,
+        CancellationToken ct = default)
+    {
+        List<RedisKey> keys = [];
+
+        await foreach (RedisKey key in ScanKeysAsync(
+                           db,
+                           pattern,
+                           pageSize,
+                           ct))
+        {
+            keys.Add(key);
+
+            if (keys.Count >= pageSize)
+            {
+                await db.KeyDeleteAsync(keys.ToArray()).ConfigureAwait(false);
+                keys.Clear();
+            }
+        }
+
+        if (keys.Count > 0)
+        {
+            await db.KeyDeleteAsync(keys.ToArray()).ConfigureAwait(false);
+        }
+    }
 
 
     // ------------------------------------------------------------------------
