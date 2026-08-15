@@ -213,7 +213,7 @@ public sealed class PersistenceMigrationRunner(
             {
                 await foreach (RedisKey key in DistributedCachePrimitives.ScanKeysAsync(
                                    db,
-                                   $"{DistributedCacheKeyExtensions.UnprocessedSnapshotKeyPrefix}:*",
+                                   $"vr-unprocessed:*",
                                    ct: ct))
                 {
                     ct.ThrowIfCancellationRequested();

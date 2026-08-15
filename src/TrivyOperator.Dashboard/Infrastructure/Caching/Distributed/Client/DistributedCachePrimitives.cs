@@ -23,7 +23,7 @@ public static class DistributedCachePrimitives
         return await db.HashGetAsync(key, field);
     }
 
-    private static async Task<byte[]?> GetBytesFieldAsync(
+    public static async Task<byte[]?> GetBytesFieldAsync(
         IDatabase db,
         RedisKey key,
         RedisValue field,

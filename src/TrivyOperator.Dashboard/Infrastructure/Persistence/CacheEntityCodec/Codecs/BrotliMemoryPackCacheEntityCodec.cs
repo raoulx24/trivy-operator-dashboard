@@ -16,7 +16,7 @@ public sealed class BrotliMemoryPackCacheEntityCodec(
 
         using MemoryStream output = new();
 
-        using (var brotli = new BrotliStream(output, compressionLevel, true))
+        using (BrotliStream brotli = new BrotliStream(output, compressionLevel, true))
         {
             brotli.Write(bytes);
         }
