@@ -92,6 +92,14 @@ If any of these fields differ from the previous snapshot, a new **snapshot** is 
 
 This approach avoids noise from metadata churn and ensures snapshots represent actual vulnerability state changes.
 
+When a scan produces a **CVE hash** that already exists in the history, the existing snapshot is reused and its position is determined by `LastSeenAt`. If its chronological position has not changed, the snapshot is simply updated and its deltas recomputed against its previous snapshot. If its position has changed, the snapshot is moved to its new position by rewriting it, while the snapshot that followed its old position and the snapshot that follows its new position are independently recomputed against their new predecessors. A new CVE hash is inserted at its chronological position, with its deltas computed against the preceding snapshot and the following snapshot recomputed accordingly. This preserves a history of distinct vulnerability states while ensuring that CVE deltas always describe the transitions between the states currently shown in chronological order.
+
+**Examples:**
+
+`A - B - C` -> `A - B - C - D` **D** is new and is appended; only **D**'s deltas are calculated against **C**. This is the normal case, when new scans appear  
+`A - B - C - D` -> `A - B - C - E - D` **E** is new and inserted between **C** and **D**; **E**'s deltas are calculated against **C**, and **D**'s deltas are recalculated against **E**  
+`A - B - C - D - E - F` -> `A - C - D - E - B - F` **B** already exists but reappears later; **B** is moved between **E** and **F**, **C**'s deltas are recalculated against **A**, **B**'s against **E**, and **F**'s against **B**. This is an hypothetical rare case - only when the vulnerabilities are rollbacked to a prev version by trivy. 
+
 > **Note:** The first snapshot created for a digest within a namespace will have all CVE delta values set to 0, as there is no previous snapshot to compare it against.
 
 > **Note:** Comparisons are performed within the same **namespace** and **image digest** scope.

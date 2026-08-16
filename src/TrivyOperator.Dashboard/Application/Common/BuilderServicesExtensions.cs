@@ -17,11 +17,9 @@ using TrivyOperator.Dashboard.Api.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
 using TrivyOperator.Dashboard.Application.Alerts.Models;
 using TrivyOperator.Dashboard.Application.Alerts.Refresher;
-using TrivyOperator.Dashboard.Application.Alerts.Services;
 using TrivyOperator.Dashboard.Application.Common.HealthChecks;
 using TrivyOperator.Dashboard.Application.GitHub.Options;
 using TrivyOperator.Dashboard.Application.GitHub.Services;
-using TrivyOperator.Dashboard.Application.History.NamespaceHistory.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
@@ -68,7 +66,6 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies
 using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport.Abstractions;
-using TrivyOperator.Dashboard.Domain.History.NamespaceHistory.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
@@ -92,7 +89,6 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Clients;
 using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub;
 using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Models;
@@ -454,11 +450,9 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
         services.AddScoped<IDistributedCacheExecutor, DistributedCacheExecutor>();
         
-        services.AddScoped<INamespaceHistoryStore, DistributedCacheNamespaceHistoryStore>();
         services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
         services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
 
-        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespaceHistoryRefresher>();
         services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
         services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
         

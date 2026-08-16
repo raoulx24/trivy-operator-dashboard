@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.Metrics;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.TrivyOld;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
@@ -39,9 +40,9 @@ public class MetricsClient : IMetricsClient
         string? description
     ) => meter.CreateObservableGauge(name, observeValues, unit, description);
     
-    public void RecordCveDeltas(Snapshot snapshot, string resourceKind)
+    public void RecordCveDeltas(NamespaceName sourceNamespaceName, Snapshot snapshot, string resourceKind)
     {
-        string namespaceName = snapshot.Key.NamespaceName.Value;
+        string namespaceName = sourceNamespaceName.Value;
         IReadOnlyList<int> addedCounters = snapshot.Metadata.AddedCvesDeltas.Values;
         IReadOnlyList<int> droppedCounters = snapshot.Metadata.DroppedCvesDeltas.Values; 
         int addedLength = addedCounters.Count;

@@ -43,10 +43,12 @@ public sealed class TrivyReportDependenciesService(
         //
         // 2. Load VR history snapshots
         //
-        IReadOnlyList<SnapshotIndexEntry> vrHistorySnapshots = await vrHistoryStore.GetSnapshotIndexesAsync(
-            new NamespaceName(namespaceName),
+        IReadOnlyList<SnapshotIndexEntry> indexes = await vrHistoryStore.GetSnapshotIndexesAsync(
             new Digest(imageDigest),
             ct);
+
+        IReadOnlyList<SnapshotIndexEntry> vrHistorySnapshots =
+            [.. indexes.Where(x => x.HistoryMetadata.NamespaceNames.Contains(new NamespaceName(namespaceName))),];
 
         //
         // 3. Build digest node (root)
