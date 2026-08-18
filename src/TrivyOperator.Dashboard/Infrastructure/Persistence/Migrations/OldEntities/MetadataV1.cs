@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.History.Models;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.OldEntities;
 
@@ -19,4 +20,32 @@ public sealed class MetadataV1
     public int[] AddedCvesDeltas { get; private set; } = [];
     [JsonInclude]
     public int[] DroppedCvesDeltas { get; private set; } = [];
+}
+
+public static class MetadataV1Mapper
+{
+    public static HistoryMetadataPersistenceModel ToPersistence(
+        this MetadataV1 source)
+    {
+        return new HistoryMetadataPersistenceModel(
+            NamespaceNames:
+            [
+                source.NamespaceName.Value
+            ],
+            Registry: source.ImageRegistry,
+            Repository: source.ImageName,
+            Tag: source.ImageTag,
+            Current:
+            [
+                source.CriticalCount,
+                source.HighCount,
+                source.MediumCount,
+                source.LowCount,
+                source.UnknownCount,
+                0
+            ],
+            AddedCvesDeltas: source.AddedCvesDeltas,
+            DroppedCvesDeltas: source.DroppedCvesDeltas
+        );
+    }
 }

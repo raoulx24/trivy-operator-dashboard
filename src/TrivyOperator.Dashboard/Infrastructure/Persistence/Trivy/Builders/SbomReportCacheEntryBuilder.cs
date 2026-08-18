@@ -3,8 +3,8 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Entities;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Mappers;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Models;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders;
 

@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Entities;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Models;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Mappers;
 
