@@ -448,7 +448,7 @@ public static class BuilderServicesExtensions
         services.AddHostedService<DistributedCacheConnectionProvider>();
         
         services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
-        services.AddScoped<IDistributedCacheExecutor, DistributedCacheExecutor>();
+        services.AddSingleton<IDistributedCacheExecutor, DistributedCacheExecutor>();
         
         services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
         services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();

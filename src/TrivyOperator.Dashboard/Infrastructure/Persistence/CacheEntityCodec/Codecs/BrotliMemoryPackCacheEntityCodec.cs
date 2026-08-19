@@ -8,7 +8,7 @@ public sealed class BrotliMemoryPackCacheEntityCodec(
     CompressionLevel compressionLevel = CompressionLevel.Fastest)
     : ICacheEntityCodec
 {
-    public const string Name = "BrotliMemory";
+    public const string Name = "BrotliMemoryPack";
     
     public byte[] Encode<T>(T data)
     {

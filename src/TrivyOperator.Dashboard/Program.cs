@@ -14,6 +14,9 @@ using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.Common.Serialization;
 using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Factories;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Factories.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator.Abstractions;
@@ -123,24 +126,27 @@ builder.WebHost.ConfigureKestrel(options =>
 );
 
 // TODO: move the migrations registration
-if (false)
-{
+builder.Services.AddSingleton<ICacheEntityCodecFactory, CacheEntityCodecFactory>();
+// if (false)
+// {
     builder.Services.AddSingleton<IPersistenceMigrationHistoryStore, PersistenceMigrationHistoryStore>();
     builder.Services.AddSingleton<IPersistenceMigrationRunner, PersistenceMigrationRunner>();
     
     builder.Services.AddSingleton<IPersistenceMigration, VulnerabilityReportsHistoryV2Migration>();
-}
+// }
 // end of migrations registration
 
 WebApplication app = builder.Build();
 
 // TODO: move the migrations in a dedicated extension class
-if (false)
-{
+// if (false)
+// {
     IPersistenceMigrationRunner? runner = app.Services.GetRequiredService<IPersistenceMigrationRunner>();
 
     await runner.RunMigrationsAsync();
-}
+// }
+
+// Environment.Exit(0);
 
 app.Lifetime.ApplicationStarted.Register(OnStarted);
 app.Lifetime.ApplicationStopping.Register(OnStopping);
