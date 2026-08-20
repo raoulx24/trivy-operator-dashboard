@@ -9,5 +9,5 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions
 public interface INamespacedWatcher<TKubernetesObject> : IKubernetesWatcher<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
 {
-    Task ReconcileNamespaces(ContextName contextName, NamespaceName[] newNamespaceNames, CancellationToken cancellationToken);
+    Task ReconcileNamespaces(ContextName contextName, IReadOnlyList<NamespaceName> newNamespaceNames, CancellationToken ctx = default);
 }

@@ -5,5 +5,5 @@ namespace TrivyOperator.Dashboard.Application.K8s.Pipeline;
 
 public interface IKubernetesEventCoordinator
 {
-    Task Start(WatcherKey key, CancellationToken cancellationToken = default);
+    Task Start(WatcherKey key, CancellationToken ctx = default);
 }

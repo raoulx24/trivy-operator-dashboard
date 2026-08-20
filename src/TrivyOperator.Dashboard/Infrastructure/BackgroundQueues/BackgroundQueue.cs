@@ -7,12 +7,12 @@ namespace TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 public class BackgroundQueue<TObject> : IBackgroundQueue<TObject>
     where TObject : class
 {
-    protected readonly ILogger<BackgroundQueue<TObject>> logger;
+    protected readonly ILogger<BackgroundQueue<TObject>> Logger;
     private readonly Channel<TObject> queue;
 
     public BackgroundQueue(IOptions<BackgroundQueueOptions> options, ILogger<BackgroundQueue<TObject>> logger)
     {
-        this.logger = logger;
+        this.Logger = logger;
         BoundedChannelOptions boundedChannelOptions = new(options.Value.Capacity)
         {
             FullMode = BoundedChannelFullMode.Wait,
@@ -32,11 +32,11 @@ public class BackgroundQueue<TObject> : IBackgroundQueue<TObject>
         }
         catch (OperationCanceledException)
         {
-            logger.LogDebug("Queueing was cancelled for {objectType}", typeof(TObject).Name);
+            Logger.LogDebug("Queueing was cancelled for {objectType}", typeof(TObject).Name);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Could not enqueue {objectType}", typeof(TObject).Name);
+            Logger.LogError(ex, "Could not enqueue {objectType}", typeof(TObject).Name);
         }
     }
 
@@ -51,22 +51,22 @@ public class BackgroundQueue<TObject> : IBackgroundQueue<TObject>
         }
         catch (OperationCanceledException)
         {
-            logger.LogDebug("Dequeueing was cancelled for {objectType}", typeof(TObject).Name);
+            Logger.LogDebug("Dequeue was cancelled for {objectType}", typeof(TObject).Name);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Could not dequeue {objectType}", typeof(TObject).Name);
+            Logger.LogError(ex, "Could not dequeue {objectType}", typeof(TObject).Name);
         }
 
         return null;
     }
 
-    protected virtual void LogQueue(TObject enqueuedObject) => logger.LogDebug(
+    protected virtual void LogQueue(TObject enqueuedObject) => Logger.LogDebug(
         "Queueing {objectType}",
         typeof(TObject).Name
     );
 
-    protected virtual void LogDequeue(TObject dequeuedObject) => logger.LogDebug(
+    protected virtual void LogDequeue(TObject dequeuedObject) => Logger.LogDebug(
         "Dequeued {objectType}",
         typeof(TObject).Name
     );

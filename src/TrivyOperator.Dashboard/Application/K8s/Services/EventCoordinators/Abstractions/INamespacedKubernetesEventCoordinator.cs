@@ -7,5 +7,5 @@ namespace TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abs
 public interface INamespacedKubernetesEventCoordinator : IKubernetesEventCoordinator
 {
     Task Stop(WatcherKey key, CancellationToken ctx = default);
-    Task ReconcileWatchers(ContextName contextName, NamespaceName[] newNamespaceNames, CancellationToken ctx = default);
+    Task ReconcileWatchers(ContextName contextName, IReadOnlyList<NamespaceName> newNamespaceNames, CancellationToken ctx = default);
 }

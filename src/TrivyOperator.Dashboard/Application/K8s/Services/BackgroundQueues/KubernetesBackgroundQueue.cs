@@ -21,7 +21,7 @@ public class KubernetesBackgroundQueue<TKubernetesObject>(
         enqueuedObject.KubernetesObject?.Metadata?.Name
     );
 
-    protected override void LogDequeue(WatcherEvent<TKubernetesObject> dequeuedObject) => logger.LogDebug(
+    protected override void LogDequeue(WatcherEvent<TKubernetesObject> dequeuedObject) => Logger.LogDebug(
         "Queueing Event {watcherEventType} - {kubernetesObjectType} - {kubernetesObjectName}",
         dequeuedObject.WatcherEventType,
         typeof(TKubernetesObject).Name,

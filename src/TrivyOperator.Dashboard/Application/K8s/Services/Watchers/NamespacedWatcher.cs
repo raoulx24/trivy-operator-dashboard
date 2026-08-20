@@ -28,15 +28,18 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
-    // TODO: new for ns cleanup
-    public async Task ReconcileNamespaces(ContextName contextName, NamespaceName[] newNamespaceNames, CancellationToken ctx = default)
+    public async Task ReconcileNamespaces(
+        ContextName contextName, IReadOnlyList<NamespaceName> newNamespaceNames, CancellationToken ctx = default)
     {
-        NamespaceName[] existing = Watchers.Where(kvp => kvp.Key.ContextName == contextName).Select(kvp => kvp.Key.NamespaceName).ToArray();
+        NamespaceName[] existing =
+            [.. Watchers.Where(kvp => kvp.Key.ContextName == contextName).Select(kvp => kvp.Key.NamespaceName),];
         IEnumerable<NamespaceName> toAdd = newNamespaceNames.Except(existing);
         IEnumerable<NamespaceName> toDelete = existing.Except(newNamespaceNames);
-        List<Task> tasks = [];
-        tasks.AddRange(toAdd.Select(namespaceName => Add(new WatcherKey(contextName, namespaceName), ctx)));
-        tasks.AddRange(toDelete.Select(namespaceName => Delete(new WatcherKey(contextName, namespaceName), ctx)));
+        List<Task> tasks =
+        [
+            .. toAdd.Select(namespaceName => Add(new WatcherKey(contextName, namespaceName), ctx)),
+            .. toDelete.Select(namespaceName => Delete(new WatcherKey(contextName, namespaceName), ctx)),
+        ];
         await Task.WhenAll(tasks);
     }
 

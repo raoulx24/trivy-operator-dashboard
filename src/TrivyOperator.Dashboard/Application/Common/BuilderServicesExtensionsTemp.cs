@@ -1,9 +1,10 @@
-﻿using TrivyOperator.Dashboard.Application.K8s.Pipeline;
+﻿using k8s.Models;
+using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers;
-using TrivyOperator.Dashboard.Application.K8s.Services.ResourceStoreUpdaters;
+using TrivyOperator.Dashboard.Application.K8s.Services.EventProcessors;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
@@ -39,18 +40,21 @@ public static class BuilderServicesExtensionsTemp
 {
     public static void AddTrivyReports(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedCoordinatorOrchestrator>();
+        
         services.AddNamespacedTrivyReport<VulnerabilityReportCr, VulnerabilityReport, Digest>(configuration);
         
         
     }
 
-    public static void AddNamespacedTrivyReport<TReportCr, TReport, TId>(this IServiceCollection services, IConfiguration configuration)
+    private static void AddNamespacedTrivyReport<TReportCr, TReport, TId>(this IServiceCollection services, IConfiguration configuration)
     where TReportCr : CustomResource, new()
     where TReport : ITrivyReport<TId>
     where TId : notnull
     {
         // mapper service
         services.AddReportMapper(typeof(TReport));
+            // what is was:
             // services.AddSingleton<VulnerabilityReportMapper>();
             // services.AddSingleton<ITrivyReportMapper<VulnerabilityReportCr, VulnerabilityReport>>(sp =>
             //     sp.GetRequiredService<VulnerabilityReportMapper>());
@@ -114,7 +118,7 @@ public static class BuilderServicesExtensionsTemp
         // k8s event processor
         services
             .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
-                TrivyResourceStoreUpdater<TReportCr,TReport,TId>>();
+                ResourceStoreUpdater<TReportCr,TReport,TId>>();
     }
     
     private static void AddCacheEntryBuilder(this IServiceCollection services, Type reportType)

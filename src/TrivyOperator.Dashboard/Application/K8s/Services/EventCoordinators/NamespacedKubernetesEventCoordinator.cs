@@ -32,6 +32,6 @@ public class NamespacedKubernetesEventCoordinator<TKubernetesEventDispatcher, TK
         await KubernetesWatcher.Delete(key, ctx);
     }
 
-    public async Task ReconcileWatchers(ContextName contextName, NamespaceName[] newNamespaceNames, CancellationToken ctx = default) =>
+    public async Task ReconcileWatchers(ContextName contextName, IReadOnlyList<NamespaceName> newNamespaceNames, CancellationToken ctx = default) =>
         await KubernetesWatcher.ReconcileNamespaces(contextName, newNamespaceNames, ctx);
 }
