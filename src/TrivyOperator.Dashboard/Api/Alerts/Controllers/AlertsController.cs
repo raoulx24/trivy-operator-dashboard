@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Api.Alerts.Models;
-using TrivyOperator.Dashboard.Api.Alerts.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Alerts.Models;
+using TrivyOperator.Dashboard.Application.Queries.Alerts.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Api.Alerts.Controllers;
 

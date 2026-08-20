@@ -1,4 +1,6 @@
-﻿namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+﻿using System.Collections.Immutable;
+
+namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 public readonly record struct Severity : IComparable<Severity>
 {
@@ -57,6 +59,12 @@ public readonly record struct Severity : IComparable<Severity>
     public static bool operator >=(Severity left, Severity right) => left.Rank <= right.Rank;
 
     public override string ToString() => Value;
+
+    private static readonly Lazy<ImmutableArray<Severity>> RankedSeveritiesLazy = new(
+        () => [.. RankToSeverity.OrderBy(kvp => kvp.Key).Select(kvp => new Severity(kvp.Value)),]
+    );
+
+    public static ImmutableArray<Severity> RankedSeverities => RankedSeveritiesLazy.Value;
 }
 
 public static class Severities

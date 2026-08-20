@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Api.AppVersions.Models;
-using TrivyOperator.Dashboard.Api.BackendSettings.Models;
 using TrivyOperator.Dashboard.Application.K8s.Models;
+using TrivyOperator.Dashboard.Application.Queries.AppVersions.Models;
+using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Models;
 
 namespace TrivyOperator.Dashboard.Application.Common.Serialization;

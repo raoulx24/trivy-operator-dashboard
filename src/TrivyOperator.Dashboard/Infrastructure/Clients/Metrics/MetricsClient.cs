@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.Metrics;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Clients.Metrics;
@@ -48,16 +48,16 @@ public class MetricsClient : IMetricsClient
         int addedLength = addedCounters.Count;
         int droppedLength = droppedCounters.Count;
 
-        foreach (TrivySeverity severity in Enum.GetValues<TrivySeverity>())
+        foreach (Severity severity in Severity.RankedSeverities)
         {
-            int index = (int)severity;
+            int index = severity.Rank;
             int added = addedLength >= index ? addedCounters[index] : 0;
             int dropped = droppedLength >= index ? droppedCounters[index] : 0;
 
             if (added == 0 && dropped == 0)
                 continue;
 
-            string severityLabel = severity.ToString().ToLowerInvariant();
+            string severityLabel = severity.Value.ToLowerInvariant();
 
             if (added > 0)
             {

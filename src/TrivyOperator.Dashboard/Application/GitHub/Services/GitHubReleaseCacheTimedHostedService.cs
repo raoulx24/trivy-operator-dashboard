@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Api.AppVersions.Services;
 using TrivyOperator.Dashboard.Application.GitHub.Options;
-using TrivyOperator.Dashboard.Infrastructure.Caching.InMemoryOld.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Models;
 
