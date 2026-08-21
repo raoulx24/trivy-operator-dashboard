@@ -11,32 +11,29 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
-public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
+public class ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject>(
     IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList> clusterScopResourceService,
-    TBackgroundQueue backgroundQueue,
+    IKubernetesBackgroundQueue<TKubernetesObject> backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
-    ILogger<ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>>
+    ILogger<ClusterScopedWatcher<TKubernetesObjectList, TKubernetesObject>>
         logger
-) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
+) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject>(
     backgroundQueue,
     options,
     metricsClient,
     logger
-), IClusterScopedWatcher<TKubernetesObject>
+), IClusterScopedWatcher
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
-    where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
     protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         WatcherKey key,
         string? lastResourceVersion,
-        Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
     ) => clusterScopResourceService.GetResourceWatchList(
         lastResourceVersion,
         GetWatcherRandomTimeout(),
-        onError,
         cancellationToken
     );
 

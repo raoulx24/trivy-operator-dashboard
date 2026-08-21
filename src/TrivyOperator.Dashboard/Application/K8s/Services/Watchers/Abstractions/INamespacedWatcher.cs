@@ -6,8 +6,7 @@ using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 
-public interface INamespacedWatcher<TKubernetesObject> : IKubernetesWatcher<TKubernetesObject>
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
+public interface INamespacedWatcher : IKubernetesWatcher
 {
     Task ReconcileNamespaces(ContextName contextName, IReadOnlyList<NamespaceName> newNamespaceNames, CancellationToken ctx = default);
 }

@@ -5,7 +5,6 @@ using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
@@ -18,7 +17,8 @@ namespace TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;
 public class WatcherStatusService(
     IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
     IOptions<WatchersOptions> options,
-    IServiceProvider serviceProvider
+    IEnumerable<IClusterScopedWatcher> clusterScopedWatchers,
+    IEnumerable<INamespacedWatcher> namespacedWatchers
 ) : IWatcherStatusService
 {
     public Task<IEnumerable<WatcherStatusDto>> GetWatcherStatusDtos()
@@ -58,31 +58,29 @@ public class WatcherStatusService(
             ? typeof(V1Namespace)
             : TrivyReportCrTypeFactory.Get(kubernetesObjectType);
 
-        Type clusteredScopedWatcherType = typeof(IClusterScopedWatcher<>).MakeGenericType(watchedKubernetesType);
-        Type namespacedWatcherType = typeof(INamespacedWatcher<>).MakeGenericType(watchedKubernetesType);
+        IKubernetesWatcher? watcher =
+            clusterScopedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType)
+            ?? (IKubernetesWatcher?)namespacedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType);
 
-        object? watcherService = string.IsNullOrWhiteSpace(namespaceName) 
-            ? serviceProvider.GetServices(clusteredScopedWatcherType).FirstOrDefault() 
-            : serviceProvider.GetServices(namespacedWatcherType).FirstOrDefault();
-
-        WatcherKey watcherKey = new WatcherKey(new ContextName(contextName), new NamespaceName(namespaceName));
+        WatcherKey watcherKey = new(new ContextName(contextName), new NamespaceName(namespaceName));
         
-        if (watcherService is IKubernetesWatcher watcher)
+        if (watcher is null)
         {
-            await watcher.Recreate(watcherKey, ctx);
-
             return new OperationResult
             {
-                Success = true,
-                Message =
-                    $"Watcher for {kubernetesObjectType} in {watcherKey} has been recreated.",
+                Success = false,
+                Message = $"No watcher found for {kubernetesObjectType} in {watcherKey}.",
             };
         }
+        
+        await watcher.RecreateWatcher(watcherKey, ctx);
 
         return new OperationResult
         {
-            Success = false,
-            Message = $"No watcher found for {kubernetesObjectType} in {watcherKey}.",
+            Success = true,
+            Message =
+                $"Watcher for {kubernetesObjectType} in {watcherKey} has been recreated.",
         };
+
     }
 }

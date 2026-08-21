@@ -19,5 +19,5 @@ public readonly record struct WatcherKey
         NamespaceName = new NamespaceName();
     }
     
-    public override string ToString() => $"{ContextName} - {NamespaceName}";
+    public override string ToString() => $"Ctx: {ContextName} - Ns: {NamespaceName}";
 }

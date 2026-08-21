@@ -13,15 +13,15 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
     where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
-    protected Task? dispatcherQueueProcessor;
+    private Task? dispatcherQueueProcessor;
     public bool IsQueueProcessingStarted => !dispatcherQueueProcessor?.IsCanceled ?? false;
 
-    public void StartEventsProcessing(CancellationToken cancellationToken)
+    public void StartEventsProcessing(CancellationToken ctx = default)
     {
         if (IsQueueProcessingStarted)
         {
             logger.LogWarning(
-                "Kubernetes Event Dispatcher for {kubernetesObjectType} already started. Ignoring...",
+                "Kubernetes Event Dispatcher for {kubernetesObjectType} already started. Ignoring start request...",
                 typeof(TKubernetesObject).Name
             );
             return;
@@ -31,20 +31,20 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
             "KubernetesEventDispatcher for {kubernetesObjectType} is starting.",
             typeof(TKubernetesObject).Name
         );
-        dispatcherQueueProcessor = ProcessChannelMessages(cancellationToken);
+        dispatcherQueueProcessor = ProcessChannelMessages(ctx);
     }
 
-    protected virtual async Task ProcessChannelMessages(CancellationToken cancellationToken)
+    private async Task ProcessChannelMessages(CancellationToken ctx = default)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!ctx.IsCancellationRequested)
         {
             try
             {
-                WatcherEvent<TKubernetesObject>? watcherEvent = await backgroundQueue.DequeueAsync(cancellationToken);
+                WatcherEvent<TKubernetesObject>? watcherEvent = await backgroundQueue.DequeueAsync(ctx);
 
                 if (watcherEvent is null)
                 {
-                    if (!cancellationToken.IsCancellationRequested)
+                    if (!ctx.IsCancellationRequested)
                     {
                         logger.LogWarning("Received null watcher event. Ignoring...");
                     }
@@ -52,7 +52,7 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
                     continue;
                 }
 
-                if (cancellationToken.IsCancellationRequested)
+                if (ctx.IsCancellationRequested)
                 {
                     break;
                 }
@@ -60,7 +60,7 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
                 try
                 {
                     IEnumerable<Task> tasks = services.Select(service =>
-                        service.ProcessKubernetesEvent(watcherEvent, cancellationToken)
+                        service.ProcessKubernetesEvent(watcherEvent, ctx)
                     );
                     await Task.WhenAll(tasks);
                 }

@@ -6,13 +6,9 @@ namespace TrivyOperator.Dashboard.Application.K8s.Pipeline;
 
 public interface IKubernetesWatcher
 {
-    Task Add(WatcherKey key, CancellationToken ctx = default);
-    Task Recreate(WatcherKey key, CancellationToken ctx = default);
-    Task Delete(WatcherKey key, CancellationToken ctx = default);
-}
-
-public interface IKubernetesWatcher<TKubernetesObject> : IKubernetesWatcher
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
-{
+    void StartWatcher(WatcherKey key, CancellationToken ctx = default);
+    Task RecreateWatcher(WatcherKey key, CancellationToken ctx = default);
+    Task StopWatcher(WatcherKey key, CancellationToken ctx = default);
     
+    Type WatchedKubernetesObjectType { get; }
 }

@@ -13,6 +13,7 @@ using TrivyOperator.Dashboard.Application.GitHub.Options;
 using TrivyOperator.Dashboard.Application.GitHub.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services;
+using TrivyOperator.Dashboard.Application.K8s.HostedServices;
 using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services;
@@ -20,7 +21,6 @@ using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues;
 using TrivyOperator.Dashboard.Application.K8s.Services.CacheRefreshers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Contexts;
 using TrivyOperator.Dashboard.Application.K8s.Services.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Options;
@@ -30,7 +30,6 @@ using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.HostedServices;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Services;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Models;
@@ -70,6 +69,7 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies
 using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport.Abstractions;
+using TrivyOperator.Dashboard.Application.WatcherStates.HostedServices;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
@@ -189,7 +189,7 @@ public static class BuilderServicesExtensions
         }
 
         services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
-            ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<V1Namespace>,
+            ClusterScopedKubernetesEventPipelineStarter<IKubernetesEventDispatcher<V1Namespace>,
                 IClusterScopedWatcher<V1Namespace>, V1Namespace>>();
         services.AddSingleton<IKubernetesEventDispatcher<V1Namespace>,
             KubernetesEventDispatcher<V1Namespace, IKubernetesBackgroundQueue<V1Namespace>>>();
@@ -305,7 +305,7 @@ public static class BuilderServicesExtensions
             }
 
             services.AddSingleton<INamespacedKubernetesEventCoordinator,
-                NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
+                NamespacedKubernetesEventPipelineStarter<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
                     INamespacedWatcher<TNamespacedTrivyReportCr>, TNamespacedTrivyReportCr>>();
             services.AddSingleton<IKubernetesEventDispatcher<TNamespacedTrivyReportCr>,
                 KubernetesEventDispatcher<TNamespacedTrivyReportCr,
@@ -395,7 +395,7 @@ public static class BuilderServicesExtensions
                 IKubernetesBackgroundQueue<TClusterScopedTrivyReportCr>>>();
 
             services.AddSingleton<IClusterScopedKubernetesEventCoordinator,
-                ClusterScopedKubernetesEventCoordinator<IKubernetesEventDispatcher<TClusterScopedTrivyReportCr>,
+                ClusterScopedKubernetesEventPipelineStarter<IKubernetesEventDispatcher<TClusterScopedTrivyReportCr>,
                     IClusterScopedWatcher<TClusterScopedTrivyReportCr>, TClusterScopedTrivyReportCr>>();
             services.AddSingleton<IKubernetesEventDispatcher<TClusterScopedTrivyReportCr>,
                 KubernetesEventDispatcher<TClusterScopedTrivyReportCr,
@@ -480,7 +480,7 @@ public static class BuilderServicesExtensions
         services.Configure<FileExportOptions>(configuration.GetSection("FileExport"));
         services.Configure<GitHubOptions>(configuration.GetSection("GitHub"));
 
-        services.AddHostedService<KubernetesEventCoordinatorsHandlerHostedService>();
+        services.AddHostedService<KubernetesEventPipelineHost>();
         services.AddHostedService<WatcherStateCacheTimedHostedService>();
 
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();

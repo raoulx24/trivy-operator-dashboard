@@ -13,34 +13,30 @@ using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 
-public abstract class
-    KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
-        TBackgroundQueue backgroundQueue,
-        IOptions<WatchersOptions> options,
-        IMetricsClient metricsClient,
-        ILogger<KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>> logger
-    ) : IKubernetesWatcher<TKubernetesObject>
+public abstract class KubernetesWatcher<TKubernetesObjectList, TKubernetesObject>(
+    IKubernetesBackgroundQueue<TKubernetesObject> backgroundQueue,
+    IOptions<WatchersOptions> options,
+    IMetricsClient metricsClient,
+    ILogger<KubernetesWatcher<TKubernetesObjectList, TKubernetesObject>> logger
+) : IKubernetesWatcher
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
-    where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
-
 {
     private static readonly Random random = new();
-    private readonly TBackgroundQueue backgroundQueue = backgroundQueue;
     private readonly double maxBackoffSeconds = 60;
     protected readonly int ResourceListPageSize = 500;
     protected readonly ConcurrentDictionary<WatcherKey, TaskWithCts> Watchers = [];
     
-    public Task Add(WatcherKey key, CancellationToken ctx = default)
+    public void StartWatcher(WatcherKey key, CancellationToken ctx = default)
     {
         if (Watchers.TryGetValue(key, out _))
         {
             logger.LogWarning(
                 "Watcher for {kubernetesObjectType} and key {key} already existing. Ignoring Add req.",
-                typeof(TKubernetesObject).Name,
+                nameof(TKubernetesObject),
                 key
             );
-            return Task.CompletedTask;
+            return;
         }
 
         logger.LogInformation(
@@ -63,22 +59,20 @@ public abstract class
             linkedCts.Cancel();
             watcherWithCts.Dispose();
         }
-
-        return Task.CompletedTask;
     }
 
-    public async Task Recreate(WatcherKey key, CancellationToken ctx = default)
+    public async Task RecreateWatcher(WatcherKey key, CancellationToken ctx = default)
     {
         logger.LogWarning(
             "Recreated called for {kubernetesObjectType} - {key}",
             typeof(TKubernetesObject).Name,
             key
         );
-        await Delete(key, ctx);
-        await Add(key, ctx);
+        await StopWatcher(key, ctx);
+        StartWatcher(key, ctx);
     }
 
-    public async Task Delete(WatcherKey key, CancellationToken ctx = default)
+    public async Task StopWatcher(WatcherKey key, CancellationToken ctx = default)
     {
         logger.LogInformation(
             "Deleting Watcher for {kubernetesObjectType} and key {key}.",
@@ -123,6 +117,8 @@ public abstract class
         }
     }
 
+    public Type WatchedKubernetesObjectType => typeof(TKubernetesObject);
+
     private async Task CreateWatch(WatcherKey key, CancellationToken ctx = default)
     {
         string? lastResourceVersion = null;
@@ -166,36 +162,7 @@ public abstract class
                 do
                 {
                     IAsyncEnumerable<WatchEvent<TKubernetesObject>> kubernetesObjectWatchList =
-                        GetKubernetesObjectWatchList(key, lastResourceVersion, async ex =>
-                        {
-                            if (ex is KubernetesException &&
-                                ex.Message.StartsWith("too old resource version"))
-                            {
-                                logger.LogWarning(
-                                    "{kubernetesObjectType} - {key} - lastResourceVersion set to null - Too old resource version",
-                                    typeof(TKubernetesObject).Name,
-                                    key
-                                );
-                                shouldWaitForRetry = false;
-                            }
-                            else
-                            {
-                                logger.LogError(
-                                    ex,
-                                    "Watcher {kubernetesObjectType} - {key} crashed - {exceptionMessage}",
-                                    typeof(TKubernetesObject).Name,
-                                    key,
-                                    ex.Message
-                                );
-                            }
-
-                            lastResourceVersion = null;
-                            await EnqueueWatcherEvent(
-                                key,
-                                WatcherEventType.Error,
-                                ctx
-                            );
-                        }, ctx);
+                        GetKubernetesObjectWatchList(key, lastResourceVersion, ctx);
                     await foreach (WatchEvent<TKubernetesObject> watchEvent in kubernetesObjectWatchList)
                     {
                         IncrementMetric(key, watchEvent.Type);
@@ -236,6 +203,15 @@ public abstract class
             catch (OperationCanceledException)
             {
                 // be free and be gone :-)
+            }
+            catch (KubernetesException ex) when (ex.Message.StartsWith("too old resource version"))
+            {
+                logger.LogWarning(
+                    "{kubernetesObjectType} - {key} - lastResourceVersion set to null - Too old resource version",
+                    typeof(TKubernetesObject).Name,
+                    key
+                );
+                shouldWaitForRetry = false;
             }
             catch (Exception ex)
             {
@@ -302,7 +278,6 @@ public abstract class
     protected abstract IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         WatcherKey key,
         string? lastResourceVersion,
-        Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
     );
 

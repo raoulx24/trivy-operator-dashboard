@@ -8,27 +8,35 @@ public class BackgroundQueue<TObject> : IBackgroundQueue<TObject>
     where TObject : class
 {
     protected readonly ILogger<BackgroundQueue<TObject>> Logger;
-    private readonly Channel<TObject> queue;
+    private Channel<TObject>? queue;
+    private readonly BoundedChannelOptions boundedChannelOptions;
 
     public BackgroundQueue(IOptions<BackgroundQueueOptions> options, ILogger<BackgroundQueue<TObject>> logger)
     {
-        this.Logger = logger;
-        BoundedChannelOptions boundedChannelOptions = new(options.Value.Capacity)
+        Logger = logger;
+        boundedChannelOptions = new BoundedChannelOptions(options.Value.Capacity)
         {
             FullMode = BoundedChannelFullMode.Wait,
+            SingleWriter = false,
+            SingleReader = true,
         };
-        queue = Channel.CreateBounded<TObject>(boundedChannelOptions);
         logger.LogDebug("Started BackgroundQueue for {objectType}.", typeof(TObject).Name);
     }
 
-    public async ValueTask QueueBackgroundWorkItemAsync(TObject enqueuedObject, CancellationToken cancellationToken)
+    public void StartQueue()
+    {
+        queue ??= Channel.CreateBounded<TObject>(boundedChannelOptions);
+    }
+
+    public async ValueTask QueueBackgroundWorkItemAsync(TObject enqueuedObject, CancellationToken ctx = default)
     {
         ArgumentNullException.ThrowIfNull(enqueuedObject);
+        ArgumentNullException.ThrowIfNull(queue);
         LogQueue(enqueuedObject);
 
         try
         {
-            await queue.Writer.WriteAsync(enqueuedObject, cancellationToken);
+            await queue.Writer.WriteAsync(enqueuedObject, ctx);
         }
         catch (OperationCanceledException)
         {
@@ -40,11 +48,12 @@ public class BackgroundQueue<TObject> : IBackgroundQueue<TObject>
         }
     }
 
-    public async ValueTask<TObject?> DequeueAsync(CancellationToken cancellationToken)
+    public async ValueTask<TObject?> DequeueAsync(CancellationToken ctx = default)
     {
+        ArgumentNullException.ThrowIfNull(queue);
         try
         {
-            TObject dequeuedObject = await queue.Reader.ReadAsync(cancellationToken);
+            TObject dequeuedObject = await queue.Reader.ReadAsync(ctx);
             LogDequeue(dequeuedObject);
 
             return dequeuedObject;
@@ -52,6 +61,7 @@ public class BackgroundQueue<TObject> : IBackgroundQueue<TObject>
         catch (OperationCanceledException)
         {
             Logger.LogDebug("Dequeue was cancelled for {objectType}", typeof(TObject).Name);
+            return null;
         }
         catch (Exception ex)
         {

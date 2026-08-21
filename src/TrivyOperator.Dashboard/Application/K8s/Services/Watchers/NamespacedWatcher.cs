@@ -11,22 +11,21 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 
-public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
+public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject>(
     INamespacedResourceService<TKubernetesObject, TKubernetesObjectList> namespacedResourceService,
-    TBackgroundQueue backgroundQueue,
+    IKubernetesBackgroundQueue<TKubernetesObject> backgroundQueue,
     IOptions<WatchersOptions> options,
     IMetricsClient metricsClient,
-    ILogger<NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>>
+    ILogger<NamespacedWatcher<TKubernetesObjectList, TKubernetesObject>>
         logger
-) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject, TBackgroundQueue>(
+) : KubernetesWatcher<TKubernetesObjectList, TKubernetesObject>(
     backgroundQueue,
     options,
     metricsClient,
     logger
-), INamespacedWatcher<TKubernetesObject>
+), INamespacedWatcher
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
-    where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
 {
     public async Task ReconcileNamespaces(
         ContextName contextName, IReadOnlyList<NamespaceName> newNamespaceNames, CancellationToken ctx = default)
@@ -37,22 +36,23 @@ public class NamespacedWatcher<TKubernetesObjectList, TKubernetesObject, TBackgr
         IEnumerable<NamespaceName> toDelete = existing.Except(newNamespaceNames);
         List<Task> tasks =
         [
-            .. toAdd.Select(namespaceName => Add(new WatcherKey(contextName, namespaceName), ctx)),
-            .. toDelete.Select(namespaceName => Delete(new WatcherKey(contextName, namespaceName), ctx)),
+            .. toDelete.Select(namespaceName => StopWatcher(new WatcherKey(contextName, namespaceName), ctx)),
         ];
+        foreach (NamespaceName namespaceName in toAdd)
+        {
+            StartWatcher(new WatcherKey(contextName, namespaceName), ctx);
+        }
         await Task.WhenAll(tasks);
     }
 
     protected override IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetKubernetesObjectWatchList(
         WatcherKey key,
         string? lastResourceVersion,
-        Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
     ) => namespacedResourceService.GetResourceWatchList(
         key.NamespaceName.Value,
         lastResourceVersion,
         GetWatcherRandomTimeout(),
-        onError,
         cancellationToken
     );
 

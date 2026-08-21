@@ -1,16 +1,16 @@
 ﻿using k8s.Models;
 using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
+using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.EventProcessors;
 
-public class NamespacedCoordinatorOrchestrator(
-    IEnumerable<INamespacedKubernetesEventCoordinator> services,
+public class NamespacedWatcherLifecycleProcessor(
+    IEnumerable<INamespacedWatcher> namespacedWatchers,
     IResourceProvider<NamespaceName> resourceProvider,
-    ILogger<NamespacedCoordinatorOrchestrator> logger
+    ILogger<NamespacedWatcherLifecycleProcessor> logger
     ) : IKubernetesEventProcessor<V1Namespace>
 {
     public async Task ProcessKubernetesEvent(
@@ -22,7 +22,7 @@ public class NamespacedCoordinatorOrchestrator(
         {
             case WatcherEventType.InitialAdded:
             case WatcherEventType.Added:
-                await ProcessAddEvent(watcherEvent, ctx);
+                ProcessAddEvent(watcherEvent, ctx);
                 break;
             case WatcherEventType.Deleted:
                 await ProcessDeleteEvent(watcherEvent, ctx);
@@ -44,7 +44,7 @@ public class NamespacedCoordinatorOrchestrator(
         }
     }
     
-    private async Task ProcessAddEvent(WatcherEvent<V1Namespace> watcherEvent, CancellationToken ctx)
+    private void ProcessAddEvent(WatcherEvent<V1Namespace> watcherEvent, CancellationToken ctx)
     {
         if (watcherEvent.KubernetesObject is null)
         {
@@ -56,9 +56,9 @@ public class NamespacedCoordinatorOrchestrator(
             return;
         }
 
-        foreach (INamespacedKubernetesEventCoordinator service in services)
+        foreach (INamespacedWatcher namespacedWatcher in namespacedWatchers)
         {
-            await service.Start(watcherEvent.Key, ctx);
+            namespacedWatcher.StartWatcher(watcherEvent.Key, ctx);
         }
     }
 
@@ -75,7 +75,7 @@ public class NamespacedCoordinatorOrchestrator(
             return;
         }
 
-        IEnumerable<Task> tasks = services.Select(s => s.Stop(watcherEvent.Key, ctx));
+        IEnumerable<Task> tasks = namespacedWatchers.Select(s => s.StopWatcher(watcherEvent.Key, ctx));
         await Task.WhenAll(tasks);
     }
 
@@ -83,7 +83,7 @@ public class NamespacedCoordinatorOrchestrator(
     {
         IReadOnlyList<NamespaceName> namespaceNames = await resourceProvider.GetResources(ctx);
         
-        IEnumerable<Task> tasks = services.Select(s => s.ReconcileWatchers(watcherEvent.Key.ContextName, namespaceNames, ctx));
+        IEnumerable<Task> tasks = namespacedWatchers.Select(s => s.ReconcileNamespaces(watcherEvent.Key.ContextName, namespaceNames, ctx));
         await Task.WhenAll(tasks);
     }
 }

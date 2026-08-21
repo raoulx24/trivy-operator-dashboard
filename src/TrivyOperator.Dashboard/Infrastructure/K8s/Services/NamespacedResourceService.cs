@@ -62,7 +62,6 @@ public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesOb
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
     );
 }

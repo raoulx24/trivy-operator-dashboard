@@ -4,5 +4,4 @@ using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 
-public interface IClusterScopedWatcher<TKubernetesObject> : IKubernetesWatcher<TKubernetesObject>
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>;
+public interface IClusterScopedWatcher : IKubernetesWatcher;

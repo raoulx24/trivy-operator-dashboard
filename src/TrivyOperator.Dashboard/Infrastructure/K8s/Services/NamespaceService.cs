@@ -28,16 +28,17 @@ public class NamespaceService(IKubernetesClientFactory kubernetesClientFactory, 
     public override async IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        Action<Exception>? onError = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        Exception? watchException = null;
+        
         IAsyncEnumerable<(WatchEventType, V1Namespace)> watchStream = GetKubernetesClient()
             .CoreV1.WatchListNamespaceAsync(
                 resourceVersion: lastResourceVersion,
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,
-                onError: onError,
+                onError: ex => watchException = ex,
                 cancellationToken: cancellationToken
             );
         await foreach ((WatchEventType type, V1Namespace item) in watchStream)
@@ -48,5 +49,8 @@ public class NamespaceService(IKubernetesClientFactory kubernetesClientFactory, 
                 Object = item,
             };
         }
+        
+        if (watchException is not null)
+            throw watchException;
     }
 }

@@ -1,9 +1,8 @@
 ﻿using k8s.Models;
 using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues;
-using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators;
-using TrivyOperator.Dashboard.Application.K8s.Services.EventCoordinators.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers;
+using TrivyOperator.Dashboard.Application.K8s.Services.EventPipelineStarters;
 using TrivyOperator.Dashboard.Application.K8s.Services.EventProcessors;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
@@ -19,7 +18,6 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders;
@@ -40,7 +38,7 @@ public static class BuilderServicesExtensionsTemp
 {
     public static void AddTrivyReports(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedCoordinatorOrchestrator>();
+        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedWatcherLifecycleProcessor>();
         
         services.AddNamespacedTrivyReport<VulnerabilityReportCr, VulnerabilityReport, Digest>(configuration);
         
@@ -95,15 +93,11 @@ public static class BuilderServicesExtensionsTemp
                 INamespacedResourceService<TReportCr, CustomResourceList<TReportCr>>,
                 NamespacedCustomResourceService<TReportCr>>();
         
-        // k8s event coordinator
-        services.AddSingleton<INamespacedKubernetesEventCoordinator,
-            NamespacedKubernetesEventCoordinator<IKubernetesEventDispatcher<TReportCr>,
-                INamespacedWatcher<TReportCr>, TReportCr>>();
+        // k8s event pipeline starter
+        services.AddSingleton<IKubernetesEventPipelineStarter, NamespacedEventPipelineStarter<TReportCr>>();
         
         // watcher
-        services.AddSingleton<INamespacedWatcher<TReportCr>, NamespacedWatcher<
-            CustomResourceList<TReportCr>, TReportCr,
-            IKubernetesBackgroundQueue<TReportCr>>>();
+        services.AddSingleton<INamespacedWatcher, NamespacedWatcher<CustomResourceList<TReportCr>, TReportCr>>();
         
         // background queue
         services

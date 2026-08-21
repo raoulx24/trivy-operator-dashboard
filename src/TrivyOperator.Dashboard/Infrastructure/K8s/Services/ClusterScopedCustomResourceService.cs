@@ -47,10 +47,11 @@ public class ClusterScopedCustomResourceService<TKubernetesObject>(
     public override async IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        Action<Exception>? onError = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        Exception? watchException = null;
+        
         IAsyncEnumerable<(WatchEventType, object)> watchStream = GetKubernetesClient()
             .CustomObjects.WatchListClusterCustomObjectAsync(
                 Crd.Group,
@@ -59,7 +60,7 @@ public class ClusterScopedCustomResourceService<TKubernetesObject>(
                 resourceVersion: lastResourceVersion,
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,
-                onError: onError,
+                onError: ex => watchException = ex,
                 cancellationToken: cancellationToken);
         await foreach ((WatchEventType type, object item) in watchStream)
         {
@@ -69,5 +70,8 @@ public class ClusterScopedCustomResourceService<TKubernetesObject>(
                 Object = KubernetesJson.Deserialize<TKubernetesObject>(((JsonElement)item).GetRawText()),
             };
         }
+        
+        if (watchException is not null)
+            throw watchException;
     }
 }

@@ -28,7 +28,6 @@ public interface INamespacedResourceService<TKubernetesObject, TKubernetesObject
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        Action<Exception>? onError = null,
         CancellationToken cancellationToken = default
     );
 }

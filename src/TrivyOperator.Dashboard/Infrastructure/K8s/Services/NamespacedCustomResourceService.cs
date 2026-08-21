@@ -57,10 +57,11 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
         string namespaceName,
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,
-        Action<Exception>? onError = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        Exception? watchException = null;
+        
         IAsyncEnumerable<(WatchEventType, object)> watchStream = GetKubernetesClient()
             .CustomObjects.WatchListNamespacedCustomObjectAsync(
                 Crd.Group,
@@ -70,7 +71,7 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
                 resourceVersion: lastResourceVersion,
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,
-                onError: onError,
+                onError: ex => watchException = ex,
                 cancellationToken: cancellationToken
             );
         await foreach ((WatchEventType type, object item) in watchStream)
@@ -81,5 +82,8 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
                 Object = KubernetesJson.Deserialize<TKubernetesObject>(((JsonElement)item).GetRawText()),
             };
         }
+        
+        if (watchException is not null)
+            throw watchException;
     }
 }

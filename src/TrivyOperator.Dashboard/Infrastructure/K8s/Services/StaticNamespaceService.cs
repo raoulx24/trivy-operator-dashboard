@@ -56,7 +56,6 @@ public class StaticNamespaceService(
     public async IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
     string? lastResourceVersion = null,
     int? timeoutSeconds = null,
-    Action<Exception>? onError = null,
     [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         DateTimeOffset? deadline = timeoutSeconds is null

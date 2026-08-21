@@ -6,11 +6,12 @@ using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Models;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 
-namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.HostedServices;
+namespace TrivyOperator.Dashboard.Application.WatcherStates.HostedServices;
 
 public sealed class WatcherStateCacheTimedHostedService(
     IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
-    IServiceProvider serviceProvider,
+    IEnumerable<IClusterScopedWatcher> clusterScopedWatchers,
+    IEnumerable<INamespacedWatcher> namespacedWatchers,
     IOptions<WatchersOptions> options,
     ILogger<WatcherStateCacheTimedHostedService> logger
 ) : IHostedService, IDisposable
@@ -85,22 +86,33 @@ public sealed class WatcherStateCacheTimedHostedService(
     {
         try
         {
-            IEnumerable<WatcherStateInfo> expiredWatcherStates = cache.Select(kvp => kvp.Value)
-                .Where(x => (DateTime.UtcNow - x.LastEventMoment).TotalSeconds > timeFrameInSeconds);
+            WatcherStateInfo[] expiredWatcherStates = [.. cache.Select(kvp => kvp.Value)
+                .Where(x => (DateTime.UtcNow - x.LastEventMoment).TotalSeconds > timeFrameInSeconds),];
+            
+            if (expiredWatcherStates.Length == 0)
+                return;
+
+            Dictionary<Type, IKubernetesWatcher> watchers = [];
+            
+            foreach (INamespacedWatcher watcher in namespacedWatchers)
+            {
+                watchers.TryAdd(watcher.WatchedKubernetesObjectType, watcher);
+            }
+
+            foreach (IClusterScopedWatcher watcher in clusterScopedWatchers)
+            {
+                watchers.TryAdd(watcher.WatchedKubernetesObjectType, watcher);
+            }
 
             foreach (WatcherStateInfo expiredWatcherState in expiredWatcherStates)
             {
-                Type clusteredScopedWatcherType =
-                    typeof(IClusterScopedWatcher<>).MakeGenericType(expiredWatcherState.WatchedKubernetesObjectType);
-                Type namespacedWatcherType =
-                    typeof(INamespacedWatcher<>).MakeGenericType(expiredWatcherState.WatchedKubernetesObjectType);
-
-                object? watcherService = serviceProvider.GetServices(clusteredScopedWatcherType).FirstOrDefault() ??
-                                         serviceProvider.GetServices(namespacedWatcherType).FirstOrDefault();
-
-                if (watcherService is IKubernetesWatcher watcher)
+                watchers.TryGetValue(
+                    expiredWatcherState.WatchedKubernetesObjectType,
+                    out IKubernetesWatcher? watcher);
+                
+                if (watcher is not null)
                 {
-                    await watcher.Recreate(expiredWatcherState.Key, ctx);
+                    await watcher.RecreateWatcher(expiredWatcherState.Key, ctx);
                 }
                 
                 ctx.ThrowIfCancellationRequested();
