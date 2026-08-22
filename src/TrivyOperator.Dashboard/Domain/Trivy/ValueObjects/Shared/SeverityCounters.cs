@@ -37,6 +37,19 @@ public readonly record struct SeverityCounters
         NoneCount = GetValue(values, 5);
     }
     
+    public bool HasAnyOf(IReadOnlySet<int> severityIds)
+    {
+        foreach (int severityId in severityIds)
+        {
+            if (severityId >= 0 && severityId < Values.Count && Values[severityId] > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
     private static int GetValue(int[] values, int index) =>
         index < values.Length
             ? Math.Max(0, values[index])
