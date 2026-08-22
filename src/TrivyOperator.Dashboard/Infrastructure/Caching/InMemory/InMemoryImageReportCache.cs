@@ -98,7 +98,7 @@ public class InMemoryImageReportCache<TResource>(
 
             IReadOnlyList<ReportImageOccurrence> remainingOccurrences =
             [
-                .. oldEntry.Entry.Occurrences.Where(o => !shouldRemove(o))
+                .. oldEntry.Entry.Occurrences.Where(o => !shouldRemove(o)),
             ];
 
             // Nothing changed

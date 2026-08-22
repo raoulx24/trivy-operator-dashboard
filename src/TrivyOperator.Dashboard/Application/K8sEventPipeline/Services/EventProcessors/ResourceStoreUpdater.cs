@@ -42,7 +42,10 @@ public class ResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
             case WatcherEventType.Initialized:
                 ProcessInitEvent(watcherEvent);
                 break;
+            case WatcherEventType.Bookmark:
+            case WatcherEventType.WatcherConnected:
             case WatcherEventType.Unknown:
+            default:
                 logger.LogWarning(
                     "Unknown event type {eventType} for {kubernetesObjectType}.",
                     watcherEvent.WatcherEventType,
