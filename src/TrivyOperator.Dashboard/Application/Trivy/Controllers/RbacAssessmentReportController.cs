@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.RbacAssessmentReport.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Application.Trivy.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 

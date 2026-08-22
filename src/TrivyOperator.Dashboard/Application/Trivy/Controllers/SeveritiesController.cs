@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Trivy.Models;
-using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 
@@ -15,17 +14,14 @@ public class SeveritiesController : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public Task<IEnumerable<SeverityDto>> GetAll()
     {
-        List<SeverityDto> severityDtos = [];
-        foreach (int severityId in Enum.GetValues(typeof(TrivySeverity)))
-        {
-            SeverityDto severityDto = new()
+        IEnumerable<SeverityDto> result = Severity.RankedSeverities.Select(severity =>
+            new SeverityDto()
             {
-                Id = severityId,
-                Name = ((TrivySeverity)severityId).ToString(),
-            };
-            severityDtos.Add(severityDto);
-        }
+                Id = severity.Rank,
+                Name = severity.Value,
+            }
+        );
 
-        return Task.FromResult((IEnumerable<SeverityDto>)severityDtos);
+        return Task.FromResult(result);
     }
 }

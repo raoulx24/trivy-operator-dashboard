@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.InfraAssessmentReport.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy;
-using TrivyOperator.Dashboard.Domain.TrivyOld;
+using TrivyOperator.Dashboard.Application.Trivy.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 
@@ -24,10 +23,10 @@ public class InfraAssessmentReportController(IInfraAssessmentReportService infra
             return Results.BadRequest();
         }
 
-        IEnumerable<InfraAssessmentReportDto> InfraAssessmentReportImageDtos =
+        IEnumerable<InfraAssessmentReportDto> infraAssessmentReportImageDtos =
             await infraAssessmentReportService.GetInfraAssessmentReportDtos(namespaceName, excludedSeverityIds);
 
-        return Results.Ok(InfraAssessmentReportImageDtos);
+        return Results.Ok(infraAssessmentReportImageDtos);
     }
 
 
@@ -38,10 +37,10 @@ public class InfraAssessmentReportController(IInfraAssessmentReportService infra
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IResult> GetByUid(Guid uid)
     {
-        InfraAssessmentReportDto? InfraAssessmentReportDto =
+        InfraAssessmentReportDto? infraAssessmentReportDto =
             await infraAssessmentReportService.GetInfraAssessmentReportDtoByUid(uid);
 
-        return InfraAssessmentReportDto is null ? Results.NotFound() : Results.Ok(InfraAssessmentReportDto);
+        return infraAssessmentReportDto is null ? Results.NotFound() : Results.Ok(infraAssessmentReportDto);
     }
 
 
