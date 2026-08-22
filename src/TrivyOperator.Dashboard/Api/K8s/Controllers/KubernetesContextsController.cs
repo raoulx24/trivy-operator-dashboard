@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.K8s.Models;
-using TrivyOperator.Dashboard.Application.K8s.Services.Contexts.Abstractions;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models;
+using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Api.K8s.Controllers;
 

@@ -1,34 +1,64 @@
 ﻿using System.Collections.Concurrent;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 
 public class FileTrivyReportProvider<TTrivyReport, TKey>(
-    IExpiringResourceConcurrentDictionaryCache<TKey, TTrivyReport> cache,
+    IExpiringResourceConcurrentDictionaryCache<TKey, CacheEntry<TTrivyReport, TKey>> cache,
+    ICacheEntryBuilder<TTrivyReport, TKey> cacheEntryBuilder,
     IFileTrivyReportService<TTrivyReport, TKey> reportService,
     ILogger<FileTrivyReportProvider<TTrivyReport, TKey>> logger
-) : IResourceProvider<TTrivyReport>
-where TTrivyReport : ITrivyReport<TKey>
-where TKey : notnull
+) : IResourceProvider<TTrivyReport, TKey>
+    where TTrivyReport : class, ITrivyReport<TKey>
+    where TKey : notnull
 {
     private readonly SemaphoreSlim refreshLock = new(1, 1);
+    private static readonly ContextName DefaultContext = new();
+
+    public async Task<TTrivyReport?> GetResource(TKey key, CancellationToken ctx = default)
+    {
+        await EnsureCacheLoaded(ctx);
+
+        CacheEntry<TTrivyReport, TKey>? cacheEntry = cache[DefaultContext].GetValueOrDefault(key);
+        
+        return cacheEntry is null ? null : cacheEntryBuilder.ToEntity(cacheEntry);
+    }
 
     public async Task<IReadOnlyList<TTrivyReport>> GetResources(CancellationToken ctx = default)
     {
         await EnsureCacheLoaded(ctx);
 
-        List<TTrivyReport> result = [];
+        return
+        [
+            .. cache[DefaultContext]
+                .Values
+                .Select(cacheEntryBuilder.ToEntity),
+        ];
+    }
 
-        foreach (ConcurrentDictionary<TKey, TTrivyReport> resources in cache.Values)
-        {
-            result.AddRange(resources.Values);
-        }
+    public async Task<IReadOnlyList<TTrivyReport>> GetResourceSummaries(CancellationToken ctx = default)
+    {
+        await EnsureCacheLoaded(ctx);
 
-        return result;
+        return
+        [
+            .. cache[DefaultContext]
+                .Values
+                .Select(x => x.Entry),
+        ];
+    }
+
+    public async Task<IReadOnlyList<TKey>> GetResourceIds(CancellationToken ctx = default)
+    {
+        await EnsureCacheLoaded(ctx);
+
+        return [.. cache[DefaultContext].Keys,];
     }
 
     private async Task EnsureCacheLoaded(CancellationToken ctx)
@@ -49,19 +79,21 @@ where TKey : notnull
 
             logger.LogInformation("Refreshing Trivy report cache");
 
-            IReadOnlyDictionary<TKey, TTrivyReport> reports =
-                await reportService.GetReportsAsync(ctx);
+            IReadOnlyDictionary<TKey, TTrivyReport> aggregated = await reportService.GetReportsAsync(ctx);
 
-            ConcurrentDictionary<TKey, TTrivyReport> contextCache =
-                new(reports);
+            ConcurrentDictionary<TKey, CacheEntry<TTrivyReport, TKey>> reports = new(Environment.ProcessorCount, aggregated.Count);
+
+            foreach ((TKey key, TTrivyReport value) in aggregated)
+            {
+                reports[key] = cacheEntryBuilder.ToCacheEntry(value);
+            }
+
 
             cache.Clear();
 
-            cache[new ContextName()] = contextCache;
+            cache[DefaultContext] = reports;
 
-            logger.LogInformation(
-                "Trivy report cache refreshed with {ReportCount} reports",
-                contextCache.Count);
+            logger.LogInformation("Trivy report cache refreshed with {ReportCount} reports", reports.Count);
         }
         finally
         {

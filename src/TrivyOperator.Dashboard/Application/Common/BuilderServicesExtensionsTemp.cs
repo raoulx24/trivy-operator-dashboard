@@ -1,13 +1,16 @@
 ﻿using k8s.Models;
-using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.BackgroundQueues;
-using TrivyOperator.Dashboard.Application.K8s.Services.EventDispatchers;
-using TrivyOperator.Dashboard.Application.K8s.Services.EventPipelineStarters;
-using TrivyOperator.Dashboard.Application.K8s.Services.EventProcessors;
-using TrivyOperator.Dashboard.Application.K8s.Services.Watchers;
-using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventDispatchers;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelineStarters;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelineStarters.Abstractions;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
@@ -52,7 +55,7 @@ public static class BuilderServicesExtensionsTemp
     {
         // mapper service
         services.AddReportMapper(typeof(TReport));
-            // what is was:
+            // what it was:
             // services.AddSingleton<VulnerabilityReportMapper>();
             // services.AddSingleton<ITrivyReportMapper<VulnerabilityReportCr, VulnerabilityReport>>(sp =>
             //     sp.GetRequiredService<VulnerabilityReportMapper>());
@@ -77,7 +80,7 @@ public static class BuilderServicesExtensionsTemp
         services.AddSingleton<InMemoryImageReportCache<VulnerabilityReport>>();
         services.AddSingleton<IResourceStore<VulnerabilityReport, Digest>>(sp =>
             sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
-        services.AddSingleton<IResourceProvider<VulnerabilityReport>>(sp =>
+        services.AddSingleton<IResourceProvider<VulnerabilityReport, Digest>>(sp =>
             sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
         
         services.AddNamespacedWatcherPipeline<TReportCr, TReport, TId>();
@@ -311,7 +314,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<ClusterComplianceReport>>();
             services.AddSingleton<IResourceStore<ClusterComplianceReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterComplianceReport>>());
-            services.AddSingleton<IResourceProvider<ClusterComplianceReport>>(sp =>
+            services.AddSingleton<IResourceProvider<ClusterComplianceReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterComplianceReport>>());
             break;
 
@@ -319,7 +322,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<ClusterConfigAuditReport>>();
             services.AddSingleton<IResourceStore<ClusterConfigAuditReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterConfigAuditReport>>());
-            services.AddSingleton<IResourceProvider<ClusterConfigAuditReport>>(sp =>
+            services.AddSingleton<IResourceProvider<ClusterConfigAuditReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterConfigAuditReport>>());
             break;
 
@@ -327,7 +330,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<ClusterInfraAssessmentReport>>();
             services.AddSingleton<IResourceStore<ClusterInfraAssessmentReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterInfraAssessmentReport>>());
-            services.AddSingleton<IResourceProvider<ClusterInfraAssessmentReport>>(sp =>
+            services.AddSingleton<IResourceProvider<ClusterInfraAssessmentReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterInfraAssessmentReport>>());
             break;
 
@@ -335,7 +338,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<ClusterRbacAssessmentReport>>();
             services.AddSingleton<IResourceStore<ClusterRbacAssessmentReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterRbacAssessmentReport>>());
-            services.AddSingleton<IResourceProvider<ClusterRbacAssessmentReport>>(sp =>
+            services.AddSingleton<IResourceProvider<ClusterRbacAssessmentReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterRbacAssessmentReport>>());
             break;
 
@@ -343,7 +346,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<ClusterSbomReport>>();
             services.AddSingleton<IResourceStore<ClusterSbomReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterSbomReport>>());
-            services.AddSingleton<IResourceProvider<ClusterSbomReport>>(sp =>
+            services.AddSingleton<IResourceProvider<ClusterSbomReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterSbomReport>>());
             break;
 
@@ -351,7 +354,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<ClusterVulnerabilityReport>>();
             services.AddSingleton<IResourceStore<ClusterVulnerabilityReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterVulnerabilityReport>>());
-            services.AddSingleton<IResourceProvider<ClusterVulnerabilityReport>>(sp =>
+            services.AddSingleton<IResourceProvider<ClusterVulnerabilityReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ClusterVulnerabilityReport>>());
             break;
 
@@ -359,7 +362,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<ConfigAuditReport>>();
             services.AddSingleton<IResourceStore<ConfigAuditReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ConfigAuditReport>>());
-            services.AddSingleton<IResourceProvider<ConfigAuditReport>>(sp =>
+            services.AddSingleton<IResourceProvider<ConfigAuditReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<ConfigAuditReport>>());
             break;
 
@@ -367,7 +370,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryImageReportCache<ExposedSecretReport>>();
             services.AddSingleton<IResourceStore<ExposedSecretReport, Digest>>(sp =>
                 sp.GetRequiredService<InMemoryImageReportCache<ExposedSecretReport>>());
-            services.AddSingleton<IResourceProvider<ExposedSecretReport>>(sp =>
+            services.AddSingleton<IResourceProvider<ExposedSecretReport, Digest>>(sp =>
                 sp.GetRequiredService<InMemoryImageReportCache<ExposedSecretReport>>());
             break;
 
@@ -375,7 +378,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<InfraAssessmentReport>>();
             services.AddSingleton<IResourceStore<InfraAssessmentReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<InfraAssessmentReport>>());
-            services.AddSingleton<IResourceProvider<InfraAssessmentReport>>(sp =>
+            services.AddSingleton<IResourceProvider<InfraAssessmentReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<InfraAssessmentReport>>());
             break;
 
@@ -383,7 +386,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryResourceReportCache<RbacAssessmentReport>>();
             services.AddSingleton<IResourceStore<RbacAssessmentReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<RbacAssessmentReport>>());
-            services.AddSingleton<IResourceProvider<RbacAssessmentReport>>(sp =>
+            services.AddSingleton<IResourceProvider<RbacAssessmentReport, Uid>>(sp =>
                 sp.GetRequiredService<InMemoryResourceReportCache<RbacAssessmentReport>>());
             break;
 
@@ -391,7 +394,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryImageReportCache<SbomReport>>();
             services.AddSingleton<IResourceStore<SbomReport, Digest>>(sp =>
                 sp.GetRequiredService<InMemoryImageReportCache<SbomReport>>());
-            services.AddSingleton<IResourceProvider<SbomReport>>(sp =>
+            services.AddSingleton<IResourceProvider<SbomReport, Digest>>(sp =>
                 sp.GetRequiredService<InMemoryImageReportCache<SbomReport>>());
             break;
 
@@ -399,7 +402,7 @@ private static void AddReportInMemoryCache(this IServiceCollection services, Typ
             services.AddSingleton<InMemoryImageReportCache<VulnerabilityReport>>();
             services.AddSingleton<IResourceStore<VulnerabilityReport, Digest>>(sp =>
                 sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
-            services.AddSingleton<IResourceProvider<VulnerabilityReport>>(sp =>
+            services.AddSingleton<IResourceProvider<VulnerabilityReport, Digest>>(sp =>
                 sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
             break;
 

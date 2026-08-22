@@ -1,12 +1,11 @@
 ﻿using k8s.Models;
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Common;
-using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
-using TrivyOperator.Dashboard.Application.K8s.Pipeline;
-using TrivyOperator.Dashboard.Application.K8s.Services.Options;
-using TrivyOperator.Dashboard.Application.K8s.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Models;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;

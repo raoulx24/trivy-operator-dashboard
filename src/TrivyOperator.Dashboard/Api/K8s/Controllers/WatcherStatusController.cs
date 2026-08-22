@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Common;
-using TrivyOperator.Dashboard.Application.K8s.Models;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
 

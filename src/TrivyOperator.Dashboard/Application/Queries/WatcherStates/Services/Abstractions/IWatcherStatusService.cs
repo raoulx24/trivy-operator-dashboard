@@ -1,5 +1,4 @@
 ﻿using TrivyOperator.Dashboard.Application.Common;
-using TrivyOperator.Dashboard.Application.K8s.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
 
 namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;

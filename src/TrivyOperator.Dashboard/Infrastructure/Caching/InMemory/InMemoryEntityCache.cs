@@ -1,10 +1,9 @@
 ﻿using System.Collections.Concurrent;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
+using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
-using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
 
@@ -69,6 +68,8 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
     
     public abstract Task Delete(TKey key, Uid uid, CancellationToken ctx = default);
 
+    public Task<TResource?> GetResource(TKey key, CancellationToken ctx = default) => throw new NotImplementedException();
+
     public Task<IReadOnlyList<TResource>> GetResources(CancellationToken ctx = default)
     {
         _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
@@ -85,4 +86,8 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
         
         return Task.FromResult(result);
     }
+
+    public Task<IReadOnlyList<TResource>> GetResourceSummaries(CancellationToken ctx = default) => throw new NotImplementedException();
+
+    public Task<IReadOnlyList<TKey>> GetResourceIds(CancellationToken ctx = default) => throw new NotImplementedException();
 }

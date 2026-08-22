@@ -1,7 +1,7 @@
 ﻿using k8s;
 using k8s.KubeConfigModels;
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.K8s.Services.Options;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Utils;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;

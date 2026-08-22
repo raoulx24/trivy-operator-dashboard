@@ -1,8 +1,8 @@
 ﻿using k8s;
 using k8s.Models;
-using TrivyOperator.Dashboard.Application.K8s.Models.WatcherEvents;
-using TrivyOperator.Dashboard.Application.K8s.Pipeline;
 using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Models;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Utils;
 

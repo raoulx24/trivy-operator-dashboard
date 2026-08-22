@@ -1,24 +1,26 @@
 ﻿using System.Collections.Concurrent;
-using TrivyOperator.Dashboard.Domain.K8s.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators.Abstracts;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Providers;
 
 public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
-    IExpiringResourceConcurrentDictionaryCache<TKey, TReport> cache,
+    IExpiringResourceConcurrentDictionaryCache<TKey, CacheEntry<TReport, TKey>> cache,
+    ICacheEntryBuilder<TReport, TKey> cacheEntryBuilder,
     IKubernetesResourceService<TKubernetesObject> resourceService,
     IKubernetesContextResolver contextResolver,
     ITrivyReportAggregator<TKubernetesObject, TReport, TKey> aggregator,
     ILogger<KubernetesResourceProvider<TKubernetesObject, TReport, TKey>> logger
 )
-    : IResourceProvider<TReport>
+    : IResourceProvider<TReport, TKey>
     where TKubernetesObject : CustomResource
     where TReport : class, ITrivyReport<TKey>
     where TKey : notnull
@@ -27,12 +29,48 @@ public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
     // this may be replaced with per-context locks
     private readonly SemaphoreSlim refreshLock = new(1, 1);
 
+    public async Task<TReport?> GetResource(TKey key, CancellationToken ctx = default)
+    {
+        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        await EnsureCacheLoaded(contextName, ctx);
+
+        CacheEntry<TReport, TKey>? cacheEntry = cache[contextName].GetValueOrDefault(key);
+        
+        return cacheEntry is null ? null : cacheEntryBuilder.ToEntity(cacheEntry);
+    }
+
     public async Task<IReadOnlyList<TReport>> GetResources(CancellationToken ctx = default)
     {
         _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
-        return cache[contextName].Values.ToList();
+        return
+        [
+            .. cache[contextName]
+                .Values
+                .Select(cacheEntryBuilder.ToEntity),
+        ];
+    }
+
+    public async Task<IReadOnlyList<TReport>> GetResourceSummaries(CancellationToken ctx = default)
+    {
+        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        await EnsureCacheLoaded(contextName, ctx);
+
+        return
+        [
+            .. cache[contextName]
+                .Values
+                .Select(x => x.Entry),
+        ];
+    }
+
+    public async Task<IReadOnlyList<TKey>> GetResourceIds(CancellationToken ctx = default)
+    {
+        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        await EnsureCacheLoaded(contextName, ctx);
+
+        return [.. cache[contextName].Keys,];
     }
 
     private async Task EnsureCacheLoaded(
@@ -63,9 +101,16 @@ public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
 
             IList<TKubernetesObject> resources = await resourceService.GetResources(ctx);
 
-            IReadOnlyDictionary<TKey, TReport> reports = aggregator.Aggregate(resources, ctx);
+            IReadOnlyDictionary<TKey, TReport> aggregated = aggregator.Aggregate(resources, ctx);
 
-            cache[context] = new ConcurrentDictionary<TKey, TReport>(reports);
+            ConcurrentDictionary<TKey, CacheEntry<TReport, TKey>> reports = new(Environment.ProcessorCount, aggregated.Count);
+
+            foreach ((TKey key, TReport value) in aggregated)
+            {
+                reports[key] = cacheEntryBuilder.ToCacheEntry(value);
+            }
+
+            cache[context] = reports;
 
             logger.LogInformation(
                 "Kubernetes Trivy report cache refreshed with {ReportCount} reports for context {Context}",
