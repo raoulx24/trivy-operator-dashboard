@@ -1,8 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 using System.Xml.Serialization;
-using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Application.Trivy.Models;
+namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 
 public class SpdxBom
 {
@@ -99,49 +100,59 @@ public class SpdxRelationship
     public string RelatedSpdxElement { get; set; } = string.Empty;
 }
 
-public static partial class SbomReportCrExtensions
+public static partial class SbomReportMappings
 {
-    public static SpdxBom ToSpdx(this OldSbomReportCr oldSbomReport)
+    public static SpdxBom ToSpdx(
+        this SbomReport report,
+        ReportImageOccurrence occurrence)
     {
-        SpdxBom spdxDocument = new()
+        return new SpdxBom
         {
-            Name = oldSbomReport.Report?.Artifact.Repository ?? "Unknown SBOM",
+            Name = occurrence.ImageMeta.Repo.Value,
+
             DocumentNamespace = $"http://spdx.org/spdxdocs/{Guid.NewGuid()}",
+
             CreationInfo = new SpdxCreationInfo
             {
-                Created = DateTime.UtcNow,
+                Created = report.SbomMetadata.GeneratedAt.Value,
                 Creators =
                 [
-                    $"Tool: {oldSbomReport.Report?.Scanner.Name} {oldSbomReport.Report?.Scanner.Version}",
-                    $"Organization: {oldSbomReport.Report?.Registry.Server}",
+                    $"Tool: {report.Scanner.Name.Value} {report.Scanner.Version.Value}",
+                    $"Organization: {report.Scanner.Vendor.Value}",
                 ],
             },
+
             Packages =
             [
-                .. oldSbomReport.Report?.Components.ComponentsComponents.Select(comp => new SpdxPackage
-                       {
-                           SPDXID = $"SPDXRef-{comp.BomRef}",
-                           Name = comp.Name,
-                           VersionInfo = comp.Version,
-                           LicenseDeclared = comp.Licenses?.FirstOrDefault()?.License?.Id ?? "NOASSERTION",
-                           LicenseConcluded = "NOASSERTION",
-                       }
-                   ) ??
-                   [],
+                .. report.Components.Select(component => new SpdxPackage
+                {
+                    SPDXID = $"SPDXRef-{component.Id.Value}",
+                    Name = component.Name.Value,
+                    VersionInfo = component.Version.Value,
+                    LicenseDeclared =
+                        component.Licenses.FirstOrDefault()?.Id
+                        ?? "NOASSERTION",
+                    LicenseConcluded = "NOASSERTION",
+                }),
             ],
+
             Relationships =
             [
-                .. oldSbomReport.Report?.Components.Dependencies.Select(dep => new SpdxRelationship
-                       {
-                           SpdxElementId = $"SPDXRef-{dep.Ref}",
-                           RelatedSpdxElement = string.Join(", ", dep.DependsOn.Select(d => $"SPDXRef-{d}")),
-                           RelationshipType = "DEPENDS_ON",
-                       }
-                   ) ??
-                   [],
+                .. report.Components
+                    .Where(component => !component.DependsOnIds.IsDefaultOrEmpty)
+                    .Select(component => new SpdxRelationship
+                    {
+                        SpdxElementId = $"SPDXRef-{component.Id.Value}",
+                        RelatedSpdxElement = string.Join(
+                            ", ",
+                            component.DependsOnIds.Select(
+                                dependencyId => $"SPDXRef-{dependencyId.Value}"
+                            )
+                        ),
+                        RelationshipType = "DEPENDS_ON",
+                    }),
             ],
         };
-
-        return spdxDocument;
     }
+
 }

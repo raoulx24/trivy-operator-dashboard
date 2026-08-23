@@ -1,8 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 using System.Xml.Serialization;
-using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Application.Trivy.Models;
+namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 
 [XmlRoot("bom", Namespace = "http://cyclonedx.org/schema/bom/1.6")]
 public class CycloneDxBom
@@ -187,119 +188,104 @@ public class CycloneDxDependency
     public List<CycloneDxDependency>? DependsOnXml { get; set; }
 }
 
-public static partial class SbomReportCrExtensions
+public static partial class SbomReportMappings
 {
-    public static CycloneDxBom ToCycloneDx(this OldSbomReportCr oldSbomReport)
+    public static CycloneDxBom ToCycloneDx(this SbomReport report, ReportImageOccurrence occurrence)
     {
-        CycloneDxBom bom = new()
+        return new CycloneDxBom
         {
-            BomFormat = "CycloneDX",
-            SpecVersion = oldSbomReport.Report?.Components.SpecVersion ?? "1.3",
-            SerialNumber = oldSbomReport.Report?.Components.SerialNumber ?? Guid.NewGuid().ToString(),
-            Version = oldSbomReport.Report?.Components.Version ?? 1,
+            BomFormat = report.SbomMetadata.BomFormat,
+            SpecVersion = report.SbomMetadata.SpecVersion,
+            SerialNumber = report.SbomMetadata.SerialNumber.Value,
+            Version = report.SbomMetadata.Version,
+
             Metadata = new CycloneDxMetadata
             {
-                Timestamp = oldSbomReport.Report?.Components.Metadata.Timestamp,
+                Timestamp = report.SbomMetadata.GeneratedAt.Value,
+
                 Tools =
                 [
-                    .. oldSbomReport.Report?.Components.Metadata.Tools.Components.Select(tool => new CycloneDxTool
-                           {
-                               Vendor = tool.Group,
-                               Name = tool.Name,
-                               Version = tool.Version,
-                           }
-                       ) ??
-                       [],
+                    new CycloneDxTool
+                    {
+                        Vendor = report.Scanner.Vendor.Value,
+                        Name = report.Scanner.Name.Value,
+                        Version = report.Scanner.Version.Value,
+                    },
                 ],
+
                 Component = new CycloneDxComponent
                 {
-                    Name = oldSbomReport.Report?.Artifact.Repository ?? string.Empty,
-                    Version = oldSbomReport.Report?.Artifact.Tag ?? string.Empty,
+                    Name = occurrence.ImageMeta.Repo.Value,
+                    Version = occurrence.ImageMeta.Tag.Value,
                     Type = "application",
-                    BomRef = oldSbomReport.Report?.Artifact.Digest ?? string.Empty,
-                    Purl = oldSbomReport.Report?.Components.Metadata.Component.Purl ?? string.Empty,
-                    Properties =
-                    [
-                        .. oldSbomReport.Report?.Components.Metadata.Component.Properties.Select(prop =>
-                               new CycloneDxProperty
-                               {
-                                   Name = prop.Name,
-                                   Value = prop.Value,
-                               }
-                           ) ??
-                           [],
-                    ],
-                    LicensesXml = oldSbomReport.Report?.Components.Metadata.Component.Licenses == null ? null :
-                    [
-                        .. oldSbomReport.Report?.Components.Metadata.Component.Licenses?.Select(lic => new CycloneDxLicense
-                               {
-                                   Id = lic.License?.Id,
-                                   Name = lic.License?.Name,
-                                   Url = lic.License?.Url,
-                               }
-                           ) ??
-                           [],
-                    ],
+                    BomRef = report.ImageDigest.Value,
+
+                    Purl = string.Empty,
+
+                    Properties = [],
+                    LicensesXml = null,
                 },
             },
+
             Components =
             [
-                .. oldSbomReport.Report?.Components.ComponentsComponents.Select(comp => new CycloneDxComponent
-                       {
-                           Name = comp.Name,
-                           Version = comp.Version,
-                           Type = comp.Type ?? "library",
-                           BomRef = comp.BomRef,
-                           Purl = comp.Purl,
-                           Properties =
-                           [
-                               .. comp.Properties.Select(prop => new CycloneDxProperty
-                                   {
-                                       Name = prop.Name,
-                                       Value = prop.Value,
-                                   }
-                               ),
-                           ],
-                           LicensesXml =
-                           [
-                               .. comp.Licenses?.Select(lic => new CycloneDxLicense
-                                      {
-                                          Id = lic.License?.Id,
-                                          Name = lic.License?.Name,
-                                          Url = lic.License?.Url,
-                                      }
-                                  ) ??
-                                  [],
-                           ],
-                           Supplier = comp.Supplier == null ? null : new CycloneDxSupplier
-                           {
-                               Name = comp.Supplier.Name,
-                               Email = comp.Supplier.Email,
-                               Phone = comp.Supplier.Phone,
-                           },
-                       }
-                   ) ??
-                   [],
+                .. report.Components.Select(component => new CycloneDxComponent
+                {
+                    Name = component.Name.Value,
+                    Version = component.Version.Value,
+                    Type = component.Type.Value,
+                    BomRef = component.Id.Value,
+                    Purl = component.Purl?.Value ?? string.Empty,
+
+                    Supplier = component.Supplier is null
+                        ? null
+                        : new CycloneDxSupplier
+                        {
+                            Name = component.Supplier.Name,
+                            Email = component.Supplier.Email,
+                            Phone = component.Supplier.Phone,
+                        },
+
+                    LicensesXml =
+                    [
+                        .. component.Licenses
+                            .Select(license => new CycloneDxLicense
+                            {
+                                Id = license.Id,
+                                Name = license.Name,
+                                Url = license.Url?.ToString(),
+                            }),
+                    ],
+
+                    Properties =
+                    [
+                        .. component.Properties.Select(property => new CycloneDxProperty
+                        {
+                            Name = property.Key,
+                            Value = property.Value,
+                        }),
+                    ],
+                }),
             ],
+
             Dependencies =
             [
-                .. oldSbomReport.Report?.Components.Dependencies.Select(dep => new CycloneDxDependency
-                       {
-                           Ref = dep.Ref,
-                           DependsOnXml =
-                           [
-                               .. dep.DependsOn.Select(x => new CycloneDxDependency
-                                   {
-                                       Ref = x,
-                                   }
-                               ),
-                           ],
-                       }
-                   ) ??
-                   [],
+                .. report.Components
+                    .Where(component => !component.DependsOnIds.IsDefaultOrEmpty)
+                    .Select(component => new CycloneDxDependency
+                    {
+                        Ref = component.Id.Value,
+
+                        DependsOnXml =
+                        [
+                            .. component.DependsOnIds.Select(dependencyId =>
+                                new CycloneDxDependency
+                                {
+                                    Ref = dependencyId.Value,
+                                }),
+                        ],
+                    }),
             ],
         };
-
-        return bom;
     }
 }

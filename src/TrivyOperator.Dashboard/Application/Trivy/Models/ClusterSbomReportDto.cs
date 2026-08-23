@@ -115,7 +115,7 @@ public static class ClusterSbomReportCrExtensions
             RootNodeBomRef = oldClusterSbomReportCr.Report?.Components.Metadata.Component.BomRef ?? string.Empty,
             Details = [.. details,],
         };
-        SbomReportCrExtensions.CleanupPurlsFromBomRefs(result);
+        Queries.Trivy.Models.SbomReportCrExtensions.CleanupPurlsFromBomRefs(result);
         GroupDetails(result);
 
         return result;

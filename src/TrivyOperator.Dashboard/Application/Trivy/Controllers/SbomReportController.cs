@@ -1,6 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.Trivy.Models;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport.Abstractions;
+using SbomReportDto = TrivyOperator.Dashboard.Application.Trivy.Models.SbomReportDto;
+using SbomReportExportDto = TrivyOperator.Dashboard.Application.Trivy.Models.SbomReportExportDto;
+using SbomReportImageDto = TrivyOperator.Dashboard.Application.Trivy.Models.SbomReportImageDto;
+using SbomReportImageMinimalDto = TrivyOperator.Dashboard.Application.Trivy.Models.SbomReportImageMinimalDto;
+using SbomReportImageResourceDto = TrivyOperator.Dashboard.Application.Trivy.Models.SbomReportImageResourceDto;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 

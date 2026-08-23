@@ -1,5 +1,4 @@
-﻿using TrivyOperator.Dashboard.Application.Trivy.Models;
-using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
+﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport.Abstractions;
 
@@ -10,6 +9,7 @@ public interface ISbomReportService
     Task<IEnumerable<SbomReportImageMinimalDto>> GetSbomReportImageMinimalDtos(string? namespaceName = null);
     Task<SbomReportDto?> GetFullSbomReportDtoByUid(string uid);
     Task<SbomReportDto?> GetFullSbomReportDtoByUidNamespace(string uid, string namespaceName);
+    // TODO: check if needed anymore
     Task<SbomReportDto?> GetFullSbomReportDtoByDigestNamespace(string digest, string namespaceName);
 
     Task<CycloneDxBom?> GetCycloneDxBomByDigestNamespace(
