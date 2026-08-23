@@ -52,6 +52,28 @@ public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
         ];
     }
 
+    public async Task<IReadOnlyList<TReport>> GetResources(IEnumerable<TKey> keys, CancellationToken ctx = default)
+    {
+        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        await EnsureCacheLoaded(contextName, ctx);
+
+        ConcurrentDictionary<TKey, CacheEntry<TReport, TKey>> reports = cache[contextName];
+        List<TReport> result = [];
+
+        foreach (TKey key in keys)
+        {
+            ctx.ThrowIfCancellationRequested();
+
+            if (reports.TryGetValue(key, out CacheEntry<TReport, TKey>? entry))
+            {
+                result.Add(cacheEntryBuilder.ToEntity(entry));
+            }
+        }
+
+        return result;
+    }
+
+
     public async Task<IReadOnlyList<TReport>> GetResourceSummaries(CancellationToken ctx = default)
     {
         _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);

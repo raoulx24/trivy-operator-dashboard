@@ -43,6 +43,8 @@ using TrivyOperator.Dashboard.Application.Queries.History.Services;
 using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;
 using TrivyOperator.Dashboard.Application.Trivy.Services.ClusterComplianceReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.ClusterComplianceReport.Abstractions;
@@ -68,7 +70,6 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.SbomReport.Abstractions
 using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies;
 using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport;
-using TrivyOperator.Dashboard.Application.Trivy.Services.VulnerabilityReport.Abstractions;
 using TrivyOperator.Dashboard.Application.WatcherStates.HostedServices;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;

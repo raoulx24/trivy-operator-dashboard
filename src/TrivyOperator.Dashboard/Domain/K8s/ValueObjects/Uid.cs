@@ -8,8 +8,15 @@ public readonly record struct Uid
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
 
-        Value = value;
+        Value = value.ToLowerInvariant();
     }
+
+    public Uid(Guid value)
+    {
+        Value = value.ToString().ToLowerInvariant();
+    }
+    
+    public static Uid CreateUid() => new(Guid.NewGuid());
 
     public override string ToString() => Value;
 }

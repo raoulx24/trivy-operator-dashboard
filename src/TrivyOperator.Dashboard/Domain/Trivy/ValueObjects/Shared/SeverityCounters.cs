@@ -9,7 +9,7 @@ public readonly record struct SeverityCounters
     public int UnknownCount { get; }
     public int NoneCount { get; }
 
-    public IReadOnlyList<int> Values => GetValues();
+    public IReadOnlyList<int> Values { get; }
 
     public SeverityCounters(
         int criticalCount = 0,
@@ -25,17 +25,19 @@ public readonly record struct SeverityCounters
         LowCount = Math.Max(0, lowCount);
         UnknownCount = Math.Max(0, unknownCount);
         NoneCount = Math.Max(0, noneCount);
+        
+        Values = [CriticalCount, HighCount, MediumCount, LowCount, UnknownCount, NoneCount,];
     }
 
-    public SeverityCounters(int[] values)
-    {
-        CriticalCount = GetValue(values, 0);
-        HighCount = GetValue(values, 1);
-        MediumCount = GetValue(values, 2);
-        LowCount = GetValue(values, 3);
-        UnknownCount = GetValue(values, 4);
-        NoneCount = GetValue(values, 5);
-    }
+    public SeverityCounters(int[] values) : this(
+        GetValue(values, 0),
+        GetValue(values, 1),
+        GetValue(values, 2),
+        GetValue(values, 3),
+        GetValue(values, 4),
+        GetValue(values, 5)
+    )
+    { }
     
     public bool HasAnyOf(IReadOnlySet<int> severityIds)
     {
@@ -54,9 +56,4 @@ public readonly record struct SeverityCounters
         index < values.Length
             ? Math.Max(0, values[index])
             : 0;
-
-    private IReadOnlyList<int> GetValues()
-    {
-        return [CriticalCount, HighCount, MediumCount, LowCount, UnknownCount, NoneCount,];
-    }
 }

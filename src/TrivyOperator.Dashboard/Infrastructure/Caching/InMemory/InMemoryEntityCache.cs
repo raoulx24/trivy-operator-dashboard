@@ -68,7 +68,24 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
     
     public abstract Task Delete(TKey key, Uid uid, CancellationToken ctx = default);
 
-    public Task<TResource?> GetResource(TKey key, CancellationToken ctx = default) => throw new NotImplementedException();
+    public Task<TResource?> GetResource(TKey key, CancellationToken ctx = default)
+    {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        ctx.ThrowIfCancellationRequested();
+        
+        if (contextName == default) contextName = new ContextName();
+        
+        if (!cache.TryGetValue(contextName, out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
+        {
+            return Task.FromResult<TResource?>(null);
+        }
+
+        innerCache.TryGetValue(key, out CacheEntry<TResource, TKey>? cacheEntry);
+
+        return cacheEntry is null
+            ? Task.FromResult<TResource?>(null)
+            : Task.FromResult<TResource?>(cacheEntryBuilder.ToEntity(cacheEntry));
+    }
 
     public Task<IReadOnlyList<TResource>> GetResources(CancellationToken ctx = default)
     {
@@ -86,8 +103,78 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
         
         return Task.FromResult(result);
     }
+    
+    public Task<IReadOnlyList<TResource>> GetResources(
+        IEnumerable<TKey> keys,
+        CancellationToken ctx = default)
+    {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        ctx.ThrowIfCancellationRequested();
 
-    public Task<IReadOnlyList<TResource>> GetResourceSummaries(CancellationToken ctx = default) => throw new NotImplementedException();
+        if (contextName == default)
+            contextName = new ContextName();
 
-    public Task<IReadOnlyList<TKey>> GetResourceIds(CancellationToken ctx = default) => throw new NotImplementedException();
+        if (!cache.TryGetValue(
+                contextName,
+                out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
+        {
+            return Task.FromResult<IReadOnlyList<TResource>>([]);
+        }
+
+        var resources = new List<TResource>();
+
+        foreach (var key in keys)
+        {
+            ctx.ThrowIfCancellationRequested();
+
+            if (innerCache.TryGetValue(key, out CacheEntry<TResource, TKey>? cacheEntry))
+            {
+                resources.Add(cacheEntryBuilder.ToEntity(cacheEntry));
+            }
+        }
+
+        return Task.FromResult<IReadOnlyList<TResource>>(resources);
+    }
+
+    public Task<IReadOnlyList<TResource>> GetResourceSummaries(
+        CancellationToken ctx = default)
+    {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        ctx.ThrowIfCancellationRequested();
+
+        if (contextName == default)
+            contextName = new ContextName();
+
+        if (!cache.TryGetValue(
+                contextName,
+                out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
+        {
+            return Task.FromResult<IReadOnlyList<TResource>>([]);
+        }
+
+        IReadOnlyList<TResource> result = [.. innerCache.Values.Select(x => x.Entry),];
+
+        return Task.FromResult(result);
+    }
+
+    public Task<IReadOnlyList<TKey>> GetResourceIds(
+        CancellationToken ctx = default)
+    {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        ctx.ThrowIfCancellationRequested();
+
+        if (contextName == default)
+            contextName = new ContextName();
+
+        if (!cache.TryGetValue(
+                contextName,
+                out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
+        {
+            return Task.FromResult<IReadOnlyList<TKey>>([]);
+        }
+
+        IReadOnlyList<TKey> result = innerCache.Keys.ToArray();
+
+        return Task.FromResult(result);
+    }
 }

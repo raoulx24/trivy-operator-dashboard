@@ -66,6 +66,7 @@
       <Folder Include="Application\Queries\AppVersions\" />
       <Folder Include="Application\Queries\BackendSettings\" />
       <Folder Include="Application\Queries\History\" />
+      <Folder Include="Application\Queries\Trivy\Services\" />
       <Folder Include="Domain\History\VulnerabilityReportsHistory\Stores\" />
       <Folder Include="Domain\Shared\Stores\" />
       <Folder Include="Infrastructure\Trivy\Services\" />

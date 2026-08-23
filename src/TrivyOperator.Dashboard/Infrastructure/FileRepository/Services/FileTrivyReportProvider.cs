@@ -42,6 +42,26 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
         ];
     }
 
+    public async Task<IReadOnlyList<TTrivyReport>> GetResources(IEnumerable<TKey> keys, CancellationToken ctx = default)
+    {
+        await EnsureCacheLoaded(ctx);
+
+        ConcurrentDictionary<TKey, CacheEntry<TTrivyReport, TKey>> reports = cache[DefaultContext];
+        List<TTrivyReport> result = [];
+
+        foreach (TKey key in keys)
+        {
+            ctx.ThrowIfCancellationRequested();
+
+            if (reports.TryGetValue(key, out CacheEntry<TTrivyReport, TKey>? entry))
+            {
+                result.Add(cacheEntryBuilder.ToEntity(entry));
+            }
+        }
+
+        return result;
+    }
+
     public async Task<IReadOnlyList<TTrivyReport>> GetResourceSummaries(CancellationToken ctx = default)
     {
         await EnsureCacheLoaded(ctx);
