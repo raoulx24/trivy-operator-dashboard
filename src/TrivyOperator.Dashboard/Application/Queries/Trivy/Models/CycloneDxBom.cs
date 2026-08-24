@@ -1,8 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Xml.Serialization;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
@@ -194,9 +193,9 @@ public static partial class SbomReportMappings
 {
     public static CycloneDxBom ToCycloneDx(this SbomReport report)
     {
-        ReportImageOccurrence occurrence = report.Occurrences.Count == 0
-            ? new ReportImageOccurrence() : report.Occurrences[0]; 
-        
+        Component? rootComponent = report.Components
+            .FirstOrDefault(component => component.Id == report.RootNodeBomRef);
+
         return new CycloneDxBom
         {
             BomFormat = report.SbomMetadata.BomFormat,
@@ -218,59 +217,16 @@ public static partial class SbomReportMappings
                     },
                 ],
 
-                Component = new CycloneDxComponent
-                {
-                    Name = occurrence.ImageMeta.Repo.Value,
-                    Version = occurrence.ImageMeta.Tag.Value,
-                    Type = "application",
-                    BomRef = report.ImageDigest.Value,
-
-                    Purl = string.Empty,
-
-                    Properties = [],
-                    LicensesXml = null,
-                },
+                Component = rootComponent is null
+                    ? null
+                    : ToCycloneDxComponent(rootComponent),
             },
 
             Components =
             [
-                .. report.Components.Select(component => new CycloneDxComponent
-                {
-                    Name = component.Name.Value,
-                    Version = component.Version.Value,
-                    Type = component.Type.Value,
-                    BomRef = component.Id.Value,
-                    Purl = component.Purl?.Value ?? string.Empty,
-
-                    Supplier = component.Supplier is null
-                        ? null
-                        : new CycloneDxSupplier
-                        {
-                            Name = component.Supplier.Name,
-                            Email = component.Supplier.Email,
-                            Phone = component.Supplier.Phone,
-                        },
-
-                    LicensesXml =
-                    [
-                        .. component.Licenses
-                            .Select(license => new CycloneDxLicense
-                            {
-                                Id = license.Id,
-                                Name = license.Name,
-                                Url = license.Url?.ToString(),
-                            }),
-                    ],
-
-                    Properties =
-                    [
-                        .. component.Properties.Select(property => new CycloneDxProperty
-                        {
-                            Name = property.Key,
-                            Value = property.Value,
-                        }),
-                    ],
-                }),
+                .. report.Components
+                    .Where(component => component.Id != report.RootNodeBomRef)
+                    .Select(ToCycloneDxComponent),
             ],
 
             Dependencies =
@@ -290,6 +246,46 @@ public static partial class SbomReportMappings
                                 }),
                         ],
                     }),
+            ],
+        };
+    }
+
+    private static CycloneDxComponent ToCycloneDxComponent(Component component)
+    {
+        return new CycloneDxComponent
+        {
+            Name = component.Name.Value,
+            Version = component.Version.Value,
+            Type = component.Type.Value,
+            BomRef = component.Id.Value,
+            Purl = component.Purl?.Value ?? string.Empty,
+
+            Supplier = component.Supplier is null
+                ? null
+                : new CycloneDxSupplier
+                {
+                    Name = component.Supplier.Name,
+                    Email = component.Supplier.Email,
+                    Phone = component.Supplier.Phone,
+                },
+
+            LicensesXml =
+            [
+                .. component.Licenses.Select(license => new CycloneDxLicense
+                {
+                    Id = license.Id,
+                    Name = license.Name,
+                    Url = license.Url?.ToString(),
+                }),
+            ],
+
+            Properties =
+            [
+                .. component.Properties.Select(property => new CycloneDxProperty
+                {
+                    Name = property.Key,
+                    Value = property.Value,
+                }),
             ],
         };
     }

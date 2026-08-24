@@ -102,12 +102,12 @@ public class SpdxRelationship
 
 public static partial class SbomReportMappings
 {
-    public static SpdxBom ToSpdx(
-        this SbomReport report)
+    public static SpdxBom ToSpdx(this SbomReport report)
     {
         ReportImageOccurrence occurrence = report.Occurrences.Count == 0
-            ? new ReportImageOccurrence() : report.Occurrences[0]; 
-        
+            ? new ReportImageOccurrence()
+            : report.Occurrences[0];
+
         return new SpdxBom
         {
             Name = occurrence.ImageMeta.Repo.Value,
@@ -142,19 +142,17 @@ public static partial class SbomReportMappings
             [
                 .. report.Components
                     .Where(component => !component.DependsOnIds.IsDefaultOrEmpty)
-                    .Select(component => new SpdxRelationship
-                    {
-                        SpdxElementId = $"SPDXRef-{component.Id.Value}",
-                        RelatedSpdxElement = string.Join(
-                            ", ",
-                            component.DependsOnIds.Select(
-                                dependencyId => $"SPDXRef-{dependencyId.Value}"
-                            )
-                        ),
-                        RelationshipType = "DEPENDS_ON",
-                    }),
+                    .SelectMany(component =>
+                        component.DependsOnIds.Select(dependencyId =>
+                            new SpdxRelationship
+                            {
+                                SpdxElementId = $"SPDXRef-{component.Id.Value}",
+                                RelatedSpdxElement = $"SPDXRef-{dependencyId.Value}",
+                                RelationshipType = "DEPENDS_ON",
+                            }
+                        )
+                    ),
             ],
         };
     }
-
 }
