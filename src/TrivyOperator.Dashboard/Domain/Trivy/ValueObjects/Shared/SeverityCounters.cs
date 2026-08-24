@@ -39,6 +39,25 @@ public readonly record struct SeverityCounters
     )
     { }
     
+    public SeverityCounters(IEnumerable<Severity> severities)
+    {
+        int[] counts = new int[6];
+
+        foreach (Severity severity in severities)
+        {
+            counts[severity.Rank]++;
+        }
+
+        CriticalCount = counts[0];
+        HighCount = counts[1];
+        MediumCount = counts[2];
+        LowCount = counts[3];
+        UnknownCount = counts[4];
+        NoneCount = counts[5];
+        
+        Values = [CriticalCount, HighCount, MediumCount, LowCount, UnknownCount, NoneCount,];
+    }
+    
     public bool HasAnyOf(IReadOnlySet<int> severityIds)
     {
         foreach (int severityId in severityIds)

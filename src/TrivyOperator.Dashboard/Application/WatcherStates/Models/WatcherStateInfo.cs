@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 
-namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Models;
+namespace TrivyOperator.Dashboard.Application.WatcherStates.Models;
 
 public class WatcherStateInfo
 {

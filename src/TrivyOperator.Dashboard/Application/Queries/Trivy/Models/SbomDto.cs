@@ -79,17 +79,21 @@ public sealed record SbomReportLicenseDto(
 
 public sealed record SbomReportImageMinimalDto(
     string Uid,
-    IReadOnlyList<string> NamespaceNames,
-    
+    string NamespaceName,
     bool HasVulnerabilityReport,
-
     string Digest,
-    IReadOnlyList<SbomReportImageDtoImageInfo> ImageInfos
+    string ImageName,
+    string ImageTag,
+    string ImageRepository
 );
 
 public sealed record SbomReportExportDto(
-    string NamespaceName,
     string Digest
+);
+
+public sealed record SbomExportFileDto(
+    FileStream Stream,
+    string FileName
 );
 
 public static partial class SbomReportMappings
@@ -171,31 +175,19 @@ public static partial class SbomReportMappings
         );
     }
 
-    public static SbomReportImageMinimalDto ToMinimalDto(this SbomReport report, bool hasVulnerabilityReport)
+    public static IEnumerable<SbomReportImageMinimalDto> ToMinimalDto(
+        this SbomReport report,
+        bool hasVulnerabilityReport)
     {
-        return new SbomReportImageMinimalDto(
-            Uid: GuidUtils.GetDeterministicGuid(report.ImageDigest.Value).ToString(),
-            NamespaceNames:
-            [
-                .. report.Occurrences.Select(static x => x.Metadata.NamespaceName.Value)
-                    .Distinct()
-                    .OrderBy(static x => x)
-            ],
-            
+        return report.Occurrences.Select(x => new SbomReportImageMinimalDto(
+            Uid: x.Metadata.Uid.Value,
+            NamespaceName: x.Metadata.NamespaceName.Value,
             HasVulnerabilityReport: hasVulnerabilityReport,
-            
             Digest: report.ImageDigest.Value,
-            ImageInfos:
-            [
-                .. report.Occurrences.Select(static x => new SbomReportImageDtoImageInfo(
-                            Name: x.ImageMeta.Repo.Value,
-                            Tag: x.ImageMeta.Tag.Value,
-                            Repository: x.ImageMeta.Registry.Value
-                        )
-                    )
-                    .Distinct()
-            ]
-        );
+            ImageName: x.ImageMeta.Repo.Value,
+            ImageTag: x.ImageMeta.Tag.Value,
+            ImageRepository: x.ImageMeta.Registry.Value
+        ));
     }
 
     public static SbomReportDetailDto ToDto(this Component component, SeverityCounters? severityCounters)

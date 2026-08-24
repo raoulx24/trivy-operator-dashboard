@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Application.Common;
+﻿namespace TrivyOperator.Dashboard.Application.Queries.Common.Models;
 
 public class OperationResult
 {

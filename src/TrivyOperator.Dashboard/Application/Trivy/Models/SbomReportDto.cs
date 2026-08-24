@@ -1,8 +1,7 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Models.Abstracts;
-using TrivyOperator.Dashboard.Domain.TrivyOld.SbomReport;
 using TrivyOperator.Dashboard.Domain.Utils;
 
-namespace TrivyOperator.Dashboard.Application.Trivy.ModelsOLD;
+namespace TrivyOperator.Dashboard.Application.Trivy.Models;
 
 public class SbomReportDto : ISbomReportDto<SbomReportDetailDto>
 {

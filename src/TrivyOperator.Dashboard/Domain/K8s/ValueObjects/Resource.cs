@@ -5,4 +5,8 @@ public readonly record struct Resource(
     Kind Kind,
     NamespaceName NamespaceName,
     ContainerName? Container
-);
+)
+{
+    public Resource() : this(new ResourceName(), new Kind(), new NamespaceName(), null)
+    { }
+}

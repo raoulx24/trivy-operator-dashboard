@@ -3,4 +3,9 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-public sealed record ReportImageOccurrence(ReportMetadata Metadata, Resource Resource, ImageMeta ImageMeta) : IReportOccurrence;
+public sealed record ReportImageOccurrence(ReportMetadata Metadata, Resource Resource, ImageMeta ImageMeta)
+    : IReportOccurrence
+{
+    public ReportImageOccurrence() : this(new ReportMetadata(), new Resource(), new ImageMeta())
+    { }
+}

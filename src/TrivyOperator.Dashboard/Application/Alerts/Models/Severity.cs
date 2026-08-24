@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Application.Alerts.Services;
+﻿namespace TrivyOperator.Dashboard.Application.Alerts.Models;
 
 public enum Severity
 {

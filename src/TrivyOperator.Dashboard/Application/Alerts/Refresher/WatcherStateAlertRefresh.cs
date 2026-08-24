@@ -2,7 +2,6 @@
 using k8s.Models;
 using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
 using TrivyOperator.Dashboard.Application.Alerts.Models;
-using TrivyOperator.Dashboard.Application.Alerts.Services;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
 

@@ -1,6 +1,4 @@
-﻿using TrivyOperator.Dashboard.Application.Alerts.Services;
-
-namespace TrivyOperator.Dashboard.Application.Alerts.Models;
+﻿namespace TrivyOperator.Dashboard.Application.Alerts.Models;
 
 public class Alert
 {

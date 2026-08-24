@@ -103,9 +103,11 @@ public class SpdxRelationship
 public static partial class SbomReportMappings
 {
     public static SpdxBom ToSpdx(
-        this SbomReport report,
-        ReportImageOccurrence occurrence)
+        this SbomReport report)
     {
+        ReportImageOccurrence occurrence = report.Occurrences.Count == 0
+            ? new ReportImageOccurrence() : report.Occurrences[0]; 
+        
         return new SpdxBom
         {
             Name = occurrence.ImageMeta.Repo.Value,

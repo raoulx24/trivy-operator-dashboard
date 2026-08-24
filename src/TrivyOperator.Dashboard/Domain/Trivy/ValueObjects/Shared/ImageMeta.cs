@@ -13,7 +13,7 @@ public sealed record ImageMeta
         Tag = tag;
     }
     
-    public ImageMeta()
+    public ImageMeta() : this(new ImageRegistry(), new ImageRepository(), new ImageTag())
     { }
 }
 

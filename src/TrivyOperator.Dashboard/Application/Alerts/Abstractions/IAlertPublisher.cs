@@ -1,5 +1,4 @@
 ﻿using TrivyOperator.Dashboard.Application.Alerts.Models;
-using TrivyOperator.Dashboard.Application.Alerts.Services;
 
 namespace TrivyOperator.Dashboard.Application.Alerts.Abstractions;
 

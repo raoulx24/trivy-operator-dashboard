@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.WatcherStates.Models;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.WatcherStates.HostedServices;

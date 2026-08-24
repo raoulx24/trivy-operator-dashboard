@@ -1,5 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Xml.Serialization;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
@@ -190,8 +192,11 @@ public class CycloneDxDependency
 
 public static partial class SbomReportMappings
 {
-    public static CycloneDxBom ToCycloneDx(this SbomReport report, ReportImageOccurrence occurrence)
+    public static CycloneDxBom ToCycloneDx(this SbomReport report)
     {
+        ReportImageOccurrence occurrence = report.Occurrences.Count == 0
+            ? new ReportImageOccurrence() : report.Occurrences[0]; 
+        
         return new CycloneDxBom
         {
             BomFormat = report.SbomMetadata.BomFormat,

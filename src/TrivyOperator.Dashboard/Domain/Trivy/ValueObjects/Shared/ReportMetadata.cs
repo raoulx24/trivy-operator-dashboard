@@ -9,4 +9,8 @@ public readonly record struct ReportMetadata(
     NamespaceName NamespaceName,
     Timestamp CreationTimestamp,
     Uid Uid
-);
+)
+{
+    public ReportMetadata() : this(new ResourceName(), new NamespaceName(), new Timestamp(), new Uid())
+    { }
+}

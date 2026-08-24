@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Models;
+﻿namespace TrivyOperator.Dashboard.Application.WatcherStates.Models;
 
 public enum WatcherStateStatus
 {

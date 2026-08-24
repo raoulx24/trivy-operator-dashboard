@@ -1,7 +1,7 @@
-﻿using TrivyOperator.Dashboard.Application.Common;
+﻿using TrivyOperator.Dashboard.Application.Queries.Common.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
 
-namespace TrivyOperator.Dashboard.Application.K8s.Services.WatcherStates.Abstractions;
+namespace TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services.Abstractions;
 
 public interface IWatcherStatusService
 {
