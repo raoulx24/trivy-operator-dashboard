@@ -39,7 +39,8 @@ public static class TrivySharedMappingExtensions
             new ResourceName(GetResourceName("trivy-operator.resource.name")),
             new Kind(Get("trivy-operator.resource.kind")),
             new NamespaceName(Get("trivy-operator.resource.namespace")),
-            new ContainerName(Get("trivy-operator.container.name")));
+            new ContainerName(Get("trivy-operator.container.name")),
+            metadata.ToOwnerReferences());
 
         string GetResourceName(string key)
             => metadata.OwnerReferences?
@@ -52,7 +53,7 @@ public static class TrivySharedMappingExtensions
                 ? v
                 : string.Empty;
     }
-    
+
     public static ImageMeta ToImageMeta(ArtifactCr artifact, RegistryCr? registry)
     {
         return new ImageMeta(
@@ -136,4 +137,19 @@ public static class TrivySharedMappingExtensions
     public static bool IsOtherNewer<TId>(ITrivyReport<TId>? other, Timestamp currentLastSeen)
         => other?.LastSeenAt > currentLastSeen;
 
+    private static IReadOnlyList<OwnerReference>? ToOwnerReferences(this V1ObjectMeta metadata)
+    {
+        if (metadata.OwnerReferences is null)
+            return null;
+
+        return
+        [
+            .. metadata.OwnerReferences.Select(x => new OwnerReference(
+                    new Uid(x.Uid),
+                    new Kind(x.Kind),
+                    new ResourceName(x.Name)
+                )
+            ),
+        ];
+    }
 }
