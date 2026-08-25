@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.Trivy.Models;
-using TrivyOperator.Dashboard.Application.Trivy.Services.ClusterSbomReport.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterSbomReports.Abstractions;
 
-namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
+namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 
 [ApiController]
 [Route("api/cluster-sbom-reports")]

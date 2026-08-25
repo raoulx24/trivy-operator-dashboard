@@ -1,94 +1,94 @@
 ﻿namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 
-public sealed record VulnerabilityReportDto(
+public sealed record ExposedSecretReportDto(
     string Uid,
     string NamespaceName,
 
     string Digest,
     string ImageNameAndTag,
     string ImageRepository,
-    
-    string ImageOsFamily,
-    string ImageOsName,
-    bool? ImageEosl,
-    
+
     string ResourceName,
     string ResourceKind,
     string ResourceContainerName,
-    
+
     int CriticalCount,
     int HighCount,
     int MediumCount,
     int LowCount,
     int UnknownCount,
-    
+
     DateTime UpdateTimestamp,
-    
-    IReadOnlyList<VulnerabilityReportDetailDto> Details
+
+    IReadOnlyList<ExposedSecretReportDetailDto> Details
 );
 
-public sealed record VulnerabilityReportImageDto(
+public sealed record ExposedSecretReportImageDto(
     string Uid,
     IReadOnlyList<string> NamespaceNames,
 
     string Digest,
-    IReadOnlyList<TrivyReportImageDto> ImageInfos,
-    string ImageOsFamily,
-    string ImageOsName,
-    bool? ImageEosl,
-    
-    IReadOnlyList<TrivyReportResourceDto> Resources,
-    
+    IReadOnlyList<ExposedSecretReportImageDtoInfo> ImageInfos,
+
+    IReadOnlyList<ExposedSecretReportResourceDto> Resources,
+
     int CriticalCount,
     int HighCount,
     int MediumCount,
     int LowCount,
     int UnknownCount,
-    
+
     DateTime UpdateTimestamp,
-    
-    IReadOnlyList<VulnerabilityReportDetailDto> Details
+
+    IReadOnlyList<ExposedSecretReportDetailDto> Details
 );
 
-public sealed record TrivyReportImageDto(
+public sealed record ExposedSecretReportImageDtoInfo(
     string NameAndTag,
     string Repository
 );
 
-public sealed record TrivyReportResourceDto(
+public sealed record ExposedSecretReportResourceDto(
     string Name,
     string Kind,
     string ContainerName
 );
 
-public sealed record VulnerabilityReportDenormalizedDto(
+public sealed record ExposedSecretReportDetailDto(
+    string Id,
+    string MatchKey,
+    string Category,
+    string Match,
+    string RuleId,
+    int SeverityId,
+    string Target,
+    string Title
+);
+
+public sealed record ExposedSecretReportDenormalizedDto(
     string Uid,
     string ResourceName,
     string ResourceNamespace,
     string ResourceKind,
     string ResourceContainerName,
+
     string ImageName,
     string ImageTag,
     string ImageDigest,
     string ImageRepository,
-    string ImageOsFamily,
-    string ImageOsName,
-    bool? ImageEosl,
+
     DateTime UpdateTimestamp,
+
     int CriticalCount,
     int HighCount,
     int MediumCount,
     int LowCount,
     int UnknownCount,
-    string FixedVersion,
-    string InstalledVersion,
-    DateTime? LastModifiedDate,
-    Uri? PrimaryLink,
-    DateTime? PublishedDate,
-    string Resource,
-    float Score,
+
+    string Category,
+    string Match,
+    string RuleId,
     int SeverityId,
     string Target,
-    string Title,
-    string VulnerabilityId
+    string Title
 );

@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.Options;
@@ -13,7 +14,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports;
 
 public class SbomReportService(
-    IResourceProvider<SbomReport,Digest> respurceProvider,
+    IResourceProvider<SbomReport,Digest> resourceProvider,
     IResourceProvider<VulnerabilityReport, Digest> vrResourceProvider,
     IOptions<FileExportOptions> fileExportOptions,
     ILogger<SbomReportService> logger
@@ -26,7 +27,7 @@ public class SbomReportService(
 
     public async Task<IEnumerable<SbomReportImageMinimalDto>> GetSbomReportImageMinimalDtos(CancellationToken ctx = default)
     {
-        IReadOnlyList<SbomReport> resourceSummaries = await respurceProvider.GetResourceSummaries(ctx);
+        IReadOnlyList<SbomReport> resourceSummaries = await resourceProvider.GetResourceSummaries(ctx);
         HashSet<Digest> vrDigests = [.. await vrResourceProvider.GetResourceIds(ctx),];
 
         return resourceSummaries
@@ -40,7 +41,7 @@ public class SbomReportService(
     {
         Digest key = new(digest);
 
-        SbomReport? sbomReport = await respurceProvider.GetResource(key, ctx);
+        SbomReport? sbomReport = await resourceProvider.GetResource(key, ctx);
 
         if (sbomReport is null)
             return null;
@@ -66,14 +67,14 @@ public class SbomReportService(
 
     private async Task<CycloneDxBom?> GetCycloneDxBomByDigest(Digest digest, CancellationToken ctx = default)
     {
-        SbomReport? report = await respurceProvider.GetResource(digest, ctx);
+        SbomReport? report = await resourceProvider.GetResource(digest, ctx);
 
         return report?.ToCycloneDx();
     }
 
     public async Task<SpdxBom?> GetSpdxBomByDigest(string digest, CancellationToken ctx = default)
     {
-        SbomReport? report = await respurceProvider.GetResource(new Digest(digest), ctx);
+        SbomReport? report = await resourceProvider.GetResource(new Digest(digest), ctx);
 
         return report?.ToSpdx();
     }
