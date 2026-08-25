@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.Trivy.Models;
-using TrivyOperator.Dashboard.Application.Trivy.Services.ClusterInfraAssessmentReport.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterInfraAssessmentReports.Abstractions;
 
-namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
+namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 
 [ApiController]
 [Route("api/cluster-infra-assessment-reports")]
@@ -14,34 +14,33 @@ public class ClusterInfraAssessmentReportController(
     [ProducesResponseType<IEnumerable<ClusterInfraAssessmentReportDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IResult> Get()
-    {
-        IEnumerable<ClusterInfraAssessmentReportDto> clusterInfraAssessmentReportImageDtos =
-            await clusterInfraAssessmentReportService.GetClusterInfraAssessmentReportDtos();
+    public async Task<IEnumerable<ClusterInfraAssessmentReportDto>> Get(
+        CancellationToken ctx = default) =>
+        await clusterInfraAssessmentReportService
+            .GetClusterInfraAssessmentReportDtos(ctx);
 
-        return Results.Ok(clusterInfraAssessmentReportImageDtos);
-    }
-
-
-    [HttpGet("{uid:guid}", Name = "GetClusterInfraAssessmentReportDtoByUid")]
+    [HttpGet("{uid}", Name = "GetClusterInfraAssessmentReportDtoByUid")]
     [ProducesResponseType<ClusterInfraAssessmentReportDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IResult> GetByUid(Guid uid)
+    public async Task<ActionResult<ClusterInfraAssessmentReportDto>> GetByUid(
+        string uid,
+        CancellationToken ctx = default)
     {
-        ClusterInfraAssessmentReportDto? clusterInfraAssessmentReportDto =
-            await clusterInfraAssessmentReportService.GetClusterInfraAssessmentReportDtoByUid(uid);
+        ClusterInfraAssessmentReportDto? result =
+            await clusterInfraAssessmentReportService
+                .GetClusterInfraAssessmentReportDtoByUid(uid, ctx);
 
-        return clusterInfraAssessmentReportDto is null ? Results.NotFound()
-            : Results.Ok(clusterInfraAssessmentReportDto);
+        return result is null ? NotFound() : Ok(result);
     }
-
 
     [HttpGet("denormalized", Name = "GetClusterInfraAssessmentReportDenormalizedDtos")]
     [ProducesResponseType<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>> GetDenormalized() =>
-        await clusterInfraAssessmentReportService.GetClusterInfraAssessmentReportDenormalizedDtos();
+    public async Task<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>> GetDenormalized(
+        CancellationToken ctx = default) =>
+        await clusterInfraAssessmentReportService
+            .GetClusterInfraAssessmentReportDenormalizedDtos(ctx);
 }
