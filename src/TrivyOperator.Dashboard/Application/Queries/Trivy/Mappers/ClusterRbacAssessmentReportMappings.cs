@@ -16,7 +16,7 @@ public static class ClusterRbacAssessmentReportMappings
 
         return new ClusterRbacAssessmentReportDto(
             Uid: report.Metadata.Uid.ToString(),
-            ResourceName: report.GetResourceName(),
+            ResourceName: report.Resource.GetResourceName(),
             CriticalCount: report.SeverityCounters.CriticalCount,
             HighCount: report.SeverityCounters.HighCount,
             MediumCount: report.SeverityCounters.MediumCount,
@@ -35,7 +35,7 @@ public static class ClusterRbacAssessmentReportMappings
 
             return new ClusterRbacAssessmentReportDenormalizedDto(
                 Uid: report.Metadata.Uid.ToString(),
-                ResourceName: report.GetResourceName(),
+                ResourceName: report.Resource.GetResourceName(),
                 CriticalCount: report.SeverityCounters.CriticalCount,
                 HighCount: report.SeverityCounters.HighCount,
                 MediumCount: report.SeverityCounters.MediumCount,
@@ -50,17 +50,5 @@ public static class ClusterRbacAssessmentReportMappings
                 Title: detail.Title
             );
         });
-    }
-
-    private static string GetResourceName(this ClusterRbacAssessmentReport report)
-    {
-        IReadOnlyList<OwnerReference>? ownerReferences = report.Resource.OwnerReferences;
-
-        if (ownerReferences is not null && ownerReferences.Count > 0)
-        {
-            return ownerReferences[0].Name.Value;
-        }
-
-        return report.Resource.Name.Value;
     }
 }

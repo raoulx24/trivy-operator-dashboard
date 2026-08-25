@@ -20,15 +20,15 @@ public class InfraAssessmentReportController(
         string? excludedSeverities,
         CancellationToken ctx = default)
     {
-        IReadOnlySet<int>? excludedSeverityIds =
+        IReadOnlySet<int>? includedSeverityIds =
             TrivyUtils.GetSeverityIdsToInclude(excludedSeverities);
 
-        if (excludedSeverityIds is null)
+        if (includedSeverityIds is null)
             throw new BadHttpRequestException("Invalid excluded severities.");
 
         return await infraAssessmentReportService.GetInfraAssessmentReportDtos(
             namespaceName,
-            excludedSeverityIds,
+            includedSeverityIds,
             ctx);
     }
 

@@ -90,4 +90,16 @@ public static class TrivyReportMappings
             Title: check.Title.Value
         );
     }
+
+    internal static string GetResourceName(this Resource resource)
+    {
+        IReadOnlyList<OwnerReference>? ownerReferences = resource.OwnerReferences;
+
+        if (ownerReferences is not null && ownerReferences.Count > 0)
+        {
+            return ownerReferences[0].Name.Value;
+        }
+
+        return resource.Name.Value;
+    }
 }
