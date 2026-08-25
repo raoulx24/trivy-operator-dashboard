@@ -4,7 +4,7 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterSbom
 
 public interface IClusterSbomReportService
 {
-    Task<IEnumerable<SbomReportImageMinimalDto>> GetSbomReportImageMinimalDtos(CancellationToken ctx = default);
+    Task<IEnumerable<SbomReportImageMinimalDto>> GetClusterSbomReportMinimalDtos(CancellationToken ctx = default);
 
     Task<IEnumerable<ClusterSbomReportDto>> GetClusterSbomReportDtos(CancellationToken ctx = default);
 

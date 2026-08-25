@@ -5,7 +5,7 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterSbom
 
 public class ClusterSbomReportNullService : IClusterSbomReportService
 {
-    public Task<IEnumerable<SbomReportImageMinimalDto>> GetSbomReportImageMinimalDtos(CancellationToken ctx = default)
+    public Task<IEnumerable<SbomReportImageMinimalDto>> GetClusterSbomReportMinimalDtos(CancellationToken ctx = default)
         => Task.FromResult<IEnumerable<SbomReportImageMinimalDto>>([]);
 
     public Task<IEnumerable<ClusterSbomReportDto>> GetClusterSbomReportDtos(CancellationToken ctx = default)

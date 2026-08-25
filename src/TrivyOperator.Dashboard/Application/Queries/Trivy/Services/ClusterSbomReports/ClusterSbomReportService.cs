@@ -13,7 +13,7 @@ public class ClusterSbomReportService(
     IResourceProvider<ClusterVulnerabilityReport, Uid> vulnerabilityResourceProvider
 ) : IClusterSbomReportService
 {
-    public async Task<IEnumerable<SbomReportImageMinimalDto>> GetSbomReportImageMinimalDtos(CancellationToken ctx = default)
+    public async Task<IEnumerable<SbomReportImageMinimalDto>> GetClusterSbomReportMinimalDtos(CancellationToken ctx = default)
     {
         IReadOnlyList<ClusterSbomReport> resourceSummaries = await resourceProvider.GetResourceSummaries(ctx);
         HashSet<Uid> vrDigests = [.. await vulnerabilityResourceProvider.GetResourceIds(ctx),];

@@ -8,6 +8,13 @@ namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 [Route("api/cluster-sbom-reports")]
 public class ClusterSbomReportController(IClusterSbomReportService clusterSbomReportService) : ControllerBase
 {
+    [HttpGet("minimal", Name = "GetClusterSbomReportMinimalDtos")]
+    [ProducesResponseType<IEnumerable<SbomReportImageMinimalDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetGroupedByImageMinimal(CancellationToken ctx) =>
+        Ok(await clusterSbomReportService.GetClusterSbomReportMinimalDtos(ctx));
+    
     [HttpGet(Name = "GetClusterSbomReportDtos")]
     [ProducesResponseType<IEnumerable<ClusterSbomReportDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
