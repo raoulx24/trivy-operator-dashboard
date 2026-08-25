@@ -73,4 +73,21 @@ public static class TrivyReportMappings
             ? value.Value
             : GuidUtils.GetDeterministicGuid(value.Value).ToString();
     }
+    
+    public static SecurityAssessmentReportDetailDto ToDto(
+        this Domain.Trivy.ValueObjects.SecurityAssessments.Check check)
+    {
+        return new SecurityAssessmentReportDetailDto(
+            Id: check.CheckId.Value,
+            MatchKey: $"{check.Severity.Rank}:{check.CheckId.Value}",
+            Category: check.Category.Value,
+            CheckId: check.CheckId.Value,
+            Description: check.Description.Value,
+            Messages: check.Messages,
+            Remediation: check.Remediation.Value,
+            SeverityId: check.Severity.Rank,
+            Success: check.Success,
+            Title: check.Title.Value
+        );
+    }
 }

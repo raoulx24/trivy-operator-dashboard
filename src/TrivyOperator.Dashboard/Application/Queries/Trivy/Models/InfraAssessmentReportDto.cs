@@ -1,8 +1,9 @@
 ﻿namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 
-public sealed record ClusterInfraAssessmentReportDto(
+public sealed record InfraAssessmentReportDto(
     string Uid,
     string ResourceName,
+    string ResourceNamespace,
     string ResourceKind,
     int CriticalCount,
     int HighCount,
@@ -11,9 +12,10 @@ public sealed record ClusterInfraAssessmentReportDto(
     IReadOnlyList<SecurityAssessmentReportDetailDto> Details
 );
 
-public sealed record ClusterInfraAssessmentReportDenormalizedDto(
+public sealed record InfraAssessmentReportDenormalizedDto(
     string Uid,
     string ResourceName,
+    string ResourceNamespace,
     string ResourceKind,
     string Category,
     string CheckId,

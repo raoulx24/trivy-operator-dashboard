@@ -51,3 +51,16 @@ public sealed record SbomReportImageMinimalDto(
     string ImageTag,
     string ImageRepository
 );
+
+public sealed record SecurityAssessmentReportDetailDto(
+    string Id,
+    string MatchKey,
+    string Category,
+    string CheckId,
+    string Description,
+    IReadOnlyList<string> Messages,
+    string Remediation,
+    int SeverityId,
+    bool Success,
+    string Title
+);

@@ -24,23 +24,6 @@ public static class ClusterInfraAssessmentReportMappings
         );
     }
 
-    public static ClusterInfraAssessmentReportDetailDto ToDto(
-        this Check check)
-    {
-        return new ClusterInfraAssessmentReportDetailDto(
-            Id: check.CheckId.Value,
-            MatchKey: $"{check.Severity.Rank}:{check.CheckId.Value}",
-            Category: check.Category.Value,
-            CheckId: check.CheckId.Value,
-            Description: check.Description.Value,
-            Messages: check.Messages,
-            Remediation: check.Remediation.Value,
-            SeverityId: check.Severity.Rank,
-            Success: check.Success,
-            Title: check.Title.Value
-        );
-    }
-
     public static IEnumerable<ClusterInfraAssessmentReportDenormalizedDto> ToDenormalizedDtos(
         this ClusterInfraAssessmentReport report)
     {
