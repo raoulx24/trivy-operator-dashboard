@@ -8,7 +8,6 @@ namespace TrivyOperator.Dashboard.Domain.Trivy.Entities;
 
 public sealed record ClusterRbacAssessmentReport(
     ReportMetadata Metadata,
-    Resource Resource,
     Scanner Scanner,
     SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
@@ -16,6 +15,8 @@ public sealed record ClusterRbacAssessmentReport(
     : IResourceReport, ISecurityAssessmentReport<ClusterRbacAssessmentReport, Uid>
 {
     public Uid Id => Metadata.Uid;
+    public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;
+
     public ClusterRbacAssessmentReport WithChecks(IReadOnlyList<Check> checks)
         => this with { Checks = checks, };
 }

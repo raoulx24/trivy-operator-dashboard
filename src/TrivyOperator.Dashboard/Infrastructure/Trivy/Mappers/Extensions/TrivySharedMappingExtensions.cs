@@ -28,26 +28,16 @@ public static class TrivySharedMappingExtensions
             new ResourceName(metadata.Name),
             new NamespaceName(metadata.NamespaceProperty),
             new Timestamp(metadata.CreationTimestamp ?? DateTime.MinValue),
-            new Uid(metadata.Uid));
+            new Uid(metadata.Uid),
+            metadata.ToOwnerReferences());
     }    
     
-    public static Resource ToResource(this V1ObjectMeta metadata)
+    public static ContainerName ToContainerName(this V1ObjectMeta metadata)
     {
         IDictionary<string, string>? labels = metadata.Labels;
 
-        return new Resource(
-            new ResourceName(GetResourceName("trivy-operator.resource.name")),
-            new Kind(Get("trivy-operator.resource.kind")),
-            new NamespaceName(Get("trivy-operator.resource.namespace")),
-            new ContainerName(Get("trivy-operator.container.name")),
-            metadata.ToOwnerReferences());
+        return new ContainerName(Get("trivy-operator.container.name"));
 
-        string GetResourceName(string key)
-            => metadata.OwnerReferences?
-                   .FirstOrDefault(x => x.Controller == true)?
-                   .Name
-               ?? Get(key);
-        
         string Get(string key)
             => labels != null && labels.TryGetValue(key, out string? v)
                 ? v
@@ -137,10 +127,10 @@ public static class TrivySharedMappingExtensions
     public static bool IsOtherNewer<TId>(ITrivyReport<TId>? other, Timestamp currentLastSeen)
         => other?.LastSeenAt > currentLastSeen;
 
-    private static IReadOnlyList<OwnerReference>? ToOwnerReferences(this V1ObjectMeta metadata)
+    private static IReadOnlyList<OwnerReference> ToOwnerReferences(this V1ObjectMeta metadata)
     {
         if (metadata.OwnerReferences is null)
-            return null;
+            return [];
 
         return
         [

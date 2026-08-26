@@ -16,7 +16,7 @@ public static class SbomMappingExtensions
     {
         // vo layer
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
-        Resource resource = cr.Metadata.ToResource();
+        ContainerName container = cr.Metadata.ToContainerName();
         ImageMeta imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
         Digest digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
         SbomMetadata sbomMetadata = ToSbomMetadata(cr.Report.Components);
@@ -27,7 +27,7 @@ public static class SbomMappingExtensions
             DateTime.UtcNow
         );
         
-        ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, resource, imageMeta);
+        ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, container, imageMeta);
         
         // check if existing has same digest
         if (existing?.ImageDigest != digest)
@@ -91,14 +91,14 @@ public static class SbomMappingExtensions
         
         // vo layer
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
-        Resource resource = cr.Metadata.ToResource();
+        ContainerName container = cr.Metadata.ToContainerName();
         ImageMeta imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
         Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
 
         SbomSummary summary = cr.Report.Summary.ToSbomSummary();
         SbomMetadata sbomMetadata = ToSbomMetadata(cr.Report.Components);
 
-        ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, resource, imageMeta);
+        ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, container, imageMeta);
         
         // core sbom
         List<ComponentCr> allComponents = CollectAllComponents(cr.Report);

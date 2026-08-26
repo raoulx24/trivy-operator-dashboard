@@ -19,4 +19,5 @@ public sealed record ClusterComplianceReport(
 ) : IResourceReport
 {
     public Uid Id => Metadata.Uid;
+    public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;
 }

@@ -1,5 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Factories;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
@@ -27,7 +26,6 @@ public static class SecurityAssessmentMappingExtensions
             return existing;
         
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
-        Resource resource = cr.Metadata.ToResource();
         Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
 
         SeverityCounters severityCounters = TrivySharedMappingExtensions.ToSeverityCounters(cr.Report.Summary);
@@ -36,7 +34,6 @@ public static class SecurityAssessmentMappingExtensions
 
         return TrivyReportFactory.CreateSecurityAssessment<TDest>(
             metadata,
-            resource,
             scanner,
             severityCounters,
             lastSeenAt,

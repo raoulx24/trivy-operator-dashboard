@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
@@ -19,6 +20,9 @@ public sealed record SbomReport(
     IReadOnlyList<Component> Components) : IImageReport<SbomReport>, ISbomReport<SbomReport, Digest>
 {
     public Digest Id => ImageDigest;
+    public bool HasNamespaceName(NamespaceName namespaceName)
+        => Occurrences.Any(x => x.Metadata.NamespaceName == namespaceName);
+
     public SbomReport WithOccurrences(
         IReadOnlyList<ReportImageOccurrence> occurrences)
         => this with { Occurrences = occurrences };

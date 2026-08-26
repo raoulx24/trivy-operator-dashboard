@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ExposedSecrets;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
@@ -18,7 +19,9 @@ public sealed record ExposedSecretReport(
 ) : IImageReport<ExposedSecretReport>
 {
     public Digest Id => ImageDigest;
-    
+    public bool HasNamespaceName(NamespaceName namespaceName)
+        => Occurrences.Any(x => x.Metadata.NamespaceName == namespaceName);
+
     public ExposedSecretReport WithOccurrences(
         IReadOnlyList<ReportImageOccurrence> occurrences)
         => this with { Occurrences = occurrences };

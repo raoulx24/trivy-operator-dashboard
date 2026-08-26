@@ -17,6 +17,8 @@ public sealed record ClusterSbomReport(
 ) : IResourceReport, ISbomReport<ClusterSbomReport, Uid>
 {
     public Uid Id => Occurrence.Metadata.Uid;
+    public bool HasNamespaceName(NamespaceName namespaceName) => Occurrence.Metadata.NamespaceName == namespaceName;
+
     public ReportMetadata Metadata => Occurrence.Metadata;
     public ClusterSbomReport WithComponents(IReadOnlyList<Component> components)
         => this with { Components = components, };
