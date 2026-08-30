@@ -62,6 +62,15 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
         return result;
     }
 
+    public async Task<TTrivyReport?> GetResourceSummary(TKey key, CancellationToken ctx = default)
+    {
+        await EnsureCacheLoaded(ctx);
+
+        CacheEntry<TTrivyReport, TKey>? cacheEntry = cache[DefaultContext].GetValueOrDefault(key);
+        
+        return cacheEntry?.Entry;
+    }
+
     public async Task<IReadOnlyList<TTrivyReport>> GetResourceSummaries(CancellationToken ctx = default)
     {
         await EnsureCacheLoaded(ctx);

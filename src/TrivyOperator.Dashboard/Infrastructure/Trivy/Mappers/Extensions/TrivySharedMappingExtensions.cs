@@ -30,7 +30,7 @@ public static class TrivySharedMappingExtensions
             new Timestamp(metadata.CreationTimestamp ?? DateTime.MinValue),
             new Uid(metadata.Uid),
             metadata.ToOwnerReferences());
-    }    
+    }
     
     public static ContainerName ToContainerName(this V1ObjectMeta metadata)
     {

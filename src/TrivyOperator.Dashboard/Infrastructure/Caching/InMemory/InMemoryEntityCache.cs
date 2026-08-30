@@ -136,6 +136,28 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
         return Task.FromResult<IReadOnlyList<TResource>>(resources);
     }
 
+    public Task<TResource?> GetResourceSummary(TKey key, CancellationToken ctx = default)
+    {
+        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        ctx.ThrowIfCancellationRequested();
+
+        if (contextName == default)
+            contextName = new ContextName();
+
+        if (!cache.TryGetValue(
+                contextName,
+                out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
+        {
+            return Task.FromResult<TResource?>(null);
+        }
+        
+        innerCache.TryGetValue(key, out CacheEntry<TResource, TKey>? cacheEntry);
+        
+        return cacheEntry is null
+            ? Task.FromResult<TResource?>(null)
+            : Task.FromResult<TResource?>(cacheEntry.Entry);
+    }
+
     public Task<IReadOnlyList<TResource>> GetResourceSummaries(
         CancellationToken ctx = default)
     {

@@ -93,7 +93,7 @@ public static class TrivyQuerySupport
         IResourceProvider<TResource, Digest> resourceProvider,
         string uid,
         CancellationToken ctx = default)
-    where TResource : class, IImageReport<TResource>
+    where TResource : class, IImageReport
     {
         IReadOnlyList<TResource> values =
             await resourceProvider.GetResourceSummaries(ctx);

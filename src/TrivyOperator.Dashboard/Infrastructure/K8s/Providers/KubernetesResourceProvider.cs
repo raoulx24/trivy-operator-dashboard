@@ -73,6 +73,15 @@ public class KubernetesResourceProvider<TKubernetesObject, TReport, TKey>(
         return result;
     }
 
+    public async Task<TReport?> GetResourceSummary(TKey key, CancellationToken ctx = default)
+    {
+        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        await EnsureCacheLoaded(contextName, ctx);
+
+        CacheEntry<TReport, TKey>? cacheEntry = cache[contextName].GetValueOrDefault(key);
+        
+        return cacheEntry?.Entry;
+    }
 
     public async Task<IReadOnlyList<TReport>> GetResourceSummaries(CancellationToken ctx = default)
     {
