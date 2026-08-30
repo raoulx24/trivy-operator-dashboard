@@ -91,15 +91,27 @@ public static class TrivyReportMappings
         );
     }
 
-    internal static string GetResourceName(this Resource resource)
+    internal static ResourceName GetResourceName(this ReportMetadata metadata)
     {
-        IReadOnlyList<OwnerReference>? ownerReferences = resource.OwnerReferences;
+        IReadOnlyList<OwnerReference>? ownerReferences = metadata.OwnerReferences;
 
         if (ownerReferences is not null && ownerReferences.Count > 0)
         {
-            return ownerReferences[0].Name.Value;
+            return ownerReferences[0].Name;
         }
 
-        return resource.Name.Value;
+        return metadata.Name;
+    }
+    
+    internal static Kind GetResourceKind(this ReportMetadata metadata)
+    {
+        IReadOnlyList<OwnerReference>? ownerReferences = metadata.OwnerReferences;
+
+        if (ownerReferences is not null && ownerReferences.Count > 0)
+        {
+            return ownerReferences[0].Kind;
+        }
+
+        return new Kind();
     }
 }

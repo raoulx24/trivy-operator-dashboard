@@ -56,9 +56,9 @@ public static class SbomReportMappings
             Resources:
             [
                 .. report.Occurrences.Select(static x => new SbomReportImageResourceDto(
-                        Name: x.Resource.Name.Value,
-                        Kind: x.Resource.Kind.Value,
-                        ContainerName: x.Resource.Container?.Value ?? string.Empty
+                        Name: x.Metadata.GetResourceName().Value,
+                        Kind: x.Metadata.GetResourceKind().Value,
+                        ContainerName: x.Container.Value ?? string.Empty
                     )
                 )
             ],

@@ -1,6 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 
@@ -11,8 +10,7 @@ public static class ClusterInfraAssessmentReportMappings
     {
         return new ClusterInfraAssessmentReportDto(
             Uid: report.Metadata.Uid.Value,
-            ResourceName: report.Resource.Name.Value,
-            ResourceKind: report.Resource.Kind.Value,
+            ResourceName: report.Metadata.Name.Value,
             CriticalCount: report.SeverityCounters.CriticalCount,
             HighCount: report.SeverityCounters.HighCount,
             MediumCount: report.SeverityCounters.MediumCount,
@@ -29,8 +27,7 @@ public static class ClusterInfraAssessmentReportMappings
     {
         return report.Checks.Select(check => new ClusterInfraAssessmentReportDenormalizedDto(
             Uid: report.Metadata.Uid.Value,
-            ResourceName: report.Resource.Name.Value,
-            ResourceKind: report.Resource.Kind.Value,
+            ResourceName: report.Metadata.Name.Value,
             Category: check.Category.Value,
             CheckId: check.CheckId.Value,
             Description: check.Description.Value,

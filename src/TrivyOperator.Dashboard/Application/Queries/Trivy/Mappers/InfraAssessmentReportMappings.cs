@@ -10,9 +10,8 @@ public static class InfraAssessmentReportMappings
     {
         return new InfraAssessmentReportDto(
             Uid: report.Metadata.Uid.Value,
-            ResourceName: report.Resource.Name.Value,
-            ResourceNamespace: report.Resource.NamespaceName.Value,
-            ResourceKind: report.Resource.Kind.Value,
+            ResourceName: report.Metadata.Name.Value,
+            ResourceNamespace: report.Metadata.NamespaceName.Value,
             CriticalCount: report.SeverityCounters.CriticalCount,
             HighCount: report.SeverityCounters.HighCount,
             MediumCount: report.SeverityCounters.MediumCount,
@@ -30,9 +29,8 @@ public static class InfraAssessmentReportMappings
         return report.Checks.Select(check =>
             new InfraAssessmentReportDenormalizedDto(
                 Uid: report.Metadata.Uid.Value,
-                ResourceName: report.Resource.Name.Value,
-                ResourceNamespace: report.Resource.NamespaceName.Value,
-                ResourceKind: report.Resource.Kind.Value,
+                ResourceName: report.Metadata.Name.Value,
+                ResourceNamespace: report.Metadata.NamespaceName.Value,
                 Category: check.Category.Value,
                 CheckId: check.CheckId.Value,
                 Description: check.Description.Value,

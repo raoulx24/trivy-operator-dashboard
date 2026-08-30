@@ -1,5 +1,4 @@
 ﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
@@ -16,7 +15,7 @@ public static class ClusterRbacAssessmentReportMappings
 
         return new ClusterRbacAssessmentReportDto(
             Uid: report.Metadata.Uid.ToString(),
-            ResourceName: report.Resource.GetResourceName(),
+            ResourceName: report.Metadata.GetResourceName().Value,
             CriticalCount: report.SeverityCounters.CriticalCount,
             HighCount: report.SeverityCounters.HighCount,
             MediumCount: report.SeverityCounters.MediumCount,
@@ -35,7 +34,7 @@ public static class ClusterRbacAssessmentReportMappings
 
             return new ClusterRbacAssessmentReportDenormalizedDto(
                 Uid: report.Metadata.Uid.ToString(),
-                ResourceName: report.Resource.GetResourceName(),
+                ResourceName: report.Metadata.GetResourceName().Value,
                 CriticalCount: report.SeverityCounters.CriticalCount,
                 HighCount: report.SeverityCounters.HighCount,
                 MediumCount: report.SeverityCounters.MediumCount,

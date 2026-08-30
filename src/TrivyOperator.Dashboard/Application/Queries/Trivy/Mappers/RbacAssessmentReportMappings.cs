@@ -14,9 +14,9 @@ public static class RbacAssessmentReportExtensions
         ];
 
         return new RbacAssessmentReportDto(
-            report.Metadata.Uid.ToString(),
-            report.Resource.GetResourceName(),
-            report.Resource.NamespaceName.ToString(),
+            report.Metadata.Uid.Value,
+            report.Metadata.GetResourceName().Value,
+            report.Metadata.NamespaceName.Value,
             report.SeverityCounters.CriticalCount,
             report.SeverityCounters.HighCount,
             report.SeverityCounters.MediumCount,
@@ -29,9 +29,9 @@ public static class RbacAssessmentReportExtensions
     public static IEnumerable<RbacAssessmentReportDenormalizedDto> ToDenormalizedDtos(
         this RbacAssessmentReport report)
     {
-        string uid = report.Metadata.Uid.ToString();
-        string resourceName = report.Resource.GetResourceName();
-        string resourceNamespace = report.Resource.NamespaceName.ToString();
+        string uid = report.Metadata.Uid.Value;
+        string resourceName = report.Metadata.GetResourceName().Value;
+        string resourceNamespace = report.Metadata.NamespaceName.Value;
 
         return report.Checks.Select(check =>
         {
