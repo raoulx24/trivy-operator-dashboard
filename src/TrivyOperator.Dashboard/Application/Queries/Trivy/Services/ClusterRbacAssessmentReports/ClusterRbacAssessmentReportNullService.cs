@@ -5,6 +5,11 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterRbac
 
 public class ClusterRbacAssessmentReportNullService : IClusterRbacAssessmentReportService
 {
+    public Task<ClusterRbacAssessmentReportDto?> GetClusterRbacAssessmentReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default) 
+        => Task.FromResult<ClusterRbacAssessmentReportDto?>(null);
+
     public Task<IEnumerable<ClusterRbacAssessmentReportDto>>
         GetClusterRbacAssessmentReportDtos(CancellationToken ctx = default)
         => Task.FromResult<IEnumerable<ClusterRbacAssessmentReportDto>>([]);

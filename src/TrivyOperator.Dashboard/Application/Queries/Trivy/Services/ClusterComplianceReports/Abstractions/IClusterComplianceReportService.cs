@@ -5,5 +5,8 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComp
 public interface IClusterComplianceReportService
 {
     Task<IEnumerable<ClusterComplianceReportDenormalizedDto>> GetClusterComplianceReportDenormalizedDtos(CancellationToken ctx = default);
+    Task<ClusterComplianceReportDto?> GetClusterComplianceReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default);
     Task<IEnumerable<ClusterComplianceReportDto>> GetClusterComplianceReportDtos(CancellationToken ctx = default);
 }

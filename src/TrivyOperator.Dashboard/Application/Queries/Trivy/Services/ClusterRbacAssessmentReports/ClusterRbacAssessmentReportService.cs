@@ -11,6 +11,15 @@ public class ClusterRbacAssessmentReportService(
     IResourceProvider<ClusterRbacAssessmentReport, Uid> resourceProvider
 ) : IClusterRbacAssessmentReportService
 {
+    public async Task<ClusterRbacAssessmentReportDto?> GetClusterRbacAssessmentReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default)
+    {
+        ClusterRbacAssessmentReport? report = await resourceProvider.GetResource(new Uid(uid), ctx);
+        
+        return report?.ToDto();
+    }
+
     public async Task<IEnumerable<ClusterRbacAssessmentReportDto>> GetClusterRbacAssessmentReportDtos(
         CancellationToken ctx = default)
     {

@@ -5,9 +5,14 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComp
 
 public class ClusterComplianceReportNullService : IClusterComplianceReportService
 {
-    public Task<IEnumerable<ClusterComplianceReportDto>> GetClusterComplianceReportDtos(CancellationToken ctx = default) =>
-        Task.FromResult<IEnumerable<ClusterComplianceReportDto>>([]);
+    public Task<IEnumerable<ClusterComplianceReportDto>> GetClusterComplianceReportDtos(CancellationToken ctx = default) 
+        => Task.FromResult<IEnumerable<ClusterComplianceReportDto>>([]);
 
-    public Task<IEnumerable<ClusterComplianceReportDenormalizedDto>> GetClusterComplianceReportDenormalizedDtos(CancellationToken ctx = default) =>
-        Task.FromResult<IEnumerable<ClusterComplianceReportDenormalizedDto>>([]);
+    public Task<ClusterComplianceReportDto?> GetClusterComplianceReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default)
+        => Task.FromResult<ClusterComplianceReportDto?>(null); 
+
+    public Task<IEnumerable<ClusterComplianceReportDenormalizedDto>> GetClusterComplianceReportDenormalizedDtos(CancellationToken ctx = default)
+        => Task.FromResult<IEnumerable<ClusterComplianceReportDenormalizedDto>>([]);
 }

@@ -20,7 +20,7 @@ public class ClusterSbomReportService(
 
         return resourceSummaries
             .Select(x => x.ToMinimalDto(
-                x.Occurrence.Resource.OwnerReferences?
+                x.Occurrence.Metadata.OwnerReferences?
                     .Any(owner => vrDigests.Contains(owner.Uid)) == true));
     }
     
@@ -38,7 +38,7 @@ public class ClusterSbomReportService(
         foreach (ClusterSbomReport report in reports)
         {
             OwnerReference? ownerReference =
-                report.Occurrence.Resource.OwnerReferences?
+                report.Occurrence.Metadata.OwnerReferences?
                     .FirstOrDefault(owner => vulnerabilityReportIds.Contains(owner.Uid));
 
             ClusterVulnerabilityReport? vulnerabilityReport =

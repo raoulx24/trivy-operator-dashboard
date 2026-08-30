@@ -24,7 +24,7 @@ public class ClusterInfraAssessmentReportController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ClusterInfraAssessmentReportDto>> GetByUid(
+    public async Task<IActionResult> GetByUid(
         string uid,
         CancellationToken ctx = default)
     {

@@ -10,14 +10,6 @@ public static class TrivyQuerySupport
 {
     public static async Task<IReadOnlyList<TResource>> GetResources<TResource, TId>(
         IResourceProvider<TResource, TId> resourceProvider,
-        CancellationToken ctx = default)
-        where TResource : ITrivyReport<TId>
-    {
-        return await resourceProvider.GetResources(ctx);
-    }
-    
-    public static async Task<IReadOnlyList<TResource>> GetResources<TResource, TId>(
-        IResourceProvider<TResource, TId> resourceProvider,
         string? namespaceName,
         CancellationToken ctx = default)
         where TResource : ITrivyReport<TId>
@@ -71,7 +63,7 @@ public static class TrivyQuerySupport
         // if no filters, it means we can fetch the reports directly
         if (includedSeverityIds is null && namespaceName is null)
         {
-            reports = await GetResources(resourceProvider, ctx);
+            reports = await resourceProvider.GetResources(ctx);
         }
         else
         {
@@ -95,6 +87,28 @@ public static class TrivyQuerySupport
         }
 
         return new QueryResponse<IReadOnlyList<TResource>>(reports, null);
+    }
+    
+    public static async Task<TResource?> GetImageDigestReportDtoByUid<TResource>(
+        IResourceProvider<TResource, Digest> resourceProvider,
+        string uid,
+        CancellationToken ctx = default)
+    where TResource : class, IImageReport<TResource>
+    {
+        IReadOnlyList<TResource> values =
+            await resourceProvider.GetResourceSummaries(ctx);
+
+        Uid valueUid = new(uid);
+
+        Digest? digest = values
+            .FirstOrDefault(x =>
+                x.Occurrences.Any(y => y.Metadata.Uid == valueUid))?
+            .ImageDigest;
+
+        if (digest is not { } d)
+            return null;
+
+        return await resourceProvider.GetResource(d, ctx); 
     }
 
     private static IReadOnlySet<int>? GetSeverityIdsToInclude(string? excludedSeverities)

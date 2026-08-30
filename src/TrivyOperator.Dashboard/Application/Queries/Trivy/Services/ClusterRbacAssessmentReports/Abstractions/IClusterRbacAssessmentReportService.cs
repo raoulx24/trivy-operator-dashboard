@@ -4,6 +4,10 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterRbac
 
 public interface IClusterRbacAssessmentReportService
 {
-    Task<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>> GetClusterRbacAssessmentReportDenormalizedDtos(CancellationToken ctx = default);
+    Task<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>> GetClusterRbacAssessmentReportDenormalizedDtos(
+        CancellationToken ctx = default);
+    Task<ClusterRbacAssessmentReportDto?> GetClusterRbacAssessmentReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default);
     Task<IEnumerable<ClusterRbacAssessmentReportDto>> GetClusterRbacAssessmentReportDtos(CancellationToken ctx = default);
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TrivyOperator.Dashboard.Application.Queries.Shared;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ExposedSecretReports.Abstractions;
-using TrivyOperator.Dashboard.Application.Trivy.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Controllers;
 
@@ -55,26 +55,16 @@ public class ExposedSecretReportsController(
     [ProducesResponseType<IEnumerable<ExposedSecretReportImageDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IResult> GetGroupedByImage(
+    public async Task<IActionResult> GetGroupedByImage(
         string? namespaceName,
         string? excludedSeverities,
         CancellationToken ctx)
     {
-        IReadOnlySet<int>? includedSeverityIds =
-            TrivyUtils.GetSeverityIdsToInclude(excludedSeverities);
-
-        if (includedSeverityIds == null)
-            return Results.BadRequest();
-
-        if (includedSeverityIds.Count == TrivyUtils.GetAllSeverityIds().Count)
-            includedSeverityIds = null;
-
-        IEnumerable<ExposedSecretReportImageDto> exposedSecretReportImageDtos =
-            await exposedSecretReportService.GetExposedSecretReportImageDtos(
-                namespaceName,
-                includedSeverityIds,
-                ctx);
-
-        return Results.Ok(exposedSecretReportImageDtos);
+        QueryResponse<IEnumerable<ExposedSecretReportImageDto>> result =
+            await exposedSecretReportService.GetExposedSecretReportImageDtos(namespaceName, excludedSeverities, ctx);
+        
+        return result.Error is null
+            ? Ok(result.Payload)
+            : BadRequest(result.Error);
     }
 }

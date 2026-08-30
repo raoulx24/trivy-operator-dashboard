@@ -18,6 +18,22 @@ public class ClusterRbacAssessmentReportController(
         CancellationToken ctx = default) =>
         await clusterRbacAssessmentReportService
             .GetClusterRbacAssessmentReportDtos(ctx);
+    
+    [HttpGet("{uid}", Name = "GetClusterRbacAssessmentReportDtoByUid")]
+    [ProducesResponseType<ClusterRbacAssessmentReportDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetByUid(
+        string uid,
+        CancellationToken ctx = default)
+    {
+        ClusterRbacAssessmentReportDto? result =
+            await clusterRbacAssessmentReportService
+                .GetClusterRbacAssessmentReportDtoByUid(uid, ctx);
+
+        return result is null ? NotFound() : Ok(result);
+    }
 
     [HttpGet("denormalized", Name = "GetClusterRbacAssessmentReportDenormalizedDtos")]
     [ProducesResponseType<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>>(StatusCodes.Status200OK)]

@@ -15,6 +15,22 @@ public class ClusterComplianceReportController(IClusterComplianceReportService c
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
     public async Task<IEnumerable<ClusterComplianceReportDto>> Get() =>
         await clusterComplianceReportService.GetClusterComplianceReportDtos();
+    
+    [HttpGet("{uid}", Name = "GetClusterComplianceReportDtoByUid")]
+    [ProducesResponseType<ClusterComplianceReportDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetByUid(
+        string uid,
+        CancellationToken ctx = default)
+    {
+        ClusterComplianceReportDto? result =
+            await clusterComplianceReportService
+                .GetClusterComplianceReportDtoByUid(uid, ctx);
+
+        return result is null ? NotFound() : Ok(result);
+    }
 
     [HttpGet("denormalized", Name = "GetClusterComplianceReportDenormalizedDtos")]
     [ProducesResponseType<IEnumerable<ClusterComplianceReportDenormalizedDto>>(StatusCodes.Status200OK)]

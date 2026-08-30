@@ -15,4 +15,8 @@ public interface IRbacAssessmentReportService
         string? excludedSeverities = null,
         CancellationToken ctx = default
     );
+    
+    Task<RbacAssessmentReportDto?> GetRbacAssessmentReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default);
 }

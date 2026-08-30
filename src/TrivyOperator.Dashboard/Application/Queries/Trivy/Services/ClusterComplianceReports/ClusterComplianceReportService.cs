@@ -19,6 +19,16 @@ public class ClusterComplianceReportService(
 
         return reports.Select(x => x.ToDto());
     }
+    
+    public async Task<ClusterComplianceReportDto?> GetClusterComplianceReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default)
+    {
+        ClusterComplianceReport? report = await resourceProvider.GetResource(new Uid(uid), ctx);
+
+        return report?.ToDto();
+    }
+
 
     public async Task<IEnumerable<ClusterComplianceReportDenormalizedDto>> GetClusterComplianceReportDenormalizedDtos(
         CancellationToken ctx = default)
