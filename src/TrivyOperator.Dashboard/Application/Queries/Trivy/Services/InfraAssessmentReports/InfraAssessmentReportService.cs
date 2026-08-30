@@ -1,6 +1,8 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.InfraAssessmentReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.Shared;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
@@ -11,39 +13,17 @@ public sealed class InfraAssessmentReportService(
     IResourceProvider<InfraAssessmentReport, Uid> resourceProvider
 ) : IInfraAssessmentReportService
 {
-    public async Task<IEnumerable<InfraAssessmentReportDto>> GetInfraAssessmentReportDtos(
+    public async Task<QueryResponse<IEnumerable<InfraAssessmentReportDto>>> GetInfraAssessmentReportDtos(
         string? namespaceName = null,
-        IEnumerable<int>? excludedSeverities = null,
+        string? excludedSeverities = null,
         CancellationToken ctx = default)
     {
-        IReadOnlyList<InfraAssessmentReport> reports =
-            await resourceProvider.GetResourceSummaries(ctx);
+        QueryResponse<IReadOnlyList<InfraAssessmentReport>> result = 
+            await TrivyQuerySupport.GetResources(resourceProvider, namespaceName, excludedSeverities, ctx);
 
-        HashSet<int> excludedSeverityIds =
-            [.. excludedSeverities ?? []];
-
-        bool hasExcludedSeverities = excludedSeverityIds.Count > 0;
-
-        return reports
-            .Where(report =>
-                string.IsNullOrEmpty(namespaceName) ||
-                report.Resource.NamespaceName.Value == namespaceName)
-            .Select(report =>
-            {
-                InfraAssessmentReportDto dto = report.ToDto();
-
-                if (excludedSeverityIds.Count == 0)
-                    return dto;
-
-                IReadOnlyList<SecurityAssessmentReportDetailDto> details =
-                [
-                    .. dto.Details.Where(detail =>
-                        !excludedSeverityIds.Contains(detail.SeverityId))
-                ];
-
-                return dto with { Details = details };
-            })
-            .Where(dto => !hasExcludedSeverities || dto.Details.Count > 0);
+        return new QueryResponse<IEnumerable<InfraAssessmentReportDto>>(
+            result.Payload.Select(static x => x.ToDto()),
+            result.Error);
     }
 
     public async Task<InfraAssessmentReportDto?> GetInfraAssessmentReportDtoByUid(
@@ -61,13 +41,9 @@ public sealed class InfraAssessmentReportService(
             string? namespaceName = null,
             CancellationToken ctx = default)
     {
-        IReadOnlyList<InfraAssessmentReport> reports =
-            await resourceProvider.GetResourceSummaries(ctx);
-
-        return reports
-            .Where(report =>
-                string.IsNullOrEmpty(namespaceName) ||
-                report.Resource.NamespaceName.Value == namespaceName)
-            .SelectMany(static report => report.ToDenormalizedDtos());
+        IReadOnlyList<InfraAssessmentReport> result = 
+            await TrivyQuerySupport.GetResources(resourceProvider, namespaceName, ctx);
+        
+        return result.SelectMany(static report => report.ToDenormalizedDtos());
     }
 }

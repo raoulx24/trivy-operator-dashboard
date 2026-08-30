@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ExposedSecretReports.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ExposedSecretReports;
@@ -21,10 +22,10 @@ public class ExposedSecretReportNullService : IExposedSecretReportService
             CancellationToken ctx = default)
         => Task.FromResult<IEnumerable<ExposedSecretReportDenormalizedDto>>([]);
 
-    public Task<IEnumerable<ExposedSecretReportImageDto>>
+    public Task<QueryResponse<IEnumerable<ExposedSecretReportImageDto>>>
         GetExposedSecretReportImageDtos(
             string? namespaceName = null,
-            IReadOnlySet<int>? includedSeverities = null,
+            string? excludedSeverities = null,
             CancellationToken ctx = default)
-        => Task.FromResult<IEnumerable<ExposedSecretReportImageDto>>([]);
+        => Task.FromResult(new QueryResponse<IEnumerable<ExposedSecretReportImageDto>>([], null));
 }

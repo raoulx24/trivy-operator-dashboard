@@ -21,8 +21,17 @@ public class RbacAssessmentReportService(
         QueryResponse<IReadOnlyList<RbacAssessmentReport>> result = await TrivyQuerySupport.GetResources(resourceProvider, namespaceName, excludedSeverities, ctx);
 
         return new QueryResponse<IEnumerable<RbacAssessmentReportDto>>(
-            result.Result.Select(static x => x.ToDto()),
+            result.Payload.Select(static x => x.ToDto()),
             result.Error);
+    }
+    
+    public async Task<RbacAssessmentReportDto?> GetRbacAssessmentReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default)
+    {
+        RbacAssessmentReport? report = await resourceProvider.GetResource(new Uid(uid), ctx);
+        
+        return report?.ToDto();
     }
 
     public async Task<IEnumerable<RbacAssessmentReportDenormalizedDto>>

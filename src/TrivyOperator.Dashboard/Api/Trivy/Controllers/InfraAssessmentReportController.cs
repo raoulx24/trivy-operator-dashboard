@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TrivyOperator.Dashboard.Application.Queries.Shared;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.InfraAssessmentReports.Abstractions;
-using TrivyOperator.Dashboard.Application.Trivy.Utils;
 
 namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 
@@ -15,21 +15,17 @@ public class InfraAssessmentReportController(
     [ProducesResponseType<IEnumerable<InfraAssessmentReportDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<InfraAssessmentReportDto>> Get(
+    public async Task<IActionResult> Get(
         string? namespaceName,
         string? excludedSeverities,
         CancellationToken ctx = default)
     {
-        IReadOnlySet<int>? includedSeverityIds =
-            TrivyUtils.GetSeverityIdsToInclude(excludedSeverities);
-
-        if (includedSeverityIds is null)
-            throw new BadHttpRequestException("Invalid excluded severities.");
-
-        return await infraAssessmentReportService.GetInfraAssessmentReportDtos(
-            namespaceName,
-            includedSeverityIds,
-            ctx);
+        QueryResponse<IEnumerable<InfraAssessmentReportDto>> result = 
+            await infraAssessmentReportService.GetInfraAssessmentReportDtos(namespaceName, excludedSeverities, ctx);
+        
+        return result.Error is null
+            ? Ok(result.Payload)
+            : BadRequest(result.Error);
     }
 
     [HttpGet("{uid}", Name = "GetInfraAssessmentReportDtoByUid")]

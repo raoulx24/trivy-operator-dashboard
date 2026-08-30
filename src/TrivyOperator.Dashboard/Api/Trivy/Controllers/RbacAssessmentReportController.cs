@@ -27,8 +27,24 @@ public class RbacAssessmentReportController(
                 ctx);
 
         return result.Error is null
-            ? Ok(result.Result)
+            ? Ok(result.Payload)
             : BadRequest(result.Error);
+    }
+    
+    [HttpGet("{uid}", Name = "GetRbacAssessmentReportDtoByUid")]
+    [ProducesResponseType<RbacAssessmentReportDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetByUid(
+        string uid,
+        CancellationToken ctx = default)
+    {
+        RbacAssessmentReportDto? result =
+            await rbacAssessmentReportService
+                .GetRbacAssessmentReportDtoByUid(uid, ctx);
+
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpGet("denormalized", Name = "GetRbacAssessmentReportDenormalizedDtos")]

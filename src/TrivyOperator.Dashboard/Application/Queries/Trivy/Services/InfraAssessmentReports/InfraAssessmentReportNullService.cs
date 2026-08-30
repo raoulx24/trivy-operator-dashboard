@@ -1,15 +1,16 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.InfraAssessmentReports.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.InfraAssessmentReports;
 
 public class InfraAssessmentReportNullService : IInfraAssessmentReportService
 {
-    public Task<IEnumerable<InfraAssessmentReportDto>> GetInfraAssessmentReportDtos(
+    public Task<QueryResponse<IEnumerable<InfraAssessmentReportDto>>> GetInfraAssessmentReportDtos(
         string? namespaceName = null,
-        IEnumerable<int>? excludedSeverities = null,
+        string? excludedSeverities = null,
         CancellationToken ctx = default
-    ) => Task.FromResult<IEnumerable<InfraAssessmentReportDto>>([]);
+    ) => Task.FromResult(new QueryResponse<IEnumerable<InfraAssessmentReportDto>>([], null));
 
     public Task<InfraAssessmentReportDto?> GetInfraAssessmentReportDtoByUid(string uid, CancellationToken ctx = default) =>
         Task.FromResult<InfraAssessmentReportDto?>(null);
