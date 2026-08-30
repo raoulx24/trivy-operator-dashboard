@@ -12,7 +12,7 @@ public sealed record ClusterRbacAssessmentReport(
     SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport, ISecurityAssessmentReport<ClusterRbacAssessmentReport, Uid>
+    : IResourceReport, ISecurityAssessmentReport<ClusterRbacAssessmentReport, Uid>, IHasSeverityCounters
 {
     public Uid Id => Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;

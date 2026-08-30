@@ -12,7 +12,7 @@ public sealed record ConfigAuditReport(
     SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport, ISecurityAssessmentReport<ConfigAuditReport, Uid>
+    : IResourceReport, ISecurityAssessmentReport<ConfigAuditReport, Uid>, IHasSeverityCounters
 {
     public Uid Id => Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;

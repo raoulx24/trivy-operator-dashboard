@@ -17,7 +17,9 @@ public sealed record SbomReport(
     SbomMetadata SbomMetadata,
     ComponentId RootNodeBomRef,
     
-    IReadOnlyList<Component> Components) : IImageReport<SbomReport>, ISbomReport<SbomReport, Digest>
+    IReadOnlyList<Component> Components) 
+    : IImageReport<SbomReport>, 
+      ISbomReport<SbomReport, Digest>
 {
     public Digest Id => ImageDigest;
     public bool HasNamespaceName(NamespaceName namespaceName)

@@ -1,0 +1,125 @@
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared;
+using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+
+namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.Shared;
+
+public static class TrivyQuerySupport
+{
+    public static async Task<IReadOnlyList<TResource>> GetResources<TResource, TId>(
+        IResourceProvider<TResource, TId> resourceProvider,
+        CancellationToken ctx = default)
+        where TResource : ITrivyReport<TId>
+    {
+        return await resourceProvider.GetResources(ctx);
+    }
+    
+    public static async Task<IReadOnlyList<TResource>> GetResources<TResource, TId>(
+        IResourceProvider<TResource, TId> resourceProvider,
+        string? namespaceName,
+        CancellationToken ctx = default)
+        where TResource : ITrivyReport<TId>
+    {
+        IReadOnlyList<TResource> summaries =
+            await resourceProvider.GetResourceSummaries(ctx);
+
+        NamespaceName ns = new(namespaceName);
+
+        // filter summaries first to avoid fetching reports we don't need
+        IReadOnlyList<TId> ids =
+        [
+            .. summaries
+                .Where(x => namespaceName is null || x.HasNamespaceName(ns))
+                .Select(x => x.Id),
+        ];
+
+        return await resourceProvider.GetResources(ids, ctx);
+    }
+    
+    public static async Task<QueryResponse<IReadOnlyList<TResource>>>
+        GetResources<TResource, TId>(
+            IResourceProvider<TResource, TId> resourceProvider,
+            string? namespaceName,
+            string? excludedSeverities,
+            CancellationToken ctx = default)
+        where TResource : IHasSeverityCounters, ITrivyReport<TId>
+    {
+        IReadOnlySet<int>? includedSeverityIds = null;
+
+        if (excludedSeverities is not null)
+        {
+            includedSeverityIds = GetSeverityIdsToInclude(excludedSeverities);
+
+            if (includedSeverityIds is null)
+            {
+                return new QueryResponse<IReadOnlyList<TResource>>(
+                    [],
+                    "At least one Severity must be selected");
+            }
+
+            // Aal severities included = no severity filter needed
+            if (includedSeverityIds.Count == GetAllSeverityIds().Count)
+            {
+                includedSeverityIds = null;
+            }
+        }
+
+        IReadOnlyList<TResource> reports;
+
+        // if no filters, it means we can fetch the reports directly
+        if (includedSeverityIds is null && namespaceName is null)
+        {
+            reports = await GetResources(resourceProvider, ctx);
+        }
+        else
+        {
+            IReadOnlyList<TResource> summaries =
+                await resourceProvider.GetResourceSummaries(ctx);
+
+            NamespaceName ns = new(namespaceName);
+
+            // filter summaries first to avoid fetching reports we don't need
+            IReadOnlyList<TId> ids =
+            [
+                .. summaries
+                    .Where(x =>
+                        (namespaceName is null || x.HasNamespaceName(ns)) &&
+                        (includedSeverityIds is null ||
+                         x.SeverityCounters.HasAnyOf(includedSeverityIds)))
+                    .Select(x => x.Id),
+            ];
+
+            reports = await resourceProvider.GetResources(ids, ctx);
+        }
+
+        return new QueryResponse<IReadOnlyList<TResource>>(reports, null);
+    }
+
+    private static IReadOnlySet<int>? GetSeverityIdsToInclude(string? excludedSeverities)
+    {
+        HashSet<int> knownSeverityIds = [.. GetAllSeverityIds(),];
+
+        if (string.IsNullOrWhiteSpace(excludedSeverities))
+        {
+            return knownSeverityIds;
+        }
+
+        foreach (string value in excludedSeverities.Split(','))
+        {
+            if (!int.TryParse(value, out int severityId) ||
+                !knownSeverityIds.Contains(severityId))
+            {
+                return null;
+            }
+
+            knownSeverityIds.Remove(severityId);
+        }
+
+        return knownSeverityIds;
+    }
+
+    private static IReadOnlySet<int> GetAllSeverityIds() =>
+        Severity.RankedSeverities.Select(static x => x.Rank).ToHashSet();
+}
