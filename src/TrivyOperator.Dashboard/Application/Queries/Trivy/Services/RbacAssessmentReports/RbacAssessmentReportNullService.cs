@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.RbacAssessmentReports.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.RbacAssessmentReports;
@@ -11,10 +12,10 @@ public class RbacAssessmentReportNullService : IRbacAssessmentReportService
     ) =>
         Task.FromResult<IEnumerable<RbacAssessmentReportDenormalizedDto>>([]);
 
-    public Task<IEnumerable<RbacAssessmentReportDto>> GetRbacAssessmentReportDtos(
+    public Task<QueryResponse<IEnumerable<RbacAssessmentReportDto>>> GetRbacAssessmentReportDtos(
         string? namespaceName = null,
-        IReadOnlySet<int>? excludedSeverities = null,
+        string?  excludedSeverities = null,
         CancellationToken ctx = default
     ) =>
-        Task.FromResult<IEnumerable<RbacAssessmentReportDto>>([]);
+        Task.FromResult(new QueryResponse<IEnumerable<RbacAssessmentReportDto>>([], null));
 }

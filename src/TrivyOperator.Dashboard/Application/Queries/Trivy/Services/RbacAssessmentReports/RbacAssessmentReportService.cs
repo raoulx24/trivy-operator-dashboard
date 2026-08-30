@@ -1,6 +1,8 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.RbacAssessmentReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.Shared;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
@@ -11,31 +13,16 @@ public class RbacAssessmentReportService(
     IResourceProvider<RbacAssessmentReport, Uid> resourceProvider
 ) : IRbacAssessmentReportService
 {
-    public async Task<IEnumerable<RbacAssessmentReportDto>> GetRbacAssessmentReportDtos(
+    public async Task<QueryResponse<IEnumerable<RbacAssessmentReportDto>>> GetRbacAssessmentReportDtos(
         string? namespaceName = null,
-        IReadOnlySet<int>? includedSeverityIds = null,
+        string?  excludedSeverities = null,
         CancellationToken ctx = default)
     {
-        IReadOnlyList<RbacAssessmentReport> reports;
-        if (includedSeverityIds is null)
-        {
-            reports = await resourceProvider.GetResources(ctx);
-        }
-        else
-        {
-            IReadOnlyList<RbacAssessmentReport> summaries = await resourceProvider.GetResourceSummaries(ctx);
-            
-            IReadOnlyList<Uid> ids =
-            [
-                .. summaries
-                    .Where(x => x.SeverityCounters.HasAnyOf(includedSeverityIds))
-                    .Select(x => x.Id),
-            ];
-            
-            reports = await resourceProvider.GetResources(ids, ctx); 
-        }
+        QueryResponse<IReadOnlyList<RbacAssessmentReport>> result = await TrivyQuerySupport.GetResources(resourceProvider, namespaceName, excludedSeverities, ctx);
 
-        return reports.Select(static x => x.ToDto());
+        return new QueryResponse<IEnumerable<RbacAssessmentReportDto>>(
+            result.Result.Select(static x => x.ToDto()),
+            result.Error);
     }
 
     public async Task<IEnumerable<RbacAssessmentReportDenormalizedDto>>
@@ -43,13 +30,11 @@ public class RbacAssessmentReportService(
             string? namespaceName = null,
             CancellationToken ctx = default)
     {
-        IReadOnlyList<RbacAssessmentReport> reports =
-            await resourceProvider.GetResourceSummaries(ctx);
+        IReadOnlyList<RbacAssessmentReport> result = await TrivyQuerySupport.GetResources(
+            resourceProvider, 
+            namespaceName,
+            ctx);
 
-        return reports
-            .Where(report =>
-                string.IsNullOrEmpty(namespaceName) ||
-                report.Resource.NamespaceName.ToString() == namespaceName)
-            .SelectMany(report => report.ToDenormalizedDtos());
+        return result.SelectMany(report => report.ToDenormalizedDtos());
     }
 }

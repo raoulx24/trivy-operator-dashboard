@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TrivyOperator.Dashboard.Application.Queries.Shared;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.RbacAssessmentReports.Abstractions;
-using TrivyOperator.Dashboard.Application.Trivy.Utils;
 
 namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 
@@ -20,21 +20,15 @@ public class RbacAssessmentReportController(
         [FromQuery] string? excludedSeverities,
         CancellationToken ctx = default)
     {
-        IReadOnlySet<int>? includedSeverityIds =
-            TrivyUtils.GetSeverityIdsToInclude(excludedSeverities);
-
-        if (includedSeverityIds == null)
-        {
-            return BadRequest();
-        }
-
-        IEnumerable<RbacAssessmentReportDto> result =
+        QueryResponse<IEnumerable<RbacAssessmentReportDto>> result =
             await rbacAssessmentReportService.GetRbacAssessmentReportDtos(
                 namespaceName,
-                includedSeverityIds,
+                excludedSeverities,
                 ctx);
 
-        return Ok(result);
+        return result.Error is null
+            ? Ok(result.Result)
+            : BadRequest(result.Error);
     }
 
     [HttpGet("denormalized", Name = "GetRbacAssessmentReportDenormalizedDtos")]
