@@ -20,6 +20,7 @@ using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Factor
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator.Abstractions;
+using ApiJsonContext = TrivyOperator.Dashboard.Api.Serialization.ApiJsonContext;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 

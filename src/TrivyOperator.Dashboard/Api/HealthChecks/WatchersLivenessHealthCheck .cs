@@ -5,7 +5,7 @@ using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Application.WatcherStates.Models;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 
-namespace TrivyOperator.Dashboard.Application.Common.HealthChecks;
+namespace TrivyOperator.Dashboard.Api.HealthChecks;
 
 public class WatchersLivenessHealthCheck(
     IConcurrentCache<WatcherKey, WatcherStateInfo> cache,

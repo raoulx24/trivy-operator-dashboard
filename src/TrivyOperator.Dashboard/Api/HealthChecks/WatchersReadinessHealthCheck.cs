@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace TrivyOperator.Dashboard.Application.Common.HealthChecks;
+namespace TrivyOperator.Dashboard.Api.HealthChecks;
 
 public class WatchersReadinessHealthCheck : IHealthCheck
 {
