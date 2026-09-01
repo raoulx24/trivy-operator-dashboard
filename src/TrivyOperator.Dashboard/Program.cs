@@ -11,18 +11,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using TrivyOperator.Dashboard.Api.Hubs.Alerts;
 using TrivyOperator.Dashboard.Application.Common;
-using TrivyOperator.Dashboard.Application.Common.Serialization;
 using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Factories;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Factories.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator.Abstractions;
-using ApiJsonContext = TrivyOperator.Dashboard.Api.Serialization.ApiJsonContext;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
-using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 const string applicationName = "TrivyOperator.Dashboard";
 
@@ -268,7 +263,7 @@ static void ConfigureLogging(IConfiguration configuration)
     Log.Logger = loggerConfiguration.CreateLogger();
     SerilogLoggerFactory serilogLoggerFactory = new(Log.Logger);
     Logger = serilogLoggerFactory.CreateLogger<Program>();
-    BuilderServicesExtensions.Logger = Logger;
+    BuilderServicesExtensionsOld.Logger = Logger;
     AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
     TaskScheduler.UnobservedTaskException += TaskSchedulerUnobservedTaskException;
 }
