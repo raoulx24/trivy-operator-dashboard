@@ -1,7 +1,7 @@
 ﻿
-using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Models;
 
-namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.TrivyReportDependencies.Abstractions;
+namespace TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services.Abstractions;
 
 public interface ITrivyReportDependenciesService
 {

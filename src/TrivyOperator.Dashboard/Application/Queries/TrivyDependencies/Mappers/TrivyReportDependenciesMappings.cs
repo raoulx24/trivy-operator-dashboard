@@ -1,120 +1,100 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Models;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
+namespace TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Mappers;
 
 public static class TrivyReportDependenciesMappings
 {
     public static DigestNode? ToDigestNode(
-        this IEnumerable<IImageReport> reports,
-        Digest digest)
+        this List<IImageReport> reports,
+        Digest digest,
+        IReadOnlyList<ConfigAuditReport> configAuditReports,
+        IEnumerable<SnapshotIndexEntry> snapshots)
     {
         IImageReport? latest =
             reports
                 .OrderByDescending(x => x.LastSeenAt.Value)
                 .FirstOrDefault();
 
-        ReportImageOccurrence? occurrence = latest?.Occurrences.FirstOrDefault();
+        ReportImageOccurrence? occurrence =
+            latest?.Occurrences.FirstOrDefault();
 
         if (occurrence is null)
             return null;
 
         return new DigestNode
         {
-            Code = "D-N",
-            Type = "Digest",
+            Id = NewFrontendId(),
             Description = $"{occurrence.ImageMeta.Repo.Value}:{occurrence.ImageMeta.Tag.Value}",
+
             ImageDigest = digest.Value,
             ImageName = occurrence.ImageMeta.Repo.Value,
             ImageTag = occurrence.ImageMeta.Tag.Value,
             ImageRepository = occurrence.ImageMeta.Registry.Value,
-            TrivyReports = [],
-            Workloads = new WorkloadsNode
-            {
-                Id = NewFrontendId(),
-                Code = "W-N",
-                Type = "Workloads",
-                Description = "Workloads using this image",
-                Workloads = [],
-            },
-            VrHistory = new VrHistoryNode
-            {
-                Id = NewFrontendId(),
-                Code = "VRH-N",
-                Type = "VulnerabilityReportHistory",
-                Description = "History of vulnerability reports",
-                Entries = [],
-            },
+
+            TrivyReports = reports.ToTrivyReportNodes(),
+
+            Workloads = reports.ToWorkloadsNode(configAuditReports),
+
+            VrHistory = snapshots.ToVrHistoryNode(),
         };
     }
 
-    public static TrivyReportNode[] ToTrivyReportNodes(this IEnumerable<IImageReport> reports)
+    public static TrivyReportNode[] ToTrivyReportNodes(
+        this IEnumerable<IImageReport> reports)
     {
-        List<TrivyReportNode> result = [];
-
-        foreach (IImageReport report in reports)
-        {
-            if (report is VulnerabilityReport)
-            {
-                result.Add(new TrivyReportNode
+        return
+        [
+            .. reports.Select(report => report switch
                 {
-                    Id = report.Occurrences
-                        .FirstOrDefault()?.Metadata.Uid.Value ?? NewFrontendId(),
-                    Code = "TR",
-                    Type = "Vulnerability",
-                    Description = "Latest vulnerability report",
-                    CriticalCount = report.SeverityCounters.CriticalCount,
-                    HighCount = report.SeverityCounters.HighCount,
-                    MediumCount = report.SeverityCounters.MediumCount,
-                    LowCount = report.SeverityCounters.LowCount,
-                    UnknownCount = report.SeverityCounters.UnknownCount,
-                });
+                    VulnerabilityReport v =>
+                        new TrivyReportNode
+                        {
+                            Id = GetReportId(v),
+                            Type = "Vulnerability",
+                            Description = "Latest vulnerability report",
+                            CriticalCount = v.SeverityCounters.CriticalCount,
+                            HighCount = v.SeverityCounters.HighCount,
+                            MediumCount = v.SeverityCounters.MediumCount,
+                            LowCount = v.SeverityCounters.LowCount,
+                            UnknownCount = v.SeverityCounters.UnknownCount,
+                        },
 
-                continue;
-            }
-            
-            if (report is ExposedSecretReport)
-            {
-                result.Add(new TrivyReportNode
-                {
-                    Id = report.Occurrences
-                        .FirstOrDefault()?.Metadata.Uid.Value ?? NewFrontendId(),
-                    Code = "TR",
-                    Type = "ExposedSecret",
-                    Description = "Latest exposed secret report",
-                    CriticalCount = report.SeverityCounters.CriticalCount,
-                    HighCount = report.SeverityCounters.HighCount,
-                    MediumCount = report.SeverityCounters.MediumCount,
-                    LowCount = report.SeverityCounters.LowCount,
-                    UnknownCount = 0,
-                });
-                
-                continue;
-            }
+                    ExposedSecretReport s =>
+                        new TrivyReportNode
+                        {
+                            Id = GetReportId(s),
+                            Type = "ExposedSecret",
+                            Description = "Latest exposed secret report",
+                            CriticalCount = s.SeverityCounters.CriticalCount,
+                            HighCount = s.SeverityCounters.HighCount,
+                            MediumCount = s.SeverityCounters.MediumCount,
+                            LowCount = s.SeverityCounters.LowCount,
+                            UnknownCount = 0,
+                        },
 
-            if (report is SbomReport)
-            {
-                result.Add(new TrivyReportNode
-                {
-                    Id = report.Occurrences
-                        .FirstOrDefault()?.Metadata.Uid.Value ?? NewFrontendId(),
-                    Code = "TR",
-                    Type = "Sbom",
-                    Description = "Latest SBOM report",
-                    CriticalCount = 0,
-                    HighCount = 0,
-                    MediumCount = 0,
-                    LowCount = 0,
-                    UnknownCount = 0,
-                });
-            }
-        }
+                    SbomReport sb =>
+                        new TrivyReportNode
+                        {
+                            Id = GetReportId(sb),
+                            Type = "Sbom",
+                            Description = "Latest SBOM report",
+                            CriticalCount = 0,
+                            HighCount = 0,
+                            MediumCount = 0,
+                            LowCount = 0,
+                            UnknownCount = 0,
+                        },
 
-        return [.. result];
+                    _ => null,
+                })
+            .Where(x => x is not null)
+            .Select(x => x!)
+        ];
     }
 
     public static WorkloadsNode ToWorkloadsNode(
@@ -124,8 +104,10 @@ public static class TrivyReportDependenciesMappings
         IEnumerable<ReportImageOccurrence> occurrences =
             reports.SelectMany(x => x.Occurrences);
 
-        IEnumerable<IGrouping<(string Namespace, string Kind, string Name, string Container), ReportImageOccurrence>>
-            groups = occurrences.GroupBy(x =>
+        IEnumerable<IGrouping<
+            (string Namespace, string Kind, string Name, string Container),
+            ReportImageOccurrence>> groups =
+            occurrences.GroupBy(x =>
             {
                 OwnerReference? owner = FindWorkloadOwner(x);
 
@@ -141,7 +123,7 @@ public static class TrivyReportDependenciesMappings
         [
             .. groups.Select(group =>
             {
-                (string ns, string kind, string name, string container) = group.Key;
+                (string ns, string kind, string name, _) = group.Key;
 
                 ReportImageOccurrence occurrence = group.First();
                 OwnerReference? owner = FindWorkloadOwner(occurrence);
@@ -155,12 +137,13 @@ public static class TrivyReportDependenciesMappings
                 return new WorkloadNode
                 {
                     Id = NewFrontendId(),
-                    Code = "W",
                     Type = kind,
                     Description = $"{kind}/{name}",
+
                     NamespaceName = ns,
                     ResourceKind = kind,
                     ResourceName = name,
+
                     ConfigAudits = configAudit is null
                         ? [CreateEmptyConfigAuditNode()]
                         : [configAudit.ToConfigAuditNode()],
@@ -171,21 +154,19 @@ public static class TrivyReportDependenciesMappings
         return new WorkloadsNode
         {
             Id = NewFrontendId(),
-            Code = "W-N",
-            Type = "Workloads",
             Description = "Workloads using this image",
             Workloads = workloads,
         };
     }
 
-    public static ConfigAuditNode ToConfigAuditNode(this ConfigAuditReport report)
+    public static ConfigAuditNode ToConfigAuditNode(
+        this ConfigAuditReport report)
     {
         return new ConfigAuditNode
         {
             Id = report.Metadata.Uid.Value,
-            Code = "CA",
-            Type = "ConfigAudit",
             Description = "Config audit report",
+
             CriticalCount = report.SeverityCounters.CriticalCount,
             HighCount = report.SeverityCounters.HighCount,
             MediumCount = report.SeverityCounters.MediumCount,
@@ -202,19 +183,21 @@ public static class TrivyReportDependenciesMappings
             {
                 HistoryMetadata metadata = snapshot.HistoryMetadata;
 
-                string name = string.IsNullOrWhiteSpace(metadata.ImageMeta.Tag.Value)
+                string name = string.IsNullOrWhiteSpace(
+                    metadata.ImageMeta.Tag.Value)
                     ? metadata.ImageMeta.Repo.Value
                     : $"{metadata.ImageMeta.Repo.Value}:{metadata.ImageMeta.Tag.Value}";
 
                 return new VrHistoryEntryNode
                 {
                     Id = NewFrontendId(),
-                    Code = "VRH",
-                    Type = "VulnerabilityReportSnapshot",
-                    Description = $"Snapshot at {snapshot.FirstSeenAt.Value:O}",
+                    Description =
+                        $"Snapshot at {snapshot.FirstSeenAt.Value:O}",
+
                     Name = name,
                     FirstSeenAt = snapshot.FirstSeenAt.Value,
                     LastSeenAt = snapshot.LastSeenAt.Value,
+
                     CriticalCount = metadata.Current.CriticalCount,
                     HighCount = metadata.Current.HighCount,
                     MediumCount = metadata.Current.MediumCount,
@@ -227,8 +210,6 @@ public static class TrivyReportDependenciesMappings
         return new VrHistoryNode
         {
             Id = NewFrontendId(),
-            Code = "VRH-N",
-            Type = "VulnerabilityReportHistory",
             Description = "History of vulnerability reports",
             Entries = entries,
         };
@@ -238,8 +219,7 @@ public static class TrivyReportDependenciesMappings
         ReportImageOccurrence occurrence)
     {
         // TODO: find a better way than this
-        return occurrence.Metadata.OwnerReferences
-            .FirstOrDefault();
+        return occurrence.Metadata.OwnerReferences.FirstOrDefault();
     }
 
     private static ConfigAuditNode CreateEmptyConfigAuditNode()
@@ -247,15 +227,22 @@ public static class TrivyReportDependenciesMappings
         return new ConfigAuditNode
         {
             Id = NewFrontendId(),
-            Code = "CA",
-            Type = "ConfigAudit",
             Description = "No config audit reports",
+
             CriticalCount = 0,
             HighCount = 0,
             MediumCount = 0,
             LowCount = 0,
         };
     }
+
+    private static string GetReportId(IImageReport report) =>
+        report.Occurrences
+            .FirstOrDefault()
+            ?.Metadata
+            .Uid
+            .Value
+        ?? NewFrontendId();
 
     private static string NewFrontendId() =>
         Guid.NewGuid().ToString().ToLowerInvariant();

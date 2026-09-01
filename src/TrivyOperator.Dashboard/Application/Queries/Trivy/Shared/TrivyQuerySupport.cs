@@ -4,7 +4,7 @@ using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.Shared;
+namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Shared;
 
 public static class TrivyQuerySupport
 {

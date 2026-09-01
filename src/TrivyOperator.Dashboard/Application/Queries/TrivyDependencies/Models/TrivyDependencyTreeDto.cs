@@ -1,38 +1,33 @@
-﻿using TrivyOperator.Dashboard.Domain.Utils;
+﻿namespace TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Models;
 
-namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
-
-public sealed class TrivyDependencyTreeDto
+public sealed record TrivyDependencyTreeDto
 {
     public required DigestNode Digest { get; init; }
 }
 
-public sealed class DigestNode
+public sealed record DigestNode
 {
-    public required string Code { get; init; } = "D-N";
-    public required string Type { get; init; } = "Digest";
-    public required string Description { get; init; }
+    public string Code => "D-N";
+    public string Type => "Digest";
 
-    public string Id => GuidUtils.GetDeterministicGuid(
-        ImageDigest,
-        ImageName,
-        ImageTag,
-        ImageRepository).ToString().ToLowerInvariant();
+    public required string Id { get; init; }
+    public required string Description { get; init; }
 
     public required string ImageDigest { get; init; }
     public required string ImageName { get; init; }
     public required string ImageTag { get; init; }
     public required string ImageRepository { get; init; }
 
-    public required TrivyReportNode[] TrivyReports { get; set; }
-    public required WorkloadsNode Workloads { get; set; }
-    public required VrHistoryNode VrHistory { get; set; }
+    public required TrivyReportNode[] TrivyReports { get; init; }
+    public required WorkloadsNode Workloads { get; init; }
+    public required VrHistoryNode VrHistory { get; init; }
 }
 
-public sealed class TrivyReportNode
+public sealed record TrivyReportNode
 {
+    public string Code => "TR";
+
     public required string Id { get; init; }
-    public required string Code { get; init; } = "TR";
     public required string Type { get; init; }
     public required string Description { get; init; }
 
@@ -43,20 +38,22 @@ public sealed class TrivyReportNode
     public required int UnknownCount { get; init; }
 }
 
-public sealed class WorkloadsNode
+public sealed record WorkloadsNode
 {
+    public string Code => "W-N";
+    public string Type => "Workloads";
+
     public required string Id { get; init; }
-    public required string Code { get; init; } = "W-N";
-    public required string Type { get; init; } = "Workloads";
     public required string Description { get; init; }
 
     public required WorkloadNode[] Workloads { get; init; }
 }
 
-public sealed class WorkloadNode
+public sealed record WorkloadNode
 {
+    public string Code => "W";
+
     public required string Id { get; init; }
-    public required string Code { get; init; } = "W";
     public required string Type { get; init; }
     public required string Description { get; init; }
 
@@ -67,11 +64,12 @@ public sealed class WorkloadNode
     public required ConfigAuditNode[] ConfigAudits { get; init; }
 }
 
-public sealed class ConfigAuditNode
+public sealed record ConfigAuditNode
 {
+    public string Code => "CA";
+    public string Type => "ConfigAudit";
+
     public required string Id { get; init; }
-    public required string Code { get; init; } = "CA";
-    public required string Type { get; init; } = "ConfigAudit";
     public required string Description { get; init; }
 
     public required int CriticalCount { get; init; }
@@ -80,21 +78,23 @@ public sealed class ConfigAuditNode
     public required int LowCount { get; init; }
 }
 
-public sealed class VrHistoryNode
+public sealed record VrHistoryNode
 {
+    public string Code => "VRH-N";
+    public string Type => "VulnerabilityReportHistory";
+
     public required string Id { get; init; }
-    public required string Code { get; init; } = "VRH-N";
-    public required string Type { get; init; } = "VulnerabilityReportHistory";
     public required string Description { get; init; }
 
     public required VrHistoryEntryNode[] Entries { get; init; }
 }
 
-public sealed class VrHistoryEntryNode
+public sealed record VrHistoryEntryNode
 {
+    public string Code => "VRH";
+    public string Type => "VulnerabilityReportSnapshot";
+
     public required string Id { get; init; }
-    public required string Code { get; init; } = "VRH";
-    public required string Type { get; init; } = "VulnerabilityReportSnapshot";
     public required string Description { get; init; }
 
     public required string Name { get; init; }

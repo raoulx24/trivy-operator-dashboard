@@ -2,7 +2,7 @@
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-public interface IImageReport : ITrivyReport<Digest>, IHasSeverityCounters
+public interface IImageReport : ITrivyReport<Digest>
 {
     Digest ImageDigest { get; }
     IReadOnlyList<ReportImageOccurrence> Occurrences { get; }

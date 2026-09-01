@@ -1,7 +1,8 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
-using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
-using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.Shared;
-using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.TrivyReportDependencies.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Queries.History.Shared;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Shared;
+using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Mappers;
+using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Models;
+using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
@@ -10,7 +11,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.TrivyReportDependencies;
+namespace TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services;
 
 public sealed class TrivyReportDependenciesService(
     IResourceProvider<VulnerabilityReport, Digest> vulnerabilityReportProvider,
@@ -26,54 +27,58 @@ public sealed class TrivyReportDependenciesService(
         CancellationToken ctx = default)
     {
         Digest digest = new(imageDigest);
-        NamespaceName namespaceValue = new(namespaceName);
 
-        // Digest-keyed reports are already cluster-wide aggregates.
         IImageReport?[] reports =
         [
-            await GetImageReport(vulnerabilityReportProvider, digest, namespaceName, ctx),
-            await GetImageReport(exposedSecretReportProvider, digest, namespaceName, ctx),
-            await GetImageReport(sbomReportProvider, digest, namespaceName, ctx),
+            await GetImageReport(
+                vulnerabilityReportProvider,
+                digest,
+                namespaceName,
+                ctx),
+
+            await GetImageReport(
+                exposedSecretReportProvider,
+                digest,
+                namespaceName,
+                ctx),
+
+            await GetImageReport(
+                sbomReportProvider,
+                digest,
+                namespaceName,
+                ctx),
         ];
 
         ConfigAuditReport[] configAuditReports =
         [
-            .. await TrivyQuerySupport.GetResources(configAuditReportProvider, namespaceName, ctx),
+            .. await TrivyQuerySupport.GetResources(
+                configAuditReportProvider,
+                namespaceName,
+                ctx),
         ];
 
         List<IImageReport> imageReports =
         [
             .. reports.OfType<IImageReport>(),
         ];
-            
+
+        IReadOnlyList<SnapshotIndexEntry> snapshots = 
+            await HistoryQuerySupport.GetResourceIndexes(vrHistoryStore, digest, namespaceName, ctx);
+
         DigestNode? digestNode =
-            imageReports.ToDigestNode(digest);
+            imageReports.ToDigestNode(
+                digest,
+                configAuditReports,
+                snapshots);
 
-        if (digestNode is null)
-            return null;
-
-        digestNode.TrivyReports = imageReports.ToTrivyReportNodes();
-
-        digestNode.Workloads =
-            imageReports.ToWorkloadsNode(configAuditReports);
-
-        IReadOnlyList<SnapshotIndexEntry> snapshots =
-            await vrHistoryStore.GetSnapshotIndexesAsync(digest, ctx);
-
-        IReadOnlyList<SnapshotIndexEntry> filteredSnapshots =
-        [
-            .. snapshots.Where(x =>
-                x.HistoryMetadata.NamespaceNames.Contains(namespaceValue)),
-        ];
-
-        digestNode.VrHistory =
-            filteredSnapshots.ToVrHistoryNode();
-
-        return new TrivyDependencyTreeDto
-        {
-            Digest = digestNode,
-        };
+        return digestNode is null
+            ? null
+            : new TrivyDependencyTreeDto
+            {
+                Digest = digestNode,
+            };
     }
+
 
     public async Task<bool> TrivyDependenciesExist(
         string imageDigest,
@@ -93,15 +98,15 @@ public sealed class TrivyReportDependenciesService(
         return await sbomReportProvider.GetResource(digest, ct) is not null;
     }
     
-    private async Task<TReport?> GetImageReport<TReport>(
+    private static async Task<TReport?> GetImageReport<TReport>(
         IResourceProvider<TReport, Digest> provider, 
         Digest digest,
         string? namespaceName,
         CancellationToken ctx = default)
         where TReport : class, IImageReport
     {
-        var report = await provider.GetResourceSummary(digest, ctx);
-        NamespaceName namespaceValue = new NamespaceName(namespaceName);
+        TReport? report = await provider.GetResourceSummary(digest, ctx);
+        NamespaceName namespaceValue = new(namespaceName);
         return namespaceName is null || report?.HasNamespaceName(namespaceValue) == true
             ? report
             : null;
