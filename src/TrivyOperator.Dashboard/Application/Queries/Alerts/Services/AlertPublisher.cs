@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using TrivyOperator.Dashboard.Api.Alerts.Hubs;
+using TrivyOperator.Dashboard.Api.Hubs.Alerts;
 using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
 using TrivyOperator.Dashboard.Application.Alerts.Models;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Models;

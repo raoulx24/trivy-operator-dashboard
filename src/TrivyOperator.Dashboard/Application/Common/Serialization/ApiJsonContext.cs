@@ -4,7 +4,6 @@ using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Models;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
-using TrivyOperator.Dashboard.Application.Trivy.Models;
 
 namespace TrivyOperator.Dashboard.Application.Common.Serialization;
 

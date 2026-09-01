@@ -60,8 +60,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Api\Alerts\" />
-      <Folder Include="Api\K8s\" />
       <Folder Include="Application\Queries\Alerts\" />
       <Folder Include="Application\Queries\AppVersions\" />
       <Folder Include="Application\Queries\BackendSettings\" />

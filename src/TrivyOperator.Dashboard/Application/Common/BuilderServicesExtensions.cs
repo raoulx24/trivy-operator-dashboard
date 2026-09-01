@@ -40,6 +40,7 @@ using TrivyOperator.Dashboard.Application.Queries.History.Services;
 using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterVulnerabilityReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterVulnerabilityReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ExposedSecretReports;
@@ -62,7 +63,6 @@ using TrivyOperator.Dashboard.Application.Trivy.Services.ConfigAuditReport.Abstr
 using TrivyOperator.Dashboard.Application.Trivy.Services.ExposedSecretReport.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.InfraAssessmentReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.InfraAssessmentReport.Abstractions;
-using TrivyOperator.Dashboard.Application.Trivy.Services.Options;
 using TrivyOperator.Dashboard.Application.Trivy.Services.RbacAssessmentReport;
 using TrivyOperator.Dashboard.Application.Trivy.Services.RbacAssessmentReport.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Services.TrivyReportDependencies;
