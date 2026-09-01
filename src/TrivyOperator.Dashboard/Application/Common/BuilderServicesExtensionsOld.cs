@@ -422,15 +422,21 @@ public static class BuilderServicesExtensionsOld
     }
 
 
-    public static void AddWatcherStateServices(this IServiceCollection services)
+    // migrated
+    public static void AddWatcherStateServicesOld(this IServiceCollection services)
     {
-        services.AddSingleton<IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
-        //services.AddSingleton<IBackgroundQueue<WatcherStateInfo>, BackgroundQueue<WatcherStateInfo>>();
-        services.AddScoped<IWatcherStatusService, WatcherStatusService>();
+        return;
+        
+        // services.AddSingleton<IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
+        // //services.AddSingleton<IBackgroundQueue<WatcherStateInfo>, BackgroundQueue<WatcherStateInfo>>();
+        // services.AddScoped<IWatcherStatusService, WatcherStatusService>();
     }
 
-    public static void AddHistoryServices(this IServiceCollection services, IConfiguration configuration)
+    // migrated
+    public static void AddHistoryServicesOld(this IServiceCollection services, IConfiguration configuration)
     {
+        return;
+        
         bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
         bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
         bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
@@ -465,12 +471,15 @@ public static class BuilderServicesExtensionsOld
         services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
     }
 
-    public static void AddAlertsServices(this IServiceCollection services)
+    // migrated
+    public static void AddAlertsServicesOld(this IServiceCollection services)
     {
-        services.AddSignalR();
-        services.AddSingleton<IConcurrentCache<AlertKey, Alert>, ConcurrentCache<AlertKey, Alert>>();
-        services.AddSingleton<IAlertPublisher, AlertPublisher>();
-        services.AddTransient<IAlertsService, AlertsService>();
+        return;
+        
+        // services.AddSignalR();
+        // services.AddSingleton<IConcurrentCache<AlertKey, Alert>, ConcurrentCache<AlertKey, Alert>>();
+        // services.AddSingleton<IAlertPublisher, AlertPublisher>();
+        // services.AddTransient<IAlertsService, AlertsService>();
     }
 
     public static void AddCommons(this IServiceCollection services, IConfiguration configuration)
@@ -531,9 +540,10 @@ public static class BuilderServicesExtensionsOld
         services.AddScoped<IBackendSettingsService, BackendSettingsService>();
 
     public static void AddOthers(this IServiceCollection services) =>
+        // add above null services for the vr, sbom, esr, car, if they are disabled
         services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
 
-    public static void AddOpenTelemetry(
+    public static void AddOpenTelemetryOld(
         this IServiceCollection services,
         IConfiguration configuration,
         string applicationName

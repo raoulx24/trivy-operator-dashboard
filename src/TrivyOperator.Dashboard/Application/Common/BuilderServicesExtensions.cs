@@ -1,4 +1,14 @@
 ﻿using k8s.Models;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using System.Reflection;
+using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
+using TrivyOperator.Dashboard.Application.Alerts.Models;
+using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
+using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventDispatchers;
@@ -9,6 +19,19 @@ using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcess
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Alerts.Models;
+using TrivyOperator.Dashboard.Application.Queries.Alerts.Services;
+using TrivyOperator.Dashboard.Application.Queries.Alerts.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.History.Services;
+using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;
+using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.WatcherStates.Models;
+using TrivyOperator.Dashboard.Application.WatcherStates.Services;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
@@ -16,8 +39,13 @@ using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
@@ -39,6 +67,8 @@ namespace TrivyOperator.Dashboard.Application.Common;
 
 public static class BuilderServicesExtensions
 {
+    public static ILogger? Logger { get; set; }
+    
     public static void AddTrivyReports(this IServiceCollection services, IConfiguration configuration)
     {
         LoadReportSettings(
@@ -53,82 +83,196 @@ public static class BuilderServicesExtensions
         // processor for starting namespaced watchers
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedWatcherLifecycleProcessor>();
         
-        services.AddNamespacedTrivyReport<VulnerabilityReportCr, VulnerabilityReport, Digest>(configuration);
+        services.AddTrivyReport<VulnerabilityReportCr, VulnerabilityReport, Digest>();
         
         
-    }
-
-    private static void AddClusterScopedTrivyReport<TReportCr, TReport, TId>(this IServiceCollection services)
-    where TReportCr : CustomResource, new()
-    where TReport : ITrivyReport<TId>
-    where TId : notnull
-    {
-        // mapper service
-        services.AddReportMapper(typeof(TReport));
-
-        // in memory cache
-        // -- codec
-        services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
-        // -- cache entry builder
-        services.AddCacheEntryBuilder(typeof(TReport));
-            // services.AddSingleton<
-            //     ICacheEntryBuilder<VulnerabilityReport, Digest>,
-            //     VulnerabilityReportCacheEntryBuilder<VulnerabilityReport, Digest>>();
-        // -- concurrent cache
-        services
-            .AddSingleton<IResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>,
-                ResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>>();     
-        // -- IResourceStore (in part) and IResourceProvider (out part)
-        
-        // in memory cache
-        services.AddReportInMemoryCache(typeof(TReport));
-        services.AddSingleton<InMemoryImageReportCache<VulnerabilityReport>>();
-        services.AddSingleton<IResourceStore<VulnerabilityReport, Digest>>(sp =>
-            sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
-        services.AddSingleton<IResourceProvider<VulnerabilityReport, Digest>>(sp =>
-            sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
-        
-        // k8s infra service
-        services
-            .AddSingleton<
-                IClusterScopedResourceService<TReportCr, CustomResourceList<TReportCr>>,
-                ClusterScopedCustomResourceService<TReportCr>>();
-        
-        // k8s event pipeline starter
-        services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<TReportCr>>();
-        
-        // watcher
-        services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<CustomResourceList<TReportCr>, TReportCr>>();
-        
-        // background queue
-        services
-            .AddSingleton<IKubernetesBackgroundQueue<TReportCr>,
-                KubernetesBackgroundQueue<TReportCr>>();
-        
-        // k8s event dispatcher
-        services.AddSingleton<IKubernetesEventDispatcher<TReportCr>,
-            KubernetesEventDispatcher<TReportCr,
-                IKubernetesBackgroundQueue<TReportCr>>>();
-        
-        // k8s event processor
-        services
-            .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
-                ResourceStoreUpdater<TReportCr,TReport,TId>>();
     }
     
-    private static void AddNamespacedTrivyReport<TReportCr, TReport, TId>(this IServiceCollection services)
+    public static void AddWatcherStateServices(this IServiceCollection services)
+    {
+        // IKubernetesEventProcessor<TKubernetesObject> is in AddTrivyReport
+        services.AddSingleton<IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
+        services.AddScoped<IWatcherStatusService, WatcherStatusService>();
+    }
+    
+    public static void AddHistoryServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
+        bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
+        bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
+        
+        services.Configure<VulnerabilityReportsHistoryOptions>(configuration.GetSection("History"));
+        services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
+
+        if (!isHistoryEnabled || !useDefaultContext || useFileRepository)
+        {
+            services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryNullService>();
+            services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryNullStore>();
+            return;
+        }
+
+        Logger?.LogInformation("Using DistributedCache for Vulnerability Reports History");
+        
+        services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache"));
+        services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache").GetSection("RetryOptions"));
+
+        services.AddSingleton<DistributedCacheConnectionProvider>();
+        services.AddHostedService<DistributedCacheConnectionProvider>();
+        
+        services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
+        services.AddSingleton<IDistributedCacheExecutor, DistributedCacheExecutor>();
+        
+        services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
+        services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
+
+        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
+        services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
+        
+        services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
+    }
+    
+    public static void AddAlertsServices(this IServiceCollection services)
+    {
+        services.AddSignalR();
+        services.AddSingleton<IConcurrentCache<AlertKey, Alert>, ConcurrentCache<AlertKey, Alert>>();
+        services.AddSingleton<IAlertPublisher, AlertPublisher>();
+        services.AddTransient<IAlertsService, AlertsService>();
+    }
+
+    public static void AddOpenTelemetry(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string applicationName
+    )
+    {
+        if (!(configuration.GetValue<bool?>("Enabled") ?? false))
+        {
+            services.AddSingleton<IMetricsClient>(_ => new MetricsClient(applicationName));
+            return;
+
+            // string fileVersion =
+            //     Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0";
+            // this is AOT friendly
+            // TODO: verify build in github
+
+            string fileVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0";
+
+            string? otelEndpoint = configuration.GetValue<string>("OtelEndpoint");
+            bool? isConsoleEnabled = configuration.GetValue<bool?>("ConsoleEnabled");
+            bool? isAspNetCoreEnabled = configuration.GetValue<bool?>("AspNetCoreInstrumentationEnabled");
+            bool? isRuntimeEnabled = configuration.GetValue<bool?>("RuntimeInstrumentationEnabled");
+            int? metricsPort = configuration.GetValue<int>("PrometheusExporterPort");
+            double[] histogramBounds =
+                configuration.GetValue<double[]>("HistogramBoundsInMs") ?? [200, 500, 1000, 5000,];
+
+            services.AddSingleton<IMetricsClient>(_ => new MetricsClient(applicationName));
+            services.AddOpenTelemetry()
+                .WithTracing(tracingBuilder =>
+                    {
+                        tracingBuilder.SetResourceBuilder(
+                                ResourceBuilder.CreateDefault()
+                                    .AddService(applicationName)
+                                    .AddAttributes(
+                                        new Dictionary<string, object>
+                                        {
+                                            {
+                                                "service.version", fileVersion
+                                            },
+                                        }
+                                    )
+                            )
+                            .AddHttpClientInstrumentation();
+                        if (isConsoleEnabled ?? false)
+                        {
+                            tracingBuilder.AddConsoleExporter();
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(otelEndpoint))
+                        {
+                            tracingBuilder.AddOtlpExporter(options =>
+                                {
+                                    options.Endpoint = new Uri(otelEndpoint);
+                                    options.Protocol =
+                                        (configuration.GetValue<string?>("OtelProtocol")?.ToLowerInvariant() ??
+                                         "grpc") ==
+                                        "grpc"
+                                            ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
+                                }
+                            );
+                        }
+
+                        if (isAspNetCoreEnabled ?? false)
+                        {
+                            tracingBuilder.AddAspNetCoreInstrumentation(options =>
+                                {
+                                    options.Filter = context =>
+                                    {
+                                        string? path = context.Request.Path.Value;
+                                        return !((path?.StartsWith("/healthz") ?? false) ||
+                                                 (path?.StartsWith("/metrics") ?? false));
+                                    };
+                                }
+                            );
+                        }
+                    }
+                )
+                .WithMetrics(metricsBuilder =>
+                    {
+                        metricsBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(applicationName))
+                            .AddView(
+                                "*",
+                                new ExplicitBucketHistogramConfiguration
+                                {
+                                    Boundaries = histogramBounds,
+                                    // defaults: [ 0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000 ]
+                                }
+                            )
+                            .AddMeter($"{applicationName}.metrics");
+                        if (!string.IsNullOrWhiteSpace(otelEndpoint))
+                        {
+                            metricsBuilder.AddOtlpExporter(options =>
+                                {
+                                    options.Endpoint = new Uri(otelEndpoint);
+                                    options.Protocol =
+                                        (configuration.GetValue<string?>("OTelProtocol")?.ToLowerInvariant() ??
+                                         "grpc") ==
+                                        "grpc"
+                                            ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
+                                }
+                            );
+                        }
+
+                        if (isConsoleEnabled ?? false)
+                        {
+                            metricsBuilder.AddConsoleExporter();
+                        }
+
+                        if (isAspNetCoreEnabled ?? false)
+                        {
+                            metricsBuilder.AddAspNetCoreInstrumentation();
+                        }
+
+                        if (isRuntimeEnabled ?? false)
+                        {
+                            metricsBuilder.AddRuntimeInstrumentation();
+                        }
+
+                        if (metricsPort is not null)
+                        {
+                            metricsBuilder.AddPrometheusExporter();
+                        }
+                    }
+                );
+        }
+    }
+
+    private static void AddTrivyReport<TReportCr, TReport, TId>(this IServiceCollection services)
     where TReportCr : CustomResource, new()
     where TReport : ITrivyReport<TId>
     where TId : notnull
     {
         // mapper service
         services.AddReportMapper(typeof(TReport));
-            // what it was:
-            // services.AddSingleton<VulnerabilityReportMapper>();
-            // services.AddSingleton<ITrivyReportMapper<VulnerabilityReportCr, VulnerabilityReport>>(sp =>
-            //     sp.GetRequiredService<VulnerabilityReportMapper>());
-            // services.AddSingleton<ITrivyReportKeyProvider<VulnerabilityReportCr, Digest>>(sp =>
-            //     sp.GetRequiredService<VulnerabilityReportMapper>());
 
         // in memory cache
         // -- codec
@@ -143,26 +287,10 @@ public static class BuilderServicesExtensions
             .AddSingleton<IResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>,
                 ResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>>();     
         // -- IResourceStore (in part) and IResourceProvider (out part)
-        
-        // in memory cache
         services.AddReportInMemoryCache(typeof(TReport));
-        services.AddSingleton<InMemoryImageReportCache<VulnerabilityReport>>();
-        services.AddSingleton<IResourceStore<VulnerabilityReport, Digest>>(sp =>
-            sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
-        services.AddSingleton<IResourceProvider<VulnerabilityReport, Digest>>(sp =>
-            sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReport>>());
-        
-        // k8s infra service
-        services
-            .AddSingleton<
-                INamespacedResourceService<TReportCr, CustomResourceList<TReportCr>>,
-                NamespacedCustomResourceService<TReportCr>>();
-        
-        // k8s event pipeline starter
-        services.AddSingleton<IKubernetesEventPipelineStarter, NamespacedEventPipelineStarter<TReportCr>>();
-        
-        // watcher
-        services.AddSingleton<INamespacedWatcher, NamespacedWatcher<CustomResourceList<TReportCr>, TReportCr>>();
+
+        // k8s infra service, event pipeline starter, watcher
+        services.AddReportKubernetesServices<TReportCr, TReport, TId>();
         
         // background queue
         services
@@ -178,7 +306,13 @@ public static class BuilderServicesExtensions
         services
             .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
                 ResourceStoreUpdater<TReportCr,TReport,TId>>();
+        
+        // watcher state event processor
+        services
+            .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
+                WatcherStateEventProcessor<TReportCr>>();
     }
+    
 
     private static void AddCacheEntryBuilder(this IServiceCollection services, Type reportType)
     {
@@ -471,6 +605,38 @@ public static class BuilderServicesExtensions
             default:
                 throw new NotSupportedException(
                     $"No report cache registered for report type '{reportType.Name}'.");
+        }
+    }
+
+    private static void AddReportKubernetesServices<TReportCr, TReport, TId>(this IServiceCollection services)
+        where TReportCr : CustomResource, new()
+        where TReport : ITrivyReport<TId>
+        where TId : notnull
+    {
+        if (nameof(TReport).StartsWith("Cluster", StringComparison.Ordinal))
+        {
+            // k8s infra service
+            services
+                .AddSingleton<
+                    IClusterScopedResourceService<TReportCr, CustomResourceList<TReportCr>>,
+                    ClusterScopedCustomResourceService<TReportCr>>();
+        
+            // k8s event pipeline starter
+            services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<TReportCr>>();
+        
+            // watcher
+            services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<CustomResourceList<TReportCr>, TReportCr>>();
+        }
+        else
+        {
+            // k8s infra service
+            services
+                .AddSingleton<
+                    INamespacedResourceService<TReportCr, CustomResourceList<TReportCr>>,
+                    NamespacedCustomResourceService<TReportCr>>();
+        
+            // k8s event pipeline starter
+            services.AddSingleton<IKubernetesEventPipelineStarter, NamespacedEventPipelineStarter<TReportCr>>();
         }
     }
     
