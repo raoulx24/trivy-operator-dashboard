@@ -482,184 +482,201 @@ public static class BuilderServicesExtensionsOld
         // services.AddTransient<IAlertsService, AlertsService>();
     }
 
+    // migrated
     public static void AddCommons(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<BackgroundQueueOptions>(configuration.GetSection("Queues"));
-        services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
-        services.Configure<FileRepositoryOptions>(configuration.GetSection("FileRepository"));
-        services.Configure<WatchersOptions>(configuration.GetSection("Watchers"));
-        services.Configure<FileExportOptions>(configuration.GetSection("FileExport"));
-        services.Configure<GitHubOptions>(configuration.GetSection("GitHub"));
-
-        services.AddHostedService<KubernetesEventPipelineHost>();
-        services.AddHostedService<WatcherStateCacheTimedHostedService>();
-
-        services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
-        //services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();
+        return;
         
-        services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
-        services.AddSingleton<IKubernetesContextAccessor, KubernetesContextAccessor>();
-        
-        services.AddScoped<IKubernetesContextService, KubernetesContextService>();
-
-        if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
-        {
-            services.AddHttpClient<IGitHubClient, GitHubClient>(client =>
-                {
-                    client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
-                }
-            );
-            services.AddHostedService<GitHubReleaseCacheTimedHostedService>();
-        }
-
-        services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
-        services.AddScoped<IAppVersionsService, AppVersionsService>();
-
-        services.AddHealthChecks()
-            .AddCheck<WatchersLivenessHealthCheck>("watchers-liveness")
-            .AddCheck<WatchersReadinessHealthCheck>("watchers-readiness");
-
-#if DEBUG
-        //services.AddHostedService<SingleBucketTimedHostedService>();
-        //services.AddSingleton<IHostedService>(provider =>
-        //    new MultiBucketTimedHostedService(
-        //        provider.GetRequiredService<ILogger<MultiBucketTimedHostedService>>(),
-        //        provider.GetRequiredService<IAlertsService>(),
-        //        "MultiBucket", ["Hey!", "Yo!", "No way, Jose!"], "subLevel|mama", 3));
-        //services.AddSingleton<IHostedService>(provider =>
-        //    new MultiBucketTimedHostedService(
-        //        provider.GetRequiredService<ILogger<MultiBucketTimedHostedService>>(),
-        //        provider.GetRequiredService<IAlertsService>(),
-        //        "MultiBucket", ["Hey!", "Yo!", "Yes way, Jose!"], "subLevel|dada", 3));
-
-        services.AddScoped<IRawDomainQueryService, RawDomainQueryService>();
-#endif
+//         services.Configure<BackgroundQueueOptions>(configuration.GetSection("Queues"));
+//         services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
+//         services.Configure<FileRepositoryOptions>(configuration.GetSection("FileRepository"));
+//         services.Configure<WatchersOptions>(configuration.GetSection("Watchers"));
+//         services.Configure<FileExportOptions>(configuration.GetSection("FileExport"));
+//         services.Configure<GitHubOptions>(configuration.GetSection("GitHub"));
+//
+//         services.AddHostedService<KubernetesEventPipelineHost>();
+//         services.AddHostedService<WatcherStateCacheTimedHostedService>();
+//
+//         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
+//         //services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();
+//         
+//         services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
+//         services.AddSingleton<IKubernetesContextAccessor, KubernetesContextAccessor>();
+//         
+//         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
+//
+//         if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
+//         {
+//             services.AddHttpClient<IGitHubClient, GitHubClient>(client =>
+//                 {
+//                     client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
+//                 }
+//             );
+//             services.AddHostedService<GitHubReleaseCacheTimedHostedService>();
+//         }
+//
+//         services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
+//         services.AddScoped<IAppVersionsService, AppVersionsService>();
+//
+//         services.AddHealthChecks()
+//             .AddCheck<WatchersLivenessHealthCheck>("watchers-liveness")
+//             .AddCheck<WatchersReadinessHealthCheck>("watchers-readiness");
+//
+// #if DEBUG
+//         //services.AddHostedService<SingleBucketTimedHostedService>();
+//         //services.AddSingleton<IHostedService>(provider =>
+//         //    new MultiBucketTimedHostedService(
+//         //        provider.GetRequiredService<ILogger<MultiBucketTimedHostedService>>(),
+//         //        provider.GetRequiredService<IAlertsService>(),
+//         //        "MultiBucket", ["Hey!", "Yo!", "No way, Jose!"], "subLevel|mama", 3));
+//         //services.AddSingleton<IHostedService>(provider =>
+//         //    new MultiBucketTimedHostedService(
+//         //        provider.GetRequiredService<ILogger<MultiBucketTimedHostedService>>(),
+//         //        provider.GetRequiredService<IAlertsService>(),
+//         //        "MultiBucket", ["Hey!", "Yo!", "Yes way, Jose!"], "subLevel|dada", 3));
+//
+//         services.AddScoped<IRawDomainQueryService, RawDomainQueryService>();
+// #endif
     }
 
-    public static void AddUiCommons(this IServiceCollection services) =>
-        services.AddScoped<IBackendSettingsService, BackendSettingsService>();
+    // migrated
+    public static void AddUiCommons(this IServiceCollection services)
+    {
+        return;
+        
+        // services.AddScoped<IBackendSettingsService, BackendSettingsService>();
+    }
 
-    public static void AddOthers(this IServiceCollection services) =>
-        // add above null services for the vr, sbom, esr, car, if they are disabled
-        services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
+    // migrated
+    public static void AddOthers(this IServiceCollection services)
+    {
+        return;
+        
+        // // add above null services for the vr, sbom, esr, car, if they are disabled
+        // services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
+    }
+        
 
+    // migrated
     public static void AddOpenTelemetryOld(
         this IServiceCollection services,
         IConfiguration configuration,
         string applicationName
     )
     {
-        if (!(configuration.GetValue<bool?>("Enabled") ?? false))
-        {
-            services.AddSingleton<IMetricsClient>(_ => new MetricsClient(applicationName));
-            return;
-        }
-
-        string fileVersion =
-            Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0";
-        string? otelEndpoint = configuration.GetValue<string>("OtelEndpoint");
-        bool? isConsoleEnabled = configuration.GetValue<bool?>("ConsoleEnabled");
-        bool? isAspNetCoreEnabled = configuration.GetValue<bool?>("AspNetCoreInstrumentationEnabled");
-        bool? isRuntimeEnabled = configuration.GetValue<bool?>("RuntimeInstrumentationEnabled");
-        int? metricsPort = configuration.GetValue<int>("PrometheusExporterPort");
-        double[] histogramBounds = configuration.GetValue<double[]>("HistogramBoundsInMs") ?? [200, 500, 1000, 5000,];
-
-        services.AddSingleton<IMetricsClient>(_ => new MetricsClient(applicationName));
-        services.AddOpenTelemetry()
-            .WithTracing(tracingBuilder =>
-                {
-                    tracingBuilder.SetResourceBuilder(
-                            ResourceBuilder.CreateDefault()
-                                .AddService(applicationName)
-                                .AddAttributes(
-                                    new Dictionary<string, object>
-                                    {
-                                        {
-                                            "service.version", fileVersion
-                                        },
-                                    }
-                                )
-                        )
-                        .AddHttpClientInstrumentation();
-                    if (isConsoleEnabled ?? false)
-                    {
-                        tracingBuilder.AddConsoleExporter();
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(otelEndpoint))
-                    {
-                        tracingBuilder.AddOtlpExporter(options =>
-                            {
-                                options.Endpoint = new Uri(otelEndpoint);
-                                options.Protocol =
-                                    (configuration.GetValue<string?>("OtelProtocol")?.ToLowerInvariant() ?? "grpc") ==
-                                    "grpc"
-                                        ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
-                            }
-                        );
-                    }
-
-                    if (isAspNetCoreEnabled ?? false)
-                    {
-                        tracingBuilder.AddAspNetCoreInstrumentation(options =>
-                            {
-                                options.Filter = context =>
-                                {
-                                    string? path = context.Request.Path.Value;
-                                    return !((path?.StartsWith("/healthz") ?? false) ||
-                                             (path?.StartsWith("/metrics") ?? false));
-                                };
-                            }
-                        );
-                    }
-                }
-            )
-            .WithMetrics(metricsBuilder =>
-                {
-                    metricsBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(applicationName))
-                        .AddView(
-                            "*",
-                            new ExplicitBucketHistogramConfiguration
-                            {
-                                Boundaries = histogramBounds,
-                                // defaults: [ 0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000 ]
-                            }
-                        )
-                        .AddMeter($"{applicationName}.metrics");
-                    if (!string.IsNullOrWhiteSpace(otelEndpoint))
-                    {
-                        metricsBuilder.AddOtlpExporter(options =>
-                            {
-                                options.Endpoint = new Uri(otelEndpoint);
-                                options.Protocol =
-                                    (configuration.GetValue<string?>("OTelProtocol")?.ToLowerInvariant() ?? "grpc") ==
-                                    "grpc"
-                                        ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
-                            }
-                        );
-                    }
-
-                    if (isConsoleEnabled ?? false)
-                    {
-                        metricsBuilder.AddConsoleExporter();
-                    }
-
-                    if (isAspNetCoreEnabled ?? false)
-                    {
-                        metricsBuilder.AddAspNetCoreInstrumentation();
-                    }
-
-                    if (isRuntimeEnabled ?? false)
-                    {
-                        metricsBuilder.AddRuntimeInstrumentation();
-                    }
-
-                    if (metricsPort is not null)
-                    {
-                        metricsBuilder.AddPrometheusExporter();
-                    }
-                }
-            );
+        return;
+        
+        // if (!(configuration.GetValue<bool?>("Enabled") ?? false))
+        // {
+        //     services.AddSingleton<IMetricsClient>(_ => new MetricsClient(applicationName));
+        //     return;
+        // }
+        //
+        // string fileVersion =
+        //     Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0";
+        // string? otelEndpoint = configuration.GetValue<string>("OtelEndpoint");
+        // bool? isConsoleEnabled = configuration.GetValue<bool?>("ConsoleEnabled");
+        // bool? isAspNetCoreEnabled = configuration.GetValue<bool?>("AspNetCoreInstrumentationEnabled");
+        // bool? isRuntimeEnabled = configuration.GetValue<bool?>("RuntimeInstrumentationEnabled");
+        // int? metricsPort = configuration.GetValue<int>("PrometheusExporterPort");
+        // double[] histogramBounds = configuration.GetValue<double[]>("HistogramBoundsInMs") ?? [200, 500, 1000, 5000,];
+        //
+        // services.AddSingleton<IMetricsClient>(_ => new MetricsClient(applicationName));
+        // services.AddOpenTelemetry()
+        //     .WithTracing(tracingBuilder =>
+        //         {
+        //             tracingBuilder.SetResourceBuilder(
+        //                     ResourceBuilder.CreateDefault()
+        //                         .AddService(applicationName)
+        //                         .AddAttributes(
+        //                             new Dictionary<string, object>
+        //                             {
+        //                                 {
+        //                                     "service.version", fileVersion
+        //                                 },
+        //                             }
+        //                         )
+        //                 )
+        //                 .AddHttpClientInstrumentation();
+        //             if (isConsoleEnabled ?? false)
+        //             {
+        //                 tracingBuilder.AddConsoleExporter();
+        //             }
+        //
+        //             if (!string.IsNullOrWhiteSpace(otelEndpoint))
+        //             {
+        //                 tracingBuilder.AddOtlpExporter(options =>
+        //                     {
+        //                         options.Endpoint = new Uri(otelEndpoint);
+        //                         options.Protocol =
+        //                             (configuration.GetValue<string?>("OtelProtocol")?.ToLowerInvariant() ?? "grpc") ==
+        //                             "grpc"
+        //                                 ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
+        //                     }
+        //                 );
+        //             }
+        //
+        //             if (isAspNetCoreEnabled ?? false)
+        //             {
+        //                 tracingBuilder.AddAspNetCoreInstrumentation(options =>
+        //                     {
+        //                         options.Filter = context =>
+        //                         {
+        //                             string? path = context.Request.Path.Value;
+        //                             return !((path?.StartsWith("/healthz") ?? false) ||
+        //                                      (path?.StartsWith("/metrics") ?? false));
+        //                         };
+        //                     }
+        //                 );
+        //             }
+        //         }
+        //     )
+        //     .WithMetrics(metricsBuilder =>
+        //         {
+        //             metricsBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(applicationName))
+        //                 .AddView(
+        //                     "*",
+        //                     new ExplicitBucketHistogramConfiguration
+        //                     {
+        //                         Boundaries = histogramBounds,
+        //                         // defaults: [ 0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000 ]
+        //                     }
+        //                 )
+        //                 .AddMeter($"{applicationName}.metrics");
+        //             if (!string.IsNullOrWhiteSpace(otelEndpoint))
+        //             {
+        //                 metricsBuilder.AddOtlpExporter(options =>
+        //                     {
+        //                         options.Endpoint = new Uri(otelEndpoint);
+        //                         options.Protocol =
+        //                             (configuration.GetValue<string?>("OTelProtocol")?.ToLowerInvariant() ?? "grpc") ==
+        //                             "grpc"
+        //                                 ? OtlpExportProtocol.Grpc : OtlpExportProtocol.HttpProtobuf;
+        //                     }
+        //                 );
+        //             }
+        //
+        //             if (isConsoleEnabled ?? false)
+        //             {
+        //                 metricsBuilder.AddConsoleExporter();
+        //             }
+        //
+        //             if (isAspNetCoreEnabled ?? false)
+        //             {
+        //                 metricsBuilder.AddAspNetCoreInstrumentation();
+        //             }
+        //
+        //             if (isRuntimeEnabled ?? false)
+        //             {
+        //                 metricsBuilder.AddRuntimeInstrumentation();
+        //             }
+        //
+        //             if (metricsPort is not null)
+        //             {
+        //                 metricsBuilder.AddPrometheusExporter();
+        //             }
+        //         }
+        //     );
     }
 
     private static void GetConfigFor<T>(

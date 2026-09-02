@@ -4,10 +4,14 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
+using TrivyOperator.Dashboard.Api.HealthChecks;
 using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
 using TrivyOperator.Dashboard.Application.Alerts.Models;
+using TrivyOperator.Dashboard.Application.GitHub.Options;
+using TrivyOperator.Dashboard.Application.GitHub.Services;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Services;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.HostedServices;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues.Abstractions;
@@ -17,15 +21,26 @@ using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelin
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelineStarters.Abstractions;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Models;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Services;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services;
+using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services;
+using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Contexts;
+using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.History.Services;
 using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
+using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services;
+using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.WatcherStates.HostedServices;
 using TrivyOperator.Dashboard.Application.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.WatcherStates.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
@@ -37,6 +52,7 @@ using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
@@ -44,8 +60,16 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
+using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub;
+using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Models;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory;
+using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
@@ -129,6 +153,66 @@ public static class BuilderServicesExtensions
         services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
         
         services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
+    }
+
+    public static void AddKubernetesRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHostedService<KubernetesEventPipelineHost>();
+        services.AddHostedService<WatcherStateCacheTimedHostedService>();
+        
+        services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();  
+
+        if (configuration.GetSection("Kubernetes").GetValue<bool>("UseDefaultContext"))
+        {
+            services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
+        }
+        else
+        {
+            services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();  
+        }
+        
+        services.AddSingleton<IKubernetesContextAccessor, KubernetesContextAccessor>();
+        
+        services.AddScoped<IKubernetesContextService, KubernetesContextService>();
+    }
+
+    public static void AddGitHubServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
+        {
+            services.AddHttpClient<IGitHubClient, GitHubClient>(client =>
+                {
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
+                }
+            );
+            services.AddHostedService<GitHubReleaseCacheTimedHostedService>();
+        }
+
+        services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
+    }
+
+    public static void AddMiscServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddScoped<IBackendSettingsService, BackendSettingsService>();
+        
+        services.AddScoped<IAppVersionsService, AppVersionsService>();
+
+        services.AddHealthChecks()
+            .AddCheck<WatchersLivenessHealthCheck>("watchers-liveness")
+            .AddCheck<WatchersReadinessHealthCheck>("watchers-readiness");
+        
+        // add, above, null IProvider services for the vr, sbom, esr, car, if they are disabled
+        services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
+    }
+
+    public static void AddTrivyOptions(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<BackgroundQueueOptions>(configuration.GetSection("Queues"));
+        services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
+        services.Configure<FileRepositoryOptions>(configuration.GetSection("FileRepository"));
+        services.Configure<WatchersOptions>(configuration.GetSection("Watchers"));
+        services.Configure<FileExportOptions>(configuration.GetSection("FileExport"));
+        services.Configure<GitHubOptions>(configuration.GetSection("GitHub"));
     }
     
     public static void AddAlertsServices(this IServiceCollection services)

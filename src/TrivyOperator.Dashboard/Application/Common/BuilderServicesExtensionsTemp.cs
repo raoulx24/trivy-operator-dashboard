@@ -39,7 +39,7 @@ namespace TrivyOperator.Dashboard.Application.Common;
 
 public static class BuilderServicesExtensionsTemp
 {
-    public static void AddTrivyReports(this IServiceCollection services, IConfiguration configuration)
+    public static void AddTrivyReportsOld(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedWatcherLifecycleProcessor>();
         
