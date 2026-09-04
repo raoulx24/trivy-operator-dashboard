@@ -21,7 +21,7 @@ public sealed class KubernetesContextAccessor : IKubernetesContextAccessor
 
     public IDisposable Push(ContextName context)
     {
-        var previous = Current.Value;
+        ContextName? previous = Current.Value;
         Current.Value = context;
 
         return new ContextScope(previous);
