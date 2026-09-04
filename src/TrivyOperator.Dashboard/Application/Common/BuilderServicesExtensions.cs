@@ -38,6 +38,8 @@ using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services;
 using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;
@@ -87,6 +89,7 @@ using TrivyOperator.Dashboard.Infrastructure.Persistence.K8s.Builders;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.K8s.Builders.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders;
 using TrivyOperator.Dashboard.Infrastructure.StaticResources.Services;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Factories;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;
@@ -196,6 +199,8 @@ public static class BuilderServicesExtensions
         bool useFileRepository = LoadUseFileRepository(configuration);
         Dictionary<string, bool> useTrivyReportsInFileRepo = LoadTrivyReportsInFileRepo(configuration);
         
+        services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
+        
         services.AddTrivyReport<VulnerabilityReportCr, VulnerabilityReport, Digest>();
         
         
@@ -270,7 +275,10 @@ public static class BuilderServicesExtensions
             IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
         services.AddHostedService<WatcherStateCacheTimedHostedService>();
         
-        // add here also the event processor
+        // watcher state event processor
+        // services
+        //     .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
+        //         WatcherStateEventProcessor<TReportCr>>();
     }
 
     public static void AddGitHubRelatedServices(this IServiceCollection services, IConfiguration configuration)
@@ -492,10 +500,13 @@ public static class BuilderServicesExtensions
             .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
                 ResourceStoreUpdater<TReportCr,TReport,TId>>();
         
-        // watcher state event processor
-        services
-            .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
-                WatcherStateEventProcessor<TReportCr>>();
+        // TODO: shall we keep it here? shall we keep it in AddWatcherStateRelatedServices?
+        // // watcher state event processor
+        // services
+        //     .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
+        //         WatcherStateEventProcessor<TReportCr>>();
+
+        services.AddScoped<IVulnerabilityReportService, VulnerabilityReportService>();
     }
     
 
@@ -822,6 +833,9 @@ public static class BuilderServicesExtensions
         
             // k8s event pipeline starter
             services.AddSingleton<IKubernetesEventPipelineStarter, NamespacedEventPipelineStarter<TReportCr>>();
+            
+            // watcher
+            services.AddSingleton<INamespacedWatcher, NamespacedWatcher<CustomResourceList<TReportCr>, TReportCr>>();
         }
     }
     

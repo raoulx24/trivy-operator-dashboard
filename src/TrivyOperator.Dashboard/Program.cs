@@ -104,6 +104,8 @@ builder.Services.AddOpenTelemetry(
 
 builder.Services.AddNamespaceRelatedServices(configuration);
 
+builder.Services.AddTrivyReportRelatedServices(configuration);
+
 //
 // // TODO: move them appropriately
 // builder.Services.AddTrivyReports(configuration);
