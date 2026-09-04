@@ -34,6 +34,7 @@ public class NamespacedWatcherLifecycleProcessor(
             case WatcherEventType.Error:
             case WatcherEventType.Flushed:
             case WatcherEventType.Modified:
+            default:
                 break;
             case WatcherEventType.Unknown:
                 logger.LogWarning(

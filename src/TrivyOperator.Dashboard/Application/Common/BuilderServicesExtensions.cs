@@ -38,6 +38,26 @@ using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterInfraAssessmentReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterInfraAssessmentReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterRbacAssessmentReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterRbacAssessmentReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterSbomReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterSbomReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterVulnerabilityReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterVulnerabilityReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ConfigAuditReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ConfigAuditReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ExposedSecretReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ExposedSecretReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.InfraAssessmentReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.InfraAssessmentReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.RbacAssessmentReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.RbacAssessmentReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services;
@@ -187,8 +207,6 @@ public static class BuilderServicesExtensions
         
         // processor for starting namespaced watchers
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedWatcherLifecycleProcessor>();
-        
-        
     }
     
     public static void AddTrivyReportRelatedServices(this IServiceCollection services, IConfiguration configuration)
@@ -201,7 +219,63 @@ public static class BuilderServicesExtensions
         
         services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
         
-        services.AddTrivyReport<VulnerabilityReportCr, VulnerabilityReport, Digest>();
+        services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
+        
+        if (useTrivyReportServices.GetValueOrDefault("ClusterComplianceReport"))
+        {
+            services.AddTrivyReport<ClusterComplianceReportCr, ClusterComplianceReport, Uid>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("ClusterInfraAssessmentReport"))
+        {
+            services.AddTrivyReport<ClusterInfraAssessmentReportCr, ClusterInfraAssessmentReport, Uid>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("ClusterRbacAssessmentReport"))
+        {
+            services.AddTrivyReport<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport, Uid>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("ClusterSbomReport"))
+        {
+            services.AddTrivyReport<ClusterSbomReportCr, ClusterSbomReport, Uid>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("ClusterVulnerabilityReport"))
+        {
+            services.AddTrivyReport<ClusterVulnerabilityReportCr, ClusterVulnerabilityReport, Uid>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("ConfigAuditReport"))
+        {
+            services.AddTrivyReport<ConfigAuditReportCr, ConfigAuditReport, Uid>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("ExposedSecretReport"))
+        {
+            services.AddTrivyReport<ExposedSecretReportCr, ExposedSecretReport, Digest>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("InfraAssessmentReport"))
+        {
+            services.AddTrivyReport<InfraAssessmentReportCr, InfraAssessmentReport, Uid>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("RbacAssessmentReport"))
+        {
+            services.AddTrivyReport<RbacAssessmentReportCr, RbacAssessmentReport, Uid>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("SbomReport"))
+        {
+            services.AddTrivyReport<SbomReportCr, SbomReport, Digest>();
+        }
+
+        if (useTrivyReportServices.GetValueOrDefault("VulnerabilityReport"))
+        {
+            services.AddTrivyReport<VulnerabilityReportCr, VulnerabilityReport, Digest>();
+        }
+
         
         
     }
@@ -269,16 +343,92 @@ public static class BuilderServicesExtensions
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
     }
 
-    public static void AddWatcherStateRelatedServices(this IServiceCollection services)
+    public static void AddWatcherStateRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
+        Dictionary<string, bool> trivyServices = LoadEnabledTrivyReports(configuration);
+        
         services.AddSingleton<
             IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
-        services.AddHostedService<WatcherStateCacheTimedHostedService>();
         
-        // watcher state event processor
-        // services
-        //     .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
-        //         WatcherStateEventProcessor<TReportCr>>();
+        services.AddHostedService<WatcherStateCacheTimedHostedService>();
+
+        if (trivyServices.GetValueOrDefault("ClusterComplianceReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<ClusterComplianceReportCr>,
+                WatcherStateEventProcessor<ClusterComplianceReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("ClusterInfraAssessmentReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<ClusterInfraAssessmentReportCr>,
+                WatcherStateEventProcessor<ClusterInfraAssessmentReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("ClusterRbacAssessmentReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<ClusterRbacAssessmentReportCr>,
+                WatcherStateEventProcessor<ClusterRbacAssessmentReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("ClusterSbomReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<ClusterSbomReportCr>,
+                WatcherStateEventProcessor<ClusterSbomReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("ClusterVulnerabilityReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<ClusterVulnerabilityReportCr>,
+                WatcherStateEventProcessor<ClusterVulnerabilityReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("ConfigAuditReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<ConfigAuditReportCr>,
+                WatcherStateEventProcessor<ConfigAuditReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("ExposedSecretReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<ExposedSecretReportCr>,
+                WatcherStateEventProcessor<ExposedSecretReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("InfraAssessmentReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<InfraAssessmentReportCr>,
+                WatcherStateEventProcessor<InfraAssessmentReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("RbacAssessmentReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<RbacAssessmentReportCr>,
+                WatcherStateEventProcessor<RbacAssessmentReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("SbomReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<SbomReportCr>,
+                WatcherStateEventProcessor<SbomReportCr>>();
+        }
+
+        if (trivyServices.GetValueOrDefault("VulnerabilityReport"))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<VulnerabilityReportCr>,
+                WatcherStateEventProcessor<VulnerabilityReportCr>>();
+        }
+
     }
 
     public static void AddGitHubRelatedServices(this IServiceCollection services, IConfiguration configuration)
@@ -467,9 +617,8 @@ public static class BuilderServicesExtensions
         services.AddReportMapper(typeof(TReport));
 
         // in memory cache
-        // -- codec
-        // TODO: move it from here, there is no point in registering it multiple times
-        services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
+        // -- codec - registered above
+        // services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
         // -- cache entry builder
         services.AddCacheEntryBuilder(typeof(TReport));
             // services.AddSingleton<
@@ -500,13 +649,8 @@ public static class BuilderServicesExtensions
             .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
                 ResourceStoreUpdater<TReportCr,TReport,TId>>();
         
-        // TODO: shall we keep it here? shall we keep it in AddWatcherStateRelatedServices?
-        // // watcher state event processor
-        // services
-        //     .AddSingleton<IKubernetesEventProcessor<TReportCr>, 
-        //         WatcherStateEventProcessor<TReportCr>>();
-
-        services.AddScoped<IVulnerabilityReportService, VulnerabilityReportService>();
+        // query service
+        services.LoadTrivyQueryRelatedServices(typeof(TReport));
     }
     
 
@@ -803,13 +947,66 @@ public static class BuilderServicesExtensions
                     $"No report cache registered for report type '{reportType.Name}'.");
         }
     }
+    
+    private static void LoadTrivyQueryRelatedServices(this IServiceCollection services, Type reportType)
+    {
+        switch (reportType.Name)
+        {
+            case nameof(ClusterComplianceReport):
+                services.AddScoped<IClusterComplianceReportService, ClusterComplianceReportService>();
+                break;
+
+            case nameof(ClusterInfraAssessmentReport):
+                services.AddScoped<IClusterInfraAssessmentReportService, ClusterInfraAssessmentReportService>();
+                break;
+
+            case nameof(ClusterRbacAssessmentReport):
+                services.AddScoped<IClusterRbacAssessmentReportService, ClusterRbacAssessmentReportService>();
+                break;
+
+            case nameof(ClusterSbomReport):
+                services.AddScoped<IClusterSbomReportService, ClusterSbomReportService>();
+                break;
+
+            case nameof(ClusterVulnerabilityReport):
+                services.AddScoped<IClusterVulnerabilityReportService, ClusterVulnerabilityReportService>();
+                break;
+
+            case nameof(ConfigAuditReport):
+                services.AddScoped<IConfigAuditReportService, ConfigAuditReportService>();
+                break;
+
+            case nameof(ExposedSecretReport):
+                services.AddScoped<IExposedSecretReportService, ExposedSecretReportService>();
+                break;
+
+            case nameof(InfraAssessmentReport):
+                services.AddScoped<IInfraAssessmentReportService, InfraAssessmentReportService>();
+                break;
+
+            case nameof(RbacAssessmentReport):
+                services.AddScoped<IRbacAssessmentReportService, RbacAssessmentReportService>();
+                break;
+
+            case nameof(SbomReport):
+                services.AddScoped<ISbomReportService, SbomReportService>();
+                break;
+
+            case nameof(VulnerabilityReport):
+                services.AddScoped<IVulnerabilityReportService, VulnerabilityReportService>();
+                break;
+            default:
+                throw new NotSupportedException(
+                    $"No query report registered for report type '{reportType.Name}'.");
+        }
+    }
 
     private static void AddReportKubernetesServices<TReportCr, TReport, TId>(this IServiceCollection services)
         where TReportCr : CustomResource, new()
         where TReport : ITrivyReport<TId>
         where TId : notnull
     {
-        if (nameof(TReport).StartsWith("Cluster", StringComparison.Ordinal))
+        if (typeof(TReport).Name.StartsWith("Cluster", StringComparison.Ordinal))
         {
             // k8s infra service
             services

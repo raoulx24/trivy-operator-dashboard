@@ -44,6 +44,7 @@ public class ResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
                 break;
             case WatcherEventType.Bookmark:
             case WatcherEventType.WatcherConnected:
+                break;
             case WatcherEventType.Unknown:
             default:
                 logger.LogWarning(
