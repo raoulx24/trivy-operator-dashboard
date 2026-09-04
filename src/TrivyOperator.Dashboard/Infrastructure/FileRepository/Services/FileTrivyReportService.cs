@@ -14,7 +14,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 public class FileTrivyReportService<TKubernetesObject, TReport, TKey>(
     IFolderNameFactory folderNameFactory,
     IOptions<FileRepositoryOptions> options,
-    ITrivyReportAggregator<TKubernetesObject, TReport, TKey> aggregator,
+    IResourceAggregator<TKubernetesObject, TReport, TKey> aggregator,
     ILogger<FileTrivyReportService<TKubernetesObject, TReport, TKey>> logger)
     : IFileTrivyReportService<TReport, TKey>
     where TKubernetesObject : CustomResource

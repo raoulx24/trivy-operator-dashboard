@@ -1,14 +1,14 @@
 ﻿using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Abstract;
+using TrivyOperator.Dashboard.Infrastructure.K8s.Mappers.Abstract;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators;
 
 public class TrivyImageReportAggregator<TKubernetesObject, TReport>(
-    ITrivyReportMapper<TKubernetesObject, TReport> mapper,
-    ITrivyReportKeyProvider<TKubernetesObject, Digest> keyProvider)
-    : TrivyReportAggregator<TKubernetesObject, TReport, Digest>(
+    IResourceMapper<TKubernetesObject, TReport> mapper,
+    IResourceKeyProvider<TKubernetesObject, Digest> keyProvider)
+    : ResourceAggregator<TKubernetesObject, TReport, Digest>(
         mapper,
         keyProvider)
     where TKubernetesObject : CustomResource

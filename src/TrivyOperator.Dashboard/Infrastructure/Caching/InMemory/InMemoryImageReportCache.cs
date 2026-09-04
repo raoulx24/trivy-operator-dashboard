@@ -6,7 +6,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstraction
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.K8s.Builders.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 

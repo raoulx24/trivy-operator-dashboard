@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ExposedSecrets;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Codecs.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.K8s.Builders.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Models;
 

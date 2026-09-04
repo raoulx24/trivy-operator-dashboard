@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TrivyOperator.Dashboard.Api.Hubs.Alerts;
+using TrivyOperator.Dashboard.Api.Serialization;
 using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
@@ -18,6 +19,8 @@ using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Factor
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator.Abstractions;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 const string applicationName = "TrivyOperator.Dashboard";
 
@@ -79,22 +82,31 @@ if (!builder.Environment.IsProduction())
 
 builder.Services.AddControllersWithViews(ConfigureMvcOptions)
     .AddJsonOptions(options => ConfigureJson(options.JsonSerializerOptions));
-builder.Services.AddCommons(configuration);
+// builder.Services.AddCommons(configuration);
 builder.Services.AddAlertsServices();
-builder.Services.AddWatcherStateServices();
-builder.Services.AddHistoryServices(configuration);
-builder.Services.AddV1NamespaceServices(configuration);
-builder.Services.AddTrivyServices(configuration);
+// builder.Services.AddWatcherStateServices();
+// builder.Services.AddHistoryServices(configuration);
+// builder.Services.AddV1NamespaceServices(configuration);
+// builder.Services.AddTrivyServices(configuration);
+//
+// builder.Services.AddUiCommons();
+// builder.Services.AddOthers();
 
-builder.Services.AddUiCommons();
-builder.Services.AddOthers();
+builder.Services.AddAppOptions(configuration);
+
+builder.Services.AddKubernetesRelatedServices(configuration);
+
+builder.Services.AddMiscServices(configuration);
 builder.Services.AddOpenTelemetry(
     configuration.GetSection("OpenTelemetry"),
     applicationName.Replace(".", string.Empty).ToLowerInvariant()
 );
 
-// TODO: move them appropriately
-builder.Services.AddTrivyReports(configuration);
+builder.Services.AddNamespaceRelatedServices(configuration);
+
+//
+// // TODO: move them appropriately
+// builder.Services.AddTrivyReports(configuration);
 
 builder.WebHost.ConfigureKestrel(options =>
     {
@@ -123,24 +135,24 @@ builder.WebHost.ConfigureKestrel(options =>
 
 // TODO: move the migrations registration
 builder.Services.AddSingleton<ICacheEntityCodecFactory, CacheEntityCodecFactory>();
-// if (false)
-// {
+if (false)
+{
     builder.Services.AddSingleton<IPersistenceMigrationHistoryStore, PersistenceMigrationHistoryStore>();
     builder.Services.AddSingleton<IPersistenceMigrationRunner, PersistenceMigrationRunner>();
     
     builder.Services.AddSingleton<IPersistenceMigration, VulnerabilityReportsHistoryV2Migration>();
-// }
+}
 // end of migrations registration
 
 WebApplication app = builder.Build();
 
 // TODO: move the migrations in a dedicated extension class
-// if (false)
-// {
-    IPersistenceMigrationRunner? runner = app.Services.GetRequiredService<IPersistenceMigrationRunner>();
+if (false)
+{
+    IPersistenceMigrationRunner runner = app.Services.GetRequiredService<IPersistenceMigrationRunner>();
 
     await runner.RunMigrationsAsync();
-// }
+}
 
 // Environment.Exit(0);
 
@@ -263,7 +275,7 @@ static void ConfigureLogging(IConfiguration configuration)
     Log.Logger = loggerConfiguration.CreateLogger();
     SerilogLoggerFactory serilogLoggerFactory = new(Log.Logger);
     Logger = serilogLoggerFactory.CreateLogger<Program>();
-    BuilderServicesExtensionsOld.Logger = Logger;
+    BuilderServicesExtensions.Logger = Logger;
     AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
     TaskScheduler.UnobservedTaskException += TaskSchedulerUnobservedTaskException;
 }

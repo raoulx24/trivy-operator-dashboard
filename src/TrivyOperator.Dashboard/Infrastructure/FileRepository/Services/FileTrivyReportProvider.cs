@@ -5,7 +5,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.K8s.Builders.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 
@@ -88,6 +88,20 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
         await EnsureCacheLoaded(ctx);
 
         return [.. cache[DefaultContext].Keys,];
+    }
+
+    public async Task Clear(CancellationToken ctx = default)
+    {
+        await refreshLock.WaitAsync(ctx);
+
+        try
+        {
+            cache.Clear();
+        }
+        finally
+        {
+            refreshLock.Release();
+        }
     }
 
     private async Task EnsureCacheLoaded(CancellationToken ctx)

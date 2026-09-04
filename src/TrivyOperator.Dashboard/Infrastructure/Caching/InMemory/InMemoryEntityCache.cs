@@ -5,7 +5,7 @@ using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Trivy.Builders.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Persistence.K8s.Builders.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 
@@ -63,7 +63,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
             ? Task.FromResult<TResource?>(cacheEntryBuilder.ToEntity(cacheEntry)) 
             : Task.FromResult<TResource?>(null);
     }
-    
+
     public abstract Task ClearByNamespace(NamespaceName ns, CancellationToken ctx = default);
     
     public abstract Task Delete(TKey key, Uid uid, CancellationToken ctx = default);

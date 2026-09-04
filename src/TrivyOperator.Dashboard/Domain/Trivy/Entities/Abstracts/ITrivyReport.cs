@@ -6,6 +6,6 @@ public interface ITrivyReport<out TId> : IEntity<TId>, ITrivyReport
 {
 }
 
-public interface ITrivyReport
+public interface ITrivyReport : IEntity
 {
 }
