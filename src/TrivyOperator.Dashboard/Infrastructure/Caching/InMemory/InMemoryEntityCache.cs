@@ -24,7 +24,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
     
     public Task Upsert(TResource resource, CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         logger.LogDebug(
             "Upsert - {objectType} - {cacheKey}",
             typeof(TResource).Name,
@@ -44,7 +44,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
 
     public Task<TResource?> Get(TKey key, CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         
         logger.LogDebug(
             "Get - {objectType} - {cacheKey}",
@@ -70,7 +70,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
 
     public Task<TResource?> GetResource(TKey key, CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         ctx.ThrowIfCancellationRequested();
         
         if (contextName == default) contextName = new ContextName();
@@ -89,7 +89,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
 
     public Task<IReadOnlyList<TResource>> GetResources(CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         ctx.ThrowIfCancellationRequested();
         
         if (contextName == default) contextName = new ContextName();
@@ -108,7 +108,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
         IEnumerable<TKey> keys,
         CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         ctx.ThrowIfCancellationRequested();
 
         if (contextName == default)
@@ -138,7 +138,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
 
     public Task<TResource?> GetResourceSummary(TKey key, CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         ctx.ThrowIfCancellationRequested();
 
         if (contextName == default)
@@ -161,7 +161,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
     public Task<IReadOnlyList<TResource>> GetResourceSummaries(
         CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         ctx.ThrowIfCancellationRequested();
 
         if (contextName == default)
@@ -182,7 +182,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
     public Task<IReadOnlyList<TKey>> GetResourceIds(
         CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         ctx.ThrowIfCancellationRequested();
 
         if (contextName == default)

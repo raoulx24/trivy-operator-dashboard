@@ -5,7 +5,7 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Mappers.Abstract;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators;
 
-public class TrivyImageReportAggregator<TKubernetesObject, TReport>(
+public class DigestKeyedReportAggregator<TKubernetesObject, TReport>(
     IResourceMapper<TKubernetesObject, TReport> mapper,
     IResourceKeyProvider<TKubernetesObject, Digest> keyProvider)
     : ResourceAggregator<TKubernetesObject, TReport, Digest>(

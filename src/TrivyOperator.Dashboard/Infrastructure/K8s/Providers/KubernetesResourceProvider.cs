@@ -32,7 +32,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
 
     public async Task<TResource?> GetResource(TKey key, CancellationToken ctx = default)
     {
-        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
         CacheEntry<TResource, TKey>? cacheEntry = cache[contextName].GetValueOrDefault(key);
@@ -42,7 +42,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
 
     public async Task<IReadOnlyList<TResource>> GetResources(CancellationToken ctx = default)
     {
-        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
         return
@@ -55,7 +55,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
 
     public async Task<IReadOnlyList<TResource>> GetResources(IEnumerable<TKey> keys, CancellationToken ctx = default)
     {
-        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
         ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>> reports = cache[contextName];
@@ -76,7 +76,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
 
     public async Task<TResource?> GetResourceSummary(TKey key, CancellationToken ctx = default)
     {
-        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
         CacheEntry<TResource, TKey>? cacheEntry = cache[contextName].GetValueOrDefault(key);
@@ -86,7 +86,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
 
     public async Task<IReadOnlyList<TResource>> GetResourceSummaries(CancellationToken ctx = default)
     {
-        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
         return
@@ -99,7 +99,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
 
     public async Task<IReadOnlyList<TKey>> GetResourceIds(CancellationToken ctx = default)
     {
-        _ = contextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
         return [.. cache[contextName].Keys,];

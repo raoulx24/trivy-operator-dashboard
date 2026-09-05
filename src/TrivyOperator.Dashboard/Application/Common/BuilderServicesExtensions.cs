@@ -155,7 +155,7 @@ public static class BuilderServicesExtensions
         
         // aggregator
         services.AddSingleton<
-            IResourceAggregator<V1Namespace, K8sNamespace, Uid>, GenericResourceAggregator<V1Namespace, K8sNamespace>>();
+            IResourceAggregator<V1Namespace, K8sNamespace, Uid>, UidKeyedResourceAggregator<V1Namespace, K8sNamespace>>();
         
         // expiring resource provider
         services.AddSingleton<
@@ -220,6 +220,9 @@ public static class BuilderServicesExtensions
         services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
         
         services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
+        
+        services.AddTrivyReportMultiContext<VulnerabilityReportCr, VulnerabilityReport, Digest>();
+        return;
         
         if (useTrivyReportServices.GetValueOrDefault("ClusterComplianceReport"))
         {
@@ -335,17 +338,18 @@ public static class BuilderServicesExtensions
             // watcher pipeline events starter
             services.AddHostedService<KubernetesEventPipelineHost>();
             
-            // context resolver for default context
-            services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
+            // context resolver and accessor (for pipeline starter)
+            services.AddSingleton<KubernetesContextAccessor>();
+            services.AddSingleton<IKubernetesContextResolver>(sp =>
+                sp.GetRequiredService<KubernetesContextAccessor>());
+            services.AddSingleton<IKubernetesContextAccessor>(sp =>
+                sp.GetRequiredService<KubernetesContextAccessor>());
         }
         else
         {
             // context resolver for multi context
             services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();  
         }
-        
-        // context accessor
-        services.AddSingleton<IKubernetesContextAccessor, KubernetesContextAccessor>();
         
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
     }
@@ -626,21 +630,26 @@ public static class BuilderServicesExtensions
         // aggregators
         services.AddAggregatorServices(typeof(TReport));
         
-        if (typeof(TReport).Name.StartsWith("Cluster", StringComparison.Ordinal))
-        {
-            // k8s infra service
-            services
-                .AddSingleton<
-                    IClusterScopedResourceService<TReportCr, CustomResourceList<TReportCr>>,
-                    ClusterScopedCustomResourceService<TReportCr>>();
-        }
-        else
-        {
-            // k8s infra service
-            services
-                .AddSingleton<INamespacedResourceService<TReportCr, CustomResourceList<TReportCr>>,
-                    NamespacedCustomResourceService<TReportCr>>();
-        }
+        services
+            .AddSingleton<
+                IKubernetesResourceService<TReportCr>,
+                NamespacedCustomResourceService<TReportCr>>();
+        
+        // if (typeof(TReport).Name.StartsWith("Cluster", StringComparison.Ordinal))
+        // {
+        //     // k8s infra service
+        //     services
+        //         .AddSingleton<
+        //             IClusterScopedResourceService<TReportCr, CustomResourceList<TReportCr>>,
+        //             ClusterScopedCustomResourceService<TReportCr>>();
+        // }
+        // else
+        // {
+        //     // k8s infra service
+        //     services
+        //         .AddSingleton<INamespacedResourceService<TReportCr, CustomResourceList<TReportCr>>,
+        //             NamespacedCustomResourceService<TReportCr>>();
+        // }
 
 
         services.AddCacheEntryBuilder(typeof(TReport));
@@ -655,7 +664,10 @@ public static class BuilderServicesExtensions
         
         // provider
         services.AddSingleton<
-            IExpiringResourceProvider<TReport, TId>, KubernetesResourceProvider<TReportCr, TReport, TId>>();
+            IResourceProvider<TReport, TId>, KubernetesResourceProvider<TReportCr, TReport, TId>>();
+        
+        // query service
+        services.LoadTrivyQueryRelatedServices(typeof(TReport));
     }
 
     private static void AddTrivyReport<TReportCr, TReport, TId>(this IServiceCollection services)
@@ -1093,57 +1105,57 @@ public static class BuilderServicesExtensions
             case nameof(ClusterComplianceReport):
                 services.AddSingleton<
                     IResourceAggregator<ClusterComplianceReportCr, ClusterComplianceReport, Uid>,
-                    GenericResourceAggregator<ClusterComplianceReportCr, ClusterComplianceReport>>();
+                    UidKeyedResourceAggregator<ClusterComplianceReportCr, ClusterComplianceReport>>();
                 break;
             case nameof(ClusterInfraAssessmentReport):
                 services.AddSingleton<
                     IResourceAggregator<ClusterInfraAssessmentReportCr, ClusterInfraAssessmentReport, Uid>,
-                    GenericResourceAggregator<ClusterInfraAssessmentReportCr, ClusterInfraAssessmentReport>>();
+                    UidKeyedResourceAggregator<ClusterInfraAssessmentReportCr, ClusterInfraAssessmentReport>>();
                 break;
             case nameof(ClusterRbacAssessmentReport):
                 services.AddSingleton<
                     IResourceAggregator<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport, Uid>,
-                    GenericResourceAggregator<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport>>();
+                    UidKeyedResourceAggregator<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport>>();
                 break;
             case nameof(ClusterSbomReport):
                 services.AddSingleton<
                     IResourceAggregator<ClusterSbomReportCr, ClusterSbomReport, Uid>,
-                    GenericResourceAggregator<ClusterSbomReportCr, ClusterSbomReport>>();
+                    UidKeyedResourceAggregator<ClusterSbomReportCr, ClusterSbomReport>>();
                 break;
             case nameof(ClusterVulnerabilityReport):
                 services.AddSingleton<
                     IResourceAggregator<ClusterVulnerabilityReportCr, ClusterVulnerabilityReport, Uid>,
-                    GenericResourceAggregator<ClusterVulnerabilityReportCr, ClusterVulnerabilityReport>>();
+                    UidKeyedResourceAggregator<ClusterVulnerabilityReportCr, ClusterVulnerabilityReport>>();
                 break;
             case nameof(ConfigAuditReport):
                 services.AddSingleton<
                     IResourceAggregator<ConfigAuditReportCr, ConfigAuditReport, Uid>,
-                    GenericResourceAggregator<ConfigAuditReportCr, ConfigAuditReport>>();
+                    UidKeyedResourceAggregator<ConfigAuditReportCr, ConfigAuditReport>>();
                 break;
             case nameof(ExposedSecretReport):
                 services.AddSingleton<
                     IResourceAggregator<ExposedSecretReportCr, ExposedSecretReport, Digest>,
-                    TrivyImageReportAggregator<ExposedSecretReportCr, ExposedSecretReport>>();
+                    DigestKeyedReportAggregator<ExposedSecretReportCr, ExposedSecretReport>>();
                 break;
             case nameof(InfraAssessmentReport):
                 services.AddSingleton<
                     IResourceAggregator<InfraAssessmentReportCr, InfraAssessmentReport, Uid>,
-                    GenericResourceAggregator<InfraAssessmentReportCr, InfraAssessmentReport>>();
+                    UidKeyedResourceAggregator<InfraAssessmentReportCr, InfraAssessmentReport>>();
                 break;
             case nameof(RbacAssessmentReport):
                 services.AddSingleton<
                     IResourceAggregator<RbacAssessmentReportCr, RbacAssessmentReport, Uid>,
-                    GenericResourceAggregator<RbacAssessmentReportCr, RbacAssessmentReport>>();
+                    UidKeyedResourceAggregator<RbacAssessmentReportCr, RbacAssessmentReport>>();
                 break;
             case nameof(SbomReport):
                 services.AddSingleton<
                     IResourceAggregator<SbomReportCr, SbomReport, Digest>,
-                    TrivyImageReportAggregator<SbomReportCr, SbomReport>>();
+                    DigestKeyedReportAggregator<SbomReportCr, SbomReport>>();
                 break;
             case nameof(VulnerabilityReport):
                 services.AddSingleton<
                     IResourceAggregator<VulnerabilityReportCr, VulnerabilityReport, Digest>,
-                    TrivyImageReportAggregator<VulnerabilityReportCr, VulnerabilityReport>>();
+                    DigestKeyedReportAggregator<VulnerabilityReportCr, VulnerabilityReport>>();
                 break;
 
             default:

@@ -7,7 +7,7 @@ public sealed class KubernetesContextAccessor : IKubernetesContextAccessor
 {
     private static readonly AsyncLocal<ContextName?> Current = new();
 
-    public bool TryGetCurrent(out ContextName context)
+    public bool TryGetCurrentContext(out ContextName context)
     {
         if (Current.Value is { } value)
         {
@@ -19,7 +19,7 @@ public sealed class KubernetesContextAccessor : IKubernetesContextAccessor
         return false;
     }
 
-    public IDisposable Push(ContextName context)
+    public IDisposable PushContext(ContextName context)
     {
         ContextName? previous = Current.Value;
         Current.Value = context;

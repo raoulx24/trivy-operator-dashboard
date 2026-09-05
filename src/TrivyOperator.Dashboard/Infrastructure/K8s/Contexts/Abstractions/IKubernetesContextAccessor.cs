@@ -2,8 +2,7 @@
 
 namespace TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 
-public interface IKubernetesContextAccessor
+public interface IKubernetesContextAccessor : IKubernetesContextResolver
 {
-    bool TryGetCurrent(out ContextName context);
-    IDisposable Push(ContextName context);
+    IDisposable PushContext(ContextName context);
 }

@@ -24,7 +24,7 @@ public sealed class KubernetesEventPipelineHost(
         logger.LogInformation("Kubernetes Watcher Hosted Service started.");
 
         ContextName contextName = clientFactory.GetDefaultContext();
-        contextAccessor.Push(contextName);
+        contextAccessor.PushContext(contextName);
         
         foreach (IKubernetesEventPipelineStarter service in services)
         {

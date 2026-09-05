@@ -20,7 +20,7 @@ public class InMemoryImageReportCache<TResource>(
 {
     public override Task ClearByNamespace(NamespaceName ns, CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         
         logger.LogDebug(
             "ClearByNamespace - {objectType} - {cacheKey} - {namespace}",
@@ -53,7 +53,7 @@ public class InMemoryImageReportCache<TResource>(
     
     public override Task Delete(Digest key, Uid uid, CancellationToken ctx = default)
     {
-        _ = ContextResolver.TryResolveCurrentContext(out ContextName contextName);
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         
         logger.LogDebug(
             "Delete - {objectType} - {cacheKey} - {uid}",

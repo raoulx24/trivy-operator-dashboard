@@ -6,7 +6,7 @@ using TrivyOperator.Dashboard.Infrastructure.K8s.Mappers.Abstract;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators;
 
-public class GenericResourceAggregator<TKubernetesObject, TResource>(
+public class UidKeyedResourceAggregator<TKubernetesObject, TResource>(
     IResourceMapper<TKubernetesObject, TResource> mapper,
     IResourceKeyProvider<TKubernetesObject, Uid> keyProvider
 ) : ResourceAggregator<TKubernetesObject, TResource, Uid>(mapper, keyProvider)

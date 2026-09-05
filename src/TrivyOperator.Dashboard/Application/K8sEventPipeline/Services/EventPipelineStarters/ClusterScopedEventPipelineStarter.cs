@@ -12,7 +12,7 @@ namespace TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPip
 public class ClusterScopedEventPipelineStarter<TKubernetesObject>(
     IKubernetesEventDispatcher<TKubernetesObject> kubernetesEventDispatcher,
     IKubernetesBackgroundQueue<TKubernetesObject> queue,
-    IKubernetesContextAccessor contextAccessor,
+    IKubernetesContextResolver contextResolver,
     IEnumerable<IClusterScopedWatcher> clusterScopedWatchers,
     ILogger<KubernetesEventPipelineStarter<TKubernetesObject>> logger
 ) : KubernetesEventPipelineStarter<TKubernetesObject>(kubernetesEventDispatcher, queue, logger)
@@ -20,7 +20,7 @@ public class ClusterScopedEventPipelineStarter<TKubernetesObject>(
 {
     public override void StartPipeline(CancellationToken ctx = default)
     {
-        if (!contextAccessor.TryGetCurrent(out ContextName contextName))
+        if (!contextResolver.TryGetCurrentContext(out ContextName contextName))
         {
             contextName = new ContextName();
         }

@@ -9,7 +9,7 @@ public class DefaultKubernetesContextResolver(IKubernetesClientFactory kubernete
 {
     private readonly ContextName currentContext = kubernetesClientFactory.GetDefaultContext();
 
-    public bool TryResolveCurrentContext(out ContextName context)
+    public bool TryGetCurrentContext(out ContextName context)
     {
         context = currentContext;
 
