@@ -1,5 +1,4 @@
 ﻿using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelineStarters.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
 
@@ -7,7 +6,7 @@ namespace TrivyOperator.Dashboard.Application.K8sEventPipeline.HostedServices;
 
 public sealed class KubernetesEventPipelineHost(
     IEnumerable<IKubernetesEventPipelineStarter> services,
-    IKubernetesContextAccessor contextAccessor,
+    IKubernetesContextResolver contextResolver,
     IKubernetesClientFactory clientFactory,
     ILogger<KubernetesEventPipelineHost> logger
 ) : BackgroundService
@@ -23,9 +22,6 @@ public sealed class KubernetesEventPipelineHost(
     {
         logger.LogInformation("Kubernetes Watcher Hosted Service started.");
 
-        ContextName contextName = clientFactory.GetDefaultContext();
-        contextAccessor.PushContext(contextName);
-        
         foreach (IKubernetesEventPipelineStarter service in services)
         {
             service.StartPipeline(ctx);

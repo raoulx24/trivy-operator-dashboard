@@ -106,6 +106,12 @@ builder.Services.AddNamespaceRelatedServices(configuration);
 
 builder.Services.AddTrivyReportRelatedServices(configuration);
 
+builder.Services.AddWatcherStateRelatedServices(configuration);
+
+builder.Services.AddHistoryRelatedServices(configuration);
+
+builder.Services.AddGitHubRelatedServices(configuration);
+
 //
 // // TODO: move them appropriately
 // builder.Services.AddTrivyReports(configuration);
