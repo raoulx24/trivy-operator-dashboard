@@ -8,7 +8,7 @@ using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Application.Utils;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;

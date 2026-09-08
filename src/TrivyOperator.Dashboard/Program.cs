@@ -9,16 +9,22 @@ using StackExchange.Redis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Api.Hubs.Alerts;
+using TrivyOperator.Dashboard.Api.Alerts.Hubs;
+using TrivyOperator.Dashboard.Api.Alerts.Serializations;
+using TrivyOperator.Dashboard.Api.AppVersions.Serializations;
+using TrivyOperator.Dashboard.Api.BackendSettings.Serializations;
+using TrivyOperator.Dashboard.Api.History.Serializations;
+using TrivyOperator.Dashboard.Api.K8s.Serializations;
 using TrivyOperator.Dashboard.Api.Serialization;
+using TrivyOperator.Dashboard.Api.Trivy.Serializations;
 using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.Utils;
-using TrivyOperator.Dashboard.Domain.Utils.JsonConverters;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Factories;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.CacheEntityCodec.Factories.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Migrations.Migrator.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories;
+using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.History.Migrations;
+using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator;
+using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Shared.JsonConverters;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
@@ -290,15 +296,37 @@ static void ConfigureLogging(IConfiguration configuration)
 
 static void ConfigureJson(JsonSerializerOptions options)
 {
-    // TODO: remove after migration of all json contracts 
+    // TODO: remove after migration of all json contracts
     // options.TypeInfoResolverChain.Clear();
-    
-    options.TypeInfoResolverChain.Insert(0, ApiJsonContext.Default);
-    
+
+    options.TypeInfoResolverChain.Insert(0, AlertsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, AppVersionsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, BackendSettingsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, VulnerabilityReportsHistoryApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, KubernetesApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, KubernetesNamespacesApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, WatcherStatusApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, ClusterComplianceReportsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, ClusterConfigAuditReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, ClusterInfraAssessmentReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, ClusterRbacAssessmentReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, ClusterSbomReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, ClusterVulnerabilityReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, ConfigAuditReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, ExposedSecretReportsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, InfraAssessmentReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, RbacAssessmentReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, SbomReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, SeveritiesApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, TrivyReportDependenciesApiJsonContext.Default);
+    options.TypeInfoResolverChain.Insert(0, VulnerabilityReportsApiJsonContext.Default);
+
+    // TODO: remove JsonStringEnumConverter at some point
     options.Converters.Add(new JsonStringEnumConverter());
     options.Converters.Add(new DateTimeJsonConverter());
     options.Converters.Add(new DateTimeNullableJsonConverter());
 }
+
 
 static void ConfigureMvcOptions(MvcOptions options)
 {

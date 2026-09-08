@@ -1,7 +1,7 @@
 ﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterSbomReports.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;

@@ -1,11 +1,11 @@
 ﻿using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
-using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.K8s.Mappers.Abstract;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.Extensions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.ToDomain.Extensions;
 
 namespace TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors;
 

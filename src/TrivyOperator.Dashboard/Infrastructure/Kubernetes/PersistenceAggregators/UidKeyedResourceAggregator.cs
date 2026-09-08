@@ -1,0 +1,14 @@
+﻿using k8s;
+using k8s.Models;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
+
+namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators;
+
+public class UidKeyedResourceAggregator<TKubernetesObject, TResource>(
+    IResourceMapper<TKubernetesObject, TResource> mapper,
+    IResourceKeyProvider<TKubernetesObject, Uid> keyProvider
+) : ResourceAggregator<TKubernetesObject, TResource, Uid>(mapper, keyProvider)
+    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
+    where TResource : class, IEntity<Uid>;

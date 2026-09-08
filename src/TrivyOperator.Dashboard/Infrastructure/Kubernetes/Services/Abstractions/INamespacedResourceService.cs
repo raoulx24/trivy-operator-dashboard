@@ -1,0 +1,33 @@
+﻿using k8s;
+using k8s.Models;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+
+namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
+
+public interface INamespacedResourceService<TKubernetesObject, TKubernetesObjectList>
+    : IKubernetesResourceService<TKubernetesObject>
+    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
+    where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
+{
+    Task<TKubernetesObject> GetResource(
+        string resourceName,
+        string namespaceName,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<TKubernetesObjectList> GetResourceList(
+        string namespaceName,
+        int? pageLimit = null,
+        string? continueToken = null,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<IList<TKubernetesObject>> GetResources(string namespaceName, CancellationToken cancellationToken = default);
+
+    IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
+        string namespaceName,
+        string? lastResourceVersion = null,
+        int? timeoutSeconds = null,
+        CancellationToken cancellationToken = default
+    );
+}

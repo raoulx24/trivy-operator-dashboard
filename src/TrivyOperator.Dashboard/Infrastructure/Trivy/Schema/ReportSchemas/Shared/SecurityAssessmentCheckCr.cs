@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
+using TrivyOperator.Dashboard.Infrastructure.Shared.JsonConverters;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.SecurityAssessments;
-using TrivyOperator.Dashboard.Infrastructure.Utils.JsonConverters;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
 

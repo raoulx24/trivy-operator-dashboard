@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 

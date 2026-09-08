@@ -2,12 +2,12 @@
 using System.Text.Json;
 using System.Threading.Channels;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
-using TrivyOperator.Dashboard.Domain.Utils;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.Aggregators.Abstracts;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators.Abstracts;
+using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 

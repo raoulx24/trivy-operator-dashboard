@@ -1,5 +1,5 @@
-﻿using TrivyOperator.Dashboard.Infrastructure.K8s.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.K8s.Services.Abstractions;
+﻿using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports.Crds;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;

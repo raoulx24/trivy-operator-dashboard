@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Contexts;
 

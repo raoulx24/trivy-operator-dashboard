@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Models;
+﻿using TrivyOperator.Dashboard.Infrastructure.GitHub.Models;
 
 namespace TrivyOperator.Dashboard.Application.Queries.AppVersions.Models;
 

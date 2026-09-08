@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Models;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;

@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Domain.Shared.Abstractions;

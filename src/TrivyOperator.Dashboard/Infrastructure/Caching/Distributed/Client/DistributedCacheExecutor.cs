@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Utils;
+using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
 

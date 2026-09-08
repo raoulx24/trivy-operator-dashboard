@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.Metrics;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 

@@ -1,9 +1,9 @@
 ﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
-using TrivyOperator.Dashboard.Domain.Utils;
+using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 

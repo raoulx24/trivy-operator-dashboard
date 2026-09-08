@@ -1,12 +1,11 @@
 ﻿using System.Collections.Concurrent;
-using TrivyOperator.Dashboard.Domain.K8s.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
-using TrivyOperator.Dashboard.Infrastructure.K8s.ClientFactory.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.K8s.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Persistence.K8s.Builders.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 

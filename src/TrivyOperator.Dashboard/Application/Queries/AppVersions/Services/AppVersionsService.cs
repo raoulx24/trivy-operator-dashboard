@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Models;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Clients.GitHub.Models;
+using TrivyOperator.Dashboard.Infrastructure.GitHub.Models;
 
 namespace TrivyOperator.Dashboard.Application.Queries.AppVersions.Services;
 

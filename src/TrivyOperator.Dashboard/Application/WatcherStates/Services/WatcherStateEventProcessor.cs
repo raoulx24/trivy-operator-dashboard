@@ -2,9 +2,9 @@
 using k8s.Models;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.WatcherStates.Internals;
 using TrivyOperator.Dashboard.Application.WatcherStates.Models;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Utils;
 
 namespace TrivyOperator.Dashboard.Application.WatcherStates.Services;
 
@@ -14,7 +14,7 @@ public class WatcherStateEventProcessor<TKubernetesObject>(
 ) : IKubernetesEventProcessor<TKubernetesObject>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
 {
-    private readonly DictionaryCounter eventsGauge = new();
+    private readonly WatcherEventsGauge eventsGauge = new();
 
     public Task ProcessKubernetesEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx = default)
     {
