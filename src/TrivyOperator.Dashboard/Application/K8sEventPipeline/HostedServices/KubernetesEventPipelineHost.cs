@@ -6,8 +6,6 @@ namespace TrivyOperator.Dashboard.Application.K8sEventPipeline.HostedServices;
 
 public sealed class KubernetesEventPipelineHost(
     IEnumerable<IKubernetesEventPipelineStarter> services,
-    IKubernetesContextResolver contextResolver,
-    IKubernetesClientFactory clientFactory,
     ILogger<KubernetesEventPipelineHost> logger
 ) : BackgroundService
 {

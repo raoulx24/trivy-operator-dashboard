@@ -16,10 +16,8 @@ public sealed class MetadataV1
     public int LowCount { get; init; } = 0;
     public int UnknownCount { get; init; } = 0;
     
-    [JsonInclude]
-    public int[] AddedCvesDeltas { get; private set; } = [];
-    [JsonInclude]
-    public int[] DroppedCvesDeltas { get; private set; } = [];
+    public int[] AddedCvesDeltas { get; init; } = [];
+    public int[] DroppedCvesDeltas { get; init; } = [];
 }
 
 public static class MetadataV1Mapper

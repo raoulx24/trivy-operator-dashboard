@@ -6,21 +6,22 @@ namespace TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factor
 
 public class CacheEntityCodecFactory : ICacheEntityCodecFactory
 {
+    private static readonly JsonCacheEntityCodec InternalJsonCacheEntityCodec = new();
+    private static readonly MemoryPackCacheEntityCodec InternalMemoryPackCacheEntityCodec = new();
+    private static readonly BrotliJsonCacheEntityCodec InternalBrotliJsonCacheEntityCodec = new();
+    private static readonly BrotliMemoryPackCacheEntityCodec InternalBrotliMemoryPackCacheEntityCodec = new();
+    
     public ICacheEntityCodec GetCacheEntityCodec(string codecName)
     {
         return codecName switch
         {
-            JsonCacheEntityCodec.Name =>
-                new JsonCacheEntityCodec(),
+            JsonCacheEntityCodec.Name => InternalJsonCacheEntityCodec,
 
-            MemoryPackCacheEntityCodec.Name =>
-                new MemoryPackCacheEntityCodec(),
+            MemoryPackCacheEntityCodec.Name => InternalMemoryPackCacheEntityCodec,
 
-            BrotliJsonCacheEntityCodec.Name =>
-                new BrotliJsonCacheEntityCodec(),
+            BrotliJsonCacheEntityCodec.Name => InternalBrotliJsonCacheEntityCodec,
 
-            BrotliMemoryPackCacheEntityCodec.Name =>
-                new BrotliMemoryPackCacheEntityCodec(),
+            BrotliMemoryPackCacheEntityCodec.Name => InternalBrotliMemoryPackCacheEntityCodec,
 
             _ => throw new ArgumentException(
                 $"Provided codec name is invalid: {codecName}",
