@@ -84,8 +84,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs.Abs
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics;
@@ -94,6 +93,7 @@ using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.GitHub;
 using TrivyOperator.Dashboard.Infrastructure.GitHub.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.GitHub.Models;
+using TrivyOperator.Dashboard.Infrastructure.History.Stores;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory;

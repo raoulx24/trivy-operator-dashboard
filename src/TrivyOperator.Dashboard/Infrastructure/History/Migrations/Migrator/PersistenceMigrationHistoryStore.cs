@@ -1,7 +1,7 @@
 ﻿using StackExchange.Redis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator.Models;
 

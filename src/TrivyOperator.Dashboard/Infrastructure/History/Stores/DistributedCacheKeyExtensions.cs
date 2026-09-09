@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
+namespace TrivyOperator.Dashboard.Infrastructure.History.Stores;
 
 public static class DistributedCacheKeyExtensions
 {

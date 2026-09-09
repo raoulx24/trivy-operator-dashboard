@@ -1,7 +1,7 @@
 ﻿using StackExchange.Redis;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 
 public sealed class DistributedCacheClientFactory(DistributedCacheConnectionProvider provider) : IDistributedCacheClientFactory
 {

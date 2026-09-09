@@ -1,6 +1,6 @@
 ﻿using StackExchange.Redis;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
 
 public interface IDistributedCacheExecutor
 {

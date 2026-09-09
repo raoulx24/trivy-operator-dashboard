@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 
 public sealed class DistributedCacheConnectionProvider(
     IOptions<DistributedCacheClientOptions> options,

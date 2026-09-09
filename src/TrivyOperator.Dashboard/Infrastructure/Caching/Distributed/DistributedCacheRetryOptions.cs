@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
+﻿namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 
 public record DistributedCacheRetryOptions
 {

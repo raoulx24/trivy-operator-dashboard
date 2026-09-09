@@ -1,13 +1,12 @@
 ﻿using StackExchange.Redis;
 using System.IO.Compression;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 
 public static class DistributedCachePrimitives
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
     // ------------------------------------------------------------------------
     // Low-level Redis access
     // ------------------------------------------------------------------------
@@ -56,6 +55,7 @@ public static class DistributedCachePrimitives
         IDatabase db,
         RedisKey key,
         RedisValue field,
+        JsonTypeInfo<T> typeInfo,
         ILogger logger,
         CancellationToken ct = default)
     {
@@ -75,37 +75,14 @@ public static class DistributedCachePrimitives
         try
         {
             string json = value.ToString();
-            return JsonSerializer.Deserialize<T>(json, JsonOptions);
+            return JsonSerializer.Deserialize(
+                json,
+                typeInfo);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
                 "Failed to deserialize JSON for key {distributedCacheKey}, field {field}, type {type}",
-                key.ToString(), field.ToString(), typeof(T).FullName);
-            return default;
-        }
-    }
-
-    public static async Task<T?> GetCompressedJsonAsync<T>(
-        IDatabase db,
-        RedisKey key,
-        RedisValue field,
-        ILogger logger,
-        CancellationToken ct = default)
-    {
-        byte[]? bytes = await GetBytesFieldAsync(db, key, field, logger, ct);
-        if (bytes is null)
-            return default;
-
-        try
-        {
-            using MemoryStream decompressed = DecompressToStream(bytes);
-            return await JsonSerializer.DeserializeAsync<T>(decompressed, JsonOptions, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex,
-                "Failed to decompress or deserialize compressed JSON for key {distributedCacheKey}, field {field}, type {type}",
                 key.ToString(), field.ToString(), typeof(T).FullName);
             return default;
         }
@@ -240,9 +217,7 @@ public static class DistributedCachePrimitives
         IEnumerable<string> values,
         CancellationToken ct = default)
     {
-        RedisValue[] redisValues = values
-            .Select(x => (RedisValue)x)
-            .ToArray();
+        RedisValue[] redisValues = [.. values.Select(x => (RedisValue)x),];
 
         if (redisValues.Length == 0)
             return;
@@ -254,14 +229,8 @@ public static class DistributedCachePrimitives
     // Serialization helpers (for writing)
     // ------------------------------------------------------------------------
 
-    public static byte[] SerializeJson<T>(T value)
-        => JsonSerializer.SerializeToUtf8Bytes(value, JsonOptions);
-
-    public static byte[] SerializeJsonCompressed<T>(T value)
-    {
-        byte[] jsonBytes = SerializeJson(value);
-        return CompressToBrotli(jsonBytes);
-    }
+    public static byte[] SerializeJson<T>(T value, JsonTypeInfo<T> typeInfo)
+        => JsonSerializer.SerializeToUtf8Bytes(value, typeInfo);
 
     // ------------------------------------------------------------------------
     // SCAN helper

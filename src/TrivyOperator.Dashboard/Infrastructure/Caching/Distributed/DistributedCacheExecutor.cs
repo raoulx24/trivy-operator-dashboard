@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Client;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 
 public class DistributedCacheExecutor(
     IDistributedCacheClientFactory factory, 
