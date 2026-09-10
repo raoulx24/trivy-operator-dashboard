@@ -16,7 +16,7 @@ public sealed record ExposedSecretReport(
     SeverityCounters SeverityCounters,
     
     IReadOnlyList<Secret> Secrets)
-    : IImageReport<ExposedSecretReport>, IHasSeverityCounters
+    : IImageReport<ExposedSecretReport>, IHasSeverityCounters, INamespacedTrivyReport
 {
     public Digest Id => ImageDigest;
     public bool HasNamespaceName(NamespaceName namespaceName)

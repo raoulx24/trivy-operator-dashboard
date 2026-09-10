@@ -111,7 +111,6 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.StaticResources.Services;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.CacheEntryBuilders;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Factories;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.ToDomain;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;

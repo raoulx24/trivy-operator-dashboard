@@ -12,7 +12,7 @@ public sealed record RbacAssessmentReport(
     SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport, ISecurityAssessmentReport<RbacAssessmentReport, Uid>, IHasSeverityCounters
+    : IResourceReport, ISecurityAssessmentReport<RbacAssessmentReport, Uid>, IHasSeverityCounters, INamespacedTrivyReport
 {
     public Uid Id => Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;

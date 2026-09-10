@@ -16,7 +16,7 @@ public sealed record ClusterComplianceReport(
     Timestamp LastSeenAt,
     
     IReadOnlyList<ControlResult> ControlChecks
-) : IResourceReport
+) : IResourceReport, IClusterScopedTrivyReport
 {
     public Uid Id => Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;

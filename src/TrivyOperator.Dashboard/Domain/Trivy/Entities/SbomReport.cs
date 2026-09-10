@@ -18,8 +18,7 @@ public sealed record SbomReport(
     ComponentId RootNodeBomRef,
     
     IReadOnlyList<Component> Components) 
-    : IImageReport<SbomReport>, 
-      ISbomReport<SbomReport, Digest>
+    : IImageReport<SbomReport>, ISbomReport<SbomReport, Digest>, INamespacedTrivyReport
 {
     public Digest Id => ImageDigest;
     public bool HasNamespaceName(NamespaceName namespaceName)

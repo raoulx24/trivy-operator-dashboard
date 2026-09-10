@@ -14,7 +14,7 @@ public sealed record ClusterSbomReport(
     SbomMetadata SbomMetadata,
     ComponentId RootNodeBomRef,
     IReadOnlyList<Component> Components
-) : IResourceReport, ISbomReport<ClusterSbomReport, Uid>
+) : IResourceReport, ISbomReport<ClusterSbomReport, Uid>, IClusterScopedTrivyReport
 {
     public Uid Id => Occurrence.Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Occurrence.Metadata.NamespaceName == namespaceName;
