@@ -14,10 +14,10 @@ using TrivyOperator.Dashboard.Application.Queries.Contexts;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
-using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
@@ -76,24 +76,24 @@ public static class KubernetesServiceRegistrationExtensions
                 break;
 
             case NamespaceCompositionMode.StaticDefaultContext:
-                services.AddNamespaceCommonServices();
+                services.AddNamespaceCommonServices(configuration);
                 services.AddStaticNamespaceService();
                 services.AddNamespaceEventPipelineServices();
                 break;
 
             case NamespaceCompositionMode.StaticMultiContext:
-                services.AddNamespaceCommonServices();
+                services.AddNamespaceCommonServices(configuration);
                 services.AddStaticNamespaceService();
                 break;
 
             case NamespaceCompositionMode.DynamicDefaultContext:
-                services.AddNamespaceCommonServices();
+                services.AddNamespaceCommonServices(configuration);
                 services.AddDynamicNamespaceService();
                 services.AddNamespaceEventPipelineServices();
                 break;
 
             case NamespaceCompositionMode.DynamicMultiContext:
-                services.AddNamespaceCommonServices();
+                services.AddNamespaceCommonServices(configuration);
                 services.AddDynamicNamespaceService();
                 break;
 
@@ -106,33 +106,34 @@ public static class KubernetesServiceRegistrationExtensions
     
     // -- kubernetes related services
     
-    private static void AddKubernetesClientServices(
-        this IServiceCollection services)
+    private static void AddKubernetesClientServices(this IServiceCollection services)
     {
+        // registered in background settings. left here for reference
+        // services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
+        
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
 
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
     }
 
-    private static void AddDefaultContextKubernetesServices(
-        this IServiceCollection services)
+    private static void AddDefaultContextKubernetesServices(this IServiceCollection services)
     {
         services.AddHostedService<KubernetesEventPipelineHost>();
 
         services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
     }
 
-    private static void AddMultiContextKubernetesServices(
-        this IServiceCollection services)
+    private static void AddMultiContextKubernetesServices(this IServiceCollection services)
     {
         services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();
     }
 
     // -- namespace related services
 
-    private static void AddNamespaceCommonServices(
-        this IServiceCollection services)
+    private static void AddNamespaceCommonServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<BackgroundQueueOptions>(configuration.GetSection("Queues"));
+        
         // resource mapper
         services.AddSingleton<K8sNamespaceMapper>();
 

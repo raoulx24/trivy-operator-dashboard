@@ -8,6 +8,7 @@ using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcess
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterInfraAssessmentReports;
@@ -68,6 +69,8 @@ public static class TrivyReportServiceRegistrationExtensions
     // 1st level - main entrance
     public static void AddTrivyReportRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<FileExportOptions>(configuration.GetSection("FileExport"));
+        
         services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
         
         services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
@@ -102,8 +105,7 @@ public static class TrivyReportServiceRegistrationExtensions
         where TReport : class, ITrivyReport<TId>
         where TId : notnull
     {
-        TrivyReportCompositionMode state =
-            TrivyReportCompositionResolver.Resolve<TReport>(configuration);
+        TrivyReportCompositionMode state = TrivyReportCompositionResolver.Resolve<TReport>(configuration);
 
         switch (state)
         {
@@ -125,7 +127,7 @@ public static class TrivyReportServiceRegistrationExtensions
 
 
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(state), state, null);
         }
     }
     

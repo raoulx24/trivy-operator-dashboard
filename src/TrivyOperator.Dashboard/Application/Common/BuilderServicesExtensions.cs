@@ -320,179 +320,179 @@ public static class BuilderServicesExtensions
     //     services.AddScoped<IKubernetesContextService, KubernetesContextService>();
     // }
 
-    public static void AddWatcherStateRelatedServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        bool useDefaultContext = LoadUseDefaultContext(configuration);
-        Dictionary<string, bool> trivyServices = LoadEnabledTrivyReports(configuration);
-        
-        if (!useDefaultContext)
-            return;
-        
-        services.AddSingleton<IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
-        services.AddScoped<IWatcherStatusService, WatcherStatusService>();
-        
-        services.AddSingleton<
-            IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
-        
-        services.AddHostedService<WatcherStateCacheTimedHostedService>();
+    // public static void AddWatcherStateRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     bool useDefaultContext = LoadUseDefaultContext(configuration);
+    //     Dictionary<string, bool> trivyServices = LoadEnabledTrivyReports(configuration);
+    //     
+    //     if (!useDefaultContext)
+    //         return;
+    //     
+    //     services.AddSingleton<IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
+    //     services.AddScoped<IWatcherStatusService, WatcherStatusService>();
+    //     
+    //     services.AddSingleton<
+    //         IConcurrentCache<WatcherKey, WatcherStateInfo>, ConcurrentCache<WatcherKey, WatcherStateInfo>>();
+    //     
+    //     services.AddHostedService<WatcherStateCacheTimedHostedService>();
+    //
+    //     if (trivyServices.GetValueOrDefault("ClusterComplianceReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<ClusterComplianceReportCr>,
+    //             WatcherStateEventProcessor<ClusterComplianceReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("ClusterInfraAssessmentReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<ClusterInfraAssessmentReportCr>,
+    //             WatcherStateEventProcessor<ClusterInfraAssessmentReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("ClusterRbacAssessmentReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<ClusterRbacAssessmentReportCr>,
+    //             WatcherStateEventProcessor<ClusterRbacAssessmentReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("ClusterSbomReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<ClusterSbomReportCr>,
+    //             WatcherStateEventProcessor<ClusterSbomReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("ClusterVulnerabilityReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<ClusterVulnerabilityReportCr>,
+    //             WatcherStateEventProcessor<ClusterVulnerabilityReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("ConfigAuditReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<ConfigAuditReportCr>,
+    //             WatcherStateEventProcessor<ConfigAuditReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("ExposedSecretReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<ExposedSecretReportCr>,
+    //             WatcherStateEventProcessor<ExposedSecretReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("InfraAssessmentReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<InfraAssessmentReportCr>,
+    //             WatcherStateEventProcessor<InfraAssessmentReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("RbacAssessmentReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<RbacAssessmentReportCr>,
+    //             WatcherStateEventProcessor<RbacAssessmentReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("SbomReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<SbomReportCr>,
+    //             WatcherStateEventProcessor<SbomReportCr>>();
+    //     }
+    //
+    //     if (trivyServices.GetValueOrDefault("VulnerabilityReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IKubernetesEventProcessor<VulnerabilityReportCr>,
+    //             WatcherStateEventProcessor<VulnerabilityReportCr>>();
+    //     }
+    // }
 
-        if (trivyServices.GetValueOrDefault("ClusterComplianceReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ClusterComplianceReportCr>,
-                WatcherStateEventProcessor<ClusterComplianceReportCr>>();
-        }
+    // public static void AddGitHubRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
+    //     {
+    //         services.AddHttpClient<IGitHubClient, GitHubClient>(client =>
+    //             {
+    //                 client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
+    //             }
+    //         );
+    //         services.AddHostedService<GitHubReleaseCacheTimedHostedService>();
+    //     }
+    //
+    //     services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
+    //     services.AddScoped<IAppVersionsService, AppVersionsService>();
+    // }
 
-        if (trivyServices.GetValueOrDefault("ClusterInfraAssessmentReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ClusterInfraAssessmentReportCr>,
-                WatcherStateEventProcessor<ClusterInfraAssessmentReportCr>>();
-        }
+    // public static void AddTrivyDependenciesRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     Dictionary<string, bool> trivyServices = LoadEnabledTrivyReports(configuration);
+    //     
+    //     // if the below trivy reps are disabled, register a null IProvider  
+    //     if (!trivyServices.GetValueOrDefault("ConfigAuditReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IResourceProvider<ConfigAuditReport, Uid>,
+    //             NullResourceRepository<ConfigAuditReport, Uid>>();
+    //     }
+    //
+    //     if (!trivyServices.GetValueOrDefault("ExposedSecretReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IResourceProvider<ExposedSecretReport, Digest>,
+    //             NullResourceRepository<ExposedSecretReport, Digest>>();
+    //     }
+    //
+    //     if (!trivyServices.GetValueOrDefault("SbomReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IResourceProvider<SbomReport, Digest>,
+    //             NullResourceRepository<SbomReport, Digest>>();
+    //     }
+    //
+    //     if (!trivyServices.GetValueOrDefault("VulnerabilityReport"))
+    //     {
+    //         services.AddSingleton<
+    //             IResourceProvider<VulnerabilityReport, Digest>,
+    //             NullResourceRepository<VulnerabilityReport, Digest>>();
+    //     }
+    //     
+    //     services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
+    // }
 
-        if (trivyServices.GetValueOrDefault("ClusterRbacAssessmentReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ClusterRbacAssessmentReportCr>,
-                WatcherStateEventProcessor<ClusterRbacAssessmentReportCr>>();
-        }
+    // public static void AddMiscServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     services.AddScoped<IBackendSettingsService, BackendSettingsService>();
+    //     
+    //     services.AddHealthChecks()
+    //         .AddCheck<WatchersLivenessHealthCheck>("watchers-liveness")
+    //         .AddCheck<WatchersReadinessHealthCheck>("watchers-readiness");
+    //     
+    // }
 
-        if (trivyServices.GetValueOrDefault("ClusterSbomReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ClusterSbomReportCr>,
-                WatcherStateEventProcessor<ClusterSbomReportCr>>();
-        }
-
-        if (trivyServices.GetValueOrDefault("ClusterVulnerabilityReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ClusterVulnerabilityReportCr>,
-                WatcherStateEventProcessor<ClusterVulnerabilityReportCr>>();
-        }
-
-        if (trivyServices.GetValueOrDefault("ConfigAuditReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ConfigAuditReportCr>,
-                WatcherStateEventProcessor<ConfigAuditReportCr>>();
-        }
-
-        if (trivyServices.GetValueOrDefault("ExposedSecretReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ExposedSecretReportCr>,
-                WatcherStateEventProcessor<ExposedSecretReportCr>>();
-        }
-
-        if (trivyServices.GetValueOrDefault("InfraAssessmentReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<InfraAssessmentReportCr>,
-                WatcherStateEventProcessor<InfraAssessmentReportCr>>();
-        }
-
-        if (trivyServices.GetValueOrDefault("RbacAssessmentReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<RbacAssessmentReportCr>,
-                WatcherStateEventProcessor<RbacAssessmentReportCr>>();
-        }
-
-        if (trivyServices.GetValueOrDefault("SbomReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<SbomReportCr>,
-                WatcherStateEventProcessor<SbomReportCr>>();
-        }
-
-        if (trivyServices.GetValueOrDefault("VulnerabilityReport"))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<VulnerabilityReportCr>,
-                WatcherStateEventProcessor<VulnerabilityReportCr>>();
-        }
-    }
-
-    public static void AddGitHubRelatedServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        if (configuration.GetSection("GitHub").GetValue<bool>("ServerCheckForUpdates"))
-        {
-            services.AddHttpClient<IGitHubClient, GitHubClient>(client =>
-                {
-                    client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgentName);
-                }
-            );
-            services.AddHostedService<GitHubReleaseCacheTimedHostedService>();
-        }
-
-        services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
-        services.AddScoped<IAppVersionsService, AppVersionsService>();
-    }
-
-    public static void AddTrivyDependenciesRelatedServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        Dictionary<string, bool> trivyServices = LoadEnabledTrivyReports(configuration);
-        
-        // if the below trivy reps are disabled, register a null IProvider  
-        if (!trivyServices.GetValueOrDefault("ConfigAuditReport"))
-        {
-            services.AddSingleton<
-                IResourceProvider<ConfigAuditReport, Uid>,
-                NullResourceRepository<ConfigAuditReport, Uid>>();
-        }
-
-        if (!trivyServices.GetValueOrDefault("ExposedSecretReport"))
-        {
-            services.AddSingleton<
-                IResourceProvider<ExposedSecretReport, Digest>,
-                NullResourceRepository<ExposedSecretReport, Digest>>();
-        }
-
-        if (!trivyServices.GetValueOrDefault("SbomReport"))
-        {
-            services.AddSingleton<
-                IResourceProvider<SbomReport, Digest>,
-                NullResourceRepository<SbomReport, Digest>>();
-        }
-
-        if (!trivyServices.GetValueOrDefault("VulnerabilityReport"))
-        {
-            services.AddSingleton<
-                IResourceProvider<VulnerabilityReport, Digest>,
-                NullResourceRepository<VulnerabilityReport, Digest>>();
-        }
-        
-        services.AddScoped<ITrivyReportDependenciesService, TrivyReportDependenciesService>();
-    }
-
-    public static void AddMiscServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddScoped<IBackendSettingsService, BackendSettingsService>();
-        
-        services.AddHealthChecks()
-            .AddCheck<WatchersLivenessHealthCheck>("watchers-liveness")
-            .AddCheck<WatchersReadinessHealthCheck>("watchers-readiness");
-        
-    }
-
-    public static void AddAppOptions(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.Configure<BackgroundQueueOptions>(configuration.GetSection("Queues"));
-        services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
-        services.Configure<FileRepositoryOptions>(configuration.GetSection("FileRepository"));
-        services.Configure<WatchersOptions>(configuration.GetSection("Watchers"));
-        services.Configure<FileExportOptions>(configuration.GetSection("FileExport"));
-        services.Configure<GitHubOptions>(configuration.GetSection("GitHub"));
-    }
+    // public static void AddAppOptions(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     
+    //     
+    //     
+    //     // services.Configure<WatchersOptions>(configuration.GetSection("Watchers"));
+    //     
+    //     
+    // }
     
-    public static void AddAlertsServices(this IServiceCollection services)
-    {
-        services.AddSignalR();
-        services.AddSingleton<IConcurrentCache<AlertKey, Alert>, ConcurrentCache<AlertKey, Alert>>();
-        services.AddSingleton<IAlertPublisher, AlertPublisher>();
-        services.AddTransient<IAlertsService, AlertsService>();
-    }
+    // public static void AddAlertsServices(this IServiceCollection services)
+    // {
+    //     services.AddSignalR();
+    //     services.AddSingleton<IConcurrentCache<AlertKey, Alert>, ConcurrentCache<AlertKey, Alert>>();
+    //     services.AddSingleton<IAlertPublisher, AlertPublisher>();
+    //     services.AddTransient<IAlertsService, AlertsService>();
+    // }
 
     public static void AddOpenTelemetry(
         this IServiceCollection services,
@@ -509,7 +509,6 @@ public static class BuilderServicesExtensions
             //     Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0";
             // this is AOT friendly
             // TODO: verify build in github
-
             string fileVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0";
 
             string? otelEndpoint = configuration.GetValue<string>("OtelEndpoint");

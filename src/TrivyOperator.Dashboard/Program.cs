@@ -19,7 +19,14 @@ using TrivyOperator.Dashboard.Api.Serialization;
 using TrivyOperator.Dashboard.Api.Trivy.Serializations;
 using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.Utils;
+using TrivyOperator.Dashboard.Composition.Alerts;
+using TrivyOperator.Dashboard.Composition.BackendSettings;
+using TrivyOperator.Dashboard.Composition.GitHub;
+using TrivyOperator.Dashboard.Composition.Health;
+using TrivyOperator.Dashboard.Composition.History;
+using TrivyOperator.Dashboard.Composition.Kubernetes;
 using TrivyOperator.Dashboard.Composition.Trivy;
+using TrivyOperator.Dashboard.Composition.WatcherStates;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations;
@@ -99,11 +106,12 @@ builder.Services.AddAlertsServices();
 // builder.Services.AddUiCommons();
 // builder.Services.AddOthers();
 
-builder.Services.AddAppOptions(configuration);
+
 
 builder.Services.AddKubernetesRelatedServices(configuration);
 
-builder.Services.AddMiscServices(configuration);
+builder.Services.AddBackendSettingsServices(configuration);
+builder.Services.AddHealthServices();
 builder.Services.AddOpenTelemetry(
     configuration.GetSection("OpenTelemetry"),
     applicationName.Replace(".", string.Empty).ToLowerInvariant()

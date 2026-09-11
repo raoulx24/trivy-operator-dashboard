@@ -2,5 +2,5 @@
 
 public static class Constants
 {
-    public const string UserAgentName = "TrivyOperator.Dashboard/1.7";
+    public const string UserAgentName = "TrivyOperator.Dashboard/2.0";
 }

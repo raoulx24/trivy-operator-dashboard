@@ -17,17 +17,9 @@ namespace TrivyOperator.Dashboard.Composition.History;
 public static class HistoryServiceRegistrationExtensions
 {
     // 1st level - main entrance
-    
     public static void AddHistoryRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<VulnerabilityReportsHistoryOptions>(
-            configuration.GetSection("History"));
-
-        services.Configure<RetentionOptions>(
-            configuration.GetSection("History").GetSection("Retention"));
-
-        HistoryCompositionMode mode =
-            HistoryCompositionResolver.Resolve(configuration);
+        HistoryCompositionMode mode = HistoryCompositionResolver.Resolve(configuration);
 
         switch (mode)
         {
@@ -47,21 +39,18 @@ public static class HistoryServiceRegistrationExtensions
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException(
-                    nameof(mode),
-                    mode,
-                    null);
+                throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
         }
     }
     
     // 2nd level - services registration
-
-    private static void AddDistributedCacheHistoryServices(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    private static void AddDistributedCacheHistoryServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<DistributedCacheClientOptions>(
-            configuration
+        // registered in background settings. left here for reference
+        // services.Configure<VulnerabilityReportsHistoryOptions>(configuration.GetSection("History"));
+        // services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
+        
+        services.Configure<DistributedCacheClientOptions>(configuration
                 .GetSection("History")
                 .GetSection("DistributedCache"));
 
@@ -88,5 +77,4 @@ public static class HistoryServiceRegistrationExtensions
 
         services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
     }
-
 }

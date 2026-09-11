@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Models;
+using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
@@ -9,7 +10,8 @@ using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 namespace TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services;
 
 public class BackendSettingsService(
-    IOptions<KubernetesOptions> k8sOptions, 
+    IOptions<KubernetesOptions> kubernetesOptions,
+    IOptions<EnabledTrivyReportsOptions> enabledTrivyReportsOptions,
     IOptions<FileRepositoryOptions> frOptions,
     IOptions<RetentionOptions> historyRetentionOptions,
     IOptions<VulnerabilityReportsHistoryOptions> vrHistoryOptions)
@@ -26,9 +28,19 @@ public class BackendSettingsService(
                     Id = "ccr",
                     Name = "Cluster Compliance Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseClusterComplianceReport,
+                        enabledTrivyReportsOptions.Value.ClusterComplianceReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.ClusterComplianceReportCrSubpath
+                    ),
+                },
+                new BackendSettingsTrivyReportConfigDto
+                {
+                    Id = "ccar",
+                    Name = "Cluster Config Audit Report",
+                    Enabled = IsTrivyReportEnabled(
+                        enabledTrivyReportsOptions.Value.ClusterConfigAuditReport,
+                        frOptions.Value.BasePath,
+                        frOptions.Value.ClusterConfigAuditReportCrSubpath
                     ),
                 },
                 new BackendSettingsTrivyReportConfigDto
@@ -36,7 +48,7 @@ public class BackendSettingsService(
                     Id = "ciar",
                     Name = "Cluster Infra Assessment Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseClusterInfraAssessmentReport,
+                        enabledTrivyReportsOptions.Value.ClusterInfraAssessmentReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.ClusterInfraAssessmentReportCrSubpath
                     ),
@@ -46,7 +58,7 @@ public class BackendSettingsService(
                     Id = "crar",
                     Name = "Cluster RBAC Assessment Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseClusterRbacAssessmentReport,
+                        enabledTrivyReportsOptions.Value.ClusterRbacAssessmentReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.ClusterRbacAssessmentReportCrSubpath
                     ),
@@ -56,7 +68,7 @@ public class BackendSettingsService(
                     Id = "csr",
                     Name = "Cluster SBOM Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseClusterSbomReport,
+                        enabledTrivyReportsOptions.Value.ClusterSbomReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.ClusterSbomReportCrSubpath
                     ),
@@ -66,7 +78,7 @@ public class BackendSettingsService(
                     Id = "cvr",
                     Name = "Cluster Vulnerability Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseClusterVulnerabilityReport,
+                        enabledTrivyReportsOptions.Value.ClusterVulnerabilityReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.ClusterVulnerabilityReportCrSubpath
                     ),
@@ -77,7 +89,7 @@ public class BackendSettingsService(
                     Id = "car",
                     Name = "Config Audit Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseConfigAuditReport,
+                        enabledTrivyReportsOptions.Value.ConfigAuditReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.ConfigAuditReportCrSubpath
                     ),
@@ -87,7 +99,7 @@ public class BackendSettingsService(
                     Id = "esr",
                     Name = "Exposed Secret Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseExposedSecretReport,
+                        enabledTrivyReportsOptions.Value.ExposedSecretReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.ExposedSecretReportCrSubpath
                     ),
@@ -97,7 +109,7 @@ public class BackendSettingsService(
                     Id = "iar",
                     Name = "Infra Assessment Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseInfraAssessmentReport,
+                        enabledTrivyReportsOptions.Value.InfraAssessmentReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.InfraAssessmentReportCrSubpath
                     ),
@@ -107,7 +119,7 @@ public class BackendSettingsService(
                     Id = "rar",
                     Name = "RBAC Assessment Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseRbacAssessmentReport,
+                        enabledTrivyReportsOptions.Value.RbacAssessmentReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.RbacAssessmentReportCrSubpath
                     ),
@@ -117,7 +129,7 @@ public class BackendSettingsService(
                     Id = "sr",
                     Name = "SBOM Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseSbomReport,
+                        enabledTrivyReportsOptions.Value.SbomReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.SbomReportCrSubpath
                     ),
@@ -127,7 +139,7 @@ public class BackendSettingsService(
                     Id = "vr",
                     Name = "Vulnerability Report",
                     Enabled = IsTrivyReportEnabled(
-                        k8sOptions.Value.TrivyUseVulnerabilityReport,
+                        enabledTrivyReportsOptions.Value.VulnerabilityReport,
                         frOptions.Value.BasePath,
                         frOptions.Value.VulnerabilityReportCrSubpath
                     ),
@@ -139,9 +151,9 @@ public class BackendSettingsService(
                     Enabled = vrHistoryOptions.Value.Enabled,
                 },
             ],
-            IsDefaultContextUsed = k8sOptions.Value.UseDefaultContext,
-            IsKubeConfigUsed = !string.IsNullOrWhiteSpace(k8sOptions.Value.KubeConfigFileName),
-            IsNamespaceListUsed = !string.IsNullOrWhiteSpace(k8sOptions.Value.NamespaceList),
+            IsDefaultContextUsed = kubernetesOptions.Value.UseDefaultContext,
+            IsKubeConfigUsed = !string.IsNullOrWhiteSpace(kubernetesOptions.Value.KubeConfigFileName),
+            IsNamespaceListUsed = !string.IsNullOrWhiteSpace(kubernetesOptions.Value.NamespaceList),
             IsFileRepositoryUsed = !string.IsNullOrWhiteSpace(frOptions.Value.BasePath),
             VrHistoryMaxAgeDays = historyRetentionOptions.Value.KeepDays,
         };

@@ -4,6 +4,7 @@ public class FileRepositoryOptions
 {
     public string BasePath { get; set; } = string.Empty;
     public string ClusterComplianceReportCrSubpath { get; set; } = string.Empty;
+    public string ClusterConfigAuditReportCrSubpath { get; set; } = string.Empty;
     public string ClusterInfraAssessmentReportCrSubpath { get; set; } = "cluster_infra_assessment_reports";
     public string ClusterRbacAssessmentReportCrSubpath { get; set; } = string.Empty;
     public string ClusterSbomReportCrSubpath { get; set; } = "cluster_sbom_reports";
