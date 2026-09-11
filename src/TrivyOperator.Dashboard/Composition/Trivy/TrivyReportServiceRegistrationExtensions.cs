@@ -30,11 +30,14 @@ using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports.Abstractions;
+using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs;
+using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
@@ -48,6 +51,7 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Providers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.CacheEntryBuilders;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Factories;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.ToDomain;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;
@@ -59,35 +63,63 @@ using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.M
 
 namespace TrivyOperator.Dashboard.Composition.Trivy;
 
-// 1st level - main entrance
-
 public static class TrivyReportServiceRegistrationExtensions
 {
-    public static void AddTrivyReportServices<TReportCr, TReport, TId>(
+    // 1st level - main entrance
+    public static void AddTrivyReportRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
+        
+        services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
+
+        services.AddTrivyReportServices<ClusterComplianceReportCr, ClusterComplianceReport, Uid>(configuration);
+        
+        services.AddTrivyReportServices<ClusterInfraAssessmentReportCr, ClusterInfraAssessmentReport, Uid>(configuration);
+
+        services.AddTrivyReportServices<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport, Uid>(configuration);
+
+        services.AddTrivyReportServices<ClusterSbomReportCr, ClusterSbomReport, Uid>(configuration);
+
+        services.AddTrivyReportServices<ClusterVulnerabilityReportCr, ClusterVulnerabilityReport, Uid>(configuration);
+
+        services.AddTrivyReportServices<ConfigAuditReportCr, ConfigAuditReport, Uid>(configuration);
+
+        services.AddTrivyReportServices<ExposedSecretReportCr, ExposedSecretReport, Digest>(configuration);
+
+        services.AddTrivyReportServices<InfraAssessmentReportCr, InfraAssessmentReport, Uid>(configuration);
+
+        services.AddTrivyReportServices<RbacAssessmentReportCr, RbacAssessmentReport, Uid>(configuration);
+
+        services.AddTrivyReportServices<SbomReportCr, SbomReport, Digest>(configuration);
+
+        services.AddTrivyReportServices<VulnerabilityReportCr, VulnerabilityReport, Digest>(configuration);
+    }
+    
+    private static void AddTrivyReportServices<TReportCr, TReport, TId>(
         this IServiceCollection services,
         IConfiguration configuration)
         where TReportCr : CustomResource, new()
         where TReport : class, ITrivyReport<TId>
         where TId : notnull
     {
-        TrivyReportRunningState state =
-            TrivyReportRunningStateResolver.Resolve<TReport>(configuration);
+        TrivyReportCompositionMode state =
+            TrivyReportCompositionResolver.Resolve<TReport>(configuration);
 
         switch (state)
         {
-            case TrivyReportRunningState.DefaultContext:
+            case TrivyReportCompositionMode.DefaultContext:
                 services.AddTrivyReportDefaultContext<TReportCr, TReport, TId>();
                 break;
             
-            case TrivyReportRunningState.MultiContext:
+            case TrivyReportCompositionMode.MultiContext:
                 services.AddTrivyReportMultiContext<TReportCr, TReport, TId>();
                 break;
             
-            case TrivyReportRunningState.FileRepository:
+            case TrivyReportCompositionMode.FileRepository:
                 services.AddTrivyReportFileRepo<TReportCr, TReport, TId>();
                 break;
 
-            case TrivyReportRunningState.Disabled:
+            case TrivyReportCompositionMode.Disabled:
                 services.AddTrivyQueryRelatedNullServices(typeof(TReport));
                 break;
 

@@ -19,6 +19,7 @@ using TrivyOperator.Dashboard.Api.Serialization;
 using TrivyOperator.Dashboard.Api.Trivy.Serializations;
 using TrivyOperator.Dashboard.Application.Common;
 using TrivyOperator.Dashboard.Application.Utils;
+using TrivyOperator.Dashboard.Composition.Trivy;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations;

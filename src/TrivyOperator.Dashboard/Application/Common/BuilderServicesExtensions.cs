@@ -215,50 +215,50 @@ public static class BuilderServicesExtensions
         services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedWatcherLifecycleProcessor>();
     }
     
-    public static void AddTrivyReportRelatedServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        bool useDefaultContext = LoadUseDefaultContext(configuration);
-        Dictionary<string, bool> useTrivyReportServices = LoadEnabledTrivyReports(configuration);
-        bool useFileRepository = LoadUseFileRepository(configuration);
-        Dictionary<string, bool> useTrivyReportsInFileRepo = LoadTrivyReportsInFileRepo(configuration);
-        
-        services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
-        
-        services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
-        
-        services.OrchestrateTrivyReportServiceRegistration<ClusterComplianceReportCr, ClusterComplianceReport, Uid>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-        
-        services.OrchestrateTrivyReportServiceRegistration<ClusterInfraAssessmentReportCr, ClusterInfraAssessmentReport, Uid>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-        
-        services.OrchestrateTrivyReportServiceRegistration<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport, Uid>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-        
-        services.OrchestrateTrivyReportServiceRegistration<ClusterSbomReportCr, ClusterSbomReport, Uid>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-        
-        services.OrchestrateTrivyReportServiceRegistration<ClusterVulnerabilityReportCr, ClusterVulnerabilityReport, Uid>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-        
-        services.OrchestrateTrivyReportServiceRegistration<ConfigAuditReportCr, ConfigAuditReport, Uid>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-        
-        services.OrchestrateTrivyReportServiceRegistration<ExposedSecretReportCr, ExposedSecretReport, Digest>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-        
-        services.OrchestrateTrivyReportServiceRegistration<InfraAssessmentReportCr, InfraAssessmentReport, Uid>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-
-        services.OrchestrateTrivyReportServiceRegistration<RbacAssessmentReportCr, RbacAssessmentReport, Uid>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-
-        services.OrchestrateTrivyReportServiceRegistration<SbomReportCr, SbomReport, Digest>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-
-        services.OrchestrateTrivyReportServiceRegistration<VulnerabilityReportCr, VulnerabilityReport, Digest>(
-            useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
-    }
+    // public static void AddTrivyReportRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     bool useDefaultContext = LoadUseDefaultContext(configuration);
+    //     Dictionary<string, bool> useTrivyReportServices = LoadEnabledTrivyReports(configuration);
+    //     bool useFileRepository = LoadUseFileRepository(configuration);
+    //     Dictionary<string, bool> useTrivyReportsInFileRepo = LoadTrivyReportsInFileRepo(configuration);
+    //     
+    //     services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
+    //     
+    //     services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
+    //     
+    //     services.OrchestrateTrivyReportServiceRegistration<ClusterComplianceReportCr, ClusterComplianceReport, Uid>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //     
+    //     services.OrchestrateTrivyReportServiceRegistration<ClusterInfraAssessmentReportCr, ClusterInfraAssessmentReport, Uid>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //     
+    //     services.OrchestrateTrivyReportServiceRegistration<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport, Uid>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //     
+    //     services.OrchestrateTrivyReportServiceRegistration<ClusterSbomReportCr, ClusterSbomReport, Uid>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //     
+    //     services.OrchestrateTrivyReportServiceRegistration<ClusterVulnerabilityReportCr, ClusterVulnerabilityReport, Uid>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //     
+    //     services.OrchestrateTrivyReportServiceRegistration<ConfigAuditReportCr, ConfigAuditReport, Uid>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //     
+    //     services.OrchestrateTrivyReportServiceRegistration<ExposedSecretReportCr, ExposedSecretReport, Digest>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //     
+    //     services.OrchestrateTrivyReportServiceRegistration<InfraAssessmentReportCr, InfraAssessmentReport, Uid>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //
+    //     services.OrchestrateTrivyReportServiceRegistration<RbacAssessmentReportCr, RbacAssessmentReport, Uid>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //
+    //     services.OrchestrateTrivyReportServiceRegistration<SbomReportCr, SbomReport, Digest>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    //
+    //     services.OrchestrateTrivyReportServiceRegistration<VulnerabilityReportCr, VulnerabilityReport, Digest>(
+    //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
+    // }
     
     public static void AddHistoryRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
