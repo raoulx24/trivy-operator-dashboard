@@ -1,4 +1,6 @@
-﻿namespace TrivyOperator.Dashboard.Composition.Configuration;
+﻿using TrivyOperator.Dashboard.Composition.Configuration;
+
+namespace TrivyOperator.Dashboard.Composition.Trivy;
 
 internal static class TrivyReportCompositionResolver
 {
@@ -7,33 +9,27 @@ internal static class TrivyReportCompositionResolver
     {
         Dictionary<string, bool> enabledReports = configuration.LoadEnabledTrivyReports();
 
-        bool isReportEnabled =
-            enabledReports.GetValueOrDefault(typeof(TReport).Name);
+        bool isReportEnabled = enabledReports.GetValueOrDefault(typeof(TReport).Name);
 
         if (!isReportEnabled)
         {
             return TrivyReportCompositionMode.Disabled;
         }
 
-        bool useFileRepository =
-            !string.IsNullOrWhiteSpace(
-                configuration.GetValue<string>("FileRepository:BasePath"));
+        bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string>("FileRepository:BasePath"));
 
         if (useFileRepository)
         {
-            Dictionary<string, bool> reportsInFileRepository =
-                configuration.LoadTrivyReportsInFileRepo();
+            Dictionary<string, bool> reportsInFileRepository = configuration.LoadTrivyReportsInFileRepo();
 
-            bool isReportEnabledInFileRepository =
-                reportsInFileRepository.GetValueOrDefault(typeof(TReport).Name);
+            bool isReportEnabledInFileRepository = reportsInFileRepository.GetValueOrDefault(typeof(TReport).Name);
 
             return isReportEnabledInFileRepository
                 ? TrivyReportCompositionMode.FileRepository
                 : TrivyReportCompositionMode.Disabled;
         }
 
-        bool useDefaultContext =
-            configuration.GetValue<bool>("Kubernetes:UseDefaultContext");
+        bool useDefaultContext = configuration.GetValue<bool>("Kubernetes:UseDefaultContext");
 
         return useDefaultContext
             ? TrivyReportCompositionMode.DefaultContext

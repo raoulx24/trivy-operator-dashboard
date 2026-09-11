@@ -1,23 +1,21 @@
-﻿namespace TrivyOperator.Dashboard.Composition.Configuration;
+﻿using TrivyOperator.Dashboard.Composition.Configuration;
+
+namespace TrivyOperator.Dashboard.Composition.Kubernetes;
 
 internal static class NamespaceCompositionResolver
 {
-    internal static NamespaceCompositionMode Resolve(
-        IConfiguration configuration)
+    internal static NamespaceCompositionMode Resolve(IConfiguration configuration)
     {
-        bool useFileRepository =
-            configuration.LoadUseFileRepository();
+        bool useFileRepository = configuration.LoadUseFileRepository();
 
         if (useFileRepository)
         {
             return NamespaceCompositionMode.Disabled;
         }
 
-        bool useStaticNamespaceService =
-            configuration.LoadUseStaticNamespaceService();
+        bool useStaticNamespaceService = configuration.LoadUseStaticNamespaceService();
 
-        bool useDefaultContext =
-            configuration.LoadUseDefaultContext();
+        bool useDefaultContext = configuration.LoadUseDefaultContext();
 
         if (useStaticNamespaceService)
         {
@@ -38,5 +36,5 @@ internal enum NamespaceCompositionMode
     StaticDefaultContext,
     StaticMultiContext,
     DynamicDefaultContext,
-    DynamicMultiContext
+    DynamicMultiContext,
 }

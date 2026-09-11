@@ -1,9 +1,10 @@
-﻿namespace TrivyOperator.Dashboard.Composition.Configuration;
+﻿using TrivyOperator.Dashboard.Composition.Configuration;
+
+namespace TrivyOperator.Dashboard.Composition.Kubernetes;
 
 internal static class KubernetesCompositionResolver
 {
-    internal static KubernetesCompositionMode Resolve(
-        IConfiguration configuration)
+    internal static KubernetesCompositionMode Resolve(IConfiguration configuration)
     {
         if (configuration.LoadUseFileRepository())
         {
@@ -21,5 +22,5 @@ internal enum KubernetesCompositionMode
 {
     Disabled,
     DefaultContext,
-    MultiContext
+    MultiContext,
 }

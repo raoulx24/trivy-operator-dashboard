@@ -2,14 +2,11 @@
 
 public static class TrivyDashboardConfigurationReader
 {
-    internal static Dictionary<string, bool> LoadEnabledTrivyReports(
-        this IConfiguration configuration)
+    internal static Dictionary<string, bool> LoadEnabledTrivyReports(this IConfiguration configuration)
     {
-        Dictionary<string, bool> result =
-            new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, bool> result = new(StringComparer.OrdinalIgnoreCase);
 
-        IConfigurationSection section =
-            configuration.GetSection("EnabledTrivyReports");
+        IConfigurationSection section = configuration.GetSection("EnabledTrivyReports");
 
         foreach (IConfigurationSection child in section.GetChildren())
         {
@@ -19,14 +16,11 @@ public static class TrivyDashboardConfigurationReader
         return result;
     }
 
-    internal static Dictionary<string, bool> LoadTrivyReportsInFileRepo(
-        this IConfiguration configuration)
+    internal static Dictionary<string, bool> LoadTrivyReportsInFileRepo(this IConfiguration configuration)
     {
-        Dictionary<string, bool> result =
-            new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, bool> result = new(StringComparer.OrdinalIgnoreCase);
 
-        IConfigurationSection section =
-            configuration.GetSection("FileRepository");
+        IConfigurationSection section = configuration.GetSection("FileRepository");
 
         foreach (IConfigurationSection child in section.GetChildren())
         {
@@ -35,32 +29,23 @@ public static class TrivyDashboardConfigurationReader
                 continue;
             }
 
-            string reportName =
-                child.Key[..^"Subpath".Length];
+            string reportName = child.Key[..^"Subpath".Length];
 
-            result[reportName] =
-                !string.IsNullOrWhiteSpace(child.Value);
+            result[reportName] = !string.IsNullOrWhiteSpace(child.Value);
         }
 
         return result;
     }
     
     internal static bool LoadUseDefaultContext(this IConfiguration config)
-    {
-        return config.GetValue<bool>("Kubernetes:UseDefaultContext");
-    }
+        => config.GetValue<bool>("Kubernetes:UseDefaultContext");
     
     internal static bool LoadUseFileRepository(this IConfiguration config)
-    {
-        return !string.IsNullOrEmpty(
-            config.GetValue<string>("FileRepository:BasePath"));
-    }
+        => !string.IsNullOrEmpty(config.GetValue<string>("FileRepository:BasePath"));
     
     internal static bool LoadUseStaticNamespaceService(this IConfiguration config)
-    {
-        string? namespaceList =
-            config.GetValue<string>("Kubernetes:NamespaceList");
-
-        return !string.IsNullOrWhiteSpace(namespaceList);
-    }
+        => !string.IsNullOrWhiteSpace(config.GetValue<string>("Kubernetes:NamespaceList"));
+    
+    internal static bool LoadUseHistory(this IConfiguration config)
+        => config.GetValue<bool>("History:Enabled");
 }

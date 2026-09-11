@@ -126,95 +126,95 @@ public static class BuilderServicesExtensions
 {
     public static ILogger? Logger { get; set; }
 
-    public static void AddNamespaceRelatedServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        bool useDefaultContext = LoadUseDefaultContext(configuration);
-        bool useStaticNamespaceService = LoadUseStaticNamespaceService(configuration);
-        bool useFileRepository = LoadUseFileRepository(configuration);
-
-        if (useFileRepository)
-        {
-            services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceNullService>();
-            return;
-        }
-        
-        // resource mapper
-        services.AddSingleton<K8sNamespaceMapper>();
-        services.AddSingleton<IResourceMapper<V1Namespace, K8sNamespace>>(sp =>
-            sp.GetRequiredService<K8sNamespaceMapper>());
-        services.AddSingleton<IResourceKeyProvider<V1Namespace, Uid>>(sp =>
-            sp.GetRequiredService<K8sNamespaceMapper>());
-        
-        // -- cache entry builder
-        services.AddSingleton<
-            ICacheEntryBuilder<K8sNamespace, Uid>,
-            K8sNamespaceCacheEntryBuilder>();
-        
-        // expiring cache
-        services.AddSingleton<
-            IExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<K8sNamespace, Uid>>,
-            ExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<K8sNamespace, Uid>>>();
-        
-        // aggregator
-        services.AddSingleton<
-            IResourceAggregator<V1Namespace, K8sNamespace, Uid>, UidKeyedResourceAggregator<V1Namespace, K8sNamespace>>();
-        
-        // expiring resource provider
-        services.AddSingleton<
-            IExpiringResourceProvider<K8sNamespace, Uid>,
-            KubernetesResourceProvider<V1Namespace, K8sNamespace, Uid>>();
-
-        // k8s services
-        // -- k8s infra service
-        if (useStaticNamespaceService)
-        {
-            services.AddSingleton<StaticNamespaceService>();
-
-            services.AddSingleton<
-                IClusterScopedResourceService<V1Namespace, V1NamespaceList>>(
-                sp => sp.GetRequiredService<StaticNamespaceService>());
-
-            services.AddSingleton<
-                IKubernetesResourceService<V1Namespace>>(
-                sp => sp.GetRequiredService<StaticNamespaceService>());
-        }
-        else
-        {
-            services.AddSingleton<NamespaceService>();
-
-            services.AddSingleton<
-                IClusterScopedResourceService<V1Namespace, V1NamespaceList>>(
-                sp => sp.GetRequiredService<NamespaceService>());
-
-            services.AddSingleton<
-                IKubernetesResourceService<V1Namespace>>(
-                sp => sp.GetRequiredService<NamespaceService>());
-        }
-        
-        // if multi context, k8s pipeline (watcher, queue etc) is not needed
-        if (!useDefaultContext)
-            return;
-
-        // -- k8s event pipeline starter
-        services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<V1Namespace>>();
-        
-        // -- watcher
-        services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<V1NamespaceList, V1Namespace>>();
-        
-        // background queue
-        services
-            .AddSingleton<IKubernetesBackgroundQueue<V1Namespace>,
-                KubernetesBackgroundQueue<V1Namespace>>();
-        
-        // k8s event dispatcher
-        services.AddSingleton<IKubernetesEventDispatcher<V1Namespace>,
-            KubernetesEventDispatcher<V1Namespace,
-                IKubernetesBackgroundQueue<V1Namespace>>>();
-        
-        // processor for starting namespaced watchers
-        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedWatcherLifecycleProcessor>();
-    }
-    
+    // public static void AddNamespaceRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     bool useDefaultContext = LoadUseDefaultContext(configuration);
+    //     bool useStaticNamespaceService = LoadUseStaticNamespaceService(configuration);
+    //     bool useFileRepository = LoadUseFileRepository(configuration);
+    //
+    //     if (useFileRepository)
+    //     {
+    //         services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceNullService>();
+    //         return;
+    //     }
+    //     
+    //     // resource mapper
+    //     services.AddSingleton<K8sNamespaceMapper>();
+    //     services.AddSingleton<IResourceMapper<V1Namespace, K8sNamespace>>(sp =>
+    //         sp.GetRequiredService<K8sNamespaceMapper>());
+    //     services.AddSingleton<IResourceKeyProvider<V1Namespace, Uid>>(sp =>
+    //         sp.GetRequiredService<K8sNamespaceMapper>());
+    //     
+    //     // -- cache entry builder
+    //     services.AddSingleton<
+    //         ICacheEntryBuilder<K8sNamespace, Uid>,
+    //         K8sNamespaceCacheEntryBuilder>();
+    //     
+    //     // expiring cache
+    //     services.AddSingleton<
+    //         IExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<K8sNamespace, Uid>>,
+    //         ExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<K8sNamespace, Uid>>>();
+    //     
+    //     // aggregator
+    //     services.AddSingleton<
+    //         IResourceAggregator<V1Namespace, K8sNamespace, Uid>, UidKeyedResourceAggregator<V1Namespace, K8sNamespace>>();
+    //     
+    //     // expiring resource provider
+    //     services.AddSingleton<
+    //         IExpiringResourceProvider<K8sNamespace, Uid>,
+    //         KubernetesResourceProvider<V1Namespace, K8sNamespace, Uid>>();
+    //
+    //     // k8s services
+    //     // -- k8s infra service
+    //     if (useStaticNamespaceService)
+    //     {
+    //         services.AddSingleton<StaticNamespaceService>();
+    //
+    //         services.AddSingleton<
+    //             IClusterScopedResourceService<V1Namespace, V1NamespaceList>>(
+    //             sp => sp.GetRequiredService<StaticNamespaceService>());
+    //
+    //         services.AddSingleton<
+    //             IKubernetesResourceService<V1Namespace>>(
+    //             sp => sp.GetRequiredService<StaticNamespaceService>());
+    //     }
+    //     else
+    //     {
+    //         services.AddSingleton<NamespaceService>();
+    //
+    //         services.AddSingleton<
+    //             IClusterScopedResourceService<V1Namespace, V1NamespaceList>>(
+    //             sp => sp.GetRequiredService<NamespaceService>());
+    //
+    //         services.AddSingleton<
+    //             IKubernetesResourceService<V1Namespace>>(
+    //             sp => sp.GetRequiredService<NamespaceService>());
+    //     }
+    //     
+    //     // if multi context, k8s pipeline (watcher, queue etc) is not needed
+    //     if (!useDefaultContext)
+    //         return;
+    //
+    //     // -- k8s event pipeline starter
+    //     services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<V1Namespace>>();
+    //     
+    //     // -- watcher
+    //     services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<V1NamespaceList, V1Namespace>>();
+    //     
+    //     // background queue
+    //     services
+    //         .AddSingleton<IKubernetesBackgroundQueue<V1Namespace>,
+    //             KubernetesBackgroundQueue<V1Namespace>>();
+    //     
+    //     // k8s event dispatcher
+    //     services.AddSingleton<IKubernetesEventDispatcher<V1Namespace>,
+    //         KubernetesEventDispatcher<V1Namespace,
+    //             IKubernetesBackgroundQueue<V1Namespace>>>();
+    //     
+    //     // processor for starting namespaced watchers
+    //     services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedWatcherLifecycleProcessor>();
+    // }
+    //
     // public static void AddTrivyReportRelatedServices(this IServiceCollection services, IConfiguration configuration)
     // {
     //     bool useDefaultContext = LoadUseDefaultContext(configuration);
@@ -260,65 +260,65 @@ public static class BuilderServicesExtensions
     //         useDefaultContext, useTrivyReportServices, useFileRepository, useTrivyReportsInFileRepo);
     // }
     
-    public static void AddHistoryRelatedServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
-        bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
-        bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
-        
-        services.Configure<VulnerabilityReportsHistoryOptions>(configuration.GetSection("History"));
-        services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
+    // public static void AddHistoryRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
+    //     bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
+    //     bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
+    //     
+    //     services.Configure<VulnerabilityReportsHistoryOptions>(configuration.GetSection("History"));
+    //     services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
+    //
+    //     if (!isHistoryEnabled || !useDefaultContext || useFileRepository)
+    //     {
+    //         services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryNullService>();
+    //         services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryNullStore>();
+    //         return;
+    //     }
+    //
+    //     Logger?.LogInformation("Using DistributedCache for Vulnerability Reports History");
+    //     
+    //     services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache"));
+    //     services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache").GetSection("RetryOptions"));
+    //
+    //     services.AddSingleton<DistributedCacheConnectionProvider>();
+    //     services.AddHostedService<DistributedCacheConnectionProvider>();
+    //     
+    //     services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
+    //     services.AddSingleton<IDistributedCacheExecutor, DistributedCacheExecutor>();
+    //     
+    //     services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
+    //     services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
+    //
+    //     services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
+    //     services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
+    //     
+    //     services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
+    // }
 
-        if (!isHistoryEnabled || !useDefaultContext || useFileRepository)
-        {
-            services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryNullService>();
-            services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryNullStore>();
-            return;
-        }
-
-        Logger?.LogInformation("Using DistributedCache for Vulnerability Reports History");
-        
-        services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache"));
-        services.Configure<DistributedCacheClientOptions>(configuration.GetSection("History").GetSection("DistributedCache").GetSection("RetryOptions"));
-
-        services.AddSingleton<DistributedCacheConnectionProvider>();
-        services.AddHostedService<DistributedCacheConnectionProvider>();
-        
-        services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
-        services.AddSingleton<IDistributedCacheExecutor, DistributedCacheExecutor>();
-        
-        services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
-        services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
-
-        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
-        services.AddTransient<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
-        
-        services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
-    }
-
-    public static void AddKubernetesRelatedServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        bool useDefaultContext = LoadUseDefaultContext(configuration);
-       
-        // client factory
-        services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();  
-
-        if (useDefaultContext)
-        {
-            // watcher pipeline events starter
-            services.AddHostedService<KubernetesEventPipelineHost>();
-            
-            // context resolver
-            services.AddSingleton<IKubernetesContextResolver,DefaultKubernetesContextResolver>();
-        }
-        else
-        {
-            // context resolver for multi context
-            services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();  
-        }
-        
-        services.AddScoped<IKubernetesContextService, KubernetesContextService>();
-    }
+    // public static void AddKubernetesRelatedServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     bool useDefaultContext = LoadUseDefaultContext(configuration);
+    //    
+    //     // client factory
+    //     services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();  
+    //
+    //     if (useDefaultContext)
+    //     {
+    //         // watcher pipeline events starter
+    //         services.AddHostedService<KubernetesEventPipelineHost>();
+    //         
+    //         // context resolver
+    //         services.AddSingleton<IKubernetesContextResolver,DefaultKubernetesContextResolver>();
+    //     }
+    //     else
+    //     {
+    //         // context resolver for multi context
+    //         services.AddSingleton<IKubernetesContextResolver, HttpHeaderKubernetesContextResolver>();  
+    //     }
+    //     
+    //     services.AddScoped<IKubernetesContextService, KubernetesContextService>();
+    // }
 
     public static void AddWatcherStateRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
