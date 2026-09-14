@@ -108,8 +108,7 @@ public static class KubernetesServiceRegistrationExtensions
     
     private static void AddKubernetesClientServices(this IServiceCollection services)
     {
-        // registered in background settings. left here for reference
-        // services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
+        // KubernetesOptions is registered by the BackendSettings composition root
         
         services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
 
@@ -145,6 +144,8 @@ public static class KubernetesServiceRegistrationExtensions
 
         // cache entry builder
         services.AddSingleton<ICacheEntryBuilder<K8sNamespace, Uid>, K8sNamespaceCacheEntryBuilder>();
+        
+        // ICacheEntityCodec is registered by the Trivy composition root
 
         // expiring cache
         services.AddSingleton<

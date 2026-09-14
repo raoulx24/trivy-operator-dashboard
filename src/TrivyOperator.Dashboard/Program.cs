@@ -29,6 +29,8 @@ using TrivyOperator.Dashboard.Composition.Trivy;
 using TrivyOperator.Dashboard.Composition.WatcherStates;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Factories;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator.Abstractions;
@@ -56,7 +58,7 @@ builder.Configuration.AddConfiguration(configuration);
 ConfigureLogging(configuration);
 
 // check distributed cache server availability and fail if not available
-await CheckDistributedCacheConnectivity(configuration);
+await HistoryStartupChecks.CheckDistributedCacheConnectivity(configuration);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(Log.Logger);
@@ -99,10 +101,10 @@ builder.Services.AddControllersWithViews(ConfigureMvcOptions)
 
 builder.Services.AddKubernetesRelatedServices(configuration);
 
-// builder.Services.AddOpenTelemetry(
-//     configuration.GetSection("OpenTelemetry"),
-//     applicationName.Replace(".", string.Empty).ToLowerInvariant()
-// );
+builder.Services.AddOpenTelemetry(
+    configuration.GetSection("OpenTelemetry"),
+    applicationName.Replace(".", string.Empty).ToLowerInvariant()
+);
 
 builder.Services.AddTrivyReportRelatedServices(configuration);
 builder.Services.AddKubernetesRelatedServices(configuration);
@@ -344,64 +346,64 @@ static void OnStopped()
     Log.CloseAndFlush();
 }
 
-static async Task CheckDistributedCacheConnectivity(IConfiguration configuration)
-{
-    bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
-    bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
-    bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
-
-    bool shouldUseRedis = isHistoryEnabled && useDefaultContext && !useFileRepository;
-
-    if (!shouldUseRedis)
-        return;
-
-    string connString = configuration.GetValue<string?>("History:DistributedCache:ConnectionString")
-        ?? throw new InvalidOperationException("Distributed Cache connection string missing.");
-
-    TimeSpan timeout = TimeSpan.FromSeconds(60);
-    TimeSpan delay = TimeSpan.FromSeconds(1);
-
-    using CancellationTokenSource overallCts = new(timeout);
-
-    while (!overallCts.Token.IsCancellationRequested)
-    {
-        try
-        {
-            using CancellationTokenSource connectCts = CancellationTokenSource.CreateLinkedTokenSource(overallCts.Token);
-            connectCts.CancelAfter(TimeSpan.FromSeconds(5)); // per-attempt timeout
-
-            ConnectionMultiplexer conn = await ConnectionMultiplexer.ConnectAsync(connString);
-            await conn.GetDatabase().PingAsync();
-
-            conn.Dispose();
-
-            Logger?.LogInformation("Distributed Cache connectivity check succeeded.");
-            return;
-        }
-        catch (OperationCanceledException) when (overallCts.IsCancellationRequested)
-        {
-            break;
-        }
-        catch (Exception ex)
-        {
-            Logger?.LogWarning(ex, "Distributed Cache (Redis/Valkey) is not reachable, retrying in {Delay}", delay);
-
-            try
-            {
-                await Task.Delay(delay, overallCts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                break;
-            }
-
-            // simple backoff
-            delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, 5));
-        }
-    }
-
-    throw new InvalidOperationException("Distributed Cache server is not reachable after retries.");
-}
+// static async Task CheckDistributedCacheConnectivity(IConfiguration configuration)
+// {
+//     bool isHistoryEnabled = configuration.GetValue<bool?>("History:Enabled") ?? false;
+//     bool useDefaultContext = configuration.GetValue<bool?>("Kubernetes:UseDefaultContext") ?? false;
+//     bool useFileRepository = !string.IsNullOrWhiteSpace(configuration.GetValue<string?>("FileRepository:BasePath"));
+//
+//     bool shouldUseRedis = isHistoryEnabled && useDefaultContext && !useFileRepository;
+//
+//     if (!shouldUseRedis)
+//         return;
+//
+//     string connString = configuration.GetValue<string?>("History:DistributedCache:ConnectionString")
+//         ?? throw new InvalidOperationException("Distributed Cache connection string missing.");
+//
+//     TimeSpan timeout = TimeSpan.FromSeconds(60);
+//     TimeSpan delay = TimeSpan.FromSeconds(1);
+//
+//     using CancellationTokenSource overallCts = new(timeout);
+//
+//     while (!overallCts.Token.IsCancellationRequested)
+//     {
+//         try
+//         {
+//             using CancellationTokenSource connectCts = CancellationTokenSource.CreateLinkedTokenSource(overallCts.Token);
+//             connectCts.CancelAfter(TimeSpan.FromSeconds(5)); // per-attempt timeout
+//
+//             ConnectionMultiplexer conn = await ConnectionMultiplexer.ConnectAsync(connString);
+//             await conn.GetDatabase().PingAsync();
+//
+//             conn.Dispose();
+//
+//             Logger?.LogInformation("Distributed Cache connectivity check succeeded.");
+//             return;
+//         }
+//         catch (OperationCanceledException) when (overallCts.IsCancellationRequested)
+//         {
+//             break;
+//         }
+//         catch (Exception ex)
+//         {
+//             Logger?.LogWarning(ex, "Distributed Cache (Redis/Valkey) is not reachable, retrying in {Delay}", delay);
+//
+//             try
+//             {
+//                 await Task.Delay(delay, overallCts.Token);
+//             }
+//             catch (OperationCanceledException)
+//             {
+//                 break;
+//             }
+//
+//             // simple backoff
+//             delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, 5));
+//         }
+//     }
+//
+//     throw new InvalidOperationException("Distributed Cache server is not reachable after retries.");
+// }
 
 internal partial class Program
 {

@@ -43,6 +43,10 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Factories;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
+using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
@@ -74,6 +78,9 @@ public static class TrivyReportServiceRegistrationExtensions
         services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
         
         services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
+        
+        if (TrivyDashboardConfigurationReader.LoadUseFileRepository(configuration))
+            services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
 
         services.AddTrivyReportServices<ClusterComplianceReportCr, ClusterComplianceReport, Uid>(configuration);
         
@@ -216,7 +223,32 @@ public static class TrivyReportServiceRegistrationExtensions
         where TReport : class, ITrivyReport<TId>
         where TId : notnull
     {
-        // TODO: add relevant registrations here
+        // mapper service
+        services.AddReportMapper(typeof(TReport));
+        
+        // aggregators
+        services.AddAggregatorServices(typeof(TReport));
+        
+        services.AddCacheEntryBuilder(typeof(TReport));
+        // services.AddSingleton<
+        //     ICacheEntryBuilder<VulnerabilityReport, Digest>,
+        //     VulnerabilityReportCacheEntryBuilder<VulnerabilityReport, Digest>>();
+
+        services.AddSingleton<
+            IFileTrivyReportService<TReport, TId>,
+            FileTrivyReportService<TReportCr, TReport, TId>>();
+        
+        services.AddSingleton<
+            IExpiringResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>,
+            ExpiringResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>>();
+        
+        // provider
+        services.AddSingleton<
+            IResourceProvider<TReport, TId>,
+            FileTrivyReportProvider<TReport, TId>>();
+        
+        // query service
+        services.AddTrivyQueryRelatedServices(typeof(TReport));
     }
     
     private static void AddTrivyQueryRelatedNullServices(this IServiceCollection services, Type reportType)

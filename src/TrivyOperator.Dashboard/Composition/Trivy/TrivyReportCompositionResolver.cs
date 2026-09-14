@@ -4,8 +4,7 @@ namespace TrivyOperator.Dashboard.Composition.Trivy;
 
 internal static class TrivyReportCompositionResolver
 {
-    public static TrivyReportCompositionMode Resolve<TReport>(
-        IConfiguration configuration)
+    public static TrivyReportCompositionMode Resolve<TReport>(IConfiguration configuration)
     {
         Dictionary<string, bool> enabledReports = configuration.LoadEnabledTrivyReports();
 

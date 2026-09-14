@@ -21,7 +21,7 @@ public static class HistoryServiceRegistrationExtensions
 {
     // 1st level - main entrances
     public static void AddHistoryRelatedServices(this IServiceCollection services, IConfiguration configuration)
-    {
+    { 
         HistoryCompositionMode mode = HistoryCompositionResolver.Resolve(configuration);
 
         switch (mode)

@@ -29,7 +29,7 @@ public static class TrivyDashboardConfigurationReader
                 continue;
             }
 
-            string reportName = child.Key[..^"Subpath".Length];
+            string reportName = child.Key[..^"CrSubpath".Length];
 
             result[reportName] = !string.IsNullOrWhiteSpace(child.Value);
         }
