@@ -96,36 +96,18 @@ if (!builder.Environment.IsProduction())
 
 builder.Services.AddControllersWithViews(ConfigureMvcOptions)
     .AddJsonOptions(options => ConfigureJson(options.JsonSerializerOptions));
-// builder.Services.AddCommons(configuration);
-builder.Services.AddAlertsServices();
-// builder.Services.AddWatcherStateServices();
-// builder.Services.AddHistoryServices(configuration);
-// builder.Services.AddV1NamespaceServices(configuration);
-// builder.Services.AddTrivyServices(configuration);
-//
-// builder.Services.AddUiCommons();
-// builder.Services.AddOthers();
-
-
 
 builder.Services.AddKubernetesRelatedServices(configuration);
 
-builder.Services.AddBackendSettingsServices(configuration);
-builder.Services.AddHealthServices();
-builder.Services.AddOpenTelemetry(
-    configuration.GetSection("OpenTelemetry"),
-    applicationName.Replace(".", string.Empty).ToLowerInvariant()
-);
-
-builder.Services.AddNamespaceRelatedServices(configuration);
+// builder.Services.AddOpenTelemetry(
+//     configuration.GetSection("OpenTelemetry"),
+//     applicationName.Replace(".", string.Empty).ToLowerInvariant()
+// );
 
 builder.Services.AddTrivyReportRelatedServices(configuration);
-
-builder.Services.AddWatcherStateRelatedServices(configuration);
+builder.Services.AddKubernetesRelatedServices(configuration);
 
 builder.Services.AddHistoryRelatedServices(configuration);
-
-builder.Services.AddGitHubRelatedServices(configuration);
 
 builder.WebHost.ConfigureKestrel(options =>
     {
@@ -152,28 +134,7 @@ builder.WebHost.ConfigureKestrel(options =>
     }
 );
 
-// TODO: move the migrations registration
-builder.Services.AddSingleton<ICacheEntityCodecFactory, CacheEntityCodecFactory>();
-if (false)
-{
-    builder.Services.AddSingleton<IPersistenceMigrationHistoryStore, PersistenceMigrationHistoryStore>();
-    builder.Services.AddSingleton<IPersistenceMigrationRunner, PersistenceMigrationRunner>();
-    
-    builder.Services.AddSingleton<IPersistenceMigration, VulnerabilityReportsHistoryV2Migration>();
-}
-// end of migrations registration
-
 WebApplication app = builder.Build();
-
-// TODO: move the migrations in a dedicated extension class
-if (false)
-{
-    IPersistenceMigrationRunner runner = app.Services.GetRequiredService<IPersistenceMigrationRunner>();
-
-    await runner.RunMigrationsAsync();
-}
-
-// Environment.Exit(0);
 
 app.Lifetime.ApplicationStarted.Register(OnStarted);
 app.Lifetime.ApplicationStopping.Register(OnStopping);
