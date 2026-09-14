@@ -127,10 +127,6 @@ builder.Services.AddHistoryRelatedServices(configuration);
 
 builder.Services.AddGitHubRelatedServices(configuration);
 
-//
-// // TODO: move them appropriately
-// builder.Services.AddTrivyReports(configuration);
-
 builder.WebHost.ConfigureKestrel(options =>
     {
         if (!builder.Environment.IsProduction())
@@ -307,31 +303,33 @@ static void ConfigureJson(JsonSerializerOptions options)
 {
     // TODO: remove after migration of all json contracts
     // options.TypeInfoResolverChain.Clear();
+    
+    options.TypeInfoResolverChain.Add(ControllersApiJsonContext.Default);
 
-    options.TypeInfoResolverChain.Insert(0, AlertsApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, AppVersionsApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, BackendSettingsApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, VulnerabilityReportsHistoryApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, KubernetesApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, KubernetesNamespacesApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, WatcherStatusApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, ClusterComplianceReportsApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, ClusterConfigAuditReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, ClusterInfraAssessmentReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, ClusterRbacAssessmentReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, ClusterSbomReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, ClusterVulnerabilityReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, ConfigAuditReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, ExposedSecretReportsApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, InfraAssessmentReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, RbacAssessmentReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, SbomReportApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, SeveritiesApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, TrivyReportDependenciesApiJsonContext.Default);
-    options.TypeInfoResolverChain.Insert(0, VulnerabilityReportsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(AlertsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(AppVersionsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(BackendSettingsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(VulnerabilityReportsHistoryApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(KubernetesApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(KubernetesNamespacesApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(WatcherStatusApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(ClusterComplianceReportsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(ClusterConfigAuditReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(ClusterInfraAssessmentReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(ClusterRbacAssessmentReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(ClusterSbomReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(ClusterVulnerabilityReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(ConfigAuditReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(ExposedSecretReportsApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(InfraAssessmentReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(RbacAssessmentReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(SbomReportApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(SeveritiesApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(TrivyReportDependenciesApiJsonContext.Default);
+    options.TypeInfoResolverChain.Add(VulnerabilityReportsApiJsonContext.Default);
 
     // TODO: remove JsonStringEnumConverter at some point
-    options.Converters.Add(new JsonStringEnumConverter());
+    // options.Converters.Add(new JsonStringEnumConverter());
     options.Converters.Add(new DateTimeJsonConverter());
     options.Converters.Add(new DateTimeNullableJsonConverter());
 }
