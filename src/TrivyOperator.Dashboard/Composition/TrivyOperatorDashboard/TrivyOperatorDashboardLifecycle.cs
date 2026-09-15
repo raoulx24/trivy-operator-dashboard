@@ -5,8 +5,10 @@ namespace TrivyOperator.Dashboard.Composition.TrivyOperatorDashboard;
 
 public static class TrivyOperatorDashboardLifecycle
 {
-    public static void Configure(WebApplication app)
+    public static void Configure(WebApplication app, ILogger? logger = null)
     {
+        Logger = logger;
+        
         app.Lifetime.ApplicationStarted.Register(OnStarted);
         app.Lifetime.ApplicationStopping.Register(OnStopping);
         app.Lifetime.ApplicationStopped.Register(OnStopped);
@@ -28,5 +30,5 @@ public static class TrivyOperatorDashboardLifecycle
         Log.CloseAndFlush();
     }
 
-    public static ILogger? Logger { get; set; }
+    private static ILogger? Logger { get; set; }
 }

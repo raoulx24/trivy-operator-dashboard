@@ -19,8 +19,8 @@ public static class ObservabilityServiceRegistrationExtensions
             configuration.GetSection("OpenTelemetry"),
             applicationName.Replace(".", string.Empty).ToLowerInvariant());
     }
-    
-    public static void AddOpenTelemetry(
+
+    private static void AddOpenTelemetry(
         this IServiceCollection services,
         IConfiguration configuration,
         string applicationName

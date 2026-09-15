@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Application.GitHub.Services;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstractions;
+using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.GitHub;
@@ -24,9 +25,11 @@ public static class GitHubServiceRegistrationExtensions
         switch (mode)
         {
             case GitHubCompositionMode.Disabled:
+                CompositionLogger.Logger?.LogInformation("GitHub related services are disabled");
                 return;
 
             case GitHubCompositionMode.Enabled:
+                CompositionLogger.Logger?.LogInformation("Adding GitHub related services");
                 services.AddGitHubUpdateServices();
                 break;
 

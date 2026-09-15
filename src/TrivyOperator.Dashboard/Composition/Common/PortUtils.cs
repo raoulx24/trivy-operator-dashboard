@@ -1,8 +1,8 @@
-﻿namespace TrivyOperator.Dashboard.Application.Utils;
+﻿namespace TrivyOperator.Dashboard.Composition.Common;
 
 public static class PortUtils
 {
-    public static bool IsValidPort(int port) => port >= 1024 && port <= 65535;
+    private static bool IsValidPort(int port) => port >= 1024 && port <= 65535;
 
     public static int? GetValidatedPort(string? portStr)
     {

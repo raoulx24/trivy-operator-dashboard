@@ -3,6 +3,7 @@ using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Se
 using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.History.Services;
 using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
+using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
@@ -27,6 +28,7 @@ public static class HistoryServiceRegistrationExtensions
         switch (mode)
         {
             case HistoryCompositionMode.Disabled:
+                CompositionLogger.Logger?.LogInformation("History related services are disabled");
                 services.AddTransient<
                     IVulnerabilityReportsHistoryService,
                     VulnerabilityReportsHistoryNullService>();
@@ -35,12 +37,12 @@ public static class HistoryServiceRegistrationExtensions
                     IVulnerabilityReportsHistoryStore,
                     DistributedCacheVulnerabilityReportsHistoryNullStore>();
                 
-                services.AddSingleton<IPersistenceMigrationRunner,
-                    PersistenceMigrationNullRunner>();
+                services.AddSingleton<IPersistenceMigrationRunner, PersistenceMigrationNullRunner>();
 
                 break;
 
             case HistoryCompositionMode.DistributedCache:
+                CompositionLogger.Logger?.LogInformation("Adding History related services");
                 services.AddDistributedCacheHistoryServices(configuration);
                 services.AddHistoryMigrationServices();
                 break;
@@ -55,13 +57,6 @@ public static class HistoryServiceRegistrationExtensions
         // WebApplication app = builder.Build();
         //
         // await app.RunHistoryMigrationsAsync();
-    }
-    
-    public static async Task RunHistoryMigrationsAsync(this WebApplication app)
-    {
-        IPersistenceMigrationRunner runner = app.Services.GetRequiredService<IPersistenceMigrationRunner>();
-
-        await runner.RunMigrationsAsync();
     }
     
     // 2nd level - services registration
@@ -98,17 +93,4 @@ public static class HistoryServiceRegistrationExtensions
 
         services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
     }
-    
-    private static void AddHistoryMigrationServices(this IServiceCollection services)
-    {
-        services.AddSingleton<IPersistenceMigrationHistoryStore,
-            PersistenceMigrationHistoryStore>();
-
-        services.AddSingleton<IPersistenceMigrationRunner,
-            PersistenceMigrationRunner>();
-
-        services.AddSingleton<IPersistenceMigration,
-            VulnerabilityReportsHistoryV2Migration>();
-    }
-
 }

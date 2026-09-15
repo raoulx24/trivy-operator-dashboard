@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Application.Utils;
+﻿using TrivyOperator.Dashboard.Composition.Common;
 
 namespace TrivyOperator.Dashboard.Composition.TrivyOperatorDashboard;
 

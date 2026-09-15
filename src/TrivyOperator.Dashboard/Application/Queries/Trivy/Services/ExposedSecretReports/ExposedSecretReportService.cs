@@ -10,8 +10,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ExposedSecretReports;
 
 public class ExposedSecretReportService(
-    IResourceProvider<ExposedSecretReport, Digest> resourceProvider,
-    ILogger<ExposedSecretReportService> logger)
+    IResourceProvider<ExposedSecretReport, Digest> resourceProvider)
     : IExposedSecretReportService
 {
     public async Task<IEnumerable<ExposedSecretReportDto>> GetExposedSecretReportDtos(

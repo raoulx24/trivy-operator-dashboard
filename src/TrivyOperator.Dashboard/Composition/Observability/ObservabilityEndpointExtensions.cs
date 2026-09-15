@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Utils;
+using TrivyOperator.Dashboard.Composition.Common;
 
 namespace TrivyOperator.Dashboard.Composition.Observability;
 
@@ -10,13 +11,11 @@ public static class ObservabilityEndpointExtensions
     {
         if (app.Environment.IsProduction())
         {
-            string? configMetricsPort =
-                configuration["OpenTelemetry:PrometheusExporterPort"];
+            string? configMetricsPort = configuration["OpenTelemetry:PrometheusExporterPort"];
 
             if (configMetricsPort is not null)
             {
-                int metricsPort =
-                    PortUtils.GetValidatedPort(configMetricsPort) ?? 8901;
+                int metricsPort = PortUtils.GetValidatedPort(configMetricsPort) ?? 8901;
 
                 app.UseOpenTelemetryPrometheusScrapingEndpoint(
                     context =>

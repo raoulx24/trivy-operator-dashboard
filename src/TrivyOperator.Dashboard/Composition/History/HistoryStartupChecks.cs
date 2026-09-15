@@ -1,11 +1,10 @@
 ﻿using StackExchange.Redis;
+using TrivyOperator.Dashboard.Composition.Common;
 
 namespace TrivyOperator.Dashboard.Composition.History;
 
 public static class HistoryStartupChecks
 {
-    public static ILogger? Logger { get; set; }
-    
     public static async Task CheckDistributedCacheConnectivity(
         IConfiguration configuration,
         CancellationToken cancellationToken = default)
@@ -36,7 +35,7 @@ public static class HistoryStartupChecks
 
                 await conn.DisposeAsync();
 
-                Logger?.LogInformation("Distributed Cache connectivity check succeeded.");
+                CompositionLogger.Logger?.LogInformation("Distributed Cache connectivity check succeeded.");
                 return;
             }
             catch (OperationCanceledException) when (overallCts.IsCancellationRequested)
@@ -45,7 +44,7 @@ public static class HistoryStartupChecks
             }
             catch (Exception ex)
             {
-                Logger?.LogWarning(ex, "Distributed Cache (Redis/Valkey) is not reachable, retrying in {Delay}", delay);
+                CompositionLogger.Logger?.LogWarning(ex, "Distributed Cache (Redis/Valkey) is not reachable, retrying in {Delay}", delay);
 
                 try
                 {

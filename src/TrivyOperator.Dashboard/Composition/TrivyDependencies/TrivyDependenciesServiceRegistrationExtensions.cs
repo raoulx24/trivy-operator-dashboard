@@ -1,5 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services;
 using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services.Abstractions;
+using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores;
@@ -13,6 +14,8 @@ public static class TrivyDependenciesServiceRegistrationExtensions
 {
     public static void AddTrivyDependenciesRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
+        CompositionLogger.Logger?.LogInformation("Adding Trivy Dependencies related services");
+        
         Dictionary<string, bool> enabledReports =
             configuration.LoadEnabledTrivyReports();
 

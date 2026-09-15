@@ -3,6 +3,7 @@ using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;
+using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 
@@ -12,6 +13,8 @@ public static class BackendSettingsServiceRegistrationExtensions
 {
     public static void AddBackendSettingsRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
+        CompositionLogger.Logger?.LogInformation("Adding Backend Settings related services");
+        
         services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
         services.Configure<EnabledTrivyReportsOptions>(configuration.GetSection("EnabledTrivyReports"));
         services.Configure<FileRepositoryOptions>(configuration.GetSection("FileRepository"));

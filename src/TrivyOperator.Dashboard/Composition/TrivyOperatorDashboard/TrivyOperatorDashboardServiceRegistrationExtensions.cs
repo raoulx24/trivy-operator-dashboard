@@ -17,6 +17,7 @@ public static class TrivyOperatorDashboardServiceRegistrationExtensions
         services.AddBackendSettingsRelatedServices(configuration);
         services.AddGitHubRelatedServices(configuration);
         services.AddKubernetesRelatedServices(configuration);
+        services.AddNamespaceRelatedServices(configuration);
         services.AddTrivyReportRelatedServices(configuration);
         services.AddTrivyDependenciesRelatedServices(configuration);
         services.AddWatcherStateRelatedServices(configuration);

@@ -14,6 +14,7 @@ using TrivyOperator.Dashboard.Application.Queries.Contexts;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
+using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
@@ -48,14 +49,17 @@ public static class KubernetesServiceRegistrationExtensions
         switch (mode)
         {
             case KubernetesCompositionMode.Disabled:
+                CompositionLogger.Logger?.LogInformation("Kubernetes related services are disabled");
                 return;
 
             case KubernetesCompositionMode.DefaultContext:
+                CompositionLogger.Logger?.LogInformation("Adding Kubernetes related services for Default Context");
                 services.AddKubernetesClientServices();
                 services.AddDefaultContextKubernetesServices();
                 break;
 
             case KubernetesCompositionMode.MultiContext:
+                CompositionLogger.Logger?.LogInformation("Adding Kubernetes related services for Multi-Context");
                 services.AddKubernetesClientServices();
                 services.AddMultiContextKubernetesServices();
                 break;
@@ -72,27 +76,32 @@ public static class KubernetesServiceRegistrationExtensions
         switch (mode)
         {
             case NamespaceCompositionMode.Disabled:
+                CompositionLogger.Logger?.LogInformation("Kubernetes Namespace related services are disabled");
                 services.AddSingleton<IKubernetesNamespaceService, KubernetesNamespaceNullService>();
                 break;
 
             case NamespaceCompositionMode.StaticDefaultContext:
+                CompositionLogger.Logger?.LogInformation("Adding Static Namespace related services for Default Context");
                 services.AddNamespaceCommonServices(configuration);
                 services.AddStaticNamespaceService();
                 services.AddNamespaceEventPipelineServices();
                 break;
 
             case NamespaceCompositionMode.StaticMultiContext:
+                CompositionLogger.Logger?.LogInformation("Adding Static Namespace related services for Multi-Context");
                 services.AddNamespaceCommonServices(configuration);
                 services.AddStaticNamespaceService();
                 break;
 
             case NamespaceCompositionMode.DynamicDefaultContext:
+                CompositionLogger.Logger?.LogInformation("Adding Kubernetes Namespace related services for Default Context");
                 services.AddNamespaceCommonServices(configuration);
                 services.AddDynamicNamespaceService();
                 services.AddNamespaceEventPipelineServices();
                 break;
 
             case NamespaceCompositionMode.DynamicMultiContext:
+                CompositionLogger.Logger?.LogInformation("Adding Kubernetes Namespace related services for Multi-Context");
                 services.AddNamespaceCommonServices(configuration);
                 services.AddDynamicNamespaceService();
                 break;

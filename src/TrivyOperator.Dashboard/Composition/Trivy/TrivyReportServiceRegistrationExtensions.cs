@@ -31,6 +31,7 @@ using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.VulnerabilityReports.Abstractions;
+using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
@@ -117,18 +118,22 @@ public static class TrivyReportServiceRegistrationExtensions
         switch (state)
         {
             case TrivyReportCompositionMode.DefaultContext:
+                CompositionLogger.Logger?.LogInformation("Adding Trivy Report {trivyReport} related services for Default Context",  typeof(TReport).Name);
                 services.AddTrivyReportDefaultContext<TReportCr, TReport, TId>();
                 break;
             
             case TrivyReportCompositionMode.MultiContext:
+                CompositionLogger.Logger?.LogInformation("Adding Trivy Report {trivyReport} related services for Multi-Context",  typeof(TReport).Name);
                 services.AddTrivyReportMultiContext<TReportCr, TReport, TId>();
                 break;
             
             case TrivyReportCompositionMode.FileRepository:
+                CompositionLogger.Logger?.LogInformation("Adding Trivy Report {trivyReport} related services for File Repository",  typeof(TReport).Name);
                 services.AddTrivyReportFileRepo<TReportCr, TReport, TId>();
                 break;
 
             case TrivyReportCompositionMode.Disabled:
+                CompositionLogger.Logger?.LogInformation("Trivy Report {trivyReport} related services are disabled", typeof(TReport).Name);
                 services.AddTrivyQueryRelatedNullServices(typeof(TReport));
                 break;
 
