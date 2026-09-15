@@ -1,7 +1,37 @@
-﻿namespace TrivyOperator.Dashboard.Composition.Configuration;
+﻿using Serilog;
+using Serilog.Extensions.Logging;
+using System.Runtime.InteropServices;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+
+namespace TrivyOperator.Dashboard.Composition.Configuration;
 
 public static class TrivyDashboardConfigurationReader
 {
+    public static IConfiguration CreateConfiguration()
+    {
+        IConfigurationBuilder configurationBuilder = 
+            new ConfigurationBuilder().AddJsonFile("appsettings.json", true)
+                .AddJsonFile("serilog.config.json", true)
+                .AddEnvironmentVariables();
+        IConfiguration configuration = configurationBuilder.Build();
+        string? tempFolder = configuration.GetSection("FileExport")["TempFolder"];
+        if (!string.IsNullOrEmpty(tempFolder))
+        {
+            return configuration;
+        }
+
+        Dictionary<string, string?> inMemorySettings = new()
+        {
+            {
+                "FileExport:TempFolder", Path.GetTempPath()
+            },
+        };
+        configurationBuilder.AddInMemoryCollection(inMemorySettings);
+        configuration = configurationBuilder.Build();
+
+        return configuration;
+    }
+    
     internal static Dictionary<string, bool> LoadEnabledTrivyReports(this IConfiguration configuration)
     {
         Dictionary<string, bool> result = new(StringComparer.OrdinalIgnoreCase);

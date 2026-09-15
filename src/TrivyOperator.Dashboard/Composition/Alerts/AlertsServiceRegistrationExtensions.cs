@@ -10,7 +10,7 @@ namespace TrivyOperator.Dashboard.Composition.Alerts;
 
 public static class AlertsServiceRegistrationExtensions
 {
-    public static void AddAlertsServices(this IServiceCollection services)
+    public static void AddAlertsRelatedServices(this IServiceCollection services)
     {
         services.AddSignalR();
         services.AddSingleton<IConcurrentCache<AlertKey, Alert>, ConcurrentCache<AlertKey, Alert>>();

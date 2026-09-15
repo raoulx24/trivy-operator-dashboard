@@ -10,7 +10,7 @@ namespace TrivyOperator.Dashboard.Composition.BackendSettings;
 
 public static class BackendSettingsServiceRegistrationExtensions
 {
-    public static void AddBackendSettingsServices(this IServiceCollection services, IConfiguration configuration)
+    public static void AddBackendSettingsRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<KubernetesOptions>(configuration.GetSection("Kubernetes"));
         services.Configure<EnabledTrivyReportsOptions>(configuration.GetSection("EnabledTrivyReports"));
