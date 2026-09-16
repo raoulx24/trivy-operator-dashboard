@@ -2,8 +2,8 @@
 using k8s.Models;
 using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
 using TrivyOperator.Dashboard.Application.Alerts.Models;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Alerts.Refresher;
 

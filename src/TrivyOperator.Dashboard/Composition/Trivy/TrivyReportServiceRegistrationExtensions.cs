@@ -1,13 +1,13 @@
-﻿using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventDispatchers;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelineStarters;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelineStarters.Abstractions;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports.Abstractions;
@@ -168,7 +168,7 @@ public static class TrivyReportServiceRegistrationExtensions
         // -- IResourceStore (in part) and IResourceProvider (out part)
         services.AddReportInMemoryCache(typeof(TReport));
 
-        // k8s infra service, event pipeline starter, watcher
+        // kubernetes infra service, event pipeline starter, watcher
         services.AddReportKubernetesPipelineServices<TReportCr, TReport, TId>();
         
         // background queue
@@ -176,12 +176,12 @@ public static class TrivyReportServiceRegistrationExtensions
             IKubernetesBackgroundQueue<TReportCr>,
             KubernetesBackgroundQueue<TReportCr>>();
         
-        // k8s event dispatcher
+        // kubernetes event dispatcher
         services.AddSingleton<
             IKubernetesEventDispatcher<TReportCr>,
             KubernetesEventDispatcher<TReportCr, IKubernetesBackgroundQueue<TReportCr>>>();
         
-        // k8s event processor
+        // kubernetes event processor
         services.AddSingleton<
             IKubernetesEventProcessor<TReportCr>, 
             ResourceStoreUpdater<TReportCr,TReport,TId>>();
@@ -201,7 +201,7 @@ public static class TrivyReportServiceRegistrationExtensions
         // aggregators
         services.AddAggregatorServices(typeof(TReport));
         
-        // k8s infra services
+        // kubernetes infra services
         services.AddReportKubernetesInfraServices<TReportCr, TReport, TId>();
         
         services.AddCacheEntryBuilder(typeof(TReport));
@@ -627,7 +627,7 @@ public static class TrivyReportServiceRegistrationExtensions
                     IKubernetesResourceService<TReportCr>>(
                     sp => sp.GetRequiredService<ClusterScopedCustomResourceService<TReportCr>>());
                 
-                // k8s event pipeline starter
+                // kubernetes event pipeline starter
                 services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<TReportCr>>();
         
                 // watcher
@@ -653,7 +653,7 @@ public static class TrivyReportServiceRegistrationExtensions
                     IKubernetesResourceService<TReportCr>>(
                     sp => sp.GetRequiredService<NamespacedCustomResourceService<TReportCr>>());
                 
-                // k8s event pipeline starter
+                // kubernetes event pipeline starter
                 services.AddSingleton<IKubernetesEventPipelineStarter, NamespacedEventPipelineStarter<TReportCr>>();
             
                 // watcher

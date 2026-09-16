@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Models;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;

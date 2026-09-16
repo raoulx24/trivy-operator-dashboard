@@ -6,11 +6,13 @@ using TrivyOperator.Dashboard.Api.Alerts.Serializations;
 using TrivyOperator.Dashboard.Api.AppVersions.Serializations;
 using TrivyOperator.Dashboard.Api.BackendSettings.Serializations;
 using TrivyOperator.Dashboard.Api.History.Serializations;
-using TrivyOperator.Dashboard.Api.K8s.Serializations;
 using TrivyOperator.Dashboard.Api.Serialization;
 using TrivyOperator.Dashboard.Api.Trivy.Serializations;
 using TrivyOperator.Dashboard.Infrastructure.Shared.JsonConverters;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
+using KubernetesApiJsonContext = TrivyOperator.Dashboard.Api.Kubernetes.Serializations.KubernetesApiJsonContext;
+using KubernetesNamespacesApiJsonContext = TrivyOperator.Dashboard.Api.Kubernetes.Serializations.KubernetesNamespacesApiJsonContext;
+using WatcherStatusApiJsonContext = TrivyOperator.Dashboard.Api.Kubernetes.Serializations.WatcherStatusApiJsonContext;
 
 
 namespace TrivyOperator.Dashboard.Composition.Api;

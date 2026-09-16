@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Models.WatcherEvents;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Options;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.WatcherStates.Models;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 

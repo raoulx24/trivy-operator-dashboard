@@ -1,15 +1,15 @@
 ﻿using k8s.Models;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.HostedServices;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventDispatchers;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelineStarters;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventPipelineStarters.Abstractions;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers;
-using TrivyOperator.Dashboard.Application.K8sEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.HostedServices;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Contexts;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
@@ -143,33 +143,33 @@ public static class KubernetesServiceRegistrationExtensions
         services.Configure<BackgroundQueueOptions>(configuration.GetSection("Queues"));
         
         // resource mapper
-        services.AddSingleton<K8sNamespaceMapper>();
+        services.AddSingleton<KubernetesNamespaceMapper>();
 
         services.AddSingleton<
-            IResourceMapper<V1Namespace, K8sNamespace>>(sp => sp.GetRequiredService<K8sNamespaceMapper>());
+            IResourceMapper<V1Namespace, KubernetesNamespace>>(sp => sp.GetRequiredService<KubernetesNamespaceMapper>());
 
         services.AddSingleton<
-            IResourceKeyProvider<V1Namespace, Uid>>(sp => sp.GetRequiredService<K8sNamespaceMapper>());
+            IResourceKeyProvider<V1Namespace, Uid>>(sp => sp.GetRequiredService<KubernetesNamespaceMapper>());
 
         // cache entry builder
-        services.AddSingleton<ICacheEntryBuilder<K8sNamespace, Uid>, K8sNamespaceCacheEntryBuilder>();
+        services.AddSingleton<ICacheEntryBuilder<KubernetesNamespace, Uid>, KubernetesNamespaceCacheEntryBuilder>();
         
         // ICacheEntityCodec is registered by the Trivy composition root
 
         // expiring cache
         services.AddSingleton<
-            IExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<K8sNamespace, Uid>>,
-            ExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<K8sNamespace, Uid>>>();
+            IExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<KubernetesNamespace, Uid>>,
+            ExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<KubernetesNamespace, Uid>>>();
 
         // aggregator
         services.AddSingleton<
-            IResourceAggregator<V1Namespace, K8sNamespace, Uid>,
-            UidKeyedResourceAggregator<V1Namespace, K8sNamespace>>();
+            IResourceAggregator<V1Namespace, KubernetesNamespace, Uid>,
+            UidKeyedResourceAggregator<V1Namespace, KubernetesNamespace>>();
 
         // resource provider
         services.AddSingleton<
-            IExpiringResourceProvider<K8sNamespace, Uid>,
-            KubernetesResourceProvider<V1Namespace, K8sNamespace, Uid>>();
+            IExpiringResourceProvider<KubernetesNamespace, Uid>,
+            KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>();
     }
 
     private static void AddStaticNamespaceService(this IServiceCollection services)

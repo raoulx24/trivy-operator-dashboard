@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Api.K8s.HealthChecks;
+﻿using TrivyOperator.Dashboard.Api.Kubernetes.HealthChecks;
 
 namespace TrivyOperator.Dashboard.Composition.Health;
 
