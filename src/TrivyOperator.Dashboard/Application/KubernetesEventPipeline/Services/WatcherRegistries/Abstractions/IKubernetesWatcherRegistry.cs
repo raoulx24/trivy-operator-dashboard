@@ -4,23 +4,9 @@ namespace TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.W
 
 public interface IKubernetesWatcherRegistry
 {
-    void StartWatcher(
-        WatcherKey key,
-        CancellationToken cancellationToken = default
-    );
+    void StartWatcher(WatcherKey key, CancellationToken ctx = default);
 
-    Task StopWatcher(
-        WatcherKey key,
-        CancellationToken cancellationToken = default
-    );
+    Task StopWatcher(WatcherKey key, CancellationToken ctx = default);
 
-    Task RecreateWatcher(
-        WatcherKey key,
-        CancellationToken cancellationToken = default
-    );
-    
-    Task Reconcile(
-        IReadOnlyCollection<WatcherKey> desiredKeys,
-        CancellationToken cancellationToken = default
-    );
+    Task RecreateWatcher(WatcherKey key, CancellationToken ctx = default);
 }

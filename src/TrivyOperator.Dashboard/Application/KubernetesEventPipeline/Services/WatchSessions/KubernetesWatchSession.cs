@@ -33,7 +33,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
     public bool IsRunning =>
         runningTask is { IsCompleted: false };
 
-    public void Start(CancellationToken cancellationToken = default)
+    public void Start(CancellationToken ctx = default)
     {
         if (IsRunning)
         {
@@ -48,7 +48,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
 
         linkedCancellationToken =
             CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
+                ctx,
                 cancellationTokenSource.Token
             ).Token;
 
@@ -74,16 +74,15 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
         }
     }
 
-    private async Task Run(CancellationToken cancellationToken)
+    private async Task Run(CancellationToken ctx = default)
     {
         string? resourceVersion = null;
 
-        RetryDurationCalculator retryDurationCalculator =
-            new(MaxBackoffSeconds);
+        RetryDurationCalculator retryDurationCalculator = new(MaxBackoffSeconds);
 
         int retryCount = -1;
 
-        while (!cancellationToken.IsCancellationRequested)
+        while (!ctx.IsCancellationRequested)
         {
             bool shouldRetry = true;
 
@@ -91,10 +90,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
             {
                 if (string.IsNullOrEmpty(resourceVersion))
                 {
-                    resourceVersion =
-                        await ProcessInitialResources(
-                            cancellationToken
-                        );
+                    resourceVersion = await ProcessInitialResources(ctx);
 
                     logger.LogInformation(
                         "Initial Resources Processed - {kubernetesObjectType} - {key} - {resourceVersion}",
@@ -103,37 +99,22 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                         resourceVersion
                     );
 
-                    await eventPublisher.Publish(
-                        key,
-                        WatcherEventType.Initialized,
-                        cancellationToken
-                    );
+                    await eventPublisher.Publish(key, WatcherEventType.Initialized, ctx);
                 }
 
                 do
                 {
                     IAsyncEnumerable<WatchEvent<TKubernetesObject>> watchList =
-                        resourceWatch.GetWatchList(
-                            key,
-                            resourceVersion,
-                            GetWatcherRandomTimeout(),
-                            cancellationToken
-                        );
+                        resourceWatch.GetWatchList(key, resourceVersion, GetWatcherRandomTimeout(), ctx);
 
                     await foreach (WatchEvent<TKubernetesObject> watchEvent in watchList)
                     {
                         if (watchEvent.Type == WatchEventType.Bookmark)
                         {
-                            resourceVersion =
-                                watchEvent.Object.Metadata.ResourceVersion;
+                            resourceVersion = watchEvent.Object.Metadata.ResourceVersion;
                         }
 
-                        await eventPublisher.Publish(
-                            key,
-                            watchEvent.Type.ToWatcherEvent(),
-                            cancellationToken,
-                            watchEvent.Object
-                        );
+                        await eventPublisher.Publish(key, watchEvent.Type.ToWatcherEvent(), ctx, watchEvent.Object);
 
                         retryCount = 0;
                     }
@@ -144,13 +125,9 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                         key
                     );
 
-                } while (
-                    !cancellationToken.IsCancellationRequested &&
-                    !string.IsNullOrEmpty(resourceVersion)
-                );
+                } while (!ctx.IsCancellationRequested && !string.IsNullOrEmpty(resourceVersion));
             }
-            catch (HttpRequestException ex)
-                when (ex.InnerException is EndOfStreamException)
+            catch (HttpRequestException ex) when (ex.InnerException is EndOfStreamException)
             {
                 logger.LogDebug(
                     ex,
@@ -163,8 +140,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
             {
                 // Session is stopping.
             }
-            catch (KubernetesException ex)
-                when (ex.Message.StartsWith("too old resource version"))
+            catch (KubernetesException ex) when (ex.Message.StartsWith("too old resource version"))
             {
                 logger.LogWarning(
                     "{kubernetesObjectType} - {key} - resetting resourceVersion because it is too old",
@@ -177,12 +153,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
             }
             catch (Exception ex)
             {
-                await eventPublisher.Publish(
-                    key,
-                    WatcherEventType.Error,
-                    cancellationToken,
-                    exception: ex
-                );
+                await eventPublisher.Publish(key, WatcherEventType.Error, ctx, exception: ex);
 
                 resourceVersion = null;
 
@@ -195,18 +166,12 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                 );
             }
 
-            if (
-                cancellationToken.IsCancellationRequested ||
-                !shouldRetry
-            )
+            if (ctx.IsCancellationRequested || !shouldRetry)
             {
                 continue;
             }
 
-            TimeSpan retryDelay =
-                retryDurationCalculator.GetNextRetryDuration(
-                    ++retryCount
-                );
+            TimeSpan retryDelay = retryDurationCalculator.GetNextRetryDuration(++retryCount);
 
             logger.LogDebug(
                 "Watcher for {kubernetesObjectType} and key {key} waiting for retry {retryCount} ({retryDelay})",
@@ -216,16 +181,11 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                 retryDelay
             );
 
-            await Task.Delay(
-                retryDelay,
-                cancellationToken
-            );
+            await Task.Delay(retryDelay, ctx);
         }
     }
 
-    private async Task<string> ProcessInitialResources(
-        CancellationToken cancellationToken
-    )
+    private async Task<string> ProcessInitialResources(CancellationToken ctx = default)
     {
         string? continueToken = null;
         string? resourceVersion = null;
@@ -237,29 +197,19 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                     key,
                     continueToken,
                     ResourceListPageSize,
-                    cancellationToken
+                    ctx
                 );
 
             foreach (TKubernetesObject item in resourceList.Items ?? [])
             {
-                await eventPublisher.Publish(
-                    key,
-                    WatcherEventType.InitialAdded,
-                    cancellationToken,
-                    item
-                );
+                await eventPublisher.Publish(key, WatcherEventType.InitialAdded, ctx, item);
             }
 
-            continueToken =
-                resourceList.Metadata.ContinueProperty;
+            continueToken = resourceList.Metadata.ContinueProperty;
 
-            resourceVersion =
-                resourceList.Metadata.ResourceVersion;
+            resourceVersion = resourceList.Metadata.ResourceVersion;
 
-        } while (
-            !string.IsNullOrEmpty(continueToken) &&
-            !cancellationToken.IsCancellationRequested
-        );
+        } while (!string.IsNullOrEmpty(continueToken) && !ctx.IsCancellationRequested);
 
         return resourceVersion ?? string.Empty;
     }
@@ -268,10 +218,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
     {
         int configuredTimeout = options.Value.WatchTimeoutInSeconds;
 
-        return Random.Next(
-            configuredTimeout,
-            (int)(configuredTimeout * 1.1)
-        );
+        return Random.Next(configuredTimeout, (int)(configuredTimeout * 1.1));
     }
 
     public void Dispose()

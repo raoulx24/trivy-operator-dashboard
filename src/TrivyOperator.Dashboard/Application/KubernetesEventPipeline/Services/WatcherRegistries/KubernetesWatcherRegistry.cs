@@ -8,24 +8,21 @@ using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watch
 
 namespace TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries;
 
-public sealed class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>(
+public class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>(
     IKubernetesWatchSessionFactory<TKubernetesObjectList, TKubernetesObject> sessionFactory,
     ILogger<KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>> logger
 ) : IKubernetesWatcherRegistry
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    private readonly ConcurrentDictionary<
+    protected readonly ConcurrentDictionary<
         WatcherKey,
         KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>
-    > sessions = [];
-
-    public void StartWatcher(
-        WatcherKey key,
-        CancellationToken cancellationToken = default
-    )
+    > Sessions = [];
+    
+    public void StartWatcher(WatcherKey key, CancellationToken ctx = default)
     {
-        if (sessions.ContainsKey(key))
+        if (Sessions.ContainsKey(key))
         {
             logger.LogWarning(
                 "Watcher for {kubernetesObjectType} and key {key} already exists. Ignoring start request.",
@@ -36,10 +33,9 @@ public sealed class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetes
             return;
         }
 
-        KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject> session =
-            sessionFactory.Create(key);
+        KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject> session = sessionFactory.Create(key);
 
-        if (!sessions.TryAdd(key, session))
+        if (!Sessions.TryAdd(key, session))
         {
             logger.LogWarning(
                 "Watcher for {kubernetesObjectType} and key {key} already exists. Ignoring start request.",
@@ -57,13 +53,10 @@ public sealed class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetes
             key
         );
 
-        session.Start(cancellationToken);
+        session.Start(ctx);
     }
 
-    public async Task StopWatcher(
-        WatcherKey key,
-        CancellationToken cancellationToken = default
-    )
+    public async Task StopWatcher(WatcherKey key, CancellationToken ctx = default)
     {
         logger.LogInformation(
             "Stopping watcher for {kubernetesObjectType} and key {key}.",
@@ -71,7 +64,7 @@ public sealed class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetes
             key
         );
 
-        if (!sessions.TryRemove(key, out KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>? session))
+        if (!Sessions.TryRemove(key, out KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>? session))
         {
             logger.LogWarning(
                 "Watcher for {kubernetesObjectType} and key {key} not found. Ignoring stop request.",
@@ -84,7 +77,7 @@ public sealed class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetes
 
         try
         {
-            await session.Stop(cancellationToken);
+            await session.Stop(ctx);
         }
         finally
         {
@@ -92,10 +85,7 @@ public sealed class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetes
         }
     }
 
-    public async Task RecreateWatcher(
-        WatcherKey key,
-        CancellationToken cancellationToken = default
-    )
+    public async Task RecreateWatcher(WatcherKey key, CancellationToken ctx = default)
     {
         logger.LogWarning(
             "Recreating watcher for {kubernetesObjectType} and key {key}.",
@@ -103,46 +93,7 @@ public sealed class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetes
             key
         );
 
-        await StopWatcher(key, cancellationToken);
-        StartWatcher(key, cancellationToken);
-    }
-    
-    public async Task Reconcile(
-        IReadOnlyCollection<WatcherKey> desiredKeys,
-        CancellationToken cancellationToken = default
-    )
-    {
-        HashSet<WatcherKey> desired = [.. desiredKeys];
-
-        WatcherKey[] existing = [.. sessions.Keys];
-
-        WatcherKey[] toRemove =
-        [
-            .. existing.Except(desired)
-        ];
-
-        WatcherKey[] toAdd =
-        [
-            .. desired.Except(existing)
-        ];
-
-        logger.LogDebug(
-            "Reconciling watchers for {kubernetesObjectType}. Existing: {existingCount}, Desired: {desiredCount}, Add: {addCount}, Remove: {removeCount}.",
-            typeof(TKubernetesObject).Name,
-            existing.Length,
-            desired.Count,
-            toAdd.Length,
-            toRemove.Length
-        );
-
-        IEnumerable<Task> stopTasks =
-            toRemove.Select(key => StopWatcher(key, cancellationToken));
-
-        foreach (WatcherKey key in toAdd)
-        {
-            StartWatcher(key, cancellationToken);
-        }
-
-        await Task.WhenAll(stopTasks);
+        await StopWatcher(key, ctx);
+        StartWatcher(key, ctx);
     }
 }

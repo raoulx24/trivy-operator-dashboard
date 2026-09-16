@@ -35,13 +35,10 @@ public sealed class KubernetesEventPublisher<TKubernetesObject>(
                 Key = key,
                 KubernetesObject = kubernetesObject,
                 WatcherEventType = eventType,
-                Exception = exception
+                Exception = exception,
             };
 
-            await backgroundQueue.QueueBackgroundWorkItemAsync(
-                watcherEvent,
-                cancellationToken
-            );
+            await backgroundQueue.QueueBackgroundWorkItemAsync(watcherEvent, cancellationToken);
         }
         catch (Exception ex)
         {
