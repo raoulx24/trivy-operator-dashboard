@@ -6,8 +6,14 @@ using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Event
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters.Abstractions;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports.Abstractions;
@@ -181,10 +187,15 @@ public static class TrivyReportServiceRegistrationExtensions
             IKubernetesEventDispatcher<TReportCr>,
             KubernetesEventDispatcher<TReportCr, IKubernetesBackgroundQueue<TReportCr>>>();
         
-        // kubernetes event processor
+        // kubernetes event processors
+        // -- resource store
         services.AddSingleton<
             IKubernetesEventProcessor<TReportCr>, 
             ResourceStoreUpdater<TReportCr,TReport,TId>>();
+        // -- metrics
+        services.AddSingleton<
+            IKubernetesEventProcessor<TReportCr>,
+            KubernetesEventMetricsProcessor<TReportCr>>();
         
         // query service
         services.AddTrivyQueryRelatedServices(typeof(TReport));
@@ -629,9 +640,24 @@ public static class TrivyReportServiceRegistrationExtensions
                 
                 // kubernetes event pipeline starter
                 services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<TReportCr>>();
-        
-                // watcher
-                services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<CustomResourceList<TReportCr>, TReportCr>>();
+
+                // kubernetes resource watcher
+                services.AddSingleton<
+                    IKubernetesResourceWatch<CustomResourceList<TReportCr>, TReportCr>,
+                    ClusterScopedResourceWatch<CustomResourceList<TReportCr>, TReportCr>>();
+
+                // kubernetes event publisher
+                services.AddSingleton<IKubernetesEventPublisher<TReportCr>,KubernetesEventPublisher<TReportCr>>();
+
+                // kubernetes watch session factory
+                services.AddSingleton<
+                    IKubernetesWatchSessionFactory<CustomResourceList<TReportCr>, TReportCr>,
+                    KubernetesWatchSessionFactory<CustomResourceList<TReportCr>, TReportCr>>();
+
+                // kubernetes watcher registry
+                services.AddSingleton<
+                    IClusterScopedWatcherRegistry,
+                    ClusterScopedWatcherRegistry<CustomResourceList<TReportCr>, TReportCr>>();
                 
                 break;
 
@@ -656,8 +682,23 @@ public static class TrivyReportServiceRegistrationExtensions
                 // kubernetes event pipeline starter
                 services.AddSingleton<IKubernetesEventPipelineStarter, NamespacedEventPipelineStarter<TReportCr>>();
             
-                // watcher
-                services.AddSingleton<INamespacedWatcher, NamespacedWatcher<CustomResourceList<TReportCr>, TReportCr>>();
+                // kubernetes resource watcher
+                services.AddSingleton<
+                    IKubernetesResourceWatch<CustomResourceList<TReportCr>, TReportCr>,
+                    NamespacedResourceWatch<CustomResourceList<TReportCr>, TReportCr>>();
+
+                // kubernetes event publisher
+                services.AddSingleton<IKubernetesEventPublisher<TReportCr>,KubernetesEventPublisher<TReportCr>>();
+
+                // kubernetes watch session factory
+                services.AddSingleton<
+                    IKubernetesWatchSessionFactory<CustomResourceList<TReportCr>, TReportCr>,
+                    KubernetesWatchSessionFactory<CustomResourceList<TReportCr>, TReportCr>>();
+
+                // kubernetes watcher registry
+                services.AddSingleton<
+                    INamespacedWatcherRegistry,
+                    NamespacedWatcherRegistry<CustomResourceList<TReportCr>, TReportCr>>();
                 
                 break;
 

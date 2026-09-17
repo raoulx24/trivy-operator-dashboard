@@ -96,4 +96,6 @@ public class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>
         await StopWatcher(key, ctx);
         StartWatcher(key, ctx);
     }
+
+    public Type WatchedKubernetesObjectType => typeof(TKubernetesObject);
 }

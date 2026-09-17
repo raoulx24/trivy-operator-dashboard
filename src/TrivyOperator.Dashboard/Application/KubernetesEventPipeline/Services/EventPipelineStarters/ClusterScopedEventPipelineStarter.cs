@@ -3,7 +3,7 @@ using k8s.Models;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 
@@ -13,7 +13,7 @@ public class ClusterScopedEventPipelineStarter<TKubernetesObject>(
     IKubernetesEventDispatcher<TKubernetesObject> kubernetesEventDispatcher,
     IKubernetesBackgroundQueue<TKubernetesObject> queue,
     IKubernetesContextResolver contextResolver,
-    IEnumerable<IClusterScopedWatcher> clusterScopedWatchers,
+    IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatcherRegistries,
     ILogger<KubernetesEventPipelineStarter<TKubernetesObject>> logger
 ) : KubernetesEventPipelineStarter<TKubernetesObject>(kubernetesEventDispatcher, queue, logger)
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
@@ -27,9 +27,9 @@ public class ClusterScopedEventPipelineStarter<TKubernetesObject>(
 
         WatcherKey watcherKey = new(contextName, new NamespaceName());
         base.StartPipeline(ctx);
-        foreach (IClusterScopedWatcher clusterScopedWatcher in clusterScopedWatchers)
+        foreach (IClusterScopedWatcherRegistry clusterScopedWatcherRegistry in clusterScopedWatcherRegistries)
         {
-            clusterScopedWatcher.StartWatcher(watcherKey, ctx);    
+            clusterScopedWatcherRegistry.StartWatcher(watcherKey, ctx);    
         }
     }
 }

@@ -9,4 +9,6 @@ public interface IKubernetesWatcherRegistry
     Task StopWatcher(WatcherKey key, CancellationToken ctx = default);
 
     Task RecreateWatcher(WatcherKey key, CancellationToken ctx = default);
+    
+    Type WatchedKubernetesObjectType { get; }
 }

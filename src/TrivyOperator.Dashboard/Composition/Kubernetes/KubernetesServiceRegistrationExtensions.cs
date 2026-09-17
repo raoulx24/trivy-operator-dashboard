@@ -8,8 +8,14 @@ using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Event
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters.Abstractions;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Contexts;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
@@ -202,9 +208,27 @@ public static class KubernetesServiceRegistrationExtensions
     {
         // event pipeline starter
         services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<V1Namespace>>();
+        
+        // kubernetes resource watcher
+        services.AddSingleton<
+            IKubernetesResourceWatch<V1NamespaceList, V1Namespace>,
+            ClusterScopedResourceWatch<V1NamespaceList, V1Namespace>>();
 
-        // watcher
-        services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<V1NamespaceList, V1Namespace>>();
+        // kubernetes event publisher
+        services.AddSingleton<IKubernetesEventPublisher<V1Namespace>,KubernetesEventPublisher<V1Namespace>>();
+
+        // kubernetes watch session factory
+        services.AddSingleton<
+            IKubernetesWatchSessionFactory<V1NamespaceList, V1Namespace>,
+            KubernetesWatchSessionFactory<V1NamespaceList, V1Namespace>>();
+
+        // kubernetes watcher registry
+        services.AddSingleton<
+            IClusterScopedWatcherRegistry,
+            ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace>>();
+
+        // // watcher
+        // services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<V1NamespaceList, V1Namespace>>();
 
         // background queue
         services.AddSingleton<IKubernetesBackgroundQueue<V1Namespace>, KubernetesBackgroundQueue<V1Namespace>>();

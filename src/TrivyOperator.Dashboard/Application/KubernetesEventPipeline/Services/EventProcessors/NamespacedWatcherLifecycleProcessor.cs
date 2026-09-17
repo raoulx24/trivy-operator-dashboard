@@ -1,7 +1,7 @@
 ﻿using k8s.Models;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
@@ -9,7 +9,7 @@ using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 namespace TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors;
 
 public class NamespacedWatcherLifecycleProcessor(
-    IEnumerable<INamespacedWatcher> namespacedWatchers,
+    IEnumerable<INamespacedWatcherRegistry> namespacedWatcherRegistries,
     IExpiringResourceProvider<KubernetesNamespace, Uid> resourceProvider,
     ILogger<NamespacedWatcherLifecycleProcessor> logger
     ) : IKubernetesEventProcessor<V1Namespace>
@@ -58,7 +58,7 @@ public class NamespacedWatcherLifecycleProcessor(
             return;
         }
 
-        foreach (INamespacedWatcher namespacedWatcher in namespacedWatchers)
+        foreach (INamespacedWatcherRegistry namespacedWatcher in namespacedWatcherRegistries)
         {
             namespacedWatcher.StartWatcher(watcherEvent.Key, ctx);
         }
@@ -77,7 +77,7 @@ public class NamespacedWatcherLifecycleProcessor(
             return;
         }
 
-        IEnumerable<Task> tasks = namespacedWatchers.Select(s => s.StopWatcher(watcherEvent.Key, ctx));
+        IEnumerable<Task> tasks = namespacedWatcherRegistries.Select(s => s.StopWatcher(watcherEvent.Key, ctx));
         await Task.WhenAll(tasks);
     }
 
@@ -87,9 +87,12 @@ public class NamespacedWatcherLifecycleProcessor(
         
         IReadOnlyList<KubernetesNamespace> kubernetesNamespaces = await resourceProvider.GetResources(ctx);
 
-        NamespaceName[] namespaceNames = [.. kubernetesNamespaces.Select(x => x.NamespaceName),];
+        IReadOnlyCollection<WatcherKey> keys = 
+            [.. kubernetesNamespaces.Select(x => new WatcherKey(watcherEvent.Key.ContextName, x.NamespaceName)),];
         
-        IEnumerable<Task> tasks = namespacedWatchers.Select(s => s.ReconcileNamespaces(watcherEvent.Key.ContextName, namespaceNames, ctx));
+        IEnumerable<Task> tasks =
+            namespacedWatcherRegistries.Select(s => s.Reconcile(keys, ctx));
+        
         await Task.WhenAll(tasks);
     }
 }

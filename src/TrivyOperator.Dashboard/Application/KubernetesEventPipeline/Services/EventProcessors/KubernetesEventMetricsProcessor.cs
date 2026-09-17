@@ -1,0 +1,66 @@
+﻿using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
+
+namespace TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors;
+
+public class KubernetesEventMetricsProcessor<TKubernetesObject> (
+    IMetricsClient metricsClient,
+    ILogger<KubernetesEventMetricsProcessor<TKubernetesObject>> logger
+) : IKubernetesEventProcessor<TKubernetesObject>
+    where TKubernetesObject : CustomResource, new()
+{
+    public Task ProcessKubernetesEvent(
+        WatcherEvent<TKubernetesObject> watcherEvent,
+        CancellationToken ctx
+    )
+    {
+        switch (watcherEvent.WatcherEventType)
+        {
+            case WatcherEventType.InitialAdded:
+            case WatcherEventType.Added:
+            case WatcherEventType.Deleted:
+            case WatcherEventType.Modified:
+            case WatcherEventType.Bookmark:
+            case WatcherEventType.Error:
+            case WatcherEventType.Flushed:
+            case WatcherEventType.Initialized:
+            case WatcherEventType.Unknown:
+                ProcessEvent(watcherEvent, ctx);
+                break;
+            case WatcherEventType.WatcherConnected:
+                break;
+            default:
+                logger.LogWarning(
+                    "Unknown event type {eventType} for {kubernetesObjectType}.",
+                    watcherEvent.WatcherEventType,
+                    typeof(TKubernetesObject).Name
+                );
+                break;
+        }
+        
+        return Task.CompletedTask;
+    }
+    
+    private void ProcessEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    {
+        metricsClient.WatcherProcessedMessagesCounter.Add(
+            1,
+            new KeyValuePair<string, object?>("resource_kind", typeof(TKubernetesObject).Name),
+            new KeyValuePair<string, object?>(
+                "resource_level",
+                watcherEvent.Key.NamespaceName.IsClusterScoped ? "cluster_scoped" : "namespaced"
+            ),
+            new KeyValuePair<string, object?>(
+                "context_name",
+                watcherEvent.Key.ContextName.IsUnset ? null : watcherEvent.Key.ContextName.Value
+            ),
+            new KeyValuePair<string, object?>(
+                "namespace_name",
+                watcherEvent.Key.NamespaceName.IsClusterScoped ? null : watcherEvent.Key.NamespaceName.Value
+            ),
+            new KeyValuePair<string, object?>("watch_event_type", watcherEvent.WatcherEventType.ToString())
+        );
+    }
+}

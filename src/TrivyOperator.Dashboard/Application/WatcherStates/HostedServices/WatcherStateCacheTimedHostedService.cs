@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Application.WatcherStates.Models;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 
@@ -9,8 +9,8 @@ namespace TrivyOperator.Dashboard.Application.WatcherStates.HostedServices;
 
 public sealed class WatcherStateCacheTimedHostedService(
     IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
-    IEnumerable<IClusterScopedWatcher> clusterScopedWatchers,
-    IEnumerable<INamespacedWatcher> namespacedWatchers,
+    IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatchers,
+    IEnumerable<INamespacedWatcherRegistry> namespacedWatchers,
     IOptions<WatchersOptions> options,
     ILogger<WatcherStateCacheTimedHostedService> logger
 ) : IHostedService, IDisposable
@@ -91,14 +91,14 @@ public sealed class WatcherStateCacheTimedHostedService(
             if (expiredWatcherStates.Length == 0)
                 return;
 
-            Dictionary<Type, IKubernetesWatcher> watchers = [];
+            Dictionary<Type, IKubernetesWatcherRegistry> watchers = [];
             
-            foreach (INamespacedWatcher watcher in namespacedWatchers)
+            foreach (INamespacedWatcherRegistry watcher in namespacedWatchers)
             {
                 watchers.TryAdd(watcher.WatchedKubernetesObjectType, watcher);
             }
 
-            foreach (IClusterScopedWatcher watcher in clusterScopedWatchers)
+            foreach (IClusterScopedWatcherRegistry watcher in clusterScopedWatchers)
             {
                 watchers.TryAdd(watcher.WatchedKubernetesObjectType, watcher);
             }
@@ -107,7 +107,7 @@ public sealed class WatcherStateCacheTimedHostedService(
             {
                 watchers.TryGetValue(
                     expiredWatcherState.WatchedKubernetesObjectType,
-                    out IKubernetesWatcher? watcher);
+                    out IKubernetesWatcherRegistry? watcher);
                 
                 if (watcher is not null)
                 {

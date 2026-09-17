@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watchers.Abstractions;
+using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Common.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services.Abstractions;
@@ -16,8 +16,8 @@ namespace TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;
 public class WatcherStatusService(
     IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
     IOptions<WatchersOptions> options,
-    IEnumerable<IClusterScopedWatcher> clusterScopedWatchers,
-    IEnumerable<INamespacedWatcher> namespacedWatchers
+    IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatchers,
+    IEnumerable<INamespacedWatcherRegistry> namespacedWatchers
 ) : IWatcherStatusService
 {
     public Task<IEnumerable<WatcherStatusDto>> GetWatcherStatusDtos()
@@ -57,13 +57,13 @@ public class WatcherStatusService(
             ? typeof(V1Namespace)
             : TrivyReportCrTypeFactory.Get(kubernetesObjectType);
 
-        IKubernetesWatcher? watcher =
+        IKubernetesWatcherRegistry? watcherRegistry =
             clusterScopedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType)
-            ?? (IKubernetesWatcher?)namespacedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType);
+            ?? (IKubernetesWatcherRegistry?)namespacedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType);
 
         WatcherKey watcherKey = new(new ContextName(contextName), new NamespaceName(namespaceName));
         
-        if (watcher is null)
+        if (watcherRegistry is null)
         {
             return new OperationResult
             {
@@ -72,7 +72,7 @@ public class WatcherStatusService(
             };
         }
         
-        await watcher.RecreateWatcher(watcherKey, ctx);
+        await watcherRegistry.RecreateWatcher(watcherKey, ctx);
 
         return new OperationResult
         {
