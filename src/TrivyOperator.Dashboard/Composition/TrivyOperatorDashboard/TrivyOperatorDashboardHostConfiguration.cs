@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Composition.Common;
+﻿using TrivyOperator.Dashboard.Composition.Configuration;
 
 namespace TrivyOperator.Dashboard.Composition.TrivyOperatorDashboard;
 
@@ -20,20 +20,19 @@ public static class TrivyOperatorDashboardHostConfiguration
                 return;
             }
 
-            string? configMainPort = configuration["MainAppPort"];
-            int mainPort = PortUtils.GetValidatedPort(configMainPort) ?? 8900;
+            int mainPort = configuration.GetPort("MainAppPort", 8900);
+            
 
             options.ListenAnyIP(mainPort);
 
-            string? configMetricsPort =
-                configuration["OpenTelemetry:PrometheusExporterPort"];
+            string? configMetricsPort = configuration["OpenTelemetry:PrometheusExporterPort"];
 
             if (configMetricsPort is null)
             {
                 return;
             }
 
-            int metricsPort = PortUtils.GetValidatedPort(configMetricsPort) ?? 8901;
+            int metricsPort = configuration.GetPort("OpenTelemetry:PrometheusExporterPort", 8901);
 
             if (mainPort != metricsPort)
             {

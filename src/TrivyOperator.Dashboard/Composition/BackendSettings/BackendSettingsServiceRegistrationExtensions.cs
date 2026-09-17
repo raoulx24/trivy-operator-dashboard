@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Optio
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;
-using TrivyOperator.Dashboard.Composition.Common;
+using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 

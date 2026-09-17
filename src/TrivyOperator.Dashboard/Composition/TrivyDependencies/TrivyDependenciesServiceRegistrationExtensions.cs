@@ -1,7 +1,7 @@
 ﻿using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services;
 using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services.Abstractions;
-using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Composition.Configuration;
+using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;

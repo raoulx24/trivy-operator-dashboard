@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 
@@ -44,7 +43,7 @@ public class DistributedCacheExecutor(
                     );
                 }
 
-                delay = Backoff.DecorrelatedJitter(delay, options.Value.InitialDelay, options.Value.MaxDelay);
+                delay = BackoffDecorrelatedJitter(delay, options.Value.InitialDelay, options.Value.MaxDelay);
                 attempt++;
                 await Task.Delay(delay, ct);
             }
@@ -63,5 +62,19 @@ public class DistributedCacheExecutor(
             await action(db);
             return null!;
         }, ct);
+    }
+    
+    private static TimeSpan BackoffDecorrelatedJitter(
+        TimeSpan previousDelay,
+        TimeSpan baseDelay,
+        TimeSpan maxDelay)
+    {
+        double minMs = baseDelay.TotalMilliseconds;
+        double maxMs = previousDelay.TotalMilliseconds * 3;
+
+        double nextMs = Random.Shared.NextDouble() * (maxMs - minMs) + minMs;
+        double capped = Math.Min(nextMs, maxDelay.TotalMilliseconds);
+
+        return TimeSpan.FromMilliseconds(capped);
     }
 }

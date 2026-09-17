@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Composition.Common;
+﻿namespace TrivyOperator.Dashboard.Composition.Shared;
 
 internal static class CompositionLogger
 {

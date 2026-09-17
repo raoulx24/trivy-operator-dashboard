@@ -81,4 +81,13 @@ public static class TrivyDashboardConfigurationReader
     
     internal static bool LoadUseGithub(this IConfiguration config)
         => config.GetValue<bool>("GitHub:ServerCheckForUpdates");
+    
+    internal static int GetPort(this IConfiguration configuration, string key, int defaultPort)
+    {
+        string? value = configuration[key];
+
+        return int.TryParse(value, out int port) && port is >= 1024 and <= 65535
+            ? port
+            : defaultPort;
+    }
 }

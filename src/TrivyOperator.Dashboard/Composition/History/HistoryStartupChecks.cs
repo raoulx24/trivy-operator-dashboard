@@ -1,5 +1,5 @@
 ﻿using StackExchange.Redis;
-using TrivyOperator.Dashboard.Composition.Common;
+using TrivyOperator.Dashboard.Composition.Shared;
 
 namespace TrivyOperator.Dashboard.Composition.History;
 

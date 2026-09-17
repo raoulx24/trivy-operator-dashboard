@@ -6,8 +6,8 @@ using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services.Abstrac
 using TrivyOperator.Dashboard.Application.WatcherStates.HostedServices;
 using TrivyOperator.Dashboard.Application.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.WatcherStates.Services;
-using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Composition.Configuration;
+using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;

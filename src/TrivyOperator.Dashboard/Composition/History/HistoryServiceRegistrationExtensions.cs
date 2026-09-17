@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Se
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.History.Services;
 using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
-using TrivyOperator.Dashboard.Composition.Common;
+using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;

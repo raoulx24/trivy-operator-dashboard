@@ -5,7 +5,6 @@ using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.Watcher
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers.Abstractions;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches.Abstractions;
-using TrivyOperator.Dashboard.Application.Utils;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions;
@@ -77,8 +76,6 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
     private async Task Run(CancellationToken ctx = default)
     {
         string? resourceVersion = null;
-
-        RetryDurationCalculator retryDurationCalculator = new(MaxBackoffSeconds);
 
         int retryCount = -1;
 
@@ -171,7 +168,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                 continue;
             }
 
-            TimeSpan retryDelay = retryDurationCalculator.GetNextRetryDuration(++retryCount);
+            TimeSpan retryDelay = GetNextRetryDuration(++retryCount, MaxBackoffSeconds);
 
             logger.LogDebug(
                 "Watcher for {kubernetesObjectType} and key {key} waiting for retry {retryCount} ({retryDelay})",
@@ -220,6 +217,9 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
 
         return Random.Next(configuredTimeout, (int)(configuredTimeout * 1.1));
     }
+    
+    private static TimeSpan GetNextRetryDuration(int retryAttempt, double maxBackoffSeconds) =>
+        TimeSpan.FromSeconds(maxBackoffSeconds * Math.Log(retryAttempt + 1));
 
     public void Dispose()
     {

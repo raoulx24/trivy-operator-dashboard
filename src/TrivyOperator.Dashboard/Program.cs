@@ -1,10 +1,10 @@
 ﻿using Serilog;
 using TrivyOperator.Dashboard.Composition.Api;
-using TrivyOperator.Dashboard.Composition.Common;
 using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Composition.Health;
 using TrivyOperator.Dashboard.Composition.History;
 using TrivyOperator.Dashboard.Composition.Observability;
+using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Composition.TrivyOperatorDashboard;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
