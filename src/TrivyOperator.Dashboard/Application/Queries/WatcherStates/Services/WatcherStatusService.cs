@@ -17,7 +17,7 @@ public class WatcherStatusService(
     IOptions<WatchersOptions> options,
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatchers,
     IEnumerable<INamespacedWatcherRegistry> namespacedWatchers,
-    ITrivyReportCrTypeFactory trivyReportCrTypeFactory
+    IKnownKubernetesTypeFactory knownKubernetesTypeFactory
 ) : IWatcherStatusService
 {
     public Task<IEnumerable<WatcherStatusDto>> GetWatcherStatusDtos()
@@ -53,9 +53,7 @@ public class WatcherStatusService(
             };
         }
         
-        Type watchedKubernetesType = kubernetesObjectType == "V1Namespace"
-            ? typeof(V1Namespace)
-            : trivyReportCrTypeFactory.Get(kubernetesObjectType);
+        Type watchedKubernetesType = knownKubernetesTypeFactory.Get(kubernetesObjectType);
 
         IKubernetesWatcherRegistry? watcherRegistry =
             clusterScopedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType)

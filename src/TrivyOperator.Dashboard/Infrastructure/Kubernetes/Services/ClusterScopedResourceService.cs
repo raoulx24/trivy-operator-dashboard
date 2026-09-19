@@ -1,7 +1,8 @@
 ﻿using k8s;
 using k8s.Models;
-using TrivyOperator.Dashboard.Application.Kubernetes.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 
@@ -9,8 +10,9 @@ namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services;
 
 public abstract class ClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>(
     IKubernetesClientFactory kubernetesClientFactory,
+    IContextProvider contextProvider,
     IKubernetesContextResolver contextResolver
-) : KubernetesResourceService<TKubernetesObject>(kubernetesClientFactory, contextResolver),
+) : KubernetesResourceService<TKubernetesObject>(kubernetesClientFactory, contextProvider, contextResolver),
     IClusterScopedResourceService<TKubernetesObject, TKubernetesObjectList>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>

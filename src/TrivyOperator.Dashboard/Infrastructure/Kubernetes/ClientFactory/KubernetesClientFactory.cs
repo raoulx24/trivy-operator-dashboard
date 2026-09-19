@@ -1,14 +1,15 @@
 ﻿using k8s;
 using k8s.KubeConfigModels;
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.Kubernetes.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory;
 
-public class KubernetesClientFactory : IKubernetesClientFactory
+public class KubernetesClientFactory : IKubernetesClientFactory, IContextProvider
 {
     private readonly Dictionary<ContextName, k8s.Kubernetes> clients;
     private readonly ILogger<KubernetesClientFactory> logger;

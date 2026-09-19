@@ -1,13 +1,15 @@
 ﻿using k8s;
 using k8s.Models;
-using TrivyOperator.Dashboard.Application.Kubernetes.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services;
 
 public abstract class KubernetesResourceService<TKubernetesObject>(
     IKubernetesClientFactory kubernetesClientFactory,
+    IContextProvider contextProvider,
     IKubernetesContextResolver contextResolver
 )
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, IMetadata<V1ObjectMeta>
@@ -21,7 +23,7 @@ public abstract class KubernetesResourceService<TKubernetesObject>(
     {
         if (!contextResolver.TryGetCurrentContext(out ContextName currentContext))
         {
-            currentContext = kubernetesClientFactory.GetDefaultContext();
+            currentContext = contextProvider.GetDefaultContext();
         }
 
         return currentContext;

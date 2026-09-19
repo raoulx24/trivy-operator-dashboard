@@ -61,7 +61,7 @@
 
     <ItemGroup>
       <Folder Include="Application\FileRepository\" />
-      <Folder Include="Application\Kubernetes\ClientFactory\" />
+      <Folder Include="Application\Kubernetes\Contexts\" />
       <Folder Include="Application\Kubernetes\WatcherRegistries\" />
       <Folder Include="Infrastructure\BackgroundQueues\Abstractions\" />
     </ItemGroup>

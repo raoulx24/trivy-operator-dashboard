@@ -11,3 +11,9 @@ public class WatcherStateInfo
     public DateTime LastEventMoment { get; init; } = DateTime.UtcNow;
     public int? EventsGauge { get; init; }
 }
+
+public enum WatcherStateStatus
+{
+    Green,
+    Red,
+}

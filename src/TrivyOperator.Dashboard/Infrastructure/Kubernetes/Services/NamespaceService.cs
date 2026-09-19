@@ -1,14 +1,18 @@
 ﻿using k8s;
 using k8s.Models;
 using System.Runtime.CompilerServices;
-using TrivyOperator.Dashboard.Application.Kubernetes.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services;
 
-public class NamespaceService(IKubernetesClientFactory kubernetesClientFactory, IKubernetesContextResolver contextResolver)
-    : ClusterScopedResourceService<V1Namespace, V1NamespaceList>(kubernetesClientFactory, contextResolver)
+public class NamespaceService(
+    IKubernetesClientFactory kubernetesClientFactory,
+    IContextProvider contextProvider,
+    IKubernetesContextResolver contextResolver)
+    : ClusterScopedResourceService<V1Namespace, V1NamespaceList>(kubernetesClientFactory, contextProvider, contextResolver)
 {
     public override Task<V1Namespace> GetResource(string resourceName, CancellationToken cancellationToken = default) =>
         GetKubernetesClient()

@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
+﻿using k8s.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ExposedSecretReports;
@@ -9,10 +10,14 @@ using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.M
 
 namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Factories;
 
-public class TrivyReportCrTypeFactory : ITrivyReportCrTypeFactory
+public class KnownKubernetesTypeFactory : IKnownKubernetesTypeFactory
 {
     private static readonly Dictionary<string, Type> Types = new(StringComparer.Ordinal)
     {
+        // kubernetes types
+        [nameof(V1Namespace)] = typeof(V1Namespace),
+        
+        // trivy types
         [nameof(ClusterComplianceReportCr)] = typeof(ClusterComplianceReportCr),
         [nameof(ClusterConfigAuditReportCr)] = typeof(ClusterConfigAuditReportCr),
         [nameof(ConfigAuditReportCr)] = typeof(ConfigAuditReportCr),

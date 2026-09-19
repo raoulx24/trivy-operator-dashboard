@@ -1,10 +1,10 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.ClientFactory.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Contexts;
 
-public class KubernetesContextService(IKubernetesClientFactory kubernetesClientFactory) : IKubernetesContextService
+public class KubernetesContextService(IContextProvider contextProvider) : IKubernetesContextService
 {
     public Task<KubernetesContextsDto> GetKubernetesContextsDto(CancellationToken ctx = default)
     {
@@ -12,8 +12,8 @@ public class KubernetesContextService(IKubernetesClientFactory kubernetesClientF
         
         KubernetesContextsDto contextDto = new()
         {
-            Contexts = [.. kubernetesClientFactory.GetContexts().Select(x => x.Value),],
-            Current = kubernetesClientFactory.GetDefaultContext().Value,
+            Contexts = [.. contextProvider.GetContexts().Select(x => x.Value),],
+            Current = contextProvider.GetDefaultContext().Value,
         };
 
         return Task.FromResult(contextDto);

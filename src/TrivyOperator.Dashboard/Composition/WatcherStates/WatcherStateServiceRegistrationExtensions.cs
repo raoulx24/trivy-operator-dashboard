@@ -58,7 +58,7 @@ public static class WatcherStateServiceRegistrationExtensions
             ICache<ResourceLocation, WatcherStateInfo>, 
             Cache<ResourceLocation, WatcherStateInfo>>();
 
-        services.AddScoped<ITrivyReportCrTypeFactory, ITrivyReportCrTypeFactory>();
+        services.AddScoped<IKnownKubernetesTypeFactory, IKnownKubernetesTypeFactory>();
         
         services.AddScoped<IWatcherStatusService, WatcherStatusService>();
 
