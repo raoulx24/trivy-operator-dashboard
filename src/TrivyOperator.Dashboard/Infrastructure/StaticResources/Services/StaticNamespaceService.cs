@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.StaticResources.Services;
 
@@ -114,7 +113,7 @@ public class StaticNamespaceService(
         Metadata = new V1ObjectMeta
         {
             Name = namespaceName,
-            Uid = GuidUtils.GetDeterministicGuid(namespaceName).ToString(),
+            Uid = Guid.NewGuid().ToString(),
         },
     };
     
@@ -132,5 +131,5 @@ public class StaticNamespaceService(
         };
     
     private static readonly string ResourceVersion = "1";
-    private static readonly TimeSpan BookmarkInterval = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan BookmarkInterval = TimeSpan.FromSeconds(60);
 }

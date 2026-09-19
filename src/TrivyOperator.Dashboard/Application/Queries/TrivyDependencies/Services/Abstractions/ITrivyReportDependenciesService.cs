@@ -13,7 +13,6 @@ public interface ITrivyReportDependenciesService
 
     Task<bool> TrivyDependenciesExist(
         string imageDigest,
-        string? namespaceName = null,
         CancellationToken ct = default
     );
 }

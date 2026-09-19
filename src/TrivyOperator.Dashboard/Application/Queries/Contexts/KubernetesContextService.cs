@@ -8,6 +8,8 @@ public class KubernetesContextService(IKubernetesClientFactory kubernetesClientF
 {
     public Task<KubernetesContextsDto> GetKubernetesContextsDto(CancellationToken ctx = default)
     {
+        ctx.ThrowIfCancellationRequested();
+        
         KubernetesContextsDto contextDto = new()
         {
             Contexts = [.. kubernetesClientFactory.GetContexts().Select(x => x.Value),],

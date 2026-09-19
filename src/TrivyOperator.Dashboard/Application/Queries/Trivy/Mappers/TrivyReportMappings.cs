@@ -1,9 +1,9 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared.Identity;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
-using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 
@@ -12,7 +12,7 @@ public static class TrivyReportMappings
     public static VulnerabilityReportDetailDto ToDto(
         this Vulnerability vulnerability)
     {
-        Uid key = new Uid(GuidUtils.GetDeterministicGuid(
+        Uid key = new(DeterministicId.Create(
             vulnerability.Id.Value, 
             vulnerability.ScannedPackage.Name.Value, 
             vulnerability.ScannedPackage.InstalledVersion.Value, 
@@ -37,7 +37,7 @@ public static class TrivyReportMappings
     
     public static SbomReportDetailDto ToDto(this Component component, SeverityCounters? severityCounters)
     {
-        string id = GuidUtils.GetDeterministicGuid(
+        string id = DeterministicId.Create(
                 component.Purl?.Value ?? component.Name.Value,
                 component.Version.Value
             )
@@ -45,21 +45,21 @@ public static class TrivyReportMappings
 
         return new SbomReportDetailDto(
             Id: id,
-            MatchKey: GuidUtils.GetDeterministicGuid(component.Purl?.Value ?? component.Name.Value).ToString(),
+            MatchKey: DeterministicId.Create(component.Purl?.Value ?? component.Name.Value).ToString(),
             Name: component.Name.Value,
             Purl: component.Purl?.Value ?? string.Empty,
             Version: component.Version.Value,
             Properties: component.Properties,
             Licenses:
             [
-                .. component.Licenses.Select(static x => new SbomReportLicenseDto(Id: x.Id, Name: x.Name, Url: x.Url))
+                .. component.Licenses.Select(static x => new SbomReportLicenseDto(Id: x.Id, Name: x.Name, Url: x.Url)),
             ],
             CriticalCount: severityCounters?.CriticalCount ?? -1,
             HighCount: severityCounters?.HighCount ?? -1,
             MediumCount: severityCounters?.MediumCount ?? -1,
             LowCount: severityCounters?.LowCount ?? -1,
             UnknownCount: severityCounters?.CriticalCount ?? -1,
-            BomRef: ToDtoBomRef(component.Id),
+            BomRef: component.Id.ToDtoBomRef(),
             DependsOn:
             [
                 .. component.DependsOnIds.Select(ToDtoBomRef),
@@ -71,7 +71,7 @@ public static class TrivyReportMappings
     {
         return Guid.TryParse(value.Value, out _) 
             ? value.Value
-            : GuidUtils.GetDeterministicGuid(value.Value).ToString();
+            : DeterministicId.Create(value.Value).ToString();
     }
     
     public static SecurityAssessmentReportDetailDto ToDto(

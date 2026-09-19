@@ -14,6 +14,8 @@ using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Watch
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions;
 using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Severities.Services;
+using TrivyOperator.Dashboard.Application.Queries.Severities.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterComplianceReports.Abstractions;
@@ -88,6 +90,8 @@ public static class TrivyReportServiceRegistrationExtensions
         
         if (TrivyDashboardConfigurationReader.LoadUseFileRepository(configuration))
             services.AddSingleton<IFolderNameFactory, FolderNameFactory>();
+
+        services.AddScoped<ISeverityService, SeverityService>();
 
         services.AddTrivyReportServices<ClusterComplianceReportCr, ClusterComplianceReport, Uid>(configuration);
         

@@ -176,6 +176,9 @@ public static class KubernetesServiceRegistrationExtensions
         services.AddSingleton<
             IExpiringResourceProvider<KubernetesNamespace, Uid>,
             KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>();
+        
+        // query service
+        services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceService>();
     }
 
     private static void AddStaticNamespaceService(this IServiceCollection services)

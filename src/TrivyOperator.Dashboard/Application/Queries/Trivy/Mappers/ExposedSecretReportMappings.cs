@@ -1,9 +1,9 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared.Identity;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ExposedSecrets;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 
@@ -13,7 +13,7 @@ public static class ExposedSecretReportMappings
         this ExposedSecretReport report)
     {
         return new ExposedSecretReportImageDto(
-            Uid: GuidUtils.GetDeterministicGuid(report.ImageDigest.Value).ToString(),
+            Uid: DeterministicId.Create(report.ImageDigest.Value).ToString(),
 
             NamespaceNames:
             [
@@ -54,18 +54,18 @@ public static class ExposedSecretReportMappings
         return
         [
             .. report.Occurrences.SelectMany(
-                    occurrence => report.Secrets,
+                    _ => report.Secrets,
                     (occurrence, secret) => new
                     {
                         occurrence,
-                        secret
+                        secret,
                     }
                 )
                 .Where(x =>
                     excludedSeverityIds is null ||
                     !excludedSeverityIds.Contains(x.secret.Rule.Severity.Rank)
                 )
-                .Select(x => x.secret.ToDenormalizedDto(report, x.occurrence))
+                .Select(x => x.secret.ToDenormalizedDto(report, x.occurrence)),
         ];
     }
 
@@ -123,7 +123,7 @@ public static class ExposedSecretReportMappings
     public static ExposedSecretReportDetailDto ToDto(
         this Secret secret)
     {
-        Uid key = new(GuidUtils.GetDeterministicGuid(
+        Uid key = new(DeterministicId.Create(
             secret.Rule.Severity.Rank,
             secret.Rule.Category.Value,
             secret.Rule.RuleId.Value,

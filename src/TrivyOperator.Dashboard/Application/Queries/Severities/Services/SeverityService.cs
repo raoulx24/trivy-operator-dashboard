@@ -9,6 +9,8 @@ public class SeverityService : ISeverityService
 {
     public Task<IReadOnlyList<SeverityDto>> GetAll(CancellationToken ctx = default)
     {
+        ctx.ThrowIfCancellationRequested();
+        
         IReadOnlyList<SeverityDto> result = [.. Severity.RankedSeverities.Select(static x => x.ToDto()),];
 
         return Task.FromResult(result);

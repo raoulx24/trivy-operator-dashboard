@@ -52,29 +52,17 @@ public static class WatcherStatusExtensions
 
     private static string GetMitigationMessage(WatcherStateInfo watcherStateInfo)
     {
-        if (watcherStateInfo.LastException == null)
+        return watcherStateInfo.LastException switch
         {
-            return "All ok";
-        }
-
-        if (watcherStateInfo.LastException is HttpOperationException httpOpException)
-        {
-            if (httpOpException.Response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                return "Unauthorized: The kube config file does not provide a proper token. Check file";
-            }
-
-            if (httpOpException.Response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                return "Forbidden: The k8s user is not allowed to perform the watch operation. Check RBAC";
-            }
-
-            if (httpOpException.Response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return "Not Found: The specified resource type does not exist in cluster (is Trivy installed?)";
-            }
-        }
-
-        return "Unknown mitigation";
+            null => "All ok",
+            HttpOperationException httpOpException when httpOpException.Response.StatusCode ==
+                                                        HttpStatusCode.Unauthorized =>
+                "Unauthorized: The kube config file does not provide a proper token. Check file",
+            HttpOperationException httpOpException when httpOpException.Response.StatusCode == HttpStatusCode.Forbidden
+                => "Forbidden: The k8s user is not allowed to perform the watch operation. Check RBAC",
+            HttpOperationException httpOpException when httpOpException.Response.StatusCode == HttpStatusCode.NotFound
+                => "Not Found: The specified resource type does not exist in cluster (is Trivy installed?)",
+            _ => "Unknown mitigation",
+        };
     }
 }

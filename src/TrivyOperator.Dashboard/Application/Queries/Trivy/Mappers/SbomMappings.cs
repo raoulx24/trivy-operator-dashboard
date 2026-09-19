@@ -1,7 +1,7 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared.Identity;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 
@@ -35,12 +35,12 @@ public static class SbomReportMappings
     public static SbomReportImageDto ToImageDto(this SbomReport report, IReadOnlyDictionary<Purl, SeverityCounters> severities)
     {
         return new SbomReportImageDto(
-            Uid: GuidUtils.GetDeterministicGuid(report.ImageDigest.Value).ToString(),
+            Uid: DeterministicId.Create(report.ImageDigest.Value).ToString(),
             NamespaceNames:
             [
                 .. report.Occurrences.Select(static x => x.Metadata.NamespaceName.Value)
                     .Distinct()
-                    .OrderBy(static x => x)
+                    .OrderBy(static x => x),
             ],
             Digest: report.ImageDigest.Value,
             ImageInfos:
@@ -60,7 +60,7 @@ public static class SbomReportMappings
                         Kind: x.Metadata.GetResourceKind().Value,
                         ContainerName: x.Container.Value ?? string.Empty
                     )
-                )
+                ),
             ],
             ComponentsCount: report.Summary.ComponentsCount,
             DependenciesCount: report.Summary.DependenciesCount,

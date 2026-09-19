@@ -2,7 +2,7 @@
 
 public class OperationResult
 {
-    public bool Success { get; init; } = false;
+    public bool Success { get; init; }
     public string Message { get; init; } = string.Empty;
     public IDictionary<string, object>? Metadata { get; init; }
 }

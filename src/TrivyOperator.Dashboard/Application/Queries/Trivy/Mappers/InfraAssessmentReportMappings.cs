@@ -18,7 +18,7 @@ public static class InfraAssessmentReportMappings
             LowCount: report.SeverityCounters.LowCount,
             Details:
             [
-                .. report.Checks.Select(static x => x.ToDto())
+                .. report.Checks.Select(static x => x.ToDto()),
             ]
         );
     }

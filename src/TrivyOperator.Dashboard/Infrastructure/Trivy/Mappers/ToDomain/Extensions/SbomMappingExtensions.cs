@@ -4,7 +4,6 @@ using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Sboms;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.SbomReports;
 
@@ -236,7 +235,7 @@ public static class SbomMappingExtensions
             map[refId] =
                 Guid.TryParse(refId, out _)
                     ? new ComponentId(refId)
-                    : new ComponentId(GuidUtils.GetDeterministicGuid(refId).ToString());
+                    : new ComponentId(Guid.NewGuid().ToString());
         }
 
         return map;

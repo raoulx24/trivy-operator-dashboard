@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using System.Xml.Serialization;
-using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 

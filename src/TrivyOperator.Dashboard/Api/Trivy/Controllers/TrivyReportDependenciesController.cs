@@ -25,10 +25,10 @@ public class TrivyReportDependenciesController(ITrivyReportDependenciesService t
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CheckIfTrivyDependenciesExist([FromQuery] string digest, [FromQuery] string namespaceName, CancellationToken ct)
+    public async Task<IActionResult> CheckIfTrivyDependenciesExist([FromQuery] string digest, CancellationToken ct)
     {
         bool result =
-            await trivyReportDependenciesServiceService.TrivyDependenciesExist(digest, namespaceName, ct);
+            await trivyReportDependenciesServiceService.TrivyDependenciesExist(digest);
 
         return result ? Ok() : NotFound();
     }

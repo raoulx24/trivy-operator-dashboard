@@ -93,7 +93,7 @@ public static class TrivyReportDependenciesMappings
                     _ => null,
                 })
             .Where(x => x is not null)
-            .Select(x => x!)
+            .Select(x => x!),
         ];
     }
 
@@ -145,8 +145,8 @@ public static class TrivyReportDependenciesMappings
                     ResourceName = name,
 
                     ConfigAudits = configAudit is null
-                        ? [CreateEmptyConfigAuditNode()]
-                        : [configAudit.ToConfigAuditNode()],
+                        ? [CreateEmptyConfigAuditNode(),]
+                        : [configAudit.ToConfigAuditNode(),],
                 };
             }),
         ];

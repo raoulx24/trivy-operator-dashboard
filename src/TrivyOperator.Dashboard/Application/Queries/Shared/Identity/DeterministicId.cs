@@ -1,11 +1,11 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
+namespace TrivyOperator.Dashboard.Application.Queries.Shared.Identity;
 
-public static class GuidUtils
+public static class DeterministicId
 {
-    public static Guid GetDeterministicGuid(params object[] inputs)
+    public static Guid Create(params object[] inputs)
     {
         IncrementalHash hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 
@@ -35,7 +35,7 @@ public static class GuidUtils
                     break;
 
                 default:
-                    AppendString(hasher, input?.ToString() ?? string.Empty);
+                    AppendString(hasher, input.ToString() ?? string.Empty);
                     break;
             }
         }
@@ -48,6 +48,6 @@ public static class GuidUtils
     {
         byte[] bytes = Encoding.UTF8.GetBytes(s);
         hasher.AppendData(bytes);
-        hasher.AppendData(new byte[] { 0x1F });
+        hasher.AppendData(new byte[] { 0x1F, });
     }
 }

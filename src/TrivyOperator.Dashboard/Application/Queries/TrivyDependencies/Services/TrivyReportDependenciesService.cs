@@ -80,10 +80,7 @@ public sealed class TrivyReportDependenciesService(
     }
 
 
-    public async Task<bool> TrivyDependenciesExist(
-        string imageDigest,
-        string? namespaceName = null,
-        CancellationToken ct = default)
+    public async Task<bool> TrivyDependenciesExist(string imageDigest, CancellationToken ct = default)
     {
         Digest digest = new(imageDigest);
 

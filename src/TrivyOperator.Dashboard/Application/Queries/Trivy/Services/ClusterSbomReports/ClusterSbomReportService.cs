@@ -31,7 +31,7 @@ public class ClusterSbomReportService(
             await resourceProvider.GetResourceSummaries(ctx);
 
         HashSet<Uid> vulnerabilityReportIds =
-            [.. await vulnerabilityResourceProvider.GetResourceIds(ctx)];
+            [.. await vulnerabilityResourceProvider.GetResourceIds(ctx),];
 
         List<ClusterSbomReportDto> result = [];
 

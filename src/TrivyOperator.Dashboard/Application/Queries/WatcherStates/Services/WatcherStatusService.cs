@@ -30,7 +30,7 @@ public class WatcherStatusService(
                 ),
         ];
 
-        return Task.FromResult((IEnumerable<WatcherStatusDto>)cachedValues);
+        return Task.FromResult<IEnumerable<WatcherStatusDto>>(cachedValues);
     }
 
     public async Task<OperationResult> RecreateWatcher(string kubernetesObjectType, string? contextName, string namespaceName, CancellationToken ctx = default)
