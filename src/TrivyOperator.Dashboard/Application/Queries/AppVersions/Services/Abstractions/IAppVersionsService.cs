@@ -4,7 +4,7 @@ namespace TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstr
 
 public interface IAppVersionsService
 {
-    Task<GitHubReleaseDto?> GetTrivyDashboardLatestRelease();
-    Task<IList<GitHubReleaseDto>> GetTrivyDashboardReleases();
+    Task<ReleaseDto?> GetTrivyDashboardLatestRelease();
+    Task<IList<ReleaseDto>> GetTrivyDashboardReleases();
     AppVersion GetCurrentVersion();
 }

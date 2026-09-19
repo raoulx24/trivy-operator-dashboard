@@ -12,8 +12,8 @@ namespace TrivyOperator.Dashboard.Api.AppVersions.Serializations;
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(ValidationProblemDetails))]
 
-[JsonSerializable(typeof(IEnumerable<GitHubReleaseDto>))]
-[JsonSerializable(typeof(GitHubReleaseDto))]
+[JsonSerializable(typeof(IEnumerable<ReleaseDto>))]
+[JsonSerializable(typeof(ReleaseDto))]
 [JsonSerializable(typeof(AppVersion))]
 
 public partial class AppVersionsApiJsonContext : JsonSerializerContext;

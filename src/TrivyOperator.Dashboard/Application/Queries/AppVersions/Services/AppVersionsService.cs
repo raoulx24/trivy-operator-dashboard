@@ -1,23 +1,23 @@
 ﻿using System.Reflection;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Models;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstractions;
+using TrivyOperator.Dashboard.Domain.Releases.Entities;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.GitHub.Models;
 
 namespace TrivyOperator.Dashboard.Application.Queries.AppVersions.Services;
 
-public class AppVersionsService(IConcurrentCache<long, GitHubRelease> cache) : IAppVersionsService
+public class AppVersionsService(IConcurrentCache<string, Release> cache) : IAppVersionsService
 {
-    public Task<GitHubReleaseDto?> GetTrivyDashboardLatestRelease()
+    public Task<ReleaseDto?> GetTrivyDashboardLatestRelease()
     {
-        GitHubRelease? release = cache.Select(x => x.Value).FirstOrDefault(x => x.IsLatest);
-        return Task.FromResult(release?.ToGitHubReleaseDto());
+        Release? release = cache.Select(x => x.Value).FirstOrDefault(x => x.IsLatest);
+        return Task.FromResult(release?.ToReleaseDto());
     }
 
-    public Task<IList<GitHubReleaseDto>> GetTrivyDashboardReleases()
+    public Task<IList<ReleaseDto>> GetTrivyDashboardReleases()
     {
-        List<GitHubReleaseDto> releases = [.. cache.Select(x => x.Value.ToGitHubReleaseDto()),];
-        return Task.FromResult<IList<GitHubReleaseDto>>(releases);
+        List<ReleaseDto> releases = [.. cache.Select(x => x.Value.ToReleaseDto()),];
+        return Task.FromResult<IList<ReleaseDto>>(releases);
     }
 
     public AppVersion GetCurrentVersion()

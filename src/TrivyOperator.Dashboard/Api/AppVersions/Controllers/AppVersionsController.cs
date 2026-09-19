@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Models;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstractions;
+using TrivyOperator.Dashboard.Domain.Releases.Entities;
 
 namespace TrivyOperator.Dashboard.Api.AppVersions.Controllers;
 
@@ -9,17 +10,17 @@ namespace TrivyOperator.Dashboard.Api.AppVersions.Controllers;
 public class AppVersionsController(IAppVersionsService appVersionsService)
 {
     [HttpGet(Name = "GetGitHubVersions")]
-    [ProducesResponseType<IEnumerable<GitHubReleaseDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<IEnumerable<ReleaseDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<GitHubReleaseDto>> GetAll() => await appVersionsService.GetTrivyDashboardReleases();
+    public async Task<IEnumerable<ReleaseDto>> GetAll() => await appVersionsService.GetTrivyDashboardReleases();
 
     [HttpGet("latest", Name = "GetGitHubLatestVersion")]
-    [ProducesResponseType<GitHubReleaseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ReleaseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<GitHubReleaseDto> GetLatest() =>
-        await appVersionsService.GetTrivyDashboardLatestRelease() ?? new GitHubReleaseDto();
+    public async Task<ReleaseDto> GetLatest() =>
+        await appVersionsService.GetTrivyDashboardLatestRelease() ?? new Release().ToReleaseDto();
 
     [HttpGet("current-version", Name = "GetCurrentVersion")]
     [ProducesResponseType<AppVersion>(StatusCodes.Status200OK)]

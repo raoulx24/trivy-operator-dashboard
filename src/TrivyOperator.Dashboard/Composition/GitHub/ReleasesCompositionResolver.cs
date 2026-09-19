@@ -2,7 +2,7 @@
 
 namespace TrivyOperator.Dashboard.Composition.GitHub;
 
-internal static class GitHubCompositionResolver
+internal static class ReleasesCompositionResolver
 {
     internal static GitHubCompositionMode Resolve(IConfiguration configuration)
     {
