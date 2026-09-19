@@ -10,7 +10,7 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 
 public class InMemoryImageReportCache<TResource>(
-    IResourceConcurrentDictionaryCache<Digest, CacheEntry<TResource, Digest>> cache,
+    IResourceDictionaryCache<Digest, CacheEntry<TResource, Digest>> cache,
     ICacheEntryBuilder<TResource, Digest> cacheEntryBuilder,
     IKubernetesContextResolver contextResolver,
     ILogger<InMemoryImageReportCache<TResource>> logger)

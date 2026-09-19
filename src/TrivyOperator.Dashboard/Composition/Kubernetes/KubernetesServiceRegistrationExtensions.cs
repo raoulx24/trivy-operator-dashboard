@@ -1,21 +1,6 @@
 ﻿using k8s.Models;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.HostedServices;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Contexts;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
@@ -31,9 +16,23 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.HostedServices;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.ResourceWatches;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.ResourceWatches.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatcherRegistries;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators;
@@ -164,8 +163,8 @@ public static class KubernetesServiceRegistrationExtensions
 
         // expiring cache
         services.AddSingleton<
-            IExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<KubernetesNamespace, Uid>>,
-            ExpiringResourceConcurrentDictionaryCache<Uid, CacheEntry<KubernetesNamespace, Uid>>>();
+            IExpiringResourceDictionaryCache<Uid, CacheEntry<KubernetesNamespace, Uid>>,
+            ExpiringResourceDictionaryCache<Uid, CacheEntry<KubernetesNamespace, Uid>>>();
 
         // aggregator
         services.AddSingleton<

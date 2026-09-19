@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.FileRepository.Options;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
+using TrivyOperator.Dashboard.Application.Kubernetes.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Models;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
-using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 
 namespace TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services;
 

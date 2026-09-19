@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Threading.Channels;
+using TrivyOperator.Dashboard.Application.FileRepository.Options;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators.Abstracts;

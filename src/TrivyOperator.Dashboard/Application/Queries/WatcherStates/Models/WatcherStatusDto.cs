@@ -1,6 +1,6 @@
 ﻿using k8s.Autorest;
 using System.Net;
-using TrivyOperator.Dashboard.Application.WatcherStates.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
 
 namespace TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
 

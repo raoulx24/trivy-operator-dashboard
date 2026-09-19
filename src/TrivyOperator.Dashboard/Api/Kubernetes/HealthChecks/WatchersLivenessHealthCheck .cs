@@ -1,14 +1,15 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
-using TrivyOperator.Dashboard.Application.WatcherStates.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
+using TrivyOperator.Dashboard.Application.Shared.Abstractions;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 
 namespace TrivyOperator.Dashboard.Api.Kubernetes.HealthChecks;
 
 public class WatchersLivenessHealthCheck(
-    IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
+    ICache<ResourceLocation, WatcherStateInfo> cache,
     IOptions<WatchersOptions> options,
     ILogger<WatchersLivenessHealthCheck> logger
 ) : IHealthCheck

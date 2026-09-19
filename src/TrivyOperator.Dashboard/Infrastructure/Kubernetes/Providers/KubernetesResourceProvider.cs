@@ -14,7 +14,7 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.Providers;
 
 public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
-    IExpiringResourceConcurrentDictionaryCache<TKey, CacheEntry<TResource, TKey>> cache,
+    IExpiringResourceDictionaryCache<TKey, CacheEntry<TResource, TKey>> cache,
     ICacheEntryBuilder<TResource, TKey> cacheEntryBuilder,
     IKubernetesResourceService<TKubernetesObject> resourceService,
     IKubernetesContextResolver contextResolver,

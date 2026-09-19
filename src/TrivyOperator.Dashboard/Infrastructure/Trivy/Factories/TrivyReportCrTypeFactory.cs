@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ExposedSecretReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.InfraAssessmentReports;
@@ -8,7 +9,7 @@ using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.M
 
 namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Factories;
 
-public class TrivyReportCrTypeFactory
+public class TrivyReportCrTypeFactory : ITrivyReportCrTypeFactory
 {
     private static readonly Dictionary<string, Type> Types = new(StringComparer.Ordinal)
     {
@@ -26,7 +27,7 @@ public class TrivyReportCrTypeFactory
         [nameof(VulnerabilityReportCr)] = typeof(VulnerabilityReportCr),
     };
 
-    public static Type Get(string name) =>
+    public Type Get(string name) =>
         Types.TryGetValue(name, out Type? type)
             ? type
             : throw new ArgumentOutOfRangeException(

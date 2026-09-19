@@ -1,9 +1,9 @@
 ﻿using k8s;
 using k8s.KubeConfigModels;
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
+using TrivyOperator.Dashboard.Application.Kubernetes.ClientFactory.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory;

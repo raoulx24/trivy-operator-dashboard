@@ -1,0 +1,3 @@
+﻿namespace TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
+
+public interface IClusterScopedWatcherRegistry : IKubernetesWatcherRegistry;

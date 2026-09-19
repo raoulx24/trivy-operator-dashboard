@@ -3,6 +3,7 @@ using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstracti
 using TrivyOperator.Dashboard.Application.Releases.Abstractions;
 using TrivyOperator.Dashboard.Application.Releases.Options;
 using TrivyOperator.Dashboard.Application.Releases.Services;
+using TrivyOperator.Dashboard.Application.Shared.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
@@ -42,7 +43,7 @@ public static class ReleasesServiceRegistrationExtensions
     // 2nd level - services registration
     private static void AddGitHubCommonServices(this IServiceCollection services)
     {
-        services.AddSingleton<IConcurrentCache<long, GitHubRelease>, ConcurrentCache<long, GitHubRelease>>();
+        services.AddSingleton<ICache<long, GitHubRelease>, Cache<long, GitHubRelease>>();
 
         services.AddScoped<IAppVersionsService, AppVersionsService>();
     }

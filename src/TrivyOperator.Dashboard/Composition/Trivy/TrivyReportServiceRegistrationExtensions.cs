@@ -1,19 +1,4 @@
-﻿using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPipelineStarters.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.EventPublishers.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.ResourceWatches.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatchSessions.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Severities.Services;
 using TrivyOperator.Dashboard.Application.Queries.Severities.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
@@ -46,6 +31,7 @@ using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
@@ -58,6 +44,20 @@ using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.ResourceWatches;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.ResourceWatches.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatcherRegistries;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators.Abstracts;
@@ -173,8 +173,8 @@ public static class TrivyReportServiceRegistrationExtensions
         //     VulnerabilityReportCacheEntryBuilder<VulnerabilityReport, Digest>>();
         // -- concurrent cache
         services.AddSingleton<
-            IResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>,
-            ResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>>();     
+            IResourceDictionaryCache<TId, CacheEntry<TReport, TId>>,
+            ResourceDictionaryCache<TId, CacheEntry<TReport, TId>>>();     
         // -- IResourceStore (in part) and IResourceProvider (out part)
         services.AddReportInMemoryCache(typeof(TReport));
 
@@ -226,8 +226,8 @@ public static class TrivyReportServiceRegistrationExtensions
         
         // expiring cache
         services.AddSingleton<
-            IExpiringResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>,
-            ExpiringResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>>();
+            IExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>,
+            ExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>>();
         
         // provider
         services.AddSingleton<
@@ -259,8 +259,8 @@ public static class TrivyReportServiceRegistrationExtensions
             FileTrivyReportService<TReportCr, TReport, TId>>();
         
         services.AddSingleton<
-            IExpiringResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>,
-            ExpiringResourceConcurrentDictionaryCache<TId, CacheEntry<TReport, TId>>>();
+            IExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>,
+            ExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>>();
         
         // provider
         services.AddSingleton<

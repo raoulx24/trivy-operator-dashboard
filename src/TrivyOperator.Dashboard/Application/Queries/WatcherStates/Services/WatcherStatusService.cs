@@ -1,23 +1,23 @@
 ﻿using k8s.Models;
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Models.WatcherEvents;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.WatcherRegistries.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Application.Queries.Common.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services.Abstractions;
-using TrivyOperator.Dashboard.Application.WatcherStates.Models;
+using TrivyOperator.Dashboard.Application.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
-using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Factories;
 
 namespace TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;
 
 public class WatcherStatusService(
-    IConcurrentCache<WatcherKey, WatcherStateInfo> cache,
+    ICache<ResourceLocation, WatcherStateInfo> cache,
     IOptions<WatchersOptions> options,
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatchers,
-    IEnumerable<INamespacedWatcherRegistry> namespacedWatchers
+    IEnumerable<INamespacedWatcherRegistry> namespacedWatchers,
+    ITrivyReportCrTypeFactory trivyReportCrTypeFactory
 ) : IWatcherStatusService
 {
     public Task<IEnumerable<WatcherStatusDto>> GetWatcherStatusDtos()
@@ -55,30 +55,30 @@ public class WatcherStatusService(
         
         Type watchedKubernetesType = kubernetesObjectType == "V1Namespace"
             ? typeof(V1Namespace)
-            : TrivyReportCrTypeFactory.Get(kubernetesObjectType);
+            : trivyReportCrTypeFactory.Get(kubernetesObjectType);
 
         IKubernetesWatcherRegistry? watcherRegistry =
             clusterScopedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType)
             ?? (IKubernetesWatcherRegistry?)namespacedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType);
 
-        WatcherKey watcherKey = new(new ContextName(contextName), new NamespaceName(namespaceName));
+        ResourceLocation resourceLocation = new(new ContextName(contextName), new NamespaceName(namespaceName));
         
         if (watcherRegistry is null)
         {
             return new OperationResult
             {
                 Success = false,
-                Message = $"No watcher found for {kubernetesObjectType} in {watcherKey}.",
+                Message = $"No watcher found for {kubernetesObjectType} in {resourceLocation}.",
             };
         }
         
-        await watcherRegistry.RecreateWatcher(watcherKey, ctx);
+        await watcherRegistry.RecreateWatcher(resourceLocation, ctx);
 
         return new OperationResult
         {
             Success = true,
             Message =
-                $"Watcher for {kubernetesObjectType} in {watcherKey} has been recreated.",
+                $"Watcher for {kubernetesObjectType} in {resourceLocation} has been recreated.",
         };
 
     }

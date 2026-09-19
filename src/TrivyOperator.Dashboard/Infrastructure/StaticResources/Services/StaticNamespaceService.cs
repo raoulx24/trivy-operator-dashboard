@@ -2,7 +2,7 @@
 using k8s.Models;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
-using TrivyOperator.Dashboard.Application.KubernetesEventPipeline.Services.Options;
+using TrivyOperator.Dashboard.Application.Kubernetes.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 

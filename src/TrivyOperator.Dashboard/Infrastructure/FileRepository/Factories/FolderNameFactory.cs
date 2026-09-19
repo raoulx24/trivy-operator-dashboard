@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.FileRepository.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.FileRepository.Options;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ExposedSecretReports;

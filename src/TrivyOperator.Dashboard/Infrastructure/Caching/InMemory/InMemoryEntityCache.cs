@@ -10,7 +10,7 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 
 public abstract class InMemoryEntityCache<TResource, TKey>(
-    IResourceConcurrentDictionaryCache<TKey, CacheEntry<TResource, TKey>> cache,
+    IResourceDictionaryCache<TKey, CacheEntry<TResource, TKey>> cache,
     ICacheEntryBuilder<TResource, TKey> cacheEntryBuilder,
     IKubernetesContextResolver contextResolver,
     ILogger<InMemoryEntityCache<TResource, TKey>> logger) :
@@ -19,7 +19,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
     where TKey : notnull
 
 {
-    protected IResourceConcurrentDictionaryCache<TKey, CacheEntry<TResource, TKey>> Cache  => cache;
+    protected IResourceDictionaryCache<TKey, CacheEntry<TResource, TKey>> Cache  => cache;
     protected IKubernetesContextResolver ContextResolver => contextResolver;
     
     public Task Upsert(TResource resource, CancellationToken ctx = default)

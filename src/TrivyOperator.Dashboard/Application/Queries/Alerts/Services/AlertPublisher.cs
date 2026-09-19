@@ -3,12 +3,12 @@ using TrivyOperator.Dashboard.Api.Alerts.Hubs;
 using TrivyOperator.Dashboard.Application.Alerts.Abstractions;
 using TrivyOperator.Dashboard.Application.Alerts.Models;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Models;
-using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Alerts.Services;
 
 public class AlertPublisher(
-    IConcurrentCache<AlertKey, Alert> cache,
+    ICache<AlertKey, Alert> cache,
     IHubContext<AlertsHub> alertsHubContext,
     ILogger<AlertsService> logger) : IAlertPublisher
 {

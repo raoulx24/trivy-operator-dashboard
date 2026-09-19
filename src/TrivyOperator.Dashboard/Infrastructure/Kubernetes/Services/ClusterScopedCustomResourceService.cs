@@ -1,8 +1,8 @@
 ﻿using k8s;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using TrivyOperator.Dashboard.Application.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;

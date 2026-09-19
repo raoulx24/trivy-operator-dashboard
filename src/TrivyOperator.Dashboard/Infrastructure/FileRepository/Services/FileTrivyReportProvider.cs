@@ -10,7 +10,7 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstr
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 
 public class FileTrivyReportProvider<TTrivyReport, TKey>(
-    IExpiringResourceConcurrentDictionaryCache<TKey, CacheEntry<TTrivyReport, TKey>> cache,
+    IExpiringResourceDictionaryCache<TKey, CacheEntry<TTrivyReport, TKey>> cache,
     ICacheEntryBuilder<TTrivyReport, TKey> cacheEntryBuilder,
     IFileTrivyReportService<TTrivyReport, TKey> reportService,
     ILogger<FileTrivyReportProvider<TTrivyReport, TKey>> logger
