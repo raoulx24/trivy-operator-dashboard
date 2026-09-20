@@ -6,6 +6,7 @@ public sealed record HistoryMetadataPersistenceModel(
     string Repository,
     string Tag,
     int[] Current,
+    string VulnerabilitiesHash,
     int[] AddedCvesDeltas,
     int[] DroppedCvesDeltas
 );

@@ -6,6 +6,7 @@ using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Models;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Options;
 using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Options;
 
 namespace TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services;
 

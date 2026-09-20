@@ -1,5 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Models;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;

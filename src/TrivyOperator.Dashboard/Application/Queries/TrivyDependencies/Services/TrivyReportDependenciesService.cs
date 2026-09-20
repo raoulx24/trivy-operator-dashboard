@@ -4,6 +4,7 @@ using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Mappers;
 using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Models;
 using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Entities;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
