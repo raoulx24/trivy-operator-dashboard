@@ -2,19 +2,18 @@
 using TrivyOperator.Dashboard.Application.Queries.History.Services;
 using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
-using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Stores.Abstractions;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.History.Migrations;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.Services;
 using TrivyOperator.Dashboard.Infrastructure.History.Stores;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.Models;
 
 namespace TrivyOperator.Dashboard.Composition.History;
 
@@ -87,7 +86,7 @@ public static class HistoryServiceRegistrationExtensions
 
         services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
 
-        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReportCr>, VulnerabilityReportsHistoryRefresher>();
+        services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReport, Digest>, VulnerabilityReportsHistoryRefresher>();
 
         services.AddScoped<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
 

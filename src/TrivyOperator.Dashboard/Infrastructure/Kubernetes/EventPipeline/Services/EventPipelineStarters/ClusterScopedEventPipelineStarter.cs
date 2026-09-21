@@ -1,21 +1,20 @@
-﻿using k8s;
-using k8s.Models;
-using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters;
 
-public class ClusterScopedEventPipelineStarter<TKubernetesObject>(
-    IKubernetesEventDispatcher<TKubernetesObject> kubernetesEventDispatcher,
-    IKubernetesBackgroundQueue<TKubernetesObject> queue,
+public class ClusterScopedEventPipelineStarter<TResource, TKey>(
+    IEventPipelineDispatcher<TResource, TKey> eventPipelineDispatcher,
+    IEventPipelineBackgroundQueue<TResource, TKey> queue,
     IKubernetesContextResolver contextResolver,
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatcherRegistries,
-    ILogger<KubernetesEventPipelineStarter<TKubernetesObject>> logger
-) : KubernetesEventPipelineStarter<TKubernetesObject>(kubernetesEventDispatcher, queue, logger)
-    where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
+    ILogger<KubernetesEventPipelineStarter<TResource, TKey>> logger
+) : KubernetesEventPipelineStarter<TResource, TKey>(eventPipelineDispatcher, queue, logger)
+    where TResource : class, IEntity<TKey>
 {
     public override void StartPipeline(CancellationToken ctx = default)
     {

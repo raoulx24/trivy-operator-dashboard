@@ -62,6 +62,7 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Providers;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ResourceMaterializer.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.CacheEntryBuilders;
@@ -157,7 +158,7 @@ public static class TrivyReportServiceRegistrationExtensions
     
     private static void AddTrivyReportDefaultContext<TReportCr, TReport, TId>(this IServiceCollection services)
         where TReportCr : CustomResource, new()
-        where TReport : ITrivyReport<TId>
+        where TReport : class, ITrivyReport<TId>
         where TId : notnull
     {
         // mapper service
@@ -183,23 +184,23 @@ public static class TrivyReportServiceRegistrationExtensions
         
         // background queue
         services.AddSingleton<
-            IKubernetesBackgroundQueue<TReportCr>,
-            KubernetesBackgroundQueue<TReportCr>>();
+            IEventPipelineBackgroundQueue<TReport,TId>,
+            EventPipelineBackgroundQueue<TReport,TId>>();
         
         // kubernetes event dispatcher
         services.AddSingleton<
-            IKubernetesEventDispatcher<TReportCr>,
-            KubernetesEventDispatcher<TReportCr, IKubernetesBackgroundQueue<TReportCr>>>();
+            IEventPipelineDispatcher<TReport,TId>,
+            EventPipelineDispatcher<TReport,TId>>();
         
         // kubernetes event processors
         // -- resource store
         services.AddSingleton<
-            IKubernetesEventProcessor<TReportCr>, 
-            ResourceStoreUpdater<TReportCr,TReport,TId>>();
+            IKubernetesEventProcessor<TReport,TId>, 
+            ResourceStoreUpdater<TReport,TId>>();
         // -- metrics
         services.AddSingleton<
-            IKubernetesEventProcessor<TReportCr>,
-            KubernetesEventMetricsProcessor<TReportCr>>();
+            IKubernetesEventProcessor<TReport,TId>,
+            EventPipelineMetricsProcessor<TReport,TId>>();
         
         // query service
         services.AddTrivyQueryRelatedServices(typeof(TReport));
@@ -621,7 +622,7 @@ public static class TrivyReportServiceRegistrationExtensions
     
     private static void AddReportKubernetesPipelineServices<TReportCr, TReport, TId>(this IServiceCollection services)
         where TReportCr : CustomResource, new()
-        where TReport : ITrivyReport<TId>
+        where TReport : class, ITrivyReport<TId>
         where TId : notnull
     {
         switch (typeof(TReport).Name)
@@ -643,15 +644,20 @@ public static class TrivyReportServiceRegistrationExtensions
                     sp => sp.GetRequiredService<ClusterScopedCustomResourceService<TReportCr>>());
                 
                 // kubernetes event pipeline starter
-                services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<TReportCr>>();
+                services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<TReport,TId>>();
 
                 // kubernetes resource watcher
                 services.AddSingleton<
                     IKubernetesResourceWatch<CustomResourceList<TReportCr>, TReportCr>,
                     ClusterScopedResourceWatch<CustomResourceList<TReportCr>, TReportCr>>();
 
+                // resource materializer
+                services.AddSingleton<
+                    IResourceMaterializer<TReportCr, TReport, TId>,
+                    IResourceMaterializer<TReportCr, TReport, TId>>();
+
                 // kubernetes event publisher
-                services.AddSingleton<IKubernetesEventPublisher<TReportCr>,KubernetesEventPublisher<TReportCr>>();
+                services.AddSingleton<IKubernetesEventPublisher<TReportCr>,KubernetesEventPublisher<TReportCr, TReport,TId>>();
 
                 // kubernetes watch session factory
                 services.AddSingleton<
@@ -684,15 +690,20 @@ public static class TrivyReportServiceRegistrationExtensions
                     sp => sp.GetRequiredService<NamespacedCustomResourceService<TReportCr>>());
                 
                 // kubernetes event pipeline starter
-                services.AddSingleton<IKubernetesEventPipelineStarter, NamespacedEventPipelineStarter<TReportCr>>();
+                services.AddSingleton<IKubernetesEventPipelineStarter, NamespacedEventPipelineStarter<TReport,TId>>();
             
                 // kubernetes resource watcher
                 services.AddSingleton<
                     IKubernetesResourceWatch<CustomResourceList<TReportCr>, TReportCr>,
                     NamespacedResourceWatch<CustomResourceList<TReportCr>, TReportCr>>();
+                
+                // resource materializer
+                services.AddSingleton<
+                    IResourceMaterializer<TReportCr, TReport, TId>,
+                    IResourceMaterializer<TReportCr, TReport, TId>>();
 
                 // kubernetes event publisher
-                services.AddSingleton<IKubernetesEventPublisher<TReportCr>,KubernetesEventPublisher<TReportCr>>();
+                services.AddSingleton<IKubernetesEventPublisher<TReportCr>,KubernetesEventPublisher<TReportCr, TReport,TId>>();
 
                 // kubernetes watch session factory
                 services.AddSingleton<

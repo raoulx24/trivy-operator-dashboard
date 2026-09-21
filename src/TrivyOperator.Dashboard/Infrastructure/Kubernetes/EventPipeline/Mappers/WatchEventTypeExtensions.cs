@@ -1,20 +1,7 @@
 ﻿using k8s;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
-
-public enum WatcherEventType
-{
-    Initialized,
-    InitialAdded,
-    Added,
-    Modified,
-    Deleted,
-    Error,
-    Bookmark,
-    WatcherConnected,
-    Flushed,
-    Unknown,
-}
+namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Mappers;
 
 public static class WatchEventTypeExtensions
 {

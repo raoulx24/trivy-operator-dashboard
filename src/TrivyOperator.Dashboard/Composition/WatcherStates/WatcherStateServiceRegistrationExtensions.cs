@@ -8,17 +8,11 @@ using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.HostedServices;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Services;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ExposedSecretReports;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.InfraAssessmentReports;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.RbacAssessmentReports;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.SbomReports;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.Models;
 
 namespace TrivyOperator.Dashboard.Composition.WatcherStates;
 
@@ -73,78 +67,78 @@ public static class WatcherStateServiceRegistrationExtensions
     if (enabledReports.GetValueOrDefault(nameof(ClusterComplianceReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<ClusterComplianceReportCr>,
-            WatcherStateEventProcessor<ClusterComplianceReportCr>>();
+            IKubernetesEventProcessor<ClusterComplianceReport, Uid>,
+            WatcherStateEventProcessor<ClusterComplianceReport, Uid>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(ClusterInfraAssessmentReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<ClusterInfraAssessmentReportCr>,
-            WatcherStateEventProcessor<ClusterInfraAssessmentReportCr>>();
+            IKubernetesEventProcessor<ClusterInfraAssessmentReport, Uid>,
+            WatcherStateEventProcessor<ClusterInfraAssessmentReport, Uid>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(ClusterRbacAssessmentReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<ClusterRbacAssessmentReportCr>,
-            WatcherStateEventProcessor<ClusterRbacAssessmentReportCr>>();
+            IKubernetesEventProcessor<ClusterRbacAssessmentReport, Uid>,
+            WatcherStateEventProcessor<ClusterRbacAssessmentReport, Uid>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(ClusterSbomReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<ClusterSbomReportCr>,
-            WatcherStateEventProcessor<ClusterSbomReportCr>>();
+            IKubernetesEventProcessor<ClusterSbomReport, Uid>,
+            WatcherStateEventProcessor<ClusterSbomReport, Uid>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(ClusterVulnerabilityReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<ClusterVulnerabilityReportCr>,
-            WatcherStateEventProcessor<ClusterVulnerabilityReportCr>>();
+            IKubernetesEventProcessor<ClusterVulnerabilityReport, Uid>,
+            WatcherStateEventProcessor<ClusterVulnerabilityReport, Uid>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(ConfigAuditReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<ConfigAuditReportCr>,
-            WatcherStateEventProcessor<ConfigAuditReportCr>>();
+            IKubernetesEventProcessor<ConfigAuditReport, Uid>,
+            WatcherStateEventProcessor<ConfigAuditReport, Uid>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(ExposedSecretReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<ExposedSecretReportCr>,
-            WatcherStateEventProcessor<ExposedSecretReportCr>>();
+            IKubernetesEventProcessor<ExposedSecretReport, Digest>,
+            WatcherStateEventProcessor<ExposedSecretReport, Digest>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(InfraAssessmentReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<InfraAssessmentReportCr>,
-            WatcherStateEventProcessor<InfraAssessmentReportCr>>();
+            IKubernetesEventProcessor<InfraAssessmentReport, Uid>,
+            WatcherStateEventProcessor<InfraAssessmentReport, Uid>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(RbacAssessmentReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<RbacAssessmentReportCr>,
-            WatcherStateEventProcessor<RbacAssessmentReportCr>>();
+            IKubernetesEventProcessor<RbacAssessmentReport, Uid>,
+            WatcherStateEventProcessor<RbacAssessmentReport, Uid>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(SbomReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<SbomReportCr>,
-            WatcherStateEventProcessor<SbomReportCr>>();
+            IKubernetesEventProcessor<SbomReport, Digest>,
+            WatcherStateEventProcessor<SbomReport, Digest>>();
     }
 
     if (enabledReports.GetValueOrDefault(nameof(VulnerabilityReport)))
     {
         services.AddSingleton<
-            IKubernetesEventProcessor<VulnerabilityReportCr>,
-            WatcherStateEventProcessor<VulnerabilityReportCr>>();
+            IKubernetesEventProcessor<VulnerabilityReport, Digest>,
+            WatcherStateEventProcessor<VulnerabilityReport, Digest>>();
     }
 }
 

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
 
 namespace TrivyOperator.Dashboard.Api.Kubernetes.Controllers;
 

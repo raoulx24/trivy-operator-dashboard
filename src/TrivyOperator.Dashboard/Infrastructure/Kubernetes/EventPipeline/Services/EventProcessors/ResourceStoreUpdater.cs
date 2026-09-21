@@ -1,25 +1,19 @@
-﻿using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
-using TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.ToDomain.Extensions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors;
 
-public class ResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
+public class ResourceStoreUpdater<TResource, TKey> (
     IResourceStore<TResource, TKey> resourceStore,
-    IResourceMapper<TKubernetesObject, TResource> mapper,
-    IResourceKeyProvider<TKubernetesObject, TKey> keyProvider,
-    ILogger<ResourceStoreUpdater<TKubernetesObject, TResource, TKey>> logger
-) : IKubernetesEventProcessor<TKubernetesObject>
-    where TKubernetesObject : CustomResource, new()
-    where TResource : ITrivyReport<TKey>, ITrivyReport
+    ILogger<ResourceStoreUpdater<TResource, TKey>> logger
+) : IKubernetesEventProcessor<TResource, TKey>
+    where TResource : class, IEntity<TKey>
 {
     public async Task ProcessKubernetesEvent(
-        WatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TResource, TKey> watcherEvent,
         CancellationToken ctx
     )
     {
@@ -27,6 +21,7 @@ public class ResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
         {
             case WatcherEventType.InitialAdded:
             case WatcherEventType.Added:
+            case WatcherEventType.Modified:
                 await ProcessAddEvent(watcherEvent, ctx);
                 break;
             case WatcherEventType.Deleted:
@@ -35,9 +30,6 @@ public class ResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
             case WatcherEventType.Error:
             case WatcherEventType.Flushed:
                 await ProcessErrorEvent(watcherEvent, ctx);
-                break;
-            case WatcherEventType.Modified:
-                await ProcessModifiedEvent(watcherEvent, ctx);
                 break;
             case WatcherEventType.Initialized:
                 ProcessInitEvent(watcherEvent);
@@ -50,86 +42,56 @@ public class ResourceStoreUpdater<TKubernetesObject, TResource, TKey> (
                 logger.LogWarning(
                     "Unknown event type {eventType} for {kubernetesObjectType}.",
                     watcherEvent.WatcherEventType,
-                    typeof(TKubernetesObject).Name
+                    typeof(TResource).Name
                 );
                 break;
         }
     }
     
-    private async Task ProcessAddEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    private async Task ProcessAddEvent(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx)
     {
-        TKubernetesObject? kubernetesObject = watcherEvent.KubernetesObject;
+        TResource? resource = watcherEvent.Resource;
         
-        if (kubernetesObject is null)
+        if (resource is null)
         {
             logger.LogWarning(
                 "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
                 watcherEvent.Key,
-                typeof(TKubernetesObject).Name
+                typeof(TResource).Name
             );
             return;
         }
-
-        TKey domainKey = keyProvider.GetKey(kubernetesObject);
-
-        TResource? existing = await resourceStore.Get(domainKey, ctx);
-        TResource resource = mapper.MapToDomain(kubernetesObject, existing);
 
         await resourceStore.Upsert(resource, ctx);    
     }
 
-    private async Task ProcessDeleteEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    private async Task ProcessDeleteEvent(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx)
     {
-        TKubernetesObject? kubernetesObject = watcherEvent.KubernetesObject;
+        TResource? resource = watcherEvent.Resource;
+        Uid? resourceId = watcherEvent.ResourceId;
         
-        if (kubernetesObject is null)
+        if (resource is null || resourceId is null)
         {
             logger.LogWarning(
                 "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
                 watcherEvent.Key,
-                typeof(TKubernetesObject).Name
+                typeof(TResource).Name
             );
             return;
         }
         
-        TKey domainKey = keyProvider.GetKey(kubernetesObject);
-        Uid uid = kubernetesObject.ToUidKey();
-
-        await resourceStore.Delete(domainKey, uid, ctx);
+        await resourceStore.Delete(resource.Id, resourceId.Value, ctx);
     }
     
-    private async Task ProcessErrorEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    private async Task ProcessErrorEvent(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx)
     {
-        TKubernetesObject? kubernetesObject = watcherEvent.KubernetesObject;
-        
-        if (kubernetesObject is null)
-        {
-            logger.LogWarning(
-                "ProcessErrorEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
-                watcherEvent.Key,
-                typeof(TKubernetesObject).Name
-            );
-            return;
-        }
-        
-        NamespaceName ns = new(kubernetesObject.Metadata.NamespaceProperty);
-
-        await resourceStore.ClearByNamespace(ns, ctx);
+        await resourceStore.ClearByNamespace(watcherEvent.Key.NamespaceName, ctx);
     }
     
-    private async Task ProcessModifiedEvent(
-        WatcherEvent<TKubernetesObject> watcherEvent,
-        CancellationToken cancellationToken
-    )
-    {
-        logger.LogDebug("ProcessModifiedEvent - redirecting to ProcessAddEvent.");
-        await ProcessAddEvent(watcherEvent, cancellationToken);
-    }
-
-    private void ProcessInitEvent(WatcherEvent<TKubernetesObject> watcherEvent)
+    private void ProcessInitEvent(WatcherEvent<TResource, TKey> watcherEvent)
     {
         logger.LogDebug("ProcessInitEvent - for {watcherKey} - {kubernetesObjectType}. Nothing to do",
             watcherEvent.Key,
-            typeof(TKubernetesObject).Name);
+            typeof(TResource).Name);
     }
 }

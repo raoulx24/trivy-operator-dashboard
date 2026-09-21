@@ -1,7 +1,7 @@
 ﻿using k8s;
 using k8s.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
 
@@ -11,7 +11,7 @@ public interface IKubernetesEventPublisher<in TKubernetesObject>
     Task Publish(
         ResourceLocation key,
         WatcherEventType eventType,
-        CancellationToken cancellationToken,
+        CancellationToken ctx,
         TKubernetesObject? kubernetesObject = null,
         Exception? exception = null
     );

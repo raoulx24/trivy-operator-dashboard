@@ -1,11 +1,10 @@
-﻿using k8s;
-using k8s.Models;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 
-public interface IKubernetesEventProcessor<TKubernetesObject>
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
+public interface IKubernetesEventProcessor<TResource, TKey>
+    where TResource : class, IEntity<TKey>
 {
-    Task ProcessKubernetesEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx);
+    Task ProcessKubernetesEvent(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx);
 }

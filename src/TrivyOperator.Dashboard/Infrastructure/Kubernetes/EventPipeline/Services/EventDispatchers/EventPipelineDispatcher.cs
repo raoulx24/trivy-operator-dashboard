@@ -1,22 +1,20 @@
-﻿using k8s;
-using k8s.Models;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers;
 
-public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
-    IEnumerable<IKubernetesEventProcessor<TKubernetesObject>> services,
-    TBackgroundQueue backgroundQueue,
-    ILogger<KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>> logger
-) : IKubernetesEventDispatcher<TKubernetesObject>
-    where TKubernetesObject : IKubernetesObject<V1ObjectMeta>, new()
-    where TBackgroundQueue : IKubernetesBackgroundQueue<TKubernetesObject>
+public class EventPipelineDispatcher<TResource, TKey>(
+    IEnumerable<IKubernetesEventProcessor<TResource, TKey>> services,
+    IEventPipelineBackgroundQueue<TResource, TKey> backgroundQueue,
+    ILogger<EventPipelineDispatcher<TResource, TKey>> logger
+) : IEventPipelineDispatcher<TResource, TKey>
+    where TResource : class, IEntity<TKey>
 {
     private Task? dispatcherQueueProcessor;
-    public bool IsQueueProcessingStarted => !dispatcherQueueProcessor?.IsCanceled ?? false;
+    private bool IsQueueProcessingStarted => !dispatcherQueueProcessor?.IsCanceled ?? false;
 
     public void StartEventsProcessing(CancellationToken ctx = default)
     {
@@ -24,14 +22,14 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
         {
             logger.LogWarning(
                 "Kubernetes Event Dispatcher for {kubernetesObjectType} already started. Ignoring start request...",
-                typeof(TKubernetesObject).Name
+                typeof(TResource).Name
             );
             return;
         }
 
         logger.LogInformation(
             "KubernetesEventDispatcher for {kubernetesObjectType} is starting.",
-            typeof(TKubernetesObject).Name
+            typeof(TResource).Name
         );
         dispatcherQueueProcessor = ProcessChannelMessages(ctx);
     }
@@ -42,7 +40,7 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
         {
             try
             {
-                WatcherEvent<TKubernetesObject>? watcherEvent = await backgroundQueue.DequeueAsync(ctx);
+                WatcherEvent<TResource, TKey>? watcherEvent = await backgroundQueue.DequeueAsync(ctx);
 
                 if (watcherEvent is null)
                 {
@@ -75,7 +73,7 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
                             logger.LogError(
                                 inner,
                                 "An error occurred while processing the watcher event for {kubernetesObjectType}.",
-                                typeof(TKubernetesObject).Name
+                                typeof(TResource).Name
                             );
                         }
                     }
@@ -84,7 +82,7 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
                         logger.LogError(
                             ex,
                             "An error occurred while processing the watcher event for {kubernetesObjectType}.",
-                            typeof(TKubernetesObject).Name
+                            typeof(TResource).Name
                         );
                     }
                 }
@@ -94,7 +92,7 @@ public class KubernetesEventDispatcher<TKubernetesObject, TBackgroundQueue>(
                 logger.LogError(
                     ex,
                     "Error processing event for {kubernetesObjectType}.",
-                    typeof(TKubernetesObject).Name
+                    typeof(TResource).Name
                 );
             }
         }

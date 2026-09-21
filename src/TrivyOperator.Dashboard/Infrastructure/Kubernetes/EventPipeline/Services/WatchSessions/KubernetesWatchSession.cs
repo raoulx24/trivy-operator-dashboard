@@ -1,9 +1,10 @@
 ﻿using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.ResourceWatches.Abstractions;
 

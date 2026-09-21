@@ -1,9 +1,9 @@
 ﻿using k8s.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors;
@@ -12,10 +12,10 @@ public class NamespacedWatcherLifecycleProcessor(
     IEnumerable<INamespacedWatcherRegistry> namespacedWatcherRegistries,
     IExpiringResourceProvider<KubernetesNamespace, Uid> resourceProvider,
     ILogger<NamespacedWatcherLifecycleProcessor> logger
-    ) : IKubernetesEventProcessor<V1Namespace>
+    ) : IKubernetesEventProcessor<KubernetesNamespace, Uid>
 {
     public async Task ProcessKubernetesEvent(
-        WatcherEvent<V1Namespace> watcherEvent,
+        WatcherEvent<KubernetesNamespace, Uid> watcherEvent,
         CancellationToken ctx
     )
     {
@@ -46,14 +46,14 @@ public class NamespacedWatcherLifecycleProcessor(
         }
     }
     
-    private void ProcessAddEvent(WatcherEvent<V1Namespace> watcherEvent, CancellationToken ctx)
+    private void ProcessAddEvent(WatcherEvent<KubernetesNamespace, Uid> watcherEvent, CancellationToken ctx)
     {
-        if (watcherEvent.KubernetesObject is null)
+        if (watcherEvent.Resource is null)
         {
             logger.LogWarning(
                 "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
                 watcherEvent.Key,
-                nameof(V1Namespace)
+                nameof(KubernetesNamespace)
             );
             return;
         }
@@ -65,14 +65,14 @@ public class NamespacedWatcherLifecycleProcessor(
     }
 
 
-    private async Task ProcessDeleteEvent(WatcherEvent<V1Namespace> watcherEvent, CancellationToken ctx)
+    private async Task ProcessDeleteEvent(WatcherEvent<KubernetesNamespace, Uid> watcherEvent, CancellationToken ctx)
     {
-        if (watcherEvent.KubernetesObject == null)
+        if (watcherEvent.Resource == null)
         {
             logger.LogWarning(
                 "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
                 watcherEvent.Key,
-                nameof(V1Namespace)
+                nameof(KubernetesNamespace)
             );
             return;
         }
@@ -81,14 +81,17 @@ public class NamespacedWatcherLifecycleProcessor(
         await Task.WhenAll(tasks);
     }
 
-    private async Task ProcessInitEvent(WatcherEvent<V1Namespace> watcherEvent, CancellationToken ctx)
+    private async Task ProcessInitEvent(WatcherEvent<KubernetesNamespace, Uid> watcherEvent, CancellationToken ctx)
     {
         await resourceProvider.Clear(ctx);
         
         IReadOnlyList<KubernetesNamespace> kubernetesNamespaces = await resourceProvider.GetResources(ctx);
 
         IReadOnlyCollection<ResourceLocation> keys = 
-            [.. kubernetesNamespaces.Select(x => new ResourceLocation(watcherEvent.Key.ContextName, x.NamespaceName)),];
+            [
+                .. kubernetesNamespaces.Select(x 
+                => new ResourceLocation(watcherEvent.Key.ContextName, x.NamespaceName)),
+            ];
         
         IEnumerable<Task> tasks =
             namespacedWatcherRegistries.Select(s => s.Reconcile(keys, ctx));

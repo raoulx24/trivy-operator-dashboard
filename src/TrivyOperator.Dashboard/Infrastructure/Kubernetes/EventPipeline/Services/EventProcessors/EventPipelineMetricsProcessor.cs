@@ -1,18 +1,18 @@
-﻿using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CustomResources;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors;
 
-public class KubernetesEventMetricsProcessor<TKubernetesObject> (
+public class EventPipelineMetricsProcessor<TResource, TKey> (
     IMetricsClient metricsClient,
-    ILogger<KubernetesEventMetricsProcessor<TKubernetesObject>> logger
-) : IKubernetesEventProcessor<TKubernetesObject>
-    where TKubernetesObject : CustomResource, new()
+    ILogger<EventPipelineMetricsProcessor<TResource, TKey>> logger
+) : IKubernetesEventProcessor<TResource, TKey>
+    where TResource : class, ITrivyReport<TKey>
 {
     public Task ProcessKubernetesEvent(
-        WatcherEvent<TKubernetesObject> watcherEvent,
+        WatcherEvent<TResource, TKey> watcherEvent,
         CancellationToken ctx
     )
     {
@@ -35,7 +35,7 @@ public class KubernetesEventMetricsProcessor<TKubernetesObject> (
                 logger.LogWarning(
                     "Unknown event type {eventType} for {kubernetesObjectType}.",
                     watcherEvent.WatcherEventType,
-                    typeof(TKubernetesObject).Name
+                    typeof(TResource).Name
                 );
                 break;
         }
@@ -43,11 +43,13 @@ public class KubernetesEventMetricsProcessor<TKubernetesObject> (
         return Task.CompletedTask;
     }
     
-    private void ProcessEvent(WatcherEvent<TKubernetesObject> watcherEvent, CancellationToken ctx)
+    private void ProcessEvent(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx)
     {
+        ctx.ThrowIfCancellationRequested();
+        
         metricsClient.WatcherProcessedMessagesCounter.Add(
             1,
-            new KeyValuePair<string, object?>("resource_kind", typeof(TKubernetesObject).Name),
+            new KeyValuePair<string, object?>("resource_kind", typeof(TResource).Name),
             new KeyValuePair<string, object?>(
                 "resource_level",
                 watcherEvent.Key.NamespaceName.IsClusterScoped ? "cluster_scoped" : "namespaced"

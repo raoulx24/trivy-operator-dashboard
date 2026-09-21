@@ -1,22 +1,26 @@
 ﻿using k8s;
 using k8s.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Models;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ResourceMaterializer.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers;
 
-public sealed class KubernetesEventPublisher<TKubernetesObject>(
-    IKubernetesBackgroundQueue<TKubernetesObject> backgroundQueue,
-    ILogger<KubernetesEventPublisher<TKubernetesObject>> logger
+public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>(
+    IEventPipelineBackgroundQueue<TResource, TKey> backgroundQueue,
+    IResourceMaterializer<TKubernetesObject, TResource, TKey> resourceMaterializer,
+    ILogger<KubernetesEventPublisher<TKubernetesObject, TResource, TKey>> logger
 ) : IKubernetesEventPublisher<TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
+    where TResource : class, IEntity<TKey>
 {
     public async Task Publish(
         ResourceLocation key,
         WatcherEventType eventType,
-        CancellationToken cancellationToken,
+        CancellationToken ctx,
         TKubernetesObject? kubernetesObject = null,
         Exception? exception = null
     )
@@ -31,15 +35,16 @@ public sealed class KubernetesEventPublisher<TKubernetesObject>(
 
         try
         {
-            WatcherEvent<TKubernetesObject> watcherEvent = new()
+            WatcherEvent<TResource, TKey> watcherEvent = new()
             {
                 Key = key,
-                KubernetesObject = kubernetesObject,
+                Resource = await resourceMaterializer.Materialize(kubernetesObject, ctx),
+                ResourceId = kubernetesObject?.Metadata == null ? null : new Uid(kubernetesObject.Metadata.Uid),
                 WatcherEventType = eventType,
                 Exception = exception,
             };
 
-            await backgroundQueue.QueueBackgroundWorkItemAsync(watcherEvent, cancellationToken);
+            await backgroundQueue.QueueBackgroundWorkItemAsync(watcherEvent, ctx);
         }
         catch (Exception ex)
         {

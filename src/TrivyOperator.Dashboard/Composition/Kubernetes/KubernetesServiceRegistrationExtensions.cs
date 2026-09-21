@@ -39,6 +39,8 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Providers;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ResourceMaterializer;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ResourceMaterializer.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.StaticResources.Services;
@@ -175,9 +177,13 @@ public static class KubernetesServiceRegistrationExtensions
             UidKeyedResourceAggregator<V1Namespace, KubernetesNamespace>>();
 
         // resource provider
+        services.AddSingleton<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>();
         services.AddSingleton<
-            IExpiringResourceProvider<KubernetesNamespace, Uid>,
-            KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>();
+            IExpiringResourceProvider<KubernetesNamespace, Uid>>(
+            sp => sp.GetRequiredService<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>());
+        services.AddSingleton<
+            IResourceProvider<KubernetesNamespace, Uid>>(
+            sp => sp.GetRequiredService<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>());
         
         // query service
         services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceService>();
@@ -186,7 +192,6 @@ public static class KubernetesServiceRegistrationExtensions
     private static void AddStaticNamespaceService(this IServiceCollection services)
     {
         services.AddSingleton<StaticNamespaceService>();
-
         services.AddSingleton<
             IClusterScopedResourceService<V1Namespace, V1NamespaceList>>(
             sp => sp.GetRequiredService<StaticNamespaceService>());
@@ -212,15 +217,22 @@ public static class KubernetesServiceRegistrationExtensions
     private static void AddNamespaceEventPipelineServices(this IServiceCollection services)
     {
         // event pipeline starter
-        services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<V1Namespace>>();
+        services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<KubernetesNamespace, Uid>>();
         
         // kubernetes resource watcher
         services.AddSingleton<
             IKubernetesResourceWatch<V1NamespaceList, V1Namespace>,
             ClusterScopedResourceWatch<V1NamespaceList, V1Namespace>>();
+        
+        // resource materializer
+        services.AddSingleton<
+            IResourceMaterializer<V1Namespace, KubernetesNamespace, Uid>,
+            ResourceMaterializer<V1Namespace, KubernetesNamespace, Uid>>();
 
         // kubernetes event publisher
-        services.AddSingleton<IKubernetesEventPublisher<V1Namespace>,KubernetesEventPublisher<V1Namespace>>();
+        services.AddSingleton<
+            IKubernetesEventPublisher<V1Namespace>,
+            KubernetesEventPublisher<V1Namespace, KubernetesNamespace, Uid>>();
 
         // kubernetes watch session factory
         services.AddSingleton<
@@ -236,14 +248,16 @@ public static class KubernetesServiceRegistrationExtensions
         // services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<V1NamespaceList, V1Namespace>>();
 
         // background queue
-        services.AddSingleton<IKubernetesBackgroundQueue<V1Namespace>, KubernetesBackgroundQueue<V1Namespace>>();
+        services.AddSingleton<
+            IEventPipelineBackgroundQueue<KubernetesNamespace, Uid>, 
+            EventPipelineBackgroundQueue<KubernetesNamespace, Uid>>();
 
         // event dispatcher
         services.AddSingleton<
-            IKubernetesEventDispatcher<V1Namespace>,
-            KubernetesEventDispatcher<V1Namespace, IKubernetesBackgroundQueue<V1Namespace>>>();
+            IEventPipelineDispatcher<KubernetesNamespace,Uid>,
+            EventPipelineDispatcher<KubernetesNamespace, Uid>>();
 
         // processor for starting namespaced watchers
-        services.AddSingleton<IKubernetesEventProcessor<V1Namespace>, NamespacedWatcherLifecycleProcessor>();
+        services.AddSingleton<IKubernetesEventProcessor<KubernetesNamespace, Uid>, NamespacedWatcherLifecycleProcessor>();
     }
 }
