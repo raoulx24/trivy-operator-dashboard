@@ -1,6 +1,6 @@
-﻿namespace TrivyOperator.Dashboard.Application.Kubernetes.Models;
+﻿namespace TrivyOperator.Dashboard.Application.Shared.Models;
 
-public enum WatcherEventType
+public enum PipelineEventType
 {
     Initialized,
     InitialAdded,

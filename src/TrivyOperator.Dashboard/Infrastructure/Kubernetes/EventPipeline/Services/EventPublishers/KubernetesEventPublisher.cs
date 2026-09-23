@@ -2,6 +2,7 @@
 using k8s.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
@@ -19,7 +20,7 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
 {
     public async Task Publish(
         ResourceLocation key,
-        WatcherEventType eventType,
+        PipelineEventType eventType,
         CancellationToken ctx,
         TKubernetesObject? kubernetesObject = null,
         Exception? exception = null
@@ -35,16 +36,17 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
 
         try
         {
-            WatcherEvent<TResource, TKey> watcherEvent = new()
-            {
-                Key = key,
-                Resource = await resourceMaterializer.Materialize(kubernetesObject, ctx),
-                ResourceId = kubernetesObject?.Metadata == null ? null : new Uid(kubernetesObject.Metadata.Uid),
-                WatcherEventType = eventType,
-                Exception = exception,
-            };
+            KubernetesEvent<TResource, TKey> kubernetesEvent = new(
+                Key: key,
+                PipelineEventType: eventType,
+                Resource: await resourceMaterializer.Materialize(kubernetesObject, ctx),
+                ResourceId: kubernetesObject?.Metadata == null
+                    ? null
+                    : new Uid(kubernetesObject.Metadata.Uid),
+                Exception: exception
+            );
 
-            await backgroundQueue.QueueBackgroundWorkItemAsync(watcherEvent, ctx);
+            await backgroundQueue.QueueBackgroundWorkItemAsync(kubernetesEvent, ctx);
         }
         catch (Exception ex)
         {

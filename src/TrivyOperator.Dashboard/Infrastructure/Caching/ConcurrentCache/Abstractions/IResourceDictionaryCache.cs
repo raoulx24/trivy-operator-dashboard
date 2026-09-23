@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using TrivyOperator.Dashboard.Application.Shared.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 

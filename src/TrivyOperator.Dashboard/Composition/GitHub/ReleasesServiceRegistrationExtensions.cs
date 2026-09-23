@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstracti
 using TrivyOperator.Dashboard.Application.Releases.Abstractions;
 using TrivyOperator.Dashboard.Application.Releases.Options;
 using TrivyOperator.Dashboard.Application.Releases.Services;
-using TrivyOperator.Dashboard.Application.Shared.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;

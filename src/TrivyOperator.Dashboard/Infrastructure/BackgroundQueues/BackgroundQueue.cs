@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Threading.Channels;
-using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.BackgroundQueues.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 

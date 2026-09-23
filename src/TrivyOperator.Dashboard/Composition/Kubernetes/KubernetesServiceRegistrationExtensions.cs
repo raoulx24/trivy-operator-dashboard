@@ -254,8 +254,8 @@ public static class KubernetesServiceRegistrationExtensions
 
         // event dispatcher
         services.AddSingleton<
-            IEventPipelineDispatcher<KubernetesNamespace,Uid>,
-            EventPipelineDispatcher<KubernetesNamespace, Uid>>();
+            IKubernetesEventDispatcher<KubernetesNamespace,Uid>,
+            KubernetesEventDispatcher<KubernetesNamespace, Uid>>();
 
         // processor for starting namespaced watchers
         services.AddSingleton<IKubernetesEventProcessor<KubernetesNamespace, Uid>, NamespacedWatcherLifecycleProcessor>();

@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Application.Shared.Models;
 
 namespace TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 

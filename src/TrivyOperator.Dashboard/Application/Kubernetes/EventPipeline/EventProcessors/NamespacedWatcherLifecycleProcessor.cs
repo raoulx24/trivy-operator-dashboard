@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
@@ -14,45 +15,45 @@ public class NamespacedWatcherLifecycleProcessor(
     ILogger<NamespacedWatcherLifecycleProcessor> logger
     ) : IKubernetesEventProcessor<KubernetesNamespace, Uid>
 {
-    public async Task ProcessKubernetesEvent(
-        WatcherEvent<KubernetesNamespace, Uid> watcherEvent,
+    public async Task ProcessEvent(
+        KubernetesEvent<KubernetesNamespace, Uid> kubernetesEvent,
         CancellationToken ctx
     )
     {
-        switch (watcherEvent.WatcherEventType)
+        switch (kubernetesEvent.PipelineEventType)
         {
-            case WatcherEventType.InitialAdded:
-            case WatcherEventType.Added:
-                ProcessAddEvent(watcherEvent, ctx);
+            case PipelineEventType.InitialAdded:
+            case PipelineEventType.Added:
+                ProcessAddEvent(kubernetesEvent, ctx);
                 break;
-            case WatcherEventType.Deleted:
-                await ProcessDeleteEvent(watcherEvent, ctx);
+            case PipelineEventType.Deleted:
+                await ProcessDeleteEvent(kubernetesEvent, ctx);
                 break;
-            case WatcherEventType.Initialized:
-                await ProcessInitEvent(watcherEvent, ctx);
+            case PipelineEventType.Initialized:
+                await ProcessInitEvent(kubernetesEvent, ctx);
                 break;
-            case WatcherEventType.Error:
-            case WatcherEventType.Flushed:
-            case WatcherEventType.Modified:
+            case PipelineEventType.Error:
+            case PipelineEventType.Flushed:
+            case PipelineEventType.Modified:
             default:
                 break;
-            case WatcherEventType.Unknown:
+            case PipelineEventType.Unknown:
                 logger.LogWarning(
                     "Unknown event type {eventType} for {kubernetesObjectType}.",
-                    watcherEvent.WatcherEventType,
+                    kubernetesEvent.PipelineEventType,
                     nameof(V1Namespace)
                 );
                 break;
         }
     }
     
-    private void ProcessAddEvent(WatcherEvent<KubernetesNamespace, Uid> watcherEvent, CancellationToken ctx)
+    private void ProcessAddEvent(KubernetesEvent<KubernetesNamespace, Uid> kubernetesEvent, CancellationToken ctx)
     {
-        if (watcherEvent.Resource is null)
+        if (kubernetesEvent.Resource is null)
         {
             logger.LogWarning(
                 "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
-                watcherEvent.Key,
+                kubernetesEvent.Key,
                 nameof(KubernetesNamespace)
             );
             return;
@@ -60,28 +61,28 @@ public class NamespacedWatcherLifecycleProcessor(
 
         foreach (INamespacedWatcherRegistry namespacedWatcher in namespacedWatcherRegistries)
         {
-            namespacedWatcher.StartWatcher(watcherEvent.Key, ctx);
+            namespacedWatcher.StartWatcher(kubernetesEvent.Key, ctx);
         }
     }
 
 
-    private async Task ProcessDeleteEvent(WatcherEvent<KubernetesNamespace, Uid> watcherEvent, CancellationToken ctx)
+    private async Task ProcessDeleteEvent(KubernetesEvent<KubernetesNamespace, Uid> kubernetesEvent, CancellationToken ctx)
     {
-        if (watcherEvent.Resource == null)
+        if (kubernetesEvent.Resource == null)
         {
             logger.LogWarning(
                 "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
-                watcherEvent.Key,
+                kubernetesEvent.Key,
                 nameof(KubernetesNamespace)
             );
             return;
         }
 
-        IEnumerable<Task> tasks = namespacedWatcherRegistries.Select(s => s.StopWatcher(watcherEvent.Key, ctx));
+        IEnumerable<Task> tasks = namespacedWatcherRegistries.Select(s => s.StopWatcher(kubernetesEvent.Key, ctx));
         await Task.WhenAll(tasks);
     }
 
-    private async Task ProcessInitEvent(WatcherEvent<KubernetesNamespace, Uid> watcherEvent, CancellationToken ctx)
+    private async Task ProcessInitEvent(KubernetesEvent<KubernetesNamespace, Uid> kubernetesEvent, CancellationToken ctx)
     {
         await resourceProvider.Clear(ctx);
         
@@ -90,7 +91,7 @@ public class NamespacedWatcherLifecycleProcessor(
         IReadOnlyCollection<ResourceLocation> keys = 
             [
                 .. kubernetesNamespaces.Select(x 
-                => new ResourceLocation(watcherEvent.Key.ContextName, x.NamespaceName)),
+                => new ResourceLocation(kubernetesEvent.Key.ContextName, x.NamespaceName)),
             ];
         
         IEnumerable<Task> tasks =

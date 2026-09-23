@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Application.Alerts.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 
@@ -16,49 +17,49 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
     private const string AlertEmitter = "Watcher";
     private static readonly HashSet<ResourceLocation> ActiveAlerts = [];
 
-    public async Task ProcessKubernetesEvent(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx = default)
+    public async Task ProcessEvent(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx = default)
     {
-        switch (watcherEvent.WatcherEventType)
+        switch (kubernetesEvent.PipelineEventType)
         {
-            case WatcherEventType.InitialAdded:
-            case WatcherEventType.Added:
-            case WatcherEventType.Deleted:
-            case WatcherEventType.Modified:
-            case WatcherEventType.Bookmark:
-            case WatcherEventType.WatcherConnected:
-            case WatcherEventType.Flushed:
-            case WatcherEventType.Initialized:
-                await RemoveAlert(watcherEvent, ctx);
+            case PipelineEventType.InitialAdded:
+            case PipelineEventType.Added:
+            case PipelineEventType.Deleted:
+            case PipelineEventType.Modified:
+            case PipelineEventType.Bookmark:
+            case PipelineEventType.WatcherConnected:
+            case PipelineEventType.Flushed:
+            case PipelineEventType.Initialized:
+                await RemoveAlert(kubernetesEvent, ctx);
                 break;
-            case WatcherEventType.Error:
-                await AddAlert(watcherEvent, ctx);
+            case PipelineEventType.Error:
+                await AddAlert(kubernetesEvent, ctx);
                 break;
-            case WatcherEventType.Unknown:
+            case PipelineEventType.Unknown:
                 logger.LogWarning(
                     "{watcherEventType} event type {eventType} for {kubernetesObjectType}.",
-                    watcherEvent.WatcherEventType.ToString(),
-                    watcherEvent.WatcherEventType,
+                    kubernetesEvent.PipelineEventType.ToString(),
+                    kubernetesEvent.PipelineEventType,
                     typeof(TResource).Name
                 );
                 break;
         }
     }
 
-    private async ValueTask AddAlert(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx = default)
+    private async ValueTask AddAlert(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx = default)
     {
-        if (ActiveAlerts.Contains(watcherEvent.Key))
+        if (ActiveAlerts.Contains(kubernetesEvent.Key))
         {
             return;
         }
 
-        ActiveAlerts.Add(watcherEvent.Key);
+        ActiveAlerts.Add(kubernetesEvent.Key);
 
         await alertPublisher.AddAlert(
             AlertEmitter,
             new Alert
             {
-                Key = GetCacheKey(watcherEvent),
-                Message = $"Watcher for {typeof(TResource).Name}, context {watcherEvent.Key.ContextName} and {watcherEvent.Key.NamespaceName} failed.",
+                Key = GetCacheKey(kubernetesEvent),
+                Message = $"Watcher for {typeof(TResource).Name}, context {kubernetesEvent.Key.ContextName} and {kubernetesEvent.Key.NamespaceName} failed.",
                 Severity = Severity.Error,
                 Category = "Watcher Failed",
             },
@@ -67,19 +68,19 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
     }
 
     private async ValueTask RemoveAlert(
-        WatcherEvent<TResource, TKey> watcherEvent,
+        KubernetesEvent<TResource, TKey> kubernetesEvent,
         CancellationToken cancellationToken
     )
     {
-        if (ActiveAlerts.Contains(watcherEvent.Key))
+        if (ActiveAlerts.Contains(kubernetesEvent.Key))
         {
-            ActiveAlerts.Remove(watcherEvent.Key);
+            ActiveAlerts.Remove(kubernetesEvent.Key);
 
             await alertPublisher.RemoveAlert(
                 AlertEmitter,
                 new Alert
                 {
-                    Key = GetCacheKey(watcherEvent),
+                    Key = GetCacheKey(kubernetesEvent),
                 },
                 cancellationToken
             );
@@ -87,6 +88,6 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
     }
     
     // TODO: change this to IReadOnlyList<string> and create a IEqual for it
-    private static EmitterKey GetCacheKey(WatcherEvent<TResource, TKey> watcherEvent) =>
-        new([typeof(TResource).Name, watcherEvent.Key.ContextName.Value, watcherEvent.Key.NamespaceName.Value,]);
+    private static EmitterKey GetCacheKey(KubernetesEvent<TResource, TKey> kubernetesEvent) =>
+        new([typeof(TResource).Name, kubernetesEvent.Key.ContextName.Value, kubernetesEvent.Key.NamespaceName.Value,]);
 }

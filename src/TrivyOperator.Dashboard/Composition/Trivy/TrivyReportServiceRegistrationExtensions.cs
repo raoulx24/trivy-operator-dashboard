@@ -189,8 +189,8 @@ public static class TrivyReportServiceRegistrationExtensions
         
         // kubernetes event dispatcher
         services.AddSingleton<
-            IEventPipelineDispatcher<TReport,TId>,
-            EventPipelineDispatcher<TReport,TId>>();
+            IKubernetesEventDispatcher<TReport,TId>,
+            KubernetesEventDispatcher<TReport,TId>>();
         
         // kubernetes event processors
         // -- resource store

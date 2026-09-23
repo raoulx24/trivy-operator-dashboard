@@ -1,7 +1,6 @@
-﻿namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
+﻿namespace TrivyOperator.Dashboard.Application.Shared.BackgroundQueues.Abstractions;
 
 public interface IBackgroundQueue<TObject>
-    where TObject : class
 {
     void StartQueue();
     ValueTask<TObject?> DequeueAsync(CancellationToken ctx = default);

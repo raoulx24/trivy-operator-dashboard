@@ -1,7 +1,8 @@
 ﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
-using TrivyOperator.Dashboard.Application.Shared.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Internals;
@@ -16,40 +17,40 @@ public class WatcherStateEventProcessor<TResource, TKey>(
 {
     private readonly WatcherEventsGauge eventsGauge = new();
 
-    public Task ProcessKubernetesEvent(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx = default)
+    public Task ProcessEvent(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx = default)
     {
         ctx.ThrowIfCancellationRequested();
         
-        switch (watcherEvent.WatcherEventType)
+        switch (kubernetesEvent.PipelineEventType)
         {
-            case WatcherEventType.InitialAdded:
-            case WatcherEventType.Added:
-                eventsGauge.OffsetValue(watcherEvent.Key, 1);
-                ProcessGreenEvent(watcherEvent);
+            case PipelineEventType.InitialAdded:
+            case PipelineEventType.Added:
+                eventsGauge.OffsetValue(kubernetesEvent.Key, 1);
+                ProcessGreenEvent(kubernetesEvent);
                 break;
-            case WatcherEventType.Deleted:
-                eventsGauge.OffsetValue(watcherEvent.Key, -1);
-                ProcessGreenEvent(watcherEvent);
+            case PipelineEventType.Deleted:
+                eventsGauge.OffsetValue(kubernetesEvent.Key, -1);
+                ProcessGreenEvent(kubernetesEvent);
                 break;
-            case WatcherEventType.Modified:
-            case WatcherEventType.Bookmark:
-            case WatcherEventType.WatcherConnected:
-                ProcessGreenEvent(watcherEvent);
+            case PipelineEventType.Modified:
+            case PipelineEventType.Bookmark:
+            case PipelineEventType.WatcherConnected:
+                ProcessGreenEvent(kubernetesEvent);
                 break;
-            case WatcherEventType.Flushed:
-                eventsGauge.RemoveKey(watcherEvent.Key);
-                ProcessFlushedEvent(watcherEvent);
+            case PipelineEventType.Flushed:
+                eventsGauge.RemoveKey(kubernetesEvent.Key);
+                ProcessFlushedEvent(kubernetesEvent);
                 break;
-            case WatcherEventType.Error:
-                eventsGauge.RemoveKey(watcherEvent.Key);
-                ProcessRedEvent(watcherEvent);
+            case PipelineEventType.Error:
+                eventsGauge.RemoveKey(kubernetesEvent.Key);
+                ProcessRedEvent(kubernetesEvent);
                 break;
-            case WatcherEventType.Initialized:
+            case PipelineEventType.Initialized:
                 break;
-            case WatcherEventType.Unknown:
+            case PipelineEventType.Unknown:
                 logger.LogWarning(
                     "{watcherEventType} event type for {kubernetesObjectType}.",
-                    watcherEvent.WatcherEventType.ToString(),
+                    kubernetesEvent.PipelineEventType.ToString(),
                     typeof(TResource).Name
                 );
                 break;
@@ -58,36 +59,36 @@ public class WatcherStateEventProcessor<TResource, TKey>(
         return Task.CompletedTask;
     }
 
-    private void ProcessGreenEvent(WatcherEvent<TResource, TKey> watcherEvent)
+    private void ProcessGreenEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
         WatcherStateInfo watcherStateInfo = new()
         {
-            Key = watcherEvent.Key,
+            Key = kubernetesEvent.Key,
             WatchedKubernetesObjectType = typeof(TResource),
             LastException = null,
             LastEventMoment = DateTime.UtcNow,
             Status = WatcherStateStatus.Green,
-            EventsGauge = eventsGauge.GetValue(watcherEvent.Key),
+            EventsGauge = eventsGauge.GetValue(kubernetesEvent.Key),
         };
 
-        cache[watcherEvent.Key] = watcherStateInfo;
+        cache[kubernetesEvent.Key] = watcherStateInfo;
     }
 
-    private void ProcessRedEvent(WatcherEvent<TResource, TKey> watcherEvent)
+    private void ProcessRedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
         WatcherStateInfo watcherStateInfo = new()
         {
-            Key = watcherEvent.Key,
+            Key = kubernetesEvent.Key,
             WatchedKubernetesObjectType = typeof(TResource),
-            LastException = watcherEvent.Exception,
+            LastException = kubernetesEvent.Exception,
             LastEventMoment = DateTime.UtcNow,
             Status = WatcherStateStatus.Red,
-            EventsGauge = eventsGauge.GetValue(watcherEvent.Key),
+            EventsGauge = eventsGauge.GetValue(kubernetesEvent.Key),
         };
 
-        cache[watcherEvent.Key] = watcherStateInfo;
+        cache[kubernetesEvent.Key] = watcherStateInfo;
     }
 
-    private void ProcessFlushedEvent(WatcherEvent<TResource, TKey> watcherEvent) =>
-        cache.TryRemove(watcherEvent.Key, out _);
+    private void ProcessFlushedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent) =>
+        cache.TryRemove(kubernetesEvent.Key, out _);
 }

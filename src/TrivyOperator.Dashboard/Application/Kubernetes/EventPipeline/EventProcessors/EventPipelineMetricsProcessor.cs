@@ -1,6 +1,7 @@
 ﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Metrics.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
 namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors;
@@ -11,30 +12,30 @@ public class EventPipelineMetricsProcessor<TResource, TKey> (
 ) : IKubernetesEventProcessor<TResource, TKey>
     where TResource : class, ITrivyReport<TKey>
 {
-    public Task ProcessKubernetesEvent(
-        WatcherEvent<TResource, TKey> watcherEvent,
+    public Task ProcessEvent(
+        KubernetesEvent<TResource, TKey> kubernetesEvent,
         CancellationToken ctx
     )
     {
-        switch (watcherEvent.WatcherEventType)
+        switch (kubernetesEvent.PipelineEventType)
         {
-            case WatcherEventType.InitialAdded:
-            case WatcherEventType.Added:
-            case WatcherEventType.Deleted:
-            case WatcherEventType.Modified:
-            case WatcherEventType.Bookmark:
-            case WatcherEventType.Error:
-            case WatcherEventType.Flushed:
-            case WatcherEventType.Initialized:
-            case WatcherEventType.Unknown:
-                ProcessEvent(watcherEvent, ctx);
+            case PipelineEventType.InitialAdded:
+            case PipelineEventType.Added:
+            case PipelineEventType.Deleted:
+            case PipelineEventType.Modified:
+            case PipelineEventType.Bookmark:
+            case PipelineEventType.Error:
+            case PipelineEventType.Flushed:
+            case PipelineEventType.Initialized:
+            case PipelineEventType.Unknown:
+                UpdateMetrics(kubernetesEvent, ctx);
                 break;
-            case WatcherEventType.WatcherConnected:
+            case PipelineEventType.WatcherConnected:
                 break;
             default:
                 logger.LogWarning(
                     "Unknown event type {eventType} for {kubernetesObjectType}.",
-                    watcherEvent.WatcherEventType,
+                    kubernetesEvent.PipelineEventType,
                     typeof(TResource).Name
                 );
                 break;
@@ -43,7 +44,7 @@ public class EventPipelineMetricsProcessor<TResource, TKey> (
         return Task.CompletedTask;
     }
     
-    private void ProcessEvent(WatcherEvent<TResource, TKey> watcherEvent, CancellationToken ctx)
+    private void UpdateMetrics(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx)
     {
         ctx.ThrowIfCancellationRequested();
         
@@ -52,17 +53,17 @@ public class EventPipelineMetricsProcessor<TResource, TKey> (
             new KeyValuePair<string, object?>("resource_kind", typeof(TResource).Name),
             new KeyValuePair<string, object?>(
                 "resource_level",
-                watcherEvent.Key.NamespaceName.IsClusterScoped ? "cluster_scoped" : "namespaced"
+                kubernetesEvent.Key.NamespaceName.IsClusterScoped ? "cluster_scoped" : "namespaced"
             ),
             new KeyValuePair<string, object?>(
                 "context_name",
-                watcherEvent.Key.ContextName.IsUnset ? null : watcherEvent.Key.ContextName.Value
+                kubernetesEvent.Key.ContextName.IsUnset ? null : kubernetesEvent.Key.ContextName.Value
             ),
             new KeyValuePair<string, object?>(
                 "namespace_name",
-                watcherEvent.Key.NamespaceName.IsClusterScoped ? null : watcherEvent.Key.NamespaceName.Value
+                kubernetesEvent.Key.NamespaceName.IsClusterScoped ? null : kubernetesEvent.Key.NamespaceName.Value
             ),
-            new KeyValuePair<string, object?>("watch_event_type", watcherEvent.WatcherEventType.ToString())
+            new KeyValuePair<string, object?>("watch_event_type", kubernetesEvent.PipelineEventType.ToString())
         );
     }
 }

@@ -6,7 +6,7 @@ using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters;
 
 public class KubernetesEventPipelineStarter<TResource, TKey>(
-    IEventPipelineDispatcher<TResource, TKey> eventPipelineDispatcher,
+    IKubernetesEventDispatcher<TResource, TKey> kubernetesEventDispatcher,
     IEventPipelineBackgroundQueue<TResource, TKey> queue,
     ILogger<KubernetesEventPipelineStarter<TResource, TKey>> logger
 ) : IKubernetesEventPipelineStarter
@@ -17,6 +17,6 @@ public class KubernetesEventPipelineStarter<TResource, TKey>(
         logger.LogInformation("Starting Kubernetes Events Pipeline for {kubernetesObjectType}", nameof(TResource));
         
         queue.StartQueue();
-        eventPipelineDispatcher.StartEventsProcessing(ctx);   
+        kubernetesEventDispatcher.StartEventsProcessing(ctx);   
     }
 }

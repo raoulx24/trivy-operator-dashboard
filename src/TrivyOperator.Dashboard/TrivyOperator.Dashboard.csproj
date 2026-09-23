@@ -61,10 +61,13 @@
 
     <ItemGroup>
       <Folder Include="Application\FileRepository\" />
+      <Folder Include="Application\History\VulnerabilityReportsHistory\EventPipeline\" />
       <Folder Include="Application\Kubernetes\Contexts\" />
       <Folder Include="Application\Kubernetes\EventPipeline\" />
       <Folder Include="Application\Kubernetes\WatcherRegistries\" />
       <Folder Include="Application\Metrics\" />
+      <Folder Include="Application\Shared\Cache\" />
+      <Folder Include="Application\Shared\EventProcessors\" />
       <Folder Include="Infrastructure\BackgroundQueues\Abstractions\" />
       <Folder Include="Infrastructure\History\Services\" />
     </ItemGroup>

@@ -7,7 +7,7 @@ using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Application.Queries.Common.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services.Abstractions;
-using TrivyOperator.Dashboard.Application.Shared.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;

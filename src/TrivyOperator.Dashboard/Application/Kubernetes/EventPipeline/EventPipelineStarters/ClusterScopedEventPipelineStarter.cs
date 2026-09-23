@@ -9,12 +9,12 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters;
 
 public class ClusterScopedEventPipelineStarter<TResource, TKey>(
-    IEventPipelineDispatcher<TResource, TKey> eventPipelineDispatcher,
+    IKubernetesEventDispatcher<TResource, TKey> kubernetesEventDispatcher,
     IEventPipelineBackgroundQueue<TResource, TKey> queue,
     IKubernetesContextResolver contextResolver,
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatcherRegistries,
     ILogger<KubernetesEventPipelineStarter<TResource, TKey>> logger
-) : KubernetesEventPipelineStarter<TResource, TKey>(eventPipelineDispatcher, queue, logger)
+) : KubernetesEventPipelineStarter<TResource, TKey>(kubernetesEventDispatcher, queue, logger)
     where TResource : class, IEntity<TKey>
 {
     public override void StartPipeline(CancellationToken ctx = default)

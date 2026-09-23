@@ -1,17 +1,15 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.Kubernetes.Models;
-using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.EventProcessors.Abstractions;
 
-namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers;
+namespace TrivyOperator.Dashboard.Application.Shared.EventDispatchers;
 
-public class EventPipelineDispatcher<TResource, TKey>(
-    IEnumerable<IKubernetesEventProcessor<TResource, TKey>> services,
-    IEventPipelineBackgroundQueue<TResource, TKey> backgroundQueue,
-    ILogger<EventPipelineDispatcher<TResource, TKey>> logger
-) : IEventPipelineDispatcher<TResource, TKey>
-    where TResource : class, IEntity<TKey>
+public class EventDispatcher<TResource, TEvent>(
+    IEnumerable<IEventProcessor<TEvent>> services,
+    IBackgroundQueue<TEvent> backgroundQueue,
+    ILogger<EventDispatcher<TResource, TEvent>> logger
+) : IEventDispatcher<TResource>
 {
     private Task? dispatcherQueueProcessor;
     private bool IsQueueProcessingStarted => !dispatcherQueueProcessor?.IsCanceled ?? false;
@@ -40,9 +38,9 @@ public class EventPipelineDispatcher<TResource, TKey>(
         {
             try
             {
-                WatcherEvent<TResource, TKey>? watcherEvent = await backgroundQueue.DequeueAsync(ctx);
+                TEvent? pipeEvent = await backgroundQueue.DequeueAsync(ctx);
 
-                if (watcherEvent is null)
+                if (pipeEvent is null)
                 {
                     if (!ctx.IsCancellationRequested)
                     {
@@ -60,7 +58,7 @@ public class EventPipelineDispatcher<TResource, TKey>(
                 try
                 {
                     IEnumerable<Task> tasks = services.Select(service =>
-                        service.ProcessKubernetesEvent(watcherEvent, ctx)
+                        service.ProcessEvent(pipeEvent, ctx)
                     );
                     await Task.WhenAll(tasks);
                 }
@@ -98,3 +96,4 @@ public class EventPipelineDispatcher<TResource, TKey>(
         }
     }
 }
+

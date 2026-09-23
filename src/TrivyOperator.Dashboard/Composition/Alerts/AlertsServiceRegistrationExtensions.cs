@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Application.Alerts.Models;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Models;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Services;
 using TrivyOperator.Dashboard.Application.Queries.Alerts.Services.Abstractions;
-using TrivyOperator.Dashboard.Application.Shared.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;

@@ -1,8 +1,8 @@
 ﻿using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
+using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
@@ -97,7 +97,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                         resourceVersion
                     );
 
-                    await eventPublisher.Publish(key, WatcherEventType.Initialized, ctx);
+                    await eventPublisher.Publish(key, PipelineEventType.Initialized, ctx);
                 }
 
                 do
@@ -151,7 +151,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
             }
             catch (Exception ex)
             {
-                await eventPublisher.Publish(key, WatcherEventType.Error, ctx, exception: ex);
+                await eventPublisher.Publish(key, PipelineEventType.Error, ctx, exception: ex);
 
                 resourceVersion = null;
 
@@ -200,7 +200,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
 
             foreach (TKubernetesObject item in resourceList.Items ?? [])
             {
-                await eventPublisher.Publish(key, WatcherEventType.InitialAdded, ctx, item);
+                await eventPublisher.Publish(key, PipelineEventType.InitialAdded, ctx, item);
             }
 
             continueToken = resourceList.Metadata.ContinueProperty;
