@@ -66,6 +66,7 @@
       <Folder Include="Application\Kubernetes\WatcherRegistries\" />
       <Folder Include="Application\Metrics\" />
       <Folder Include="Infrastructure\BackgroundQueues\Abstractions\" />
+      <Folder Include="Infrastructure\History\Services\" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

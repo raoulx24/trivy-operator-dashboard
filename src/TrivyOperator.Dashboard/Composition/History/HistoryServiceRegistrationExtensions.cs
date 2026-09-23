@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
+﻿using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.KubernetesEventProcessors;
+using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.History.Services;
 using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
@@ -12,7 +13,6 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.History.Services;
 using TrivyOperator.Dashboard.Infrastructure.History.Stores;
 
 namespace TrivyOperator.Dashboard.Composition.History;
