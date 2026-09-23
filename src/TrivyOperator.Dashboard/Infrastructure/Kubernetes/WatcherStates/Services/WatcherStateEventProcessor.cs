@@ -1,9 +1,9 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
 using TrivyOperator.Dashboard.Application.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Internals;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Services;

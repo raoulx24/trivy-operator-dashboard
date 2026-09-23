@@ -1,11 +1,12 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters;
+namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters;
 
 public class ClusterScopedEventPipelineStarter<TResource, TKey>(
     IEventPipelineDispatcher<TResource, TKey> eventPipelineDispatcher,

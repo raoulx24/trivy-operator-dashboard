@@ -1,9 +1,9 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Application.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors;
+namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors;
 
 public class EventPipelineMetricsProcessor<TResource, TKey> (
     IMetricsClient metricsClient,

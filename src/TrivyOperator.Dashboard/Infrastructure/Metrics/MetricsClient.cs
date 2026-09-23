@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics.Metrics;
-using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
+using TrivyOperator.Dashboard.Application.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Clients.Metrics;
+namespace TrivyOperator.Dashboard.Infrastructure.Metrics;
 
 public class MetricsClient : IMetricsClient
 {

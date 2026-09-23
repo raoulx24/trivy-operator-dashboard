@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
+using TrivyOperator.Dashboard.Application.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 

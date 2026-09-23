@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
+﻿namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
 
 public interface IBackgroundQueue<TObject>
     where TObject : class

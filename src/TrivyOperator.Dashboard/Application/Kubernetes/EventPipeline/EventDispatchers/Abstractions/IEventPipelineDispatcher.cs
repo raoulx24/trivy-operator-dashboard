@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers.Abstractions;
+namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers.Abstractions;
 
 public interface IEventPipelineDispatcher<TResource, TKey>
     where TResource : class, IEntity<TKey>

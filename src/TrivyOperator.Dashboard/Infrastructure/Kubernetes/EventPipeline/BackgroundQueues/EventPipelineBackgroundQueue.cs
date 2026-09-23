@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 

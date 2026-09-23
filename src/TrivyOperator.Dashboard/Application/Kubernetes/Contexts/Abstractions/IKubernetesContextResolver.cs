@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
+namespace TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
 
 public interface IKubernetesContextResolver
 {

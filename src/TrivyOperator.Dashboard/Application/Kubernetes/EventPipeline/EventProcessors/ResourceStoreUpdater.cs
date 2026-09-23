@@ -1,10 +1,10 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors;
+namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors;
 
 public class ResourceStoreUpdater<TResource, TKey> (
     IResourceStore<TResource, TKey> resourceStore,

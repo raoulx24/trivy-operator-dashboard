@@ -1,10 +1,10 @@
-﻿using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.HostedServices;
+namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.HostedServices;
 
-public sealed class KubernetesEventPipelineHost(
+public sealed class EventPipelineHost(
     IEnumerable<IKubernetesEventPipelineStarter> services,
-    ILogger<KubernetesEventPipelineHost> logger
+    ILogger<EventPipelineHost> logger
 ) : BackgroundService
 {
     public override async Task StopAsync(CancellationToken ctx)

@@ -1,5 +1,13 @@
 ﻿using k8s.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.HostedServices;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Contexts;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
@@ -19,14 +27,6 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.HostedServices;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPipelineStarters.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.ResourceWatches;
@@ -136,7 +136,7 @@ public static class KubernetesServiceRegistrationExtensions
 
     private static void AddDefaultContextKubernetesServices(this IServiceCollection services)
     {
-        services.AddHostedService<KubernetesEventPipelineHost>();
+        services.AddHostedService<EventPipelineHost>();
 
         services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
     }

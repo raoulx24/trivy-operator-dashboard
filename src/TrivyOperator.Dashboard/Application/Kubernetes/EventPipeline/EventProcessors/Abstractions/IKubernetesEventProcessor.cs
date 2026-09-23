@@ -1,7 +1,7 @@
 ﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventProcessors.Abstractions;
+namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 
 public interface IKubernetesEventProcessor<TResource, TKey>
     where TResource : class, IEntity<TKey>

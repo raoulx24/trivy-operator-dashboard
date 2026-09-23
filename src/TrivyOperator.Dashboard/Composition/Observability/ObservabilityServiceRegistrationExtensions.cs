@@ -3,8 +3,8 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics;
-using TrivyOperator.Dashboard.Infrastructure.Clients.Metrics.Abstractions;
+using TrivyOperator.Dashboard.Application.Metrics.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Metrics;
 
 namespace TrivyOperator.Dashboard.Composition.Observability;
 
