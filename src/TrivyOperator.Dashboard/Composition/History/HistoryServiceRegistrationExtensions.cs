@@ -32,7 +32,7 @@ public static class HistoryServiceRegistrationExtensions
                     IVulnerabilityReportsHistoryService,
                     VulnerabilityReportsHistoryNullService>();
 
-                services.AddScoped<
+                services.AddSingleton<
                     IVulnerabilityReportsHistoryStore,
                     DistributedCacheVulnerabilityReportsHistoryNullStore>();
                 
@@ -82,7 +82,7 @@ public static class HistoryServiceRegistrationExtensions
 
         services.AddSingleton<IDistributedCacheExecutor, DistributedCacheExecutor>();
 
-        services.AddScoped<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
+        services.AddSingleton<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
 
         services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
 
