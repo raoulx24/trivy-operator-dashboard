@@ -4,7 +4,6 @@ using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQue
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters;
-using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.HostedServices;
@@ -13,6 +12,7 @@ using TrivyOperator.Dashboard.Application.Queries.Contexts;
 using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
 using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.EventPipelineStarters.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
@@ -27,6 +27,7 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.ResourceWatches;
@@ -217,7 +218,7 @@ public static class KubernetesServiceRegistrationExtensions
     private static void AddNamespaceEventPipelineServices(this IServiceCollection services)
     {
         // event pipeline starter
-        services.AddSingleton<IKubernetesEventPipelineStarter, ClusterScopedEventPipelineStarter<KubernetesNamespace, Uid>>();
+        services.AddSingleton<IEventPipelineStarter, ClusterScopedKubernetesEventPipelineStarter<KubernetesNamespace, Uid>>();
         
         // kubernetes resource watcher
         services.AddSingleton<
@@ -249,8 +250,8 @@ public static class KubernetesServiceRegistrationExtensions
 
         // background queue
         services.AddSingleton<
-            IEventPipelineBackgroundQueue<KubernetesNamespace, Uid>, 
-            EventPipelineBackgroundQueue<KubernetesNamespace, Uid>>();
+            IKubernetesBackgroundQueue<KubernetesNamespace, Uid>, 
+            KubernetesBackgroundQueue<KubernetesNamespace, Uid>>();
 
         // event dispatcher
         services.AddSingleton<

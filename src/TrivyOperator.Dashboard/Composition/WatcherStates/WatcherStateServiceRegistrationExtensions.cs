@@ -13,6 +13,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.HostedServices;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Services;
+using TrivyOperator.Dashboard.Infrastructure.Trivy.Factories;
 
 namespace TrivyOperator.Dashboard.Composition.WatcherStates;
 
@@ -52,7 +53,7 @@ public static class WatcherStateServiceRegistrationExtensions
             ICache<ResourceLocation, WatcherStateInfo>, 
             Cache<ResourceLocation, WatcherStateInfo>>();
 
-        services.AddScoped<IKnownKubernetesTypeFactory, IKnownKubernetesTypeFactory>();
+        services.AddScoped<IKnownKubernetesTypeFactory, KnownKubernetesTypeFactory>();
         
         services.AddScoped<IWatcherStatusService, WatcherStatusService>();
 

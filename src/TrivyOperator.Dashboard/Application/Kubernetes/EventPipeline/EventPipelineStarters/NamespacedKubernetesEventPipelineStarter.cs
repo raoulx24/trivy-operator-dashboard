@@ -4,9 +4,9 @@ using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters;
 
-public class NamespacedEventPipelineStarter<TResource, TKey>(
+public class NamespacedKubernetesEventPipelineStarter<TResource, TKey>(
     IKubernetesEventDispatcher<TResource, TKey> kubernetesEventDispatcher,
-    IEventPipelineBackgroundQueue<TResource, TKey> queue,
-    ILogger<NamespacedEventPipelineStarter<TResource, TKey>> logger
+    IKubernetesBackgroundQueue<TResource, TKey> queue,
+    ILogger<NamespacedKubernetesEventPipelineStarter<TResource, TKey>> logger
 ) : KubernetesEventPipelineStarter<TResource, TKey>(kubernetesEventDispatcher, queue, logger)
     where TResource : class, IEntity<TKey>;

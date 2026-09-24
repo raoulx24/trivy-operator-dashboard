@@ -1,9 +1,9 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Shared.EventPipelineStarters.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.HostedServices;
 
 public sealed class EventPipelineHost(
-    IEnumerable<IKubernetesEventPipelineStarter> services,
+    IEnumerable<IEventPipelineStarter> services,
     ILogger<EventPipelineHost> logger
 ) : BackgroundService
 {
@@ -18,7 +18,7 @@ public sealed class EventPipelineHost(
     {
         logger.LogInformation("Kubernetes Watcher Hosted Service started.");
 
-        foreach (IKubernetesEventPipelineStarter service in services)
+        foreach (IEventPipelineStarter service in services)
         {
             service.StartPipeline(ctx);
         }

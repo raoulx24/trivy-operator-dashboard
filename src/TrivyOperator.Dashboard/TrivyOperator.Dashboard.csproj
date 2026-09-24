@@ -61,7 +61,6 @@
 
     <ItemGroup>
       <Folder Include="Application\FileRepository\" />
-      <Folder Include="Application\History\VulnerabilityReportsHistory\EventPipeline\" />
       <Folder Include="Application\Kubernetes\Contexts\" />
       <Folder Include="Application\Kubernetes\EventPipeline\" />
       <Folder Include="Application\Kubernetes\WatcherRegistries\" />

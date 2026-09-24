@@ -11,7 +11,7 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ResourceMaterializer.Abs
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers;
 
 public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>(
-    IEventPipelineBackgroundQueue<TResource, TKey> backgroundQueue,
+    IKubernetesBackgroundQueue<TResource, TKey> backgroundQueue,
     IResourceMaterializer<TKubernetesObject, TResource, TKey> resourceMaterializer,
     ILogger<KubernetesEventPublisher<TKubernetesObject, TResource, TKey>> logger
 ) : IKubernetesEventPublisher<TKubernetesObject>

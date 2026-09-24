@@ -9,7 +9,7 @@ namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDisp
 
 public class KubernetesEventDispatcher<TResource, TKey>(
     IEnumerable<IKubernetesEventProcessor<TResource, TKey>> services,
-    IEventPipelineBackgroundQueue<TResource, TKey> backgroundQueue,
+    IKubernetesBackgroundQueue<TResource, TKey> backgroundQueue,
     ILogger<KubernetesEventDispatcher<TResource, TKey>> logger
 ) : EventDispatcher<TResource, KubernetesEvent<TResource, TKey>>(services, backgroundQueue, logger),
     IKubernetesEventDispatcher<TResource, TKey>

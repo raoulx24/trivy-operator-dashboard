@@ -4,13 +4,12 @@ using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatch
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters;
 
-public class ClusterScopedEventPipelineStarter<TResource, TKey>(
+public class ClusterScopedKubernetesEventPipelineStarter<TResource, TKey>(
     IKubernetesEventDispatcher<TResource, TKey> kubernetesEventDispatcher,
-    IEventPipelineBackgroundQueue<TResource, TKey> queue,
+    IKubernetesBackgroundQueue<TResource, TKey> queue,
     IKubernetesContextResolver contextResolver,
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatcherRegistries,
     ILogger<KubernetesEventPipelineStarter<TResource, TKey>> logger

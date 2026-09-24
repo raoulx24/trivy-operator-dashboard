@@ -3,10 +3,11 @@ using TrivyOperator.Dashboard.Application.Queries.AppVersions.Models;
 using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Domain.Releases.Entities;
+using TrivyOperator.Dashboard.Domain.Releases.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.Queries.AppVersions.Services;
 
-public class AppVersionsService(ICache<string, Release> cache) : IAppVersionsService
+public class AppVersionsService(ICache<ReleaseId, Release> cache) : IAppVersionsService
 {
     public Task<ReleaseDto?> GetTrivyDashboardLatestRelease()
     {
