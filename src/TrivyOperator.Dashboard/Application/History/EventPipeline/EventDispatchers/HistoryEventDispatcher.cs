@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.History.EventPipeline.BackgroundQueue;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.History.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.History.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Models;
 using TrivyOperator.Dashboard.Application.Shared.EventDispatchers;
 

@@ -1,9 +1,15 @@
-﻿using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.KubernetesEventProcessors;
+﻿using TrivyOperator.Dashboard.Application.History.EventPipeline.BackgroundQueue;
+using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers;
+using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.History.EventPipeline.EventPublisher;
+using TrivyOperator.Dashboard.Application.History.EventPipeline.EventPublisher.Abstractions;
+using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Queries.History.Services;
 using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
+using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Entities;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Stores.Abstractions;
@@ -11,6 +17,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.History.EventPipeline.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.Stores;
@@ -91,5 +98,20 @@ public static class HistoryServiceRegistrationExtensions
         services.AddScoped<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
 
         services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
+        
+        services.AddHistoryEventPipelineServices<Snapshot>();
+    }
+
+    private static void AddHistoryEventPipelineServices<THistoryResource>(this IServiceCollection services)
+        where THistoryResource : class
+    {
+        services.AddSingleton<IHistoryEventPublisher<THistoryResource>, HistoryEventPublisher<THistoryResource>>();
+        
+        services.AddSingleton<IHistoryBackgroundQueue<THistoryResource>, HistoryBackgroundQueue<THistoryResource>>();
+
+        services.AddSingleton<IHistoryEventDispatcher<THistoryResource>, HistoryEventDispatcher<THistoryResource>>();
+        
+        // TODO: add also processor(s)
+        // services.AddSingleton<IHistoryEventProcessor<THistoryResource>, IMyHistoryEventProcessor<THistoryResource>>()
     }
 }
