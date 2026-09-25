@@ -1,8 +1,10 @@
 ﻿using TrivyOperator.Dashboard.Application.History.EventPipeline.BackgroundQueue;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.History.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventPublisher;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventPublisher.Abstractions;
+using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.EventProcessors;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
@@ -15,6 +17,8 @@ using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Service
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories;
+using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
 using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.EventPipeline.BackgroundQueues;
@@ -87,6 +91,8 @@ public static class HistoryServiceRegistrationExtensions
 
         services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
 
+        services.AddSingleton<ICacheEntityCodecFactory, CacheEntityCodecFactory>();
+
         services.AddSingleton<IDistributedCacheExecutor, DistributedCacheExecutor>();
 
         services.AddSingleton<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
@@ -111,7 +117,6 @@ public static class HistoryServiceRegistrationExtensions
 
         services.AddSingleton<IHistoryEventDispatcher<THistoryResource>, HistoryEventDispatcher<THistoryResource>>();
         
-        // TODO: add also processor(s)
-        // services.AddSingleton<IHistoryEventProcessor<THistoryResource>, IMyHistoryEventProcessor<THistoryResource>>()
+        services.AddSingleton<IHistoryEventProcessor<Snapshot>, VulnerabilityReportsHistoryMetricsProcessor> ();
     }
 }
