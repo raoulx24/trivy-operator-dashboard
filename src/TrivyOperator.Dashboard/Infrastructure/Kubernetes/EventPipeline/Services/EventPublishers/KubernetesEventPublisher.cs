@@ -34,15 +34,22 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
             kubernetesObject?.Metadata?.Name ?? "N/A"
         );
 
+        TResource? resource = null;
+        Uid? resourceId = null;
+
+        if (kubernetesObject?.Metadata?.Uid is not null)
+        {
+            resource = await resourceMaterializer.Materialize(kubernetesObject, ctx);
+            resourceId = new Uid(kubernetesObject.Metadata.Uid);
+        }
+
         try
         {
             KubernetesEvent<TResource, TKey> kubernetesEvent = new(
                 Key: key,
                 PipelineEventType: eventType,
-                Resource: await resourceMaterializer.Materialize(kubernetesObject, ctx),
-                ResourceId: kubernetesObject?.Metadata == null
-                    ? null
-                    : new Uid(kubernetesObject.Metadata.Uid),
+                Resource: resource,
+                ResourceId: resourceId,
                 Exception: exception
             );
 
