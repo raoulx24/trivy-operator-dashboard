@@ -39,7 +39,7 @@ CompositionLogger.Initialize(logger);
 TrivyOperatorDashboardHostConfiguration.Configure(builder.WebHost, configuration, builder.Environment);
 
 // check redis/valkey connectivity
-// await HistoryStartupChecks.CheckDistributedCacheConnectivity(configuration);
+await HistoryStartupChecks.CheckDistributedCacheConnectivity(configuration);
 
 // api configurations (json options, swagger, headers, cors etc)
 builder.Services.AddApiServices(configuration, builder.Environment);

@@ -42,7 +42,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/GitHubReleaseDto'
+                  $ref: '#/components/schemas/ReleaseDto'
         '400':
           description: Bad Request
           content:
@@ -66,7 +66,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GitHubReleaseDto'
+                $ref: '#/components/schemas/ReleaseDto'
         '400':
           description: Bad Request
           content:
@@ -153,6 +153,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  '/api/cluster-compliance-reports/{uid}':
+    get:
+      tags:
+        - ClusterComplianceReport
+      operationId: GetClusterComplianceReportDtoByUid
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterComplianceReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-compliance-reports/denormalized:
     get:
       tags:
@@ -167,6 +203,99 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterComplianceReportDenormalizedDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/cluster-config-audit-reports:
+    get:
+      tags:
+        - ClusterConfigAuditReport
+      operationId: GetClusterConfigAuditReportDtos
+      parameters:
+        - name: excludedSeverities
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClusterConfigAuditReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/cluster-config-audit-reports/{uid}':
+    get:
+      tags:
+        - ClusterConfigAuditReport
+      operationId: GetClusterConfigAuditReportDtoByUid
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterConfigAuditReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/cluster-config-audit-reports/denormalized:
+    get:
+      tags:
+        - ClusterConfigAuditReport
+      operationId: GetClusterConfigAuditReportDenormalizedDtos
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClusterConfigAuditReportDenormalizedDto'
         '400':
           description: Bad Request
           content:
@@ -216,7 +345,6 @@ paths:
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: OK
@@ -294,6 +422,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  '/api/cluster-rbac-assessment-reports/{uid}':
+    get:
+      tags:
+        - ClusterRbacAssessmentReport
+      operationId: GetClusterRbacAssessmentReportDtoByUid
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterRbacAssessmentReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-rbac-assessment-reports/denormalized:
     get:
       tags:
@@ -320,11 +484,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-  /api/cluster-rbac-assessment-reports/summary:
+  /api/cluster-sbom-reports/minimal:
     get:
       tags:
-        - ClusterRbacAssessmentReport
-      operationId: GetClusterRbacAssessmentReportSummaryDtos
+        - ClusterSbomReport
+      operationId: GetClusterSbomReportMinimalDtos
       responses:
         '200':
           description: OK
@@ -333,7 +497,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ClusterRbacAssessmentReportSummaryDto'
+                  $ref: '#/components/schemas/SbomReportImageMinimalDto'
         '400':
           description: Bad Request
           content:
@@ -450,6 +614,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  '/api/cluster-vulnerability-reports/{uid}':
+    get:
+      tags:
+        - ClusterVulnerabilityReport
+      operationId: GetClusterVulnerabilityReportDtoByUid
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterVulnerabilityReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/config-audit-reports:
     get:
       tags:
@@ -496,7 +696,6 @@ paths:
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: OK
@@ -527,6 +726,11 @@ paths:
       tags:
         - ConfigAuditReport
       operationId: GetConfigAuditReportDenormalizedDtos
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -548,69 +752,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-  /api/config-audit-reports/active-namespaces:
-    get:
-      tags:
-        - ConfigAuditReport
-      operationId: GetConfigAuditReportActiveNamespaces
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/config-audit-reports/summary:
-    get:
-      tags:
-        - ConfigAuditReport
-      operationId: GetConfigAuditReportSummaryDtos
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ConfigAuditReportSummaryDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
   /api/exposed-secret-reports:
     get:
       tags:
-        - ExposedSecretReport
+        - ExposedSecretReports
       operationId: GetExposedSecretReportDtos
       parameters:
         - name: namespaceName
-          in: query
-          schema:
-            type: string
-        - name: excludedSeverities
           in: query
           schema:
             type: string
@@ -635,11 +783,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  '/api/exposed-secret-reports/{uid}':
+    get:
+      tags:
+        - ExposedSecretReports
+      operationId: GetExposedSecretReportDtoByUid
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExposedSecretReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/exposed-secret-reports/denormalized:
     get:
       tags:
-        - ExposedSecretReport
+        - ExposedSecretReports
       operationId: GetExposedSecretReportDenormalizedDtos
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -661,36 +844,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-  /api/exposed-secret-reports/active-namespaces:
-    get:
-      tags:
-        - ExposedSecretReport
-      operationId: GetExposedSecretReportActiveNamespaces
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
   /api/exposed-secret-reports/grouped-by-image:
     get:
       tags:
-        - ExposedSecretReport
+        - ExposedSecretReports
       operationId: GetExposedSecretReportImageDtos
       parameters:
         - name: namespaceName
@@ -698,10 +855,6 @@ paths:
           schema:
             type: string
         - name: excludedSeverities
-          in: query
-          schema:
-            type: string
-        - name: digest
           in: query
           schema:
             type: string
@@ -714,32 +867,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ExposedSecretReportImageDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/exposed-secret-reports/summary:
-    get:
-      tags:
-        - ExposedSecretReport
-      operationId: GetExposedSecretReportSummaryDtos
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EsSeveritiesByNsSummaryDto'
         '400':
           description: Bad Request
           content:
@@ -798,7 +925,6 @@ paths:
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: OK
@@ -806,12 +932,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InfraAssessmentReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
@@ -829,6 +949,11 @@ paths:
       tags:
         - InfraAssessmentReport
       operationId: GetInfraAssessmentReportDenormalizedDtos
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -838,38 +963,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/InfraAssessmentReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/infra-assessment-reports/active-namespaces:
-    get:
-      tags:
-        - InfraAssessmentReport
-      operationId: GetInfraAssessmentReportActiveNamespaces
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
@@ -961,11 +1054,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  '/api/rbac-assessment-reports/{uid}':
+    get:
+      tags:
+        - RbacAssessmentReport
+      operationId: GetRbacAssessmentReportDtoByUid
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RbacAssessmentReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/rbac-assessment-reports/denormalized:
     get:
       tags:
         - RbacAssessmentReport
       operationId: GetRbacAssessmentReportDenormalizedDtos
+      parameters:
+        - name: namespaceName
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -987,11 +1121,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-  /api/rbac-assessment-reports/active-namespaces:
+  /api/sbom-reports/grouped-by-image/minimal:
     get:
       tags:
-        - RbacAssessmentReport
-      operationId: GetRbacAssessmentReportActiveNamespaces
+        - SbomReport
+      operationId: GetSbomReportImageMinimalDtos
       responses:
         '200':
           description: OK
@@ -1000,69 +1134,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/sbom-reports:
-    get:
-      tags:
-        - SbomReport
-      operationId: GetSbomReportDtos
-      parameters:
-        - name: namespaceName
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SbomReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  '/api/sbom-reports/{uid}':
-    get:
-      tags:
-        - SbomReport
-      operationId: GetSbomReportDtoByUid
-      parameters:
-        - name: uid
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SbomReportDto'
+                  $ref: '#/components/schemas/SbomReportImageMinimalDto'
         '400':
           description: Bad Request
           content:
@@ -1079,13 +1151,9 @@ paths:
     get:
       tags:
         - SbomReport
-      operationId: GetSbomReportDtoByDigestNamespace
+      operationId: GetSbomReportImageDtoByDigest
       parameters:
         - name: digest
-          in: query
-          schema:
-            type: string
-        - name: namespaceName
           in: query
           schema:
             type: string
@@ -1095,7 +1163,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SbomReportDto'
+                $ref: '#/components/schemas/SbomReportImageDto'
         '400':
           description: Bad Request
           content:
@@ -1112,13 +1180,9 @@ paths:
     get:
       tags:
         - SbomReport
-      operationId: GetCycloneDxDtoByDigestNamespace
+      operationId: GetCycloneDxDtoByDigest
       parameters:
         - name: digest
-          in: query
-          schema:
-            type: string
-        - name: namespaceName
           in: query
           schema:
             type: string
@@ -1154,13 +1218,9 @@ paths:
     get:
       tags:
         - SbomReport
-      operationId: GetSpdxDtoByDigestNamespace
+      operationId: GetSpdxDtoByDigest
       parameters:
         - name: digest
-          in: query
-          schema:
-            type: string
-        - name: namespaceName
           in: query
           schema:
             type: string
@@ -1171,72 +1231,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpdxBom'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/sbom-reports/grouped-by-image:
-    get:
-      tags:
-        - SbomReport
-      operationId: GetSbomReportImageDtos
-      parameters:
-        - name: digest
-          in: query
-          schema:
-            type: string
-        - name: namespaceName
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SbomReportImageDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/sbom-reports/grouped-by-image/minimal:
-    get:
-      tags:
-        - SbomReport
-      operationId: GetSbomReportImageMinimalDtos
-      parameters:
-        - name: namespaceName
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SbomReportImageMinimalDto'
         '400':
           description: Bad Request
           content:
@@ -1295,67 +1289,6 @@ paths:
           description: Internal Server Error
           content:
             application/zip:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/sbom-reports/active-namespaces:
-    get:
-      tags:
-        - SbomReport
-      operationId: GetSbomReportActiveNamespaces
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/sbom-reports/digest/image-resources:
-    get:
-      tags:
-        - SbomReport
-      operationId: GetSbomReportImageResourceDtosByDigestAndNamespace
-      parameters:
-        - name: digest
-          in: query
-          schema:
-            type: string
-        - name: namespaceName
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SbomReportImageResourceDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/severities:
@@ -1427,10 +1360,6 @@ paths:
           in: query
           schema:
             type: string
-        - name: namespaceName
-          in: query
-          schema:
-            type: string
       responses:
         '200':
           description: OK
@@ -1488,7 +1417,6 @@ paths:
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         '200':
           description: OK
@@ -1534,56 +1462,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-  /api/vulnerability-reports/active-namespaces:
-    get:
-      tags:
-        - VulnerabilityReports
-      operationId: GetVulnerabilityReportActiveNamespaces
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  /api/vulnerability-reports/summary:
-    get:
-      tags:
-        - VulnerabilityReports
-      operationId: GetVulnerabilityReportSummaryDto
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VulnerabilityReportSummaryDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports/grouped-by-image:
     get:
       tags:
@@ -1595,10 +1473,6 @@ paths:
           schema:
             type: string
         - name: excludedSeverities
-          in: query
-          schema:
-            type: string
-        - name: digest
           in: query
           schema:
             type: string
@@ -1690,11 +1564,6 @@ paths:
       tags:
         - VulnerabilityReportsHistory
       operationId: GetVulnerabilityReportHistorySnapshots
-      parameters:
-        - name: namespaceName
-          in: query
-          schema:
-            type: string
       requestBody:
         content:
           application/json:
@@ -1737,11 +1606,6 @@ paths:
     post:
       tags:
         - VulnerabilityReportsHistory
-      parameters:
-        - name: namespaceName
-          in: query
-          schema:
-            type: string
       responses:
         '200':
           description: OK
@@ -1825,7 +1689,9 @@ components:
         emitter:
           type: string
         emitterKey:
-          type: string
+          type: array
+          items:
+            type: string
         message:
           type: string
         severity:
@@ -1877,7 +1743,6 @@ components:
           type: string
         uid:
           type: string
-          format: uuid
         description:
           type: string
         platform:
@@ -1898,10 +1763,10 @@ components:
           type: string
         totalPassCount:
           type: integer
-          format: int64
+          format: int32
         totalFailCount:
           type: integer
-          format: int64
+          format: int32
         updateTimestamp:
           type: string
           format: date-time
@@ -1925,7 +1790,7 @@ components:
             type: string
         totalFail:
           type: integer
-          format: int64
+          format: int32
       additionalProperties: false
     ClusterComplianceReportDetailDto:
       type: object
@@ -1949,7 +1814,7 @@ components:
             type: string
         totalFail:
           type: integer
-          format: int64
+          format: int32
       additionalProperties: false
     ClusterComplianceReportDto:
       type: object
@@ -1958,7 +1823,6 @@ components:
           type: string
         uid:
           type: string
-          format: uuid
         description:
           type: string
         platform:
@@ -1979,22 +1843,22 @@ components:
           type: string
         totalPassCount:
           type: integer
-          format: int64
+          format: int32
         totalFailCount:
           type: integer
-          format: int64
+          format: int32
         totalFailCriticalCount:
           type: integer
-          format: int64
+          format: int32
         totalFailHighCount:
           type: integer
-          format: int64
+          format: int32
         totalFailMediumCount:
           type: integer
-          format: int64
+          format: int32
         totalFailLowCount:
           type: integer
-          format: int64
+          format: int32
         updateTimestamp:
           type: string
           format: date-time
@@ -2004,16 +1868,25 @@ components:
           items:
             $ref: '#/components/schemas/ClusterComplianceReportDetailDto'
       additionalProperties: false
-    ClusterInfraAssessmentReportDenormalizedDto:
+    ClusterConfigAuditReportDenormalizedDto:
       type: object
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
-        resourceKind:
-          type: string
+        criticalCount:
+          type: integer
+          format: int32
+        highCount:
+          type: integer
+          format: int32
+        mediumCount:
+          type: integer
+          format: int32
+        lowCount:
+          type: integer
+          format: int32
         category:
           type: string
         checkId:
@@ -2034,17 +1907,40 @@ components:
         title:
           type: string
       additionalProperties: false
-    ClusterInfraAssessmentReportDetailDto:
+    ClusterConfigAuditReportDto:
       type: object
       properties:
-        id:
+        uid:
           type: string
-          format: uuid
-          readOnly: true
-        matchKey:
+        resourceName:
           type: string
-          format: uuid
-          readOnly: true
+        criticalCount:
+          type: integer
+          format: int32
+        highCount:
+          type: integer
+          format: int32
+        mediumCount:
+          type: integer
+          format: int32
+        lowCount:
+          type: integer
+          format: int32
+        updateTimestamp:
+          type: string
+          format: date-time
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
+      additionalProperties: false
+    ClusterInfraAssessmentReportDenormalizedDto:
+      type: object
+      properties:
+        uid:
+          type: string
+        resourceName:
+          type: string
         category:
           type: string
         checkId:
@@ -2070,79 +1966,44 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
-          type: string
-        resourceKind:
           type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         details:
           type: array
           items:
-            $ref: '#/components/schemas/ClusterInfraAssessmentReportDetailDto'
+            $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
       additionalProperties: false
     ClusterRbacAssessmentReportDenormalizedDto:
       type: object
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
-        category:
-          type: string
-        checkId:
-          type: string
-        description:
-          type: string
-        messages:
-          type: array
-          items:
-            type: string
-        remediation:
-          type: string
-        severityId:
-          type: integer
           format: int32
-        success:
-          type: boolean
-        title:
-          type: string
-      additionalProperties: false
-    ClusterRbacAssessmentReportDetailDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        matchKey:
-          type: string
-          format: uuid
-          readOnly: true
         category:
           type: string
         checkId:
@@ -2168,50 +2029,31 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         updateTimestamp:
           type: string
           format: date-time
-          nullable: true
         details:
           type: array
           items:
-            $ref: '#/components/schemas/ClusterRbacAssessmentReportDetailDto'
-      additionalProperties: false
-    ClusterRbacAssessmentReportSummaryDto:
-      type: object
-      properties:
-        severityId:
-          type: integer
-          format: int32
-        totalCount:
-          type: integer
-          format: int32
-        distinctCount:
-          type: integer
-          format: int32
+            $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
       additionalProperties: false
     ClusterSbomReportDenormalizedDto:
       type: object
       properties:
-        uid:
-          type: string
-          format: uuid
-          readOnly: true
         creationTimestamp:
           type: string
           format: date-time
@@ -2233,62 +2075,16 @@ components:
           type: string
         dependenciesCount:
           type: integer
-          format: int64
+          format: int32
         propertiesCount:
           type: integer
-          format: int64
-      additionalProperties: false
-    ClusterSbomReportDetailDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        matchKey:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-        purl:
-          type: string
-        version:
-          type: string
-        properties:
-          type: array
-          items:
-            type: array
-            items:
-              type: string
-        criticalCount:
-          type: integer
-          format: int64
-        highCount:
-          type: integer
-          format: int64
-        mediumCount:
-          type: integer
-          format: int64
-        lowCount:
-          type: integer
-          format: int64
-        unknownCount:
-          type: integer
-          format: int64
-        bomRef:
-          type: string
-        dependsOn:
-          type: array
-          items:
-            type: string
+          format: int32
       additionalProperties: false
     ClusterSbomReportDto:
       type: object
       properties:
         uid:
           type: string
-          format: uuid
         updateTimestamp:
           type: string
           format: date-time
@@ -2298,29 +2094,12 @@ components:
           type: string
         imageRepository:
           type: string
-        hasVulnerabilities:
-          type: boolean
-        criticalCount:
-          type: integer
-          format: int64
-        highCount:
-          type: integer
-          format: int64
-        mediumCount:
-          type: integer
-          format: int64
-        lowCount:
-          type: integer
-          format: int64
-        unknownCount:
-          type: integer
-          format: int64
         rootNodeBomRef:
           type: string
         details:
           type: array
           items:
-            $ref: '#/components/schemas/ClusterSbomReportDetailDto'
+            $ref: '#/components/schemas/SbomReportDetailDto'
       additionalProperties: false
     ClusterVulnerabilityReportDenormalizedDto:
       type: object
@@ -2330,8 +2109,6 @@ components:
         resourceNamespace:
           type: string
           nullable: true
-        resourceKind:
-          type: string
         resourceContainerName:
           type: string
         imageName:
@@ -2347,48 +2124,6 @@ components:
         imageEosl:
           type: boolean
           nullable: true
-        fixedVersion:
-          type: string
-        installedVersion:
-          type: string
-        lastModifiedDate:
-          type: string
-          format: date-time
-          nullable: true
-        primaryLink:
-          type: string
-          format: uri
-          nullable: true
-        publishedDate:
-          type: string
-          format: date-time
-          nullable: true
-        resource:
-          type: string
-        score:
-          type: number
-          format: float
-        severityId:
-          type: integer
-          format: int32
-        target:
-          type: string
-        title:
-          type: string
-        vulnerabilityId:
-          type: string
-      additionalProperties: false
-    ClusterVulnerabilityReportDetailDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        matchKey:
-          type: string
-          format: uuid
-          readOnly: true
         fixedVersion:
           type: string
         installedVersion:
@@ -2425,14 +2160,11 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         resourceNamespace:
           type: string
           nullable: true
-        resourceKind:
-          type: string
         resourceContainerName:
           type: string
         imageName:
@@ -2450,107 +2182,74 @@ components:
           nullable: true
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
+          format: int32
         noneCount:
           type: integer
-          format: int64
+          format: int32
         updateTimestamp:
           type: string
           format: date-time
-          nullable: true
         details:
           type: array
           items:
-            $ref: '#/components/schemas/ClusterVulnerabilityReportDetailDto'
+            $ref: '#/components/schemas/VulnerabilityReportDetailDto'
       additionalProperties: false
     ConfigAuditNode:
       required:
-        - code
         - criticalCount
         - description
         - highCount
         - id
         - lowCount
         - mediumCount
-        - type
       type: object
       properties:
-        id:
-          type: string
         code:
           type: string
+          readOnly: true
         type:
+          type: string
+          readOnly: true
+        id:
           type: string
         description:
           type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
       additionalProperties: false
     ConfigAuditReportDenormalizedDto:
       type: object
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         resourceNamespace:
           type: string
         resourceKind:
           type: string
-        category:
-          type: string
-        checkId:
-          type: string
-        description:
-          type: string
-        messages:
-          type: array
-          items:
-            type: string
-        remediation:
-          type: string
-        severityId:
-          type: integer
-          format: int32
-        success:
-          type: boolean
-        title:
-          type: string
-      additionalProperties: false
-    ConfigAuditReportDetailDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        matchKey:
-          type: string
-          format: uuid
-          readOnly: true
         category:
           type: string
         checkId:
@@ -2576,7 +2275,6 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         resourceNamespace:
@@ -2585,41 +2283,23 @@ components:
           type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
-        updateTimestamp:
+          format: int32
+        updateTimestampZ:
           type: string
           format: date-time
-          nullable: true
         details:
           type: array
           items:
-            $ref: '#/components/schemas/ConfigAuditReportDetailDto'
-      additionalProperties: false
-    ConfigAuditReportSummaryDto:
-      type: object
-      properties:
-        namespaceName:
-          type: string
-        severityId:
-          type: integer
-          format: int32
-        kind:
-          type: string
-        totalCount:
-          type: integer
-          format: int32
-        distinctCount:
-          type: integer
-          format: int32
+            $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
       additionalProperties: false
     CycloneDxBom:
       type: object
@@ -2632,7 +2312,7 @@ components:
           type: string
         version:
           type: integer
-          format: int64
+          format: int32
         metadata:
           $ref: '#/components/schemas/CycloneDxMetadata'
         components:
@@ -2749,29 +2429,26 @@ components:
       additionalProperties: false
     DigestNode:
       required:
-        - code
         - description
+        - id
         - imageDigest
         - imageName
         - imageRepository
         - imageTag
-        - namespaceName
         - trivyReports
-        - type
         - vrHistory
         - workloads
       type: object
       properties:
         code:
           type: string
+          readOnly: true
         type:
           type: string
-        description:
-          type: string
+          readOnly: true
         id:
           type: string
-          readOnly: true
-        namespaceName:
+        description:
           type: string
         imageDigest:
           type: string
@@ -2790,44 +2467,11 @@ components:
         vrHistory:
           $ref: '#/components/schemas/VrHistoryNode'
       additionalProperties: false
-    EsSeveritiesByNsSummaryDetailDto:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-        totalCount:
-          type: integer
-          format: int32
-        distinctCount:
-          type: integer
-          format: int32
-      additionalProperties: false
-    EsSeveritiesByNsSummaryDto:
-      required:
-        - isTotal
-        - namespaceName
-      type: object
-      properties:
-        uid:
-          type: string
-          format: uuid
-        namespaceName:
-          minLength: 1
-          type: string
-        isTotal:
-          type: boolean
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/EsSeveritiesByNsSummaryDetailDto'
-      additionalProperties: false
     ExposedSecretReportDenormalizedDto:
       type: object
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         resourceNamespace:
@@ -2844,18 +2488,24 @@ components:
           type: string
         imageRepository:
           type: string
+        updateTimestamp:
+          type: string
+          format: date-time
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
+        unknownCount:
+          type: integer
+          format: int32
         category:
           type: string
         match:
@@ -2875,12 +2525,8 @@ components:
       properties:
         id:
           type: string
-          format: uuid
-          readOnly: true
         matchKey:
           type: string
-          format: uuid
-          readOnly: true
         category:
           type: string
         match:
@@ -2900,39 +2546,38 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
-        resourceName:
+        namespaceName:
           type: string
-        resourceNamespace:
+        digest:
+          type: string
+        imageNameAndTag:
+          type: string
+        imageRepository:
+          type: string
+        resourceName:
           type: string
         resourceKind:
           type: string
         resourceContainerName:
           type: string
-        imageName:
-          type: string
-        imageTag:
-          type: string
-        imageDigest:
-          type: string
-        imageRepository:
-          type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
+        unknownCount:
+          type: integer
+          format: int32
         updateTimestamp:
           type: string
           format: date-time
-          nullable: true
         details:
           type: array
           items:
@@ -2943,39 +2588,52 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
-        resourceNamespace:
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        digest:
           type: string
-        imageName:
-          type: string
-        imageTag:
-          type: string
-        imageDigest:
-          type: string
-        imageRepository:
-          type: string
+        imageInfos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExposedSecretReportImageDtoInfo'
         resources:
           type: array
           items:
-            $ref: '#/components/schemas/ExposedSecretReportImageResourceDto'
+            $ref: '#/components/schemas/ExposedSecretReportResourceDto'
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
+        unknownCount:
+          type: integer
+          format: int32
+        updateTimestamp:
+          type: string
+          format: date-time
         details:
           type: array
           items:
             $ref: '#/components/schemas/ExposedSecretReportDetailDto'
       additionalProperties: false
-    ExposedSecretReportImageResourceDto:
+    ExposedSecretReportImageDtoInfo:
+      type: object
+      properties:
+        nameAndTag:
+          type: string
+        repository:
+          type: string
+      additionalProperties: false
+    ExposedSecretReportResourceDto:
       type: object
       properties:
         name:
@@ -2985,92 +2643,15 @@ components:
         containerName:
           type: string
       additionalProperties: false
-    GenericByNsSummaryDto:
-      type: object
-      properties:
-        namespaceName:
-          type: string
-        totalCount:
-          type: integer
-          format: int32
-        distinctCount:
-          type: integer
-          format: int32
-        isTotal:
-          type: boolean
-      additionalProperties: false
-    GenericSummaryDto:
-      type: object
-      properties:
-        name:
-          type: string
-        count:
-          type: integer
-          format: int32
-      additionalProperties: false
-    GitHubReleaseDto:
-      type: object
-      properties:
-        tagName:
-          type: string
-        name:
-          type: string
-        body:
-          type: string
-        htmlUrl:
-          type: string
-        publishedAt:
-          type: string
-          format: date-time
-        createdAt:
-          type: string
-          format: date-time
-        isLatest:
-          type: boolean
-      additionalProperties: false
     InfraAssessmentReportDenormalizedDto:
       type: object
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         resourceNamespace:
           type: string
-        resourceKind:
-          type: string
-        category:
-          type: string
-        checkId:
-          type: string
-        description:
-          type: string
-        messages:
-          type: array
-          items:
-            type: string
-        remediation:
-          type: string
-        severityId:
-          type: integer
-          format: int32
-        success:
-          type: boolean
-        title:
-          type: string
-      additionalProperties: false
-    InfraAssessmentReportDetailDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        matchKey:
-          type: string
-          format: uuid
-          readOnly: true
         category:
           type: string
         checkId:
@@ -3096,29 +2677,26 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         resourceNamespace:
           type: string
-        resourceKind:
-          type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         details:
           type: array
           items:
-            $ref: '#/components/schemas/InfraAssessmentReportDetailDto'
+            $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
       additionalProperties: false
     KubernetesContextsDto:
       type: object
@@ -3155,42 +2733,10 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         resourceNamespace:
           type: string
-        category:
-          type: string
-        checkId:
-          type: string
-        description:
-          type: string
-        messages:
-          type: array
-          items:
-            type: string
-        remediation:
-          type: string
-        severityId:
-          type: integer
-          format: int32
-        success:
-          type: boolean
-        title:
-          type: string
-      additionalProperties: false
-    RbacAssessmentReportDetailDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        matchKey:
-          type: string
-          format: uuid
-          readOnly: true
         category:
           type: string
         checkId:
@@ -3216,40 +2762,39 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
         resourceName:
           type: string
         resourceNamespace:
           type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         creationTimestamp:
           type: string
           format: date-time
-          nullable: true
         details:
           type: array
           items:
-            $ref: '#/components/schemas/RbacAssessmentReportDetailDto'
+            $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
       additionalProperties: false
     RecreateWatcherRequest:
       type: object
       properties:
         kubernetesObjectType:
           type: string
+        contextName:
+          type: string
         namespaceName:
           type: string
-          nullable: true
       additionalProperties: false
     RecreateWatcherResponse:
       type: object
@@ -3266,17 +2811,33 @@ components:
           type: string
           nullable: true
       additionalProperties: false
+    ReleaseDto:
+      type: object
+      properties:
+        tagName:
+          type: string
+        name:
+          type: string
+        body:
+          type: string
+        htmlUrl:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        isLatest:
+          type: boolean
+      additionalProperties: false
     SbomReportDetailDto:
       type: object
       properties:
         id:
           type: string
-          format: uuid
-          readOnly: true
         matchKey:
           type: string
-          format: uuid
-          readOnly: true
         name:
           type: string
         purl:
@@ -3284,30 +2845,28 @@ components:
         version:
           type: string
         properties:
-          type: array
-          items:
-            type: array
-            items:
-              type: string
+          type: object
+          additionalProperties:
+            type: string
         licenses:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/SbomReportLicenseDto'
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
+          format: int32
         bomRef:
           type: string
         dependsOn:
@@ -3315,47 +2874,9 @@ components:
           items:
             type: string
       additionalProperties: false
-    SbomReportDto:
-      type: object
-      properties:
-        uid:
-          type: string
-          format: uuid
-        creationTimestamp:
-          type: string
-          format: date-time
-        resourceName:
-          type: string
-        resourceNamespace:
-          type: string
-        resourceKind:
-          type: string
-        resourceContainerName:
-          type: string
-        imageName:
-          type: string
-        imageTag:
-          type: string
-        imageDigest:
-          type: string
-        imageRepository:
-          type: string
-        updateTimestamp:
-          type: string
-          format: date-time
-          nullable: true
-        rootNodeBomRef:
-          type: string
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/SbomReportDetailDto'
-      additionalProperties: false
     SbomReportExportDto:
       type: object
       properties:
-        namespaceName:
-          type: string
         digest:
           type: string
       additionalProperties: false
@@ -3364,41 +2885,38 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
-        creationTimestamp:
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        digest:
           type: string
-          format: date-time
-        resourceNamespace:
-          type: string
-        imageName:
-          type: string
-        imageTag:
-          type: string
-        imageDigest:
-          type: string
-        imageRepository:
-          type: string
+        imageInfos:
+          type: array
+          items:
+            $ref: '#/components/schemas/SbomReportImageDtoImageInfo'
         resources:
           type: array
           items:
             $ref: '#/components/schemas/SbomReportImageResourceDto'
-        hasVulnerabilities:
-          type: boolean
-        criticalCount:
+        componentsCount:
           type: integer
-          format: int64
-        highCount:
+          format: int32
+        dependenciesCount:
           type: integer
-          format: int64
-        mediumCount:
+          format: int32
+        bomFormat:
+          type: string
+        specVersion:
+          type: string
+        serialNumber:
+          type: string
+        version:
           type: integer
-          format: int64
-        lowCount:
-          type: integer
-          format: int64
-        unknownCount:
-          type: integer
-          format: int64
+          format: int32
+        updateTimestamp:
+          type: string
+          format: date-time
         rootNodeBomRef:
           type: string
         details:
@@ -3406,39 +2924,33 @@ components:
           items:
             $ref: '#/components/schemas/SbomReportDetailDto'
       additionalProperties: false
+    SbomReportImageDtoImageInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        tag:
+          type: string
+        repository:
+          type: string
+      additionalProperties: false
     SbomReportImageMinimalDto:
       type: object
       properties:
         uid:
           type: string
-          format: uuid
+        namespaceName:
+          type: string
+        hasVulnerabilityReport:
+          type: boolean
+        digest:
+          type: string
         imageName:
           type: string
         imageTag:
           type: string
-        imageDigest:
-          type: string
         imageRepository:
           type: string
-        resourceNamespace:
-          type: string
-        hasVulnerabilities:
-          type: boolean
-        criticalCount:
-          type: integer
-          format: int64
-        highCount:
-          type: integer
-          format: int64
-        mediumCount:
-          type: integer
-          format: int64
-        lowCount:
-          type: integer
-          format: int64
-        unknownCount:
-          type: integer
-          format: int64
       additionalProperties: false
     SbomReportImageResourceDto:
       type: object
@@ -3450,17 +2962,54 @@ components:
         containerName:
           type: string
       additionalProperties: false
+    SbomReportLicenseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        url:
+          type: string
+          format: uri
+          nullable: true
+      additionalProperties: false
+    SecurityAssessmentReportDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+        matchKey:
+          type: string
+        category:
+          type: string
+        checkId:
+          type: string
+        description:
+          type: string
+        messages:
+          type: array
+          items:
+            type: string
+        remediation:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        success:
+          type: boolean
+        title:
+          type: string
+      additionalProperties: false
     SeverityDto:
-      required:
-        - id
-        - name
       type: object
       properties:
         id:
           type: integer
           format: int32
         name:
-          minLength: 1
           type: string
       additionalProperties: false
     SpdxBom:
@@ -3534,9 +3083,16 @@ components:
         digest:
           $ref: '#/components/schemas/DigestNode'
       additionalProperties: false
+    TrivyReportImageDto:
+      type: object
+      properties:
+        nameAndTag:
+          type: string
+        repository:
+          type: string
+      additionalProperties: false
     TrivyReportNode:
       required:
-        - code
         - criticalCount
         - description
         - highCount
@@ -3547,9 +3103,10 @@ components:
         - unknownCount
       type: object
       properties:
-        id:
-          type: string
         code:
+          type: string
+          readOnly: true
+        id:
           type: string
         type:
           type: string
@@ -3557,61 +3114,32 @@ components:
           type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
-      additionalProperties: false
-    VRSeveritiesByNsSummaryDetailDto:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-        totalCount:
-          type: integer
-          format: int32
-        distinctCount:
-          type: integer
-          format: int32
-        fixableTotalCount:
-          type: integer
-          format: int32
-        fixableDistinctCount:
-          type: integer
           format: int32
       additionalProperties: false
-    VRSeveritiesByNsSummaryDto:
-      required:
-        - isTotal
-        - namespaceName
+    TrivyReportResourceDto:
       type: object
       properties:
-        uid:
+        name:
           type: string
-          format: uuid
-        namespaceName:
-          minLength: 1
+        kind:
           type: string
-        isTotal:
-          type: boolean
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/VRSeveritiesByNsSummaryDetailDto'
+        containerName:
+          type: string
       additionalProperties: false
     VrHistoryEntryNode:
       required:
-        - code
         - criticalCount
         - description
         - firstSeenAt
@@ -3621,15 +3149,16 @@ components:
         - lowCount
         - mediumCount
         - name
-        - type
         - unknownCount
       type: object
       properties:
-        id:
-          type: string
         code:
           type: string
+          readOnly: true
         type:
+          type: string
+          readOnly: true
+        id:
           type: string
         description:
           type: string
@@ -3643,34 +3172,34 @@ components:
           format: date-time
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
+          format: int32
       additionalProperties: false
     VrHistoryNode:
       required:
-        - code
         - description
         - entries
         - id
-        - type
       type: object
       properties:
-        id:
-          type: string
         code:
           type: string
+          readOnly: true
         type:
+          type: string
+          readOnly: true
+        id:
           type: string
         description:
           type: string
@@ -3684,8 +3213,6 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
-          readOnly: true
         resourceName:
           type: string
         resourceNamespace:
@@ -3714,19 +3241,19 @@ components:
           format: date-time
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
+          format: int32
         fixedVersion:
           type: string
         installedVersion:
@@ -3763,12 +3290,8 @@ components:
       properties:
         id:
           type: string
-          format: uuid
-          readOnly: true
         matchKey:
           type: string
-          format: uuid
-          readOnly: true
         fixedVersion:
           type: string
         installedVersion:
@@ -3781,7 +3304,6 @@ components:
           type: string
         primaryLink:
           type: string
-          format: uri
           nullable: true
         publishedDate:
           type: string
@@ -3791,7 +3313,7 @@ components:
           type: string
         score:
           type: number
-          format: float
+          format: double
         severityId:
           type: integer
           format: int32
@@ -3807,55 +3329,42 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
-        resourceName:
+        namespaceName:
           type: string
-          nullable: true
-        resourceNamespace:
+        digest:
           type: string
-          nullable: true
-        resourceKind:
+        imageNameAndTag:
           type: string
-          nullable: true
-        resourceContainerName:
-          type: string
-          nullable: true
-        imageName:
-          type: string
-          nullable: true
-        imageTag:
-          type: string
-          nullable: true
-        imageDigest:
-          type: string
-          nullable: true
         imageRepository:
           type: string
-          nullable: true
         imageOsFamily:
           type: string
-          nullable: true
         imageOsName:
           type: string
-          nullable: true
         imageEosl:
           type: boolean
           nullable: true
+        resourceName:
+          type: string
+        resourceKind:
+          type: string
+        resourceContainerName:
+          type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
+          format: int32
         updateTimestamp:
           type: string
           format: date-time
@@ -3863,25 +3372,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/VulnerabilityReportDetailDto'
-          nullable: true
       additionalProperties: false
     VulnerabilityReportHistoryImageDto:
-      required:
-        - details
-        - firstSeenAt
-        - imageDigest
-        - imageName
-        - imageRepository
-        - imageTag
-        - resourceNamespace
-        - uid
       type: object
       properties:
         uid:
           type: string
           format: uuid
-        resourceNamespace:
-          type: string
+        namespaceNames:
+          type: array
+          items:
+            type: string
         imageName:
           type: string
         imageTag:
@@ -3903,17 +3404,16 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
-        resourceNamespace:
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        digest:
           type: string
-        imageName:
-          type: string
-        imageTag:
-          type: string
-        imageDigest:
-          type: string
-        imageRepository:
-          type: string
+        imageInfos:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrivyReportImageDto'
         imageOsFamily:
           type: string
         imageOsName:
@@ -3924,22 +3424,22 @@ components:
         resources:
           type: array
           items:
-            $ref: '#/components/schemas/VulnerabilityReportImageResourceDto'
+            $ref: '#/components/schemas/TrivyReportResourceDto'
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
+          format: int32
         updateTimestamp:
           type: string
           format: date-time
@@ -3948,121 +3448,49 @@ components:
           items:
             $ref: '#/components/schemas/VulnerabilityReportDetailDto'
       additionalProperties: false
-    VulnerabilityReportImageResourceDto:
-      type: object
-      properties:
-        name:
-          type: string
-        kind:
-          type: string
-        containerName:
-          type: string
-      additionalProperties: false
-    VulnerabilityReportSummaryDto:
-      type: object
-      properties:
-        severitiesByNsSummaryDtos:
-          type: array
-          items:
-            $ref: '#/components/schemas/VRSeveritiesByNsSummaryDto'
-        imagesByNSSummaryDtos:
-          type: array
-          items:
-            $ref: '#/components/schemas/GenericByNsSummaryDto'
-        imagesSummaryDtos:
-          type: array
-          items:
-            $ref: '#/components/schemas/GenericSummaryDto'
-        imageOSesByNSSummaryDtos:
-          type: array
-          items:
-            $ref: '#/components/schemas/GenericByNsSummaryDto'
-        imageOSSummaryDtos:
-          type: array
-          items:
-            $ref: '#/components/schemas/GenericSummaryDto'
-        imageEOSLByNsSummaryDtos:
-          type: array
-          items:
-            $ref: '#/components/schemas/GenericByNsSummaryDto'
-        imageEOSLSummaryDtos:
-          type: array
-          items:
-            $ref: '#/components/schemas/GenericSummaryDto'
-      additionalProperties: false
     VulnerabilityReportsDigestDto:
-      required:
-        - criticalCount
-        - highCount
-        - history
-        - imageDigest
-        - imageTag
-        - isInUse
-        - lowCount
-        - mediumCount
-        - unknownCount
       type: object
       properties:
         imageTag:
           type: string
         imageDigest:
           type: string
+        resourceNamespaces:
+          type: array
+          items:
+            type: string
         isInUse:
           type: boolean
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
+          format: int32
         history:
           type: array
           items:
             $ref: '#/components/schemas/VulnerabilityReportsHistoryDetailDto'
       additionalProperties: false
     VulnerabilityReportsHistoryDenormalizedDto:
-      required:
-        - addedCritical
-        - addedHigh
-        - addedLow
-        - addedMedium
-        - addedUnknown
-        - criticalCount
-        - cvesHash
-        - digest
-        - droppedCritical
-        - droppedHigh
-        - droppedLow
-        - droppedMedium
-        - droppedUnknown
-        - firstSeenAt
-        - highCount
-        - imageName
-        - imageRepository
-        - imageTag
-        - isInUse
-        - lastSeenAt
-        - lowCount
-        - mediumCount
-        - resourceNamespace
-        - uid
-        - unknownCount
       type: object
       properties:
         uid:
           type: string
           format: uuid
-        resourceNamespace:
-          type: string
+        resourceNamespaces:
+          type: array
+          items:
+            type: string
         digest:
           type: string
         cvesHash:
@@ -4075,49 +3503,49 @@ components:
           type: string
         criticalCount:
           type: integer
-          format: int64
+          format: int32
         highCount:
           type: integer
-          format: int64
+          format: int32
         mediumCount:
           type: integer
-          format: int64
+          format: int32
         lowCount:
           type: integer
-          format: int64
+          format: int32
         unknownCount:
           type: integer
-          format: int64
+          format: int32
         addedCritical:
           type: integer
-          format: int64
+          format: int32
         addedHigh:
           type: integer
-          format: int64
+          format: int32
         addedMedium:
           type: integer
-          format: int64
+          format: int32
         addedLow:
           type: integer
-          format: int64
+          format: int32
         addedUnknown:
           type: integer
-          format: int64
+          format: int32
         droppedCritical:
           type: integer
-          format: int64
+          format: int32
         droppedHigh:
           type: integer
-          format: int64
+          format: int32
         droppedMedium:
           type: integer
-          format: int64
+          format: int32
         droppedLow:
           type: integer
-          format: int64
+          format: int32
         droppedUnknown:
           type: integer
-          format: int64
+          format: int32
         firstSeenAt:
           type: string
           format: date-time
@@ -4128,11 +3556,6 @@ components:
           type: boolean
       additionalProperties: false
     VulnerabilityReportsHistoryDetailDto:
-      required:
-        - addedCount
-        - droppedCount
-        - lastMoment
-        - moment
       type: object
       properties:
         moment:
@@ -4153,12 +3576,6 @@ components:
             format: int32
       additionalProperties: false
     VulnerabilityReportsHistoryDto:
-      required:
-        - digests
-        - id
-        - imageName
-        - imageRepository
-        - resourceNamespace
       type: object
       properties:
         id:
@@ -4166,8 +3583,6 @@ components:
         imageRepository:
           type: string
         imageName:
-          type: string
-        resourceNamespace:
           type: string
         digests:
           type: array
@@ -4178,6 +3593,8 @@ components:
       type: object
       properties:
         kubernetesObjectType:
+          type: string
+        contextName:
           type: string
         namespaceName:
           type: string
@@ -4199,22 +3616,25 @@ components:
       additionalProperties: false
     WorkloadNode:
       required:
-        - code
         - configAudits
         - description
         - id
+        - namespaceName
         - resourceKind
         - resourceName
         - type
       type: object
       properties:
-        id:
-          type: string
         code:
+          type: string
+          readOnly: true
+        id:
           type: string
         type:
           type: string
         description:
+          type: string
+        namespaceName:
           type: string
         resourceKind:
           type: string
@@ -4227,18 +3647,18 @@ components:
       additionalProperties: false
     WorkloadsNode:
       required:
-        - code
         - description
         - id
-        - type
         - workloads
       type: object
       properties:
-        id:
-          type: string
         code:
           type: string
+          readOnly: true
         type:
+          type: string
+          readOnly: true
+        id:
           type: string
         description:
           type: string
@@ -4252,12 +3672,13 @@ tags:
   - name: AppVersions
   - name: BackendSettings
   - name: ClusterComplianceReport
+  - name: ClusterConfigAuditReport
   - name: ClusterInfraAssessmentReport
   - name: ClusterRbacAssessmentReport
   - name: ClusterSbomReport
   - name: ClusterVulnerabilityReport
   - name: ConfigAuditReport
-  - name: ExposedSecretReport
+  - name: ExposedSecretReports
   - name: InfraAssessmentReport
   - name: KubernetesContexts
   - name: KubernetesNamespaces
