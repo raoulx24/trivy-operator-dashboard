@@ -2008,6 +2008,9 @@ components:
         lowCount:
           type: integer
           format: int32
+        updateTimestamp:
+          type: string
+          format: date-time
         category:
           type: string
         checkId:
@@ -2058,7 +2061,7 @@ components:
     ClusterSbomReportDenormalizedDto:
       type: object
       properties:
-        creationTimestamp:
+        updateTimestamp:
           type: string
           format: date-time
         imageName:
@@ -2151,7 +2154,7 @@ components:
           type: string
         score:
           type: number
-          format: float
+          format: double
         severityId:
           type: integer
           format: int32
@@ -2257,6 +2260,9 @@ components:
           type: string
         resourceKind:
           type: string
+        updateTimestamp:
+          type: string
+          format: date-time
         category:
           type: string
         checkId:
@@ -2300,7 +2306,7 @@ components:
         lowCount:
           type: integer
           format: int32
-        updateTimestampZ:
+        updateTimestamp:
           type: string
           format: date-time
         details:
@@ -2604,11 +2610,11 @@ components:
         imageInfos:
           type: array
           items:
-            $ref: '#/components/schemas/ExposedSecretReportImageDtoInfo'
+            $ref: '#/components/schemas/TrivyReportImageInfoDto'
         resources:
           type: array
           items:
-            $ref: '#/components/schemas/ExposedSecretReportResourceDto'
+            $ref: '#/components/schemas/TrivyReportResourceInfoDto'
         criticalCount:
           type: integer
           format: int32
@@ -2632,24 +2638,6 @@ components:
           items:
             $ref: '#/components/schemas/ExposedSecretReportDetailDto'
       additionalProperties: false
-    ExposedSecretReportImageDtoInfo:
-      type: object
-      properties:
-        nameAndTag:
-          type: string
-        repository:
-          type: string
-      additionalProperties: false
-    ExposedSecretReportResourceDto:
-      type: object
-      properties:
-        name:
-          type: string
-        kind:
-          type: string
-        containerName:
-          type: string
-      additionalProperties: false
     InfraAssessmentReportDenormalizedDto:
       type: object
       properties:
@@ -2659,6 +2647,9 @@ components:
           type: string
         resourceNamespace:
           type: string
+        updateTimestamp:
+          type: string
+          format: date-time
         category:
           type: string
         checkId:
@@ -2700,6 +2691,9 @@ components:
         lowCount:
           type: integer
           format: int32
+        updateTimestamp:
+          type: string
+          format: date-time
         details:
           type: array
           items:
@@ -2744,6 +2738,9 @@ components:
           type: string
         resourceNamespace:
           type: string
+        updateTimestamp:
+          type: string
+          format: date-time
         category:
           type: string
         checkId:
@@ -2785,7 +2782,7 @@ components:
         lowCount:
           type: integer
           format: int32
-        creationTimestamp:
+        updateTimestamp:
           type: string
           format: date-time
         details:
@@ -2901,11 +2898,11 @@ components:
         imageInfos:
           type: array
           items:
-            $ref: '#/components/schemas/SbomReportImageDtoImageInfo'
+            $ref: '#/components/schemas/TrivyReportImageInfoDto'
         resources:
           type: array
           items:
-            $ref: '#/components/schemas/SbomReportImageResourceDto'
+            $ref: '#/components/schemas/TrivyReportResourceInfoDto'
         componentsCount:
           type: integer
           format: int32
@@ -2931,16 +2928,6 @@ components:
           items:
             $ref: '#/components/schemas/SbomReportDetailDto'
       additionalProperties: false
-    SbomReportImageDtoImageInfo:
-      type: object
-      properties:
-        name:
-          type: string
-        tag:
-          type: string
-        repository:
-          type: string
-      additionalProperties: false
     SbomReportImageMinimalDto:
       type: object
       properties:
@@ -2957,16 +2944,6 @@ components:
         imageTag:
           type: string
         imageRepository:
-          type: string
-      additionalProperties: false
-    SbomReportImageResourceDto:
-      type: object
-      properties:
-        name:
-          type: string
-        kind:
-          type: string
-        containerName:
           type: string
       additionalProperties: false
     SbomReportLicenseDto:
@@ -3090,7 +3067,7 @@ components:
         digest:
           $ref: '#/components/schemas/DigestNode'
       additionalProperties: false
-    TrivyReportImageDto:
+    TrivyReportImageInfoDto:
       type: object
       properties:
         nameAndTag:
@@ -3135,7 +3112,7 @@ components:
           type: integer
           format: int32
       additionalProperties: false
-    TrivyReportResourceDto:
+    TrivyReportResourceInfoDto:
       type: object
       properties:
         name:
@@ -3420,7 +3397,7 @@ components:
         imageInfos:
           type: array
           items:
-            $ref: '#/components/schemas/TrivyReportImageDto'
+            $ref: '#/components/schemas/TrivyReportImageInfoDto'
         imageOsFamily:
           type: string
         imageOsName:
@@ -3431,7 +3408,7 @@ components:
         resources:
           type: array
           items:
-            $ref: '#/components/schemas/TrivyReportResourceDto'
+            $ref: '#/components/schemas/TrivyReportResourceInfoDto'
         criticalCount:
           type: integer
           format: int32

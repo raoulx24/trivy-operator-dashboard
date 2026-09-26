@@ -41,7 +41,7 @@ TrivyOperatorDashboardHostConfiguration.Configure(builder.WebHost, configuration
 // check redis/valkey connectivity
 await HistoryStartupChecks.CheckDistributedCacheConnectivity(configuration);
 
-// api configurations (json options, swagger, headers, cors etc)
+// api configurations (json options, swagger, headers, cors etc.)
 builder.Services.AddApiServices(configuration, builder.Environment);
 
 // open telemetry
@@ -50,7 +50,7 @@ builder.Services.AddObservabilityServices(configuration, applicationName);
 // health
 builder.Services.AddHealthServices();
 
-// all core business app services (trivy, alerts, backend settings etc)
+// all core business app services (trivy, alerts, backend settings etc.)
 builder.Services.AddTrivyOperatorDashboardServices(configuration);
 
 

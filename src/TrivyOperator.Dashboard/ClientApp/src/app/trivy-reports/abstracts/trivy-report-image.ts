@@ -18,7 +18,7 @@ export interface NarrowedResourceNameInfo {
   buttonLink: string;
 }
 
-// i do not know yet how to name this class...
+// TODO: i do not know yet how to name this class...
 export class ReportHelper {
   static getNarrowedResourceNames<T extends TrivyReportImageResourceDto>(
     dto: TrivyReportImageDto<T>,

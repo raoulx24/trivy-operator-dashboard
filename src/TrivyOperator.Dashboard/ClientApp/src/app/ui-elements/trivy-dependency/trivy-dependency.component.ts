@@ -28,9 +28,9 @@ interface TrivyReportTreeNodeData {
   unknown: number;
 }
 
+// TODO: consider removing this
 export interface ImageInfo {
   digest: string;
-  namespaceName: string;
 }
 
 @Component({
@@ -95,7 +95,6 @@ export class TrivyDependencyComponent {
     this.service
       .getTrivyReportDependencyDtoByDigestNamespace({
         digest: img.digest,
-        namespaceName: img.namespaceName,
       })
       .subscribe({
         next: (res) => this.onData(res),
@@ -379,13 +378,12 @@ export class TrivyDependencyComponent {
   // ---------------------------------------------------------------------
 
   onOpenTrivyReport(n: TrivyReportTreeNodeData) {
-    const ns = this.trivyReportDependencyDto?.digest.namespaceName;
     const digest = this.trivyReportDependencyDto?.digest.imageDigest;
 
     const map: Record<string, { page: string; params: any }> = {
       vulnerability: {
         page: 'vulnerability-reports',
-        params: { namespaceName: ns, digest },
+        params: { digest },
       },
       configaudit: {
         page: 'config-audit-reports',
@@ -393,15 +391,15 @@ export class TrivyDependencyComponent {
       },
       exposedsecret: {
         page: 'exposed-secret-reports',
-        params: { namespaceName: ns, digest },
+        params: { digest },
       },
       sbom: {
         page: 'sbom-reports',
-        params: { namespaceName: ns, digest },
+        params: { digest },
       },
       history: {
         page: 'vulnerability-reports-history',
-        params: { namespaceName: ns, digest },
+        params: { digest },
       },
     };
 
