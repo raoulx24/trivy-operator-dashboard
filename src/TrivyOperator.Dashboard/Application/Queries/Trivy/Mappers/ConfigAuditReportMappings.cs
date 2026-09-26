@@ -8,22 +8,17 @@ public static class ConfigAuditReportExtensions
     public static ConfigAuditReportDto ToDto(
         this ConfigAuditReport report)
     {
-        SecurityAssessmentReportDetailDto[] details =
-        [
-            .. report.Checks.Select(x => x.ToDto()),
-        ];
-
         return new ConfigAuditReportDto(
-            report.Metadata.Uid.Value,
-            report.Metadata.GetResourceName().Value,
-            report.Metadata.NamespaceName.Value,
-            report.Metadata.GetResourceKind().Value,
-            report.SeverityCounters.CriticalCount,
-            report.SeverityCounters.HighCount,
-            report.SeverityCounters.MediumCount,
-            report.SeverityCounters.LowCount,
-            report.LastSeenAt.Value,
-            details
+            Uid: report.Metadata.Uid.Value,
+            ResourceName: report.Metadata.GetResourceName().Value,
+            ResourceNamespace: report.Metadata.NamespaceName.Value,
+            ResourceKind: report.Metadata.GetResourceKind().Value,
+            CriticalCount: report.SeverityCounters.CriticalCount,
+            HighCount: report.SeverityCounters.HighCount,
+            MediumCount: report.SeverityCounters.MediumCount,
+            LowCount: report.SeverityCounters.LowCount,
+            UpdateTimestamp: report.LastSeenAt.Value,
+            Details: [.. report.Checks.Select(x => x.ToDto()),]
         );
     }
 
@@ -40,18 +35,19 @@ public static class ConfigAuditReportExtensions
             SecurityAssessmentReportDetailDto detail = check.ToDto();
 
             return new ConfigAuditReportDenormalizedDto(
-                uid,
-                resourceName,
-                resourceNamespace,
-                resourceKind,
-                detail.Category,
-                detail.CheckId,
-                detail.Description,
-                detail.Messages,
-                detail.Remediation,
-                detail.SeverityId,
-                detail.Success,
-                detail.Title
+                Uid: uid,
+                ResourceName: resourceName,
+                ResourceNamespace: resourceNamespace,
+                ResourceKind: resourceKind,
+                UpdateTimestamp: report.LastSeenAt.Value,
+                Category: detail.Category,
+                CheckId: detail.CheckId,
+                Description: detail.Description,
+                Messages: detail.Messages,
+                Remediation: detail.Remediation,
+                SeverityId: detail.SeverityId,
+                Success: detail.Success,
+                Title: detail.Title
             );
         });
     }

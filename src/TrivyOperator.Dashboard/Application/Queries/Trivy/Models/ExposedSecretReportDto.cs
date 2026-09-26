@@ -28,9 +28,9 @@ public sealed record ExposedSecretReportImageDto(
     IReadOnlyList<string> NamespaceNames,
 
     string Digest,
-    IReadOnlyList<ExposedSecretReportImageDtoInfo> ImageInfos,
+    IReadOnlyList<TrivyReportImageInfoDto> ImageInfos,
 
-    IReadOnlyList<ExposedSecretReportResourceDto> Resources,
+    IReadOnlyList<TrivyReportResourceInfoDto> Resources,
 
     int CriticalCount,
     int HighCount,
@@ -41,17 +41,6 @@ public sealed record ExposedSecretReportImageDto(
     DateTime UpdateTimestamp,
 
     IReadOnlyList<ExposedSecretReportDetailDto> Details
-);
-
-public sealed record ExposedSecretReportImageDtoInfo(
-    string NameAndTag,
-    string Repository
-);
-
-public sealed record ExposedSecretReportResourceDto(
-    string Name,
-    string Kind,
-    string ContainerName
 );
 
 public sealed record ExposedSecretReportDetailDto(

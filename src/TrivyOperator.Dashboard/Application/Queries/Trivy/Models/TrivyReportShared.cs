@@ -64,3 +64,14 @@ public sealed record SecurityAssessmentReportDetailDto(
     bool Success,
     string Title
 );
+
+public sealed record TrivyReportImageInfoDto(
+    string NameAndTag,
+    string Repository
+);
+
+public sealed record TrivyReportResourceInfoDto(
+    string Name,
+    string Kind,
+    string ContainerName
+);

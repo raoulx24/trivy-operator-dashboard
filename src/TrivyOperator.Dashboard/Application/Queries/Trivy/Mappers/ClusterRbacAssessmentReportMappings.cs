@@ -8,11 +8,6 @@ public static class ClusterRbacAssessmentReportMappings
     public static ClusterRbacAssessmentReportDto ToDto(
         this ClusterRbacAssessmentReport report)
     {
-        SecurityAssessmentReportDetailDto[] details =
-        [
-            .. report.Checks.Select(x => x.ToDto()),
-        ];
-
         return new ClusterRbacAssessmentReportDto(
             Uid: report.Metadata.Uid.ToString(),
             ResourceName: report.Metadata.GetResourceName().Value,
@@ -21,7 +16,7 @@ public static class ClusterRbacAssessmentReportMappings
             MediumCount: report.SeverityCounters.MediumCount,
             LowCount: report.SeverityCounters.LowCount,
             UpdateTimestamp: report.LastSeenAt.Value,
-            Details: details
+            Details: [.. report.Checks.Select(x => x.ToDto()),]
         );
     }
 
@@ -39,6 +34,7 @@ public static class ClusterRbacAssessmentReportMappings
                 HighCount: report.SeverityCounters.HighCount,
                 MediumCount: report.SeverityCounters.MediumCount,
                 LowCount: report.SeverityCounters.LowCount,
+                UpdateTimestamp: report.LastSeenAt.Value,
                 Category: detail.Category,
                 CheckId: detail.CheckId,
                 Description: detail.Description,

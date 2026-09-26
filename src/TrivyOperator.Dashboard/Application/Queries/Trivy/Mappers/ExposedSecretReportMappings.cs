@@ -25,9 +25,9 @@ public static class ExposedSecretReportMappings
 
             Digest: report.ImageDigest.Value,
 
-            ImageInfos: [.. report.Occurrences.Select(static occurrence => occurrence.ToImageDto()),],
+            ImageInfos: [.. report.Occurrences.Select(static occurrence => occurrence.ToImageInfoDto()),],
 
-            Resources: [.. report.Occurrences.Select(static occurrence => occurrence.ToResourceDto()),],
+            Resources: [.. report.Occurrences.Select(static occurrence => occurrence.ToResourceInfoDto()),],
 
             CriticalCount: report.SeverityCounters.CriticalCount,
             HighCount: report.SeverityCounters.HighCount,
@@ -100,27 +100,7 @@ public static class ExposedSecretReportMappings
         );
     }
 
-    private static ExposedSecretReportImageDtoInfo ToImageDto(
-        this ReportImageOccurrence occurrence)
-    {
-        return new ExposedSecretReportImageDtoInfo(
-            NameAndTag: $"{occurrence.ImageMeta.Registry.Value}:{occurrence.ImageMeta.Tag.Value}",
-
-            Repository: occurrence.ImageMeta.Repo.Value
-        );
-    }
-
-    private static ExposedSecretReportResourceDto ToResourceDto(
-        this ReportImageOccurrence occurrence)
-    {
-        return new ExposedSecretReportResourceDto(
-            Name: occurrence.Metadata.GetResourceName().Value,
-            Kind: occurrence.Metadata.GetResourceKind().Value,
-            ContainerName: occurrence.Container.Value ?? string.Empty
-        );
-    }
-
-    public static ExposedSecretReportDetailDto ToDto(
+    private static ExposedSecretReportDetailDto ToDto(
         this Secret secret)
     {
         Uid key = new(DeterministicId.Create(

@@ -21,7 +21,7 @@ public sealed record ClusterComplianceReportDto(
     int TotalFailMediumCount,
     int TotalFailLowCount,
 
-    DateTime? UpdateTimestamp,
+    DateTime UpdateTimestamp,
 
     IReadOnlyList<ClusterComplianceReportDetailDto> Details
 );
@@ -53,7 +53,7 @@ public sealed record ClusterComplianceReportDenormalizedDto(
     int TotalPassCount,
     int TotalFailCount,
 
-    DateTime? UpdateTimestamp,
+    DateTime UpdateTimestamp,
 
     string DetailId,
     string DetailName,

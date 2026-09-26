@@ -8,6 +8,7 @@ public sealed record InfraAssessmentReportDto(
     int HighCount,
     int MediumCount,
     int LowCount,
+    DateTime UpdateTimestamp,
     IReadOnlyList<SecurityAssessmentReportDetailDto> Details
 );
 
@@ -15,6 +16,7 @@ public sealed record InfraAssessmentReportDenormalizedDto(
     string Uid,
     string ResourceName,
     string ResourceNamespace,
+    DateTime UpdateTimestamp,
     string Category,
     string CheckId,
     string Description,

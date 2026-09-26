@@ -8,7 +8,7 @@ public sealed record RbacAssessmentReportDto(
     int HighCount,
     int MediumCount,
     int LowCount,
-    DateTime CreationTimestamp,
+    DateTime UpdateTimestamp,
     IReadOnlyList<SecurityAssessmentReportDetailDto> Details
 );
 
@@ -16,6 +16,7 @@ public sealed record RbacAssessmentReportDenormalizedDto(
     string Uid,
     string ResourceName,
     string ResourceNamespace,
+    DateTime UpdateTimestamp,
     string Category,
     string CheckId,
     string Description,

@@ -20,9 +20,9 @@ public sealed record SbomReportImageDto(
     IReadOnlyList<string> NamespaceNames,
 
     string Digest,
-    IReadOnlyList<SbomReportImageDtoImageInfo> ImageInfos,
+    IReadOnlyList<TrivyReportImageInfoDto> ImageInfos,
 
-    IReadOnlyList<SbomReportImageResourceDto> Resources,
+    IReadOnlyList<TrivyReportResourceInfoDto> Resources,
 
     int ComponentsCount,
     int DependenciesCount,
@@ -35,18 +35,6 @@ public sealed record SbomReportImageDto(
     
     string RootNodeBomRef,
     IReadOnlyList<SbomReportDetailDto> Details
-);
-
-public sealed record SbomReportImageDtoImageInfo(
-    string Name,
-    string Tag,
-    string Repository
-);
-
-public sealed record SbomReportImageResourceDto(
-    string Name,
-    string Kind,
-    string ContainerName
 );
 
 public sealed record SbomReportExportDto(

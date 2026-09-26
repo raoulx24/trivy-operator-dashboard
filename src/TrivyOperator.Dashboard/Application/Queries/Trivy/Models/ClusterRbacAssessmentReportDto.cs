@@ -18,6 +18,7 @@ public sealed record ClusterRbacAssessmentReportDenormalizedDto(
     int HighCount,
     int MediumCount,
     int LowCount,
+    DateTime UpdateTimestamp,
 
     string Category,
     string CheckId,

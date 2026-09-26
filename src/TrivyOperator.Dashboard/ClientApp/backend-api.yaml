@@ -1770,7 +1770,6 @@ components:
         updateTimestamp:
           type: string
           format: date-time
-          nullable: true
         detailId:
           type: string
         detailName:
@@ -1862,7 +1861,6 @@ components:
         updateTimestamp:
           type: string
           format: date-time
-          nullable: true
         details:
           type: array
           items:
@@ -1941,6 +1939,9 @@ components:
           type: string
         resourceName:
           type: string
+        updateTimestamp:
+          type: string
+          format: date-time
         category:
           type: string
         checkId:
@@ -1980,6 +1981,9 @@ components:
         lowCount:
           type: integer
           format: int32
+        updateTimestamp:
+          type: string
+          format: date-time
         details:
           type: array
           items:
@@ -2124,6 +2128,9 @@ components:
         imageEosl:
           type: boolean
           nullable: true
+        updateTimestamp:
+          type: string
+          format: date-time
         fixedVersion:
           type: string
         installedVersion:

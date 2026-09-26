@@ -9,7 +9,7 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 
 public static class TrivyReportMappings
 {
-    public static VulnerabilityReportDetailDto ToDto(
+    internal static VulnerabilityReportDetailDto ToDto(
         this Vulnerability vulnerability)
     {
         Uid key = new(DeterministicId.Create(
@@ -35,7 +35,7 @@ public static class TrivyReportMappings
         );
     }
     
-    public static SbomReportDetailDto ToDto(this Component component, SeverityCounters? severityCounters)
+    internal static SbomReportDetailDto ToDto(this Component component, SeverityCounters? severityCounters)
     {
         string id = DeterministicId.Create(
                 component.Purl?.Value ?? component.Name.Value,
@@ -52,7 +52,8 @@ public static class TrivyReportMappings
             Properties: component.Properties,
             Licenses:
             [
-                .. component.Licenses.Select(static x => new SbomReportLicenseDto(Id: x.Id, Name: x.Name, Url: x.Url)),
+                .. component.Licenses.Select(static x
+                    => new SbomReportLicenseDto(Id: x.Id, Name: x.Name, Url: x.Url)),
             ],
             CriticalCount: severityCounters?.CriticalCount ?? -1,
             HighCount: severityCounters?.HighCount ?? -1,
@@ -60,21 +61,18 @@ public static class TrivyReportMappings
             LowCount: severityCounters?.LowCount ?? -1,
             UnknownCount: severityCounters?.CriticalCount ?? -1,
             BomRef: component.Id.ToDtoBomRef(),
-            DependsOn:
-            [
-                .. component.DependsOnIds.Select(ToDtoBomRef),
-            ]
+            DependsOn: [.. component.DependsOnIds.Select(ToDtoBomRef),]
         );
     }
     
-    public static string ToDtoBomRef(this ComponentId value)
+    internal static string ToDtoBomRef(this ComponentId value)
     {
         return Guid.TryParse(value.Value, out _) 
             ? value.Value
             : DeterministicId.Create(value.Value).ToString();
     }
     
-    public static SecurityAssessmentReportDetailDto ToDto(
+    internal static SecurityAssessmentReportDetailDto ToDto(
         this Domain.Trivy.ValueObjects.SecurityAssessments.Check check)
     {
         return new SecurityAssessmentReportDetailDto(
@@ -113,5 +111,24 @@ public static class TrivyReportMappings
         }
 
         return new Kind();
+    }
+    
+    internal static TrivyReportImageInfoDto ToImageInfoDto(
+        this ReportImageOccurrence occurrence)
+    {
+        return new TrivyReportImageInfoDto(
+            NameAndTag: $"{occurrence.ImageMeta.Registry.Value}:{occurrence.ImageMeta.Tag.Value}",
+            Repository: occurrence.ImageMeta.Repo.Value
+        );
+    }
+
+    internal static TrivyReportResourceInfoDto ToResourceInfoDto(
+        this ReportImageOccurrence occurrence)
+    {
+        return new TrivyReportResourceInfoDto(
+            Name: occurrence.Metadata.GetResourceName().Value,
+            Kind: occurrence.Metadata.GetResourceKind().Value,
+            ContainerName: occurrence.Container.Value ?? string.Empty
+        );
     }
 }

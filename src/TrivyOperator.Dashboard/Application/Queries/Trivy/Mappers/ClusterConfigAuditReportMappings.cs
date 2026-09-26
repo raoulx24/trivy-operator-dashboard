@@ -8,49 +8,40 @@ public static class ClusterConfigAuditReportExtensions
     public static ClusterConfigAuditReportDto ToClusterDto(
         this ConfigAuditReport report)
     {
-        SecurityAssessmentReportDetailDto[] details =
-        [
-            .. report.Checks.Select(static x => x.ToDto()),
-        ];
-
         return new ClusterConfigAuditReportDto(
-            report.Metadata.Uid.Value,
-            report.Metadata.GetResourceName().Value,
-            report.SeverityCounters.CriticalCount,
-            report.SeverityCounters.HighCount,
-            report.SeverityCounters.MediumCount,
-            report.SeverityCounters.LowCount,
-            report.LastSeenAt.Value,
-            details
+            Uid: report.Metadata.Uid.Value,
+            ResourceName: report.Metadata.GetResourceName().Value,
+            CriticalCount: report.SeverityCounters.CriticalCount,
+            HighCount: report.SeverityCounters.HighCount,
+            MediumCount: report.SeverityCounters.MediumCount,
+            LowCount: report.SeverityCounters.LowCount,
+            UpdateTimestamp: report.LastSeenAt.Value,
+            Details: [.. report.Checks.Select(static x => x.ToDto()),]
         );
     }
 
-    public static IEnumerable<ClusterConfigAuditReportDenormalizedDto>
-        ToClusterDenormalizedDtos(
+    public static IEnumerable<ClusterConfigAuditReportDenormalizedDto> ToClusterDenormalizedDtos(
             this ConfigAuditReport report)
     {
-        string uid = report.Metadata.Uid.Value;
-        string resourceName = report.Metadata.GetResourceName().Value;
-
         return report.Checks.Select(check =>
         {
             SecurityAssessmentReportDetailDto detail = check.ToDto();
 
             return new ClusterConfigAuditReportDenormalizedDto(
-                uid,
-                resourceName,
-                report.SeverityCounters.CriticalCount,
-                report.SeverityCounters.HighCount,
-                report.SeverityCounters.MediumCount,
-                report.SeverityCounters.LowCount,
-                detail.Category,
-                detail.CheckId,
-                detail.Description,
-                detail.Messages,
-                detail.Remediation,
-                detail.SeverityId,
-                detail.Success,
-                detail.Title
+                Uid: report.Metadata.Uid.Value,
+                ResourceName: report.Metadata.GetResourceName().Value,
+                CriticalCount: report.SeverityCounters.CriticalCount,
+                HighCount: report.SeverityCounters.HighCount,
+                MediumCount: report.SeverityCounters.MediumCount,
+                LowCount: report.SeverityCounters.LowCount,
+                Category: detail.Category,
+                CheckId: detail.CheckId,
+                Description: detail.Description,
+                Messages: detail.Messages,
+                Remediation: detail.Remediation,
+                SeverityId: detail.SeverityId,
+                Success: detail.Success,
+                Title: detail.Title
             );
         });
     }

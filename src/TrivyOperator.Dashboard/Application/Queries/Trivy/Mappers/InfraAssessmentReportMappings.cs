@@ -16,10 +16,8 @@ public static class InfraAssessmentReportMappings
             HighCount: report.SeverityCounters.HighCount,
             MediumCount: report.SeverityCounters.MediumCount,
             LowCount: report.SeverityCounters.LowCount,
-            Details:
-            [
-                .. report.Checks.Select(static x => x.ToDto()),
-            ]
+            UpdateTimestamp: report.LastSeenAt.Value,
+            Details: [.. report.Checks.Select(static x => x.ToDto()),]
         );
     }
 
@@ -31,6 +29,7 @@ public static class InfraAssessmentReportMappings
                 Uid: report.Metadata.Uid.Value,
                 ResourceName: report.Metadata.Name.Value,
                 ResourceNamespace: report.Metadata.NamespaceName.Value,
+                UpdateTimestamp: report.LastSeenAt.Value,
                 Category: check.Category.Value,
                 CheckId: check.CheckId.Value,
                 Description: check.Description.Value,

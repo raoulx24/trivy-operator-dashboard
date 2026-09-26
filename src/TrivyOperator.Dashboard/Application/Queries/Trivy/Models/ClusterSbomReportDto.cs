@@ -13,7 +13,7 @@ public sealed record ClusterSbomReportDto(
 );
 
 public sealed record ClusterSbomReportDenormalizedDto(
-    DateTime CreationTimestamp,
+    DateTime UpdateTimestamp,
 
     string ImageName,
     string ImageTag,

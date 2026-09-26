@@ -42,9 +42,8 @@ public static class ClusterSbomReportMappings
     {
         ReportImageOccurrence occurrence = report.Occurrence;
 
-        return report.Components.Select(component =>
-            new ClusterSbomReportDenormalizedDto(
-                CreationTimestamp: report.LastSeenAt.Value,
+        return report.Components.Select(component => new ClusterSbomReportDenormalizedDto(
+                UpdateTimestamp: report.LastSeenAt.Value,
 
                 ImageName: occurrence.ImageMeta.Repo.Value,
                 ImageTag: occurrence.ImageMeta.Tag.Value,

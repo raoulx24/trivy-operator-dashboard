@@ -9,7 +9,7 @@ public sealed record ConfigAuditReportDto(
     int HighCount,
     int MediumCount,
     int LowCount,
-    DateTime UpdateTimestampZ,
+    DateTime UpdateTimestamp,
     IReadOnlyList<SecurityAssessmentReportDetailDto> Details
 );
 
@@ -18,6 +18,7 @@ public sealed record ConfigAuditReportDenormalizedDto(
     string ResourceName,
     string ResourceNamespace,
     string ResourceKind,
+    DateTime UpdateTimestamp,
     string Category,
     string CheckId,
     string Description,

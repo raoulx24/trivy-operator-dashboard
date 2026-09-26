@@ -7,7 +7,10 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 
 public static class SbomReportMappings
 {
-    public static SbomReportDto ToDto(this SbomReport report, ReportImageOccurrence occurrence, IReadOnlyDictionary<Purl, SeverityCounters> severities)
+    public static SbomReportDto ToDto(
+        this SbomReport report,
+        ReportImageOccurrence occurrence,
+        IReadOnlyDictionary<Purl, SeverityCounters> severities)
     {
         return new SbomReportDto(
             Uid: occurrence.Metadata.Uid.Value,
@@ -32,7 +35,9 @@ public static class SbomReportMappings
         );
     }
 
-    public static SbomReportImageDto ToImageDto(this SbomReport report, IReadOnlyDictionary<Purl, SeverityCounters> severities)
+    public static SbomReportImageDto ToImageDto(
+        this SbomReport report, 
+        IReadOnlyDictionary<Purl, SeverityCounters> severities)
     {
         return new SbomReportImageDto(
             Uid: DeterministicId.Create(report.ImageDigest.Value).ToString(),
@@ -45,22 +50,11 @@ public static class SbomReportMappings
             Digest: report.ImageDigest.Value,
             ImageInfos:
             [
-                .. report.Occurrences.Select(static x => new SbomReportImageDtoImageInfo(
-                            Name: x.ImageMeta.Repo.Value,
-                            Tag: x.ImageMeta.Tag.Value,
-                            Repository: x.ImageMeta.Registry.Value
-                        )
-                    )
-                    .Distinct(),
+                .. report.Occurrences.Select(static x => x.ToImageInfoDto()).Distinct(),
             ],
             Resources:
             [
-                .. report.Occurrences.Select(static x => new SbomReportImageResourceDto(
-                        Name: x.Metadata.GetResourceName().Value,
-                        Kind: x.Metadata.GetResourceKind().Value,
-                        ContainerName: x.Container.Value ?? string.Empty
-                    )
-                ),
+                .. report.Occurrences.Select(static x => x.ToResourceInfoDto()),
             ],
             ComponentsCount: report.Summary.ComponentsCount,
             DependenciesCount: report.Summary.DependenciesCount,

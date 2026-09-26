@@ -7,12 +7,14 @@ public sealed record ClusterInfraAssessmentReportDto(
     int HighCount,
     int MediumCount,
     int LowCount,
+    DateTime UpdateTimestamp,
     IReadOnlyList<SecurityAssessmentReportDetailDto> Details
 );
 
 public sealed record ClusterInfraAssessmentReportDenormalizedDto(
     string Uid,
     string ResourceName,
+    DateTime UpdateTimestamp,
     string Category,
     string CheckId,
     string Description,

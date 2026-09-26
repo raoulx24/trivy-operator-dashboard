@@ -8,47 +8,39 @@ public static class RbacAssessmentReportMappings
     public static RbacAssessmentReportDto ToDto(
         this RbacAssessmentReport report)
     {
-        SecurityAssessmentReportDetailDto[] details =
-        [
-            .. report.Checks.Select(x => x.ToDto()),
-        ];
-
         return new RbacAssessmentReportDto(
-            report.Metadata.Uid.Value,
-            report.Metadata.GetResourceName().Value,
-            report.Metadata.NamespaceName.Value,
-            report.SeverityCounters.CriticalCount,
-            report.SeverityCounters.HighCount,
-            report.SeverityCounters.MediumCount,
-            report.SeverityCounters.LowCount,
-            report.Metadata.CreationTimestamp.Value,
-            details
+            Uid: report.Metadata.Uid.Value,
+            ResourceName: report.Metadata.GetResourceName().Value,
+            ResourceNamespace: report.Metadata.NamespaceName.Value,
+            CriticalCount: report.SeverityCounters.CriticalCount,
+            HighCount: report.SeverityCounters.HighCount,
+            MediumCount: report.SeverityCounters.MediumCount,
+            LowCount: report.SeverityCounters.LowCount,
+            UpdateTimestamp: report.Metadata.CreationTimestamp.Value,
+            Details: [.. report.Checks.Select(x => x.ToDto()),]
         );
     }
 
     public static IEnumerable<RbacAssessmentReportDenormalizedDto> ToDenormalizedDtos(
         this RbacAssessmentReport report)
     {
-        string uid = report.Metadata.Uid.Value;
-        string resourceName = report.Metadata.GetResourceName().Value;
-        string resourceNamespace = report.Metadata.NamespaceName.Value;
-
         return report.Checks.Select(check =>
         {
             SecurityAssessmentReportDetailDto detail = check.ToDto();
 
             return new RbacAssessmentReportDenormalizedDto(
-                uid,
-                resourceName,
-                resourceNamespace,
-                detail.Category,
-                detail.CheckId,
-                detail.Description,
-                detail.Messages,
-                detail.Remediation,
-                detail.SeverityId,
-                detail.Success,
-                detail.Title
+                Uid: report.Metadata.Uid.Value,
+                ResourceName: report.Metadata.GetResourceName().Value,
+                ResourceNamespace: report.Metadata.NamespaceName.Value,
+                UpdateTimestamp: report.LastSeenAt.Value,
+                Category: detail.Category,
+                CheckId: detail.CheckId,
+                Description: detail.Description,
+                Messages: detail.Messages,
+                Remediation: detail.Remediation,
+                SeverityId: detail.SeverityId,
+                Success: detail.Success,
+                Title: detail.Title
             );
         });
     }
