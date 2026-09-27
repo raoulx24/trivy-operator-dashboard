@@ -124,12 +124,12 @@ export class InfraAssessmentReportsComponent extends DataPageBase implements OnI
     }
 
     this.compareNamespacedImageDtos = this.dataDtos
-      .filter((car) => car.criticalCount > 0 || car.highCount > 0 || car.mediumCount > 0 || car.lowCount > 0)
-      .map((car) => ({
-        uid: car.uid ?? '',
-        resourceNamespace: car.resourceNamespace ?? '',
-        mainLabel: car.resourceName,
-        group: car.resourceKind,
+      .filter((iar) => iar.criticalCount > 0 || iar.highCount > 0 || iar.mediumCount > 0 || iar.lowCount > 0)
+      .map((iar) => ({
+        uid: iar.uid ?? '',
+        resourceNamespace: iar.resourceNamespace ?? '',
+        mainLabel: iar.resourceName,
+        group: iar.resourceKind,
       }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
     this.isTrivyReportsCompareVisible.set(true);

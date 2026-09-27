@@ -1,8 +1,8 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 
-import { SbomReportImageDto } from '../../../api/models';
-import { SbomReportService } from '../../../api/services';
+import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
+import { SbomReportService } from '../../../api/services/sbom-report.service';
 import { sbomReportDenormalizedColumns } from '../constants/sbom-reports.constans';
 
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
@@ -20,9 +20,9 @@ import { namespacedColumns } from '../constants/generic.constants';
   styleUrl: './sbom-reports-detailed.component.scss',
 })
 export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  dataDtos: SbomReportImageDto[] = [];
+  dataDtos: SbomReportImageMinimalDto[] = [];
   activeNamespaces: string[] = [];
-  selectedDataDtos: SbomReportImageDto[] | null = null;
+  selectedDataDtos: SbomReportImageMinimalDto[] | null = null;
   isTableLoading: boolean = false;
 
   trivyTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...sbomReportDenormalizedColumns];
@@ -37,19 +37,19 @@ export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase imple
 
   getTableDataDtos() {
     this.isTableLoading = true;
-    this.service.getSbomReportImageDtos().subscribe({
+    this.service.getSbomReportImageMinimalDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
     });
   }
 
-  private onGetDataDtos(dtos: SbomReportImageDto[]) {
+  private onGetDataDtos(dtos: SbomReportImageMinimalDto[]) {
     this.dataDtos = dtos;
-    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
+    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.namespaceName ?? 'N/A'))).sort();
     this.isTableLoading = false;
   }
 
-  onTableSelectedRowChange(event: SelectedDtosEvent<SbomReportImageDto>) {
+  onTableSelectedRowChange(event: SelectedDtosEvent<SbomReportImageMinimalDto>) {
     this.selectedDataDtos = event.selectedDtos;
   }
 
@@ -76,17 +76,17 @@ export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase imple
     const params = new HttpParams().set('fileType', 'json');
     const apiUrl = `${this.service.rootUrl}api/sbom-reports/export`;
 
-    let sbomsExport: { namespaceName: string; digest: string }[];
+    let sbomsExport: { digest: string }[];
 
     if (exportType == 'all') {
       sbomsExport =
         this.dataDtos?.map((x) => {
-          return { namespaceName: x.resourceNamespace ?? '', digest: x.imageDigest ?? '' };
+          return { digest: x.digest ?? '' };
         }) ?? [];
     } else {
       sbomsExport =
         this.selectedDataDtos?.map((x) => {
-          return { namespaceName: x.resourceNamespace ?? '', digest: x.imageDigest ?? '' };
+          return { digest: x.digest ?? '' };
         }) ?? [];
     }
 

@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ClusterSbomReportDto } from '../../../api/models/cluster-sbom-report-dto';
+import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
 import { ClusterSbomReportService } from '../../../api/services/cluster-sbom-report.service';
 
 import { TreeNode } from 'primeng/api';
@@ -35,9 +36,11 @@ import { DataPageBase } from '../../abstracts/data-page-base';
   styleUrl: './cluster-sbom-reports.component.scss',
 })
 export class ClusterSbomReportsComponent extends DataPageBase implements OnInit {
-  dataDtos: ClusterSbomReportDto[] = [];
+  dataDtos: SbomReportImageMinimalDto[] = [];
+  fullClusterSboms: ClusterSbomReportDto[] = [];
   selectedImageId?: string;
-  selectedSbomReportImageDto?: ClusterSbomReportDto;
+  selectedClusterSbomReportDto?: ClusterSbomReportDto;
+
 
   // region dialog related vars
   isSbomReportOverviewDialogVisible = signal<boolean>(false);
@@ -57,30 +60,34 @@ export class ClusterSbomReportsComponent extends DataPageBase implements OnInit 
   }
 
   getTableDataDtos() {
-    this.service.getClusterSbomReportDtos().subscribe({
+    this.service.getClusterSbomReportMinimalDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
+      error: (err) => this.onError(err),
+    });
+    this.service.getClusterSbomReportDtos().subscribe({
+      next: (res) => (this.fullClusterSboms = res),
       error: (err) => this.onError(err),
     });
   }
 
-  onGetDataDtos(dtos: ClusterSbomReportDto[]) {
+  onGetDataDtos(dtos: SbomReportImageMinimalDto[]) {
     this.dataDtos = dtos;
   }
 
   onSelectedImageIdChange(imageId: string | undefined) {
     setTimeout(() => {
-      this.selectedSbomReportImageDto = this.dataDtos?.find((x) => x.uid === imageId);
+      this.selectedClusterSbomReportDto = this.fullClusterSboms?.find((x) => x.uid === imageId);
     }, 0);
     this.sbomReportDetailPropertiesTreeNodes = [];
     this.sbomReportDetailStatistics = [];
   }
 
   onCompareFirstDtoRequested(id: string) {
-    this.compareFirstSelectedDto = this.dataDtos?.find((x) => x.uid === id);
+    this.compareFirstSelectedDto = this.fullClusterSboms?.find((x) => x.uid === id);
   }
 
   onCompareSecondDtoRequested(id: string) {
-    this.compareSecondSelectedDto = this.dataDtos?.find((x) => x.uid === id);
+    this.compareSecondSelectedDto = this.fullClusterSboms?.find((x) => x.uid === id);
   }
 
   onRefreshRequestedChange() {
@@ -96,7 +103,7 @@ export class ClusterSbomReportsComponent extends DataPageBase implements OnInit 
         this.onSbomReportOverviewDialogOpen();
         break;
       default:
-        console.error('cluster sbom - multi action call back - unknown: ' + event);
+        console.error('cluster sbom - multi action call back - unknown: ' + value);
     }
   }
 
@@ -105,15 +112,15 @@ export class ClusterSbomReportsComponent extends DataPageBase implements OnInit 
       this.sbomReportDetailPropertiesTreeNodes = this.getSbomReportPropertyTreeNodes();
     }
     if (this.sbomReportDetailStatistics.length == 0) {
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.criticalCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.highCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.mediumCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.lowCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.unknownCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedClusterSbomReportDto?.criticalCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedClusterSbomReportDto?.highCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedClusterSbomReportDto?.mediumCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedClusterSbomReportDto?.lowCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedClusterSbomReportDto?.unknownCount ?? -1);
 
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.details?.length ?? 0);
+      this.sbomReportDetailStatistics.push(this.selectedClusterSbomReportDto?.details?.length ?? 0);
       this.sbomReportDetailStatistics.push(
-        this.selectedSbomReportImageDto?.details
+        this.selectedClusterSbomReportDto?.details
           ?.map((item) => item.dependsOn)
           .filter((deps): deps is Array<string> => Array.isArray(deps))
           .reduce((sum, deps) => sum + deps.length, 0) ?? 0,
@@ -139,13 +146,10 @@ export class ClusterSbomReportsComponent extends DataPageBase implements OnInit 
 
     const dataMap = new Map<string, { propValue: string; usedBy: string }[]>();
 
-    this.selectedSbomReportImageDto?.details?.forEach((item) => {
+    this.selectedClusterSbomReportDto?.details?.forEach((item) => {
       const usedBy = item.name ?? 'unknown';
 
-      item.properties?.forEach((property) => {
-        const propName = property[0] ?? 'unknown';
-        const propValue = property[1] ?? 'unknown';
-
+      Object.entries(item.properties ?? {}).forEach(([propName, propValue]) => {
         if (propName === 'tod.group') return;
 
         if (!dataMap.has(propName)) {

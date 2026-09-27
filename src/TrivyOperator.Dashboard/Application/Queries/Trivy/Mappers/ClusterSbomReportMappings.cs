@@ -8,6 +8,7 @@ public static class ClusterSbomReportMappings
 {
     public static ClusterSbomReportDto ToDto(
         this ClusterSbomReport report,
+        SeverityCounters? severityCounters,
         IReadOnlyDictionary<Purl, SeverityCounters> severities)
     {
         ReportImageOccurrence occurrence = report.Occurrence;
@@ -19,6 +20,12 @@ public static class ClusterSbomReportMappings
             ImageName: occurrence.ImageMeta.Repo.Value,
             ImageTag: occurrence.ImageMeta.Tag.Value,
             ImageRepository: occurrence.ImageMeta.Registry.Value,
+            
+            CriticalCount: severityCounters?.CriticalCount ?? 0,
+            HighCount: severityCounters?.HighCount ?? 0,
+            MediumCount: severityCounters?.MediumCount ?? 0,
+            LowCount: severityCounters?.LowCount ?? 0,
+            UnknownCount: severityCounters?.UnknownCount ?? 0,
 
             RootNodeBomRef: report.RootNodeBomRef.ToDtoBomRef(),
 
@@ -64,21 +71,16 @@ public static class ClusterSbomReportMappings
     
     public static SbomReportImageMinimalDto ToMinimalDto(
         this ClusterSbomReport report,
-        SeverityCounters? severityCounters)
+        bool hasVulnerabilityReport)
     {
         return new SbomReportImageMinimalDto(
             Uid: report.Occurrence.Metadata.Uid.Value,
             NamespaceName: report.Occurrence.Metadata.NamespaceName.Value,
-            HasVulnerabilityReport: severityCounters is not null,
+            HasVulnerabilityReport: hasVulnerabilityReport,
             Digest: new Digest().Value,
             ImageName: report.Occurrence.ImageMeta.Repo.Value,
             ImageTag: report.Occurrence.ImageMeta.Tag.Value,
-            ImageRepository: report.Occurrence.ImageMeta.Registry.Value,
-            CriticalCount: severityCounters?.CriticalCount ?? 0,
-            HighCount: severityCounters?.HighCount ?? 0,
-            MediumCount: severityCounters?.MediumCount ?? 0,
-            LowCount: severityCounters?.LowCount ?? 0,
-            UnknownCount: severityCounters?.UnknownCount ?? 0
+            ImageRepository: report.Occurrence.ImageMeta.Registry.Value
         );
     }
 }

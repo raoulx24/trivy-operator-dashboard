@@ -1939,6 +1939,8 @@ components:
           type: string
         resourceName:
           type: string
+        resourceKind:
+          type: string
         updateTimestamp:
           type: string
           format: date-time
@@ -1968,6 +1970,8 @@ components:
         uid:
           type: string
         resourceName:
+          type: string
+        resourceKind:
           type: string
         criticalCount:
           type: integer
@@ -2101,6 +2105,21 @@ components:
           type: string
         imageRepository:
           type: string
+        criticalCount:
+          type: integer
+          format: int32
+        highCount:
+          type: integer
+          format: int32
+        mediumCount:
+          type: integer
+          format: int32
+        lowCount:
+          type: integer
+          format: int32
+        unknownCount:
+          type: integer
+          format: int32
         rootNodeBomRef:
           type: string
         details:
@@ -2647,6 +2666,8 @@ components:
           type: string
         resourceNamespace:
           type: string
+        resourceKind:
+          type: string
         updateTimestamp:
           type: string
           format: date-time
@@ -2678,6 +2699,8 @@ components:
         resourceName:
           type: string
         resourceNamespace:
+          type: string
+        resourceKind:
           type: string
         criticalCount:
           type: integer
@@ -2918,6 +2941,21 @@ components:
         version:
           type: integer
           format: int32
+        criticalCount:
+          type: integer
+          format: int32
+        highCount:
+          type: integer
+          format: int32
+        mediumCount:
+          type: integer
+          format: int32
+        lowCount:
+          type: integer
+          format: int32
+        unknownCount:
+          type: integer
+          format: int32
         updateTimestamp:
           type: string
           format: date-time
@@ -2945,21 +2983,6 @@ components:
           type: string
         imageRepository:
           type: string
-        criticalCount:
-          type: integer
-          format: int32
-        highCount:
-          type: integer
-          format: int32
-        mediumCount:
-          type: integer
-          format: int32
-        lowCount:
-          type: integer
-          format: int32
-        unknownCount:
-          type: integer
-          format: int32
       additionalProperties: false
     SecurityAssessmentReportDetailDto:
       type: object

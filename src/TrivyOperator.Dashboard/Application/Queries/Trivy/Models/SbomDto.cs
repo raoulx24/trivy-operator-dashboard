@@ -31,6 +31,13 @@ public sealed record SbomReportImageDto(
     string SpecVersion,
     string SerialNumber,
     int Version,
+    
+    int CriticalCount,
+    int HighCount,
+    int MediumCount,
+    int LowCount,
+    int UnknownCount,
+    
     DateTime UpdateTimestamp,
     
     string RootNodeBomRef,
@@ -44,12 +51,7 @@ public sealed record SbomReportImageMinimalDto(
     string Digest,
     string ImageName,
     string ImageTag,
-    string ImageRepository,
-    int CriticalCount,
-    int HighCount,
-    int MediumCount,
-    int LowCount,
-    int UnknownCount
+    string ImageRepository
 );
 
 public sealed record SbomReportExportDto(

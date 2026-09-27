@@ -1,8 +1,10 @@
 import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
-import { SbomReportImageDto } from '../../../api/models/sbom-report-image-dto';
+import { ClusterSbomReportDto } from '../../../api/models/cluster-sbom-report-dto';
 import { SbomReportDetailDto } from '../../../api/models/sbom-report-detail-dto';
 
-export interface GenericSbomReportDto extends Omit<SbomReportImageDto, 'details'> {
+export interface GenericSbomReportDto {
+  uid: string;
+  rootNodeBomRef: string;
   details: Array<GenericSbomReportDetailDto>;
 }
 

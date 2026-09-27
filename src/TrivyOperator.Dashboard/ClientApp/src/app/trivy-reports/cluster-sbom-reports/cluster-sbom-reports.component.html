@@ -2,7 +2,7 @@
   [compareFirstSelectedDto]="compareFirstSelectedDto"
   [compareSecondSelectedDto]="compareSecondSelectedDto"
   [dataDtos]="dataDtos"
-  [fullSbomDataDto]="selectedSbomReportImageDto"
+  [fullSbomDataDto]="selectedClusterSbomReportDto"
   [isCompareDependantOnExternalData]="true"
   [isStatic]="false"
   [isTableLoading]="false"
@@ -23,7 +23,7 @@
   (selectedImageIdChange)="onSelectedImageIdChange($event)"
 />
 
-@if (selectedSbomReportImageDto) {
+@if (selectedClusterSbomReportDto) {
   <p-dialog
     closable="true"
     closeOnEscape="true"
@@ -32,7 +32,7 @@
     [breakpoints]="{ '1700px': '1600px', '576px': '90vw' }"
     [contentStyle]="{ height: '95vh' }"
     [header]="
-      `Cluster SBOM Reports Details - ${selectedSbomReportImageDto.imageName}:${selectedSbomReportImageDto.imageTag}`
+      `Cluster SBOM Reports Details - ${selectedClusterSbomReportDto.imageName}:${selectedClusterSbomReportDto.imageTag}`
     "
     [maximizable]="true"
     [modal]="true"

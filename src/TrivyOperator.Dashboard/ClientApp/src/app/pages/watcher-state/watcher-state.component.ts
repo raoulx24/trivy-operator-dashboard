@@ -11,6 +11,7 @@ import { watcherStateColumns } from '../constants/watcher-state.constants';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DataPageBase } from '../../abstracts/data-page-base';
+import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
 
 @Component({
   selector: 'app-watcher-state',
@@ -32,6 +33,7 @@ export class WatcherStateComponent extends DataPageBase implements OnInit {
   recreateWatcherResponseError?: string;
 
   private readonly service = inject(WatcherStatusService);
+  private readonly contextState = inject(KubernetesContextStateService, { optional: true });
 
   ngOnInit() {
     this.getTableDataDtos();
@@ -74,8 +76,9 @@ export class WatcherStateComponent extends DataPageBase implements OnInit {
     this.isActionStarted = true;
     const params: ApiWatcherStatusRecreatePost$Params = {
       body: {
+        contextName: this.contextState?.selectedContextSync ?? '',
         kubernetesObjectType: this.requestedRecreateWatcher.kubernetesObjectType,
-        namespaceName: this.requestedRecreateWatcher.namespaceName, // Fallback if null
+        namespaceName: this.requestedRecreateWatcher.namespaceName ?? '', // Fallback if null
       },
     };
 

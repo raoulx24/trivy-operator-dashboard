@@ -10,7 +10,8 @@ public static class ClusterInfraAssessmentReportMappings
     {
         return new ClusterInfraAssessmentReportDto(
             Uid: report.Metadata.Uid.Value,
-            ResourceName: report.Metadata.Name.Value,
+            ResourceName: report.Metadata.GetResourceName().Value,
+            ResourceKind: report.Metadata.GetResourceKind().Value,
             CriticalCount: report.SeverityCounters.CriticalCount,
             HighCount: report.SeverityCounters.HighCount,
             MediumCount: report.SeverityCounters.MediumCount,
@@ -25,7 +26,8 @@ public static class ClusterInfraAssessmentReportMappings
     {
         return report.Checks.Select(check => new ClusterInfraAssessmentReportDenormalizedDto(
             Uid: report.Metadata.Uid.Value,
-            ResourceName: report.Metadata.Name.Value,
+            ResourceName: report.Metadata.GetResourceName().Value,
+            ResourceKind: report.Metadata.GetResourceKind().Value,
             UpdateTimestamp: report.LastSeenAt.Value,
             Category: check.Category.Value,
             CheckId: check.CheckId.Value,

@@ -36,7 +36,8 @@ public static class SbomReportMappings
     }
 
     public static SbomReportImageDto ToImageDto(
-        this SbomReport report, 
+        this SbomReport report,
+        SeverityCounters? severityCounters,
         IReadOnlyDictionary<Purl, SeverityCounters> severities)
     {
         return new SbomReportImageDto(
@@ -47,7 +48,9 @@ public static class SbomReportMappings
                     .Distinct()
                     .OrderBy(static x => x),
             ],
+            
             Digest: report.ImageDigest.Value,
+            
             ImageInfos:
             [
                 .. report.Occurrences.Select(static x => x.ToImageInfoDto()).Distinct(),
@@ -56,6 +59,7 @@ public static class SbomReportMappings
             [
                 .. report.Occurrences.Select(static x => x.ToResourceInfoDto()),
             ],
+            
             ComponentsCount: report.Summary.ComponentsCount,
             DependenciesCount: report.Summary.DependenciesCount,
             BomFormat: report.SbomMetadata.BomFormat,
@@ -64,6 +68,13 @@ public static class SbomReportMappings
             Version: report.SbomMetadata.Version,
             UpdateTimestamp: report.LastSeenAt.Value,
             RootNodeBomRef: report.RootNodeBomRef.ToDtoBomRef(),
+            
+            CriticalCount: severityCounters?.CriticalCount ?? 0,
+            HighCount: severityCounters?.HighCount ?? 0,
+            MediumCount: severityCounters?.MediumCount ?? 0,
+            LowCount: severityCounters?.LowCount ?? 0,
+            UnknownCount: severityCounters?.UnknownCount ?? 0,
+            
             Details:
             [
                 .. report.Components.Select(x =>
@@ -80,21 +91,17 @@ public static class SbomReportMappings
 
     public static IEnumerable<SbomReportImageMinimalDto> ToMinimalDto(
         this SbomReport report,
-        SeverityCounters? severityCounters)
+        bool hasVulnerabilityReport
+        )
     {
         return report.Occurrences.Select(x => new SbomReportImageMinimalDto(
             Uid: x.Metadata.Uid.Value,
             NamespaceName: x.Metadata.NamespaceName.Value,
-            HasVulnerabilityReport: severityCounters is not null,
+            HasVulnerabilityReport: hasVulnerabilityReport,
             Digest: report.ImageDigest.Value,
             ImageName: x.ImageMeta.Repo.Value,
             ImageTag: x.ImageMeta.Tag.Value,
-            ImageRepository: x.ImageMeta.Registry.Value,
-            CriticalCount: severityCounters?.CriticalCount ?? 0,
-            HighCount: severityCounters?.HighCount ?? 0,
-            MediumCount: severityCounters?.MediumCount ?? 0,
-            LowCount: severityCounters?.LowCount ?? 0,
-            UnknownCount: severityCounters?.UnknownCount ?? 0
+            ImageRepository: x.ImageMeta.Registry.Value
         ));
     }
 }

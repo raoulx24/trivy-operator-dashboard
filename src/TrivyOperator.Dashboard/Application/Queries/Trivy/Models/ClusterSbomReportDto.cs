@@ -7,6 +7,12 @@ public sealed record ClusterSbomReportDto(
     string ImageName,
     string ImageTag,
     string ImageRepository,
+    
+    int CriticalCount,
+    int HighCount,
+    int MediumCount,
+    int LowCount,
+    int UnknownCount,
 
     string RootNodeBomRef,
     IReadOnlyList<SbomReportDetailDto> Details

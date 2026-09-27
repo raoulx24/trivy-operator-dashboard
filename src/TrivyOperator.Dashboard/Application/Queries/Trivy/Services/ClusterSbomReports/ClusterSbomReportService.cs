@@ -10,25 +10,18 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterSbom
 
 public class ClusterSbomReportService(
     IResourceProvider<ClusterSbomReport, Uid> resourceProvider,
-    IResourceProvider<ClusterVulnerabilityReport, Uid> vulnerabilityResourceProvider
+    IResourceProvider<ClusterVulnerabilityReport, Uid> cvrResourceProvider
 ) : IClusterSbomReportService
 {
-    public async Task<IEnumerable<SbomReportImageMinimalDto>> GetClusterSbomReportMinimalDtos(
-        CancellationToken ctx = default)
+    public async Task<IEnumerable<SbomReportImageMinimalDto>> GetClusterSbomReportMinimalDtos(CancellationToken ctx = default)
     {
         IReadOnlyList<ClusterSbomReport> resourceSummaries = await resourceProvider.GetResourceSummaries(ctx);
+        HashSet<Uid> vrDigests = [.. await cvrResourceProvider.GetResourceIds(ctx),];
 
-        IEnumerable<Task<SbomReportImageMinimalDto>> tasks = resourceSummaries.Select(async x =>
-        {
-            Uid ownerUid = x.Occurrence.Metadata.OwnerReferences.FirstOrDefault().Uid;
-
-            SeverityCounters? severityCounters =
-                (await vulnerabilityResourceProvider.GetResourceSummary(ownerUid, ctx))?.SeverityCounters;
-
-            return x.ToMinimalDto(severityCounters);
-        });
-
-        return await Task.WhenAll(tasks);
+        return resourceSummaries
+            .Select(x => x.ToMinimalDto(
+                x.Occurrence.Metadata.OwnerReferences?
+                    .Any(owner => vrDigests.Contains(owner.Uid)) == true));
     }
     
     public async Task<IEnumerable<ClusterSbomReportDto>> GetClusterSbomReportDtos(
@@ -38,7 +31,7 @@ public class ClusterSbomReportService(
             await resourceProvider.GetResourceSummaries(ctx);
 
         HashSet<Uid> vulnerabilityReportIds =
-            [.. await vulnerabilityResourceProvider.GetResourceIds(ctx),];
+            [.. await cvrResourceProvider.GetResourceIds(ctx),];
 
         List<ClusterSbomReportDto> result = [];
 
@@ -50,7 +43,7 @@ public class ClusterSbomReportService(
 
             ClusterVulnerabilityReport? vulnerabilityReport =
                 ownerReference != null
-                    ? await vulnerabilityResourceProvider.GetResource(
+                    ? await cvrResourceProvider.GetResource(
                         ownerReference.Value.Uid,
                         ctx)
                     : null;
@@ -63,8 +56,8 @@ public class ClusterSbomReportService(
                         g => new SeverityCounters(g.Select(v => v.Severity))
                     )
                 ?? [];
-
-            result.Add(report.ToDto(severities));
+            
+            result.Add(report.ToDto(vulnerabilityReport?.SeverityCounters, severities));
         }
 
         return result;

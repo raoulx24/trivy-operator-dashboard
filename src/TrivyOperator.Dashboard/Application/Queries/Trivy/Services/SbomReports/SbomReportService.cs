@@ -30,20 +30,12 @@ public class SbomReportService(
     {
         IReadOnlyList<SbomReport> resourceSummaries =
             await resourceProvider.GetResourceSummaries(ctx);
+        
+        HashSet<Digest> vrDigests = [.. await vrResourceProvider.GetResourceIds(ctx),];
 
-        IEnumerable<Task<IEnumerable<SbomReportImageMinimalDto>>> tasks = resourceSummaries.Select(async x =>
-        {
-            VulnerabilityReport? resourceSummary = await vrResourceProvider.GetResourceSummary(x.ImageDigest, ctx);
-
-            return x.ToMinimalDto(resourceSummary?.SeverityCounters);
-        });
-
-        IEnumerable<SbomReportImageMinimalDto>[] results = await Task.WhenAll(tasks);
-
-        return results.SelectMany(x => x);
+        return resourceSummaries
+            .SelectMany(x => x.ToMinimalDto(vrDigests.Contains(x.ImageDigest)));
     }
-
-
 
     public async Task<SbomReportImageDto?> GetFullSbomReportImageDtoByDigest(
         string digest,
@@ -66,8 +58,9 @@ public class SbomReportService(
                     g => new SeverityCounters(g.Select(v => v.Severity))
                 )
             ?? [];
+        SeverityCounters? severityCounters = (await vrResourceProvider.GetResource(key, ctx))?.SeverityCounters;
 
-        return sbomReport.ToImageDto(severities);
+        return sbomReport.ToImageDto(severityCounters, severities);
     }
 
 

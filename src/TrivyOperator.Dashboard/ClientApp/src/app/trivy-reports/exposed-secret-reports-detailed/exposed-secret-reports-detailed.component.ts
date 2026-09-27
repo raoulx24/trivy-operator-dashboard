@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 
 import { ExposedSecretReportDenormalizedDto } from '../../../api/models/exposed-secret-report-denormalized-dto';
 import { SeverityDto } from '../../../api/models/severity-dto';
-import { ExposedSecretReportService } from '../../../api/services/exposed-secret-report.service';
+import { ExposedSecretReportsService } from '../../../api/services/exposed-secret-reports.service';
 
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
@@ -27,7 +27,7 @@ export class ExposedSecretReportsDetailedComponent extends TrivyReportsDetailedB
 
   public trivyTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...exposedSecretReportDenormalizedColumns];
 
-  private readonly dataDtoService = inject(ExposedSecretReportService);
+  private readonly dataDtoService = inject(ExposedSecretReportsService);
 
   ngOnInit() {
     this.getTableDataDtos();

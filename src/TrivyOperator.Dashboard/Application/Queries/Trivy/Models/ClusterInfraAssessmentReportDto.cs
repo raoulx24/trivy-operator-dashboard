@@ -3,6 +3,7 @@
 public sealed record ClusterInfraAssessmentReportDto(
     string Uid,
     string ResourceName,
+    string ResourceKind,
     int CriticalCount,
     int HighCount,
     int MediumCount,
@@ -14,6 +15,7 @@ public sealed record ClusterInfraAssessmentReportDto(
 public sealed record ClusterInfraAssessmentReportDenormalizedDto(
     string Uid,
     string ResourceName,
+    string ResourceKind,
     DateTime UpdateTimestamp,
     string Category,
     string CheckId,

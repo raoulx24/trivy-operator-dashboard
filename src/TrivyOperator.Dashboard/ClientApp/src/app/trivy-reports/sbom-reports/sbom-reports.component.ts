@@ -193,11 +193,11 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
       this.sbomReportDetailLicensesTreeNodes = this.getSbomReportLicenseTreeNodes();
     }
     if (this.sbomReportDetailStatistics.length == 0) {
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.criticalCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.highCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.mediumCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.lowCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.unknownCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.criticalCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.highCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.mediumCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.lowCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.unknownCount ?? -1);
       this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.details?.length ?? 0);
       this.sbomReportDetailStatistics.push(
         this.fullSbomDataDto?.details
