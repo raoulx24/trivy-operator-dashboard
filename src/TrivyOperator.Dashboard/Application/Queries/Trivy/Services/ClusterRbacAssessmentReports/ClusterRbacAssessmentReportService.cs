@@ -24,7 +24,7 @@ public class ClusterRbacAssessmentReportService(
         CancellationToken ctx = default)
     {
         IReadOnlyList<ClusterRbacAssessmentReport> reports =
-            await resourceProvider.GetResourceSummaries(ctx);
+            await resourceProvider.GetResources(ctx);
 
         return reports.Select(x => x.ToDto());
     }
@@ -34,7 +34,7 @@ public class ClusterRbacAssessmentReportService(
             CancellationToken ctx = default)
     {
         IReadOnlyList<ClusterRbacAssessmentReport> reports =
-            await resourceProvider.GetResourceSummaries(ctx);
+            await resourceProvider.GetResources(ctx);
 
         return reports.SelectMany(x => x.ToDenormalizedDtos());
     }
