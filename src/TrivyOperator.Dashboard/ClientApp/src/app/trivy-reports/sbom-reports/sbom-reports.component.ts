@@ -1,9 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router';
-import { SbomReportDto } from '../../../api/models/sbom-report-dto';
-import { SbomReportImageResourceDto } from '../../../api/models/sbom-report-image-resource-dto';
+import { Router } from '@angular/router';
+
+import { SbomReportImageDto } from '../../../api/models/sbom-report-image-dto';
+import { TrivyReportResourceInfoDto } from '../../../api/models/trivy-report-resource-info-dto';
+import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
 import { SbomReportService } from '../../../api/services/sbom-report.service';
 
 import { TreeNode } from 'primeng/api';
@@ -18,7 +20,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
-import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
+
 import { DataPageBase } from '../../abstracts/data-page-base';
 
 @Component({
@@ -40,17 +42,17 @@ import { DataPageBase } from '../../abstracts/data-page-base';
 })
 export class SbomReportsComponent extends DataPageBase implements OnInit {
   dataDtos: SbomReportImageMinimalDto[] = [];
-  fullSbomDataDto?: SbomReportDto;
-  imageResourceDtos?: SbomReportImageResourceDto[];
+  fullSbomDataDto?: SbomReportImageDto;
+  imageResourceDtos?: TrivyReportResourceInfoDto[];
   selectedImageId?: string;
-  selectedSbomReportImageDto?: SbomReportImageMinimalDto;
+  selectedSbomReportImageMinimalDto?: SbomReportImageMinimalDto;
 
   queryNamespaceName?: string;
   queryDigest?: string;
   isPreselected: boolean = false;
 
-  compareFirstSelectedDto?: SbomReportDto;
-  compareSecondSelectedDto?: SbomReportDto;
+  compareFirstSelectedDto?: SbomReportImageDto;
+  compareSecondSelectedDto?: SbomReportImageDto;
 
   // region dialog related vars
   isSbomReportOverviewDialogVisible = signal<boolean>(false);
@@ -66,7 +68,6 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   private readonly service = inject(SbomReportService);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly activatedRoute = inject(ActivatedRoute);
 
   ngOnInit() {
     const state = history.state;
@@ -90,7 +91,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
     this.dataDtos = dtos;
     if (this.isPreselected) {
       const queryDto = dtos.find(
-        (x) => x.imageDigest == this.queryDigest && x.resourceNamespace == this.queryNamespaceName,
+        (x) => x.digest == this.queryDigest,
       );
       if (queryDto) {
         this.selectedImageId = queryDto.uid;
@@ -102,31 +103,22 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   }
 
   onSelectedImageIdChange(imageId: string | undefined) {
-    this.selectedSbomReportImageDto = this.dataDtos?.find((x) => x.uid === imageId);
-    if (this.selectedSbomReportImageDto) {
+    this.selectedSbomReportImageMinimalDto = this.dataDtos?.find((x) => x.uid === imageId);
+    if (this.selectedSbomReportImageMinimalDto) {
       this.service
-        .getSbomReportDtoByDigestNamespace({
-          digest: this.selectedSbomReportImageDto.imageDigest,
-          namespaceName: this.selectedSbomReportImageDto.resourceNamespace,
+        .getSbomReportImageDtoByDigest({
+          digest: this.selectedSbomReportImageMinimalDto.digest,
         })
         .subscribe({
-          next: (res) => this.onGetSbomReportDtoByDigestNamespace(res),
-          error: (err) => this.onError(err),
-        });
-      this.service
-        .getSbomReportImageResourceDtosByDigestAndNamespace({
-          digest: this.selectedSbomReportImageDto.imageDigest,
-          namespaceName: this.selectedSbomReportImageDto.resourceNamespace,
-        })
-        .subscribe({
-          next: (res) => (this.imageResourceDtos = res),
+          next: (res) => this.onGetSbomReportDtoByDigest(res),
           error: (err) => this.onError(err),
         });
     }
   }
 
-  onGetSbomReportDtoByDigestNamespace(fullSbomDataDto: SbomReportDto) {
+  onGetSbomReportDtoByDigest(fullSbomDataDto: SbomReportImageDto) {
     this.fullSbomDataDto = fullSbomDataDto;
+    this.imageResourceDtos = fullSbomDataDto.resources;
     this.sbomReportDetailPropertiesTreeNodes = [];
     this.sbomReportDetailLicensesTreeNodes = [];
     this.sbomReportDetailStatistics = [];
@@ -140,9 +132,8 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
     const dto = this.dataDtos.find((dto) => dto.uid === id);
     if (dto) {
       this.service
-        .getSbomReportDtoByDigestNamespace({
-          digest: dto.imageDigest,
-          namespaceName: dto.resourceNamespace,
+        .getSbomReportImageDtoByDigest({
+          digest: dto.digest,
         })
         .subscribe({
           next: (res) => {
@@ -157,9 +148,8 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
     const dto = this.dataDtos.find((dto) => dto.uid === id);
     if (dto) {
       this.service
-        .getSbomReportDtoByDigestNamespace({
-          digest: dto.imageDigest,
-          namespaceName: dto.resourceNamespace,
+        .getSbomReportImageDtoByDigest({
+          digest: dto.digest,
         })
         .subscribe({
           next: (res) => {
@@ -191,7 +181,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
         this.goToDependencyTree();
         break;
       default:
-        console.error('sbom - multi action call back - unknown: ' + event);
+        console.error('sbom - multi action call back - unknown: ', value);
     }
   }
 
@@ -203,11 +193,11 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
       this.sbomReportDetailLicensesTreeNodes = this.getSbomReportLicenseTreeNodes();
     }
     if (this.sbomReportDetailStatistics.length == 0) {
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.criticalCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.highCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.mediumCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.lowCount ?? -1);
-      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageDto?.unknownCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.criticalCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.highCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.mediumCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.lowCount ?? -1);
+      this.sbomReportDetailStatistics.push(this.selectedSbomReportImageMinimalDto?.unknownCount ?? -1);
       this.sbomReportDetailStatistics.push(this.fullSbomDataDto?.details?.length ?? 0);
       this.sbomReportDetailStatistics.push(
         this.fullSbomDataDto?.details
@@ -222,9 +212,8 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
 
   exportSbom(fileFormat: 'cyclonedx' | 'spdx', contentType: 'json' | 'xml') {
     const apiRoot = this.service.rootUrl;
-    const namespaceName = encodeURIComponent(this.selectedSbomReportImageDto?.resourceNamespace ?? '');
-    const digest = encodeURIComponent(this.selectedSbomReportImageDto?.imageDigest ?? '');
-    const fileUrl = `${apiRoot}api/sbom-reports/${fileFormat}?digest=${digest}&namespaceName=${namespaceName}`;
+    const digest = encodeURIComponent(this.selectedSbomReportImageMinimalDto?.digest ?? '');
+    const fileUrl = `${apiRoot}api/sbom-reports/${fileFormat}?digest=${digest}`;
 
     const headers = new HttpHeaders({
       Accept: contentType === 'json' || fileFormat === 'spdx' ? 'application/json' : 'application/xml',
@@ -232,7 +221,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
 
     this.http.get(fileUrl, { headers, responseType: 'text' }).subscribe({
       next: (response: string) => {
-        const imageNameTag = `${this.selectedSbomReportImageDto?.imageName}:${this.selectedSbomReportImageDto?.imageTag}`;
+        const imageNameTag = `${this.selectedSbomReportImageMinimalDto?.imageName}:${this.selectedSbomReportImageMinimalDto?.imageTag}`;
         const blob = new Blob([response], {
           type: contentType === 'json' || fileFormat === 'spdx' ? 'application/json' : 'application/xml',
         });
@@ -253,17 +242,15 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
   }
 
   private goToDependencyTree() {
-    if (!this.selectedSbomReportImageDto) return;
+    if (!this.selectedSbomReportImageMinimalDto) return;
 
-    const digest = this.selectedSbomReportImageDto.imageDigest;
-    const namespace = this.selectedSbomReportImageDto.resourceNamespace;
-    if (digest && namespace) {
-      const imageRepository = this.selectedSbomReportImageDto.imageRepository ?? 'n/a';
-      const imageName = this.selectedSbomReportImageDto.imageName ?? 'n/a';
-      const imageTag = this.selectedSbomReportImageDto.imageTag ?? 'n/a';
-      const imageNamespace = this.selectedSbomReportImageDto.resourceNamespace ?? 'n/a';
-      this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageRepository}/${imageName}:${imageTag} in ${imageNamespace}`;
-      this.trivyImage = { digest: digest, namespaceName: namespace };
+    const digest = this.selectedSbomReportImageMinimalDto.digest;
+    if (digest) {
+      const imageRepository = this.selectedSbomReportImageMinimalDto.imageRepository ?? 'n/a';
+      const imageName = this.selectedSbomReportImageMinimalDto.imageName ?? 'n/a';
+      const imageTag = this.selectedSbomReportImageMinimalDto.imageTag ?? 'n/a';
+      this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageRepository}/${imageName}:${imageTag}`;
+      this.trivyImage = { digest: digest };
       this.isDependencyTreeViewVisible.set(true);
     }
   }
@@ -287,10 +274,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
     this.fullSbomDataDto?.details?.forEach((item) => {
       const usedBy = item.name ?? 'unknown';
 
-      item.properties?.forEach((property) => {
-        const propName = property[0] ?? 'unknown';
-        const propValue = property[1] ?? 'unknown';
-
+      Object.entries(item.properties ?? {}).forEach(([propName, propValue]) => {
         if (propName === 'tod.group') return;
 
         if (!dataMap.has(propName)) {

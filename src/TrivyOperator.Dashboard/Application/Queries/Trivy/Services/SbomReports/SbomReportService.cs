@@ -25,14 +25,25 @@ public class SbomReportService(
         RegexOptions.Compiled
     );
 
-    public async Task<IEnumerable<SbomReportImageMinimalDto>> GetSbomReportImageMinimalDtos(CancellationToken ctx = default)
+    public async Task<IEnumerable<SbomReportImageMinimalDto>> GetSbomReportImageMinimalDtos(
+        CancellationToken ctx = default)
     {
-        IReadOnlyList<SbomReport> resourceSummaries = await resourceProvider.GetResourceSummaries(ctx);
-        HashSet<Digest> vrDigests = [.. await vrResourceProvider.GetResourceIds(ctx),];
+        IReadOnlyList<SbomReport> resourceSummaries =
+            await resourceProvider.GetResourceSummaries(ctx);
 
-        return resourceSummaries
-            .SelectMany(x => x.ToMinimalDto(vrDigests.Contains(x.ImageDigest)));
+        IEnumerable<Task<IEnumerable<SbomReportImageMinimalDto>>> tasks = resourceSummaries.Select(async x =>
+        {
+            VulnerabilityReport? resourceSummary = await vrResourceProvider.GetResourceSummary(x.ImageDigest, ctx);
+
+            return x.ToMinimalDto(resourceSummary?.SeverityCounters);
+        });
+
+        IEnumerable<SbomReportImageMinimalDto>[] results = await Task.WhenAll(tasks);
+
+        return results.SelectMany(x => x);
     }
+
+
 
     public async Task<SbomReportImageDto?> GetFullSbomReportImageDtoByDigest(
         string digest,

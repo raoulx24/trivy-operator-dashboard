@@ -37,6 +37,21 @@ public sealed record SbomReportImageDto(
     IReadOnlyList<SbomReportDetailDto> Details
 );
 
+public sealed record SbomReportImageMinimalDto(
+    string Uid,
+    string NamespaceName,
+    bool HasVulnerabilityReport,
+    string Digest,
+    string ImageName,
+    string ImageTag,
+    string ImageRepository,
+    int CriticalCount,
+    int HighCount,
+    int MediumCount,
+    int LowCount,
+    int UnknownCount
+);
+
 public sealed record SbomReportExportDto(
     string Digest
 );

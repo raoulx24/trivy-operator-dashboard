@@ -80,16 +80,21 @@ public static class SbomReportMappings
 
     public static IEnumerable<SbomReportImageMinimalDto> ToMinimalDto(
         this SbomReport report,
-        bool hasVulnerabilityReport)
+        SeverityCounters? severityCounters)
     {
         return report.Occurrences.Select(x => new SbomReportImageMinimalDto(
             Uid: x.Metadata.Uid.Value,
             NamespaceName: x.Metadata.NamespaceName.Value,
-            HasVulnerabilityReport: hasVulnerabilityReport,
+            HasVulnerabilityReport: severityCounters is not null,
             Digest: report.ImageDigest.Value,
             ImageName: x.ImageMeta.Repo.Value,
             ImageTag: x.ImageMeta.Tag.Value,
-            ImageRepository: x.ImageMeta.Registry.Value
+            ImageRepository: x.ImageMeta.Registry.Value,
+            CriticalCount: severityCounters?.CriticalCount ?? 0,
+            HighCount: severityCounters?.HighCount ?? 0,
+            MediumCount: severityCounters?.MediumCount ?? 0,
+            LowCount: severityCounters?.LowCount ?? 0,
+            UnknownCount: severityCounters?.UnknownCount ?? 0
         ));
     }
 }

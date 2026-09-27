@@ -52,8 +52,9 @@ public static class TrivyReportMappings
             Properties: component.Properties,
             Licenses:
             [
-                .. component.Licenses.Select(static x
-                    => new SbomReportLicenseDto(Id: x.Id, Name: x.Name, Url: x.Url)),
+                .. component.Licenses?.Select(x => x.Name ?? string.Empty)
+                       .Where(x => !string.IsNullOrWhiteSpace(x)) ??
+                   [],
             ],
             CriticalCount: severityCounters?.CriticalCount ?? -1,
             HighCount: severityCounters?.HighCount ?? -1,

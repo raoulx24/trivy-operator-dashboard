@@ -26,7 +26,7 @@ public sealed record SbomReportDetailDto(
     string Purl,
     string Version,
     IReadOnlyDictionary<string, string> Properties,
-    IReadOnlyList<SbomReportLicenseDto> Licenses,
+    IReadOnlyList<string> Licenses,
     int CriticalCount,
     int HighCount,
     int MediumCount,
@@ -34,22 +34,6 @@ public sealed record SbomReportDetailDto(
     int UnknownCount,
     string BomRef,
     IReadOnlyList<string> DependsOn
-);
-
-public sealed record SbomReportLicenseDto(
-    string? Id,
-    string? Name,
-    Uri? Url
-);
-
-public sealed record SbomReportImageMinimalDto(
-    string Uid,
-    string NamespaceName,
-    bool HasVulnerabilityReport,
-    string Digest,
-    string ImageName,
-    string ImageTag,
-    string ImageRepository
 );
 
 public sealed record SecurityAssessmentReportDetailDto(

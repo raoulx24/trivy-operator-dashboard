@@ -2855,7 +2855,7 @@ components:
         licenses:
           type: array
           items:
-            $ref: '#/components/schemas/SbomReportLicenseDto'
+            type: string
         criticalCount:
           type: integer
           format: int32
@@ -2945,20 +2945,21 @@ components:
           type: string
         imageRepository:
           type: string
-      additionalProperties: false
-    SbomReportLicenseDto:
-      type: object
-      properties:
-        id:
-          type: string
-          nullable: true
-        name:
-          type: string
-          nullable: true
-        url:
-          type: string
-          format: uri
-          nullable: true
+        criticalCount:
+          type: integer
+          format: int32
+        highCount:
+          type: integer
+          format: int32
+        mediumCount:
+          type: integer
+          format: int32
+        lowCount:
+          type: integer
+          format: int32
+        unknownCount:
+          type: integer
+          format: int32
       additionalProperties: false
     SecurityAssessmentReportDetailDto:
       type: object

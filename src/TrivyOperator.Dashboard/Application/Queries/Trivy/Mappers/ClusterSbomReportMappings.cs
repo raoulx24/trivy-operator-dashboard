@@ -64,16 +64,21 @@ public static class ClusterSbomReportMappings
     
     public static SbomReportImageMinimalDto ToMinimalDto(
         this ClusterSbomReport report,
-        bool hasVulnerabilityReport)
+        SeverityCounters? severityCounters)
     {
         return new SbomReportImageMinimalDto(
             Uid: report.Occurrence.Metadata.Uid.Value,
             NamespaceName: report.Occurrence.Metadata.NamespaceName.Value,
-            HasVulnerabilityReport: hasVulnerabilityReport,
+            HasVulnerabilityReport: severityCounters is not null,
             Digest: new Digest().Value,
             ImageName: report.Occurrence.ImageMeta.Repo.Value,
             ImageTag: report.Occurrence.ImageMeta.Tag.Value,
-            ImageRepository: report.Occurrence.ImageMeta.Registry.Value
+            ImageRepository: report.Occurrence.ImageMeta.Registry.Value,
+            CriticalCount: severityCounters?.CriticalCount ?? 0,
+            HighCount: severityCounters?.HighCount ?? 0,
+            MediumCount: severityCounters?.MediumCount ?? 0,
+            LowCount: severityCounters?.LowCount ?? 0,
+            UnknownCount: severityCounters?.UnknownCount ?? 0
         );
     }
 }
