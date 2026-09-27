@@ -111,7 +111,7 @@ export class AlertsComponent implements OnInit {
       const { severity, emitter, emitterKey, category, message } = alert;
       if (!severity || !emitter || !emitterKey || !category) continue;
 
-      const keyPath = [severity, emitter, ...emitterKey.split('|')];
+      const keyPath = [severity, emitter, ...emitterKey];
       let key = '';
       let prevNode: AlertNodeData | undefined;
       treeMaxLevel = Math.max(treeMaxLevel, keyPath.length - 1);

@@ -152,9 +152,9 @@ export class GenericSbomComponent {
         (x) =>
           ({
             uid: x.uid ?? '',
-            resourceNamespace: x.resourceNamespace ?? nonExistingNamespace,
+            resourceNamespace: x.namespaceName ?? nonExistingNamespace,
             mainLabel: `${x.imageName ?? ''}:${x.imageTag ?? ''}`,
-            icon: x.hasVulnerabilities ? 'security' : undefined,
+            icon: x.hasVulnerabilityReport ? 'security' : undefined,
           }) as NamespacedImageDto,
       ) ?? [];
   }
@@ -270,20 +270,28 @@ export class GenericSbomComponent {
     }
   }
 
-  private getGroupFromSbomReportDetail(dto: GenericSbomReportDetailDto): string {
-    if (dto.properties?.find((x) => x[1] == 'nuget')) {
+  private getGroupFromSbomReportDetail(
+    dto: GenericSbomReportDetailDto,
+  ): string {
+    const properties = dto.properties ?? {};
+
+    if (Object.values(properties).includes('nuget')) {
       return `${dto.name?.split('.')[0] ?? ''} (nuget)`;
     }
-    if (dto.properties?.find((x) => x[1] == 'dotnet-core')) {
+
+    if (Object.values(properties).includes('dotnet-core')) {
       return `${dto.name?.split('.')[0] ?? ''} (dotnet-core)`;
     }
-    if (dto.properties?.find((x) => x[1] == 'gobinary')) {
+
+    if (Object.values(properties).includes('gobinary')) {
       return `${dto.name?.split('/')[0] ?? ''} (gobinary)`;
     }
-    const todGroup = dto.properties?.find((x) => x[0] == 'tod.group');
-    if (todGroup && todGroup[1]) {
-      return `${todGroup[1]}`;
+
+    const todGroup = properties['tod.group'];
+    if (todGroup) {
+      return todGroup;
     }
+
     return '';
   }
 
@@ -362,15 +370,17 @@ export class GenericSbomComponent {
       rowKey: dto,
       colStyles: [
         { width: '70px', 'min-width': '70px', height: '50px' },
-        { 'white-space': 'normal', display: 'flex', 'align-items': 'center', height: '50px' },
+        {
+          'white-space': 'normal',
+          display: 'flex',
+          'align-items': 'center',
+          height: '50px',
+        },
       ],
-      details:
-        dto.properties?.map((x) => {
-          return [
-            { label: x[0] ?? '' },
-            { label: x[1] ?? '' },
-          ];
-        }) ?? [],
+      details: Object.entries(dto.properties ?? {}).map(([key, value]) => [
+        { label: key },
+        { label: value },
+      ]),
     };
   }
 

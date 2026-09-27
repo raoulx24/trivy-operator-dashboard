@@ -1,9 +1,9 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
-import { GetExposedSecretReportImageDtos$Params } from '../../../api/fn/exposed-secret-report/get-exposed-secret-report-image-dtos';
+import { GetExposedSecretReportImageDtos$Params } from '../../../api/fn/exposed-secret-reports/get-exposed-secret-report-image-dtos';
 import { ExposedSecretReportImageDto } from '../../../api/models/exposed-secret-report-image-dto';
-import { ExposedSecretReportService } from '../../../api/services/exposed-secret-report.service';
+import { ExposedSecretReportsService } from '../../../api/services/exposed-secret-reports.service';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import {
   TrivyFilterData,
@@ -12,8 +12,7 @@ import {
 } from '../../ui-elements/trivy-table/trivy-table.types';
 import { SeverityUtils } from '../../utils/severity.utils';
 
-import { VulnerabilityReportImageResourceDto } from '../../../api/models/vulnerability-report-image-resource-dto';
-import { ReportHelper, TrivyReportImageDto } from '../abstracts/trivy-report-image';
+import { ReportHelper } from '../abstracts/trivy-report-image';
 import {
   exposedSecretReportColumns,
   exposedSecretReportComparedTableColumns,
@@ -69,9 +68,8 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   trivyImage?: ImageInfo;
   trivyDependencyDialogTitle: string = '';
 
-  private readonly dataDtoService = inject(ExposedSecretReportService);
+  private readonly dataDtoService = inject(ExposedSecretReportsService);
   private readonly router = inject(Router);
-  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
 
   ngOnInit() {
@@ -94,10 +92,10 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
 
   private onGetDataDtos(dtos: ExposedSecretReportImageDto[]) {
     this.dataDtos = dtos;
-    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
+    this.activeNamespaces = Array.from(new Set(dtos.flatMap(dto => dto.namespaceNames))).sort();
     if (this.isPreselected) {
       this.selectedTrivyReportDto = dtos.find(
-        (x) => x.imageDigest == this.queryDigest && x.resourceNamespace == this.queryNamespaceName,
+        (x) => x.digest == this.queryDigest,
       );
     }
     this.isMainTableLoading = false;
@@ -124,7 +122,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   }
 
   getPanelHeaderText() {
-    return `Image Usage for ${this.mainTableExpandCallbackDto?.imageName}:${this.mainTableExpandCallbackDto?.imageTag} in namespace ${this.mainTableExpandCallbackDto?.resourceNamespace}`;
+    return `Image Usage for ${this.mainTableExpandCallbackDto?.imageInfos?.[0]?.nameAndTag ?? 'N/A'}`;
   }
 
   rowExpandResponse?: TrivyTableExpandRowData<ExposedSecretReportImageDto>;
@@ -142,7 +140,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
         // ],
         [
           { label: 'Repository' },
-          { label: dto.imageRepository ?? '' },
+          { label: dto.imageInfos?.[0]?.repository ?? '' },
         ],
         // [
         //   { label: 'Update Moment' },
@@ -150,7 +148,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
         // ],
         [
           { label: 'Used By' },
-          ReportHelper.getNarrowedResourceNames(dto as TrivyReportImageDto<VulnerabilityReportImageResourceDto>),
+          ReportHelper.getNarrowedResourceNames(dto),
         ],
       ],
     };
@@ -198,23 +196,19 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
       .filter((esr) => esr.criticalCount > 0 || esr.highCount > 0 || esr.mediumCount > 0 || esr.lowCount > 0)
       .map((esr) => ({
         uid: esr.uid ?? '',
-        resourceNamespace: esr.resourceNamespace ?? '',
-        mainLabel: `${esr.imageName ?? ''}:${esr.imageTag ?? ''}`,
+        resourceNamespace: 'N/A',
+        mainLabel: `${esr.imageInfos[0]?.nameAndTag ?? 'N/A'}`,
       }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
     this.isTrivyReportsCompareVisible.set(true);
   }
 
   private goToDependencyTree() {
-    const digest = this.selectedTrivyReportDto?.imageDigest;
-    const namespace = this.selectedTrivyReportDto?.resourceNamespace;
-    if (digest && namespace) {
-      const imageRepository = this.selectedTrivyReportDto?.imageRepository ?? 'n/a';
-      const imageName = this.selectedTrivyReportDto?.imageName ?? 'n/a';
-      const imageTag = this.selectedTrivyReportDto?.imageTag ?? 'n/a';
-      const imageNamespace = this.selectedTrivyReportDto?.resourceNamespace ?? 'n/a';
-      this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageRepository}/${imageName}:${imageTag} in ${imageNamespace}`;
-      this.trivyImage = { digest: digest, namespaceName: namespace };
+    const digest = this.selectedTrivyReportDto?.digest;
+    if (digest) {
+      const imageNameAndTag = this.selectedTrivyReportDto?.imageInfos[0]?.nameAndTag ?? 'n/a';
+      this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageNameAndTag}`;
+      this.trivyImage = { digest: digest };
       this.isDependencyTreeViewVisible.set(true);
     }
   }

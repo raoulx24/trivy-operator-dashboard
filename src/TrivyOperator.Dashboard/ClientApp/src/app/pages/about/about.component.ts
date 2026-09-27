@@ -7,7 +7,7 @@ import { PanelModule } from 'primeng/panel';
 import { TagModule } from 'primeng/tag';
 
 import { AppVersion } from '../../../api/models/app-version';
-import { GitHubReleaseDto } from '../../../api/models/git-hub-release-dto';
+import { ReleaseDto } from '../../../api/models/release-dto';
 import { AppVersionsService } from '../../../api/services/app-versions.service';
 import { VersionUtils } from '../../utils/version.utils';
 import { AboutCredits } from './about.types';
@@ -30,7 +30,7 @@ export interface BackendFeature {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutComponent implements OnInit {
-  releaseNotes = signal<GitHubReleaseDto[]>([]);
+  releaseNotes = signal<ReleaseDto[]>([]);
   currentVersion = signal<AppVersion | undefined>(undefined);
   latestVersion = signal<string | undefined>(undefined);
   newVersionAvailable = signal<boolean>(false);
@@ -121,7 +121,7 @@ export class AboutComponent implements OnInit {
     });
   }
 
-  private onReleaseNoteDtos(data: GitHubReleaseDto[]) {
+  private onReleaseNoteDtos(data: ReleaseDto[]) {
     this.releaseNotes.set(
       data.sort((a, b) => VersionUtils.parseVersion(b.tagName ?? '') - VersionUtils.parseVersion(a.tagName ?? '')),
     );

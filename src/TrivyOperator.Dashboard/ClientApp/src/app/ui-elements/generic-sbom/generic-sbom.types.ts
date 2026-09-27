@@ -1,29 +1,12 @@
-export interface GenericSbomReportDto {
+import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
+import { SbomReportImageDto } from '../../../api/models/sbom-report-image-dto';
+import { SbomReportDetailDto } from '../../../api/models/sbom-report-detail-dto';
+
+export interface GenericSbomReportDto extends Omit<SbomReportImageDto, 'details'> {
   details: Array<GenericSbomReportDetailDto>;
-  imageName: string;
-  imageRepository: string;
-  imageTag: string;
-  hasVulnerabilities?: boolean;
-  uid: string;
-  rootNodeBomRef: string;
-  resourceNamespace?: string;
 }
 
-export interface GenericSbomReportDetailDto {
-  bomRef: string;
-  criticalCount: number;
-  dependsOn: Array<string>;
-  highCount: number;
-  id: string;
-  lowCount: number;
-  matchKey: string;
-  mediumCount: number;
-  name: string;
-  properties: Array<Array<string>>;
-  purl: string;
-  unknownCount: number;
-  version: string;
-
+export interface GenericSbomReportDetailDto extends SbomReportDetailDto {
   level?: 'Ancestor' | 'Base' | 'Child' | 'Descendant';
   group?: string;
 }
@@ -32,17 +15,4 @@ export interface GenericSbomReportDetailDto {
 //
 // }
 
-export interface GenericSbomReportMinimalDto {
-  uid: string;
-  resourceNamespace?: string;
-  imageName: string;
-  imageTag: string;
-  imageDigest?: string;
-  imageRepository: string;
-  hasVulnerabilities: boolean;
-  criticalCount: number;
-  highCount: number;
-  mediumCount: number;
-  lowCount: number;
-  unknownCount: number;
-}
+export interface GenericSbomReportMinimalDto extends SbomReportImageMinimalDto { }
