@@ -15,7 +15,7 @@ public class ClusterComplianceReportService(
         CancellationToken ctx = default)
     {
         IReadOnlyList<ClusterComplianceReport> reports =
-            await resourceProvider.GetResourceSummaries(ctx);
+            await resourceProvider.GetResources(ctx);
 
         return reports.Select(x => x.ToDto());
     }
@@ -34,7 +34,7 @@ public class ClusterComplianceReportService(
         CancellationToken ctx = default)
     {
         IReadOnlyList<ClusterComplianceReport> reports =
-            await resourceProvider.GetResourceSummaries(ctx);
+            await resourceProvider.GetResources(ctx);
 
         return reports.SelectMany(x => x.ToDenormalizedDtos());
     }

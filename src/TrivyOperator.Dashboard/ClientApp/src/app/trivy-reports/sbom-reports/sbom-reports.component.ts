@@ -246,7 +246,7 @@ export class SbomReportsComponent extends DataPageBase implements OnInit {
 
     const digest = this.selectedSbomReportImageMinimalDto.digest;
     if (digest) {
-      const imageRepository = this.selectedSbomReportImageMinimalDto.imageRepository ?? 'n/a';
+      const imageRepository = this.selectedSbomReportImageMinimalDto.imageRegistry ?? 'n/a';
       const imageName = this.selectedSbomReportImageMinimalDto.imageName ?? 'n/a';
       const imageTag = this.selectedSbomReportImageMinimalDto.imageTag ?? 'n/a';
       this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageRepository}/${imageName}:${imageTag}`;

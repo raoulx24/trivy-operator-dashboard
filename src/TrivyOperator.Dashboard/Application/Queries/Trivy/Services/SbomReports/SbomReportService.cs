@@ -31,10 +31,23 @@ public class SbomReportService(
         IReadOnlyList<SbomReport> resourceSummaries =
             await resourceProvider.GetResourceSummaries(ctx);
         
-        HashSet<Digest> vrDigests = [.. await vrResourceProvider.GetResourceIds(ctx),];
+        IReadOnlyList<VulnerabilityReport> vrSummaries = await vrResourceProvider.GetResourceSummaries(ctx);
+
+        Dictionary<Digest, SeverityCounters> vrByDigest =
+            vrSummaries.ToDictionary(
+                x => x.ImageDigest,
+                x => x.SeverityCounters);
 
         return resourceSummaries
-            .SelectMany(x => x.ToMinimalDto(vrDigests.Contains(x.ImageDigest)));
+            .SelectMany(x =>
+            {
+                var severityCounters =
+                    vrByDigest.TryGetValue(x.ImageDigest, out var counters)
+                        ? (SeverityCounters?)counters
+                        : null;
+
+                return x.ToMinimalDto(severityCounters);
+            });
     }
 
     public async Task<SbomReportImageDto?> GetFullSbomReportImageDtoByDigest(

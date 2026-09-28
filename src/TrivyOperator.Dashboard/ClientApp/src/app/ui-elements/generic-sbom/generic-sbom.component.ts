@@ -152,7 +152,7 @@ export class GenericSbomComponent {
         (x) =>
           ({
             uid: x.uid ?? '',
-            resourceNamespace: x.namespaceName ?? nonExistingNamespace,
+            resourceNamespace: x.resourceNamespace ?? nonExistingNamespace,
             mainLabel: `${x.imageName ?? ''}:${x.imageTag ?? ''}`,
             icon: x.hasVulnerabilityReport ? 'security' : undefined,
           }) as NamespacedImageDto,

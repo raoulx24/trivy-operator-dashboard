@@ -12,6 +12,9 @@ public static class ExposedSecretReportMappings
     public static ExposedSecretReportImageDto ToDto(
         this ExposedSecretReport report)
     {
+        TrivyReportImageInfoDto? lastImageInfoDto =
+            report.Occurrences.MaxBy(x => x.Metadata.CreationTimestamp)?.ToImageInfoDto();
+        
         return new ExposedSecretReportImageDto(
             Uid: DeterministicId.Create(report.ImageDigest.Value).ToString(),
 
@@ -24,8 +27,9 @@ public static class ExposedSecretReportMappings
             ],
 
             Digest: report.ImageDigest.Value,
-
             ImageInfos: [.. report.Occurrences.Select(static occurrence => occurrence.ToImageInfoDto()),],
+            LastImageNameAndTag: lastImageInfoDto is null ? "N/A" : lastImageInfoDto.NameAndTag,
+            LastImageRegistry: lastImageInfoDto is null ? "N/A" : lastImageInfoDto.Registry,
 
             Resources: [.. report.Occurrences.Select(static occurrence => occurrence.ToResourceInfoDto()),],
 
@@ -82,7 +86,7 @@ public static class ExposedSecretReportMappings
 
             ImageNameAndTag: $"{occurrence.ImageMeta.Registry.Value}:{occurrence.ImageMeta.Tag.Value}",
 
-            ImageRepository: occurrence.ImageMeta.Repo.Value,
+            ImageRegistry: occurrence.ImageMeta.Repo.Value,
 
             ResourceName: occurrence.Metadata.GetResourceName().Value,
             ResourceKind: occurrence.Metadata.GetResourceKind().Value,
@@ -138,7 +142,7 @@ public static class ExposedSecretReportMappings
             ImageName: occurrence.ImageMeta.Repo.Value,
             ImageTag: occurrence.ImageMeta.Tag.Value,
             ImageDigest: report.ImageDigest.Value,
-            ImageRepository: occurrence.ImageMeta.Registry.Value,
+            ImageRegistry: occurrence.ImageMeta.Registry.Value,
 
             UpdateTimestamp: report.LastSeenAt.Value,
 

@@ -6,7 +6,7 @@ public sealed record ClusterSbomReportDto(
 
     string ImageName,
     string ImageTag,
-    string ImageRepository,
+    string ImageRegistry,
     
     int CriticalCount,
     int HighCount,
@@ -23,7 +23,7 @@ public sealed record ClusterSbomReportDenormalizedDto(
 
     string ImageName,
     string ImageTag,
-    string ImageRepository,
+    string ImageRegistry,
 
     string RootNodeBomRef,
 

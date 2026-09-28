@@ -45,7 +45,7 @@ export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase imple
 
   private onGetDataDtos(dtos: SbomReportImageMinimalDto[]) {
     this.dataDtos = dtos;
-    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.namespaceName ?? 'N/A'))).sort();
+    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace))).sort();
     this.isTableLoading = false;
   }
 

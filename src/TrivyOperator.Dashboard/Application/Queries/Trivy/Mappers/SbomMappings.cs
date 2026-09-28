@@ -18,7 +18,7 @@ public static class SbomReportMappings
             Digest: report.ImageDigest.Value,
             ImageName: occurrence.ImageMeta.Repo.Value,
             ImageTag: occurrence.ImageMeta.Tag.Value,
-            ImageRepository: occurrence.ImageMeta.Registry.Value,
+            ImageRegistry: occurrence.ImageMeta.Registry.Value,
             UpdateTimestamp: report.LastSeenAt.Value,
             RootNodeBomRef: report.RootNodeBomRef.ToDtoBomRef(),
             Details:
@@ -40,6 +40,9 @@ public static class SbomReportMappings
         SeverityCounters? severityCounters,
         IReadOnlyDictionary<Purl, SeverityCounters> severities)
     {
+        TrivyReportImageInfoDto? lastImageInfoDto =
+            report.Occurrences.MaxBy(x => x.Metadata.CreationTimestamp)?.ToImageInfoDto();
+        
         return new SbomReportImageDto(
             Uid: DeterministicId.Create(report.ImageDigest.Value).ToString(),
             NamespaceNames:
@@ -55,6 +58,9 @@ public static class SbomReportMappings
             [
                 .. report.Occurrences.Select(static x => x.ToImageInfoDto()).Distinct(),
             ],
+            LastImageNameAndTag: lastImageInfoDto is null ? "N/A" : lastImageInfoDto.NameAndTag,
+            LastImageRegistry: lastImageInfoDto is null ? "N/A" : lastImageInfoDto.Registry,
+            
             Resources:
             [
                 .. report.Occurrences.Select(static x => x.ToResourceInfoDto()),
@@ -91,17 +97,21 @@ public static class SbomReportMappings
 
     public static IEnumerable<SbomReportImageMinimalDto> ToMinimalDto(
         this SbomReport report,
-        bool hasVulnerabilityReport
-        )
+        SeverityCounters? severityCounters)
     {
         return report.Occurrences.Select(x => new SbomReportImageMinimalDto(
             Uid: x.Metadata.Uid.Value,
-            NamespaceName: x.Metadata.NamespaceName.Value,
-            HasVulnerabilityReport: hasVulnerabilityReport,
+            ResourceNamespace: x.Metadata.NamespaceName.Value,
+            HasVulnerabilityReport: severityCounters is not null,
             Digest: report.ImageDigest.Value,
             ImageName: x.ImageMeta.Repo.Value,
             ImageTag: x.ImageMeta.Tag.Value,
-            ImageRepository: x.ImageMeta.Registry.Value
+            ImageRegistry: x.ImageMeta.Registry.Value,
+            CriticalCount: severityCounters?.CriticalCount ?? 0,
+            HighCount: severityCounters?.HighCount ?? 0,
+            MediumCount: severityCounters?.MediumCount ?? 0,
+            LowCount: severityCounters?.LowCount ?? 0,
+            UnknownCount: severityCounters?.UnknownCount ?? 0
         ));
     }
 }

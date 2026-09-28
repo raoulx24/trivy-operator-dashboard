@@ -16,12 +16,26 @@ public class ClusterSbomReportService(
     public async Task<IEnumerable<SbomReportImageMinimalDto>> GetClusterSbomReportMinimalDtos(CancellationToken ctx = default)
     {
         IReadOnlyList<ClusterSbomReport> resourceSummaries = await resourceProvider.GetResourceSummaries(ctx);
-        HashSet<Uid> vrDigests = [.. await cvrResourceProvider.GetResourceIds(ctx),];
+        IReadOnlyList<ClusterVulnerabilityReport> cvrResourceSummaries =
+            await cvrResourceProvider.GetResourceSummaries(ctx);
+
+        Dictionary<Uid, SeverityCounters> severityCountersByUid =
+            cvrResourceSummaries.ToDictionary(
+                x => x.Id,
+                x => x.SeverityCounters);
 
         return resourceSummaries
-            .Select(x => x.ToMinimalDto(
-                x.Occurrence.Metadata.OwnerReferences?
-                    .Any(owner => vrDigests.Contains(owner.Uid)) == true));
+            .Select(x =>
+            {
+                var severityCounters = x.Occurrence.Metadata.OwnerReferences?
+                    .Select(owner =>
+                        severityCountersByUid.TryGetValue(owner.Uid, out var counters)
+                            ? (SeverityCounters?)counters
+                            : null)
+                    .FirstOrDefault();
+
+                return x.ToMinimalDto(severityCounters);
+            });
     }
     
     public async Task<IEnumerable<ClusterSbomReportDto>> GetClusterSbomReportDtos(

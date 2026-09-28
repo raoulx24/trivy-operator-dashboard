@@ -7,7 +7,7 @@ public sealed record SbomReportDto(
     string Digest,
     string ImageName,
     string ImageTag,
-    string ImageRepository,
+    string ImageRegistry,
 
     DateTime UpdateTimestamp,
 
@@ -21,6 +21,8 @@ public sealed record SbomReportImageDto(
 
     string Digest,
     IReadOnlyList<TrivyReportImageInfoDto> ImageInfos,
+    string LastImageNameAndTag,
+    string LastImageRegistry,
 
     IReadOnlyList<TrivyReportResourceInfoDto> Resources,
 
@@ -46,12 +48,17 @@ public sealed record SbomReportImageDto(
 
 public sealed record SbomReportImageMinimalDto(
     string Uid,
-    string NamespaceName,
+    string ResourceNamespace,
     bool HasVulnerabilityReport,
     string Digest,
     string ImageName,
     string ImageTag,
-    string ImageRepository
+    string ImageRegistry,
+    int CriticalCount,
+    int HighCount,
+    int MediumCount,
+    int LowCount,
+    int UnknownCount
 );
 
 public sealed record SbomReportExportDto(

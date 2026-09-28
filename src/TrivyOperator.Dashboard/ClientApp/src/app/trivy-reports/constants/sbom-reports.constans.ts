@@ -100,7 +100,7 @@ export const sbomReportDenormalizedColumns: readonly TrivyTableColumn[] = [
     renderType: 'standard',
   },
   {
-    field: 'imageDigest',
+    field: 'digest',
     header: 'Image Digest',
     isFilterable: true,
     isSortable: true,
@@ -109,7 +109,7 @@ export const sbomReportDenormalizedColumns: readonly TrivyTableColumn[] = [
     renderType: 'standard',
   },
   {
-    field: 'imageRepository',
+    field: 'imageRegistry',
     header: 'Repository',
     isFilterable: true,
     isSortable: true,
@@ -118,7 +118,7 @@ export const sbomReportDenormalizedColumns: readonly TrivyTableColumn[] = [
     renderType: 'standard',
   },
   {
-    field: 'hasVulnerabilities',
+    field: 'hasVulnerabilityReport',
     header: 'Has VRs',
     isFilterable: true,
     isSortable: true,

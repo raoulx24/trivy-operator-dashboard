@@ -122,7 +122,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   }
 
   getPanelHeaderText() {
-    return `Image Usage for ${this.mainTableExpandCallbackDto?.imageInfos?.[0]?.nameAndTag ?? 'N/A'}`;
+    return `Image Usage for ${this.mainTableExpandCallbackDto?.lastImageNameAndTag ?? 'N/A'}`;
   }
 
   rowExpandResponse?: TrivyTableExpandRowData<ExposedSecretReportImageDto>;
@@ -139,8 +139,8 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
         //   { label: dto.imageDigest ?? '' },
         // ],
         [
-          { label: 'Repository' },
-          { label: dto.imageInfos?.[0]?.repository ?? '' },
+          { label: 'Registry' },
+          { label: dto.lastImageRegistry ?? '' },
         ],
         // [
         //   { label: 'Update Moment' },
@@ -197,7 +197,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
       .map((esr) => ({
         uid: esr.uid ?? '',
         resourceNamespace: 'N/A',
-        mainLabel: `${esr.imageInfos[0]?.nameAndTag ?? 'N/A'}`,
+        mainLabel: `${esr.lastImageNameAndTag}`,
       }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
     this.isTrivyReportsCompareVisible.set(true);
@@ -206,7 +206,7 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   private goToDependencyTree() {
     const digest = this.selectedTrivyReportDto?.digest;
     if (digest) {
-      const imageNameAndTag = this.selectedTrivyReportDto?.imageInfos[0]?.nameAndTag ?? 'n/a';
+      const imageNameAndTag = this.selectedTrivyReportDto?.lastImageNameAndTag ?? 'n/a';
       this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageNameAndTag}`;
       this.trivyImage = { digest: digest };
       this.isDependencyTreeViewVisible.set(true);

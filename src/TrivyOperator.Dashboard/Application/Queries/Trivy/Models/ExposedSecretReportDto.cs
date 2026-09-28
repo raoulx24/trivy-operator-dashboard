@@ -6,7 +6,7 @@ public sealed record ExposedSecretReportDto(
 
     string Digest,
     string ImageNameAndTag,
-    string ImageRepository,
+    string ImageRegistry,
 
     string ResourceName,
     string ResourceKind,
@@ -29,6 +29,8 @@ public sealed record ExposedSecretReportImageDto(
 
     string Digest,
     IReadOnlyList<TrivyReportImageInfoDto> ImageInfos,
+    string LastImageNameAndTag,
+    string LastImageRegistry,
 
     IReadOnlyList<TrivyReportResourceInfoDto> Resources,
 
@@ -64,7 +66,7 @@ public sealed record ExposedSecretReportDenormalizedDto(
     string ImageName,
     string ImageTag,
     string ImageDigest,
-    string ImageRepository,
+    string ImageRegistry,
 
     DateTime UpdateTimestamp,
 

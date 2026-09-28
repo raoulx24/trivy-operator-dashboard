@@ -2072,7 +2072,7 @@ components:
           type: string
         imageTag:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         rootNodeBomRef:
           type: string
@@ -2103,7 +2103,7 @@ components:
           type: string
         imageTag:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         criticalCount:
           type: integer
@@ -2141,7 +2141,7 @@ components:
           type: string
         imageTag:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         imageOsFamily:
           type: string
@@ -2200,7 +2200,7 @@ components:
           type: string
         imageTag:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         imageOsFamily:
           type: string
@@ -2518,7 +2518,7 @@ components:
           type: string
         imageDigest:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         updateTimestamp:
           type: string
@@ -2584,7 +2584,7 @@ components:
           type: string
         imageNameAndTag:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         resourceName:
           type: string
@@ -2630,6 +2630,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrivyReportImageInfoDto'
+        lastImageNameAndTag:
+          type: string
+        lastImageRegistry:
+          type: string
         resources:
           type: array
           items:
@@ -2922,6 +2926,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrivyReportImageInfoDto'
+        lastImageNameAndTag:
+          type: string
+        lastImageRegistry:
+          type: string
         resources:
           type: array
           items:
@@ -2971,7 +2979,7 @@ components:
       properties:
         uid:
           type: string
-        namespaceName:
+        resourceNamespace:
           type: string
         hasVulnerabilityReport:
           type: boolean
@@ -2981,8 +2989,23 @@ components:
           type: string
         imageTag:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
+        criticalCount:
+          type: integer
+          format: int32
+        highCount:
+          type: integer
+          format: int32
+        mediumCount:
+          type: integer
+          format: int32
+        lowCount:
+          type: integer
+          format: int32
+        unknownCount:
+          type: integer
+          format: int32
       additionalProperties: false
     SecurityAssessmentReportDetailDto:
       type: object
@@ -3096,7 +3119,7 @@ components:
       properties:
         nameAndTag:
           type: string
-        repository:
+        registry:
           type: string
       additionalProperties: false
     TrivyReportNode:
@@ -3235,7 +3258,7 @@ components:
           type: string
         imageDigest:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         imageOsFamily:
           type: string
@@ -3343,7 +3366,7 @@ components:
           type: string
         imageNameAndTag:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         imageOsFamily:
           type: string
@@ -3422,6 +3445,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrivyReportImageInfoDto'
+        lastImageNameAndTag:
+          type: string
+        lastImageRegistry:
+          type: string
         imageOsFamily:
           type: string
         imageOsName:

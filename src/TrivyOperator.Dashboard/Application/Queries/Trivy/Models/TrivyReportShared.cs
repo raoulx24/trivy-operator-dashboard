@@ -51,7 +51,7 @@ public sealed record SecurityAssessmentReportDetailDto(
 
 public sealed record TrivyReportImageInfoDto(
     string NameAndTag,
-    string Repository
+    string Registry
 );
 
 public sealed record TrivyReportResourceInfoDto(

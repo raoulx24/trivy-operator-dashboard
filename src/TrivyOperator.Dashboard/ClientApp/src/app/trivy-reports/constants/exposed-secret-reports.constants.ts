@@ -2,14 +2,13 @@ import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.type
 
 export const exposedSecretReportColumns: readonly TrivyTableColumn[] = [
   {
-    field: 'imageName',
+    field: 'lastImageNameAndTag',
     header: 'Image Name - Tag',
     isFilterable: true,
     isSortable: true,
     multiSelectType: 'none',
     style: 'width: 265px; max-width: 265px; white-space: normal;',
-    renderType: 'imageNameTag',
-    extraFields: ['imageTag', 'imageEosl'],
+    renderType: 'standard',
   },
   {
     field: 'criticalCount',
@@ -157,7 +156,7 @@ export const exposedSecretReportDenormalizedColumns: readonly TrivyTableColumn[]
     renderType: 'standard',
   },
   {
-    field: 'imageRepository',
+    field: 'imageRegistry',
     header: 'Repository',
     isFilterable: true,
     isSortable: true,

@@ -9,8 +9,7 @@ namespace TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 
 public static class TrivyReportMappings
 {
-    internal static VulnerabilityReportDetailDto ToDto(
-        this Vulnerability vulnerability)
+    internal static VulnerabilityReportDetailDto ToDto(this Vulnerability vulnerability)
     {
         Uid key = new(DeterministicId.Create(
             vulnerability.Id.Value, 
@@ -114,17 +113,15 @@ public static class TrivyReportMappings
         return new Kind();
     }
     
-    internal static TrivyReportImageInfoDto ToImageInfoDto(
-        this ReportImageOccurrence occurrence)
+    internal static TrivyReportImageInfoDto ToImageInfoDto(this ReportImageOccurrence occurrence)
     {
         return new TrivyReportImageInfoDto(
-            NameAndTag: $"{occurrence.ImageMeta.Registry.Value}:{occurrence.ImageMeta.Tag.Value}",
-            Repository: occurrence.ImageMeta.Repo.Value
+            NameAndTag: $"{occurrence.ImageMeta.Repo.Value}:{occurrence.ImageMeta.Tag.Value}",
+            Registry: occurrence.ImageMeta.Registry.Value
         );
     }
 
-    internal static TrivyReportResourceInfoDto ToResourceInfoDto(
-        this ReportImageOccurrence occurrence)
+    internal static TrivyReportResourceInfoDto ToResourceInfoDto(this ReportImageOccurrence occurrence)
     {
         return new TrivyReportResourceInfoDto(
             Name: occurrence.Metadata.GetResourceName().Value,
