@@ -30,7 +30,6 @@ export class ClusterInfraAssessmentReportsComponent extends DataPageBase impleme
   dataDtos: ClusterInfraAssessmentReportDto[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...infraAssessmentReportColumns];
-  isMainTableLoading: boolean = true;
 
   detailsTableColumns: TrivyTableColumn[] = [...infraAssessmentReportDetailColumns];
 

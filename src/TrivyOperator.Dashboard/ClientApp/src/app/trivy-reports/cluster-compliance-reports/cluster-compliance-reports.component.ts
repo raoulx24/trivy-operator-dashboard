@@ -25,7 +25,6 @@ export class ClusterComplianceReportsComponent extends DataPageBase implements O
   dataDtos: ClusterComplianceReportDto[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...clusterComplianceReportColumns];
-  isMainTableLoading: boolean = true;
 
   detailsTableColumns: TrivyTableColumn[] = [...clusterComplianceReportDetailColumns];
 

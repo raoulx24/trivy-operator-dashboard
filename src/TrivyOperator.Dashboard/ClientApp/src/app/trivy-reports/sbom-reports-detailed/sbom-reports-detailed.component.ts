@@ -23,7 +23,6 @@ export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase imple
   dataDtos: SbomReportImageMinimalDto[] = [];
   activeNamespaces: string[] = [];
   selectedDataDtos: SbomReportImageMinimalDto[] | null = null;
-  isTableLoading: boolean = false;
 
   trivyTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...sbomReportDenormalizedColumns];
 
@@ -36,7 +35,7 @@ export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase imple
   }
 
   getTableDataDtos() {
-    this.isTableLoading = true;
+    this.isMainTableLoading = true;
     this.service.getSbomReportImageMinimalDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
@@ -46,7 +45,7 @@ export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase imple
   private onGetDataDtos(dtos: SbomReportImageMinimalDto[]) {
     this.dataDtos = dtos;
     this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace))).sort();
-    this.isTableLoading = false;
+    this.isMainTableLoading = false;
   }
 
   onTableSelectedRowChange(event: SelectedDtosEvent<SbomReportImageMinimalDto>) {

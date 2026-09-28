@@ -20,7 +20,6 @@ export class ClusterRbacAssessmentReportsDetailedComponent extends TrivyReportsD
   public dataDtos: ClusterRbacAssessmentReportDenormalizedDto[] = [];
   public severityDtos: SeverityDto[] = [];
   public activeNamespaces: string[] = [];
-  public isLoading: boolean = false;
 
   public csvFileName: string = 'Cluster.Rbac.Assessment.Reports';
 
@@ -33,7 +32,7 @@ export class ClusterRbacAssessmentReportsDetailedComponent extends TrivyReportsD
   }
 
   public getTableDataDtos() {
-    this.isLoading = true;
+    this.isMainTableLoading = true;
     this.dataDtoService.getClusterRbacAssessmentReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
@@ -42,6 +41,6 @@ export class ClusterRbacAssessmentReportsDetailedComponent extends TrivyReportsD
 
   onGetDataDtos(dtos: ClusterRbacAssessmentReportDenormalizedDto[]) {
     this.dataDtos = dtos;
-    this.isLoading = false;
+    this.isMainTableLoading = false;
   }
 }

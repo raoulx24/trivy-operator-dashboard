@@ -33,7 +33,6 @@ export class InfraAssessmentReportsComponent extends DataPageBase implements OnI
   activeNamespaces: string[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...infraAssessmentReportColumns];
-  isMainTableLoading: boolean = true;
 
   detailsTableColumns: TrivyTableColumn[] = [...infraAssessmentReportDetailColumns];
 

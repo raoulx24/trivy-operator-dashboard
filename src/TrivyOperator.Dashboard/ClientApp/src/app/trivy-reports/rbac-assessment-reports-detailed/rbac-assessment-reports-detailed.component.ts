@@ -21,7 +21,6 @@ export class RbacAssessmentReportsDetailedComponent extends TrivyReportsDetailed
   dataDtos: RbacAssessmentReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
-  isLoading: boolean = false;
 
   csvFileName: string = 'Rbac.Assessment.Reports';
 
@@ -34,7 +33,7 @@ export class RbacAssessmentReportsDetailedComponent extends TrivyReportsDetailed
   }
 
   getTableDataDtos() {
-    this.isLoading = true;
+    this.isMainTableLoading = true;
     this.dataDtoService.getRbacAssessmentReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
@@ -44,6 +43,6 @@ export class RbacAssessmentReportsDetailedComponent extends TrivyReportsDetailed
   private onGetDataDtos(dtos: RbacAssessmentReportDenormalizedDto[]) {
     this.dataDtos = dtos;
     this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
-    this.isLoading = false;
+    this.isMainTableLoading = false;
   }
 }

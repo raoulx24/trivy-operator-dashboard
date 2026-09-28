@@ -33,7 +33,6 @@ export class ConfigAuditReportsComponent extends DataPageBase implements OnInit 
   activeNamespaces: string[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...configAuditReportColumns];
-  isMainTableLoading: boolean = true;
 
   detailsTableColumns: TrivyTableColumn[] = [...configAuditReportDetailColumns];
 

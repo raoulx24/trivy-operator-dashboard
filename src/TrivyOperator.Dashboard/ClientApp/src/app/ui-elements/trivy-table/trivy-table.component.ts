@@ -166,7 +166,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected filterSelectedBoolean = signal<boolean | undefined>(undefined);
   protected filterRefreshActiveNamespace = signal<string>('');
   protected filterRefreshSeverities = signal<SeverityDto[] | undefined>([]);
-  protected severityDtos: SeverityDto[] = [...SeverityUtils.severityDtos];
+  protected severityDtos: SeverityDto[] = [...SeverityUtils.severityDtos.filter((x) => x.isTrivySeverity)];
 
   protected multiHeaderActionItems = computed(() => {
     const actions = this.multiHeaderActions();

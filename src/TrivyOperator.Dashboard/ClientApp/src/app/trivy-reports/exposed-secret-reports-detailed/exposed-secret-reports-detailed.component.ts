@@ -21,7 +21,6 @@ export class ExposedSecretReportsDetailedComponent extends TrivyReportsDetailedB
   public dataDtos: ExposedSecretReportDenormalizedDto[] = [];
   public severityDtos: SeverityDto[] = [];
   public activeNamespaces: string[] = [];
-  public isLoading: boolean = false;
 
   public csvFileName: string = 'Exposed.Secret.Reports';
 
@@ -34,7 +33,7 @@ export class ExposedSecretReportsDetailedComponent extends TrivyReportsDetailedB
   }
 
   public getTableDataDtos() {
-    this.isLoading = true;
+    this.isMainTableLoading = true;
     this.dataDtoService.getExposedSecretReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
@@ -44,6 +43,6 @@ export class ExposedSecretReportsDetailedComponent extends TrivyReportsDetailedB
   private onGetDataDtos(dtos: ExposedSecretReportDenormalizedDto[]) {
     this.dataDtos = dtos;
     this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
-    this.isLoading = false;
+    this.isMainTableLoading = false;
   }
 }

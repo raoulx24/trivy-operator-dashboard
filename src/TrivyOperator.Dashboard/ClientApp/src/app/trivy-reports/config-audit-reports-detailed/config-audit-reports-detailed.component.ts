@@ -21,7 +21,6 @@ export class ConfigAuditReportsDetailedComponent extends TrivyReportsDetailedBas
   dataDtos: ConfigAuditReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
-  isLoading: boolean = false;
 
   csvFileName: string = 'Config.Audit.Reports';
 
@@ -34,7 +33,7 @@ export class ConfigAuditReportsDetailedComponent extends TrivyReportsDetailedBas
   }
 
   public getTableDataDtos() {
-    this.isLoading = true;
+    this.isMainTableLoading = true;
     this.dataDtoService.getConfigAuditReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
@@ -44,6 +43,6 @@ export class ConfigAuditReportsDetailedComponent extends TrivyReportsDetailedBas
   onGetDataDtos(dtos: ConfigAuditReportDenormalizedDto[]) {
     this.dataDtos = dtos;
     this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
-    this.isLoading = false;
+    this.isMainTableLoading = false;
   }
 }

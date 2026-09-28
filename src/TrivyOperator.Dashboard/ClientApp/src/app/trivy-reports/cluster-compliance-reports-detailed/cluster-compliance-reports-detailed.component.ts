@@ -19,7 +19,6 @@ import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster
 export class ClusterComplianceReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
   dataDtos: ClusterComplianceReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
-  isLoading: boolean = false;
 
   csvFileName: string = 'Cluster.Compliance.Reports';
 
@@ -32,7 +31,7 @@ export class ClusterComplianceReportsDetailedComponent extends TrivyReportsDetai
   }
 
   getTableDataDtos() {
-    this.isLoading = true;
+    this.isMainTableLoading = true;
     this.dataDtoService.getClusterComplianceReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
@@ -41,6 +40,6 @@ export class ClusterComplianceReportsDetailedComponent extends TrivyReportsDetai
 
   private onGetDataDtos(dtos: ClusterComplianceReportDenormalizedDto[]) {
     this.dataDtos = dtos;
-    this.isLoading = false;
+    this.isMainTableLoading = false;
   }
 }

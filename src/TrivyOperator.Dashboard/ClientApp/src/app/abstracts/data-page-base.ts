@@ -6,11 +6,15 @@ export abstract class DataPageBase {
   private readonly trivyMessageService = inject(TrivyMessageService);
   private readonly routerEventEmitterService = inject(RouterEventEmitterService);
 
+  protected isMainTableLoading: boolean = false;
+
   protected onError(err: any) {
     this.trivyMessageService.pushSimple('Error on getting data.', this.routerEventEmitterService.title(), 'error', err);
+    this.isMainTableLoading = false;
   }
 
   protected showErrorToast(message: string, title: string) {
     this.trivyMessageService.pushSimple(message, title, 'error');
+    this.isMainTableLoading = false;
   }
 }

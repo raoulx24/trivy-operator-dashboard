@@ -29,7 +29,6 @@ export class ClusterRbacAssessmentReportsComponent extends DataPageBase implemen
   selectedTrivyReportDto?: ClusterRbacAssessmentReportDto;
 
   mainTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportColumns];
-  isMainTableLoading: boolean = true;
 
   detailsTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportDetailColumns];
 

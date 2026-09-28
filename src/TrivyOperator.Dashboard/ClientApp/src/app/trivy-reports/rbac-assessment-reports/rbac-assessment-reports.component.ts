@@ -31,7 +31,6 @@ export class RbacAssessmentReportsComponent extends DataPageBase implements OnIn
   activeNamespaces: string[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...rbacAssessmentReportColumns];
-  isMainTableLoading: boolean = true;
 
   detailsTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportDetailColumns];
 

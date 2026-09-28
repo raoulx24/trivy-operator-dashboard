@@ -27,9 +27,9 @@ public class ClusterSbomReportService(
         return resourceSummaries
             .Select(x =>
             {
-                var severityCounters = x.Occurrence.Metadata.OwnerReferences?
+                SeverityCounters? severityCounters = x.Occurrence.Metadata.OwnerReferences?
                     .Select(owner =>
-                        severityCountersByUid.TryGetValue(owner.Uid, out var counters)
+                        severityCountersByUid.TryGetValue(owner.Uid, out SeverityCounters counters)
                             ? (SeverityCounters?)counters
                             : null)
                     .FirstOrDefault();
@@ -42,7 +42,7 @@ public class ClusterSbomReportService(
         CancellationToken ctx = default)
     {
         IReadOnlyList<ClusterSbomReport> reports =
-            await resourceProvider.GetResourceSummaries(ctx);
+            await resourceProvider.GetResources(ctx);
 
         HashSet<Uid> vulnerabilityReportIds =
             [.. await cvrResourceProvider.GetResourceIds(ctx),];

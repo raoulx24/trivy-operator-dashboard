@@ -2,28 +2,30 @@ import { SeverityDto } from '../../api/models/severity-dto';
 
 interface SeverityExtendedDto extends SeverityDto {
   short: string;
+  isTrivySeverity: boolean;
 }
 
 export class SeverityUtils {
   static severityDtos: ReadonlyArray<SeverityExtendedDto> = [
-    { id: 0, name: 'CRITICAL', short: 'CRIT' },
-    { id: 1, name: 'HIGH', short: 'High' },
-    { id: 2, name: 'MEDIUM', short: 'MED' },
-    { id: 3, name: 'LOW', short: 'LOW' },
-    { id: 4, name: 'UNKNOWN', short: 'UNK' },
-    { id: 8, name: 'N/A', short: 'NA'},
+    { id: 0, name: 'CRITICAL', short: 'CRIT', isTrivySeverity: true },
+    { id: 1, name: 'HIGH', short: 'High', isTrivySeverity: true },
+    { id: 2, name: 'MEDIUM', short: 'MED', isTrivySeverity: true },
+    { id: 3, name: 'LOW', short: 'LOW', isTrivySeverity: true },
+    { id: 4, name: 'UNKNOWN', short: 'UNK', isTrivySeverity: true },
+    { id: 5, name: 'NONE', short: 'NON', isTrivySeverity: true },
+    { id: 8, name: 'N/A', short: 'NA', isTrivySeverity: false},
   ];
   static severityShortDtos: ReadonlyArray<SeverityExtendedDto> = [
-    { id: 0, name: 'CRITICAL', short: 'CRIT' },
-    { id: 1, name: 'HIGH', short: 'High' },
-    { id: 2, name: 'MEDIUM', short: 'MED' },
-    { id: 3, name: 'LOW', short: 'LOW' },
+    { id: 0, name: 'CRITICAL', short: 'CRIT', isTrivySeverity: true },
+    { id: 1, name: 'HIGH', short: 'High', isTrivySeverity: true },
+    { id: 2, name: 'MEDIUM', short: 'MED', isTrivySeverity: true },
+    { id: 3, name: 'LOW', short: 'LOW', isTrivySeverity: true },
   ];
   private static colorIntensity: number = 400;
 
   public static getCssColor(severityId: number): string {
     const documentStyle = getComputedStyle(document.documentElement);
-    let colorIntensity = this.colorIntensity;
+    const colorIntensity = this.colorIntensity;
     // if (severityId === 11) {
     //   colorIntensity = colorIntensity - 100;
     // }
@@ -90,8 +92,10 @@ export class SeverityUtils {
     return severityName.length == 0 ? '' : severityName.charAt(0).toUpperCase() + severityName.slice(1);
   }
 
-  public static getSeverityIds(): number[] {
-    return this.severityDtos ? SeverityUtils.severityDtos.map((x) => x.id).sort((a, b) => a - b) : [];
+  public static getSeverityIds(onlyTrivy: boolean = true): number[] {
+    return this.severityDtos
+      .filter(x => x.isTrivySeverity || !onlyTrivy)
+      .map((x) => x.id).sort((a, b) => a - b);
   }
 
   public static getNames(severityIds: number[], maxDisplay?: number): string {

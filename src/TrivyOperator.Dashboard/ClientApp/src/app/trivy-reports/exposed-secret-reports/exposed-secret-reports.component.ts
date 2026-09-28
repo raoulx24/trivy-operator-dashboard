@@ -48,7 +48,6 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...exposedSecretReportColumns];
   mainTableExpandCallbackDto?: ExposedSecretReportImageDto;
-  isMainTableLoading: boolean = true;
 
   detailsTableColumns: TrivyTableColumn[] = [...exposedSecretReportDetailColumns];
 

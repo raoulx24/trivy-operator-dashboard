@@ -19,7 +19,6 @@ import { infraAssessmentReportDenormalizedColumns } from '../constants/infra-ass
 export class ClusterInfraAssessmentReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
   dataDtos: ClusterInfraAssessmentReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
-  isLoading: boolean = false;
 
   csvFileName: string = 'Cluster.Infra.Assessment.Reports';
 
@@ -32,7 +31,7 @@ export class ClusterInfraAssessmentReportsDetailedComponent extends TrivyReports
   }
 
   public getTableDataDtos() {
-    this.isLoading = true;
+    this.isMainTableLoading = true;
     this.dataDtoService.getClusterInfraAssessmentReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
@@ -41,6 +40,6 @@ export class ClusterInfraAssessmentReportsDetailedComponent extends TrivyReports
 
   onGetDataDtos(dtos: ClusterInfraAssessmentReportDenormalizedDto[]) {
     this.dataDtos = dtos;
-    this.isLoading = false;
+    this.isMainTableLoading = false;
   }
 }

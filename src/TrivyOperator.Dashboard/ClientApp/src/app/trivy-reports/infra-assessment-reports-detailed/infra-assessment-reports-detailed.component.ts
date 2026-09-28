@@ -21,7 +21,6 @@ export class InfraAssessmentReportsDetailedComponent extends TrivyReportsDetaile
   dataDtos: InfraAssessmentReportDenormalizedDto[] = [];
   severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
-  isLoading: boolean = false;
 
   csvFileName: string = 'Infra.Assessment.Reports';
 
@@ -34,7 +33,7 @@ export class InfraAssessmentReportsDetailedComponent extends TrivyReportsDetaile
   }
 
   public getTableDataDtos() {
-    this.isLoading = true;
+    this.isMainTableLoading = true;
     this.dataDtoService.getInfraAssessmentReportDenormalizedDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
@@ -44,6 +43,6 @@ export class InfraAssessmentReportsDetailedComponent extends TrivyReportsDetaile
   onGetDataDtos(dtos: InfraAssessmentReportDenormalizedDto[]) {
     this.dataDtos = dtos;
     this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
-    this.isLoading = false;
+    this.isMainTableLoading = false;
   }
 }
