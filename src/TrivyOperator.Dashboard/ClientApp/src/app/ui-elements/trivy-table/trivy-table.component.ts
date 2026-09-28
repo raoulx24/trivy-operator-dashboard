@@ -4,7 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
+  effect, inject,
   input,
   model,
   OnInit,
@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+import { FilterService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
@@ -214,6 +215,8 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected fullRowHeight = computed(() => { return this.rowHeight() + 8 });
   protected fullRowHeightPx = computed(() => { return `${this.rowHeight() + 8}px` });
 
+  private readonly filterService = inject(FilterService);
+
   constructor() {
     // new dataDtos()
     effect(() => {
@@ -245,9 +248,19 @@ export class TrivyTableComponent<TData> implements OnInit {
         return;
       }
       if (this.isTableSorted()) {
-        this.dataDtos.set([... this.dataDtos()]);
+        this.dataDtos.set([...this.dataDtos()]);
       }
       this.previousRefreshValue = value;
+    });
+    // filter service
+    this.filterService.register('namespaceArrayIn', (value: string | null | undefined, filter: string[]) => {
+      if (!filter?.length) {
+        return true;
+      }
+
+      const namespaces = value?.split(',').map((ns) => ns.trim()) ?? [];
+
+      return filter.some((selected) => namespaces.includes(selected));
     });
   }
 

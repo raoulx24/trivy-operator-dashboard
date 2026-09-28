@@ -220,6 +220,32 @@
 
               </p-columnFilter>
             }
+            @if (col.isFilterable && col.multiSelectType === 'namespacesArrays') {
+              <p-columnFilter
+                display="menu"
+                matchMode="namespaceArrayIn"
+                class="sm-filterIcon"
+                [field]="col.field"
+                [showAddButton]="false"
+                [showMatchModes]="false"
+                [showOperator]="false"
+              >
+                <ng-template let-filter="filterCallback" pTemplate="filter">
+                  <p-multiSelect
+                    placeholder="Any"
+                    style="min-width: 300px"
+                    class="text-sm"
+                    [options]="activeNamespaces()"
+                    [(ngModel)]="filterSelectedActiveNamespaces"
+                    (onChange)="filter($event.value)"
+                  >
+                    <ng-template #item let-option>
+                      <div class="text-sm">{{ option }}</div>
+                    </ng-template>
+                  </p-multiSelect>
+                </ng-template>
+              </p-columnFilter>
+            }
           </th>
         }
       </tr>
@@ -483,6 +509,20 @@
                 } @else {
                   <span>{{ values[0] | friendlyTime: false : true }}</span>
                 }
+              }
+              @case ('array') {
+                <span class="truncate-ellipsis">
+                  {{ rowData[col.field] }}
+                  @let items = rowData[col.field]?.split(',') ?? [];
+                  @if (items.length > 1) {
+                    <span class="text-xs tod-text-muted-color font-bold ml-1">
+                      ({{ items.length }})
+                    </span>
+                  }
+                </span>
+              }
+              @default {
+                <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
               }
             }
           </td>

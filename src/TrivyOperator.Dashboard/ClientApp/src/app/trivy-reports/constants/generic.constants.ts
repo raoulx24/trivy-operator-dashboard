@@ -11,3 +11,17 @@ export const namespacedColumns: readonly TrivyTableColumn[] = [
     renderType: 'standard',
   },
 ];
+
+export const namespacedArrayColumns: readonly TrivyTableColumn[] = [
+  {
+    field: '__namespaceNamesSort',
+    header: 'NS',
+    isFilterable: true,
+    isSortable: true,
+    multiSelectType: 'namespacesArrays',
+    style: 'width: 130px; max-width: 130px;',
+    renderType: 'array',
+    extraFields: ['namespaceNames'],
+  },
+];
+

@@ -23,7 +23,7 @@ export interface TrivyTableColumn extends Column {
   isFilterable: boolean;
   isCounter?: boolean;
   style: string;
-  multiSelectType: 'none' | 'namespaces' | 'severities' | 'booleans';
+  multiSelectType: 'none' | 'namespaces' | 'severities' | 'booleans' | 'namespacesArrays';
   renderType:
     | 'standard'
     | 'severityBadge'
@@ -48,8 +48,9 @@ export interface TrivyTableColumn extends Column {
     | 'imageFullAndDigest'
     | 'severityStackedBadge'
     | 'dateTimeStacked'
-    | 'compareDateStacked';
-  extraFields?: string[];
+    | 'compareDateStacked'
+    | 'array';
+    extraFields?: string[];
 }
 
 export interface TrivyFilterData {
