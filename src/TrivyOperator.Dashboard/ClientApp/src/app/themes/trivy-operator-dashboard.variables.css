@@ -26,6 +26,11 @@
   --tod-text-revert-muted-color: var(--p-surface-300);
   --tod-togglebutton-background-border-color: var(--p-surface-100);
   --tod-blockquote-text-color: var(--p-surface-900);
+
+  --tod-namespace-count-bg: #f3f4f6;
+  --tod-namespace-count-text: #6b7280;
+  --tod-namespace-count-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+
 }
 
 /* dark mode vars */
@@ -35,4 +40,8 @@
   --tod-text-revert-muted-color: var(--p-surface-700);
   --tod-togglebutton-background-border-color: var(--p-surface-950);
   --tod-blockquote-text-color: var(--p-surface-200);
+
+  --tod-namespace-count-bg: #374151;
+  --tod-namespace-count-text: #e5e7eb;
+  --tod-namespace-count-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
 }

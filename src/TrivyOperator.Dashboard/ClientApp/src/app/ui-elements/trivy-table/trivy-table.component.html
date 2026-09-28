@@ -511,16 +511,18 @@
                 }
               }
               @case ('array') {
+                @let items = rowData[col.field]?.split(',') ?? [];
+
                 <span class="truncate-ellipsis">
                   {{ rowData[col.field] }}
-                  @let items = rowData[col.field]?.split(',') ?? [];
                   @if (items.length > 1) {
-                    <span class="text-xs tod-text-muted-color font-bold ml-1">
-                      ({{ items.length }})
+                    <span class="tod-namespace-count">
+                      {{ items.length }}
                     </span>
                   }
                 </span>
               }
+
               @default {
                 <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
               }
