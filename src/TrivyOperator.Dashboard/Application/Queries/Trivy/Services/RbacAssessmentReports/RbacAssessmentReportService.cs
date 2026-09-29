@@ -46,4 +46,11 @@ public class RbacAssessmentReportService(
 
         return result.SelectMany(report => report.ToDenormalizedDtos());
     }
+    
+    public async Task<string[]> GetActiveNamespaces(CancellationToken ctx = default)
+    {
+        IReadOnlySet<string> result = await TrivyQuerySupport.GetActiveNamespaces(resourceProvider, ctx);
+
+        return [.. result,];
+    }
 }

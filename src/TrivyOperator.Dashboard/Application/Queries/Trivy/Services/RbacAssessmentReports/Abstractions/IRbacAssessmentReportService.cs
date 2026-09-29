@@ -19,4 +19,6 @@ public interface IRbacAssessmentReportService
     Task<RbacAssessmentReportDto?> GetRbacAssessmentReportDtoByUid(
         string uid,
         CancellationToken ctx = default);
+    
+    Task<string[]> GetActiveNamespaces(CancellationToken ctx = default);
 }

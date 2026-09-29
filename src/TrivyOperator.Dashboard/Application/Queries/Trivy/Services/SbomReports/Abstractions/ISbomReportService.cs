@@ -15,4 +15,6 @@ public interface ISbomReportService
         string fileType = "json",
         CancellationToken ctx = default
     );
+    
+    Task<string[]> GetActiveNamespaces(CancellationToken ctx = default);
 }

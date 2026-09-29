@@ -21,4 +21,6 @@ public class RbacAssessmentReportNullService : IRbacAssessmentReportService
         string uid,
         CancellationToken ctx = default) 
         => Task.FromResult<RbacAssessmentReportDto?>(null);
+    
+    public Task<string[]> GetActiveNamespaces(CancellationToken ctx = default) => Task.FromResult<string[]>([]);
 }

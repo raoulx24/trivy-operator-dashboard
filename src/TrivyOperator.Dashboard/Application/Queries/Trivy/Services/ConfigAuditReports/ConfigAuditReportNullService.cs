@@ -19,4 +19,6 @@ public class ConfigAuditReportNullService : IConfigAuditReportService
         string? namespaceName = null,
         CancellationToken ctx = default
     ) => Task.FromResult<IEnumerable<ConfigAuditReportDenormalizedDto>>([]);
+    
+    public Task<string[]> GetActiveNamespaces(CancellationToken ctx = default) => Task.FromResult<string[]>([]);
 }

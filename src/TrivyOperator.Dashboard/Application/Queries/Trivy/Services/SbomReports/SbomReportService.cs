@@ -7,6 +7,7 @@ using TrivyOperator.Dashboard.Application.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Options;
 using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.SbomReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Shared;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
@@ -192,5 +193,12 @@ public class SbomReportService(
 
             return null;
         }
+    }
+    
+    public async Task<string[]> GetActiveNamespaces(CancellationToken ctx = default)
+    {
+        IReadOnlySet<string> result = await TrivyQuerySupport.GetActiveNamespaces(resourceProvider, ctx);
+
+        return [.. result,];
     }
 }

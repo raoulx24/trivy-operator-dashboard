@@ -18,7 +18,7 @@ import {
   exposedSecretReportComparedTableColumns,
   exposedSecretReportDetailColumns,
 } from '../constants/exposed-secret-reports.constants';
-import { namespacedColumns } from '../constants/generic.constants';
+import { namespacedArrayColumns } from '../constants/generic.constants';
 
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
@@ -28,6 +28,11 @@ import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { DataPageBase } from '../../abstracts/data-page-base';
+
+// for sorting in trivy table
+type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
+  __namespaceNamesSort: string;
+};
 
 @Component({
   selector: 'app-exposed-secret-reports',
@@ -43,10 +48,10 @@ import { DataPageBase } from '../../abstracts/data-page-base';
   styleUrl: './exposed-secret-reports.component.scss',
 })
 export class ExposedSecretReportsComponent extends DataPageBase implements OnInit {
-  dataDtos: ExposedSecretReportImageDto[] = [];
+  dataDtos: ExposedSecretReportImageTableDto[] = [];
   activeNamespaces: string[] = [];
 
-  mainTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...exposedSecretReportColumns];
+  mainTableColumns: TrivyTableColumn[] = [...namespacedArrayColumns, ...exposedSecretReportColumns];
   mainTableExpandCallbackDto?: ExposedSecretReportImageDto;
 
   detailsTableColumns: TrivyTableColumn[] = [...exposedSecretReportDetailColumns];
@@ -90,7 +95,10 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   }
 
   private onGetDataDtos(dtos: ExposedSecretReportImageDto[]) {
-    this.dataDtos = dtos;
+    this.dataDtos = dtos.map((dto) => ({
+      ...dto,
+      __namespaceNamesSort: [...dto.namespaceNames].sort().join(', '),
+    }));
     this.activeNamespaces = Array.from(new Set(dtos.flatMap(dto => dto.namespaceNames))).sort();
     if (this.isPreselected) {
       this.selectedTrivyReportDto = dtos.find(

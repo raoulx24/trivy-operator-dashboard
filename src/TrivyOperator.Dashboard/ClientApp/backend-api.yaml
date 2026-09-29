@@ -752,6 +752,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/config-audit-reports/active-namespaces:
+    get:
+      tags:
+        - ConfigAuditReport
+      operationId: GetConfigAuditReportActiveNamespaces
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/exposed-secret-reports:
     get:
       tags:
@@ -879,6 +905,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/exposed-secret-reports/active-namespaces:
+    get:
+      tags:
+        - ExposedSecretReports
+      operationId: GetExposedSecretReportActiveNamespaces
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/infra-assessment-reports:
     get:
       tags:
@@ -963,6 +1015,32 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/InfraAssessmentReportDenormalizedDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/infra-assessment-reports/active-namespaces:
+    get:
+      tags:
+        - InfraAssessmentReport
+      operationId: GetInfraAssessmentReportActiveNamespaces
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
@@ -1109,6 +1187,32 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RbacAssessmentReportDenormalizedDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/rbac-assessment-reports/active-namespaces:
+    get:
+      tags:
+        - RbacAssessmentReport
+      operationId: GetRbacAssessmentReportActiveNamespaces
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
         '400':
           description: Bad Request
           content:
@@ -1289,6 +1393,32 @@ paths:
           description: Internal Server Error
           content:
             application/zip:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/sbom-reports/active-namespaces:
+    get:
+      tags:
+        - SbomReport
+      operationId: GetSbomReportActiveNamespaces
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/severities:
@@ -1485,6 +1615,32 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/VulnerabilityReportImageDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/vulnerability-reports/active-namespaces:
+    get:
+      tags:
+        - VulnerabilityReports
+      operationId: GetVulnerabilityReportActiveNamespaces
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
         '400':
           description: Bad Request
           content:

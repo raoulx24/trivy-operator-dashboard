@@ -28,4 +28,6 @@ public class ExposedSecretReportNullService : IExposedSecretReportService
             string? excludedSeverities = null,
             CancellationToken ctx = default)
         => Task.FromResult(new QueryResponse<IEnumerable<ExposedSecretReportImageDto>>([], null));
+    
+    public Task<string[]> GetActiveNamespaces(CancellationToken ctx = default) => Task.FromResult<string[]>([]);
 }

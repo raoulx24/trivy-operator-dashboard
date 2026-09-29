@@ -58,4 +58,13 @@ public class ConfigAuditReportController(
         await configAuditReportService.GetConfigAuditReportDenormalizedDtos(
             namespaceName,
             ctx);
+    
+    [HttpGet("active-namespaces", Name = "GetConfigAuditReportActiveNamespaces")]
+    [ProducesResponseType<string[]>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx)
+    {
+        return Ok(await configAuditReportService.GetActiveNamespaces(ctx));
+    }
 }

@@ -56,4 +56,13 @@ public class RbacAssessmentReportController(
         CancellationToken ctx = default) =>
         await rbacAssessmentReportService
             .GetRbacAssessmentReportDenormalizedDtos(namespaceName, ctx);
+    
+    [HttpGet("active-namespaces", Name = "GetRbacAssessmentReportActiveNamespaces")]
+    [ProducesResponseType<string[]>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx)
+    {
+        return Ok(await rbacAssessmentReportService.GetActiveNamespaces(ctx));
+    }
 }

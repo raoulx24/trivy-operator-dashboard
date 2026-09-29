@@ -19,4 +19,6 @@ public class InfraAssessmentReportNullService : IInfraAssessmentReportService
         string? namespaceName = null,
         CancellationToken ctx = default
     ) => Task.FromResult<IEnumerable<InfraAssessmentReportDenormalizedDto>>([]);
+    
+    public Task<string[]> GetActiveNamespaces(CancellationToken ctx = default) => Task.FromResult<string[]>([]);
 }

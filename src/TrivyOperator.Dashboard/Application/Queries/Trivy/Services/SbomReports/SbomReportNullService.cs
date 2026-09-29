@@ -22,4 +22,6 @@ public class SbomReportNullService : ISbomReportService
         string fileType = "json",
         CancellationToken ctx = default)
             => Task.FromResult<SbomExportFileDto?>(null);
+    
+    public Task<string[]> GetActiveNamespaces(CancellationToken ctx = default) => Task.FromResult<string[]>([]);
 }

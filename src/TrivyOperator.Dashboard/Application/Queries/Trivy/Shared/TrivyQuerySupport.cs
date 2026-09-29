@@ -134,6 +134,34 @@ public static class TrivyQuerySupport
         return knownSeverityIds;
     }
 
+    public static async Task<IReadOnlySet<string>> GetActiveNamespaces<TResource>(
+        IResourceProvider<TResource, Uid> resourceProvider,
+        CancellationToken ctx = default
+    )
+        where TResource : IResourceReport
+    {
+        IReadOnlyList<TResource> resources = await resourceProvider.GetResourceSummaries(ctx);
+
+        return resources
+            .Select(r => r.Metadata.NamespaceName.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    public static async Task<IReadOnlySet<string>> GetActiveNamespaces<TResource>(
+        IResourceProvider<TResource, Digest> resourceProvider,
+        CancellationToken ctx = default
+    )
+        where TResource : IImageReport
+    {
+        IReadOnlyList<TResource> resources = await resourceProvider.GetResourceSummaries(ctx);
+
+        return resources
+            .SelectMany(r => r.Occurrences)
+            .Select(o => o.Metadata.NamespaceName.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+
     private static IReadOnlySet<int> GetAllSeverityIds() =>
         Severity.RankedSeverities.Select(static x => x.Rank).ToHashSet();
 }

@@ -52,4 +52,13 @@ public class InfraAssessmentReportController(
         CancellationToken ctx = default) =>
         await infraAssessmentReportService
             .GetInfraAssessmentReportDenormalizedDtos(namespaceName, ctx);
+    
+    [HttpGet("active-namespaces", Name = "GetInfraAssessmentReportActiveNamespaces")]
+    [ProducesResponseType<string[]>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx)
+    {
+        return Ok(await infraAssessmentReportService.GetActiveNamespaces(ctx));
+    }
 }

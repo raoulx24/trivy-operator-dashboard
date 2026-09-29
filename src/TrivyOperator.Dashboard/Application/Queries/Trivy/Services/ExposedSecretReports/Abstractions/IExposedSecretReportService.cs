@@ -23,4 +23,6 @@ public interface IExposedSecretReportService
             string? namespaceName = null,
             string? excludedSeverities = null,
             CancellationToken ctx = default);
+    
+    Task<string[]> GetActiveNamespaces(CancellationToken ctx = default);
 }

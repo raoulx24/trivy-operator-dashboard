@@ -67,4 +67,13 @@ public class ExposedSecretReportsController(
             ? Ok(result.Payload)
             : BadRequest(result.Error);
     }
+    
+    [HttpGet("active-namespaces", Name = "GetExposedSecretReportActiveNamespaces")]
+    [ProducesResponseType<string[]>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx)
+    {
+        return Ok(await exposedSecretReportService.GetActiveNamespaces(ctx));
+    }
 }

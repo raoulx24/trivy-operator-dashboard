@@ -17,4 +17,6 @@ public interface IInfraAssessmentReportService
         string? excludedSeverities = null,
         CancellationToken ctx = default
     );
+    
+    Task<string[]> GetActiveNamespaces(CancellationToken ctx = default);
 }
