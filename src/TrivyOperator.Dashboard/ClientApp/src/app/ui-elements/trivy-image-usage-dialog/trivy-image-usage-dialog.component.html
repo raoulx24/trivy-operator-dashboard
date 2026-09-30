@@ -7,7 +7,7 @@
           [header]="'Image Usage for ' + imageNameAndTag()"
           [modal]="true"
           [style]="{ width: '60rem' }"
-          [(visible)]="isVisible()" >
+          [(visible)]="isVisible" >
   <p-table scrollHeight="flex"
            sortMode="multiple"
            class="p-datatable-sm text-sm p-0"
@@ -15,12 +15,12 @@
            [value]="resources()" >
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="name" class="w-[35%]">
+        <th pSortableColumn="name" class="w-[30%]">
           Resource Name
           <p-sortIcon field="name" />
         </th>
 
-        <th pSortableColumn="namespaceName" class="w-[20%]">
+        <th pSortableColumn="namespaceName" class="w-[25%]">
           Resource Namespace
           <p-sortIcon field="namespaceName" />
         </th>
@@ -39,11 +39,11 @@
 
     <ng-template let-resource pTemplate="body">
       <tr>
-        <td class="w-[35%]">
+        <td class="w-[30%]">
           {{ resource.name }}
         </td>
 
-        <td class="w-[20%]">
+        <td class="w-[25%]">
           {{ resource.namespaceName }}
         </td>
 

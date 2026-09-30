@@ -20,11 +20,13 @@ import { namespacedArrayColumns } from '../constants/generic.constants';
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 import { ImageInfo, TrivyDependencyComponent } from '../../ui-elements/trivy-dependency/trivy-dependency.component';
+import { TrivyImageUsageDialogComponent } from '../../ui-elements/trivy-image-usage-dialog/trivy-image-usage-dialog.component';
 
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportResourceInfoDto } from '../../../api/models/trivy-report-resource-info-dto';
 
 // for sorting in trivy table
 type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
@@ -40,6 +42,7 @@ type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
     TrivyDependencyComponent,
     DialogModule,
     TableModule,
+    TrivyImageUsageDialogComponent,
   ],
   templateUrl: './exposed-secret-reports.component.html',
   styleUrl: './exposed-secret-reports.component.scss',
@@ -49,16 +52,17 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   activeNamespaces: string[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedArrayColumns, ...exposedSecretReportColumns];
-  mainTableExpandCallbackDto?: ExposedSecretReportImageDto;
 
   detailsTableColumns: TrivyTableColumn[] = [...exposedSecretReportDetailColumns];
-
-  isImageUsageDialogVisible = signal<boolean>(false);
 
   queryNamespaceName?: string;
   queryDigest?: string;
   isPreselected: boolean = false;
   selectedTrivyReportDto?: ExposedSecretReportImageDto;
+
+  imageUsageResources: TrivyReportResourceInfoDto[] = [];
+  imageUsageImageNameAndTag = '';
+  isImageUsageDialogVisible = false;
 
   isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
@@ -106,16 +110,13 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
   }
 
   onMainTableExpandCallback(dto: ExposedSecretReportImageDto) {
-    this.mainTableExpandCallbackDto = dto;
-    this.isImageUsageDialogVisible.set(true);
+    this.imageUsageResources = dto.resources ?? [];
+    this.imageUsageImageNameAndTag = dto.lastImageNameAndTag ?? 'N/A';
+    this.isImageUsageDialogVisible = true;
   }
 
   onRefreshRequested() {
     this.getDataDtos();
-  }
-
-  getPanelHeaderText() {
-    return `Image Usage for ${this.mainTableExpandCallbackDto?.lastImageNameAndTag ?? 'N/A'}`;
   }
 
   rowExpandResponse?: TrivyTableExpandRowData<ExposedSecretReportImageDto>;
