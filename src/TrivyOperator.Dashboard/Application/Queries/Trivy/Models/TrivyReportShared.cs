@@ -56,6 +56,7 @@ public sealed record TrivyReportImageInfoDto(
 
 public sealed record TrivyReportResourceInfoDto(
     string Name,
+    string NamespaceName,
     string Kind,
     string ContainerName
 );

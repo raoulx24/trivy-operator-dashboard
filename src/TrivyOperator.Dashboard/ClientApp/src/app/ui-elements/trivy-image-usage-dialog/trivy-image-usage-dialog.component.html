@@ -1,0 +1,60 @@
+<p-dialog closable="true"
+          closeOnEscape="true"
+          dismissableMask="true"
+          resizable="true"
+          [breakpoints]="{ '890px': '90vw' }"
+          [contentStyle]="{ height: '60vh' }"
+          [header]="'Image Usage for ' + imageNameAndTag()"
+          [modal]="true"
+          [style]="{ width: '60rem' }"
+          [(visible)]="isVisible()" >
+  <p-table scrollHeight="flex"
+           sortMode="multiple"
+           class="p-datatable-sm text-sm p-0"
+           [scrollable]="true"
+           [value]="resources()" >
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="name" class="w-[35%]">
+          Resource Name
+          <p-sortIcon field="name" />
+        </th>
+
+        <th pSortableColumn="namespaceName" class="w-[20%]">
+          Resource Namespace
+          <p-sortIcon field="namespaceName" />
+        </th>
+
+        <th pSortableColumn="kind" class="w-[20%]">
+          Kind
+          <p-sortIcon field="kind" />
+        </th>
+
+        <th pSortableColumn="containerName" class="w-[25%]">
+          Container
+          <p-sortIcon field="containerName" />
+        </th>
+      </tr>
+    </ng-template>
+
+    <ng-template let-resource pTemplate="body">
+      <tr>
+        <td class="w-[35%]">
+          {{ resource.name }}
+        </td>
+
+        <td class="w-[20%]">
+          {{ resource.namespaceName }}
+        </td>
+
+        <td class="w-[20%]">
+          {{ resource.kind }}
+        </td>
+
+        <td class="w-[25%]">
+          {{ resource.containerName }}
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>

@@ -3320,6 +3320,8 @@ components:
       properties:
         name:
           type: string
+        namespaceName:
+          type: string
         kind:
           type: string
         containerName:

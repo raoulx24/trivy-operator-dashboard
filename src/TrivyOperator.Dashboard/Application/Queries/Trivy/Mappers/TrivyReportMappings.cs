@@ -125,6 +125,7 @@ public static class TrivyReportMappings
     {
         return new TrivyReportResourceInfoDto(
             Name: occurrence.Metadata.GetResourceName().Value,
+            NamespaceName: occurrence.Metadata.NamespaceName.Value,
             Kind: occurrence.Metadata.GetResourceKind().Value,
             ContainerName: occurrence.Container.Value ?? string.Empty
         );
