@@ -5,7 +5,6 @@ import { ClusterComplianceReportService } from '../../../api/services/cluster-co
 import { DataPageBase } from '../../abstracts/data-page-base';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import {
-  TrivyFilterData,
   TrivyTableColumn,
   TrivyTableExpandRowData,
 } from '../../ui-elements/trivy-table/trivy-table.types';
@@ -47,7 +46,7 @@ export class ClusterComplianceReportsComponent extends DataPageBase implements O
     this.isMainTableLoading = false;
   }
 
-  public onRefreshRequested(_event: TrivyFilterData) {
+  public onRefreshRequested() {
     this.getDataDtos();
   }
 

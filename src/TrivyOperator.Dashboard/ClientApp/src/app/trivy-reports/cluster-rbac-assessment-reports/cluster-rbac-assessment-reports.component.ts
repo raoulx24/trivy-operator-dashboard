@@ -10,7 +10,7 @@ import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-d
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { nonExistingNamespace } from '../../ui-elements/namespace-image-selector/namespace-image-selector.component';
 import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
-import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
+import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import {
   rbacAssessmentReportColumns,
   rbacAssessmentReportComparedTableColumns,
@@ -58,7 +58,7 @@ export class ClusterRbacAssessmentReportsComponent extends DataPageBase implemen
     this.isMainTableLoading = false;
   }
 
-  public onRefreshRequested(_event: TrivyFilterData) {
+  public onRefreshRequested() {
     this.getDataDtos();
   }
 

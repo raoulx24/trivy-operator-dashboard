@@ -1,12 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
-import { GetConfigAuditReportDtos$Params } from '../../../api/fn/config-audit-report/get-config-audit-report-dtos';
 import { ConfigAuditReportDto } from '../../../api/models/config-audit-report-dto';
 import { ConfigAuditReportService } from '../../../api/services/config-audit-report.service';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
-import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
-import { SeverityUtils } from '../../utils/severity.utils';
+import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import {
   configAuditReportColumns,
   configAuditReportComparedTableColumns,
@@ -47,7 +45,6 @@ export class ConfigAuditReportsComponent extends DataPageBase implements OnInit 
 
   private readonly dataDtoService = inject(ConfigAuditReportService);
   private readonly router = inject(Router);
-  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
 
   ngOnInit() {
@@ -59,9 +56,9 @@ export class ConfigAuditReportsComponent extends DataPageBase implements OnInit 
     this.getDataDtos();
   }
 
-  getDataDtos(params?: GetConfigAuditReportDtos$Params) {
+  getDataDtos() {
     this.isMainTableLoading = true;
-    this.dataDtoService.getConfigAuditReportDtos(params).subscribe({
+    this.dataDtoService.getConfigAuditReportDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
     });
@@ -77,15 +74,8 @@ export class ConfigAuditReportsComponent extends DataPageBase implements OnInit 
     this.isMainTableLoading = false;
   }
 
-  public onRefreshRequested(event: TrivyFilterData) {
-    const excludedSeverities =
-      SeverityUtils.getSeverityIds().filter((severityId) => !event.selectedSeverityIds.includes(severityId)) || [];
-
-    const params: GetConfigAuditReportDtos$Params = {
-      namespaceName: event.namespaceName ?? undefined,
-      excludedSeverities: excludedSeverities.length > 0 ? excludedSeverities.join(',') : undefined,
-    };
-    this.getDataDtos(params);
+  public onRefreshRequested() {
+    this.getDataDtos();
   }
 
   onMainTableMultiHeaderActionRequested(event: string) {

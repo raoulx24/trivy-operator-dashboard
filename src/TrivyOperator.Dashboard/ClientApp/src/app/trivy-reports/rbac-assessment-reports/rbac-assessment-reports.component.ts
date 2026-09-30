@@ -13,7 +13,7 @@ import {
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
-import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
+import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
@@ -63,7 +63,7 @@ export class RbacAssessmentReportsComponent extends DataPageBase implements OnIn
     this.isMainTableLoading = false;
   }
 
-  onRefreshRequested(_event: TrivyFilterData) {
+  onRefreshRequested() {
     this.getTableDataDtos();
   }
 

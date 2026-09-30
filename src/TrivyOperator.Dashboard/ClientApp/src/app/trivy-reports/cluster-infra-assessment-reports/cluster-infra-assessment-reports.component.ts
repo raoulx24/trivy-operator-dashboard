@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ClusterInfraAssessmentReportDto } from '../../../api/models/cluster-infra-assessment-report-dto';
 import { ClusterInfraAssessmentReportService } from '../../../api/services/cluster-infra-assessment-report.service';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
-import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
+import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import {
   infraAssessmentReportColumns,
   infraAssessmentReportComparedTableColumns,
@@ -68,7 +68,7 @@ export class ClusterInfraAssessmentReportsComponent extends DataPageBase impleme
     this.isMainTableLoading = false;
   }
 
-  public onRefreshRequested(_event: TrivyFilterData) {
+  public onRefreshRequested() {
     this.getDataDtos();
   }
 

@@ -8,7 +8,7 @@
   [mainTableColumns]="mainTableColumns"
   [mainTableDataKey]="'uid'"
   [mainTableExtraClasses]="'trivy-half'"
-  [mainTableIsRefreshVisible]="false"
+  [mainTableIsRefreshVisible]="true"
   [mainTableIsResetFiltersVisible]="true"
   [mainTableRowExpandResponse]="rowExpandResponse"
   [mainTableRowExpansionRender]="'table'"
@@ -17,5 +17,5 @@
   [mainTableStyle]="{ width: '595px' }"
   [splitterStorageKey]="'Cluster Compliance Reports'"
   (mainTableRowExpandChange)="onRowExpandChange($event)"
-  (refreshRequested)="onRefreshRequested($event)"
+  (refreshRequested)="onRefreshRequested()"
 />

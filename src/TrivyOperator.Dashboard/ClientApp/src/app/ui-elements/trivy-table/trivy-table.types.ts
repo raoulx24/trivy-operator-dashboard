@@ -53,11 +53,6 @@ export interface TrivyTableColumn extends Column {
     extraFields?: string[];
 }
 
-export interface TrivyFilterData {
-  namespaceName?: string | null;
-  selectedSeverityIds: number[];
-}
-
 export interface TrivyTableExpandRowData<TData> {
   rowKey: TData;
   colStyles: { [klass: string]: any }[];

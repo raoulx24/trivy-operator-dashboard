@@ -1,16 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { GetExposedSecretReportImageDtos$Params } from '../../../api/fn/exposed-secret-reports/get-exposed-secret-report-image-dtos';
 import { ExposedSecretReportImageDto } from '../../../api/models/exposed-secret-report-image-dto';
 import { ExposedSecretReportsService } from '../../../api/services/exposed-secret-reports.service';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import {
-  TrivyFilterData,
   TrivyTableColumn,
   TrivyTableExpandRowData,
 } from '../../ui-elements/trivy-table/trivy-table.types';
-import { SeverityUtils } from '../../utils/severity.utils';
 
 import { ReportHelper } from '../abstracts/trivy-report-image';
 import {
@@ -113,19 +110,8 @@ export class ExposedSecretReportsComponent extends DataPageBase implements OnIni
     this.isImageUsageDialogVisible.set(true);
   }
 
-  onRefreshRequested(event: TrivyFilterData) {
-    const excludedSeverities =
-      SeverityUtils.getSeverityIds().filter((severityId) => !event.selectedSeverityIds.includes(severityId)) || [];
-
-    const params: GetExposedSecretReportImageDtos$Params = {
-      namespaceName: event.namespaceName ?? undefined,
-      excludedSeverities: excludedSeverities.length > 0 ? excludedSeverities.join(',') : undefined,
-    };
-    this.isMainTableLoading = true;
-    this.dataDtoService.getExposedSecretReportImageDtos(params).subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => console.error(err),
-    });
+  onRefreshRequested() {
+    this.getDataDtos();
   }
 
   getPanelHeaderText() {

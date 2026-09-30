@@ -10,7 +10,6 @@
   [isMainTableLoading]="isMainTableLoading"
   [mainTableColumns]="mainTableColumns"
   [mainTableExtraClasses]="'trivy-half'"
-  [mainTableIsRefreshFilterable]="true"
   [mainTableIsRefreshVisible]="true"
   [mainTableMultiHeaderActions]="[
     { label: '', icon: 'pi pi-align-justify', specialAction: 'Go to Detailed ⧉' },
@@ -24,7 +23,7 @@
   [splitterStorageKey]="'Config Audit Reports'"
   (mainTableMultiHeaderActionRequested)="onMainTableMultiHeaderActionRequested($event)"
   (mainTableSelectedRowChanged)="onMainTableSelectedRowChanged($event)"
-  (refreshRequested)="onRefreshRequested($event)"
+  (refreshRequested)="onRefreshRequested()"
 />
 
 @if (selectedTrivyReportDto && isTrivyReportsCompareVisible()) {

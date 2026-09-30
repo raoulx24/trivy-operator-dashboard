@@ -1,12 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { GetInfraAssessmentReportDtos$Params } from '../../../api/fn/infra-assessment-report/get-infra-assessment-report-dtos';
 import { InfraAssessmentReportDto } from '../../../api/models/infra-assessment-report-dto';
 import { InfraAssessmentReportService } from '../../../api/services/infra-assessment-report.service';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
-import { TrivyFilterData, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
-import { SeverityUtils } from '../../utils/severity.utils';
+import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { namespacedColumns } from '../constants/generic.constants';
 import {
   infraAssessmentReportColumns,
@@ -58,9 +56,9 @@ export class InfraAssessmentReportsComponent extends DataPageBase implements OnI
     this.getDataDtos();
   }
 
-  getDataDtos(params?: GetInfraAssessmentReportDtos$Params) {
+  getDataDtos() {
     this.isMainTableLoading = true;
-    this.dataDtoService.getInfraAssessmentReportDtos(params).subscribe({
+    this.dataDtoService.getInfraAssessmentReportDtos().subscribe({
       next: (res) => this.onGetDataDtos(res),
       error: (err) => this.onError(err),
     });
@@ -76,15 +74,8 @@ export class InfraAssessmentReportsComponent extends DataPageBase implements OnI
     this.isMainTableLoading = false;
   }
 
-  public onRefreshRequested(event: TrivyFilterData) {
-    const excludedSeverities =
-      SeverityUtils.getSeverityIds().filter((severityId) => !event.selectedSeverityIds.includes(severityId)) || [];
-
-    const params: GetInfraAssessmentReportDtos$Params = {
-      namespaceName: event.namespaceName ?? undefined,
-      excludedSeverities: excludedSeverities.length > 0 ? excludedSeverities.join(',') : undefined,
-    };
-    this.getDataDtos(params);
+  public onRefreshRequested() {
+    this.getDataDtos();
   }
 
   onMainTableMultiHeaderActionRequested(event: string) {

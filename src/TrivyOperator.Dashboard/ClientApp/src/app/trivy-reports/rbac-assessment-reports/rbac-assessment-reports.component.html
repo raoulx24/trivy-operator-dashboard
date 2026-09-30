@@ -23,7 +23,7 @@
   [singleSelectDataDto]="selectedTrivyReportDto"
   (mainTableMultiHeaderActionRequested)="onMainTableMultiHeaderActionRequested($event)"
   (mainTableSelectedRowChanged)="onMainTableSelectedRowChanged($event)"
-  (refreshRequested)="onRefreshRequested($event)"
+  (refreshRequested)="onRefreshRequested()"
 />
 
 @if (selectedTrivyReportDto && isTrivyReportsCompareVisible()) {

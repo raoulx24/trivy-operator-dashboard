@@ -2,11 +2,9 @@ import { Component, effect, HostListener, inject, input, output, ViewChild } fro
 
 import { SeverityDto } from '../../../api/models/severity-dto';
 import { TrivyReport, TrivyReportDetail } from '../../trivy-reports/abstracts/trivy-report';
-import { SeverityUtils } from '../../utils/severity.utils';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import {
   MultiHeaderAction, SelectedDtosEvent,
-  TrivyFilterData,
   TrivyTableColumn,
   TrivyTableExpandRowData,
 } from '../trivy-table/trivy-table.types';
@@ -37,8 +35,7 @@ export class GenericMasterDetailComponent<
   splitterStorageKey = input<string | undefined>();
   splitterPanelSizes = input<[number, number]>([35, 65]);
 
-  refreshRequested = output<TrivyFilterData>();
-  private _lastEvent?: TrivyFilterData;
+  refreshRequested = output<void>();
 
   mainTableRowExpandChange = output<TTrivyReport>();
   mainTableExpandCallback = output<TTrivyReport>();
@@ -50,7 +47,6 @@ export class GenericMasterDetailComponent<
   mainTableIsResetFiltersVisible = input<boolean | undefined>(false);
   mainTableIsExportCsvVisible = input<boolean | undefined>(false);
   mainTableIsRefreshVisible = input<boolean | undefined>(false);
-  mainTableIsRefreshFilterable = input<boolean | undefined>(false);
   mainTableIsFooterVisible = input<boolean | undefined>(false);
   mainTableSelectionMode = input<'single' | 'multiple' | undefined>(undefined);
   mainTableStyle = input<{ [klass: string]: any } | undefined>({});
@@ -68,7 +64,6 @@ export class GenericMasterDetailComponent<
   detailsIsResetFiltersVisible = input<boolean | undefined>(false);
   detailsIsExportCsvVisible = input<boolean | undefined>(false);
   detailsIsRefreshVisible = input<boolean | undefined>(false);
-  detailsIsRefreshFilterable = input<boolean | undefined>(false);
   detailsIsFooterVisible = input<boolean | undefined>(false);
   detailsSelectionMode = input<'single' | 'multiple' | undefined>(undefined);
   detailsStyle = input<{ [klass: string]: any } | undefined>({});
@@ -120,13 +115,7 @@ export class GenericMasterDetailComponent<
       }
 
       if (ctx) {
-        if (!this._lastEvent) {
-          this._lastEvent = {
-            namespaceName: '',
-            selectedSeverityIds: SeverityUtils.severityDtos.map((x) => x.id),
-          };
-        }
-        this.refreshRequested.emit(this._lastEvent);
+        this.refreshRequested.emit();
       }
     });
   }
@@ -163,9 +152,8 @@ export class GenericMasterDetailComponent<
     }
   }
 
-  onRefreshRequested(event: TrivyFilterData) {
-    this._lastEvent = event;
-    this.refreshRequested.emit(event);
+  onRefreshRequested() {
+    this.refreshRequested.emit();
   }
 
   onMainTableExpandCallback(event: TTrivyReport) {

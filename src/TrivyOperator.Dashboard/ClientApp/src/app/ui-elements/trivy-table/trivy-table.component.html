@@ -31,20 +31,8 @@
   >
     <ng-template pTemplate="caption">
       <div class="flex items-center gap-2">
-        @if (isRefreshVisible() && !isRefreshFilterable()) {
+        @if (isRefreshVisible()) {
           <p-button icon="pi pi-refresh" label="Refresh" raised size="small" text (onClick)="onRefreshData()" />
-        }
-        @if (isRefreshVisible() && isRefreshFilterable()) {
-          <p-splitbutton
-            #refreshSplitButton
-            icon="pi pi-refresh"
-            label="Refresh"
-            raised
-            size="small"
-            text
-            (onClick)="onRefreshData()"
-            (onDropdownClick)="onFilterDropdownClick($event)"
-          />
         }
         @if (isClearSelectionVisible()) {
           <p-button
@@ -658,80 +646,4 @@
       </div>
     </div>
   </p-popover>
-
-  @if (filterRefreshSeverities()) {
-    <p-popover
-      #serverFilterDataOp
-      [dismissable]="true"
-      [hideTransitionOptions]="'0.3s ease-out'"
-      [showTransitionOptions]="'0.3s ease-in'"
-      (onHide)="onOverlayToggle()"
-      (onShow)="onOverlayToggle()"
-    >
-      <div class="flex-col gap-4 w-60">
-        <div class="row w-full tex-xs pb-2">
-          <p-select
-            #filterNamespacesSelect
-            placeholder="Select a Namespace"
-            class="w-full text-sm"
-            [checkmark]="true"
-            [options]="activeNamespaces()"
-            [showClear]="true"
-            [(ngModel)]="filterRefreshActiveNamespace"
-          />
-        </div>
-        <hr />
-        <div class="py-2">
-          <span>Severities</span>
-          <div>
-            <div class="flex-col gap-0 mt-2">
-              @for (severityDto of severityDtos; track severityDto.id) {
-                <div class="field-checkbox mb-2 text-sm">
-                  <p-checkbox
-                    name="group"
-                    class="ml-2"
-                    [inputId]="severityDto.id.toString()"
-                    [value]="severityDto"
-                    [(ngModel)]="filterRefreshSeverities"
-                  />
-                  <label class="ml-2" [for]="severityDto.id"> {{ severityDto.name | capitalizeFirst }} </label>
-                </div>
-              }
-            </div>
-          </div>
-        </div>
-        <hr />
-        <div class="py-2 w-full">
-          <div class="grid grid-cols-2 gap-4 w-full">
-            <div class="w-full">
-              <p-button
-                icon="pi pi-replay"
-                label="Reset"
-                raised
-                size="small"
-                text
-                class="w-full"
-                (onClick)="onFilterReset()"
-              />
-            </div>
-            <div class="w-full">
-              <p-button
-                icon="pi pi-refresh"
-                label="Refresh"
-                raised
-                size="small"
-                text
-                class="w-full"
-                (onClick)="onRefreshData()"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </p-popover>
-  }
 </div>
-
-@if (overlayVisible()) {
-  <div class="custom-backdrop"></div>
-}

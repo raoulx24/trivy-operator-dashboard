@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -22,7 +21,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { Select } from 'primeng/select';
-import { SplitButton, SplitButtonModule } from 'primeng/splitbutton';
+import { SplitButtonModule } from 'primeng/splitbutton';
 import { Table, TableModule, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
@@ -33,7 +32,6 @@ import { SeverityUtils } from '../../utils/severity.utils';
 import {
   MultiHeaderAction,
   SelectedDtosEvent,
-  TrivyFilterData,
   TrivyTableColumn,
   TrivyTableExpandRowData,
 } from './trivy-table.types';
@@ -115,7 +113,6 @@ export class TrivyTableComponent<TData> implements OnInit {
   isResetFiltersVisible = input<boolean | undefined>(false);
   isExportCsvVisible = input<boolean | undefined>(false);
   isRefreshVisible = input<boolean | undefined>(false);
-  isRefreshFilterable = input<boolean | undefined>(false);
   isFooterVisible = input<boolean | undefined>(false);
 
   // settings for multi actions button
@@ -137,7 +134,7 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   // output signals
   multiHeaderActionRequested = output<string>();
-  refreshRequested = output<TrivyFilterData>();
+  refreshRequested = output<void>();
   rowExpandActionCallback = output<TData>();
   rowExpandDataChange = output<TData>();
   rowActionRequested = output<{ row: TData; col: string }>();
@@ -147,10 +144,7 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   // view child
   @ViewChild('trivyTable') trivyTable!: Table;
-  @ViewChild('serverFilterDataOp') serverFilterDataOp?: Popover;
   @ViewChild('csvExportOp') csvExportOp?: Popover;
-  @ViewChild('refreshSplitButton') refreshSplitButton?: SplitButton;
-  @ViewChild('filterNamespacesSelect') filterNamespacesSelect?: Select;
 
   // rows expand
   protected expandedRows = signal<Record<string, boolean>>({});
@@ -164,8 +158,6 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected filterSelectedSeverityIds = signal<number[]>([]);
   protected filterSelectedActiveNamespaces = signal<string[]>([]);
   protected filterSelectedBoolean = signal<boolean | undefined>(undefined);
-  protected filterRefreshActiveNamespace = signal<string>('');
-  protected filterRefreshSeverities = signal<SeverityDto[] | undefined>([]);
   protected severityDtos: SeverityDto[] = [...SeverityUtils.severityDtos.filter((x) => x.isTrivySeverity)];
 
   protected multiHeaderActionItems = computed(() => {
@@ -198,11 +190,11 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected isTableFilteredSorted = signal<boolean>(this.checkIfTableIsFilteredOrSorted());
   protected isTableRowsSelected = computed(() => this.selectedData().selectedDtos.length > 0);
 
-  // table state key for browser local storage
-  protected tableStateKey?: string;
-
   // custom back overlay
   protected overlayVisible = signal(false);
+
+  // table state key for browser local storage
+  protected tableStateKey?: string;
 
   protected internalCsvFileName = signal(this.csvFileName());
   protected flexStyles = {'display': 'flex', 'flex-direction': 'column', 'flex-grow': '1' };
@@ -267,7 +259,6 @@ export class TrivyTableComponent<TData> implements OnInit {
   ngOnInit() {
     this.tableStateKey = LocalStorageUtils.trivyTableKeyPrefix + this.stateKey();
     this.filterSeverityOptions = this.severityDtos.map((x) => x.id);
-    this.filterRefreshSeverities.set([...this.severityDtos]);
 
     const boolLabels = this.trivyTableColumns().find(x => x.multiSelectType === 'booleans')?.extraFields?.[1]?.split('|');
     if (boolLabels && boolLabels.length == 2) {
@@ -282,14 +273,6 @@ export class TrivyTableComponent<TData> implements OnInit {
     this.trivyTable.selection = [];
     this.trivyTable.selectionKeys = {};
     this.selectedData.set({selectedDtos: [], source: 'user'});
-  }
-
-  protected onFilterReset() {
-    this.filterRefreshSeverities.set([...this.severityDtos]);
-    if (this.filterNamespacesSelect) {
-      this.filterNamespacesSelect.clear();
-    }
-    this.isTableFilteredSorted.set(this.checkIfTableIsFilteredOrSorted());
   }
 
   protected onTableCollapseAll() {
@@ -309,15 +292,9 @@ export class TrivyTableComponent<TData> implements OnInit {
     }
   }
 
-  protected onFilterDropdownClick(_event: Event) {
-    this.serverFilterDataOp?.toggle(_event);
-  }
-
   protected onRefreshData() {
-    this.serverFilterDataOp?.hide();
-    this.refreshRequested.emit(this.getActualFilterData());
+    this.refreshRequested.emit();
   }
-
 
   protected onSelectionChange(event: any): void {
     let value: TData[] = [];
@@ -338,13 +315,6 @@ export class TrivyTableComponent<TData> implements OnInit {
         }
       }, 100);
     }
-  }
-
-  protected getActualFilterData(): TrivyFilterData {
-    return {
-      namespaceName: this.filterRefreshActiveNamespace(),
-      selectedSeverityIds: this.filterRefreshSeverities()?.map((x) => x.id) ?? [],
-    };
   }
 
   protected onOverlayToggle() {
