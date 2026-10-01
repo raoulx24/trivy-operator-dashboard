@@ -21,7 +21,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
 
-import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 
 @Component({
   selector: 'app-sbom-reports',
@@ -40,7 +40,7 @@ import { DataPageBase } from '../../abstracts/data-page-base';
   templateUrl: './sbom-reports.component.html',
   styleUrl: './sbom-reports.component.scss',
 })
-export class SbomReportsComponent extends DataPageBase implements OnInit {
+export class SbomReportsComponent extends TrivyReportDataPageBase implements OnInit {
   dataDtos: SbomReportImageMinimalDto[] = [];
   fullSbomDataDto?: SbomReportImageDto;
   imageResourceDtos?: TrivyReportResourceInfoDto[];

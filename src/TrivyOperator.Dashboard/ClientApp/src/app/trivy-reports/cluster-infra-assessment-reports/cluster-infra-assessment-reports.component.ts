@@ -17,7 +17,7 @@ import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/n
 
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
-import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 
 @Component({
   selector: 'app-cluster-infra-assessment-reports',
@@ -26,7 +26,7 @@ import { DataPageBase } from '../../abstracts/data-page-base';
   templateUrl: './cluster-infra-assessment-reports.component.html',
   styleUrl: './cluster-infra-assessment-reports.component.scss',
 })
-export class ClusterInfraAssessmentReportsComponent extends DataPageBase implements OnInit {
+export class ClusterInfraAssessmentReportsComponent extends TrivyReportDataPageBase implements OnInit {
   dataDtos: ClusterInfraAssessmentReportDto[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...infraAssessmentReportColumns];

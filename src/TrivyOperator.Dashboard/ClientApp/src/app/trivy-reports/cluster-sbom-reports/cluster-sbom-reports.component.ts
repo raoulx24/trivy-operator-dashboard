@@ -17,7 +17,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
-import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 
 @Component({
   selector: 'app-cluster-sbom-reports',
@@ -35,7 +35,7 @@ import { DataPageBase } from '../../abstracts/data-page-base';
   templateUrl: './cluster-sbom-reports.component.html',
   styleUrl: './cluster-sbom-reports.component.scss',
 })
-export class ClusterSbomReportsComponent extends DataPageBase implements OnInit {
+export class ClusterSbomReportsComponent extends TrivyReportDataPageBase implements OnInit {
   dataDtos: SbomReportImageMinimalDto[] = [];
   fullClusterSboms: ClusterSbomReportDto[] = [];
   selectedImageId?: string;

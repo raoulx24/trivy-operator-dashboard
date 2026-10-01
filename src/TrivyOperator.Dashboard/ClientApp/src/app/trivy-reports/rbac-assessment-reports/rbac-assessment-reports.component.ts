@@ -17,7 +17,7 @@ import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.type
 
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
-import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 
 @Component({
   selector: 'app-rbac-assessment-reports',
@@ -26,7 +26,7 @@ import { DataPageBase } from '../../abstracts/data-page-base';
   templateUrl: './rbac-assessment-reports.component.html',
   styleUrl: './rbac-assessment-reports.component.scss',
 })
-export class RbacAssessmentReportsComponent extends DataPageBase implements OnInit {
+export class RbacAssessmentReportsComponent extends TrivyReportDataPageBase implements OnInit {
   dataDtos: RbacAssessmentReportDto[] = [];
   activeNamespaces: string[] = [];
 

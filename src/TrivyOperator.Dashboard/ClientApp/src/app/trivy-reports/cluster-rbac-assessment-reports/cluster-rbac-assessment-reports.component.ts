@@ -5,7 +5,7 @@ import { MessageService } from 'primeng/api';
 import { Dialog } from 'primeng/dialog';
 import { ClusterRbacAssessmentReportDto } from '../../../api/models/cluster-rbac-assessment-report-dto';
 import { ClusterRbacAssessmentReportService } from '../../../api/services/cluster-rbac-assessment-report.service';
-import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { nonExistingNamespace } from '../../ui-elements/namespace-image-selector/namespace-image-selector.component';
@@ -24,7 +24,7 @@ import {
   templateUrl: './cluster-rbac-assessment-reports.component.html',
   styleUrl: './cluster-rbac-assessment-reports.component.scss',
 })
-export class ClusterRbacAssessmentReportsComponent extends DataPageBase implements OnInit {
+export class ClusterRbacAssessmentReportsComponent extends TrivyReportDataPageBase implements OnInit {
   dataDtos: ClusterRbacAssessmentReportDto[] = [];
   selectedTrivyReportDto?: ClusterRbacAssessmentReportDto;
 

@@ -1,5 +1,22 @@
-export interface TrivyReport<TTrivyReportDetail extends TrivyReportDetail> {
+import { TrivyReportResourceInfoDto } from '../../../api/models/trivy-report-resource-info-dto';
+
+export interface HasUid  {
   uid: string;
+}
+
+export interface HasNamespace {
+  resourceNamespace: string;
+}
+
+export interface HasNamespaces {
+  namespaceNames: string[];
+}
+
+export interface HasResources {
+  resources: Array<TrivyReportResourceInfoDto> | null;
+}
+
+export interface TrivyReport<TTrivyReportDetail extends TrivyReportDetail> extends HasUid {
   details: Array<TTrivyReportDetail>;
 }
 

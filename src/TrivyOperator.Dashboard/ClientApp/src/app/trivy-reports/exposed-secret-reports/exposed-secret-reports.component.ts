@@ -9,7 +9,7 @@ import {
   TrivyTableExpandRowData,
 } from '../../ui-elements/trivy-table/trivy-table.types';
 
-import { ReportHelper } from '../abstracts/trivy-report-image';
+import { ReportHelper } from '../abstracts/report-helper';
 import {
   exposedSecretReportColumns,
   exposedSecretReportComparedTableColumns,
@@ -25,7 +25,7 @@ import { TrivyImageUsageDialogComponent } from '../../ui-elements/trivy-image-us
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
-import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 import { TrivyReportResourceInfoDto } from '../../../api/models/trivy-report-resource-info-dto';
 
 // for sorting in trivy table
@@ -47,7 +47,7 @@ type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
   templateUrl: './exposed-secret-reports.component.html',
   styleUrl: './exposed-secret-reports.component.scss',
 })
-export class ExposedSecretReportsComponent extends DataPageBase implements OnInit {
+export class ExposedSecretReportsComponent extends TrivyReportDataPageBase implements OnInit {
   dataDtos: ExposedSecretReportImageTableDto[] = [];
   activeNamespaces: string[] = [];
 

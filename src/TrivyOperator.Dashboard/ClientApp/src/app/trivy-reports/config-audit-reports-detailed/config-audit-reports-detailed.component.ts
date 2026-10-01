@@ -19,7 +19,6 @@ import { namespacedColumns } from '../constants/generic.constants';
 })
 export class ConfigAuditReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
   dataDtos: ConfigAuditReportDenormalizedDto[] = [];
-  severityDtos: SeverityDto[] = [];
   activeNamespaces: string[] = [];
 
   csvFileName: string = 'Config.Audit.Reports';

@@ -10,7 +10,7 @@ import { watcherStateColumns } from '../constants/watcher-state.constants';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportDataPageBase } from '../../trivy-reports/abstracts/trivy-report-data-page-base';
 import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
 
 @Component({
@@ -20,7 +20,7 @@ import { KubernetesContextStateService } from '../../services/kubernetes-context
   templateUrl: './watcher-state.component.html',
   styleUrl: './watcher-state.component.scss',
 })
-export class WatcherStateComponent extends DataPageBase implements OnInit {
+export class WatcherStateComponent extends TrivyReportDataPageBase implements OnInit {
   watcherStateInfoDtos = signal<WatcherStatusDto[]>([]);
   isLoading = signal<boolean>(false);
 

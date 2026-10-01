@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 
 import { ClusterComplianceReportDto } from '../../../api/models/cluster-compliance-report-dto';
 import { ClusterComplianceReportService } from '../../../api/services/cluster-compliance-report.service';
-import { DataPageBase } from '../../abstracts/data-page-base';
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import {
   TrivyTableColumn,
@@ -20,7 +20,7 @@ import {
   templateUrl: './cluster-compliance-reports.component.html',
   styleUrl: './cluster-compliance-reports.component.scss',
 })
-export class ClusterComplianceReportsComponent extends DataPageBase implements OnInit {
+export class ClusterComplianceReportsComponent extends TrivyReportDataPageBase implements OnInit {
   dataDtos: ClusterComplianceReportDto[] = [];
 
   mainTableColumns: TrivyTableColumn[] = [...clusterComplianceReportColumns];

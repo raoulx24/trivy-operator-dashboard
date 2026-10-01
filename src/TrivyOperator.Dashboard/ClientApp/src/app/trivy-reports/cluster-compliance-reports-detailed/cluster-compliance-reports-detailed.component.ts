@@ -1,13 +1,14 @@
-import { Component, inject, OnInit } from '@angular/core';
-
-import { SeverityDto } from '../../../api/models/severity-dto';
-import { ClusterComplianceReportService } from '../../../api/services/cluster-compliance-report.service';
+import { Component, inject } from '@angular/core';
 
 import { ClusterComplianceReportDenormalizedDto } from '../../../api/models';
+import { ClusterComplianceReportService } from '../../../api/services/cluster-compliance-report.service';
+
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
-import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
+
 import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster-compliance-reports.constants';
+
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 
 @Component({
   selector: 'app-cluster-compliance-reports-detailed',
@@ -16,30 +17,13 @@ import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster
   templateUrl: './cluster-compliance-reports-detailed.component.html',
   styleUrl: './cluster-compliance-reports-detailed.component.scss',
 })
-export class ClusterComplianceReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  dataDtos: ClusterComplianceReportDenormalizedDto[] = [];
-  severityDtos: SeverityDto[] = [];
+export class ClusterComplianceReportsDetailedComponent extends TrivyReportDataPageBase<ClusterComplianceReportDenormalizedDto> {
+  readonly csvFileName: string = 'Cluster.Compliance.Reports';
 
-  csvFileName: string = 'Cluster.Compliance.Reports';
-
-  trivyTableColumns: TrivyTableColumn[] = [...clusterComplianceReportDenormalizedColumns];
+  readonly trivyTableColumns: TrivyTableColumn[] = [...clusterComplianceReportDenormalizedColumns];
 
   private readonly dataDtoService = inject(ClusterComplianceReportService);
 
-  ngOnInit() {
-    this.getTableDataDtos();
-  }
-
-  getTableDataDtos() {
-    this.isMainTableLoading = true;
-    this.dataDtoService.getClusterComplianceReportDenormalizedDtos().subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => this.onError(err),
-    });
-  }
-
-  private onGetDataDtos(dtos: ClusterComplianceReportDenormalizedDto[]) {
-    this.dataDtos = dtos;
-    this.isMainTableLoading = false;
-  }
+  protected readonly dataDtosLoader =
+    () => this.dataDtoService.getClusterComplianceReportDenormalizedDtos();
 }

@@ -1,13 +1,14 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { ClusterRbacAssessmentReportDenormalizedDto } from '../../../api/models/cluster-rbac-assessment-report-denormalized-dto';
-import { SeverityDto } from '../../../api/models/severity-dto';
 import { ClusterRbacAssessmentReportService } from '../../../api/services/cluster-rbac-assessment-report.service';
 
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
-import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
+
 import { rbacAssessmentReportDenormalizedColumns } from '../constants/rbac-assessment-reports.constants';
+
+import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 
 @Component({
   selector: 'app-cluster-rbac-assessment-reports-detailed',
@@ -16,31 +17,13 @@ import { rbacAssessmentReportDenormalizedColumns } from '../constants/rbac-asses
   templateUrl: './cluster-rbac-assessment-reports-detailed.component.html',
   styleUrl: './cluster-rbac-assessment-reports-detailed.component.scss',
 })
-export class ClusterRbacAssessmentReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  public dataDtos: ClusterRbacAssessmentReportDenormalizedDto[] = [];
-  public severityDtos: SeverityDto[] = [];
-  public activeNamespaces: string[] = [];
+export class ClusterRbacAssessmentReportsDetailedComponent extends TrivyReportDataPageBase<ClusterRbacAssessmentReportDenormalizedDto> {
+  readonly csvFileName: string = 'Cluster.Rbac.Assessment.Reports';
 
-  public csvFileName: string = 'Cluster.Rbac.Assessment.Reports';
-
-  public trivyTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportDenormalizedColumns];
+  readonly trivyTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportDenormalizedColumns];
 
   private readonly dataDtoService = inject(ClusterRbacAssessmentReportService);
 
-  ngOnInit() {
-    this.getTableDataDtos();
-  }
-
-  public getTableDataDtos() {
-    this.isMainTableLoading = true;
-    this.dataDtoService.getClusterRbacAssessmentReportDenormalizedDtos().subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => this.onError(err),
-    });
-  }
-
-  onGetDataDtos(dtos: ClusterRbacAssessmentReportDenormalizedDto[]) {
-    this.dataDtos = dtos;
-    this.isMainTableLoading = false;
-  }
+  protected readonly dataDtosLoader =
+    () => this.dataDtoService.getClusterRbacAssessmentReportDenormalizedDtos();
 }
