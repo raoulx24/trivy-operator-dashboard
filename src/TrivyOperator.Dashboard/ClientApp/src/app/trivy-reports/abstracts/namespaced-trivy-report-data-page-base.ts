@@ -1,20 +1,23 @@
 import { TrivyReportDataPageBase } from './trivy-report-data-page-base';
-import { NamespacedAggregateTrivyReport, NamespacedResourceTrivyReport, TrivyReportDetail } from './trivy-report';
+import {HasNamespace, NamespacedAggregateTrivyReport, NamespacedResourceTrivyReport, TrivyReportDetail } from './trivy-report';
 
 export abstract class NamespacedTrivyReportDataPageBase<TData> extends TrivyReportDataPageBase<TData> {
   protected activeNamespaces: string[] = [];
 }
 
-export abstract class NamespacedResourceTrivyReportDataPageBase<
-  TTrivyReportDetail extends TrivyReportDetail,
-> extends NamespacedTrivyReportDataPageBase<NamespacedResourceTrivyReport<TTrivyReportDetail>> {
-
-  protected override onGetDataDtos(dtos: NamespacedResourceTrivyReport<TTrivyReportDetail>[]): void {
+export abstract class NamespacedDataTrivyReportDataPageBase<
+  TDataHasNamespace extends HasNamespace,
+> extends NamespacedTrivyReportDataPageBase<TDataHasNamespace> {
+  protected override onGetDataDtos(dtos: TDataHasNamespace[]): void {
     this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace))).sort();
 
     super.onGetDataDtos(dtos);
   }
 }
+
+export abstract class NamespacedResourceTrivyReportDataPageBase<
+  TTrivyReportDetail extends TrivyReportDetail,
+> extends NamespacedDataTrivyReportDataPageBase<NamespacedResourceTrivyReport<TTrivyReportDetail>> {}
 
 // export class RbacAssessmentReportsComponent extends NamespacedResourceTrivyReportDataPageBase<RbacAssessmentReportDetail> {}
 

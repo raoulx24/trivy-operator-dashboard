@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { ClusterComplianceReportDto } from '../../../api/models/cluster-compliance-report-dto';
 import { ClusterComplianceReportService } from '../../../api/services/cluster-compliance-report.service';
@@ -20,35 +20,15 @@ import {
   templateUrl: './cluster-compliance-reports.component.html',
   styleUrl: './cluster-compliance-reports.component.scss',
 })
-export class ClusterComplianceReportsComponent extends TrivyReportDataPageBase implements OnInit {
-  dataDtos: ClusterComplianceReportDto[] = [];
-
+export class ClusterComplianceReportsComponent extends TrivyReportDataPageBase<ClusterComplianceReportDto> {
   mainTableColumns: TrivyTableColumn[] = [...clusterComplianceReportColumns];
 
   detailsTableColumns: TrivyTableColumn[] = [...clusterComplianceReportDetailColumns];
 
   private readonly dataDtoService = inject(ClusterComplianceReportService);
 
-  ngOnInit() {
-    this.getDataDtos();
-  }
-
-  private getDataDtos() {
-    this.isMainTableLoading = true;
-    this.dataDtoService.getClusterComplianceReportDtos().subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => this.onError(err),
-    });
-  }
-
-  private onGetDataDtos(dtos: ClusterComplianceReportDto[]) {
-    this.dataDtos = dtos;
-    this.isMainTableLoading = false;
-  }
-
-  public onRefreshRequested() {
-    this.getDataDtos();
-  }
+  protected readonly dataDtosLoader =
+    () => this.dataDtoService.getClusterComplianceReportDtos();
 
   rowExpandResponse?: TrivyTableExpandRowData<ClusterComplianceReportDto>;
   onRowExpandChange(dto: ClusterComplianceReportDto) {

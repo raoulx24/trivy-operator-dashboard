@@ -51,6 +51,10 @@ export abstract class TrivyReportDataPageBase<TData> implements OnInit {
     this.isMainTableLoading = false;
   }
 
+  public onRefreshRequested() {
+    this.getTableDataDtos();
+  }
+
   // Handle errors when fetching data
   protected onError(err: any) {
     this.trivyMessageService.pushSimple('Error on getting data.', this.routerEventEmitterService.title(), 'error', err);
