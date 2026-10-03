@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 
 import { ClusterComplianceReportDenormalizedDto } from '../../../api/models';
 import { ClusterComplianceReportService } from '../../../api/services/cluster-compliance-report.service';
@@ -8,7 +8,7 @@ import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.type
 
 import { clusterComplianceReportDenormalizedColumns } from '../constants/cluster-compliance-reports.constants';
 
-import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
+import { DataPageBase } from '../abstracts/pages/data-page-base';
 
 @Component({
   selector: 'app-cluster-compliance-reports-detailed',
@@ -17,7 +17,7 @@ import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-bas
   templateUrl: './cluster-compliance-reports-detailed.component.html',
   styleUrl: './cluster-compliance-reports-detailed.component.scss',
 })
-export class ClusterComplianceReportsDetailedComponent extends TrivyReportDataPageBase<ClusterComplianceReportDenormalizedDto> {
+export class ClusterComplianceReportsDetailedComponent extends DataPageBase<ClusterComplianceReportDenormalizedDto> implements OnInit {
   readonly csvFileName: string = 'Cluster.Compliance.Reports';
 
   readonly trivyTableColumns: TrivyTableColumn[] = [...clusterComplianceReportDenormalizedColumns];
@@ -26,4 +26,8 @@ export class ClusterComplianceReportsDetailedComponent extends TrivyReportDataPa
 
   protected readonly dataDtosLoader =
     () => this.dataDtoService.getClusterComplianceReportDenormalizedDtos();
+
+  ngOnInit() {
+    this.initialize();
+  }
 }

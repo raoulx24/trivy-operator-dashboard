@@ -10,7 +10,7 @@
   [isMainTableLoading]="isMainTableLoading"
   [mainTableColumns]="mainTableColumns"
   [mainTableExtraClasses]="'trivy-half'"
-  [mainTableIsRefreshVisible]="!this.queryUid"
+  [mainTableIsRefreshVisible]="true"
   [mainTableMultiHeaderActions]="[
     { label: '', icon: 'pi pi-align-justify', specialAction: 'Go to Detailed ⧉' },
     { label: 'Compare with...', icon: 'pi pi-copy', enabledIfRowSelected: true },
@@ -19,7 +19,6 @@
   [mainTableSelectionMode]="'single'"
   [mainTableStateKey]="'Infra Assessment Reports - Main'"
   [mainTableStyle]="{ width: '775px' }"
-  [singleSelectDataDto]="selectedTrivyReportDto"
   [splitterStorageKey]="'Infra Assessment Reports'"
   (mainTableMultiHeaderActionRequested)="onMainTableMultiHeaderActionRequested($event)"
   (mainTableSelectedRowChanged)="onMainTableSelectedRowChanged($event)"

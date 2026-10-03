@@ -12,12 +12,11 @@ import {
 
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
-import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 
-import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
-import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
+import {NamespacedResourceTrivyReportDataPageBase} from "../abstracts/pages/namespaced-trivy-report-data-page-base";
+import {SecurityAssessmentReportDetailDto} from "../../../api/models/security-assessment-report-detail-dto";
 
 @Component({
   selector: 'app-rbac-assessment-reports',
@@ -26,45 +25,25 @@ import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-bas
   templateUrl: './rbac-assessment-reports.component.html',
   styleUrl: './rbac-assessment-reports.component.scss',
 })
-export class RbacAssessmentReportsComponent extends TrivyReportDataPageBase implements OnInit {
-  dataDtos: RbacAssessmentReportDto[] = [];
-  activeNamespaces: string[] = [];
-
+export class RbacAssessmentReportsComponent extends NamespacedResourceTrivyReportDataPageBase<
+  RbacAssessmentReportDto,
+  SecurityAssessmentReportDetailDto
+> implements OnInit {
   mainTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...rbacAssessmentReportColumns];
 
   detailsTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportDetailColumns];
 
-  selectedTrivyReportDto?: RbacAssessmentReportDto;
-
   isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
-  compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [...rbacAssessmentReportComparedTableColumns];
 
   private readonly dataDtoService = inject(RbacAssessmentReportService);
   private readonly router = inject(Router);
-  private readonly messageService = inject(MessageService);
+
+  protected override dataDtosLoader = () => this.dataDtoService.getRbacAssessmentReportDtos();
 
   ngOnInit() {
-    this.getTableDataDtos();
-  }
-
-  private getTableDataDtos() {
-    this.isMainTableLoading = true;
-    this.dataDtoService.getRbacAssessmentReportDtos().subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => this.onError(err),
-    });
-  }
-
-  private onGetDataDtos(dtos: RbacAssessmentReportDto[]) {
-    this.dataDtos = dtos;
-    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace ?? 'N/A'))).sort();
-    this.isMainTableLoading = false;
-  }
-
-  onRefreshRequested() {
-    this.getTableDataDtos();
+    this.initialize();
   }
 
   onMainTableMultiHeaderActionRequested(event: string) {
@@ -87,23 +66,19 @@ export class RbacAssessmentReportsComponent extends TrivyReportDataPageBase impl
 
   private goToComparePage() {
     if (!this.dataDtos || !this.selectedTrivyReportDto) return;
-    if (
-      this.selectedTrivyReportDto.criticalCount < 1 &&
-      this.selectedTrivyReportDto.highCount < 1 &&
-      this.selectedTrivyReportDto.mediumCount < 1 &&
-      this.selectedTrivyReportDto.lowCount < 1
-    ) {
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Nothing to compare',
-        detail: 'The selected item has no details, so there is nothing to compare...',
-      });
+    if (this.hasSeverities(this.selectedTrivyReportDto)) {
+      this.messageService.pushSimple(
+        'Nothing to compare',
+        'RBAC Assessment Reports',
+        'info',
+        'The selected item has no details, so there is nothing to compare...',
+      );
 
       return;
     }
 
     this.compareNamespacedImageDtos = this.dataDtos
-      .filter((rar) => rar.criticalCount > 0 || rar.highCount > 0 || rar.mediumCount > 0 || rar.lowCount > 0)
+      .filter((rar) => this.hasSeverities(rar))
       .map((rar) => ({
         uid: rar.uid ?? '',
         resourceNamespace: rar.resourceNamespace ?? '',
@@ -111,10 +86,5 @@ export class RbacAssessmentReportsComponent extends TrivyReportDataPageBase impl
       }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
     this.isTrivyReportsCompareVisible.set(true);
-  }
-
-  onMainTableSelectedRowChanged(event: RbacAssessmentReportDto | null) {
-    this.selectedTrivyReportDto = event ?? undefined;
-    //this.singleSelectDataDto = event ?? undefined;
   }
 }

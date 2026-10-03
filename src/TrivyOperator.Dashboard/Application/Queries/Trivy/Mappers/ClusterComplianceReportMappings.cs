@@ -1,4 +1,5 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
+﻿using TrivyOperator.Dashboard.Application.Queries.Shared.Identity;
+using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.ClusterCompliance;
 
@@ -34,10 +35,11 @@ public static class ClusterComplianceReportMappings
 
             TotalPassCount: report.Summary.PassCount,
             TotalFailCount: report.Summary.FailCount,
-            TotalFailCriticalCount: CountFailed(details, 0),
-            TotalFailHighCount: CountFailed(details, 1),
-            TotalFailMediumCount: CountFailed(details, 2),
-            TotalFailLowCount: CountFailed(details, 3),
+            
+            CriticalCount: CountFailed(details, 0),
+            HighCount: CountFailed(details, 1),
+            MediumCount: CountFailed(details, 2),
+            LowCount: CountFailed(details, 3),
 
             UpdateTimestamp: report.LastSeenAt.Value,
 
@@ -85,8 +87,11 @@ public static class ClusterComplianceReportMappings
     private static ClusterComplianceReportDetailDto ToDto(
         ControlResult controlCheck)
     {
+        string matchKey = DeterministicId.Create(controlCheck.Control.Id.Value).ToString();
+        
         return new ClusterComplianceReportDetailDto(
             Id: controlCheck.Control.Id.Value,
+            MatchKey: matchKey,
             Name: controlCheck.Control.ControlName.Value,
             Description: controlCheck.Control.Description.Value,
             SeverityId: controlCheck.Control.Severity.Rank,

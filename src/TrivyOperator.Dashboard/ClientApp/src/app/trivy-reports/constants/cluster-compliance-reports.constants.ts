@@ -20,7 +20,7 @@ export const clusterComplianceReportColumns: readonly TrivyTableColumn[] = [
     renderType: 'standard',
   },
   {
-    field: 'totalFailCriticalCount',
+    field: 'criticalCount',
     header: 'C',
     isFilterable: false,
     isSortable: true,
@@ -30,7 +30,7 @@ export const clusterComplianceReportColumns: readonly TrivyTableColumn[] = [
     extraFields: ['0'],
   },
   {
-    field: 'totalFailHighCount',
+    field: 'highCount',
     header: 'H',
     isFilterable: false,
     isSortable: true,
@@ -40,7 +40,7 @@ export const clusterComplianceReportColumns: readonly TrivyTableColumn[] = [
     extraFields: ['1'],
   },
   {
-    field: 'totalFailMediumCount',
+    field: 'mediumCount',
     header: 'M',
     isFilterable: false,
     isSortable: true,
@@ -50,7 +50,7 @@ export const clusterComplianceReportColumns: readonly TrivyTableColumn[] = [
     extraFields: ['2'],
   },
   {
-    field: 'totalFailLowCount',
+    field: 'lowCount',
     header: 'L',
     isFilterable: false,
     isSortable: true,

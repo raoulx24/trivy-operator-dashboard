@@ -1,10 +1,10 @@
-import { effect, inject, OnInit } from '@angular/core';
-import { RouterEventEmitterService } from '../../services/router-event-emitter.service';
-import { TrivyMessageService } from '../../services/trivy-message.service';
-import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
+import { effect, inject } from '@angular/core';
+import { RouterEventEmitterService } from '../../../services/router-event-emitter.service';
+import { TrivyMessageService } from '../../../services/trivy-message.service';
+import { KubernetesContextStateService } from '../../../services/kubernetes-context-state.service';
 import { Observable } from 'rxjs';
 
-export abstract class TrivyReportDataPageBase<TData> implements OnInit {
+export abstract class DataPageBase<TData> {
   // data retrieved from the API
   protected dataDtos: TData[] = [];
   protected abstract readonly dataDtosLoader: () => Observable<TData[]>;
@@ -12,10 +12,10 @@ export abstract class TrivyReportDataPageBase<TData> implements OnInit {
   protected isMainTableLoading: boolean = false;
 
   // injected services for error handling
-  private readonly trivyMessageService = inject(TrivyMessageService);
+  protected readonly messageService = inject(TrivyMessageService);
   private readonly routerEventEmitterService = inject(RouterEventEmitterService);
   // injected service for kubernetes context
-  private readonly kubernetesContextService = inject(KubernetesContextStateService);
+  protected readonly kubernetesContextService = inject(KubernetesContextStateService);
 
   constructor() {
     // watch for changes in the selected Kubernetes context and refresh the table data accordingly
@@ -33,7 +33,7 @@ export abstract class TrivyReportDataPageBase<TData> implements OnInit {
   }
 
   // data retrieval on component initialization
-  ngOnInit(): void {
+  protected initialize(): void {
     this.getTableDataDtos();
   }
 
@@ -57,12 +57,12 @@ export abstract class TrivyReportDataPageBase<TData> implements OnInit {
 
   // Handle errors when fetching data
   protected onError(err: any) {
-    this.trivyMessageService.pushSimple('Error on getting data.', this.routerEventEmitterService.title(), 'error', err);
+    this.messageService.pushSimple('Error on getting data.', this.routerEventEmitterService.title(), 'error', err);
     this.isMainTableLoading = false;
   }
 
   protected showErrorToast(message: string, title: string) {
-    this.trivyMessageService.pushSimple(message, title, 'error');
+    this.messageService.pushSimple(message, title, 'error');
     this.isMainTableLoading = false;
   }
 }

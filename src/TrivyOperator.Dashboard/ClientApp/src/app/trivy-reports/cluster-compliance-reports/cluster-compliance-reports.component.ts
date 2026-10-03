@@ -1,8 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 
 import { ClusterComplianceReportDto } from '../../../api/models/cluster-compliance-report-dto';
 import { ClusterComplianceReportService } from '../../../api/services/cluster-compliance-report.service';
-import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
+import { DataPageBase } from '../abstracts/pages/data-page-base';
 import { GenericMasterDetailComponent } from '../../ui-elements/generic-master-detail/generic-master-detail.component';
 import {
   TrivyTableColumn,
@@ -20,7 +20,7 @@ import {
   templateUrl: './cluster-compliance-reports.component.html',
   styleUrl: './cluster-compliance-reports.component.scss',
 })
-export class ClusterComplianceReportsComponent extends TrivyReportDataPageBase<ClusterComplianceReportDto> {
+export class ClusterComplianceReportsComponent extends DataPageBase<ClusterComplianceReportDto> implements OnInit {
   mainTableColumns: TrivyTableColumn[] = [...clusterComplianceReportColumns];
 
   detailsTableColumns: TrivyTableColumn[] = [...clusterComplianceReportDetailColumns];
@@ -29,6 +29,10 @@ export class ClusterComplianceReportsComponent extends TrivyReportDataPageBase<C
 
   protected readonly dataDtosLoader =
     () => this.dataDtoService.getClusterComplianceReportDtos();
+
+  ngOnInit() {
+    this.initialize();
+  }
 
   rowExpandResponse?: TrivyTableExpandRowData<ClusterComplianceReportDto>;
   onRowExpandChange(dto: ClusterComplianceReportDto) {

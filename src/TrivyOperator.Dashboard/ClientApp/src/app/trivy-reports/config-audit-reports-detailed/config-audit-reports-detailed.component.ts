@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 
 import { ConfigAuditReportDenormalizedDto } from '../../../api/models/config-audit-report-denormalized-dto';
 import { ConfigAuditReportService } from '../../../api/services/config-audit-report.service';
@@ -7,7 +7,7 @@ import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.c
 import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 import { configAuditReportDenormalizedColumns } from '../constants/config-audit-reports.constants';
 import { namespacedColumns } from '../constants/generic.constants';
-import { NamespacedDataTrivyReportDataPageBase } from '../abstracts/namespaced-trivy-report-data-page-base';
+import { NamespacedDataPageBase } from '../abstracts/pages/namespaced-trivy-report-data-page-base';
 
 @Component({
   selector: 'app-config-audit-reports-detailed',
@@ -16,13 +16,19 @@ import { NamespacedDataTrivyReportDataPageBase } from '../abstracts/namespaced-t
   templateUrl: './config-audit-reports-detailed.component.html',
   styleUrl: './config-audit-reports-detailed.component.scss',
 })
-export class ConfigAuditReportsDetailedComponent extends NamespacedDataTrivyReportDataPageBase<ConfigAuditReportDenormalizedDto> {
+export class ConfigAuditReportsDetailedComponent
+  extends NamespacedDataPageBase<ConfigAuditReportDenormalizedDto>
+  implements OnInit
+{
   csvFileName: string = 'Config.Audit.Reports';
 
   trivyTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...configAuditReportDenormalizedColumns];
 
   private readonly dataDtoService = inject(ConfigAuditReportService);
 
-  protected readonly dataDtosLoader =
-    () => this.dataDtoService.getConfigAuditReportDenormalizedDtos();
+  protected readonly dataDtosLoader = () => this.dataDtoService.getConfigAuditReportDenormalizedDtos();
+
+  ngOnInit() {
+    this.initialize();
+  }
 }

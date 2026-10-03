@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, model, output, signal } fro
 
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { TrivyReportComparable, TrivyReportComparableDetail } from '../../trivy-reports/abstracts/trivy-report';
+import { TrivyReportComparable, TrivyReportComparableDetail } from '../../trivy-reports/abstracts/types/trivy-report';
 import { NamespaceImageSelectorComponent } from '../namespace-image-selector/namespace-image-selector.component';
 import { NamespacedImageDto } from '../namespace-image-selector/namespace-image-selector.types';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';

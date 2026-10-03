@@ -18,15 +18,14 @@ import {
 import { namespacedArrayColumns } from '../constants/generic.constants';
 
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
-import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 import { TrivyImageUsageDialogComponent } from '../../ui-elements/trivy-image-usage-dialog/trivy-image-usage-dialog.component';
 
-import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
-import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 import { TrivyReportResourceInfoDto } from '../../../api/models/trivy-report-resource-info-dto';
 import { TrivyDependencyDialogComponent } from '../../ui-elements/trivy-dependency-dialog/trivy-dependency-dialog.component';
+import { NamespacedAggregateTrivyReportDataPageBase } from '../abstracts/pages/namespaced-trivy-report-data-page-base';
+import { ExposedSecretReportDetailDto } from '../../../api/models/exposed-secret-report-detail-dto';
 
 // for sorting in trivy table
 type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
@@ -47,18 +46,12 @@ type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
   templateUrl: './exposed-secret-reports.component.html',
   styleUrl: './exposed-secret-reports.component.scss',
 })
-export class ExposedSecretReportsComponent extends TrivyReportDataPageBase implements OnInit {
-  dataDtos: ExposedSecretReportImageTableDto[] = [];
-  activeNamespaces: string[] = [];
+export class ExposedSecretReportsComponent
+  extends NamespacedAggregateTrivyReportDataPageBase<ExposedSecretReportImageDto, ExposedSecretReportDetailDto, ExposedSecretReportImageTableDto> implements OnInit {
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedArrayColumns, ...exposedSecretReportColumns];
 
   detailsTableColumns: TrivyTableColumn[] = [...exposedSecretReportDetailColumns];
-
-  queryNamespaceName?: string;
-  queryDigest?: string;
-  isPreselected: boolean = false;
-  selectedTrivyReportDto?: ExposedSecretReportImageDto;
 
   imageUsageResources: TrivyReportResourceInfoDto[] = [];
   imageUsageImageNameAndTag = '';
@@ -66,55 +59,29 @@ export class ExposedSecretReportsComponent extends TrivyReportDataPageBase imple
 
   isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
-  compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [...exposedSecretReportComparedTableColumns];
-
-  isDependencyTreeViewVisible = signal<boolean>(false);
 
   private readonly dataDtoService = inject(ExposedSecretReportsService);
   private readonly router = inject(Router);
-  private readonly messageService = inject(MessageService);
+
+  protected override dataDtosLoader =
+    () => this.dataDtoService.getExposedSecretReportImageDtos();
 
   ngOnInit() {
-    const state = history.state;
-
-    this.queryNamespaceName = state.namespaceName;
-    this.queryDigest = state.digest;
-
-    this.isPreselected = !!(this.queryNamespaceName && this.queryDigest);
-    this.getDataDtos();
+    this.initialize();
   }
 
-  private getDataDtos() {
-    this.isMainTableLoading = true;
-    this.dataDtoService.getExposedSecretReportImageDtos().subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => this.onError(err),
-    });
-  }
-
-  private onGetDataDtos(dtos: ExposedSecretReportImageDto[]) {
-    this.dataDtos = dtos.map((dto) => ({
+  protected override prepareViewDataDtos(dto: ExposedSecretReportImageDto): ExposedSecretReportImageTableDto {
+    return {
       ...dto,
       __namespaceNamesSort: [...dto.namespaceNames].sort().join(', '),
-    }));
-    this.activeNamespaces = Array.from(new Set(dtos.flatMap(dto => dto.namespaceNames))).sort();
-    if (this.isPreselected) {
-      this.selectedTrivyReportDto = dtos.find(
-        (x) => x.digest == this.queryDigest,
-      );
-    }
-    this.isMainTableLoading = false;
+    };
   }
 
   onMainTableExpandCallback(dto: ExposedSecretReportImageDto) {
     this.imageUsageResources = dto.resources ?? [];
     this.imageUsageImageNameAndTag = dto.lastImageNameAndTag ?? 'N/A';
     this.isImageUsageDialogVisible = true;
-  }
-
-  onRefreshRequested() {
-    this.getDataDtos();
   }
 
   rowExpandResponse?: TrivyTableExpandRowData<ExposedSecretReportImageDto>;
@@ -169,23 +136,19 @@ export class ExposedSecretReportsComponent extends TrivyReportDataPageBase imple
 
   private goToComparePage() {
     if (!this.dataDtos || !this.selectedTrivyReportDto) return;
-    if (
-      this.selectedTrivyReportDto.criticalCount < 1 &&
-      this.selectedTrivyReportDto.highCount < 1 &&
-      this.selectedTrivyReportDto.mediumCount < 1 &&
-      this.selectedTrivyReportDto.lowCount < 1
-    ) {
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Nothing to compare',
-        detail: 'The selected item has no details, so there is nothing to compare...',
-      });
+    if (!this.hasSeverities(this.selectedTrivyReportDto)) {
+      this.messageService.pushSimple(
+        'Nothing to compare',
+        'Exposed Secret Reports',
+        'info',
+        'The selected item has no details, so there is nothing to compare...',
+      );
 
       return;
     }
 
     this.compareNamespacedImageDtos = this.dataDtos
-      .filter((esr) => esr.criticalCount > 0 || esr.highCount > 0 || esr.mediumCount > 0 || esr.lowCount > 0)
+      .filter((esr) => this.hasSeverities(esr))
       .map((esr) => ({
         uid: esr.uid ?? '',
         resourceNamespace: 'N/A',
@@ -193,15 +156,5 @@ export class ExposedSecretReportsComponent extends TrivyReportDataPageBase imple
       }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
     this.isTrivyReportsCompareVisible.set(true);
-  }
-
-  private goToDependencyTree() {
-    if (this.selectedTrivyReportDto?.digest) {
-      this.isDependencyTreeViewVisible.set(true);
-    }
-  }
-
-  onMainTableSelectedRowChanged(event: ExposedSecretReportImageDto | null) {
-    this.selectedTrivyReportDto = event ?? undefined;
   }
 }

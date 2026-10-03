@@ -17,7 +17,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
-import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
+import { DataPageBase } from '../abstracts/pages/data-page-base';
 
 @Component({
   selector: 'app-cluster-sbom-reports',
@@ -35,7 +35,7 @@ import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-bas
   templateUrl: './cluster-sbom-reports.component.html',
   styleUrl: './cluster-sbom-reports.component.scss',
 })
-export class ClusterSbomReportsComponent extends TrivyReportDataPageBase implements OnInit {
+export class ClusterSbomReportsComponent extends DataPageBase<SbomReportImageMinimalDto> implements OnInit {
   dataDtos: SbomReportImageMinimalDto[] = [];
   fullClusterSboms: ClusterSbomReportDto[] = [];
   selectedImageId?: string;
@@ -55,23 +55,19 @@ export class ClusterSbomReportsComponent extends TrivyReportDataPageBase impleme
   private readonly service = inject(ClusterSbomReportService);
   private readonly router = inject(Router);
 
+  protected override dataDtosLoader =
+    () => this.service.getClusterSbomReportMinimalDtos();
+
   ngOnInit() {
-    this.getTableDataDtos();
+    this.initialize();
   }
 
-  getTableDataDtos() {
-    this.service.getClusterSbomReportMinimalDtos().subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => this.onError(err),
-    });
+  protected override getTableDataDtos() {
+    super.getTableDataDtos();
     this.service.getClusterSbomReportDtos().subscribe({
       next: (res) => (this.fullClusterSboms = res),
       error: (err) => this.onError(err),
     });
-  }
-
-  onGetDataDtos(dtos: SbomReportImageMinimalDto[]) {
-    this.dataDtos = dtos;
   }
 
   onSelectedImageIdChange(imageId: string | undefined) {

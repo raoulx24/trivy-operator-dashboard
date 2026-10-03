@@ -1,4 +1,4 @@
-import { HasResources } from './trivy-report';
+import { HasResources } from './types/trivy-report';
 
 export interface NarrowedResourceNameInfo {
   label: string;

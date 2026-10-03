@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { ClusterInfraAssessmentReportDto } from '../../../api/models/cluster-infra-assessment-report-dto';
 import { ClusterInfraAssessmentReportService } from '../../../api/services/cluster-infra-assessment-report.service';
@@ -13,11 +13,10 @@ import {
 
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { nonExistingNamespace } from '../../ui-elements/namespace-image-selector/namespace-image-selector.component';
-import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 
-import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
-import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
+import { TrivyReportDataPageBase } from '../abstracts/pages/trivy-report-data-page-base';
+import { SecurityAssessmentReportDetailDto } from '../../../api/models/security-assessment-report-detail-dto';
 
 @Component({
   selector: 'app-cluster-infra-assessment-reports',
@@ -26,50 +25,25 @@ import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-bas
   templateUrl: './cluster-infra-assessment-reports.component.html',
   styleUrl: './cluster-infra-assessment-reports.component.scss',
 })
-export class ClusterInfraAssessmentReportsComponent extends TrivyReportDataPageBase implements OnInit {
-  dataDtos: ClusterInfraAssessmentReportDto[] = [];
-
+export class ClusterInfraAssessmentReportsComponent
+  extends TrivyReportDataPageBase<ClusterInfraAssessmentReportDto, SecurityAssessmentReportDetailDto>
+  implements OnInit
+{
   mainTableColumns: TrivyTableColumn[] = [...infraAssessmentReportColumns];
 
   detailsTableColumns: TrivyTableColumn[] = [...infraAssessmentReportDetailColumns];
 
-  queryUid?: string;
-  isSingleMode: boolean = false;
-  selectedTrivyReportDto?: ClusterInfraAssessmentReportDto;
-
   isTrivyReportsCompareVisible = signal<boolean>(false);
   compareFirstSelectedIdId?: string;
-  compareNamespacedImageDtos?: NamespacedImageDto[];
   comparedTableColumns: TrivyTableColumn[] = [...infraAssessmentReportComparedTableColumns];
 
   private readonly dataDtoService = inject(ClusterInfraAssessmentReportService);
   private readonly router = inject(Router);
-  private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly messageService = inject(MessageService);
+
+  protected override dataDtosLoader = () => this.dataDtoService.getClusterInfraAssessmentReportDtos();
 
   ngOnInit() {
-    this.activatedRoute.queryParamMap.subscribe((params) => {
-      this.queryUid = params.get('uid') ?? undefined;
-    });
-    this.isSingleMode = !!this.queryUid;
-    this.getDataDtos();
-  }
-
-  getDataDtos() {
-    this.isMainTableLoading = true;
-    this.dataDtoService.getClusterInfraAssessmentReportDtos().subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => this.onError(err),
-    });
-  }
-
-  onGetDataDtos(dtos: ClusterInfraAssessmentReportDto[]) {
-    this.dataDtos = dtos;
-    this.isMainTableLoading = false;
-  }
-
-  public onRefreshRequested() {
-    this.getDataDtos();
+    this.initialize();
   }
 
   onMainTableMultiHeaderActionRequested(event: string) {
@@ -92,23 +66,19 @@ export class ClusterInfraAssessmentReportsComponent extends TrivyReportDataPageB
 
   private goToComparePage() {
     if (!this.dataDtos || !this.selectedTrivyReportDto) return;
-    if (
-      this.selectedTrivyReportDto.criticalCount < 1 &&
-      this.selectedTrivyReportDto.highCount < 1 &&
-      this.selectedTrivyReportDto.mediumCount < 1 &&
-      this.selectedTrivyReportDto.lowCount < 1
-    ) {
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Nothing to compare',
-        detail: 'The selected item has no details, so there is nothing to compare...',
-      });
+    if (this.hasSeverities(this.selectedTrivyReportDto)) {
+      this.messageService.pushSimple(
+        'Nothing to compare',
+        'Cluster Infra Assessment Reports',
+        'info',
+        'The selected item has no details, so there is nothing to compare...',
+      );
 
       return;
     }
 
     this.compareNamespacedImageDtos = this.dataDtos
-      .filter((car) => car.criticalCount > 0 || car.highCount > 0 || car.mediumCount > 0 || car.lowCount > 0)
+      .filter((car) => this.hasSeverities(car))
       .map((car) => ({
         uid: car.uid ?? '',
         resourceNamespace: nonExistingNamespace,
@@ -117,9 +87,5 @@ export class ClusterInfraAssessmentReportsComponent extends TrivyReportDataPageB
       }));
     this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
     this.isTrivyReportsCompareVisible.set(true);
-  }
-
-  onMainTableSelectedRowChanged(event: ClusterInfraAssessmentReportDto | null) {
-    this.selectedTrivyReportDto = event ?? undefined;
   }
 }

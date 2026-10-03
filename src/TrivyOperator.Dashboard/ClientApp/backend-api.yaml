@@ -1952,6 +1952,8 @@ components:
       properties:
         id:
           type: string
+        matchKey:
+          type: string
         name:
           type: string
         description:
@@ -2002,16 +2004,16 @@ components:
         totalFailCount:
           type: integer
           format: int32
-        totalFailCriticalCount:
+        criticalCount:
           type: integer
           format: int32
-        totalFailHighCount:
+        highCount:
           type: integer
           format: int32
-        totalFailMediumCount:
+        mediumCount:
           type: integer
           format: int32
-        totalFailLowCount:
+        lowCount:
           type: integer
           format: int32
         updateTimestamp:
@@ -3680,10 +3682,8 @@ components:
         uid:
           type: string
           format: uuid
-        resourceNamespaces:
-          type: array
-          items:
-            type: string
+        resourceNamespace:
+          type: string
         digest:
           type: string
         cvesHash:

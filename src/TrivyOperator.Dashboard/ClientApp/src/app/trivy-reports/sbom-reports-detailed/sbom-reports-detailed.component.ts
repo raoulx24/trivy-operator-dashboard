@@ -8,9 +8,8 @@ import { sbomReportDenormalizedColumns } from '../constants/sbom-reports.constan
 import { TrivyTableComponent } from '../../ui-elements/trivy-table/trivy-table.component';
 import { SelectedDtosEvent, TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.types';
 
-import { MessageService } from 'primeng/api';
-import { TrivyReportsDetailedBase } from '../abstracts/trivy-reports-detailed-base';
 import { namespacedColumns } from '../constants/generic.constants';
+import { NamespacedDataPageBase } from '../abstracts/pages/namespaced-trivy-report-data-page-base';
 
 @Component({
   selector: 'app-sbom-reports-detailed',
@@ -19,33 +18,18 @@ import { namespacedColumns } from '../constants/generic.constants';
   templateUrl: './sbom-reports-detailed.component.html',
   styleUrl: './sbom-reports-detailed.component.scss',
 })
-export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase implements OnInit {
-  dataDtos: SbomReportImageMinimalDto[] = [];
-  activeNamespaces: string[] = [];
+export class SbomReportsDetailedComponent extends NamespacedDataPageBase<SbomReportImageMinimalDto> implements OnInit {
   selectedDataDtos: SbomReportImageMinimalDto[] | null = null;
 
   trivyTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...sbomReportDenormalizedColumns];
 
   private readonly service = inject(SbomReportService);
   private readonly http = inject(HttpClient);
-  private readonly messageService = inject(MessageService);
+
+  protected override dataDtosLoader = () => this.service.getSbomReportImageMinimalDtos();
 
   ngOnInit() {
-    this.getTableDataDtos();
-  }
-
-  getTableDataDtos() {
-    this.isMainTableLoading = true;
-    this.service.getSbomReportImageMinimalDtos().subscribe({
-      next: (res) => this.onGetDataDtos(res),
-      error: (err) => this.onError(err),
-    });
-  }
-
-  private onGetDataDtos(dtos: SbomReportImageMinimalDto[]) {
-    this.dataDtos = dtos;
-    this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace))).sort();
-    this.isMainTableLoading = false;
+    this.initialize();
   }
 
   onTableSelectedRowChange(event: SelectedDtosEvent<SbomReportImageMinimalDto>) {
@@ -66,11 +50,7 @@ export class SbomReportsDetailedComponent extends TrivyReportsDetailedBase imple
   }
 
   exportSboms(exportType: 'all' | 'selected') {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Download SBOMs',
-      detail: 'Download request sent. Please wait...',
-    });
+    this.messageService.pushSimple('Download SBOMs', 'SBOMs', 'info', 'Download request sent. Please wait...');
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     const params = new HttpParams().set('fileType', 'json');
     const apiUrl = `${this.service.rootUrl}api/sbom-reports/export`;

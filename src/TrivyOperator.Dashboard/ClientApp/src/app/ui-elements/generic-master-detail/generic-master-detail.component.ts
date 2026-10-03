@@ -1,7 +1,7 @@
 import { Component, effect, HostListener, inject, input, output, ViewChild } from '@angular/core';
 
 import { SeverityDto } from '../../../api/models/severity-dto';
-import { TrivyReport, TrivyReportDetail } from '../../trivy-reports/abstracts/trivy-report';
+import { TrivyReport, TrivyReportDetail } from '../../trivy-reports/abstracts/types/trivy-report';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import {
   MultiHeaderAction, SelectedDtosEvent,

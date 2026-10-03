@@ -10,8 +10,7 @@ import { watcherStateColumns } from '../constants/watcher-state.constants';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { TrivyReportDataPageBase } from '../../trivy-reports/abstracts/trivy-report-data-page-base';
-import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
+import { DataPageBase } from '../../trivy-reports/abstracts/pages/data-page-base';
 
 @Component({
   selector: 'app-watcher-state',
@@ -20,7 +19,7 @@ import { KubernetesContextStateService } from '../../services/kubernetes-context
   templateUrl: './watcher-state.component.html',
   styleUrl: './watcher-state.component.scss',
 })
-export class WatcherStateComponent extends TrivyReportDataPageBase implements OnInit {
+export class WatcherStateComponent extends DataPageBase<WatcherStatusDto> implements OnInit {
   watcherStateInfoDtos = signal<WatcherStatusDto[]>([]);
   isLoading = signal<boolean>(false);
 
@@ -33,13 +32,14 @@ export class WatcherStateComponent extends TrivyReportDataPageBase implements On
   recreateWatcherResponseError?: string;
 
   private readonly service = inject(WatcherStatusService);
-  private readonly contextState = inject(KubernetesContextStateService, { optional: true });
+
+  protected override dataDtosLoader = () => this.service.getWatcherStateInfos();
 
   ngOnInit() {
-    this.getTableDataDtos();
+    this.initialize();
   }
 
-  public getTableDataDtos() {
+  protected override getTableDataDtos() {
     this.isLoading.set(true);
     this.service.getWatcherStateInfos().subscribe({
       next: (res) => this.onGetWatcherStateInfos(res),
@@ -76,7 +76,7 @@ export class WatcherStateComponent extends TrivyReportDataPageBase implements On
     this.isActionStarted = true;
     const params: ApiWatcherStatusRecreatePost$Params = {
       body: {
-        contextName: this.contextState?.selectedContextSync ?? '',
+        contextName: this.kubernetesContextService.selectedContextSync ?? '',
         kubernetesObjectType: this.requestedRecreateWatcher.kubernetesObjectType,
         namespaceName: this.requestedRecreateWatcher.namespaceName ?? '', // Fallback if null
       },

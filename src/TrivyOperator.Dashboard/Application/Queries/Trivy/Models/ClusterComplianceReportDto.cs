@@ -16,10 +16,11 @@ public sealed record ClusterComplianceReportDto(
 
     int TotalPassCount,
     int TotalFailCount,
-    int TotalFailCriticalCount,
-    int TotalFailHighCount,
-    int TotalFailMediumCount,
-    int TotalFailLowCount,
+    
+    int CriticalCount,
+    int HighCount,
+    int MediumCount,
+    int LowCount,
 
     DateTime UpdateTimestamp,
 
@@ -28,6 +29,7 @@ public sealed record ClusterComplianceReportDto(
 
 public sealed record ClusterComplianceReportDetailDto(
     string Id,
+    string MatchKey,
     string Name,
     string Description,
     int SeverityId,

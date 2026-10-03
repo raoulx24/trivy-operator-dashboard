@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 
 import { ClusterInfraAssessmentReportDenormalizedDto } from '../../../api/models/cluster-infra-assessment-report-denormalized-dto';
 import { ClusterInfraAssessmentReportService } from '../../../api/services/cluster-infra-assessment-report.service';
@@ -8,7 +8,7 @@ import { TrivyTableColumn } from '../../ui-elements/trivy-table/trivy-table.type
 
 import { infraAssessmentReportDenormalizedColumns } from '../constants/infra-assessment-reports.constants';
 
-import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
+import { DataPageBase } from '../abstracts/pages/data-page-base';
 
 @Component({
   selector: 'app-cluster-infra-assessment-reports-detailed',
@@ -17,13 +17,19 @@ import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-bas
   templateUrl: './cluster-infra-assessment-reports-detailed.component.html',
   styleUrl: './cluster-infra-assessment-reports-detailed.component.scss',
 })
-export class ClusterInfraAssessmentReportsDetailedComponent extends TrivyReportDataPageBase<ClusterInfraAssessmentReportDenormalizedDto> {
+export class ClusterInfraAssessmentReportsDetailedComponent
+  extends DataPageBase<ClusterInfraAssessmentReportDenormalizedDto>
+  implements OnInit
+{
   readonly csvFileName: string = 'Cluster.Infra.Assessment.Reports';
 
   readonly trivyTableColumns: TrivyTableColumn[] = [...infraAssessmentReportDenormalizedColumns];
 
   private readonly dataDtoService = inject(ClusterInfraAssessmentReportService);
 
-  protected readonly dataDtosLoader =
-    () => this.dataDtoService.getClusterInfraAssessmentReportDenormalizedDtos();
+  protected readonly dataDtosLoader = () => this.dataDtoService.getClusterInfraAssessmentReportDenormalizedDtos();
+
+  ngOnInit() {
+    this.initialize();
+  }
 }

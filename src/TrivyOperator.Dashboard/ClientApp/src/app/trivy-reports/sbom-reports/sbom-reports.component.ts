@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -20,7 +20,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
 
-import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
+import { DataPageBase } from '../abstracts/pages/data-page-base';
 import { TrivyDependencyDialogComponent } from '../../ui-elements/trivy-dependency-dialog/trivy-dependency-dialog.component';
 
 @Component({
@@ -40,7 +40,7 @@ import { TrivyDependencyDialogComponent } from '../../ui-elements/trivy-dependen
   templateUrl: './sbom-reports.component.html',
   styleUrl: './sbom-reports.component.scss',
 })
-export class SbomReportsComponent extends TrivyReportDataPageBase<SbomReportImageMinimalDto> {
+export class SbomReportsComponent extends DataPageBase<SbomReportImageMinimalDto> implements OnInit {
   fullSbomDataDto?: SbomReportImageDto;
   imageResourceDtos?: TrivyReportResourceInfoDto[];
   selectedImageId?: string;
@@ -77,7 +77,7 @@ export class SbomReportsComponent extends TrivyReportDataPageBase<SbomReportImag
 
     this.isPreselected = !!(this.queryNamespaceName && this.queryDigest);
 
-    super.ngOnInit();
+    super.initialize();
   }
 
   getTableDataDtos() {
