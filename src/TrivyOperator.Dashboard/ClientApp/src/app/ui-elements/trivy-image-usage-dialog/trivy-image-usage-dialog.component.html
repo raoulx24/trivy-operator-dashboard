@@ -7,7 +7,8 @@
           [header]="'Image Usage for ' + imageNameAndTag()"
           [modal]="true"
           [style]="{ width: '60rem' }"
-          [(visible)]="isVisible" >
+          [visible]="isVisible()"
+          (visibleChange)="isVisible.set($event)" >
   <p-table scrollHeight="flex"
            sortMode="multiple"
            class="p-datatable-sm text-sm p-0"

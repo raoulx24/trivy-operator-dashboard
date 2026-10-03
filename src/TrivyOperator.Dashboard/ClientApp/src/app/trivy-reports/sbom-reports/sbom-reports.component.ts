@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -10,7 +10,6 @@ import { SbomReportService } from '../../../api/services/sbom-report.service';
 
 import { TreeNode } from 'primeng/api';
 import { GenericSbomComponent } from '../../ui-elements/generic-sbom/generic-sbom.component';
-import { ImageInfo, TrivyDependencyComponent } from '../../ui-elements/trivy-dependency/trivy-dependency.component';
 
 import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '../../pipes/severity-name-by-id.pipe';
@@ -22,13 +21,13 @@ import { TagModule } from 'primeng/tag';
 import { TreeTableModule } from 'primeng/treetable';
 
 import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
+import { TrivyDependencyDialogComponent } from '../../ui-elements/trivy-dependency-dialog/trivy-dependency-dialog.component';
 
 @Component({
   selector: 'app-sbom-reports',
   standalone: true,
   imports: [
     GenericSbomComponent,
-    TrivyDependencyComponent,
     SeverityCssStyleByIdPipe,
     SeverityNameByIdPipe,
     VulnerabilityCountPipe,
@@ -36,12 +35,12 @@ import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-bas
     TableModule,
     TagModule,
     TreeTableModule,
+    TrivyDependencyDialogComponent,
   ],
   templateUrl: './sbom-reports.component.html',
   styleUrl: './sbom-reports.component.scss',
 })
-export class SbomReportsComponent extends TrivyReportDataPageBase implements OnInit {
-  dataDtos: SbomReportImageMinimalDto[] = [];
+export class SbomReportsComponent extends TrivyReportDataPageBase<SbomReportImageMinimalDto> {
   fullSbomDataDto?: SbomReportImageDto;
   imageResourceDtos?: TrivyReportResourceInfoDto[];
   selectedImageId?: string;
@@ -61,13 +60,14 @@ export class SbomReportsComponent extends TrivyReportDataPageBase implements OnI
   sbomReportDetailLicensesTreeNodes: TreeNode[] = [];
 
   isDependencyTreeViewVisible = signal<boolean>(false);
-  trivyImage?: ImageInfo;
-  trivyDependencyDialogTitle: string = '';
   // endregion
 
   private readonly service = inject(SbomReportService);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+
+  protected readonly dataDtosLoader =
+    ()=> this.service.getSbomReportImageMinimalDtos();
 
   ngOnInit() {
     const state = history.state;
@@ -77,7 +77,7 @@ export class SbomReportsComponent extends TrivyReportDataPageBase implements OnI
 
     this.isPreselected = !!(this.queryNamespaceName && this.queryDigest);
 
-    this.getTableDataDtos();
+    super.ngOnInit();
   }
 
   getTableDataDtos() {
@@ -242,15 +242,7 @@ export class SbomReportsComponent extends TrivyReportDataPageBase implements OnI
   }
 
   private goToDependencyTree() {
-    if (!this.selectedSbomReportImageMinimalDto) return;
-
-    const digest = this.selectedSbomReportImageMinimalDto.digest;
-    if (digest) {
-      const imageRepository = this.selectedSbomReportImageMinimalDto.imageRegistry ?? 'n/a';
-      const imageName = this.selectedSbomReportImageMinimalDto.imageName ?? 'n/a';
-      const imageTag = this.selectedSbomReportImageMinimalDto.imageTag ?? 'n/a';
-      this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageRepository}/${imageName}:${imageTag}`;
-      this.trivyImage = { digest: digest };
+    if (this.fullSbomDataDto?.digest) {
       this.isDependencyTreeViewVisible.set(true);
     }
   }

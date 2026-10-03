@@ -1,0 +1,14 @@
+  <p-dialog closable="true"
+            closeOnEscape="true"
+            dismissableMask="true"
+            maximizable="true"
+            resizable="true"
+            [breakpoints]="{ '890px': '90vw' }"
+            [contentStyle]="{ height: '95vh' }"
+            [header]="title()"
+            [modal]="true"
+            [style]="{ width: '95vw' }"
+            [visible]="isVisible()"
+            (visibleChange)="isVisible.set($event)" >
+    <app-trivy-dependency [trivyImageDigest]="digest()" />
+  </p-dialog>

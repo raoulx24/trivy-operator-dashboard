@@ -28,11 +28,6 @@ interface TrivyReportTreeNodeData {
   unknown: number;
 }
 
-// TODO: consider removing this
-export interface ImageInfo {
-  digest: string;
-}
-
 @Component({
   selector: 'app-trivy-dependency',
   imports: [
@@ -48,7 +43,7 @@ export interface ImageInfo {
   styleUrl: './trivy-dependency.component.scss',
 })
 export class TrivyDependencyComponent {
-  trivyImage = input<ImageInfo | undefined>();
+  trivyImageDigest = input<string | undefined>();
 
   trivyReportDependencyDto?: TrivyDependencyTreeDto;
 
@@ -74,7 +69,7 @@ export class TrivyDependencyComponent {
     private router: Router,
   ) {
     effect(() => {
-      const img = this.trivyImage();
+      const img = this.trivyImageDigest();
       this.resetState();
       if (img) this.loadData(img);
     });
@@ -91,10 +86,10 @@ export class TrivyDependencyComponent {
     this.selectedNodeId = undefined;
   }
 
-  private loadData(img: ImageInfo) {
+  private loadData(digest: string) {
     this.service
       .getTrivyReportDependencyDtoByDigestNamespace({
-        digest: img.digest,
+        digest: digest,
       })
       .subscribe({
         next: (res) => this.onData(res),

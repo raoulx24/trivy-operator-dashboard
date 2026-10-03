@@ -19,7 +19,6 @@ import { namespacedArrayColumns } from '../constants/generic.constants';
 
 import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { NamespacedImageDto } from '../../ui-elements/namespace-image-selector/namespace-image-selector.types';
-import { ImageInfo, TrivyDependencyComponent } from '../../ui-elements/trivy-dependency/trivy-dependency.component';
 import { TrivyImageUsageDialogComponent } from '../../ui-elements/trivy-image-usage-dialog/trivy-image-usage-dialog.component';
 
 import { MessageService } from 'primeng/api';
@@ -27,6 +26,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TrivyReportDataPageBase } from '../abstracts/trivy-report-data-page-base';
 import { TrivyReportResourceInfoDto } from '../../../api/models/trivy-report-resource-info-dto';
+import { TrivyDependencyDialogComponent } from '../../ui-elements/trivy-dependency-dialog/trivy-dependency-dialog.component';
 
 // for sorting in trivy table
 type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
@@ -39,10 +39,10 @@ type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
   imports: [
     GenericMasterDetailComponent,
     GenericReportsCompareComponent,
-    TrivyDependencyComponent,
     DialogModule,
     TableModule,
     TrivyImageUsageDialogComponent,
+    TrivyDependencyDialogComponent,
   ],
   templateUrl: './exposed-secret-reports.component.html',
   styleUrl: './exposed-secret-reports.component.scss',
@@ -70,8 +70,6 @@ export class ExposedSecretReportsComponent extends TrivyReportDataPageBase imple
   comparedTableColumns: TrivyTableColumn[] = [...exposedSecretReportComparedTableColumns];
 
   isDependencyTreeViewVisible = signal<boolean>(false);
-  trivyImage?: ImageInfo;
-  trivyDependencyDialogTitle: string = '';
 
   private readonly dataDtoService = inject(ExposedSecretReportsService);
   private readonly router = inject(Router);
@@ -198,11 +196,7 @@ export class ExposedSecretReportsComponent extends TrivyReportDataPageBase imple
   }
 
   private goToDependencyTree() {
-    const digest = this.selectedTrivyReportDto?.digest;
-    if (digest) {
-      const imageNameAndTag = this.selectedTrivyReportDto?.lastImageNameAndTag ?? 'n/a';
-      this.trivyDependencyDialogTitle = `Dependency Tree for Image ${imageNameAndTag}`;
-      this.trivyImage = { digest: digest };
+    if (this.selectedTrivyReportDto?.digest) {
       this.isDependencyTreeViewVisible.set(true);
     }
   }

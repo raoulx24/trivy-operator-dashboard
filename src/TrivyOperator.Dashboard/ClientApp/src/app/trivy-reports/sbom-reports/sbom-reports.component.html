@@ -179,20 +179,8 @@
   </p-dialog>
 }
 
-@if (isDependencyTreeViewVisible() && trivyImage) {
-  <p-dialog
-    closable="true"
-    closeOnEscape="true"
-    dismissableMask="true"
-    maximizable="true"
-    resizable="true"
-    [breakpoints]="{ '890px': '90vw' }"
-    [contentStyle]="{ height: '95vh' }"
-    [header]="trivyDependencyDialogTitle"
-    [modal]="true"
-    [style]="{ width: '95vw' }"
-    [(visible)]="isDependencyTreeViewVisible"
-  >
-    <app-trivy-dependency [trivyImage]="trivyImage" />
-  </p-dialog>
-}
+<app-trivy-dependency-dialog
+  [(isVisible)]="isDependencyTreeViewVisible"
+  [digest]="fullSbomDataDto?.digest"
+  [imageNameAndTag]="fullSbomDataDto?.lastImageNameAndTag ?? 'N/A'"
+/>
