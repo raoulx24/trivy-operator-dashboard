@@ -4,6 +4,7 @@ import { TrivyMessageService } from '../../../services/trivy-message.service';
 import { KubernetesContextStateService } from '../../../services/kubernetes-context-state.service';
 import { Observable } from 'rxjs';
 
+// data page base class for components that display data retrieved from the API
 export abstract class DataPageBase<TData> {
   // data retrieved from the API
   protected dataDtos: TData[] = [];

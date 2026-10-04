@@ -1,6 +1,6 @@
 import { DataPageBase } from './data-page-base';
 import { TrivyReport, TrivyReportDetail } from '../types/trivy-report';
-import { NamespacedImageDto } from '../../../ui-elements/namespace-image-selector/namespace-image-selector.types';
+import { PairedOptionDto } from '../../../ui-elements/paired-options-selector/paired-options-selector.types';
 import { inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -15,7 +15,7 @@ export abstract class TrivyReportMasterDetailDataPageBase<
 > extends TrivyReportDataPageBase<TTrivyReport, TTrivyReportDetail> {
   selectedTrivyReportDto: TTrivyReport | null = null;
 
-  protected compareNamespacedImageDtos?: NamespacedImageDto[];
+  protected compareNamespacedImageDtos?: PairedOptionDto[];
   protected isTrivyReportsCompareVisible = signal<boolean>(false);
   protected compareFirstSelectedId?: string;
 
@@ -77,5 +77,5 @@ export abstract class TrivyReportMasterDetailDataPageBase<
     this.isTrivyReportsCompareVisible.set(true);
   }
 
-  protected abstract prepareCompareDataDtos(): NamespacedImageDto[];
+  protected abstract prepareCompareDataDtos(): PairedOptionDto[];
 }

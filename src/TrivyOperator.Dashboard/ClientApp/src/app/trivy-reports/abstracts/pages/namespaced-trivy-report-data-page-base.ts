@@ -5,10 +5,10 @@ import {
   TrivyReport,
   TrivyReportDetail,
 } from '../types/trivy-report';
-import { TrivyReportDataPageBase, TrivyReportMasterDetailDataPageBase } from './trivy-report-data-page-base';
+import { TrivyReportMasterDetailDataPageBase } from './trivy-report-data-page-base';
 import { signal } from '@angular/core';
 import { DataPageBase } from './data-page-base';
-import { NamespacedImageDto } from '../../../ui-elements/namespace-image-selector/namespace-image-selector.types';
+import { PairedOptionDto } from '../../../ui-elements/paired-options-selector/paired-options-selector.types';
 
 export abstract class NamespacedDataPageBase<TData extends HasNamespace> extends DataPageBase<TData> {
   protected activeNamespaces: string[] = [];
@@ -38,7 +38,7 @@ export abstract class NamespacedResourceTrivyReportDataPageBase<
     super.onGetDataDtos(dtos);
   }
 
-  protected override prepareCompareDataDtos(): NamespacedImageDto[] {
+  protected override prepareCompareDataDtos(): PairedOptionDto[] {
     return this.dataDtos
       .filter((tr) => this.hasSeverities(tr))
       .map((tr) => ({
@@ -108,7 +108,7 @@ export abstract class NamespacedAggregateTrivyReportDataPageBase<
     }
   }
 
-  protected override prepareCompareDataDtos(): NamespacedImageDto[] {
+  protected override prepareCompareDataDtos(): PairedOptionDto[] {
     return this.viewDataDtos
       .filter((tr) => this.hasSeverities(tr))
       .map((tr) => ({

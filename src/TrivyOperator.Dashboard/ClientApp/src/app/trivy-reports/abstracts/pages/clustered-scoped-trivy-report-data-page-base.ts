@@ -1,12 +1,12 @@
 import { ClusteredScopedResourceTrivyReport, TrivyReportDetail } from '../types/trivy-report';
 import { TrivyReportMasterDetailDataPageBase } from './trivy-report-data-page-base';
-import { NamespacedImageDto } from '../../../ui-elements/namespace-image-selector/namespace-image-selector.types';
+import { PairedOptionDto } from '../../../ui-elements/paired-options-selector/paired-options-selector.types';
 
 export abstract class ClusteredScopedTrivyReportDataPageBase<
   TTrivyReport extends ClusteredScopedResourceTrivyReport<TTrivyReportDetail>,
   TTrivyReportDetail extends TrivyReportDetail,
 > extends TrivyReportMasterDetailDataPageBase<TTrivyReport, TTrivyReportDetail> {
-  protected override prepareCompareDataDtos(): NamespacedImageDto[] {
+  protected override prepareCompareDataDtos(): PairedOptionDto[] {
     return this.dataDtos
       .filter((tr) => this.hasSeverities(tr))
       .map((tr) => ({

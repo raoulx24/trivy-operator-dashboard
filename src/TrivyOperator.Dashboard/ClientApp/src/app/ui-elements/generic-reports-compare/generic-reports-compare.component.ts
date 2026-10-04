@@ -3,8 +3,8 @@ import { Component, computed, effect, inject, input, model, output, signal } fro
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TrivyReportComparable, TrivyReportComparableDetail } from '../../trivy-reports/abstracts/types/trivy-report';
-import { NamespaceImageSelectorComponent } from '../namespace-image-selector/namespace-image-selector.component';
-import { NamespacedImageDto } from '../namespace-image-selector/namespace-image-selector.types';
+import { PairedOptionsSelectorComponent } from '../paired-options-selector/paired-options-selector.component';
+import { PairedOptionDto } from '../paired-options-selector/paired-options-selector.types';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '../trivy-table/trivy-table.types';
 import { FormsModule } from '@angular/forms';
@@ -20,7 +20,7 @@ type TrivyReportDetailComparedDto = TrivyReportComparableDetail & {
 
 @Component({
   selector: 'app-generic-reports-compare',
-  imports: [NamespaceImageSelectorComponent, TrivyTableComponent, ButtonModule, ToggleSwitchModule, FormsModule, NgClass,],
+  imports: [PairedOptionsSelectorComponent, TrivyTableComponent, ButtonModule, ToggleSwitchModule, FormsModule, NgClass,],
   templateUrl: './generic-reports-compare.component.html',
   styleUrl: './generic-reports-compare.component.scss',
 })
@@ -30,7 +30,7 @@ export class GenericReportsCompareComponent<
 > {
   dataDtos = input.required<TTrivyReportComparableDto[] | undefined>();
   comparedTableColumns = input.required<TrivyTableColumn[]>();
-  namespacedImageDtos = input.required<NamespacedImageDto[] | undefined>();
+  namespacedImageDtos = input.required<PairedOptionDto[] | undefined>();
   walkingIsEnabled = input<boolean>(false);
 
   firstSelectedTrivyReportId = model<string | undefined>();
