@@ -1,5 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, OnInit } from '@angular/core';
 
 import { ExposedSecretReportImageDto } from '../../../api/models/exposed-secret-report-image-dto';
 import { ExposedSecretReportsService } from '../../../api/services/exposed-secret-reports.service';
@@ -17,15 +16,15 @@ import {
 } from '../constants/exposed-secret-reports.constants';
 import { namespacedArrayColumns } from '../constants/generic.constants';
 
-import { GenericReportsCompareComponent } from '../../ui-elements/generic-reports-compare/generic-reports-compare.component';
 import { TrivyImageUsageDialogComponent } from '../../ui-elements/trivy-image-usage-dialog/trivy-image-usage-dialog.component';
 
-import { DialogModule } from 'primeng/dialog';
-import { TableModule } from 'primeng/table';
 import { TrivyReportResourceInfoDto } from '../../../api/models/trivy-report-resource-info-dto';
 import { TrivyDependencyDialogComponent } from '../../ui-elements/trivy-dependency-dialog/trivy-dependency-dialog.component';
 import { NamespacedAggregateTrivyReportDataPageBase } from '../abstracts/pages/namespaced-trivy-report-data-page-base';
 import { ExposedSecretReportDetailDto } from '../../../api/models/exposed-secret-report-detail-dto';
+import {
+  TrivyReportsCompareDialogComponent
+} from '../../ui-elements/trivy-reports-compare-dialog/trivy-reports-compare-dialog.component';
 
 // for sorting in trivy table
 type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
@@ -37,17 +36,17 @@ type ExposedSecretReportImageTableDto = ExposedSecretReportImageDto & {
   standalone: true,
   imports: [
     GenericMasterDetailComponent,
-    GenericReportsCompareComponent,
-    DialogModule,
-    TableModule,
     TrivyImageUsageDialogComponent,
     TrivyDependencyDialogComponent,
+    TrivyReportsCompareDialogComponent,
   ],
   templateUrl: './exposed-secret-reports.component.html',
   styleUrl: './exposed-secret-reports.component.scss',
 })
 export class ExposedSecretReportsComponent
   extends NamespacedAggregateTrivyReportDataPageBase<ExposedSecretReportImageDto, ExposedSecretReportDetailDto, ExposedSecretReportImageTableDto> implements OnInit {
+  protected override detailedPageRoute: string = 'exposed-secret-reports-detailed';
+  protected override friendlyReportName: string = 'Exposed Secret Reports';
 
   mainTableColumns: TrivyTableColumn[] = [...namespacedArrayColumns, ...exposedSecretReportColumns];
 
@@ -57,12 +56,9 @@ export class ExposedSecretReportsComponent
   imageUsageImageNameAndTag = '';
   isImageUsageDialogVisible = false;
 
-  isTrivyReportsCompareVisible = signal<boolean>(false);
-  compareFirstSelectedIdId?: string;
   comparedTableColumns: TrivyTableColumn[] = [...exposedSecretReportComparedTableColumns];
 
   private readonly dataDtoService = inject(ExposedSecretReportsService);
-  private readonly router = inject(Router);
 
   protected override dataDtosLoader =
     () => this.dataDtoService.getExposedSecretReportImageDtos();
@@ -111,50 +107,5 @@ export class ExposedSecretReportsComponent
         ],
       ],
     };
-  }
-
-  onMainTableMultiHeaderActionRequested(event: string) {
-    switch (event) {
-      case 'goToDetailedPage':
-        this.goToDetailedPage();
-        break;
-      case 'Compare with...':
-        this.goToComparePage();
-        break;
-      case 'Dependency tree':
-        this.goToDependencyTree();
-        break;
-      default:
-        console.error('esr - multi action call back - unknown: ' + event);
-    }
-  }
-
-  private goToDetailedPage() {
-    const url = this.router.serializeUrl(this.router.createUrlTree(['exposed-secret-reports-detailed']));
-    window.open(url, '_blank');
-  }
-
-  private goToComparePage() {
-    if (!this.dataDtos || !this.selectedTrivyReportDto) return;
-    if (!this.hasSeverities(this.selectedTrivyReportDto)) {
-      this.messageService.pushSimple(
-        'Nothing to compare',
-        'Exposed Secret Reports',
-        'info',
-        'The selected item has no details, so there is nothing to compare...',
-      );
-
-      return;
-    }
-
-    this.compareNamespacedImageDtos = this.dataDtos
-      .filter((esr) => this.hasSeverities(esr))
-      .map((esr) => ({
-        uid: esr.uid ?? '',
-        resourceNamespace: 'N/A',
-        mainLabel: `${esr.lastImageNameAndTag}`,
-      }));
-    this.compareFirstSelectedIdId = this.selectedTrivyReportDto.uid;
-    this.isTrivyReportsCompareVisible.set(true);
   }
 }

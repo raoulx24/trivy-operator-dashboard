@@ -1,6 +1,7 @@
 import { TrivyReportResourceInfoDto } from '../../../../api/models/trivy-report-resource-info-dto';
+import { DataSet, DataSetDetail } from './data-set';
 
-// Simple interfaces to help with structural typing and generics.
+// Simple interfaces to help with structural typing and generics
 export interface HasUid {
     uid: string;
 }
@@ -17,40 +18,45 @@ export interface HasResources {
     resources: Array<TrivyReportResourceInfoDto>;
 }
 
-// Main Trivy report interfaces.
-export interface TrivyReport<TTrivyReportDetail extends TrivyReportDetail> {
-    uid: string;
-
-    criticalCount: number;
-    highCount: number;
-    mediumCount: number;
-    lowCount: number;
-
-    details: Array<TTrivyReportDetail>;
+// trivy report interface with generic detail type
+export interface TrivyReport<TDetail extends TrivyReportDetail>
+  extends DataSet<TDetail> {
+  criticalCount: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
 }
 
-export interface TrivyReportDetail {
-    id: string;
-    matchKey: string;
+export interface TrivyReportDetail extends DataSetDetail {
+  matchKey: string;
 }
 
-// Namespaced Trivy report.
+// Clustered Scoped Trivy report
+export interface ClusteredScopedResourceTrivyReport<
+  TTrivyReportDetail extends TrivyReportDetail,
+> extends TrivyReport<TTrivyReportDetail> {
+  resourceName: string;
+}
+
+// Namespaced Trivy report
 export interface NamespacedResourceTrivyReport<
-    TTrivyReportDetail extends TrivyReportDetail,
+  TTrivyReportDetail extends TrivyReportDetail,
 > extends TrivyReport<TTrivyReportDetail> {
-    resourceNamespace: string;
+  resourceNamespace: string;
+  resourceName: string;
 }
 
-// Namespaced aggregate Trivy report.
+// Namespaced aggregate Trivy report
 export interface NamespacedAggregateTrivyReport<
-    TTrivyReportDetail extends TrivyReportDetail,
+  TTrivyReportDetail extends TrivyReportDetail,
 > extends TrivyReport<TTrivyReportDetail> {
-    resources: Array<TrivyReportResourceInfoDto>;
-    digest: string;
-    namespaceNames: string[];
+  resources: Array<TrivyReportResourceInfoDto>;
+  digest: string;
+  lastImageNameAndTag: string;
+  namespaceNames: string[];
 }
 
-// Comparable Trivy report.
+// Comparable Trivy report
 export interface TrivyReportComparable<
     TTrivyReportDetail extends TrivyReportComparableDetail,
 > {

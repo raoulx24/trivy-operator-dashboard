@@ -5,9 +5,10 @@ import {
   TrivyReport,
   TrivyReportDetail,
 } from '../types/trivy-report';
-import { TrivyReportDataPageBase } from './trivy-report-data-page-base';
+import { TrivyReportDataPageBase, TrivyReportMasterDetailDataPageBase } from './trivy-report-data-page-base';
 import { signal } from '@angular/core';
 import { DataPageBase } from './data-page-base';
+import { NamespacedImageDto } from '../../../ui-elements/namespace-image-selector/namespace-image-selector.types';
 
 export abstract class NamespacedDataPageBase<TData extends HasNamespace> extends DataPageBase<TData> {
   protected activeNamespaces: string[] = [];
@@ -22,7 +23,7 @@ export abstract class NamespacedDataPageBase<TData extends HasNamespace> extends
 export abstract class NamespacedTrivyReportDataPageBase<
   TTrivyReport extends TrivyReport<TTrivyReportDetail>,
   TTrivyReportDetail extends TrivyReportDetail,
-> extends TrivyReportDataPageBase<TTrivyReport, TTrivyReportDetail> {
+> extends TrivyReportMasterDetailDataPageBase<TTrivyReport, TTrivyReportDetail> {
   protected activeNamespaces: string[] = [];
 }
 
@@ -35,6 +36,16 @@ export abstract class NamespacedResourceTrivyReportDataPageBase<
     this.activeNamespaces = Array.from(new Set(dtos.map((dto) => dto.resourceNamespace))).sort();
 
     super.onGetDataDtos(dtos);
+  }
+
+  protected override prepareCompareDataDtos(): NamespacedImageDto[] {
+    return this.dataDtos
+      .filter((tr) => this.hasSeverities(tr))
+      .map((tr) => ({
+        uid: tr.uid ?? '',
+        resourceNamespace: tr.resourceNamespace ?? '',
+        mainLabel: tr.resourceName,
+      }));
   }
 }
 
@@ -68,6 +79,9 @@ export abstract class NamespacedAggregateTrivyReportDataPageBase<
     if (this.queryDigest) {
       this.singleSelectDataDto = dtos.find((x) => x.digest == this.queryDigest);
     }
+
+    // we do not need to keep the original dataDtos since we have viewDataDtos, so we can clear it to save memory
+    this.dataDtos = [];
   }
 
   protected override onMainTableSelectedRowChanged(event: TTrivyReport | null) {
@@ -76,10 +90,32 @@ export abstract class NamespacedAggregateTrivyReportDataPageBase<
     this.singleSelectDataDto = event ?? undefined;
   }
 
+  protected override onMainTableMultiHeaderActionRequested(event: string) {
+    switch (event) {
+      case 'Dependency tree':
+        this.goToDependencyTree();
+        break;
+
+      default:
+        super.onMainTableMultiHeaderActionRequested(event);
+        break;
+    }
+  }
+
   protected goToDependencyTree() {
     if (this.selectedTrivyReportDto?.digest) {
       this.isDependencyTreeViewVisible.set(true);
     }
+  }
+
+  protected override prepareCompareDataDtos(): NamespacedImageDto[] {
+    return this.viewDataDtos
+      .filter((tr) => this.hasSeverities(tr))
+      .map((tr) => ({
+        uid: tr.uid ?? '',
+        resourceNamespace: 'N/A',
+        mainLabel: `${tr.lastImageNameAndTag}`,
+      }));
   }
 
   protected abstract prepareViewDataDtos(dto: TTrivyReport): TExtendedDataDto;

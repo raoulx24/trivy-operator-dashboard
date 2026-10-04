@@ -1,7 +1,6 @@
 import { Component, effect, HostListener, inject, input, output, ViewChild } from '@angular/core';
 
 import { SeverityDto } from '../../../api/models/severity-dto';
-import { TrivyReport, TrivyReportDetail } from '../../trivy-reports/abstracts/types/trivy-report';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import {
   MultiHeaderAction, SelectedDtosEvent,
@@ -11,6 +10,7 @@ import {
 
 import { SplitterModule } from 'primeng/splitter';
 import { KubernetesContextStateService } from '../../services/kubernetes-context-state.service';
+import { DataSet, DataSetDetail } from '../../trivy-reports/abstracts/types/data-set';
 
 @Component({
   selector: 'app-generic-master-detail',
@@ -20,27 +20,27 @@ import { KubernetesContextStateService } from '../../services/kubernetes-context
   styleUrl: './generic-master-detail.component.scss',
 })
 export class GenericMasterDetailComponent<
-  TTrivyReport extends TrivyReport<TTrivyReportDetail>,
-  TTrivyReportDetail extends TrivyReportDetail,
+  TDataSet extends DataSet<TDataSetDetail>,
+  TDataSetDetail extends DataSetDetail,
 > {
   private readonly kubernetesContextService = inject(KubernetesContextStateService);
 
   severityDtos = input<SeverityDto[]>([]);
   activeNamespaces = input<string[]>([]);
   mainTableColumns = input.required<TrivyTableColumn[]>();
-  mainTableRowExpandResponse = input<TrivyTableExpandRowData<TTrivyReport>>();
+  mainTableRowExpandResponse = input<TrivyTableExpandRowData<TDataSet>>();
   isMainTableLoading = input<boolean>(true);
   detailsTableColumns = input.required<TrivyTableColumn[]>();
-  singleSelectDataDto = input<TTrivyReport | undefined>();
+  singleSelectDataDto = input<TDataSet | undefined>();
   splitterStorageKey = input<string | undefined>();
   splitterPanelSizes = input<[number, number]>([35, 65]);
 
   refreshRequested = output<void>();
 
-  mainTableRowExpandChange = output<TTrivyReport>();
-  mainTableExpandCallback = output<TTrivyReport>();
+  mainTableRowExpandChange = output<TDataSet>();
+  mainTableExpandCallback = output<TDataSet>();
   mainTableMultiHeaderActionRequested = output<string>();
-  mainTableSelectedRowChanged = output<TTrivyReport | null>();
+  mainTableSelectedRowChanged = output<TDataSet | null>();
 
   mainTableIsClearSelectionVisible = input<boolean | undefined>(false);
   mainTableIsCollapseAllVisible = input<boolean | undefined>(false);
@@ -56,7 +56,7 @@ export class GenericMasterDetailComponent<
   mainTableRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
   mainTableExtraClasses = input<string | undefined>(undefined);
   mainTableMultiHeaderActions = input<MultiHeaderAction[]>([]);
-  mainTableRowDimmer = input<((row: TTrivyReport) => boolean) | undefined>();
+  mainTableRowDimmer = input<((row: TDataSet) => boolean) | undefined>();
   mainTableRefreshValue = input<number | undefined>(undefined);
 
   detailsIsClearSelectionVisible = input<boolean | undefined>(false);
@@ -73,20 +73,20 @@ export class GenericMasterDetailComponent<
   detailsRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
   detailsExtraClasses = input<string | undefined>(undefined);
   detailsMultiHeaderActions = input<MultiHeaderAction[]>([]);
-  detailsRowDimmer = input<((row: TTrivyReportDetail) => boolean) | undefined>();
+  detailsRowDimmer = input<((row: TDataSetDetail) => boolean) | undefined>();
   detailsTableRefreshValue = input<number | undefined>(undefined);
 
   detailsTableMultiHeaderActionRequested = output<string>();
 
-  @ViewChild('mainTable', { static: true }) mainTable?: TrivyTableComponent<TTrivyReport>;
+  @ViewChild('mainTable', { static: true }) mainTable?: TrivyTableComponent<TDataSet>;
 
-  dataDtos = input<TTrivyReport[]>([]);
-  selectedDataEvent: SelectedDtosEvent<TTrivyReport> = { source: 'user', selectedDtos: [] };
+  dataDtos = input<TDataSet[]>([]);
+  selectedDataEvent: SelectedDtosEvent<TDataSet> = { source: 'user', selectedDtos: [] };
   private lastKnownSelectedUid?: string;
 
   screenSize: string = this.getScreenSize();
 
-  protected _dataDtos: TTrivyReport[] = [];
+  protected _dataDtos: TDataSet[] = [];
   protected _isMainTableLoading: boolean = this.isMainTableLoading();
 
   constructor() {
@@ -120,7 +120,7 @@ export class GenericMasterDetailComponent<
     });
   }
 
-  onGetTDataDtos(dataDtos: TTrivyReport[]) {
+  onGetTDataDtos(dataDtos: TDataSet[]) {
     if (this.mainTable) {
       this.mainTable.onTableClearSelected();
     }
@@ -138,7 +138,7 @@ export class GenericMasterDetailComponent<
     this._isMainTableLoading = false;
   }
 
-  onMainTableSelectionChange(event: SelectedDtosEvent<TTrivyReport> | null) {
+  onMainTableSelectionChange(event: SelectedDtosEvent<TDataSet> | null) {
     if (event == null || event.selectedDtos.length == 0) {
       this.lastKnownSelectedUid = undefined;
       this.mainTableSelectedRowChanged.emit(null);
@@ -156,7 +156,7 @@ export class GenericMasterDetailComponent<
     this.refreshRequested.emit();
   }
 
-  onMainTableExpandCallback(event: TTrivyReport) {
+  onMainTableExpandCallback(event: TDataSet) {
     this.mainTableExpandCallback.emit(event);
   }
 
@@ -168,7 +168,7 @@ export class GenericMasterDetailComponent<
     this.detailsTableMultiHeaderActionRequested.emit(event);
   }
 
-  onMainTableRowExpandChange(event: TTrivyReport) {
+  onMainTableRowExpandChange(event: TDataSet) {
     this.mainTableRowExpandChange.emit(event);
   }
 
