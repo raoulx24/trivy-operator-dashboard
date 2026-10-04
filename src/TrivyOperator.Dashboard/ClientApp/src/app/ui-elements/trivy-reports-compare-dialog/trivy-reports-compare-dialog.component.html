@@ -13,7 +13,12 @@
                                [compareExtraClasses]="'trivy-with-filters'"
                                [compareIsResetFiltersVisible]="true"
                                [compareStateKey]="`${reportsName()} - Compared`"
+                               [namespacePlaceholder]="'Select namespace'"
+                               [imagePlaceholder]="'Select image'"
                                [dataDtos]="dataDtos()"
                                [firstSelectedTrivyReportId]="firstSelectedTrivyReportId()"
-                               [namespacedImageDtos]="namespacedImageDtos()" />
+                               [secondSelectedTrivyReportId]="secondSelectedTrivyReportId()"
+                               [namespacedImageDtos]="namespacedImageDtos()"
+                               [firstSelectorLonger]="firstSelectorLonger()"
+                               [walkingIsEnabled]="walkingIsEnabled()"/>
 </p-dialog>

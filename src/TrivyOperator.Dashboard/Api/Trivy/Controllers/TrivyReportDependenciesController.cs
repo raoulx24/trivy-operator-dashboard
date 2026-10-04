@@ -13,7 +13,7 @@ public class TrivyReportDependenciesController(ITrivyReportDependenciesService t
     [ProducesResponseType<TrivyDependencyTreeDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetByDigestNamespace([FromQuery] string digest, [FromQuery] string namespaceName, CancellationToken ct)
+    public async Task<IActionResult> GetByDigestNamespace([FromQuery] string digest, [FromQuery] string? namespaceName, CancellationToken ct)
     {
         TrivyDependencyTreeDto? trivyReportDependencyDto =
             await trivyReportDependenciesServiceService.GetTrivyDependencyTree(digest, namespaceName, ct);

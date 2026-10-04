@@ -19,7 +19,12 @@ export class TrivyReportsCompareDialogComponent {
 
   readonly comparedTableColumns = input<TrivyTableColumn[]>([]);
   readonly reportsName = input<string>('');
+  readonly namespacePlaceholder = input<string>('');
+  readonly imagePlaceholder = input<string>('');
   readonly dataDtos = input<TrivyReportComparable<TrivyReportComparableDetail>[]>([]);
   readonly firstSelectedTrivyReportId = input<string | undefined>();
+  readonly secondSelectedTrivyReportId = input<string | undefined>();
   readonly namespacedImageDtos = input<NamespacedImageDto[] | undefined>();
+  readonly firstSelectorLonger = input<boolean>(false);
+  readonly walkingIsEnabled = input<boolean>(false);
 }

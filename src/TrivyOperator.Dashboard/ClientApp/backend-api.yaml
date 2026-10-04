@@ -3643,39 +3643,6 @@ components:
           items:
             $ref: '#/components/schemas/VulnerabilityReportDetailDto'
       additionalProperties: false
-    VulnerabilityReportsDigestDto:
-      type: object
-      properties:
-        imageTag:
-          type: string
-        imageDigest:
-          type: string
-        resourceNamespaces:
-          type: array
-          items:
-            type: string
-        isInUse:
-          type: boolean
-        criticalCount:
-          type: integer
-          format: int32
-        highCount:
-          type: integer
-          format: int32
-        mediumCount:
-          type: integer
-          format: int32
-        lowCount:
-          type: integer
-          format: int32
-        unknownCount:
-          type: integer
-          format: int32
-        history:
-          type: array
-          items:
-            $ref: '#/components/schemas/VulnerabilityReportsHistoryDetailDto'
-      additionalProperties: false
     VulnerabilityReportsHistoryDenormalizedDto:
       type: object
       properties:
@@ -3771,16 +3738,46 @@ components:
     VulnerabilityReportsHistoryDto:
       type: object
       properties:
-        id:
+        uid:
           type: string
-        imageRepository:
+          format: uuid
+        lastImageNameAndTag:
           type: string
-        imageName:
+        lastImageRegistry:
           type: string
-        digests:
+        digest:
+          type: string
+        namespaceNames:
           type: array
           items:
-            $ref: '#/components/schemas/VulnerabilityReportsDigestDto'
+            type: string
+        criticalCount:
+          type: integer
+          format: int32
+        highCount:
+          type: integer
+          format: int32
+        mediumCount:
+          type: integer
+          format: int32
+        lowCount:
+          type: integer
+          format: int32
+        unknownCount:
+          type: integer
+          format: int32
+        isInUse:
+          type: boolean
+        firstSeenAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/VulnerabilityReportsHistoryDetailDto'
       additionalProperties: false
     WatcherStatusDto:
       type: object

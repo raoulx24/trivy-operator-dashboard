@@ -50,7 +50,6 @@ export interface NamespacedResourceTrivyReport<
 export interface NamespacedAggregateTrivyReport<
   TTrivyReportDetail extends TrivyReportDetail,
 > extends TrivyReport<TTrivyReportDetail> {
-  resources: Array<TrivyReportResourceInfoDto>;
   digest: string;
   lastImageNameAndTag: string;
   namespaceNames: string[];
