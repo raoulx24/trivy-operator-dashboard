@@ -1,7 +1,7 @@
-export interface NamespacedImageDto {
+export interface PairedOptionsDto {
   uid: string;
-  resourceNamespace: string;
-  mainLabel: string;
+  firstOption: string;
+  secondOption: string;
   group?: string;
   icon?: string;
 }

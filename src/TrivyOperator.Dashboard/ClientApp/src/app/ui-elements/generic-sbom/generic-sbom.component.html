@@ -8,7 +8,7 @@
   <ng-template #panel>
     <div class="w-full">
       <div class="pb-2">
-        <app-namespace-image-selector [dataDtos]="namespacedImageDtos" [(selectedImageId)]="selectedImageId" />
+        <app-paired-options-selector [dataDtos]="namespacedImageDtos" [(selectedUid)]="selectedImageId" />
       </div>
       <div class="tod-content-border tod-content-background">
         <app-trivy-table

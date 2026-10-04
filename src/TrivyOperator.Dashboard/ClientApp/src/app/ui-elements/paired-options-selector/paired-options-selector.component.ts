@@ -5,20 +5,13 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 
 import { IconComponent } from '../icon/icon.component';
-import { NamespacedImageDto } from './namespace-image-selector.types';
+import { PairedOptionsDto } from './paired-options-selector.types';
 import { NgClass } from '@angular/common';
-
-interface ImageDto {
-  uid: string;
-  group?: string;
-  mainLabel: string;
-  icon?: string;
-}
 
 export const nonExistingNamespace = 'N/A';
 
 @Component({
-  selector: 'app-namespace-image-selector',
+  selector: 'app-paired-options-selector',
   imports: [
     FormsModule,
     SelectModule,
@@ -26,121 +19,125 @@ export const nonExistingNamespace = 'N/A';
     IconComponent,
     NgClass,
   ],
-  templateUrl: './namespace-image-selector.component.html',
-  styleUrl: './namespace-image-selector.component.scss',
+  templateUrl: './paired-options-selector.component.html',
+  styleUrl: './paired-options-selector.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NamespaceImageSelectorComponent {
-  dataDtos = input.required<NamespacedImageDto[] | undefined>();
+export class PairedOptionsSelectorComponent {
+  dataDtos = input.required<PairedOptionsDto[] | undefined>();
   disabled = input<boolean>(false);
 
-  selectedImageId = model<string | undefined>();
+  selectedUid = model<string | undefined>();
 
-  namespacePlaceholder = input<string>('Select namespace');
-  imagePlaceholder = input<string>('Select image');
-  firstLonger = input<boolean>(false);
+  firstOptionPlaceholder = input<string>('Select namespace');
+  secondOptionPlaceholder = input<string>('Select image');
+  firstOptionWider = input<boolean>(false);
 
   // private initialImageIdHandled = false;
-  private previousImageId?: string;
+  private internallySelectedUid?: string;
 
   constructor() {
     effect(() => {
       const dtos = this.dataDtos();
-      const namespaces = this.activeNamespaces();
-      const selectedNs = this.selectedNamespace();
-      const images = this.imageDtos();
-      const selectedImg = this.selectedImageId();
+      const firstUniqueOptions = this.firstUniqueOptions();
+      const selectedFirstOption = this.selectedFirstOption();
+      const filteredPairedOptions = this.filteredPairedOptions();
+      const selectedUid = this.selectedUid();
 
       // --- RULE 1: Reset when datasource is cleared ---
       if (!dtos || dtos.length === 0) {
-        this.previousImageId = undefined;
-        this.selectedNamespace.set(undefined);
-        this.selectedImageId.set(undefined);
+        this.internallySelectedUid = undefined;
+        this.selectedFirstOption.set(undefined);
+        this.setSelectedUid(undefined);
         return;
       }
 
-      // --- RULE 2: Parent-provided selectedImageId wins  ---
-      if (this.previousImageId !=selectedImg && selectedImg) {
-        this.previousImageId = selectedImg;
+      // --- RULE 2: Parent-provided selectedUid wins ---
+      if (this.internallySelectedUid !== selectedUid && selectedUid) {
+        const dto = dtos.find((x) => x.uid === selectedUid);
 
-        const dto = dtos.find((x) => x.uid === selectedImg);
         if (dto) {
-          this.selectedNamespace.set(dto.resourceNamespace);
+          this.selectedFirstOption.set(dto.firstOption);
+          return;
         }
+
+        // Selected UID no longer exists in the datasource
+        this.internallySelectedUid = undefined;
+        this.setSelectedUid(undefined);
         return;
       }
 
-      // --- RULE 3: Auto-select namespace if only one and none selected ---
-      if (namespaces.length === 1 && !selectedNs) {
-        this.selectedNamespace.set(namespaces[0]);
+      // --- RULE 3: Auto-select first option if only one exists ---
+      if (firstUniqueOptions.length === 1 && !selectedFirstOption) {
+        this.selectedFirstOption.set(firstUniqueOptions[0]);
         return;
       }
 
-      // --- RULE 4: Auto-select image if only one and none selected ---
-      if (images.length === 1 && !selectedImg) {
-        this.selectedImageId.set(images[0].uid);
+      // --- RULE 4: Auto-select second option if only one exists ---
+      if (filteredPairedOptions.length === 1 && !selectedUid) {
+        this.setSelectedUid(filteredPairedOptions[0].uid);
         return;
       }
     });
   }
 
-  activeNamespaces = computed(() => {
+
+  firstUniqueOptions = computed(() => {
     const dtos = this.dataDtos();
     if (!dtos || dtos.length === 0) return [];
 
-    return Array.from(new Set(dtos.map((x) => x.resourceNamespace))).sort((a, b) => (a > b ? 1 : -1));
+    return Array.from(new Set(dtos.map((x) => x.firstOption))).sort((a, b) => (a > b ? 1 : -1));
   });
 
-  selectedNamespace = model<string | undefined>(undefined);
+  selectedFirstOption = model<string | undefined>(undefined);
 
-  imageDtos = computed(() => {
+  filteredPairedOptions = computed(() => {
     const dtos = this.dataDtos();
-    const ns = this.selectedNamespace();
+    const selectedFirstOption = this.selectedFirstOption();
 
-    if (!dtos || !ns) return [];
+    if (!dtos || !selectedFirstOption) return [];
 
     return dtos
-      .filter((x) => x.resourceNamespace === ns)
-      .map((x) => ({
-        uid: x.uid ?? '',
-        mainLabel: x.mainLabel,
-        group: x.group,
-        icon: x.icon,
-      }))
+      .filter((x) => x.firstOption === selectedFirstOption)
       .sort((a, b) => {
         const gA = a.group ?? '';
         const gB = b.group ?? '';
         if (gA !== gB) return gA < gB ? -1 : 1;
-        return a.mainLabel < b.mainLabel ? -1 : 1;
+        return a.secondOption < b.secondOption ? -1 : 1;
       });
   });
 
-  selectedImageDto = computed(() => {
-    const id = this.selectedImageId();
-    const list = this.imageDtos();
-    if (!id || !list) return undefined;
-    return list.find((x) => x.uid === id);
+  selectedDto = computed(() => {
+    const uid = this.selectedUid();
+    if (!uid) return undefined;
+
+    return this.dataDtos()?.find((x) => x.uid === uid);
   });
 
-  setNamespace(ns: string | undefined) {
-    this.selectedNamespace.set(ns);
+  setFirstOption(value: string | undefined) {
+    this.selectedFirstOption.set(value);
 
-    const images = this.imageDtos();
-    const current = this.selectedImageId();
+    const options = this.filteredPairedOptions();
+    const currentUid = this.selectedUid();
 
-    if (current && images.some((img) => img.uid === current)) {
+    if (currentUid && options.some((x) => x.uid === currentUid)) {
       return;
     }
 
-    if (images.length === 1) {
-      this.selectedImageId.set(images[0].uid);
+    if (options.length === 1) {
+      this.setSelectedUid(options[0].uid);
       return;
     }
 
-    this.selectedImageId.set(undefined);
+    this.setSelectedUid(undefined);
   }
 
-  setImage(id: string | undefined) {
-    this.selectedImageId.set(id);
+  setUid(uid: string | undefined) {
+    this.setSelectedUid(uid);
+  }
+
+  private setSelectedUid(uid: string | undefined) {
+    this.internallySelectedUid = uid;
+    this.selectedUid.set(uid);
   }
 }

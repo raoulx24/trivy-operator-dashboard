@@ -1,21 +1,21 @@
 <div class="grid grid-cols-12 gap-2 pb-2">
-  <app-namespace-image-selector
+  <app-paired-options-selector
     class="col-span-12 xl:col-span-4 lg:col-span-6"
     [dataDtos]="namespacedImageDtos()"
-    [imagePlaceholder]="imagePlaceholder()"
-    [namespacePlaceholder]="namespacePlaceholder()"
-    [firstLonger]="firstSelectorLonger()"
+    [secondOptionPlaceholder]="imagePlaceholder()"
+    [firstOptionPlaceholder]="namespacePlaceholder()"
+    [firstOptionWider]="firstSelectorLonger()"
     [disabled]="isWalkingEnabledInternal()"
-    [(selectedImageId)]="firstSelectedTrivyReportId"
+    [(selectedUid)]="firstSelectedTrivyReportId"
   />
-  <app-namespace-image-selector
+  <app-paired-options-selector
     class="col-span-12 xl:col-span-4 lg:col-span-6"
     [dataDtos]="namespacedImageDtos()"
-    [imagePlaceholder]="imagePlaceholder()"
-    [namespacePlaceholder]="namespacePlaceholder()"
-    [firstLonger]="firstSelectorLonger()"
+    [secondOptionPlaceholder]="imagePlaceholder()"
+    [firstOptionPlaceholder]="namespacePlaceholder()"
+    [firstOptionWider]="firstSelectorLonger()"
     [disabled]="isWalkingEnabledInternal()"
-    [(selectedImageId)]="secondSelectedTrivyReportId"
+    [(selectedUid)]="secondSelectedTrivyReportId"
   />
   <div class="col-span-12 xl:col-span-4 lg:col-span-6 flex items-center text-sm gap-4">
     @if (!isWalkingEnabledInternal()) {

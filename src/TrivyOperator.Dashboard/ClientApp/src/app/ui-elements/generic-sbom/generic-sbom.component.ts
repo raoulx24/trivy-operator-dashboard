@@ -9,10 +9,9 @@ import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 
 import { FcoseComponent } from '../fcose/fcose.component';
 import {
-  PairedOptionsSelectorComponent,
-  nonExistingNamespace,
+  nonExistingNamespace, PairedOptionsSelectorComponent,
 } from '../paired-options-selector/paired-options-selector.component';
-import { PairedOptionDto } from '../paired-options-selector/paired-options-selector.types';
+import { PairedOptionsDto } from '../paired-options-selector/paired-options-selector.types';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import {
   MultiHeaderAction,
@@ -34,12 +33,12 @@ import { GenericReportsCompareComponent } from '../generic-reports-compare/gener
     DialogModule,
     FcoseComponent,
     GenericReportsCompareComponent,
-    PairedOptionsSelectorComponent,
     SeverityCssStyleByIdPipe,
     SplitterModule,
     TagModule,
     TrivyTableComponent,
     VulnerabilityCountPipe,
+    PairedOptionsSelectorComponent,
   ],
   templateUrl: './generic-sbom.component.html',
   styleUrl: './generic-sbom.component.scss',
@@ -68,7 +67,7 @@ export class GenericSbomComponent {
 
   protected _fullSbomDataDto?: GenericSbomReportDto;
 
-  namespacedImageDtos?: PairedOptionDto[];
+  namespacedImageDtos?: PairedOptionsDto[];
 
   // region dependsOnTable data
   selectedSbomDetail: SelectedDtosEvent<GenericSbomReportDetailDto> = { source: 'programmatic', selectedDtos: [] };
@@ -155,7 +154,7 @@ export class GenericSbomComponent {
             firstOption: x.resourceNamespace ?? nonExistingNamespace,
             secondOption: `${x.imageName ?? ''}:${x.imageTag ?? ''}`,
             icon: x.hasVulnerabilityReport ? 'security' : undefined,
-          }) as PairedOptionDto,
+          }) as PairedOptionsDto,
       ) ?? [];
   }
   // #endregion

@@ -2,8 +2,8 @@ import { DialogModule } from 'primeng/dialog';
 import { GenericReportsCompareComponent } from '../generic-reports-compare/generic-reports-compare.component';
 import { TrivyTableColumn } from '../trivy-table/trivy-table.types';
 import { Component, input, model } from '@angular/core';
-import { PairedOptionDto } from '../paired-options-selector/paired-options-selector.types';
 import { TrivyReportComparable, TrivyReportComparableDetail } from '../../trivy-reports/abstracts/types/trivy-report';
+import { PairedOptionsDto } from '../paired-options-selector/paired-options-selector.types';
 
 @Component({
   selector: 'app-trivy-reports-compare-dialog',
@@ -24,7 +24,7 @@ export class TrivyReportsCompareDialogComponent {
   readonly dataDtos = input<TrivyReportComparable<TrivyReportComparableDetail>[]>([]);
   readonly firstSelectedTrivyReportId = input<string | undefined>();
   readonly secondSelectedTrivyReportId = input<string | undefined>();
-  readonly namespacedImageDtos = input<PairedOptionDto[] | undefined>();
+  readonly namespacedImageDtos = input<PairedOptionsDto[] | undefined>();
   readonly firstSelectorLonger = input<boolean>(false);
   readonly walkingIsEnabled = input<boolean>(false);
 }

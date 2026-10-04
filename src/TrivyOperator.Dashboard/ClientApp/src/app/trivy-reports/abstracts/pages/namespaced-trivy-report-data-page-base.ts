@@ -8,7 +8,7 @@ import {
 import { TrivyReportMasterDetailDataPageBase } from './trivy-report-data-page-base';
 import { signal } from '@angular/core';
 import { DataPageBase } from './data-page-base';
-import { PairedOptionDto } from '../../../ui-elements/paired-options-selector/paired-options-selector.types';
+import { PairedOptionsDto } from '../../../ui-elements/paired-options-selector/paired-options-selector.types';
 
 export abstract class NamespacedDataPageBase<TData extends HasNamespace> extends DataPageBase<TData> {
   protected activeNamespaces: string[] = [];
@@ -38,13 +38,13 @@ export abstract class NamespacedResourceTrivyReportDataPageBase<
     super.onGetDataDtos(dtos);
   }
 
-  protected override prepareCompareDataDtos(): PairedOptionDto[] {
+  protected override prepareCompareDataDtos(): PairedOptionsDto[] {
     return this.dataDtos
       .filter((tr) => this.hasSeverities(tr))
       .map((tr) => ({
         uid: tr.uid ?? '',
-        resourceNamespace: tr.resourceNamespace ?? '',
-        mainLabel: tr.resourceName,
+        firstOption: tr.resourceNamespace ?? '',
+        secondOption: tr.resourceName,
       }));
   }
 }
@@ -108,13 +108,13 @@ export abstract class NamespacedAggregateTrivyReportDataPageBase<
     }
   }
 
-  protected override prepareCompareDataDtos(): PairedOptionDto[] {
+  protected override prepareCompareDataDtos(): PairedOptionsDto[] {
     return this.viewDataDtos
       .filter((tr) => this.hasSeverities(tr))
       .map((tr) => ({
         uid: tr.uid ?? '',
-        resourceNamespace: 'N/A',
-        mainLabel: `${tr.lastImageNameAndTag}`,
+        firstOption: 'N/A',
+        secondOption: `${tr.lastImageNameAndTag}`,
       }));
   }
 
