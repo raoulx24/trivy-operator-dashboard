@@ -293,6 +293,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   protected onRefreshData() {
+    this.onTableCollapseAll();
     this.refreshRequested.emit();
   }
 

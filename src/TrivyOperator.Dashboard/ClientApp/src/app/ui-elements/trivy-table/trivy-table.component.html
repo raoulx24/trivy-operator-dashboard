@@ -274,8 +274,8 @@
                 <small class="tod-text-muted-color">{{ rowData[col.field] | friendlyTime : true }}</small>
               }
               @case ('imageNameTag') {
-                <span>{{ rowData[col.field] }}:{{ rowData[col.extraFields[0]] }}</span>
-                @if (rowData[col.extraFields[1]]) {
+                <span>{{ rowData[col.field] }}</span>
+                @if (rowData[col.extraFields[0]]) {
                   <p-tag value="EOSL" class="ml-3" [rounded]="true" [style]="1 | severityCssStyleById: 1" />
                 }
               }

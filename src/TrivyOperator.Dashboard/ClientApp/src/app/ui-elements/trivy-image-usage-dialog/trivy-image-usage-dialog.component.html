@@ -16,14 +16,14 @@
            [value]="resources()" >
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="name" class="w-[30%]">
-          Resource Name
-          <p-sortIcon field="name" />
-        </th>
-
         <th pSortableColumn="namespaceName" class="w-[25%]">
           Resource Namespace
           <p-sortIcon field="namespaceName" />
+        </th>
+
+        <th pSortableColumn="name" class="w-[30%]">
+          Resource Name
+          <p-sortIcon field="name" />
         </th>
 
         <th pSortableColumn="kind" class="w-[20%]">
@@ -40,12 +40,12 @@
 
     <ng-template let-resource pTemplate="body">
       <tr>
-        <td class="w-[30%]">
-          {{ resource.name }}
-        </td>
-
         <td class="w-[25%]">
           {{ resource.namespaceName }}
+        </td>
+
+        <td class="w-[30%]">
+          {{ resource.name }}
         </td>
 
         <td class="w-[20%]">

@@ -9,16 +9,18 @@
           [modal]="true"
           [style]="{ width: '90vw' }"
           [(visible)]="isVisible" >
-  <app-generic-reports-compare [comparedTableColumns]="comparedTableColumns()"
-                               [compareExtraClasses]="'trivy-with-filters'"
-                               [compareIsResetFiltersVisible]="true"
-                               [compareStateKey]="`${reportsName()} - Compared`"
-                               [namespacePlaceholder]="'Select namespace'"
-                               [imagePlaceholder]="'Select image'"
-                               [dataDtos]="dataDtos()"
-                               [firstSelectedTrivyReportId]="firstSelectedTrivyReportId()"
-                               [secondSelectedTrivyReportId]="secondSelectedTrivyReportId()"
-                               [namespacedImageDtos]="namespacedImageDtos()"
-                               [firstSelectorLonger]="firstSelectorLonger()"
-                               [walkingIsEnabled]="walkingIsEnabled()"/>
+  @if (isVisible()) {
+    <app-generic-reports-compare [comparedTableColumns]="comparedTableColumns()"
+                                 [compareExtraClasses]="'trivy-with-filters'"
+                                 [compareIsResetFiltersVisible]="true"
+                                 [compareStateKey]="`${reportsName()} - Compared`"
+                                 [namespacePlaceholder]="'Select namespace'"
+                                 [imagePlaceholder]="'Select image'"
+                                 [dataDtos]="dataDtos()"
+                                 [firstSelectedTrivyReportId]="firstSelectedTrivyReportId()"
+                                 [secondSelectedTrivyReportId]="secondSelectedTrivyReportId()"
+                                 [namespacedImageDtos]="namespacedImageDtos()"
+                                 [firstSelectorLonger]="firstSelectorLonger()"
+                                 [walkingIsEnabled]="walkingIsEnabled()"/>
+  }
 </p-dialog>
