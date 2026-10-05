@@ -24,14 +24,14 @@
               [showClear]="true"
               (ngModelChange)="setUid($event?.uid)" >
       <ng-template let-pairedOptionsDto pTemplate="item">
-        <div class="flex items-center gap-2 w-full overflow-hidden text-sm">
+        <div class="flex items-center gap-2 w-full overflow-visible text-sm">
           @if (pairedOptionsDto.group) {
             <p-tag rounded [value]="pairedOptionsDto.group" />
           }
-          <div class="truncate whitespace-nowrap">{{ pairedOptionsDto.secondOption }}</div>
+          <div class="truncate whitespace-nowrap ">{{ pairedOptionsDto.secondOption }}</div>
           @if (pairedOptionsDto.icon) {
             <div class="ml-auto">
-              <p-tag rounded class="flex items-center">
+              <p-tag rounded class="flex items-center text-xs">
                 <app-icon class="text-xs align-middle inline-block tod-text-contrast-color" [name]="pairedOptionsDto.icon" />
               </p-tag>
             </div>

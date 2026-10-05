@@ -17,6 +17,7 @@ import { SecurityAssessmentReportDetailDto } from '../../../api/models/security-
 import {
   TrivyReportsCompareDialogComponent
 } from '../../ui-elements/trivy-reports-compare-dialog/trivy-reports-compare-dialog.component';
+import { PairedOptionsDto } from '../../ui-elements/paired-options-selector/paired-options-selector.types';
 
 @Component({
   selector: 'app-config-audit-reports',
@@ -45,4 +46,15 @@ export class ConfigAuditReportsComponent
   ngOnInit() {
     this.initialize();
   }
+
+  protected override prepareCompareDataDtos(): PairedOptionsDto[] {
+  return this.dataDtos
+    .filter((tr) => this.hasSeverities(tr))
+    .map((tr) => ({
+      uid: tr.uid ?? '',
+      firstOption: tr.resourceNamespace ?? '',
+      secondOption: tr.resourceName,
+      group: tr.resourceKind,
+    }));
+}
 }
