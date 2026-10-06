@@ -51,8 +51,8 @@ public static class WatcherStateServiceRegistrationExtensions
         Dictionary<string, bool> enabledReports = configuration.LoadEnabledTrivyReports();
 
         services.AddSingleton<
-            ICache<ResourceLocation, WatcherStateInfo>, 
-            Cache<ResourceLocation, WatcherStateInfo>>();
+            ICache<WatcherId, WatcherStateInfo>, 
+            Cache<WatcherId, WatcherStateInfo>>();
 
         services.AddScoped<IKnownKubernetesTypeFactory, KnownKubernetesTypeFactory>();
         

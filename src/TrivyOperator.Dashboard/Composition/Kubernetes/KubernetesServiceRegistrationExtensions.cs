@@ -26,7 +26,6 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstr
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.ClientFactory.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
@@ -137,7 +136,7 @@ public static class KubernetesServiceRegistrationExtensions
 
     private static void AddDefaultContextKubernetesServices(this IServiceCollection services)
     {
-        services.AddHostedService<EventPipelineHost>();
+        services.AddHostedService<EventPipelineHostedService>();
 
         services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
     }
@@ -241,9 +240,11 @@ public static class KubernetesServiceRegistrationExtensions
             KubernetesWatchSessionFactory<V1NamespaceList, V1Namespace>>();
 
         // kubernetes watcher registry
-        services.AddSingleton<
-            IClusterScopedWatcherRegistry<KubernetesNamespace, Uid>,
-            ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace, KubernetesNamespace, Uid>>();
+        services.AddSingleton<ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace, KubernetesNamespace, Uid>>();
+        services.AddSingleton<IClusterScopedWatcherRegistry>(
+            sp => sp.GetRequiredService<ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace, KubernetesNamespace, Uid>>());
+        services.AddSingleton<IClusterScopedWatcherRegistry<KubernetesNamespace, Uid>>(
+            sp => sp.GetRequiredService<ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace, KubernetesNamespace, Uid>>());
 
         // // watcher
         // services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<V1NamespaceList, V1Namespace>>();

@@ -38,7 +38,6 @@ using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Infrastructure.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
@@ -667,9 +666,12 @@ public static class TrivyReportServiceRegistrationExtensions
                     KubernetesWatchSessionFactory<CustomResourceList<TReportCr>, TReportCr>>();
 
                 // kubernetes watcher registry
-                services.AddSingleton<
-                    IClusterScopedWatcherRegistry<TReport, TId>,
-                    ClusterScopedWatcherRegistry<CustomResourceList<TReportCr>, TReportCr, TReport, TId>>();
+                services
+                    .AddSingleton<ClusterScopedWatcherRegistry<CustomResourceList<TReportCr>, TReportCr, TReport, TId>>();
+                services.AddSingleton<IClusterScopedWatcherRegistry>(
+                    sp => sp.GetRequiredService<ClusterScopedWatcherRegistry<CustomResourceList<TReportCr>, TReportCr, TReport, TId>>());
+                services.AddSingleton<IClusterScopedWatcherRegistry<TReport, TId>>(
+                    sp => sp.GetRequiredService<ClusterScopedWatcherRegistry<CustomResourceList<TReportCr>, TReportCr, TReport, TId>>());
                 
                 break;
 

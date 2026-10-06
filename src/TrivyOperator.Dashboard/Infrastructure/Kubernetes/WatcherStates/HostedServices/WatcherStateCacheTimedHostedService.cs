@@ -3,19 +3,19 @@ using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstracti
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
-using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.HostedServices;
 
 public sealed class WatcherStateCacheTimedHostedService(
-    ICache<ResourceLocation, WatcherStateInfo> cache,
+    ICache<WatcherId, WatcherStateInfo> cache,
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatchers,
     IEnumerable<INamespacedWatcherRegistry> namespacedWatchers,
     IOptions<WatchersOptions> options,
     ILogger<WatcherStateCacheTimedHostedService> logger
 ) : IHostedService, IDisposable
 {
-    private readonly int timeFrameInSeconds = (int)((options.Value.WatchTimeoutInSeconds * 1.1) + 60);
+    private readonly TimeSpan timeFrame = TimeSpan.FromSeconds(options.Value.WatchTimeoutInSeconds * 1.1 + 60);
+
     private bool disposed;
     private Task? executingTask;
     private CancellationTokenSource? stoppingCts;
@@ -85,35 +85,39 @@ public sealed class WatcherStateCacheTimedHostedService(
     {
         try
         {
-            WatcherStateInfo[] expiredWatcherStates = [.. cache.Select(kvp => kvp.Value)
-                .Where(x => (DateTime.UtcNow - x.LastEventMoment).TotalSeconds > timeFrameInSeconds),];
-            
+            // get expired watchers
+            WatcherStateInfo[] expiredWatcherStates =
+            [
+                .. cache.Select(kvp => kvp.Value)
+                    .Where(x => DateTime.UtcNow - x.LastEventMoment > timeFrame)
+            ];
+
             if (expiredWatcherStates.Length == 0)
                 return;
 
-            Dictionary<Type, IKubernetesWatcherRegistry> watchers = [];
-            
+            // get all registered watcher registries
+            Dictionary<Type, IKubernetesWatcherRegistry> watcherRegistries = [];
+
             foreach (INamespacedWatcherRegistry watcher in namespacedWatchers)
             {
-                watchers.TryAdd(watcher.WatchedKubernetesObjectType, watcher);
+                watcherRegistries.TryAdd(watcher.WatchedKubernetesObjectType, watcher);
             }
 
             foreach (IClusterScopedWatcherRegistry watcher in clusterScopedWatchers)
             {
-                watchers.TryAdd(watcher.WatchedKubernetesObjectType, watcher);
+                watcherRegistries.TryAdd(watcher.WatchedKubernetesObjectType, watcher);
             }
 
+            // for each expired watcher, recreate it
             foreach (WatcherStateInfo expiredWatcherState in expiredWatcherStates)
             {
-                watchers.TryGetValue(
-                    expiredWatcherState.WatchedKubernetesObjectType,
-                    out IKubernetesWatcherRegistry? watcher);
-                
-                if (watcher is not null)
+                if (watcherRegistries.TryGetValue(
+                        expiredWatcherState.Id.WatchedKubernetesObjectType,
+                        out IKubernetesWatcherRegistry? watcher))
                 {
-                    await watcher.RecreateWatcher(expiredWatcherState.Key, ctx);
+                    await watcher.RecreateWatcher(expiredWatcherState.Id.Location, ctx);
                 }
-                
+
                 ctx.ThrowIfCancellationRequested();
             }
         }
@@ -122,6 +126,7 @@ public sealed class WatcherStateCacheTimedHostedService(
             logger.LogError(ex, "Watcher State Cache Timed Hosted Service execution has crashed.");
         }
     }
+
 
     private void Dispose(bool disposing)
     {

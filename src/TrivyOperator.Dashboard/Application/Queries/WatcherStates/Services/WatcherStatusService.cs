@@ -1,5 +1,4 @@
-﻿using k8s.Models;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
@@ -13,7 +12,7 @@ using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 namespace TrivyOperator.Dashboard.Application.Queries.WatcherStates.Services;
 
 public class WatcherStatusService(
-    ICache<ResourceLocation, WatcherStateInfo> cache,
+    ICache<WatcherId, WatcherStateInfo> cache,
     IOptions<WatchersOptions> options,
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatchers,
     IEnumerable<INamespacedWatcherRegistry> namespacedWatchers,

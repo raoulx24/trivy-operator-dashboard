@@ -3,14 +3,13 @@ using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Models;
-using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Internals;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Services;
 
 public class WatcherStateEventProcessor<TResource, TKey>(
-    ICache<ResourceLocation, WatcherStateInfo> cache,
+    ICache<WatcherId, WatcherStateInfo> cache,
     ILogger<WatcherStateEventProcessor<TResource, TKey>> logger
 ) : IKubernetesEventProcessor<TResource, TKey>
     where TResource : class, IEntity<TKey>
@@ -61,34 +60,33 @@ public class WatcherStateEventProcessor<TResource, TKey>(
 
     private void ProcessGreenEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
-        WatcherStateInfo watcherStateInfo = new()
-        {
-            Key = kubernetesEvent.Key,
-            WatchedKubernetesObjectType = typeof(TResource),
-            LastException = null,
-            LastEventMoment = DateTime.UtcNow,
-            Status = WatcherStateStatus.Green,
-            EventsGauge = eventsGauge.GetValue(kubernetesEvent.Key),
-        };
+        WatcherId id = new(typeof(TResource), kubernetesEvent.Key); 
+        WatcherStateInfo watcherStateInfo = new(
+            Id: id,
+            Status: WatcherStateStatus.Green,
+            LastException: null,
+            LastEventMoment: DateTime.UtcNow,
+            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));
 
-        cache[kubernetesEvent.Key] = watcherStateInfo;
+        cache[id] = watcherStateInfo;
     }
 
     private void ProcessRedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
-        WatcherStateInfo watcherStateInfo = new()
-        {
-            Key = kubernetesEvent.Key,
-            WatchedKubernetesObjectType = typeof(TResource),
-            LastException = kubernetesEvent.Exception,
-            LastEventMoment = DateTime.UtcNow,
-            Status = WatcherStateStatus.Red,
-            EventsGauge = eventsGauge.GetValue(kubernetesEvent.Key),
-        };
+        WatcherId id = new(typeof(TResource), kubernetesEvent.Key);
+        WatcherStateInfo watcherStateInfo = new(
+            Id: id,
+            Status: WatcherStateStatus.Red,
+            LastException: kubernetesEvent.Exception,
+            LastEventMoment: DateTime.UtcNow,
+            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));
 
-        cache[kubernetesEvent.Key] = watcherStateInfo;
+        cache[id] = watcherStateInfo;
     }
 
-    private void ProcessFlushedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent) =>
-        cache.TryRemove(kubernetesEvent.Key, out _);
+    private void ProcessFlushedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
+    {
+        WatcherId id = new(typeof(TResource), kubernetesEvent.Key);
+        cache.TryRemove(id, out _);
+    }
 }

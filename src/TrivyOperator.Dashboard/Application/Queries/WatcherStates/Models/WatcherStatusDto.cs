@@ -34,21 +34,23 @@ public class RecreateWatcherResponse
 public static class WatcherStatusExtensions
 {
     public static WatcherStatusDto ToWatcherStatusDto(this WatcherStateInfo? watcherStateInfo) =>
-        watcherStateInfo == null ? new WatcherStatusDto() : new WatcherStatusDto
-        {
-            KubernetesObjectType = watcherStateInfo.WatchedKubernetesObjectType.Name,
-            ContextName = watcherStateInfo.Key.ContextName.IsUnset
-                ? string.Empty
-                : watcherStateInfo.Key.ContextName.Value,
-            NamespaceName = watcherStateInfo.Key.NamespaceName.IsClusterScoped
-                ? string.Empty
-                : watcherStateInfo.Key.NamespaceName.Value,
-            Status = watcherStateInfo.Status.ToString(),
-            MitigationMessage = GetMitigationMessage(watcherStateInfo),
-            LastException = watcherStateInfo.LastException?.Message ?? string.Empty,
-            LastEventMoment = watcherStateInfo.LastEventMoment,
-            EventsGauge = watcherStateInfo.EventsGauge ?? -1,
-        };
+        watcherStateInfo is null
+            ? new WatcherStatusDto()
+            : new WatcherStatusDto
+            {
+                KubernetesObjectType = watcherStateInfo.Id.WatchedKubernetesObjectType.Name,
+                ContextName = watcherStateInfo.Id.Location.ContextName.IsUnset
+                    ? string.Empty
+                    : watcherStateInfo.Id.Location.ContextName.Value,
+                NamespaceName = watcherStateInfo.Id.Location.NamespaceName.IsClusterScoped
+                    ? string.Empty
+                    : watcherStateInfo.Id.Location.NamespaceName.Value,
+                Status = watcherStateInfo.Status.ToString(),
+                MitigationMessage = GetMitigationMessage(watcherStateInfo),
+                LastException = watcherStateInfo.LastException?.Message ?? string.Empty,
+                LastEventMoment = watcherStateInfo.LastEventMoment,
+                EventsGauge = watcherStateInfo.EventsGauge ?? -1,
+            };
 
     private static string GetMitigationMessage(WatcherStateInfo watcherStateInfo)
     {
