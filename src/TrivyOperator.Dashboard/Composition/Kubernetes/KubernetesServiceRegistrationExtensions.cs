@@ -242,8 +242,8 @@ public static class KubernetesServiceRegistrationExtensions
 
         // kubernetes watcher registry
         services.AddSingleton<
-            IClusterScopedWatcherRegistry,
-            ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace>>();
+            IClusterScopedWatcherRegistry<KubernetesNamespace, Uid>,
+            ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace, KubernetesNamespace, Uid>>();
 
         // // watcher
         // services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<V1NamespaceList, V1Namespace>>();

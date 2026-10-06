@@ -59,9 +59,14 @@ public class NamespacedWatcherLifecycleProcessor(
             return;
         }
 
+        ResourceLocation namespacedEventKey = new(
+            kubernetesEvent.Key.ContextName,
+            new NamespaceName(kubernetesEvent.Resource.Name.Value)
+        );
+
         foreach (INamespacedWatcherRegistry namespacedWatcher in namespacedWatcherRegistries)
         {
-            namespacedWatcher.StartWatcher(kubernetesEvent.Key, ctx);
+            namespacedWatcher.StartWatcher(namespacedEventKey, ctx);
         }
     }
 

@@ -11,7 +11,7 @@ public class ClusterScopedKubernetesEventPipelineStarter<TResource, TKey>(
     IKubernetesEventDispatcher<TResource, TKey> kubernetesEventDispatcher,
     IKubernetesBackgroundQueue<TResource, TKey> queue,
     IKubernetesContextResolver contextResolver,
-    IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatcherRegistries,
+    IClusterScopedWatcherRegistry<TResource, TKey> clusterScopedWatcherRegistry,
     ILogger<KubernetesEventPipelineStarter<TResource, TKey>> logger
 ) : KubernetesEventPipelineStarter<TResource, TKey>(kubernetesEventDispatcher, queue, logger)
     where TResource : class, IEntity<TKey>
@@ -25,9 +25,6 @@ public class ClusterScopedKubernetesEventPipelineStarter<TResource, TKey>(
 
         ResourceLocation resourceLocation = new(contextName, new NamespaceName());
         base.StartPipeline(ctx);
-        foreach (IClusterScopedWatcherRegistry clusterScopedWatcherRegistry in clusterScopedWatcherRegistries)
-        {
-            clusterScopedWatcherRegistry.StartWatcher(resourceLocation, ctx);    
-        }
+        clusterScopedWatcherRegistry.StartWatcher(resourceLocation, ctx);    
     }
 }

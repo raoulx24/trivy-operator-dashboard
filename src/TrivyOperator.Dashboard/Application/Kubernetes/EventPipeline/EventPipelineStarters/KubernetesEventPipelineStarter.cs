@@ -15,7 +15,7 @@ public class KubernetesEventPipelineStarter<TResource, TKey>(
 {
     public override void StartPipeline(CancellationToken ctx = default)
     {
-        logger.LogInformation("Starting Kubernetes Events Pipeline for {kubernetesObjectType}", nameof(TResource));
+        logger.LogInformation("Starting Kubernetes Events Pipeline for {kubernetesObjectType}", typeof(TResource).Name);
         
         base.StartPipeline(ctx);
         kubernetesEventDispatcher.StartEventsProcessing(ctx);   

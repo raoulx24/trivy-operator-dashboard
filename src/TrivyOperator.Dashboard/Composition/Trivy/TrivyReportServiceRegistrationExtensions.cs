@@ -668,8 +668,8 @@ public static class TrivyReportServiceRegistrationExtensions
 
                 // kubernetes watcher registry
                 services.AddSingleton<
-                    IClusterScopedWatcherRegistry,
-                    ClusterScopedWatcherRegistry<CustomResourceList<TReportCr>, TReportCr>>();
+                    IClusterScopedWatcherRegistry<TReport, TId>,
+                    ClusterScopedWatcherRegistry<CustomResourceList<TReportCr>, TReportCr, TReport, TId>>();
                 
                 break;
 
