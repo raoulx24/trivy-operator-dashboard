@@ -46,7 +46,6 @@ export class SbomReportsComponent extends DataPageBase<SbomReportImageMinimalDto
   selectedImageId?: string;
   selectedSbomReportImageMinimalDto?: SbomReportImageMinimalDto;
 
-  queryNamespaceName?: string;
   queryDigest?: string;
   isPreselected: boolean = false;
 
@@ -72,10 +71,9 @@ export class SbomReportsComponent extends DataPageBase<SbomReportImageMinimalDto
   ngOnInit() {
     const state = history.state;
 
-    this.queryNamespaceName = state.namespaceName;
     this.queryDigest = state.digest;
 
-    this.isPreselected = !!(this.queryNamespaceName && this.queryDigest);
+    this.isPreselected = !!this.queryDigest;
 
     super.initialize();
   }
