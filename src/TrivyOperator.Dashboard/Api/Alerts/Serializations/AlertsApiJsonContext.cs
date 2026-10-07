@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Application.Queries.Alerts.Models;
+using TrivyOperator.Dashboard.Application.Alerts.Queries.Models;
 
 namespace TrivyOperator.Dashboard.Api.Alerts.Serializations;
 

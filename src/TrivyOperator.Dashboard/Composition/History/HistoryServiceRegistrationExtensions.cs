@@ -4,12 +4,12 @@ using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventPublisher;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventPublisher.Abstractions;
+using TrivyOperator.Dashboard.Application.History.Queries.History.Services;
+using TrivyOperator.Dashboard.Application.History.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.EventProcessors;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.Queries.History.Services;
-using TrivyOperator.Dashboard.Application.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Entities;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;

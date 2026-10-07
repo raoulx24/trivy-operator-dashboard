@@ -1,5 +1,5 @@
-﻿using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services;
-using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.AppVersions.Queries.Services;
+using TrivyOperator.Dashboard.Application.AppVersions.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Releases.Abstractions;
 using TrivyOperator.Dashboard.Application.Releases.Options;
 using TrivyOperator.Dashboard.Application.Releases.Services;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
-using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Models;
 
 namespace TrivyOperator.Dashboard.Api.Kubernetes.Controllers;

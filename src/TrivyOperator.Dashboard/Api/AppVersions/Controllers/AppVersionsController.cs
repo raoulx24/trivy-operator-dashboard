@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.Queries.AppVersions.Models;
-using TrivyOperator.Dashboard.Application.Queries.AppVersions.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.AppVersions.Queries.Models;
+using TrivyOperator.Dashboard.Application.AppVersions.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.Releases.Entities;
 
 namespace TrivyOperator.Dashboard.Api.AppVersions.Controllers;

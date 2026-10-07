@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Application.Queries.Severities.Models;
+using TrivyOperator.Dashboard.Application.Trivy.Queries.Severities.Models;
 
 namespace TrivyOperator.Dashboard.Api.Trivy.Serializations;
 

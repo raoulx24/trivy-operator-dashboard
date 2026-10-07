@@ -1,0 +1,35 @@
+﻿using System.Reflection;
+using TrivyOperator.Dashboard.Application.AppVersions.Queries.Models;
+using TrivyOperator.Dashboard.Application.AppVersions.Queries.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Domain.Releases.Entities;
+using TrivyOperator.Dashboard.Domain.Releases.ValueObjects;
+
+namespace TrivyOperator.Dashboard.Application.AppVersions.Queries.Services;
+
+public class AppVersionsService(ICache<ReleaseId, Release> cache) : IAppVersionsService
+{
+    public Task<ReleaseDto?> GetTrivyDashboardLatestRelease()
+    {
+        Release? release = cache.Select(x => x.Value).FirstOrDefault(x => x.IsLatest);
+        return Task.FromResult(release?.ToReleaseDto());
+    }
+
+    public Task<IList<ReleaseDto>> GetTrivyDashboardReleases()
+    {
+        List<ReleaseDto> releases = [.. cache.Select(x => x.Value.ToReleaseDto()),];
+        return Task.FromResult<IList<ReleaseDto>>(releases);
+    }
+
+    public AppVersion GetCurrentVersion()
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+
+        return new AppVersion
+        {
+            FileVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0",
+            InformationalVersion =
+                assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0",
+        };
+    }
+}

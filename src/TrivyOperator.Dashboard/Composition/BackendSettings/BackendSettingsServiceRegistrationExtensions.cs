@@ -1,9 +1,9 @@
-﻿using TrivyOperator.Dashboard.Application.FileRepository.Options;
+﻿using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Options;
+using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Services;
+using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.FileRepository.Options;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Kubernetes.Options;
-using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Options;
-using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services;
-using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Options;

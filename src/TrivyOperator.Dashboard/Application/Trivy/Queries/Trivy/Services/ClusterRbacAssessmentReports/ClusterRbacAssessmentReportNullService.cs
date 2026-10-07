@@ -1,0 +1,20 @@
+﻿using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
+using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterRbacAssessmentReports.Abstractions;
+
+namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterRbacAssessmentReports;
+
+public class ClusterRbacAssessmentReportNullService : IClusterRbacAssessmentReportService
+{
+    public Task<ClusterRbacAssessmentReportDto?> GetClusterRbacAssessmentReportDtoByUid(
+        string uid,
+        CancellationToken ctx = default) 
+        => Task.FromResult<ClusterRbacAssessmentReportDto?>(null);
+
+    public Task<IEnumerable<ClusterRbacAssessmentReportDto>>
+        GetClusterRbacAssessmentReportDtos(CancellationToken ctx = default)
+        => Task.FromResult<IEnumerable<ClusterRbacAssessmentReportDto>>([]);
+
+    public Task<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>>
+        GetClusterRbacAssessmentReportDenormalizedDtos(CancellationToken ctx = default) 
+        => Task.FromResult<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>>([]);
+}

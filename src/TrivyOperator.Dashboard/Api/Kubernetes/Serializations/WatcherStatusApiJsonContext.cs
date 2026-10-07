@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Application.Queries.WatcherStates.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.Queries.WatcherStates.Models;
 
 namespace TrivyOperator.Dashboard.Api.Kubernetes.Serializations;
 

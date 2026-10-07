@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Models;
-using TrivyOperator.Dashboard.Application.Queries.TrivyDependencies.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.TrivyDependencies.Queries.Models;
+using TrivyOperator.Dashboard.Application.TrivyDependencies.Queries.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 

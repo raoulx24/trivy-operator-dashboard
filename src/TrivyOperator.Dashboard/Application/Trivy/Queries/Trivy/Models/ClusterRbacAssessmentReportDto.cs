@@ -1,0 +1,31 @@
+﻿namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
+
+public sealed record ClusterRbacAssessmentReportDto(
+    string Uid,
+    string ResourceName,
+    int CriticalCount,
+    int HighCount,
+    int MediumCount,
+    int LowCount,
+    DateTime UpdateTimestamp,
+    IReadOnlyList<SecurityAssessmentReportDetailDto> Details
+);
+
+public sealed record ClusterRbacAssessmentReportDenormalizedDto(
+    string Uid,
+    string ResourceName,
+    int CriticalCount,
+    int HighCount,
+    int MediumCount,
+    int LowCount,
+    DateTime UpdateTimestamp,
+
+    string Category,
+    string CheckId,
+    string Description,
+    IReadOnlyList<string> Messages,
+    string Remediation,
+    int SeverityId,
+    bool Success,
+    string Title
+);

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Namespaces.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Api.Kubernetes.Controllers;
 

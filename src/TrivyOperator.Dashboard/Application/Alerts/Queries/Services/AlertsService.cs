@@ -1,0 +1,16 @@
+﻿using TrivyOperator.Dashboard.Application.Alerts.Models;
+using TrivyOperator.Dashboard.Application.Alerts.Queries.Models;
+using TrivyOperator.Dashboard.Application.Alerts.Queries.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+
+namespace TrivyOperator.Dashboard.Application.Alerts.Queries.Services;
+
+public class AlertsService(ICache<AlertKey, Alert> cache) : IAlertsService
+{
+    public Task<IEnumerable<AlertDto>> GetAlertDtos()
+    {
+        AlertDto[] result = [.. cache.Select(kvp => kvp.Value.ToAlertDto(kvp.Key.Emitter)),];
+
+        return Task.FromResult<IEnumerable<AlertDto>>(result);
+    }
+}

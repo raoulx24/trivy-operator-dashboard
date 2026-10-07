@@ -7,11 +7,11 @@ using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipeline
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.HostedServices;
+using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Contexts;
+using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Contexts.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Namespaces.Services;
+using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Namespaces.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
-using TrivyOperator.Dashboard.Application.Queries.Contexts;
-using TrivyOperator.Dashboard.Application.Queries.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services;
-using TrivyOperator.Dashboard.Application.Queries.Namespaces.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.EventPipelineStarters.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;

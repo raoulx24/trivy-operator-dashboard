@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Models;
-using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Models;
+using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Api.BackendSettings.Controllers;
 

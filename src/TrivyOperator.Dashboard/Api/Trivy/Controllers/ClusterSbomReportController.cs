@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TrivyOperator.Dashboard.Application.Queries.Trivy.Models;
-using TrivyOperator.Dashboard.Application.Queries.Trivy.Services.ClusterSbomReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
+using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterSbomReports.Abstractions;
 
 namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 

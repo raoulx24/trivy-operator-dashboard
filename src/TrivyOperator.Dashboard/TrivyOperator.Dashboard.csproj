@@ -59,18 +59,6 @@
         </None>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Application\FileRepository\" />
-      <Folder Include="Application\Kubernetes\Contexts\" />
-      <Folder Include="Application\Kubernetes\EventPipeline\" />
-      <Folder Include="Application\Kubernetes\WatcherRegistries\" />
-      <Folder Include="Application\Metrics\" />
-      <Folder Include="Application\Shared\Cache\" />
-      <Folder Include="Application\Shared\EventProcessors\" />
-      <Folder Include="Infrastructure\BackgroundQueues\Abstractions\" />
-      <Folder Include="Infrastructure\History\Services\" />
-    </ItemGroup>
-
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
         <!-- Ensure Node.js is installed -->
         <Exec Command="node --version" ContinueOnError="true">

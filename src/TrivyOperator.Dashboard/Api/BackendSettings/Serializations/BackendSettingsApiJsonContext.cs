@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
-using TrivyOperator.Dashboard.Application.Queries.BackendSettings.Models;
+using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Models;
 
 namespace TrivyOperator.Dashboard.Api.BackendSettings.Serializations;
 
