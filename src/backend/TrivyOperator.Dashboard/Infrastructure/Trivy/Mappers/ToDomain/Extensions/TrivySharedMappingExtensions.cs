@@ -3,7 +3,6 @@ using k8s.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
@@ -44,7 +43,7 @@ public static class TrivySharedMappingExtensions
                 : string.Empty;
     }
 
-    public static ImageMeta ToImageMeta(ArtifactCr artifact, RegistryCr? registry)
+    public static ImageMeta ToImageMeta(this ArtifactCr artifact, RegistryCr? registry)
     {
         return new ImageMeta(
             new ImageRegistry(registry?.Server),
@@ -52,12 +51,12 @@ public static class TrivySharedMappingExtensions
             new ImageTag(artifact.Tag));
     }
     
-    public static Digest ToDigest(ArtifactCr artifact)
+    public static Digest ToDigest(this ArtifactCr artifact)
     {
         return new Digest(artifact.Digest);
     }
 
-    public static Scanner ToScanner(ScannerCr? scanner)
+    public static Scanner ToScanner(this ScannerCr? scanner)
     {
         return new Scanner(
             new ScannerName(scanner?.Name),
@@ -65,7 +64,7 @@ public static class TrivySharedMappingExtensions
             new ScannerVersion(scanner?.Version));
     }
     
-    internal static SeverityCounters ToSeverityCounters(SummaryCr? cr)
+    internal static SeverityCounters ToSeverityCounters(this SummaryCr? cr)
     {
         return new SeverityCounters(
             criticalCount: cr?.CriticalCount ?? 0,
@@ -99,31 +98,6 @@ public static class TrivySharedMappingExtensions
         throw new InvalidOperationException("None of the provided timestamps were set.");
     }
     
-    public static IReadOnlyList<TReportOccurrence> MergeOccurrences<TReportOccurrence>(
-        TReportOccurrence current,
-        IReadOnlyList<TReportOccurrence>? existing,
-        bool currentWins)
-        where TReportOccurrence : IReportOccurrence
-    {
-        if (existing is null)
-            return [current,];
-
-        List<TReportOccurrence> result = [.. existing,];
-
-        int index = result.FindIndex(x => x.Metadata.Uid == current.Metadata.Uid);
-
-        if (index < 0)
-        {
-            result.Add(current);
-        }
-        else if (currentWins)
-        {
-            result[index] = current;
-        }
-
-        return result;
-    }
-
     public static bool IsOtherNewer<TId>(ITrivyReport<TId>? other, Timestamp currentLastSeen)
         => other?.LastSeenAt > currentLastSeen;
 

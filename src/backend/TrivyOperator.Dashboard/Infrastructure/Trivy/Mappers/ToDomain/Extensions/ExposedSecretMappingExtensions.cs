@@ -15,8 +15,8 @@ public static class ExposedSecretMappingExtensions
         // vo layer
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
         ContainerName container = cr.Metadata.ToContainerName();
-        ImageMeta imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
-        Digest digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
+        ImageMeta imageMeta = cr.Report.Artifact.ToImageMeta(cr.Report.Registry);
+        Digest digest =  cr.Report.Artifact.ToDigest();
 
         Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,
@@ -37,16 +37,13 @@ public static class ExposedSecretMappingExtensions
         {
             return existing with
             {
-                Occurrences = TrivySharedMappingExtensions.MergeOccurrences(
-                    occurrence,
-                    existing.Occurrences,
-                    currentWins: false),
+                Occurrences = occurrence.MergeInto(existing.Occurrences),
             };
         }
         
-        SeverityCounters severityCounters = TrivySharedMappingExtensions.ToSeverityCounters(cr.Report.Summary);
-        Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
-        IReadOnlyList<ReportImageOccurrence> occurrences = TrivySharedMappingExtensions.MergeOccurrences(occurrence, existing?.Occurrences, currentWins: true);
+        SeverityCounters severityCounters = cr.Report.Summary.ToSeverityCounters();
+        Scanner scanner = cr.Report.Scanner.ToScanner();
+        IReadOnlyList<ReportImageOccurrence> occurrences = occurrence.MergeInto(existing?.Occurrences);
 
         // core esr
         List<Secret> secrets = [.. cr.Report.Secrets.Select(ToSecret),];

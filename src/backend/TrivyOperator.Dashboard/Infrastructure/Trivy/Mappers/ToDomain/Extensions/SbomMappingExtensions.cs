@@ -16,8 +16,8 @@ public static class SbomMappingExtensions
         // vo layer
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
         ContainerName container = cr.Metadata.ToContainerName();
-        ImageMeta imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
-        Digest digest =  TrivySharedMappingExtensions.ToDigest(cr.Report.Artifact);
+        ImageMeta imageMeta = cr.Report.Artifact.ToImageMeta(cr.Report.Registry);
+        Digest digest =  cr.Report.Artifact.ToDigest();
         SbomMetadata sbomMetadata = ToSbomMetadata(cr.Report.Components);
 
         Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
@@ -39,16 +39,13 @@ public static class SbomMappingExtensions
         {
             return existing with
             {
-                Occurrences = TrivySharedMappingExtensions.MergeOccurrences(
-                    occurrence,
-                    existing.Occurrences,
-                    currentWins: false),
+                Occurrences = occurrence.MergeInto(existing.Occurrences),
             };
         }
         
         SbomSummary summary = cr.Report.Summary.ToSbomSummary();
-        Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
-        IReadOnlyList<ReportImageOccurrence> occurrences = TrivySharedMappingExtensions.MergeOccurrences(occurrence, existing?.Occurrences, currentWins: true);
+        Scanner scanner = cr.Report.Scanner.ToScanner();
+        IReadOnlyList<ReportImageOccurrence> occurrences = occurrence.MergeInto(existing?.Occurrences);
 
         // core sbom
         List<ComponentCr> allComponents = CollectAllComponents(cr.Report);
@@ -91,8 +88,8 @@ public static class SbomMappingExtensions
         // vo layer
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
         ContainerName container = cr.Metadata.ToContainerName();
-        ImageMeta imageMeta = TrivySharedMappingExtensions.ToImageMeta(cr.Report.Artifact, cr.Report.Registry);
-        Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
+        ImageMeta imageMeta = cr.Report.Artifact.ToImageMeta(cr.Report.Registry);
+        Scanner scanner = cr.Report.Scanner.ToScanner();
 
         SbomSummary summary = cr.Report.Summary.ToSbomSummary();
         SbomMetadata sbomMetadata = ToSbomMetadata(cr.Report.Components);
