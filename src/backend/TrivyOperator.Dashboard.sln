@@ -9,15 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		global.json = global.json
-		..\.gitattributes = ..\.gitattributes
-		..\.gitignore = ..\.gitignore
-		..\CONTRIBUTING.md = ..\CONTRIBUTING.md
-		..\LICENSE.md = ..\LICENSE.md
-		..\README.md = ..\README.md
-		..\DEV_NOTES.md = ..\DEV_NOTES.md
-		..\RELEASE_NOTES.md = ..\RELEASE_NOTES.md
-		..\CODE_OF_CONDUCT.md = ..\CODE_OF_CONDUCT.md
-		..\SECURITY.md = ..\SECURITY.md
+		.gitignore = .gitignore
 	EndProjectSection
 EndProject
 Global
