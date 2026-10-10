@@ -2,10 +2,12 @@
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-public interface ITrivyReport<out TId> : IEntity<TId>, ITrivyReport
+public interface ITrivyReport<TSelf, out TId> : IEntity<TId>, ITrivyReport
+where TSelf : ITrivyReport<TSelf, TId>
 {
+    TSelf MergeFrom(TSelf other);
+
+    bool IsOtherNewer(TSelf other);
 }
 
-public interface ITrivyReport : IEntity
-{
-}
+public interface ITrivyReport : IEntity;

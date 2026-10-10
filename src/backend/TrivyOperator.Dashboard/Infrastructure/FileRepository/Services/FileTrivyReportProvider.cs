@@ -15,7 +15,7 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
     IFileTrivyReportService<TTrivyReport, TKey> reportService,
     ILogger<FileTrivyReportProvider<TTrivyReport, TKey>> logger
 ) : IResourceProvider<TTrivyReport, TKey>
-    where TTrivyReport : class, ITrivyReport<TKey>
+    where TTrivyReport : class, ITrivyReport<TTrivyReport, TKey>
     where TKey : notnull
 {
     private readonly SemaphoreSlim refreshLock = new(1, 1);

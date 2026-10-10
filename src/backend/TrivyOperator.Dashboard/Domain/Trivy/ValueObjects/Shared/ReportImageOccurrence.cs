@@ -28,3 +28,23 @@ public sealed record ReportImageOccurrence(ReportMetadata Metadata, ContainerNam
         return result;
     }
 }
+
+public static class ReportImageOccurrenceCollectionExtensions
+{
+    public static IReadOnlyList<ReportImageOccurrence> MergeInto(
+        this IReadOnlyList<ReportImageOccurrence> current,
+        IReadOnlyList<ReportImageOccurrence>? others)
+    {
+        if (others is null || others.Count == 0)
+            return current;
+
+        IReadOnlyList<ReportImageOccurrence> result = current;
+
+        foreach (ReportImageOccurrence occurrence in others)
+        {
+            result = occurrence.MergeInto(result);
+        }
+
+        return result;
+    }
+}

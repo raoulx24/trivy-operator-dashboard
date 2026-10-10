@@ -26,4 +26,8 @@ public readonly record struct Timestamp : IComparable<Timestamp>
     public static bool operator >(Timestamp left, Timestamp right) => left.Value > right.Value;
 
     public static bool operator <(Timestamp left, Timestamp right) => left.Value < right.Value;
+    
+    public static bool operator >=(Timestamp left, Timestamp right) => left.Value >= right.Value;
+
+    public static bool operator <=(Timestamp left, Timestamp right) => left.Value <= right.Value;
 }

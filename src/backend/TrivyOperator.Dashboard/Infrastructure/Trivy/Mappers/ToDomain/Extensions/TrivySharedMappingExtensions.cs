@@ -98,7 +98,8 @@ public static class TrivySharedMappingExtensions
         throw new InvalidOperationException("None of the provided timestamps were set.");
     }
     
-    public static bool IsOtherNewer<TId>(ITrivyReport<TId>? other, Timestamp currentLastSeen)
+    public static bool IsOtherNewer<TSelf, TId>(ITrivyReport<TSelf, TId>? other, Timestamp currentLastSeen)
+    where TSelf : ITrivyReport<TSelf, TId>
         => other?.LastSeenAt > currentLastSeen;
 
     private static IReadOnlyList<OwnerReference> ToOwnerReferences(this V1ObjectMeta metadata)

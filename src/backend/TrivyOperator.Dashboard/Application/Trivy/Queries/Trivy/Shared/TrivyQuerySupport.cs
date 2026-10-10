@@ -12,7 +12,7 @@ public static class TrivyQuerySupport
         IResourceProvider<TResource, TId> resourceProvider,
         string? namespaceName,
         CancellationToken ctx = default)
-        where TResource : ITrivyReport<TId>
+        where TResource : ITrivyReport<TResource, TId>
     {
         IReadOnlyList<TResource> summaries =
             await resourceProvider.GetResourceSummaries(ctx);
@@ -36,7 +36,7 @@ public static class TrivyQuerySupport
             string? namespaceName,
             string? excludedSeverities,
             CancellationToken ctx = default)
-        where TResource : IHasSeverityCounters, ITrivyReport<TId>
+        where TResource : IHasSeverityCounters, ITrivyReport<TResource, TId>
     {
         IReadOnlySet<int>? includedSeverityIds = null;
 
@@ -93,7 +93,7 @@ public static class TrivyQuerySupport
         IResourceProvider<TResource, Digest> resourceProvider,
         string uid,
         CancellationToken ctx = default)
-    where TResource : class, IImageReport
+    where TResource : class, IImageReport<TResource>
     {
         IReadOnlyList<TResource> values =
             await resourceProvider.GetResourceSummaries(ctx);
@@ -138,7 +138,7 @@ public static class TrivyQuerySupport
         IResourceProvider<TResource, Uid> resourceProvider,
         CancellationToken ctx = default
     )
-        where TResource : IResourceReport
+        where TResource : IResourceReport<TResource>
     {
         IReadOnlyList<TResource> resources = await resourceProvider.GetResourceSummaries(ctx);
 
@@ -151,7 +151,7 @@ public static class TrivyQuerySupport
         IResourceProvider<TResource, Digest> resourceProvider,
         CancellationToken ctx = default
     )
-        where TResource : IImageReport
+        where TResource : IImageReport<TResource>
     {
         IReadOnlyList<TResource> resources = await resourceProvider.GetResourceSummaries(ctx);
 

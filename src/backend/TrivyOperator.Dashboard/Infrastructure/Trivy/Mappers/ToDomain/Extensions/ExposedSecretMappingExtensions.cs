@@ -10,51 +10,54 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.ToDomain.Extensio
 
 public static class ExposedSecretMappingExtensions
 {
-    public static ExposedSecretReport ToVExposedSecretReport(this ExposedSecretReportCr cr, ExposedSecretReport? existing)
+    public static ExposedSecretReport ToVExposedSecretReport(
+        this ExposedSecretReportCr cr,
+        ExposedSecretReport? existing)
     {
-        // vo layer
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
         ContainerName container = cr.Metadata.ToContainerName();
         ImageMeta imageMeta = cr.Report.Artifact.ToImageMeta(cr.Report.Registry);
-        Digest digest =  cr.Report.Artifact.ToDigest();
+        Digest digest = cr.Report.Artifact.ToDigest();
 
         Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,
             cr.Metadata.CreationTimestamp,
-            DateTime.UtcNow
-        );
-        
-        ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, container, imageMeta);
-        
-        // check if existing has same digest
+            DateTime.UtcNow);
+
+        ReportImageOccurrence occurrence = new(metadata, container, imageMeta);
+
+        // Different digests represent different report identities.
         if (existing?.ImageDigest != digest)
-        {
             existing = null;
+
+        // Existing report wins: preserve its expensive secret details.
+        if (existing is not null && existing.LastSeenAt > lastSeenAt)
+        {
+            ExposedSecretReport incomingHeader = existing with
+            {
+                Occurrences = [occurrence],
+                LastSeenAt = lastSeenAt,
+                Secrets = [],
+            };
+
+            return existing.MergeFrom(incomingHeader);
         }
 
-        // existing is newer -> keep it, only update occurrences
-        if (existing is not null && TrivySharedMappingExtensions.IsOtherNewer(existing, lastSeenAt))
-        {
-            return existing with
-            {
-                Occurrences = occurrence.MergeInto(existing.Occurrences),
-            };
-        }
-        
+        // Incoming report wins: materialize secret details.
         SeverityCounters severityCounters = cr.Report.Summary.ToSeverityCounters();
         Scanner scanner = cr.Report.Scanner.ToScanner();
-        IReadOnlyList<ReportImageOccurrence> occurrences = occurrence.MergeInto(existing?.Occurrences);
 
-        // core esr
-        List<Secret> secrets = [.. cr.Report.Secrets.Select(ToSecret),];
+        List<Secret> secrets = [.. cr.Report.Secrets.Select(ToSecret)];
 
-        return new ExposedSecretReport(
-            occurrences,
+        ExposedSecretReport incoming = new(
+            [occurrence,],
             digest,
             lastSeenAt,
             scanner,
             severityCounters,
             secrets);
+
+        return existing is null ? incoming : incoming.MergeFrom(existing);
     }
     
     private static Rule ToRule(this SecretCr cr)

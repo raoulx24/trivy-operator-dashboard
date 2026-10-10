@@ -6,7 +6,6 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 
@@ -15,7 +14,7 @@ public class InMemoryImageReportCache<TResource>(
     ICacheEntryBuilder<TResource, Digest> cacheEntryBuilder,
     IKubernetesContextResolver contextResolver,
     ILogger<InMemoryImageReportCache<TResource>> logger)
-    : InMemoryEntityCache<TResource, Digest>(cache, cacheEntryBuilder, contextResolver, logger)
+    : InMemoryTrivyReportCacheInMemoryEntityCache<TResource, Digest>(cache, cacheEntryBuilder, contextResolver, logger)
     where TResource: class, IImageReport<TResource>
 {
     public override Task ClearByNamespace(NamespaceName ns, CancellationToken ctx = default)

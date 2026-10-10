@@ -122,7 +122,7 @@ public static class TrivyReportServiceRegistrationExtensions
         this IServiceCollection services,
         IConfiguration configuration)
         where TReportCr : CustomResource, new()
-        where TReport : class, ITrivyReport<TId>
+        where TReport : class, ITrivyReport<TReport, TId>
         where TId : notnull
     {
         TrivyReportCompositionMode state = TrivyReportCompositionResolver.Resolve<TReport>(configuration);
@@ -159,7 +159,7 @@ public static class TrivyReportServiceRegistrationExtensions
     
     private static void AddTrivyReportDefaultContext<TReportCr, TReport, TId>(this IServiceCollection services)
         where TReportCr : CustomResource, new()
-        where TReport : class, ITrivyReport<TId>
+        where TReport : class, ITrivyReport<TReport, TId>
         where TId : notnull
     {
         // mapper service
@@ -209,7 +209,7 @@ public static class TrivyReportServiceRegistrationExtensions
     
     private static void AddTrivyReportMultiContext<TReportCr, TReport, TId>(this IServiceCollection services)
         where TReportCr : CustomResource, new()
-        where TReport : class, ITrivyReport<TId>
+        where TReport : class, ITrivyReport<TReport, TId>
         where TId : notnull
     {
         // mapper service
@@ -242,7 +242,7 @@ public static class TrivyReportServiceRegistrationExtensions
     
     private static void AddTrivyReportFileRepo<TReportCr, TReport, TId>(this IServiceCollection services)
         where TReportCr : CustomResource, new()
-        where TReport : class, ITrivyReport<TId>
+        where TReport : class, ITrivyReport<TReport, TId>
         where TId : notnull
     {
         // mapper service
@@ -623,7 +623,7 @@ public static class TrivyReportServiceRegistrationExtensions
     
     private static void AddReportKubernetesPipelineServices<TReportCr, TReport, TId>(this IServiceCollection services)
         where TReportCr : CustomResource, new()
-        where TReport : class, ITrivyReport<TId>
+        where TReport : class, ITrivyReport<TReport, TId>
         where TId : notnull
     {
         switch (typeof(TReport).Name)
@@ -849,7 +849,7 @@ public static class TrivyReportServiceRegistrationExtensions
     
     private static void AddReportKubernetesInfraServices<TReportCr, TReport, TId>(this IServiceCollection services)
         where TReportCr : CustomResource, new()
-        where TReport : ITrivyReport<TId>
+        where TReport : ITrivyReport<TReport, TId>
         where TId : notnull
     {
         switch (typeof(TReport).Name)
@@ -902,7 +902,7 @@ public static class TrivyReportServiceRegistrationExtensions
     // TODO: maybe use this style
     private static void Other_AddReportKubernetesPipelineServices<TReportCr, TReport, TId>(IServiceCollection services)
         where TReportCr : CustomResource, new()
-        where TReport : class, ITrivyReport<TId>
+        where TReport : class, ITrivyReport<TReport, TId>
         where TId : notnull
     {
         if (typeof(IClusterScopedTrivyReport).IsAssignableFrom(typeof(TReport)))

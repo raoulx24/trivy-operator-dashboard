@@ -25,4 +25,24 @@ public sealed record ExposedSecretReport(
     public ExposedSecretReport WithOccurrences(
         IReadOnlyList<ReportImageOccurrence> occurrences)
         => this with { Occurrences = occurrences };
+    
+    public ExposedSecretReport MergeFrom(ExposedSecretReport other)
+    {
+        if (ImageDigest != other.ImageDigest)
+            return this;
+
+        bool otherIsNewer = IsOtherNewer(other);
+
+        return this with
+        {
+            Occurrences = Occurrences.MergeInto(other.Occurrences),
+            LastSeenAt = otherIsNewer ? other.LastSeenAt : LastSeenAt,
+            Scanner = otherIsNewer ? other.Scanner : Scanner,
+            SeverityCounters = otherIsNewer ? other.SeverityCounters : SeverityCounters,
+            Secrets = otherIsNewer ? other.Secrets : Secrets,
+        };
+    }
+    
+    public bool IsOtherNewer(ExposedSecretReport other)
+        => other.LastSeenAt >= LastSeenAt;
 }

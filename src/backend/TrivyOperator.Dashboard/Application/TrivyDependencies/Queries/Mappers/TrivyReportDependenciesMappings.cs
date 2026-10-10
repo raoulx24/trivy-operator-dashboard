@@ -44,7 +44,7 @@ public static class TrivyReportDependenciesMappings
         };
     }
 
-    public static TrivyReportNode[] ToTrivyReportNodes(
+    private static TrivyReportNode[] ToTrivyReportNodes(
         this IEnumerable<IImageReport> reports)
     {
         return
@@ -97,7 +97,7 @@ public static class TrivyReportDependenciesMappings
         ];
     }
 
-    public static WorkloadsNode ToWorkloadsNode(
+    private static WorkloadsNode ToWorkloadsNode(
         this IEnumerable<IImageReport> reports,
         IReadOnlyList<ConfigAuditReport> configAuditReports)
     {
@@ -159,7 +159,7 @@ public static class TrivyReportDependenciesMappings
         };
     }
 
-    public static ConfigAuditNode ToConfigAuditNode(
+    private static ConfigAuditNode ToConfigAuditNode(
         this ConfigAuditReport report)
     {
         return new ConfigAuditNode
@@ -174,7 +174,7 @@ public static class TrivyReportDependenciesMappings
         };
     }
 
-    public static VrHistoryNode ToVrHistoryNode(
+    private static VrHistoryNode ToVrHistoryNode(
         this IEnumerable<SnapshotIndexEntry> snapshots)
     {
         VrHistoryEntryNode[] entries =
@@ -236,13 +236,14 @@ public static class TrivyReportDependenciesMappings
         };
     }
 
-    private static string GetReportId(IImageReport report) =>
-        report.Occurrences
-            .FirstOrDefault()
-            ?.Metadata
-            .Uid
-            .Value
-        ?? NewFrontendId();
+    private static string GetReportId<TReport>(IImageReport<TReport> report)
+        where TReport : IImageReport<TReport>
+        => report.Occurrences
+               .FirstOrDefault()
+               ?.Metadata
+               .Uid
+               .Value
+           ?? NewFrontendId();
 
     private static string NewFrontendId() =>
         Guid.NewGuid().ToString().ToLowerInvariant();

@@ -2,15 +2,14 @@
 
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-public interface IImageReport : ITrivyReport<Digest>
-{
-    Digest ImageDigest { get; }
-    IReadOnlyList<ReportImageOccurrence> Occurrences { get; }
-}
-
-public interface IImageReport<out TSelf>
-    : IImageReport
-    where TSelf : IImageReport<TSelf>
+public interface IImageReport<TSelf> : ITrivyReport<TSelf, Digest>, IImageReport
+where TSelf : IImageReport<TSelf>
 {
     TSelf WithOccurrences(IReadOnlyList<ReportImageOccurrence> occurrences);
+}
+
+public interface IImageReport : ITrivyReport
+{
+    IReadOnlyList<ReportImageOccurrence> Occurrences { get; }
+    Digest ImageDigest { get; }
 }

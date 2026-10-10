@@ -12,11 +12,28 @@ public sealed record ClusterInfraAssessmentReport(
     SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport, ISecurityAssessmentReport<ClusterInfraAssessmentReport, Uid>, IHasSeverityCounters, IClusterScopedTrivyReport
+    : IResourceReport<ClusterInfraAssessmentReport>, ISecurityAssessmentReport<ClusterInfraAssessmentReport, Uid>, IHasSeverityCounters, IClusterScopedTrivyReport
 {
     public Uid Id => Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;
 
     public ClusterInfraAssessmentReport WithChecks(IReadOnlyList<Check> checks)
         => this with { Checks = checks, };
+    
+    public ClusterInfraAssessmentReport MergeFrom(ClusterInfraAssessmentReport other)
+    {
+        bool otherIsNewer = IsOtherNewer(other);
+
+        return this with
+        {
+            Metadata = other.Metadata,
+            Scanner = otherIsNewer ? other.Scanner : Scanner,
+            SeverityCounters = otherIsNewer ? other.SeverityCounters : SeverityCounters,
+            LastSeenAt = otherIsNewer ? other.LastSeenAt : LastSeenAt,
+            Checks = otherIsNewer ? other.Checks : Checks,
+        };
+    }
+    
+    public bool IsOtherNewer(ClusterInfraAssessmentReport other)
+        => other.LastSeenAt >= LastSeenAt;
 }

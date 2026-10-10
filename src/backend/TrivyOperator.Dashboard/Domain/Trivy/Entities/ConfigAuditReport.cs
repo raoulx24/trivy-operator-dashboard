@@ -12,11 +12,28 @@ public sealed record ConfigAuditReport(
     SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport, ISecurityAssessmentReport<ConfigAuditReport, Uid>, IHasSeverityCounters, INamespacedTrivyReport
+    : IResourceReport<ConfigAuditReport>, ISecurityAssessmentReport<ConfigAuditReport, Uid>, IHasSeverityCounters, INamespacedTrivyReport
 {
     public Uid Id => Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;
 
     public ConfigAuditReport WithChecks(IReadOnlyList<Check> checks)
         => this with { Checks = checks, };
+    
+    public ConfigAuditReport MergeFrom(ConfigAuditReport other)
+    {
+        bool otherIsNewer = IsOtherNewer(other);
+
+        return this with
+        {
+            Metadata = other.Metadata,
+            Scanner = otherIsNewer ? other.Scanner : Scanner,
+            SeverityCounters = otherIsNewer ? other.SeverityCounters : SeverityCounters,
+            LastSeenAt = otherIsNewer ? other.LastSeenAt : LastSeenAt,
+            Checks = otherIsNewer ? other.Checks : Checks,
+        };
+    }
+    
+    public bool IsOtherNewer(ConfigAuditReport other)
+        => other.LastSeenAt >= LastSeenAt;
 }

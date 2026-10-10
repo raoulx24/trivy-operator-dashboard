@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Models;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors;
 
@@ -10,7 +10,7 @@ public class EventPipelineMetricsProcessor<TResource, TKey> (
     IMetricsClient metricsClient,
     ILogger<EventPipelineMetricsProcessor<TResource, TKey>> logger
 ) : IKubernetesEventProcessor<TResource, TKey>
-    where TResource : class, ITrivyReport<TKey>
+    where TResource : class, IEntity<TKey>
 {
     public Task ProcessEvent(
         KubernetesEvent<TResource, TKey> kubernetesEvent,

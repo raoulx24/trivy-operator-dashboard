@@ -39,7 +39,7 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
 
         if (kubernetesObject?.Metadata?.Uid is not null)
         {
-            resource = await resourceMaterializer.Materialize(kubernetesObject, ctx);
+            resource = resourceMaterializer.Materialize(kubernetesObject);
             resourceId = new Uid(kubernetesObject.Metadata.Uid);
         }
 

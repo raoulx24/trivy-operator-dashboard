@@ -11,34 +11,46 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.ToDomain.Extensio
 
 public static class SecurityAssessmentMappingExtensions
 {
-    internal static TDest ToSecurityAssessmentReport<TSource, TDest, TKeyDest>(this TSource cr, TDest? existing)
-    where TSource: CustomResource, ISecurityAssessmentReportCr 
-    where TDest: ITrivyReport<TKeyDest>
+    internal static TDest ToSecurityAssessmentReport<TSource, TDest, TKeyDest>(
+        this TSource cr,
+        TDest? existing)
+        where TSource : CustomResource, ISecurityAssessmentReportCr
+        where TDest : ISecurityAssessmentReport<TDest, TKeyDest>
     {
         Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,
             cr.Metadata.CreationTimestamp,
-            DateTime.UtcNow
-        );
+            DateTime.UtcNow);
 
-        // is existing newer than current?
-        if (existing is not null && lastSeenAt < existing.LastSeenAt)
-            return existing;
-        
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
-        Scanner scanner = TrivySharedMappingExtensions.ToScanner(cr.Report.Scanner);
 
-        SeverityCounters severityCounters = TrivySharedMappingExtensions.ToSeverityCounters(cr.Report.Summary);
+        // Existing report wins: preserve its expensive checks.
+        if (existing is not null && existing.LastSeenAt > lastSeenAt)
+        {
+            TDest incomingHeader = TrivyReportFactory.CreateSecurityAssessment<TDest>(
+                metadata,
+                existing.Scanner,
+                existing.SeverityCounters,
+                lastSeenAt,
+                []);
+
+            return existing.MergeFrom(incomingHeader);
+        }
+
+        Scanner scanner = cr.Report.Scanner.ToScanner();
+
+        SeverityCounters severityCounters = cr.Report.Summary.ToSeverityCounters();
 
         List<Check> checks = [.. cr.Report.Checks.Select(ToCheck),];
 
-        return TrivyReportFactory.CreateSecurityAssessment<TDest>(
+        TDest incoming = TrivyReportFactory.CreateSecurityAssessment<TDest>(
             metadata,
             scanner,
             severityCounters,
             lastSeenAt,
-            checks
-        );
+            checks);
+
+        return existing is null ? incoming : incoming.MergeFrom(existing);
     }
     
     private static Check ToCheck(this SecurityAssessmentCheckCr? source)

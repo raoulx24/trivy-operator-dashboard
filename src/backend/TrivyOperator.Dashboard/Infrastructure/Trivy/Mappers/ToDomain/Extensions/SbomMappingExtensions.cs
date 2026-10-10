@@ -11,49 +11,49 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Mappers.ToDomain.Extensio
 
 public static class SbomMappingExtensions
 {
-    internal static SbomReport ToSbom(this SbomReportCr cr, SbomReport? existing)
+    internal static SbomReport ToSbom(
+        this SbomReportCr cr,
+        SbomReport? existing)
     {
-        // vo layer
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
         ContainerName container = cr.Metadata.ToContainerName();
         ImageMeta imageMeta = cr.Report.Artifact.ToImageMeta(cr.Report.Registry);
-        Digest digest =  cr.Report.Artifact.ToDigest();
-        SbomMetadata sbomMetadata = ToSbomMetadata(cr.Report.Components);
+        Digest digest = cr.Report.Artifact.ToDigest();
 
         Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,
             cr.Metadata.CreationTimestamp,
-            DateTime.UtcNow
-        );
-        
-        ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, container, imageMeta);
-        
-        // check if existing has same digest
+            DateTime.UtcNow);
+
+        ReportImageOccurrence occurrence = new(metadata, container, imageMeta);
+
+        // Different digests represent different report identities.
         if (existing?.ImageDigest != digest)
-        {
             existing = null;
+
+        // Existing report wins: preserve its expensive SBOM graph.
+        if (existing is not null && existing.LastSeenAt > lastSeenAt)
+        {
+            SbomReport incomingHeader = existing with
+            {
+                Occurrences = [occurrence],
+                LastSeenAt = lastSeenAt,
+                Components = [],
+            };
+
+            return existing.MergeFrom(incomingHeader);
         }
 
-        // existing is newer -> keep it, only update occurrences
-        if (existing is not null && TrivySharedMappingExtensions.IsOtherNewer(existing, lastSeenAt))
-        {
-            return existing with
-            {
-                Occurrences = occurrence.MergeInto(existing.Occurrences),
-            };
-        }
-        
+        // Incoming report wins: materialize the SBOM graph.
         SbomSummary summary = cr.Report.Summary.ToSbomSummary();
         Scanner scanner = cr.Report.Scanner.ToScanner();
-        IReadOnlyList<ReportImageOccurrence> occurrences = occurrence.MergeInto(existing?.Occurrences);
+        SbomMetadata sbomMetadata = ToSbomMetadata(cr.Report.Components);
 
-        // core sbom
         List<ComponentCr> allComponents = CollectAllComponents(cr.Report);
         Dictionary<string, ComponentId> idMap = BuildIdMap(allComponents);
 
-        Dictionary<ComponentId, ImmutableArray<ComponentId>> sbomComponents = BuildDependencyLookup(
-            cr.Report.Components,
-            idMap);
+        Dictionary<ComponentId, ImmutableArray<ComponentId>> sbomComponents =
+            BuildDependencyLookup(cr.Report.Components, idMap);
 
         List<Component> components = BuildComponents(
             allComponents,
@@ -62,8 +62,8 @@ public static class SbomMappingExtensions
 
         ComponentId root = ResolveRootNode(cr.Report, idMap);
 
-        return new SbomReport(
-            occurrences,
+        SbomReport incoming = new(
+            [occurrence,],
             digest,
             lastSeenAt,
             scanner,
@@ -71,38 +71,49 @@ public static class SbomMappingExtensions
             sbomMetadata,
             root,
             components);
+
+        return existing is null ? incoming : incoming.MergeFrom(existing);
     }
     
-    public static ClusterSbomReport ToClusterSbom(this ClusterSbomReportCr cr, ClusterSbomReport? existing)
+    public static ClusterSbomReport ToClusterSbom(
+        this ClusterSbomReportCr cr,
+        ClusterSbomReport? existing)
     {
         Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,
             cr.Metadata.CreationTimestamp,
-            DateTime.UtcNow
-        );
+            DateTime.UtcNow);
 
-        // is other newer than current?
-        if (existing is not null && lastSeenAt < existing.LastSeenAt)
-            return existing;
-        
-        // vo layer
+        // Map only the inexpensive occurrence before deciding which report wins.
         ReportMetadata metadata = cr.Metadata.ToReportMetadata();
         ContainerName container = cr.Metadata.ToContainerName();
         ImageMeta imageMeta = cr.Report.Artifact.ToImageMeta(cr.Report.Registry);
-        Scanner scanner = cr.Report.Scanner.ToScanner();
 
+        ReportImageOccurrence occurrence = new(metadata, container, imageMeta);
+
+        // Existing report wins: preserve expensive SBOM details.
+        if (existing is not null && existing.LastSeenAt > lastSeenAt)
+        {
+            ClusterSbomReport incomingHeader = existing with
+            {
+                Occurrence = occurrence,
+                LastSeenAt = lastSeenAt,
+                Components = [],
+            };
+
+            return existing.MergeFrom(incomingHeader);
+        }
+
+        // Incoming report wins: materialize expensive SBOM details.
+        Scanner scanner = cr.Report.Scanner.ToScanner();
         SbomSummary summary = cr.Report.Summary.ToSbomSummary();
         SbomMetadata sbomMetadata = ToSbomMetadata(cr.Report.Components);
 
-        ReportImageOccurrence occurrence = new ReportImageOccurrence(metadata, container, imageMeta);
-        
-        // core sbom
         List<ComponentCr> allComponents = CollectAllComponents(cr.Report);
         Dictionary<string, ComponentId> idMap = BuildIdMap(allComponents);
 
-        Dictionary<ComponentId, ImmutableArray<ComponentId>> sbomComponents = BuildDependencyLookup(
-            cr.Report.Components,
-            idMap);
+        Dictionary<ComponentId, ImmutableArray<ComponentId>> sbomComponents =
+            BuildDependencyLookup(cr.Report.Components, idMap);
 
         List<Component> components = BuildComponents(
             allComponents,
@@ -111,7 +122,7 @@ public static class SbomMappingExtensions
 
         ComponentId root = ResolveRootNode(cr.Report, idMap);
 
-        return new ClusterSbomReport(
+        ClusterSbomReport incoming = new(
             occurrence,
             lastSeenAt,
             scanner,
@@ -119,6 +130,8 @@ public static class SbomMappingExtensions
             sbomMetadata,
             root,
             components);
+
+        return existing is null ? incoming : incoming.MergeFrom(existing);
     }
     
     private static SbomMetadata ToSbomMetadata(ComponentsCr cr)

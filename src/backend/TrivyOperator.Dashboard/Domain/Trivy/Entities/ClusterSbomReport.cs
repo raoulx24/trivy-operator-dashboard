@@ -14,7 +14,7 @@ public sealed record ClusterSbomReport(
     SbomMetadata SbomMetadata,
     ComponentId RootNodeBomRef,
     IReadOnlyList<Component> Components
-) : IResourceReport, ISbomReport<ClusterSbomReport, Uid>, IClusterScopedTrivyReport
+) : IResourceReport<ClusterSbomReport>, ISbomReport<ClusterSbomReport, Uid>, IClusterScopedTrivyReport
 {
     public Uid Id => Occurrence.Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Occurrence.Metadata.NamespaceName == namespaceName;
@@ -22,4 +22,22 @@ public sealed record ClusterSbomReport(
     public ReportMetadata Metadata => Occurrence.Metadata;
     public ClusterSbomReport WithComponents(IReadOnlyList<Component> components)
         => this with { Components = components, };
+    
+    public ClusterSbomReport MergeFrom(ClusterSbomReport other)
+    {
+        bool otherIsNewer = IsOtherNewer(other);
+
+        return this with
+        {
+            Occurrence = otherIsNewer ? other.Occurrence : Occurrence,
+            LastSeenAt = otherIsNewer ? other.LastSeenAt : LastSeenAt,
+            Scanner = otherIsNewer ? other.Scanner : Scanner,
+            Summary = otherIsNewer ? other.Summary : Summary,
+            SbomMetadata = otherIsNewer ? other.SbomMetadata : SbomMetadata,
+            Components = otherIsNewer ? other.Components : Components,
+        };
+    }
+    
+    public bool IsOtherNewer(ClusterSbomReport other)
+        => other.LastSeenAt >= LastSeenAt;
 }

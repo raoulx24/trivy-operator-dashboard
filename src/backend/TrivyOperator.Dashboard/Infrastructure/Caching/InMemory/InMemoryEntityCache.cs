@@ -6,7 +6,6 @@ using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Contexts.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 
@@ -22,8 +21,9 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
 {
     protected IResourceDictionaryCache<TKey, CacheEntry<TResource, TKey>> Cache  => cache;
     protected IKubernetesContextResolver ContextResolver => contextResolver;
+    protected ICacheEntryBuilder<TResource, TKey> CacheEntryBuilder => cacheEntryBuilder;
     
-    public Task Upsert(TResource resource, CancellationToken ctx = default)
+    public virtual Task Upsert(TResource resource, CancellationToken ctx = default)
     {
         _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
         logger.LogDebug(
@@ -38,7 +38,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
             contextName,
             _ => new ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>());
 
-        innerCache[resource.Id] = cacheEntryBuilder.ToCacheEntry(resource);
+        innerCache[resource.Id] = CacheEntryBuilder.ToCacheEntry(resource);
         
         return Task.CompletedTask;
     }
@@ -61,7 +61,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
         }
 
         return innerCache.TryGetValue(key, out CacheEntry<TResource, TKey>? cacheEntry)
-            ? Task.FromResult<TResource?>(cacheEntryBuilder.ToEntity(cacheEntry)) 
+            ? Task.FromResult<TResource?>(CacheEntryBuilder.ToEntity(cacheEntry)) 
             : Task.FromResult<TResource?>(null);
     }
 
@@ -85,7 +85,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
 
         return cacheEntry is null
             ? Task.FromResult<TResource?>(null)
-            : Task.FromResult<TResource?>(cacheEntryBuilder.ToEntity(cacheEntry));
+            : Task.FromResult<TResource?>(CacheEntryBuilder.ToEntity(cacheEntry));
     }
 
     public Task<IReadOnlyList<TResource>> GetResources(CancellationToken ctx = default)
@@ -100,7 +100,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
             return Task.FromResult<IReadOnlyList<TResource>>([]);
         }
 
-        IReadOnlyList<TResource> result = [.. innerCache.Values.Select(cacheEntryBuilder.ToEntity),];
+        IReadOnlyList<TResource> result = [.. innerCache.Values.Select(CacheEntryBuilder.ToEntity),];
         
         return Task.FromResult(result);
     }
@@ -130,7 +130,7 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
 
             if (innerCache.TryGetValue(key, out CacheEntry<TResource, TKey>? cacheEntry))
             {
-                resources.Add(cacheEntryBuilder.ToEntity(cacheEntry));
+                resources.Add(CacheEntryBuilder.ToEntity(cacheEntry));
             }
         }
 

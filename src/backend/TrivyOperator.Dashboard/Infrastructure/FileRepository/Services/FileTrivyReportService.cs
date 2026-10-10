@@ -18,7 +18,7 @@ public class FileTrivyReportService<TKubernetesObject, TReport, TKey>(
     ILogger<FileTrivyReportService<TKubernetesObject, TReport, TKey>> logger)
     : IFileTrivyReportService<TReport, TKey>
     where TKubernetesObject : CustomResource
-    where TReport : class, ITrivyReport<TKey>
+    where TReport : class, ITrivyReport<TReport, TKey>
     where TKey : notnull
 {
     public async Task<IReadOnlyDictionary<TKey, TReport>> GetReportsAsync(
