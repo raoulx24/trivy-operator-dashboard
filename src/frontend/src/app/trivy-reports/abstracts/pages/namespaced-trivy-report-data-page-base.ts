@@ -111,11 +111,13 @@ export abstract class NamespacedAggregateTrivyReportDataPageBase<
   protected override prepareCompareDataDtos(): PairedOptionsDto[] {
     return this.viewDataDtos
       .filter((tr) => this.hasSeverities(tr))
-      .map((tr) => ({
-        uid: tr.uid ?? '',
-        firstOption: 'N/A',
-        secondOption: `${tr.lastImageNameAndTag}`,
-      }));
+      .flatMap((tr) =>
+        tr.namespaceNames.map((namespaceName) => ({
+          uid: tr.uid ?? '',
+          firstOption: namespaceName,
+          secondOption: tr.lastImageNameAndTag,
+        })),
+      );
   }
 
   protected abstract prepareViewDataDtos(dto: TTrivyReport): TExtendedDataDto;
