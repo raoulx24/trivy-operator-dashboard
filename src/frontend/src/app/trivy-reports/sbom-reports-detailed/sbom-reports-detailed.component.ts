@@ -70,8 +70,9 @@ export class SbomReportsDetailedComponent extends NamespacedDataPageBase<SbomRep
           link.download = `sboms.exports.${datetimeUtc}.zip`;
 
           link.click();
+          link.remove();
 
-          window.URL.revokeObjectURL(url);
+          setTimeout(() => window.URL.revokeObjectURL(url), 1000);
         },
         error: (err) => { this.onError(err); },
       });

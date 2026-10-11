@@ -20,6 +20,7 @@
   --p-panel-border-radius: var(--tod-app-border-radius-md);
   --p-card-border-radius: var(--tod-app-border-radius-md);
   --p-popover-border-radius: var(--tod-app-border-radius-md);
+  --p-toast-border-radius: var(--tod-app-border-radius-md);
 
   --p-dialog-border-radius: var(--tod-app-border-radius-lg);
 
