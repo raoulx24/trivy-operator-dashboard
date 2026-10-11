@@ -16,6 +16,18 @@ public static class HistoryMetadataMappers
 {
     public static HistoryMetadataPersistenceModel ToPersistenceModel(this HistoryMetadata source)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
+        ArgumentNullException.ThrowIfNull(source.NamespaceNames);
+        ArgumentNullException.ThrowIfNull(source.ImageMeta);
+        ArgumentNullException.ThrowIfNull(source.Current);
+        ArgumentNullException.ThrowIfNull(source.Current.Values);
+        ArgumentNullException.ThrowIfNull(source.VulnerabilitiesHash);
+        ArgumentNullException.ThrowIfNull(source.AddedCvesDeltas);
+        ArgumentNullException.ThrowIfNull(source.AddedCvesDeltas.Values);
+        ArgumentNullException.ThrowIfNull(source.DroppedCvesDeltas);
+        ArgumentNullException.ThrowIfNull(source.DroppedCvesDeltas.Values);
+        
         return new HistoryMetadataPersistenceModel(
             [.. source.NamespaceNames.Select(x => x.Value),],
             source.ImageMeta.Registry.Value,
