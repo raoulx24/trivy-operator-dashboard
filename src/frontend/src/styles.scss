@@ -1,24 +1,74 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   Imports and configuration
+   ========================================================================== */
+
+// PrimeNG component styles
 @use './styles/p-breadcrumb.scss';
-//@import './styles/p-inputswitch.scss';
+// @import './styles/p-inputswitch.scss';
 @use './styles/p-panel.scss';
 @use './styles/p-card.scss';
 
+// Third-party styles
 @import '../node_modules/primeicons/primeicons.css';
 @plugin "tailwindcss-primeui";
+
+// CSS layer order
 @layer mat-icons, tailwind, primeng, app-layer;
 
+// Application theme
 @import './app/themes/trivy-operator-dashboard.variables.css';
 
+// Local Tailwind styles
 @layer tailwind {
   @import './styles/tailwind.local.css';
 }
 
-/* Components fixes*/
-@layer app-layer {
+
+/* ==========================================================================
+   Global elements and Tailwind overrides
+   ========================================================================== */
+
+// Links
+a:not([pRipple]):not(p-tieredmenu-item-link) {
+  @apply text-blue-400 underline hover:text-blue-500 hover:no-underline;
 }
 
-// Others
+// Lists
+ul:not(.p-carousel-indicator-list):not(.p-panelmenu-root-list):not(.p-tieredmenu-root-list) {
+  list-style-type: disc !important;
+  // padding-left: 1.25rem;
+}
+
+// Markdown content
+markdown p {
+  padding-top: 1.25rem;
+}
+
+// Blockquotes
+blockquote {
+  padding-top: 1rem;
+  font-style: italic;
+  color: var(--p-tod-blockquote-text-color);
+}
+
+blockquote p:first-of-type {
+  padding-top: 0;
+  padding-left: 1rem;
+  border-left: 4px solid var(--p-surface-700);
+}
+
+blockquote p:not(:first-of-type) {
+  padding-top: 1rem;
+  padding-left: 1rem;
+  border-left: 4px solid var(--p-surface-700);
+}
+
+
+/* ==========================================================================
+   Layout and responsive utilities
+   ========================================================================== */
+
+// Visibility
 .hide-on-small {
   display: none;
 }
@@ -29,29 +79,7 @@
   }
 }
 
-// tests
-.custom-small-row tr {
-  height: 25px;
-}
-
-.custom-small-row td {
-  padding: 0;
-  padding-left: 4px;
-  height: 25px !important;
-  line-height: 1em;
-}
-
-.p-round-datatable {
-  border-radius: 2px;
-  border: 1px solid var(--p-menubar-border-color);
-}
-
-p-splitbutton.text-sm {
-  .p-menuitem-text {
-    font-size: 14px;
-  }
-}
-
+// XXL grid columns
 @media (min-width: 1400px) {
   @for $i from 1 through 12 {
     .xxl\:col-#{$i} {
@@ -61,30 +89,7 @@ p-splitbutton.text-sm {
   }
 }
 
-/* p-dialog classes */
-.p-dialog {
-  max-height: unset !important;
-}
-
-p-dialog.tod-dialog-h-full div.p-dialog-content {
-  height: 100% !important;
-}
-
-/* various tailwind reverts */
-ul:not(.p-carousel-indicator-list):not(.p-panelmenu-root-list):not(.p-tieredmenu-root-list) {
-  list-style-type: disc !important;
-  //  padding-left: 1.25rem;
-}
-
-markdown p {
-  padding-top: 1.25rem;
-}
-
-a:not([pRipple]):not(p-tieredmenu-item-link) {
-  @apply text-blue-400 underline hover:text-blue-500 hover:no-underline;
-}
-
-/* p-panel classes */
+// Full-height panels
 p-panel.h-full {
   height: 100% !important;
   display: flex !important;
@@ -114,52 +119,7 @@ p-panel.h-full [data-pc-section="footer"] {
   flex-shrink: 0 !important;
 }
 
-
-
-/* p-table classes */
-p-table.p-datatable-xs .p-datatable-tbody > tr > td {
-  font-size: 0.8125rem;
-  padding: 0.25rem 0.6rem;
-}
-
-p-table.p-datatable-xs .p-datatable-thead > tr > th {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-span.p-sortable-column-badge {
-  background-color: var(--p-primary-color);
-  border-radius: var(--p-tag-rounded-border-radius);
-  color: var(--p-tag-primary-color);
-  font-size: var(--p-tag-font-size);
-  font-weight: var(--p-tag-font-weight);
-  gap: var(--p-tag-gap);
-  padding: var(--p-tag-padding);
-  margin: 0.3rem;
-}
-
-p-table-row-height {
-  height: calc(var(--tod-host-line-height) * 2 + 0.5rem);
-}
-
-p-button.w-full button {
-  width: 100%;
-}
-
-/*** temp fix for https://github.com/primefaces/primeng/issues/16576 ***/
-p-columnfilter.tod-active-filter button {
-  background: var(--p-primary-color);
-  color: var(--p-primary-contrast-color);
-  height: 1.25rem;
-  width: 1.25rem;
-}
-
-/* p-columnfilter classes */
-p-columnfilter.tod-active-filter p-button {
-  padding-left: 0.75rem;
-}
-
-/* p-card classes */
+// Full-height cards
 p-card.h-full > .p-card.p-component {
   @apply h-full;
 }
@@ -172,20 +132,24 @@ p-card.h-full > .p-card.p-component > .p-card-body > .p-card-content {
   @apply h-full;
 }
 
-p-card.tod-panel-mt-auto .p-card-content {
-  @apply flex flex-col;
+
+/* ==========================================================================
+   PrimeNG: Dialog
+   ========================================================================== */
+
+.p-dialog {
+  max-height: unset !important;
 }
 
-p-card.p-card-bold-subtitle .p-card-subtitle {
-  @apply font-bold;
+p-dialog.tod-dialog-h-full div.p-dialog-content {
+  height: 100% !important;
 }
 
-p-card.small-header .p-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-}
 
-/* p-breadcrumb classes */
+/* ==========================================================================
+   PrimeNG: Breadcrumb
+   ========================================================================== */
+
 .breadcrumb-size {
   font-size: 14px;
 }
@@ -209,70 +173,79 @@ p-card.small-header .p-card-title {
   overflow: hidden;
 }
 
-/* generic classes */
-body > div.p-tieredmenu {
-  @apply text-sm;
+
+/* ==========================================================================
+   PrimeNG: Card
+   ========================================================================== */
+
+p-card.tod-panel-mt-auto .p-card-content {
+  @apply flex flex-col;
 }
 
-/* p-splitter classes */
-p-splitter.tod-splitter-no-borders {
-  border: none !important;
+p-card.p-card-bold-subtitle .p-card-subtitle {
+  @apply font-bold;
 }
 
-/* tod classes */
-.tod-text-center {
-  text-align: center;
+p-card.small-header .p-card-title {
+  font-size: 1rem;
+  font-weight: 700;
 }
 
-.tod-text-right {
-  text-align: right;
+
+/* ==========================================================================
+   PrimeNG: Table and TreeTable
+   ========================================================================== */
+
+// Compact table
+p-table.p-datatable-xs .p-datatable-tbody > tr > td {
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.6rem;
 }
 
-.tod-text-contrast-color {
-  color: var(--p-primary-contrast-color);
+p-table.p-datatable-xs .p-datatable-thead > tr > th {
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
-.tod-content-border-contrast-color {
-  border: 2px solid var(--p-text-color);
-  border-radius: var(--p-border-radius-sm);
+// Table row height
+.custom-small-row tr {
+  height: 25px;
 }
 
-.tod-content-border {
-  border: 1px solid var(--p-content-border-color);
-  border-radius: var(--p-content-border-radius);
+.custom-small-row td {
+  padding: 0;
+  padding-left: 4px;
+  height: 25px !important;
+  line-height: 1em;
 }
 
-.tod-content-background {
-  background-color: var(--p-content-background);
+p-table-row-height {
+  height: calc(var(--tod-host-line-height) * 2 + 0.5rem);
 }
 
-.tod-content-border-top-light {
-  border-top-width: 1px;
-  border-style: solid;
-  border-color: var(--p-content-border-color);
+// Table border
+.p-round-datatable {
+  border-radius: 2px;
+  border: 1px solid var(--p-menubar-border-color);
 }
 
-.tod-no-background {
-  background-color: unset !important;
+// Table sorting badge
+span.p-sortable-column-badge {
+  background-color: var(--p-primary-color);
+  border-radius: var(--p-tag-rounded-border-radius);
+  color: var(--p-tag-primary-color);
+  font-size: var(--p-tag-font-size);
+  font-weight: var(--p-tag-font-weight);
+  gap: var(--p-tag-gap);
+  padding: var(--p-tag-padding);
+  margin: 0.3rem;
 }
 
-.tod-datatable-border-color {
-  color: var(--p-datatable-border-color);
-}
-
-.tod-text-muted-color {
-  color: var(--p-text-muted-color);
-}
-
-//.tod-text-muted-color:hover {
-//  color: var(--tod-text-primary-color);
-//}
-
+// Selected rows
 tr.p-datatable-row-selected .tod-text-muted-color,
 tr.p-treetable-row-selected .tod-text-muted-color {
   color: var(--tod-text-revert-muted-color);
 }
-
 
 .tod-text-primary-color,
 tr:not(.p-datatable-row-selected):not(.p-treetable-row-selected) p-button.tod-text-primary-color button {
@@ -285,33 +258,106 @@ tr.p-treetable-row-selected p-button.tod-text-primary-color button {
   color: var(--tod-text-revert-primary-color);
 }
 
-.tod-separator {
-  background: var(--p-button-text-primary-color);
+// Table border color utility
+.tod-datatable-border-color {
+  color: var(--p-datatable-border-color);
 }
 
-.tod-py0 {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+
+/* ==========================================================================
+   PrimeNG: ColumnFilter
+   ========================================================================== */
+
+// Temporary fix for https://github.com/primefaces/primeng/issues/16576
+p-columnfilter.tod-active-filter button {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+  height: 1.25rem;
+  width: 1.25rem;
 }
 
-.tod-h90vw {
-  height: 90vh;
+p-columnfilter.tod-active-filter p-button {
+  padding-left: 0.75rem;
 }
 
-/* mat-icon classes */
-mat-icon.text-sm {
-  font-size: 1.25rem;
-  height: unset;
-  width: unset;
+
+/* ==========================================================================
+   PrimeNG: Button and SplitButton
+   ========================================================================== */
+
+p-button.w-full button {
+  width: 100%;
 }
 
-mat-icon.text-xs {
-  font-size: 1rem;
-  height: unset;
-  width: unset;
+p-splitbutton.text-sm {
+  .p-menuitem-text {
+    font-size: 14px;
+  }
 }
 
-/* p-tag classes */
+
+/* ==========================================================================
+   PrimeNG: Select and SelectButton
+   ========================================================================== */
+
+p-select {
+  box-shadow: var(--tod-box-shadow);
+}
+
+p-select.text-sm span.p-select-label {
+  font-size: 0.875rem;
+}
+
+p-select.text-sm input.p-select-filter {
+  font-size: 0.875rem;
+}
+
+p-selectbutton {
+  box-shadow: var(--tod-box-shadow);
+}
+
+
+/* ==========================================================================
+   PrimeNG: InputNumber
+   ========================================================================== */
+
+.p-inputnumber-sm {
+  font-size: 0.875rem; // text-sm
+}
+
+.p-inputnumber-sm .p-inputtext {
+  @apply text-sm py-1 px-2;
+  height: 2rem; // shrink height
+  width: 80px;
+}
+
+.p-inputnumber-sm .p-button {
+  width: 2rem;
+  height: 2rem;
+}
+
+.p-inputnumber-sm .p-inputnumber-input {
+  @apply text-sm;
+}
+
+
+/* ==========================================================================
+   PrimeNG: Checkbox and ToggleSwitch
+   ========================================================================== */
+
+p-checkbox {
+  box-shadow: var(--tod-box-shadow);
+}
+
+p-toggleswitch {
+  filter: drop-shadow(var(--tod-filter-drop-shadow));
+}
+
+
+/* ==========================================================================
+   PrimeNG: Tag
+   ========================================================================== */
+
 p-tag {
   box-shadow: var(--tod-tag-box-shadow);
 }
@@ -333,56 +379,48 @@ p-tag.only-icon {
 }
 
 p-tag.border-primary-color {
-  border: 2px solid var(--p-primary-contrast-color)
+  border: 2px solid var(--p-primary-contrast-color);
 }
 
-/* blockquote classes */
-blockquote {
-  padding-top: 1rem;
 
-  font-style: italic;
-  color: var(--p-tod-blockquote-text-color);
-}
+/* ==========================================================================
+   PrimeNG: Splitter
+   ========================================================================== */
 
-blockquote p:first-of-type {
-  padding-top: 0;
-  padding-left: 1rem;
-  border-left: 4px solid var(--p-surface-700);
+p-splitter.tod-splitter-no-borders {
+  border: none !important;
 }
 
-blockquote p:not(:first-of-type) {
-  padding-top: 1rem;
-  padding-left: 1rem;
-  border-left: 4px solid var(--p-surface-700);
+
+/* ==========================================================================
+   PrimeNG: TieredMenu
+   ========================================================================== */
+
+body > div.p-tieredmenu {
+  @apply text-sm;
 }
 
-/* p-select classes */
-p-select {
-  box-shadow: var(--tod-box-shadow);
-}
-p-select.text-sm span.p-select-label {
-  font-size: 0.875rem;
-}
-p-select.text-sm input.p-select-filter {
-  font-size: 0.875rem;
+
+/* ==========================================================================
+   Angular Material: Icon
+   ========================================================================== */
+
+mat-icon.text-sm {
+  font-size: 1.25rem;
+  height: unset;
+  width: unset;
 }
 
-// p-toggleswitch classes
-p-toggleswitch {
-  filter: drop-shadow(var(--tod-filter-drop-shadow));
+mat-icon.text-xs {
+  font-size: 1rem;
+  height: unset;
+  width: unset;
 }
 
-p-selectbutton {
-  box-shadow: var(--tod-box-shadow);
-}
 
-p-checkbox {
-  box-shadow: var(--tod-box-shadow);
-}
-
-.tod-tooltip-shadow {
-  box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.8) !important;
-}
+/* ==========================================================================
+   Charts
+   ========================================================================== */
 
 .mini-bar-chart-hover-effect {
   stroke: transparent;
@@ -394,7 +432,6 @@ p-checkbox {
     filter 0.9s ease-in-out,
     stroke 0.9s ease-in-out,
     stroke-width 0.9s ease-in-out;
-
 
   transform-origin: var(--bar-origin-x) var(--bar-origin-y);
 }
@@ -408,28 +445,89 @@ p-checkbox {
   backdrop-filter: blur(2px);
   border-radius: 4px;
   padding: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-/* p-inputnumber */
-.p-inputnumber-sm {
-  font-size: 0.875rem; /* text-sm */
+
+/* ==========================================================================
+   Trivy Operator Dashboard: General utilities
+   ========================================================================== */
+
+// Text alignment
+.tod-text-center {
+  text-align: center;
 }
 
-.p-inputnumber-sm .p-inputtext {
-  @apply text-sm py-1 px-2;
-  height: 2rem; /* shrink height */
-  width: 80px;
+.tod-text-right {
+  text-align: right;
 }
 
-.p-inputnumber-sm .p-button {
-  width: 2rem;
-  height: 2rem;
+// Text colors
+.tod-text-contrast-color {
+  color: var(--p-primary-contrast-color);
 }
 
-.p-inputnumber-sm .p-inputnumber-input {
-  @apply text-sm;
+.tod-text-muted-color {
+  color: var(--p-text-muted-color);
 }
+
+// .tod-text-muted-color:hover {
+//   color: var(--tod-text-primary-color);
+// }
+
+// Borders
+.tod-content-border-contrast-color {
+  border: 2px solid var(--p-text-color);
+  border-radius: var(--p-border-radius-sm);
+}
+
+.tod-content-border {
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+}
+
+.tod-content-border-top-light {
+  border-top-width: 1px;
+  border-style: solid;
+  border-color: var(--p-content-border-color);
+}
+
+// Backgrounds
+.tod-content-background {
+  background-color: var(--p-content-background);
+}
+
+.tod-no-background {
+  background-color: unset !important;
+}
+
+// Spacing and sizing
+.tod-py0 {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.tod-h90vw {
+  height: 90vh;
+}
+
+// Other utilities
+.tod-separator {
+  background: var(--p-button-text-primary-color);
+}
+
+.tod-tooltip-shadow {
+  box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.8) !important;
+}
+
+.tod-box-shadow {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+
+/* ==========================================================================
+   Trivy Operator Dashboard: Namespace count
+   ========================================================================== */
 
 .tod-namespace-count {
   display: inline-flex;
@@ -451,8 +549,3 @@ p-checkbox {
   font-weight: 600;
   line-height: 1rem;
 }
-
-.tod-box-shadow {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
