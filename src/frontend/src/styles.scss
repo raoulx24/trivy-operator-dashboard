@@ -346,7 +346,7 @@ p-selectbutton {
    ========================================================================== */
 
 p-checkbox {
-  box-shadow: var(--tod-box-shadow);
+  filter: drop-shadow(var(--tod-box-shadow));
 }
 
 p-toggleswitch {
@@ -478,12 +478,36 @@ mat-icon.text-xs {
 // Borders
 .tod-content-border-contrast-color {
   border: 2px solid var(--p-text-color);
-  border-radius: var(--p-border-radius-sm);
+  border-radius: var(--tod-app-border-radius-md);
 }
 
 .tod-content-border {
   border: 1px solid var(--p-content-border-color);
-  border-radius: var(--p-content-border-radius);
+  border-radius: var(--tod-app-border-radius-md);
+}
+
+.tod-content-border-left {
+  border: 1px solid var(--p-content-border-color);
+  border-top-left-radius: var(--tod-app-border-radius-md);
+  border-bottom-left-radius: var(--tod-app-border-radius-md);
+}
+
+.tod-content-border-right {
+  border: 1px solid var(--p-content-border-color);
+  border-top-right-radius: var(--tod-app-border-radius-md);
+  border-bottom-right-radius: var(--tod-app-border-radius-md);
+}
+
+.tod-content-border-top {
+  border: 1px solid var(--p-content-border-color);
+  border-top-left-radius: var(--tod-app-border-radius-md);
+  border-top-right-radius: var(--tod-app-border-radius-md);
+}
+
+.tod-content-border-bottom {
+  border: 1px solid var(--p-content-border-color);
+  border-bottom-left-radius: var(--tod-app-border-radius-md);
+  border-bottom-right-radius: var(--tod-app-border-radius-md);
 }
 
 .tod-content-border-top-light {

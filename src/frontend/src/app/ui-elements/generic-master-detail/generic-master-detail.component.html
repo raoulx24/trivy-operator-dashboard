@@ -1,6 +1,6 @@
 <p-splitter
   stateStorage="local"
-  class="mb-8"
+  class="mb-8 overflow-hidden"
   [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
   [panelSizes]="splitterPanelSizes()"
   [stateKey]="splitterStorageKey() && screenSize !== 'sm' ? 'splitter.' + splitterStorageKey() : undefined"

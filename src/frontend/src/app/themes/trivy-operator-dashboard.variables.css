@@ -1,7 +1,27 @@
 :root {
+  --tod-app-border-radius-xsm: 4px;
+  --tod-app-border-radius-sm: 6px;
+  --tod-app-border-radius-md: 10px;
+  --tod-app-border-radius-lg: 14px;
+
   /* primeng overrides */
   --p-icon-size: 0.75rem;
-  --p-border-radius-md: 2px;
+
+  --p-checkbox-border-radius: var(--tod-app-border-radius-xsm);
+
+  --p-button-border-radius: var(--tod-app-border-radius-sm);
+  --p-select-border-radius: var(--tod-app-border-radius-sm);
+  --p-splitbutton-border-radius: var(--tod-app-border-radius-sm);
+  --p-inputtext-border-radius: var(--tod-app-border-radius-sm);
+  --p-selectbutton-border-radius: var(--tod-app-border-radius-sm);
+
+  --p-border-radius-md: var(--tod-app-border-radius-md);
+  --p-menubar-border-radius: var(--tod-app-border-radius-md);
+  --p-panel-border-radius: var(--tod-app-border-radius-md);
+  --p-card-border-radius: var(--tod-app-border-radius-md);
+  --p-popover-border-radius: var(--tod-app-border-radius-md);
+
+  --p-dialog-border-radius: var(--tod-app-border-radius-lg);
 
   /* trivy operator dashboard specific used in primeng components */
   --tod-host-line-height: 19.5px;
@@ -34,6 +54,8 @@
   --tod-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   --tod-filter-drop-shadow: 0 4px 3px rgba(0, 0, 0, 0.3);
   --tod-tag-box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+
+  --p-popover-shadow: var(--tod-box-shadow);
 }
 
 /* dark mode vars */

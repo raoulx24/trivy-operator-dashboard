@@ -10,7 +10,7 @@
       <div class="pb-2">
         <app-paired-options-selector [dataDtos]="namespacedImageDtos" [(selectedUid)]="selectedImageId" />
       </div>
-      <div class="tod-content-border tod-content-background">
+      <div class="tod-content-border-left tod-content-background overflow-hidden">
         <app-trivy-table
           [dataDtos]="dependsOnBoms"
           [dataKey]="'bomRef'"
@@ -34,7 +34,7 @@
     </div>
   </ng-template>
   <ng-template #panel>
-    <div class="w-full flex flex-col tod-content-border h-full">
+    <div class="w-full flex flex-col tod-content-border-right overflow-hidden h-full">
       <app-fcose
         class="px-2"
         [nodeDataDtos]="nodeDataDtos"

@@ -1,4 +1,4 @@
-<app-trivy-toolbar class="block p-3 tod-content-border tod-content-background">
+<app-trivy-toolbar class="block p-3 tod-content-border-top tod-content-background">
   <div class="w-full flex items-center">
     <p-button icon="pi pi-refresh" label="Refresh" raised size="small" text class="mr-2" (click)="loadData()" />
     <div class="h-8 w-[2px] min-w-[2px] tod-separator mx-2"></div>
@@ -20,7 +20,7 @@
   </div>
 </app-trivy-toolbar>
 
-<div class="h-[85vh] flex flex-col tod-content-border">
+<div class="h-[85vh] flex flex-col tod-content-border-bottom overflow-hidden">
   <div class="overflow-auto h-full tod-content-background">
     <p-treeTable
       columnResizeMode="expand"
