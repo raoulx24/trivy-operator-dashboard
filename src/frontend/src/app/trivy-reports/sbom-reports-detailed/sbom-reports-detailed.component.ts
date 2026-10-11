@@ -1,4 +1,3 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 
 import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
@@ -24,9 +23,10 @@ export class SbomReportsDetailedComponent extends NamespacedDataPageBase<SbomRep
   trivyTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...sbomReportDenormalizedColumns];
 
   private readonly service = inject(SbomReportService);
-  private readonly http = inject(HttpClient);
 
   protected override dataDtosLoader = () => this.service.getSbomReportImageMinimalDtos();
+
+  private readonly sbomReportsService = inject(SbomReportService);
 
   ngOnInit() {
     this.initialize();
@@ -50,40 +50,30 @@ export class SbomReportsDetailedComponent extends NamespacedDataPageBase<SbomRep
   }
 
   exportSboms(exportType: 'all' | 'selected') {
-    this.messageService.pushSimple('Download SBOMs', 'SBOMs', 'info', 'Download request sent. Please wait...');
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    const params = new HttpParams().set('fileType', 'json');
-    const apiUrl = `${this.service.rootUrl}api/sbom-reports/export`;
+    this.messageService.pushSimple( 'Download SBOMs', 'SBOMs', 'info', 'Download request sent. Please wait...' );
 
-    let sbomsExport: { digest: string }[];
+    const sbomsExport: { digest: string }[] =
+      exportType === 'all'
+        ? this.dataDtos?.map((x) => ({ digest: x.digest ?? '' })) ?? []
+        : this.selectedDataDtos?.map((x) => ({ digest: x.digest ?? '' })) ?? [];
 
-    if (exportType == 'all') {
-      sbomsExport =
-        this.dataDtos?.map((x) => {
-          return { digest: x.digest ?? '' };
-        }) ?? [];
-    } else {
-      sbomsExport =
-        this.selectedDataDtos?.map((x) => {
-          return { digest: x.digest ?? '' };
-        }) ?? [];
-    }
+    this.sbomReportsService
+      .exportSbomReport({ body: sbomsExport, fileType: 'json', })
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          const datetimeUtc =
+            new Date().toISOString().replace(/:/g, '.').replace('T', '-').slice(0, 19);
 
-    // const httpReq = new HttpRequest("POST", apiUrl, sbomsExport, { headers: headers, params: params, responseType: 'blob' });
+          link.href = url;
+          link.download = `sboms.exports.${datetimeUtc}.zip`;
 
-    this.http.post(apiUrl, sbomsExport, { headers, params, responseType: 'blob' as 'json' }).subscribe({
-      next: (blob: any) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        const datetimeUtc = new Date().toISOString().replace(/:/g, '.').replace('T', '-').slice(0, 19);
-        link.href = url;
-        link.download = `sboms.exports.${datetimeUtc}.zip`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: (err) => {
-        this.onError(err);
-      },
-    });
+          link.click();
+
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => { this.onError(err); },
+      });
   }
 }

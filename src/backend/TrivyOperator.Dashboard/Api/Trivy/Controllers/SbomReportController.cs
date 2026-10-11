@@ -60,10 +60,9 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
 
     
     [HttpPost("export", Name = "ExportSbomReport")]
-    [Produces("application/zip")]
-    [ProducesResponseType<FileStreamResult>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/zip")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> Export(
         [FromBody] SbomReportExportDto[] exportSboms,
         CancellationToken ctx,
@@ -71,7 +70,7 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
     {
         if (exportSboms.Length == 0)
         {
-            return BadRequest("No info provided");
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "No info provided");
         }
 
         SbomExportFileDto? export = await sbomReportService
@@ -79,7 +78,7 @@ public class SbomReportController(ISbomReportService sbomReportService) : Contro
 
         if (export is null)
         {
-            return BadRequest("Failed to create zip file");
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "Failed to create zip file");
         }
 
         return File(
