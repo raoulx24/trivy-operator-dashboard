@@ -1,6 +1,6 @@
 <div class="relative flex w-full items-center">
   @if (showLeftButton()) {
-    <button class="absolute left-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full" (click)="scrollLeft()">
+    <button class="absolute left-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full tod-box-shadow" (click)="scrollLeft()">
       <i class="pi pi-chevron-left text-sm"></i>
     </button>
   }
@@ -10,7 +10,7 @@
   </div>
 
   @if (showRightButton()) {
-    <button class="absolute right-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full" (click)="scrollRight()">
+    <button class="absolute right-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full tod-box-shadow" (click)="scrollRight()">
       <i class="pi pi-chevron-right text-sm"></i>
     </button>
   }
