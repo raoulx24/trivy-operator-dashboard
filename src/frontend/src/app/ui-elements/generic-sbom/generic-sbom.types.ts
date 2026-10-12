@@ -1,5 +1,4 @@
 import { SbomReportImageMinimalDto } from '../../../api/models/sbom-report-image-minimal-dto';
-import { ClusterSbomReportDto } from '../../../api/models/cluster-sbom-report-dto';
 import { SbomReportDetailDto } from '../../../api/models/sbom-report-detail-dto';
 
 export interface GenericSbomReportDto {

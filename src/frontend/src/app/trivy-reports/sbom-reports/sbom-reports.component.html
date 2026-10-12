@@ -179,8 +179,9 @@
   </p-dialog>
 }
 
-<app-trivy-dependency-dialog
-  [(isVisible)]="isDependencyTreeViewVisible"
-  [digest]="fullSbomDataDto?.digest"
-  [imageNameAndTag]="fullSbomDataDto?.lastImageNameAndTag ?? 'N/A'"
-/>
+@if (isDependencyTreeViewVisible()) {
+  <app-trivy-dependency-dialog
+    [(isVisible)]="isDependencyTreeViewVisible"
+    [digest]="fullSbomDataDto?.digest"
+    [imageNameAndTag]="fullSbomDataDto?.lastImageNameAndTag ?? 'N/A'" />
+}

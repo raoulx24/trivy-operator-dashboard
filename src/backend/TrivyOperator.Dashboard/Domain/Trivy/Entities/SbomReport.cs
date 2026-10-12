@@ -44,6 +44,7 @@ public sealed record SbomReport(
             Scanner = otherIsNewer ? other.Scanner : Scanner,
             Summary = otherIsNewer ? other.Summary : Summary,
             SbomMetadata = otherIsNewer ? other.SbomMetadata : SbomMetadata,
+            RootNodeBomRef = otherIsNewer ? other.RootNodeBomRef : RootNodeBomRef,
             Components = otherIsNewer ? other.Components : Components,
         };
     }

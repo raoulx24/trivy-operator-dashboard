@@ -19,7 +19,7 @@ public static class SbomMappingExtensions
         ContainerName container = cr.Metadata.ToContainerName();
         ImageMeta imageMeta = cr.Report.Artifact.ToImageMeta(cr.Report.Registry);
         Digest digest = cr.Report.Artifact.ToDigest();
-
+        
         Timestamp lastSeenAt = TrivySharedMappingExtensions.ResolveTimestamp(
             cr.Report.UpdateTimestamp,
             cr.Metadata.CreationTimestamp,
@@ -28,7 +28,7 @@ public static class SbomMappingExtensions
         ReportImageOccurrence occurrence = new(metadata, container, imageMeta);
 
         // Different digests represent different report identities.
-        if (existing?.ImageDigest != digest)
+        if (existing is not null && existing.ImageDigest != digest)
             existing = null;
 
         // Existing report wins: preserve its expensive SBOM graph.
@@ -36,7 +36,7 @@ public static class SbomMappingExtensions
         {
             SbomReport incomingHeader = existing with
             {
-                Occurrences = [occurrence],
+                Occurrences = [occurrence,],
                 LastSeenAt = lastSeenAt,
                 Components = [],
             };

@@ -55,11 +55,11 @@ public static class TrivyReportMappings
                        .Where(x => !string.IsNullOrWhiteSpace(x)) ??
                    [],
             ],
-            CriticalCount: severityCounters?.CriticalCount ?? -1,
-            HighCount: severityCounters?.HighCount ?? -1,
-            MediumCount: severityCounters?.MediumCount ?? -1,
-            LowCount: severityCounters?.LowCount ?? -1,
-            UnknownCount: severityCounters?.CriticalCount ?? -1,
+            CriticalCount: severityCounters?.CriticalCount,
+            HighCount: severityCounters?.HighCount,
+            MediumCount: severityCounters?.MediumCount,
+            LowCount: severityCounters?.LowCount,
+            UnknownCount: severityCounters?.UnknownCount,
             BomRef: component.Id.ToDtoBomRef(),
             DependsOn: [.. component.DependsOnIds.Select(ToDtoBomRef),]
         );

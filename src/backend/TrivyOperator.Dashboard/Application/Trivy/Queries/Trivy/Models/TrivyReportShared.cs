@@ -27,11 +27,11 @@ public sealed record SbomReportDetailDto(
     string Version,
     IReadOnlyDictionary<string, string> Properties,
     IReadOnlyList<string> Licenses,
-    int CriticalCount,
-    int HighCount,
-    int MediumCount,
-    int LowCount,
-    int UnknownCount,
+    int? CriticalCount,
+    int? HighCount,
+    int? MediumCount,
+    int? LowCount,
+    int? UnknownCount,
     string BomRef,
     IReadOnlyList<string> DependsOn
 );

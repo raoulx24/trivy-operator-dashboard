@@ -3044,18 +3044,23 @@ components:
         criticalCount:
           type: integer
           format: int32
+          nullable: true
         highCount:
           type: integer
           format: int32
+          nullable: true
         mediumCount:
           type: integer
           format: int32
+          nullable: true
         lowCount:
           type: integer
           format: int32
+          nullable: true
         unknownCount:
           type: integer
           format: int32
+          nullable: true
         bomRef:
           type: string
         dependsOn:

@@ -95,23 +95,26 @@ public static class SbomReportMappings
         );
     }
 
-    public static IEnumerable<SbomReportImageMinimalDto> ToMinimalDto(
+    public static SbomReportImageMinimalDto ToMinimalDto(
         this SbomReport report,
         SeverityCounters? severityCounters)
     {
-        return report.Occurrences.Select(x => new SbomReportImageMinimalDto(
-            Uid: x.Metadata.Uid.Value,
-            ResourceNamespace: x.Metadata.NamespaceName.Value,
+        ReportImageOccurrence? latestOccurrence =
+            report.Occurrences.MaxBy(x => x.Metadata.CreationTimestamp.Value);
+        
+        return new SbomReportImageMinimalDto(
+            Uid: latestOccurrence?.Metadata.Uid.Value ?? "N/A",
+            ResourceNamespace: latestOccurrence?.Metadata.NamespaceName.Value ?? "N/A",
             HasVulnerabilityReport: severityCounters is not null,
             Digest: report.ImageDigest.Value,
-            ImageName: x.ImageMeta.Repo.Value,
-            ImageTag: x.ImageMeta.Tag.Value,
-            ImageRegistry: x.ImageMeta.Registry.Value,
+            ImageName: latestOccurrence?.ImageMeta.Repo.Value ?? "N/A",
+            ImageTag: latestOccurrence?.ImageMeta.Tag.Value ?? "N/A",
+            ImageRegistry: latestOccurrence?.ImageMeta.Registry.Value ?? "N/A",
             CriticalCount: severityCounters?.CriticalCount ?? 0,
             HighCount: severityCounters?.HighCount ?? 0,
             MediumCount: severityCounters?.MediumCount ?? 0,
             LowCount: severityCounters?.LowCount ?? 0,
             UnknownCount: severityCounters?.UnknownCount ?? 0
-        ));
+        );
     }
 }

@@ -40,11 +40,11 @@ public class SbomReportService(
                 x => x.SeverityCounters);
 
         return resourceSummaries
-            .SelectMany(x =>
+            .Select(x =>
             {
-                var severityCounters =
-                    vrByDigest.TryGetValue(x.ImageDigest, out var counters)
-                        ? (SeverityCounters?)counters
+                SeverityCounters? severityCounters =
+                    vrByDigest.TryGetValue(x.ImageDigest, out SeverityCounters counters)
+                        ? counters
                         : null;
 
                 return x.ToMinimalDto(severityCounters);
