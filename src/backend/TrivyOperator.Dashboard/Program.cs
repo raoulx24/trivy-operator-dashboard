@@ -41,7 +41,7 @@ TrivyOperatorDashboardHostConfiguration.Configure(builder.WebHost, configuration
 // check redis/valkey connectivity
 await HistoryStartupChecks.CheckDistributedCacheConnectivity(configuration);
 
-// api configurations (json options, swagger, headers, cors etc.)
+// api configurations (JSON options, swagger, headers, cors etc.)
 builder.Services.AddApiServices(configuration, builder.Environment);
 
 // open telemetry
@@ -57,7 +57,7 @@ builder.Services.AddTrivyOperatorDashboardServices(configuration);
 WebApplication app = builder.Build();
 
 
-// app lifecycle hooks (on started, on stopping etc)
+// app lifecycle hooks (on started, on stopping etc.)
 TrivyOperatorDashboardLifecycle.Configure(app, logger);
 
 // run history migrations
@@ -69,7 +69,7 @@ app.UseApiPipeline();
 app.MapObservabilityEndpoints(configuration);
 // api endpoints
 app.MapApiEndpoints();
-// healthcheck endpoints
+// health check endpoints
 app.MapHealthEndpoints();
 
 

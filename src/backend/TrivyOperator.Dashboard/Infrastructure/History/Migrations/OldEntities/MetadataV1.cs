@@ -5,7 +5,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.History.Migrations.OldEntities;
 
 public sealed class MetadataV1
 {
-    public NamespaceName NamespaceName { get; init; } = new(string.Empty);
+    public NamespaceNameV1 NamespaceName { get; init; } = new(string.Empty);
     public string ImageRegistry { get; init; } = string.Empty;
     public string ImageName { get; init; } = string.Empty;
     public string ImageTag { get; init; } = string.Empty;
@@ -26,7 +26,7 @@ public static class MetadataV1Mapper
         return new HistoryMetadataPersistenceModel(
             NamespaceNames:
             [
-                source.NamespaceName.Value
+                source.NamespaceName.Value,
             ],
             Registry: source.ImageRegistry,
             Repository: source.ImageName,

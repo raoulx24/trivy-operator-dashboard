@@ -11,13 +11,13 @@ public sealed class PersistenceMigrationRunner(
 {
     public async Task RunMigrationsAsync(CancellationToken ct = default)
     {
-        var orderedMigrations = PrepareMigrations();
+        IPersistenceMigration[] orderedMigrations = PrepareMigrations();
 
-        foreach (var migration in orderedMigrations)
+        foreach (IPersistenceMigration migration in orderedMigrations)
         {
             ct.ThrowIfCancellationRequested();
 
-            var previous = await historyStore.GetAsync(migration.Name, ct);
+            PersistenceMigrationHistoryDto? previous = await historyStore.GetAsync(migration.Name, ct);
 
             if (previous?.Status == Status.Finished)
             {
@@ -36,7 +36,7 @@ public sealed class PersistenceMigrationRunner(
         IPersistenceMigration migration,
         CancellationToken ct)
     {
-        var startedAt = DateTimeOffset.UtcNow;
+        DateTimeOffset startedAt = DateTimeOffset.UtcNow;
 
         await historyStore.SetAsync(
             migration.Name,
@@ -100,31 +100,27 @@ public sealed class PersistenceMigrationRunner(
 
     private IPersistenceMigration[] PrepareMigrations()
     {
-        var materialized = migrations.ToArray();
+        IPersistenceMigration[] materialized = [.. migrations,];
 
-        var duplicate = materialized
+        IGrouping<string, IPersistenceMigration>? duplicate = materialized
             .GroupBy(x => x.Name, StringComparer.Ordinal)
             .FirstOrDefault(x => x.Count() > 1);
 
         if (duplicate is not null)
         {
-            throw new InvalidOperationException(
-                $"Duplicate persistence migration name '{duplicate.Key}'.");
+            throw new InvalidOperationException($"Duplicate persistence migration name '{duplicate.Key}'.");
         }
 
-        foreach (var migration in materialized)
+        if (materialized.Any(migration => string.IsNullOrWhiteSpace(migration.Name)))
         {
-            if (string.IsNullOrWhiteSpace(migration.Name))
-            {
-                throw new InvalidOperationException(
-                    "A persistence migration has an empty name.");
-            }
+            throw new InvalidOperationException("A persistence migration has an empty name.");
         }
 
-        return materialized
-            .GroupBy(x => x.Order)
-            .OrderBy(x => x.Key)
-            .SelectMany(x => x.OrderBy(_ => Random.Shared.Next()))
-            .ToArray();
+        return
+        [
+            .. materialized.GroupBy(x => x.Order)
+                .OrderBy(x => x.Key)
+                .SelectMany(x => x.OrderBy(_ => Random.Shared.Next())),
+        ];
     }
 }
