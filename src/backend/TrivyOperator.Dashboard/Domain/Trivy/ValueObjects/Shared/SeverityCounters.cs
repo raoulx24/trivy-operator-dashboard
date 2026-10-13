@@ -67,6 +67,9 @@ public readonly record struct SeverityCounters
         UnknownCount = counts[4];
         NoneCount = counts[5];
     }
+    
+    public IReadOnlyList<int> GetValuesUpTo(Severity severity) =>
+        [.. Values.Take(severity.Rank + 1),];
 
     // faster version, as it is used on some hot paths
     public bool HasAnyOf(IReadOnlySet<int>? severityIds)

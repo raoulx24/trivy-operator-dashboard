@@ -3,12 +3,12 @@
     <p-button icon="pi pi-refresh" label="Refresh" raised size="small" text class="mr-2" (click)="loadData()" />
     <div class="h-8 w-[2px] min-w-[2px] tod-separator mx-2"></div>
     @if (treeData().length > 0) {
-      <span class="px-2 text-sm whitespace-nowrap">Fully isVisible level: </span>
+      <span class="px-2 text-sm whitespace-nowrap">Visible levels:</span>
       <p-selectButton
         optionLabel="label"
         optionValue="id"
         unselectable="true"
-        class="text-sm"
+        class="text-sm mr-2"
         [ngModel]="treeExpandLevelOptionValue()"
         [options]="treeExpandLevelOptions()"
         (ngModelChange)="treeExpandLevelOptionValue.set($event)"

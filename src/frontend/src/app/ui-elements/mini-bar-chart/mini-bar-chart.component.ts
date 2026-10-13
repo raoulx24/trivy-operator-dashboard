@@ -9,7 +9,6 @@ import {
   ComponentRef,
   OnChanges,
   AfterViewInit,
-  effect,
 } from '@angular/core';
 import { Overlay, OverlayModule, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
