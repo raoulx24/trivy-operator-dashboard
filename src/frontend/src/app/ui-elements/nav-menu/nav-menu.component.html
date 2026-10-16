@@ -48,6 +48,18 @@
           <app-icon [name]="item.icon" />
         }
         <span class="ml-2">{{ item.label }}</span>
+        @if (item.items?.length) {
+          <p-button
+            class="ml-auto tod-text-primary-color"
+            severity="info"
+            size="small"
+            [icon]="item.expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            [raised]="true"
+            [rounded]="true"
+            [text]="true"
+            (click)="$event.preventDefault(); $event.stopPropagation(); item.expanded = !item.expanded"
+          />
+        }
       </a>
     </ng-template>
   </p-panelMenu>

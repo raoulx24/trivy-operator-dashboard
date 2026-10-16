@@ -19,6 +19,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
 import { IconComponent } from '../icon/icon.component';
+import {Ripple} from "primeng/ripple";
 
 @Component({
   selector: 'app-nav-menu',
@@ -34,6 +35,7 @@ import { IconComponent } from '../icon/icon.component';
     SelectModule,
     ToastModule,
     IconComponent,
+    Ripple,
   ],
   templateUrl: './nav-menu.component.html',
   styleUrls: ['./nav-menu.component.scss'],

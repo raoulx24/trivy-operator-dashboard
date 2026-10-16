@@ -248,13 +248,17 @@ tr.p-treetable-row-selected .tod-text-muted-color {
 }
 
 .tod-text-primary-color,
-tr:not(.p-datatable-row-selected):not(.p-treetable-row-selected) p-button.tod-text-primary-color button {
+tr:not(.p-datatable-row-selected):not(.p-treetable-row-selected) p-button.tod-text-primary-color button,
+.p-panelmenu-header-content:not(:hover)
+p-button.tod-text-primary-color button {
   color: var(--tod-text-primary-color);
 }
 
 .tod-text-primary-color,
 tr.p-datatable-row-selected p-button.tod-text-primary-color button,
-tr.p-treetable-row-selected p-button.tod-text-primary-color button {
+tr.p-treetable-row-selected p-button.tod-text-primary-color button,
+div.p-panelmenu-header-content p-button.tod-text-primary-color button
+{
   color: var(--tod-text-revert-primary-color);
 }
 
@@ -409,6 +413,19 @@ body > div.p-tieredmenu {
 
 
 /* ==========================================================================
+   PrimeNG: Drawer
+   ========================================================================== */
+
+p-drawer .p-drawer-left {
+  border-radius: 0 16px 16px 0;
+  overflow: hidden;
+}
+
+
+
+
+
+/* ==========================================================================
    Angular Material: Icon
    ========================================================================== */
 
@@ -555,6 +572,10 @@ mat-icon.text-xs {
   box-shadow: var(--tod-box-shadow);
 }
 
+.tod-drop-shadow {
+  filter: drop-shadow(var(--tod-box-shadow));
+}
+
 
 /* ==========================================================================
    Trivy Operator Dashboard: Namespace count
@@ -579,4 +600,58 @@ mat-icon.text-xs {
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1rem;
+}
+
+
+
+
+
+/* ==========================================================================
+   PrimeNG: PanelMenu
+   ========================================================================== */
+
+/* First panel: round the top corners */
+p-panelmenu > .p-panelmenu-panel:first-child {
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+}
+
+/* Last panel: round the bottom corners */
+p-panelmenu > .p-panelmenu-panel:last-child {
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+
+p-panelmenu > .p-panelmenu-panel {
+  border-color: transparent;
+}
+
+.p-panelmenu-header {
+  border-color: var(--p-content-border-color);
+  border-width: var(--p-panelmenu-panel-border-width);
+  overflow: hidden;
+  box-shadow: var(--tod-box-shadow);
+}
+
+.tod-menu-icon {
+  color: var(--p-text-muted-color);
+  transition: color 150ms ease;
+}
+
+.p-panelmenu-header > .p-panelmenu-header-content:hover .tod-menu-icon,
+.p-panelmenu-item > .p-panelmenu-item-content:hover .tod-menu-icon {
+  color: var(--p-text-color);
+}
+
+.p-panelmenu-header,
+.p-panelmenu-item {
+  border-radius: var(--tod-app-border-radius-sm);
+  overflow: hidden;
+}
+
+.p-panelmenu-submenu {
+  background-image: linear-gradient(var(--p-text-muted-color), var(--p-text-muted-color));
+  background-size: 1px 100%;
+  background-position: 1rem 0;
+  background-repeat: no-repeat;
 }
