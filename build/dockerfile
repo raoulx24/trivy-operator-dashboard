@@ -1,6 +1,6 @@
 # Stage 1 - Angular build
 FROM node:24 AS build-node
-COPY ./src/TrivyOperator.Dashboard/ClientApp /src
+COPY ./src/frontend /src
 WORKDIR /src
 RUN npm install
 RUN npm run build -- --configuration production --base-href ./ --deploy-url ./
@@ -18,7 +18,7 @@ RUN find . -type f -name "*.svg" -exec brotli -k -4 {} \;
 
 # Stage 2 - dotnet publish
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-dotnet
-COPY ./src /src
+COPY ./src/backend /src
 ARG FILEVERSION
 ARG SEMVERFILEVERSION
 RUN dotnet publish /src/TrivyOperator.Dashboard/TrivyOperator.Dashboard.csproj \
