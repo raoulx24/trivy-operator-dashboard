@@ -7,13 +7,25 @@ namespace TrivyOperator.Dashboard.Composition.Configuration;
 
 public static class TrivyDashboardConfigurationReader
 {
+    private const string DefaultEndOfLifeConfigFile = "endoflife.config.json";
+
     public static IConfiguration CreateConfiguration()
     {
-        IConfigurationBuilder configurationBuilder = 
+        IConfigurationBuilder configurationBuilder =
             new ConfigurationBuilder().AddJsonFile("appsettings.json", true)
                 .AddJsonFile("serilog.config.json", true)
                 .AddEnvironmentVariables();
         IConfiguration configuration = configurationBuilder.Build();
+
+        // end of life product mappings can come from a separate file (e.g. mounted from a configmap)
+        // it is added last and reloaded on change; in k8s, use DOTNET_USE_POLLING_FILE_WATCHER=true and no subPath mount
+        string? endOfLifeConfigFile = configuration.GetValue<string>("EndOfLife:ProductMappingsFile");
+        configurationBuilder.AddJsonFile(
+            string.IsNullOrWhiteSpace(endOfLifeConfigFile) ? DefaultEndOfLifeConfigFile : endOfLifeConfigFile,
+            optional: true,
+            reloadOnChange: true);
+        configuration = configurationBuilder.Build();
+
         string? tempFolder = configuration.GetSection("FileExport")["TempFolder"];
         if (!string.IsNullOrEmpty(tempFolder))
         {
@@ -81,6 +93,9 @@ public static class TrivyDashboardConfigurationReader
     
     internal static bool LoadUseGithub(this IConfiguration config)
         => config.GetValue<bool>("GitHub:ServerCheckForUpdates");
+
+    internal static bool LoadUseEndOfLife(this IConfiguration config)
+        => config.GetValue("EndOfLife:Enabled", true);
     
     internal static int GetPort(this IConfiguration configuration, string key, int defaultPort)
     {

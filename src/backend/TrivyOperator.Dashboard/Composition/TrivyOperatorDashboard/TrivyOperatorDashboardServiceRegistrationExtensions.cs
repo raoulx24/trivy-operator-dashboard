@@ -1,5 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Composition.Alerts;
 using TrivyOperator.Dashboard.Composition.BackendSettings;
+using TrivyOperator.Dashboard.Composition.EndOfLife;
 using TrivyOperator.Dashboard.Composition.GitHub;
 using TrivyOperator.Dashboard.Composition.History;
 using TrivyOperator.Dashboard.Composition.Kubernetes;
@@ -16,6 +17,7 @@ public static class TrivyOperatorDashboardServiceRegistrationExtensions
         services.AddAlertsRelatedServices();
         services.AddBackendSettingsRelatedServices(configuration);
         services.AddGitHubRelatedServices(configuration);
+        services.AddEndOfLifeRelatedServices(configuration);
         services.AddKubernetesRelatedServices(configuration);
         services.AddNamespaceRelatedServices(configuration);
         services.AddTrivyReportRelatedServices(configuration);

@@ -24,6 +24,4 @@ public class AppVersionsController(IAppVersionsService appVersionsService) : Con
     [ProducesResponseType(typeof(AppVersion), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public IActionResult GetCurrentAppVersion() => Ok(appVersionsService.GetCurrentVersion());
-
-    // TODO - proper version return (and also, in GitHubClient, user agent
 }

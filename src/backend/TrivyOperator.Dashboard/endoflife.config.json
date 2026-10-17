@@ -1,0 +1,21 @@
+﻿{
+  "EndOfLife": {
+    "ProductMappings": {
+      "alma": "almalinux",
+      "alpine": "alpine-linux",
+      "amazon": "amazon-linux",
+      "centos": "centos",
+      "debian": "debian",
+      "fedora": "fedora",
+      "opensuse-leap": "opensuse",
+      "opensuse.leap": "opensuse",
+      "oracle": "oracle-linux",
+      "photon": "photon",
+      "redhat": "rhel",
+      "rocky": "rocky-linux",
+      "sles": "sles",
+      "suse linux enterprise server": "sles",
+      "ubuntu": "ubuntu"
+    }
+  }
+}
