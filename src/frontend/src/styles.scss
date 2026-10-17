@@ -249,17 +249,23 @@ tr.p-treetable-row-selected .tod-text-muted-color {
 
 .tod-text-primary-color,
 tr:not(.p-datatable-row-selected):not(.p-treetable-row-selected) p-button.tod-text-primary-color button,
-.p-panelmenu-header-content:not(:hover)
-p-button.tod-text-primary-color button {
+.p-panelmenu-header-content:not(:hover) p-button.tod-text-primary-color button {
   color: var(--tod-text-primary-color);
 }
 
-.tod-text-primary-color,
 tr.p-datatable-row-selected p-button.tod-text-primary-color button,
 tr.p-treetable-row-selected p-button.tod-text-primary-color button,
-div.p-panelmenu-header-content p-button.tod-text-primary-color button
+div.p-panelmenu-header-content p-button.tod-text-primary-color button,
+div.p-panelmenu-header-content:hover,
+div.p-panelmenu-header-content:hover span
 {
   color: var(--tod-text-revert-primary-color);
+  //color: var(--tod-text-primary-color);
+}
+
+tr.p-datatable-row-selected p-button.tod-text-primary-color button.p-button-text:hover,
+div.p-panelmenu-header-content p-button.tod-text-primary-color button.p-button-text:hover{
+  background: transparent;
 }
 
 // Table border color utility
@@ -635,10 +641,10 @@ p-panelmenu > .p-panelmenu-panel {
 
 .tod-menu-icon {
   color: var(--p-text-muted-color);
-  transition: color 150ms ease;
+  transition: color 600ms ease;
 }
 
-.p-panelmenu-header > .p-panelmenu-header-content:hover .tod-menu-icon,
+//.p-panelmenu-header > .p-panelmenu-header-content:hover .tod-menu-icon,
 .p-panelmenu-item > .p-panelmenu-item-content:hover .tod-menu-icon {
   color: var(--p-text-color);
 }
@@ -649,9 +655,17 @@ p-panelmenu > .p-panelmenu-panel {
   overflow: hidden;
 }
 
-.p-panelmenu-submenu {
-  background-image: linear-gradient(var(--p-text-muted-color), var(--p-text-muted-color));
-  background-size: 1px 100%;
-  background-position: 1rem 0;
-  background-repeat: no-repeat;
+//.p-panelmenu-submenu {
+//  background-image: linear-gradient(var(--p-text-muted-color), var(--p-text-muted-color));
+//  background-size: 1px 100%;
+//  background-position: 1rem 0;
+//  background-repeat: no-repeat;
+//}
+
+ul.p-panelmenu-submenu {
+  padding: 0 0 0 1px;
+  margin: 0 0 0 var(--p-panelmenu-submenu-indent);
+  border: none;
+  border-left: 1px solid var(--p-text-muted-color);
+  border-radius: 0 0 0 var(--tod-app-border-radius-lg);
 }
