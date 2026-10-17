@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin, Observable, timeout } from 'rxjs';
 
 import { AppVersion } from '../../api/models';
 import { BackendSettingsDto } from '../../api/models/backend-settings-dto';
@@ -8,6 +8,7 @@ import { trivyMigrations } from '../constants/migration.constants';
 import { DarkModeService } from './dark-mode.service';
 import { MigrationService } from './migration.service';
 import { SettingsService } from './settings.service';
+import { RetryPolicy, retryWithBackoff } from '../utils/retry-policy.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -24,30 +25,38 @@ export class MainAppInitService {
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
+  private readonly initRetryPolicy = new RetryPolicy({
+    initialDelayMs: 500,
+    maxDelayMs: 8_000,
+    maxRetries: 6, // about 30s in the worst case, then give up
+  });
+
   private readonly backendSettingsService = inject(BackendSettingsService);
   private readonly settingsService = inject(SettingsService);
   private readonly darkModeService = inject(DarkModeService);
   private readonly migrationService = inject(MigrationService);
 
-  initializeApp(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      forkJoin({
-        backendSettings: this.backendSettingsService.getBackendSettings(),
-        appVersion: this.settingsService.getAppVersion(),
-      }).subscribe({
-        next: ({ backendSettings, appVersion }) => {
-          this.darkModeService.restoreMode();
-          this.defaultBackendSettingsDto = backendSettings;
-          this.mergeBackendSettingsDto(backendSettings);
-          this.applyMigrations(appVersion);
-          resolve();
-        },
-        error: (err) => {
-          console.error('Error during app initialization:', err);
-          reject(err);
-        },
-      });
-    });
+  async initializeApp(): Promise<void> {
+    this.darkModeService.restoreMode(); // no network needed; running it first avoids a light-mode flash
+
+    const withResilience = <T>(source$: Observable<T>) =>
+      source$.pipe(timeout(10_000), retryWithBackoff<T>(this.initRetryPolicy));
+
+    try {
+      const { backendSettings, appVersion } = await firstValueFrom(
+        forkJoin({
+          backendSettings: withResilience(this.backendSettingsService.getBackendSettings()),
+          appVersion: withResilience(this.settingsService.getAppVersion()),
+        }),
+      );
+
+      this.defaultBackendSettingsDto = backendSettings;
+      this.mergeBackendSettingsDto(backendSettings);
+      this.applyMigrations(appVersion);
+    } catch (err) {
+      console.error('Error during app initialization:', err);
+      throw err;
+    }
   }
 
   updateBackendSettingsTrivyReportConfigDto(newIds: string[]) {

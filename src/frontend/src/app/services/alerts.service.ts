@@ -3,7 +3,7 @@ import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signal
 
 import { ApiConfiguration } from '../../api/api-configuration';
 import { AlertDto } from '../../api/models/alert-dto';
-import { RetryPolicyUtils } from '../utils/retry-policy.utils';
+import { RetryPolicy } from '../utils/retry-policy.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +17,7 @@ export class AlertsService {
   private readonly _refreshCounter = signal(0); // simple counter trigger
   readonly refreshEvents = this._refreshCounter.asReadonly();
 
-  private retryPolicy = new RetryPolicyUtils();
+  private readonly retryPolicy = new RetryPolicy({ initialDelayMs: 1_000, maxDelayMs: 30_000 });
   private readonly hubPath = 'alerts-hub';
   private hubUrl = '';
 
@@ -42,39 +42,37 @@ export class AlertsService {
       .withUrl(this.hubUrl)
       .configureLogging(LogLevel.Information)
       .withAutomaticReconnect({
-        nextRetryDelayInMilliseconds: () => this.retryPolicy.nextDelayMs(),
+        nextRetryDelayInMilliseconds: (ctx) => this.retryPolicy.delayFor(ctx.previousRetryCount),
       })
       .build();
 
-    this.hubConnection
-      .start()
-      .then(() => {
-        this.retryPolicy.resetCounter();
-      })
-      .catch((err) => {
-        console.error('Connection error ', err);
-        this.retryConnection();
-      });
-
     this.hubConnection.onreconnecting((error) => {
       console.warn(`Connection lost due to ${error}. Reconnecting...`);
-      this._alerts.set([]); // clear alerts
+      this._alerts.set([]);
     });
 
-    this.hubConnection.onreconnected(() => {
-      this.retryPolicy.resetCounter();
+    this.hubConnection.onclose((error) => {
+      console.error('Connection closed.', error);
+      // Closed with an error means automatic reconnect gave up; a plain stop() passes no error
+      if (error) this.startWithRetry();
     });
 
-    this.hubConnection.onclose(() => console.error('Connection closed.'));
+    this.startWithRetry();
   }
 
-  private retryConnection() {
-    setTimeout(() => {
-      this.hubConnection.start().catch((err) => {
-        console.error('Retry connection error', err);
-        this.retryConnection();
-      });
-    }, this.retryPolicy.nextDelayMs());
+// withAutomaticReconnect only covers dropped connections, not a failed first start()
+  private async startWithRetry(attempt = 0): Promise<void> {
+    try {
+      await this.hubConnection.start();
+    } catch (err) {
+      const delay = this.retryPolicy.delayFor(attempt);
+      if (delay === null) {
+        console.error('Giving up connecting to alerts hub', err);
+        return;
+      }
+      console.error(`Connection error, retrying in ${Math.round(delay)}ms`, err);
+      setTimeout(() => this.startWithRetry(attempt + 1), delay);
+    }
   }
 
   private addEventListeners() {
