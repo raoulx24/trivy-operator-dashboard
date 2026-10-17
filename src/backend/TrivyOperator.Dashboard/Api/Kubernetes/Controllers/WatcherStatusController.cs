@@ -10,29 +10,23 @@ namespace TrivyOperator.Dashboard.Api.Kubernetes.Controllers;
 public class WatcherStatusController(IWatcherStatusService watcherStateInfoService) : ControllerBase
 {
     [HttpGet(Name = "GetWatcherStateInfos")]
-    [ProducesResponseType<IEnumerable<WatcherStatusDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<WatcherStatusDto>> GetAll() =>
-        await watcherStateInfoService.GetWatcherStatusDtos();
+    [ProducesResponseType(typeof(IEnumerable<WatcherStatusDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetAll() => Ok(await watcherStateInfoService.GetWatcherStatusDtos());
 
     [HttpPost("recreate")]
-    [ProducesResponseType(typeof(RecreateWatcherResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IResult> RecreateWatcher([FromBody] RecreateWatcherRequest request)
+    [ProducesResponseType(typeof(RecreateWatcherResponse), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> RecreateWatcher([FromBody] RecreateWatcherRequest request)
     {
         if (string.IsNullOrWhiteSpace(request?.KubernetesObjectType))
         {
-            return Results.BadRequest(
-                new RecreateWatcherResponse
-                {
-                    Message = "Error occured",
-                    Error = "KubernetesObjectType is required.",
-                    KubernetesObjectType = request?.KubernetesObjectType,
-                    NamespaceName = request?.NamespaceName,
-                }
-            );
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: "KubernetesObjectType is required.");
         }
 
         OperationResult result = await watcherStateInfoService.RecreateWatcher(
@@ -43,7 +37,7 @@ public class WatcherStatusController(IWatcherStatusService watcherStateInfoServi
 
         if (result.Success)
         {
-            return Results.Ok(
+            return Ok(
                 new RecreateWatcherResponse
                 {
                     Message =
@@ -52,14 +46,9 @@ public class WatcherStatusController(IWatcherStatusService watcherStateInfoServi
             );
         }
 
-        return Results.UnprocessableEntity(
-            new RecreateWatcherResponse
-            {
-                Message = "Error occured",
-                Error = result.Message,
-                KubernetesObjectType = request.KubernetesObjectType,
-                NamespaceName = request.NamespaceName,
-            }
-        );
+        return Problem(
+            statusCode: StatusCodes.Status422UnprocessableEntity,
+            title: "Failed to recreate watcher",
+            detail: result.Message);
     }
 }

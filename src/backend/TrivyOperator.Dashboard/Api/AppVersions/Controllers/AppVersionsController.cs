@@ -7,27 +7,23 @@ namespace TrivyOperator.Dashboard.Api.AppVersions.Controllers;
 
 [ApiController]
 [Route("api/app-versions")]
-public class AppVersionsController(IAppVersionsService appVersionsService)
+public class AppVersionsController(IAppVersionsService appVersionsService) : ControllerBase
 {
     [HttpGet(Name = "GetGitHubVersions")]
-    [ProducesResponseType<IEnumerable<ReleaseDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ReleaseDto>> GetAll() => await appVersionsService.GetTrivyDashboardReleases();
+    [ProducesResponseType(typeof(IEnumerable<ReleaseDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetAll() => Ok(await appVersionsService.GetTrivyDashboardReleases());
 
     [HttpGet("latest", Name = "GetGitHubLatestVersion")]
-    [ProducesResponseType<ReleaseDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<ReleaseDto> GetLatest() =>
-        await appVersionsService.GetTrivyDashboardLatestRelease() ?? new Release().ToReleaseDto();
+    [ProducesResponseType(typeof(ReleaseDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetLatest() =>
+        Ok(await appVersionsService.GetTrivyDashboardLatestRelease() ?? new Release().ToReleaseDto());
 
     [HttpGet("current-version", Name = "GetCurrentVersion")]
-    [ProducesResponseType<AppVersion>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public AppVersion GetCurrentAppVersion() => appVersionsService.GetCurrentVersion();
+    [ProducesResponseType(typeof(AppVersion), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public IActionResult GetCurrentAppVersion() => Ok(appVersionsService.GetCurrentVersion());
 
-    // TODO - proper error handling with Task<IActionResult>
     // TODO - proper version return (and also, in GitHubClient, user agent
 }

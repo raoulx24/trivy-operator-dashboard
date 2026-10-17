@@ -11,19 +11,18 @@ public class ClusterRbacAssessmentReportController(
 ) : ControllerBase
 {
     [HttpGet(Name = "GetClusterRbacAssessmentReportDtos")]
-    [ProducesResponseType<IEnumerable<ClusterRbacAssessmentReportDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterRbacAssessmentReportDto>> Get(
+    [ProducesResponseType(typeof(IEnumerable<ClusterRbacAssessmentReportDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> Get(
         CancellationToken ctx = default) =>
-        await clusterRbacAssessmentReportService
-            .GetClusterRbacAssessmentReportDtos(ctx);
-    
+        Ok(await clusterRbacAssessmentReportService
+            .GetClusterRbacAssessmentReportDtos(ctx));
+
     [HttpGet("{uid}", Name = "GetClusterRbacAssessmentReportDtoByUid")]
-    [ProducesResponseType<ClusterRbacAssessmentReportDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ClusterRbacAssessmentReportDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetByUid(
         string uid,
         CancellationToken ctx = default)
@@ -32,15 +31,16 @@ public class ClusterRbacAssessmentReportController(
             await clusterRbacAssessmentReportService
                 .GetClusterRbacAssessmentReportDtoByUid(uid, ctx);
 
-        return result is null ? NotFound() : Ok(result);
+        return result is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Cluster RBAC assessment report not found")
+            : Ok(result);
     }
 
     [HttpGet("denormalized", Name = "GetClusterRbacAssessmentReportDenormalizedDtos")]
-    [ProducesResponseType<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>> GetDenormalized(
+    [ProducesResponseType(typeof(IEnumerable<ClusterRbacAssessmentReportDenormalizedDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetDenormalized(
         CancellationToken ctx = default) =>
-        await clusterRbacAssessmentReportService
-            .GetClusterRbacAssessmentReportDenormalizedDtos(ctx);
+        Ok(await clusterRbacAssessmentReportService
+            .GetClusterRbacAssessmentReportDenormalizedDtos(ctx));
 }

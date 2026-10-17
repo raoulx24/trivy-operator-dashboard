@@ -12,7 +12,7 @@ public static class ApiPipelineExtensions
 
         if (app.Environment.IsProduction())
         {
-            app.UseExceptionHandler("/Error");
+            app.UseExceptionHandler();
             app.UseHsts();
         }
         else

@@ -8,33 +8,32 @@ namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 [ApiController]
 [Route("api/cluster-config-audit-reports")]
 public class ClusterConfigAuditReportController(
-IClusterConfigAuditReportService clusterConfigAuditReportService
+    IClusterConfigAuditReportService clusterConfigAuditReportService
 ) : ControllerBase
 {
-    
     [HttpGet(Name = "GetClusterConfigAuditReportDtos")]
-    [ProducesResponseType<IEnumerable<ClusterConfigAuditReportDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(IEnumerable<ClusterConfigAuditReportDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> Get(
-    [FromQuery] string? excludedSeverities,
-    CancellationToken ctx = default)
+        [FromQuery] string? excludedSeverities,
+        CancellationToken ctx = default)
     {
-    QueryResponse<IEnumerable<ClusterConfigAuditReportDto>> result =
-    await clusterConfigAuditReportService.GetClusterConfigAuditReportDtos(
-    excludedSeverities,
-    ctx);
+        QueryResponse<IEnumerable<ClusterConfigAuditReportDto>> result =
+            await clusterConfigAuditReportService.GetClusterConfigAuditReportDtos(
+                excludedSeverities,
+                ctx);
 
         return result.Error is null
             ? Ok(result.Payload)
-            : BadRequest(result.Error);
+            : Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid request", detail: result.Error);
     }
 
     [HttpGet("{uid}", Name = "GetClusterConfigAuditReportDtoByUid")]
-    [ProducesResponseType<ClusterConfigAuditReportDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ClusterConfigAuditReportDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetByUid(
         string uid,
         CancellationToken ctx = default)
@@ -44,17 +43,15 @@ IClusterConfigAuditReportService clusterConfigAuditReportService
                 .GetClusterConfigAuditReportDtoByUid(uid, ctx);
 
         return result is null
-            ? NotFound()
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Cluster config audit report not found")
             : Ok(result);
     }
 
     [HttpGet("denormalized", Name = "GetClusterConfigAuditReportDenormalizedDtos")]
-    [ProducesResponseType<IEnumerable<ClusterConfigAuditReportDenormalizedDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterConfigAuditReportDenormalizedDto>> GetDenormalized(
+    [ProducesResponseType(typeof(IEnumerable<ClusterConfigAuditReportDenormalizedDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetDenormalized(
         CancellationToken ctx = default) =>
-        await clusterConfigAuditReportService
-            .GetClusterConfigAuditReportDenormalizedDtos(ctx);
-
+        Ok(await clusterConfigAuditReportService
+            .GetClusterConfigAuditReportDenormalizedDtos(ctx));
 }

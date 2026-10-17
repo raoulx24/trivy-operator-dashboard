@@ -12,24 +12,29 @@ public class ExposedSecretReportsController(
     : ControllerBase
 {
     [HttpGet(Name = "GetExposedSecretReportDtos")]
-    [ProducesResponseType<IEnumerable<ExposedSecretReportDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ExposedSecretReportDto>> Get(
-        [FromQuery] string? namespaceName)
-        => await exposedSecretReportService.GetExposedSecretReportDtos(
+    [ProducesResponseType(typeof(IEnumerable<ExposedSecretReportDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> Get(
+        [FromQuery] string? namespaceName) =>
+        Ok(await exposedSecretReportService.GetExposedSecretReportDtos(
             namespaceName,
-            HttpContext.RequestAborted);
+            HttpContext.RequestAborted));
 
     [HttpGet("{uid}", Name = "GetExposedSecretReportDtoByUid")]
-    [ProducesResponseType<ExposedSecretReportDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IResult> GetByUid(
+    [ProducesResponseType(typeof(ExposedSecretReportDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetByUid(
         string? uid)
     {
         if (string.IsNullOrEmpty(uid))
-            return Results.BadRequest("A uid must be provided");
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid request",
+                detail: "A uid must be provided");
+        }
 
         ExposedSecretReportDto? exposedSecretReportDto =
             await exposedSecretReportService.GetExposedSecretReportDtoByUid(
@@ -37,24 +42,23 @@ public class ExposedSecretReportsController(
                 HttpContext.RequestAborted);
 
         return exposedSecretReportDto is null
-            ? Results.NotFound()
-            : Results.Ok(exposedSecretReportDto);
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Exposed secret report not found")
+            : Ok(exposedSecretReportDto);
     }
 
     [HttpGet("denormalized", Name = "GetExposedSecretReportDenormalizedDtos")]
-    [ProducesResponseType<IEnumerable<ExposedSecretReportDenormalizedDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ExposedSecretReportDenormalizedDto>> GetDenormalized(
-        [FromQuery] string? namespaceName)
-        => await exposedSecretReportService.GetExposedSecretReportDenormalizedDtos(
+    [ProducesResponseType(typeof(IEnumerable<ExposedSecretReportDenormalizedDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetDenormalized(
+        [FromQuery] string? namespaceName) =>
+        Ok(await exposedSecretReportService.GetExposedSecretReportDenormalizedDtos(
             namespaceName,
-            HttpContext.RequestAborted);
+            HttpContext.RequestAborted));
 
     [HttpGet("grouped-by-image", Name = "GetExposedSecretReportImageDtos")]
-    [ProducesResponseType<IEnumerable<ExposedSecretReportImageDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(IEnumerable<ExposedSecretReportImageDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetGroupedByImage(
         string? namespaceName,
         string? excludedSeverities,
@@ -62,18 +66,15 @@ public class ExposedSecretReportsController(
     {
         QueryResponse<IEnumerable<ExposedSecretReportImageDto>> result =
             await exposedSecretReportService.GetExposedSecretReportImageDtos(namespaceName, excludedSeverities, ctx);
-        
+
         return result.Error is null
             ? Ok(result.Payload)
-            : BadRequest(result.Error);
+            : Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid request", detail: result.Error);
     }
-    
+
     [HttpGet("active-namespaces", Name = "GetExposedSecretReportActiveNamespaces")]
-    [ProducesResponseType<string[]>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx)
-    {
-        return Ok(await exposedSecretReportService.GetActiveNamespaces(ctx));
-    }
+    [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx) =>
+        Ok(await exposedSecretReportService.GetActiveNamespaces(ctx));
 }

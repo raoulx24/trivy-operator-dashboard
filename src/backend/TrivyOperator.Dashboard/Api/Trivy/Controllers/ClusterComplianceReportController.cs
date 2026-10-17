@@ -10,17 +10,16 @@ public class ClusterComplianceReportController(IClusterComplianceReportService c
     : ControllerBase
 {
     [HttpGet(Name = "GetClusterComplianceReportDtos")]
-    [ProducesResponseType<IEnumerable<ClusterComplianceReportDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterComplianceReportDto>> Get() =>
-        await clusterComplianceReportService.GetClusterComplianceReportDtos();
-    
+    [ProducesResponseType(typeof(IEnumerable<ClusterComplianceReportDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> Get() =>
+        Ok(await clusterComplianceReportService.GetClusterComplianceReportDtos());
+
     [HttpGet("{uid}", Name = "GetClusterComplianceReportDtoByUid")]
-    [ProducesResponseType<ClusterComplianceReportDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ClusterComplianceReportDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetByUid(
         string uid,
         CancellationToken ctx = default)
@@ -29,13 +28,14 @@ public class ClusterComplianceReportController(IClusterComplianceReportService c
             await clusterComplianceReportService
                 .GetClusterComplianceReportDtoByUid(uid, ctx);
 
-        return result is null ? NotFound() : Ok(result);
+        return result is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Cluster compliance report not found")
+            : Ok(result);
     }
 
     [HttpGet("denormalized", Name = "GetClusterComplianceReportDenormalizedDtos")]
-    [ProducesResponseType<IEnumerable<ClusterComplianceReportDenormalizedDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterComplianceReportDenormalizedDto>> GetDenormalized() =>
-        await clusterComplianceReportService.GetClusterComplianceReportDenormalizedDtos();
+    [ProducesResponseType(typeof(IEnumerable<ClusterComplianceReportDenormalizedDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetDenormalized() =>
+        Ok(await clusterComplianceReportService.GetClusterComplianceReportDenormalizedDtos());
 }

@@ -12,9 +12,9 @@ public class RbacAssessmentReportController(
 ) : ControllerBase
 {
     [HttpGet(Name = "GetRbacAssessmentReportDtos")]
-    [ProducesResponseType<IEnumerable<RbacAssessmentReportDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(IEnumerable<RbacAssessmentReportDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> Get(
         [FromQuery] string? namespaceName,
         [FromQuery] string? excludedSeverities,
@@ -28,14 +28,14 @@ public class RbacAssessmentReportController(
 
         return result.Error is null
             ? Ok(result.Payload)
-            : BadRequest(result.Error);
+            : Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid request", detail: result.Error);
     }
-    
+
     [HttpGet("{uid}", Name = "GetRbacAssessmentReportDtoByUid")]
-    [ProducesResponseType<RbacAssessmentReportDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(RbacAssessmentReportDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetByUid(
         string uid,
         CancellationToken ctx = default)
@@ -44,25 +44,23 @@ public class RbacAssessmentReportController(
             await rbacAssessmentReportService
                 .GetRbacAssessmentReportDtoByUid(uid, ctx);
 
-        return result is null ? NotFound() : Ok(result);
+        return result is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "RBAC assessment report not found")
+            : Ok(result);
     }
 
     [HttpGet("denormalized", Name = "GetRbacAssessmentReportDenormalizedDtos")]
-    [ProducesResponseType<IEnumerable<RbacAssessmentReportDenormalizedDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<RbacAssessmentReportDenormalizedDto>> GetDenormalized(
+    [ProducesResponseType(typeof(IEnumerable<RbacAssessmentReportDenormalizedDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetDenormalized(
         [FromQuery] string? namespaceName,
         CancellationToken ctx = default) =>
-        await rbacAssessmentReportService
-            .GetRbacAssessmentReportDenormalizedDtos(namespaceName, ctx);
-    
+        Ok(await rbacAssessmentReportService
+            .GetRbacAssessmentReportDenormalizedDtos(namespaceName, ctx));
+
     [HttpGet("active-namespaces", Name = "GetRbacAssessmentReportActiveNamespaces")]
-    [ProducesResponseType<string[]>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx)
-    {
-        return Ok(await rbacAssessmentReportService.GetActiveNamespaces(ctx));
-    }
+    [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx) =>
+        Ok(await rbacAssessmentReportService.GetActiveNamespaces(ctx));
 }

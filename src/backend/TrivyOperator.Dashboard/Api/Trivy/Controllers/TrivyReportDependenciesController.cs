@@ -10,26 +10,32 @@ public class TrivyReportDependenciesController(ITrivyReportDependenciesService t
     : ControllerBase
 {
     [HttpGet("digest", Name = "GetTrivyReportDependencyDtoByDigestNamespace")]
-    [ProducesResponseType<TrivyDependencyTreeDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(TrivyDependencyTreeDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetByDigestNamespace([FromQuery] string digest, [FromQuery] string? namespaceName, CancellationToken ct)
     {
         TrivyDependencyTreeDto? trivyReportDependencyDto =
             await trivyReportDependenciesServiceService.GetTrivyDependencyTree(digest, namespaceName, ct);
 
-        return trivyReportDependencyDto is null ? NotFound() : Ok(trivyReportDependencyDto);
+        return trivyReportDependencyDto is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Trivy dependencies not found")
+            : Ok(trivyReportDependencyDto);
     }
-    
+
     [HttpGet("digest/check", Name = "CheckIfTrivyDependenciesExistByDigestNamespace")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> CheckIfTrivyDependenciesExist([FromQuery] string digest, CancellationToken ct)
     {
         bool result =
             await trivyReportDependenciesServiceService.TrivyDependenciesExist(digest);
 
-        return result ? Ok() : NotFound();
+        return result
+            ? Ok()
+            : Problem(statusCode: StatusCodes.Status404NotFound, title: "Trivy dependencies not found");
     }
 }

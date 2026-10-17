@@ -12,27 +12,28 @@ public class InfraAssessmentReportController(
 ) : ControllerBase
 {
     [HttpGet(Name = "GetInfraAssessmentReportDtos")]
-    [ProducesResponseType<IEnumerable<InfraAssessmentReportDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(IEnumerable<InfraAssessmentReportDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> Get(
         string? namespaceName,
         string? excludedSeverities,
         CancellationToken ctx = default)
     {
-        QueryResponse<IEnumerable<InfraAssessmentReportDto>> result = 
+        QueryResponse<IEnumerable<InfraAssessmentReportDto>> result =
             await infraAssessmentReportService.GetInfraAssessmentReportDtos(namespaceName, excludedSeverities, ctx);
-        
+
         return result.Error is null
             ? Ok(result.Payload)
-            : BadRequest(result.Error);
+            : Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid request", detail: result.Error);
     }
 
     [HttpGet("{uid}", Name = "GetInfraAssessmentReportDtoByUid")]
-    [ProducesResponseType<InfraAssessmentReportDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<InfraAssessmentReportDto>> GetByUid(
+    [ProducesResponseType(typeof(InfraAssessmentReportDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetByUid(
         string uid,
         CancellationToken ctx = default)
     {
@@ -40,25 +41,22 @@ public class InfraAssessmentReportController(
             await infraAssessmentReportService.GetInfraAssessmentReportDtoByUid(uid, ctx);
 
         return result is null
-            ? NotFound()
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Infra assessment report not found")
             : Ok(result);
     }
 
     [HttpGet("denormalized", Name = "GetInfraAssessmentReportDenormalizedDtos")]
-    [ProducesResponseType<IEnumerable<InfraAssessmentReportDenormalizedDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<InfraAssessmentReportDenormalizedDto>> GetDenormalized(
+    [ProducesResponseType(typeof(IEnumerable<InfraAssessmentReportDenormalizedDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetDenormalized(
         string? namespaceName,
         CancellationToken ctx = default) =>
-        await infraAssessmentReportService
-            .GetInfraAssessmentReportDenormalizedDtos(namespaceName, ctx);
-    
+        Ok(await infraAssessmentReportService
+            .GetInfraAssessmentReportDenormalizedDtos(namespaceName, ctx));
+
     [HttpGet("active-namespaces", Name = "GetInfraAssessmentReportActiveNamespaces")]
-    [ProducesResponseType<string[]>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx)
-    {
-        return Ok(await infraAssessmentReportService.GetActiveNamespaces(ctx));
-    }
+    [ProducesResponseType(typeof(string[]), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetActiveNamespaces(CancellationToken ctx) =>
+        Ok(await infraAssessmentReportService.GetActiveNamespaces(ctx));
 }

@@ -9,8 +9,7 @@ namespace TrivyOperator.Dashboard.Api.BackendSettings.Controllers;
 public class BackendSettingsController(IBackendSettingsService service) : ControllerBase
 {
     [HttpGet(Name = "GetBackendSettings")]
-    [ProducesResponseType<BackendSettingsDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<BackendSettingsDto> GetBackendSettings() => await service.GetBackendSettings();
+    [ProducesResponseType(typeof(BackendSettingsDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetBackendSettings() => Ok(await service.GetBackendSettings());
 }

@@ -11,19 +11,18 @@ public class ClusterInfraAssessmentReportController(
 ) : ControllerBase
 {
     [HttpGet(Name = "GetClusterInfraAssessmentReportDtos")]
-    [ProducesResponseType<IEnumerable<ClusterInfraAssessmentReportDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterInfraAssessmentReportDto>> Get(
+    [ProducesResponseType(typeof(IEnumerable<ClusterInfraAssessmentReportDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> Get(
         CancellationToken ctx = default) =>
-        await clusterInfraAssessmentReportService
-            .GetClusterInfraAssessmentReportDtos(ctx);
+        Ok(await clusterInfraAssessmentReportService
+            .GetClusterInfraAssessmentReportDtos(ctx));
 
     [HttpGet("{uid}", Name = "GetClusterInfraAssessmentReportDtoByUid")]
-    [ProducesResponseType<ClusterInfraAssessmentReportDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ClusterInfraAssessmentReportDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetByUid(
         string uid,
         CancellationToken ctx = default)
@@ -32,15 +31,16 @@ public class ClusterInfraAssessmentReportController(
             await clusterInfraAssessmentReportService
                 .GetClusterInfraAssessmentReportDtoByUid(uid, ctx);
 
-        return result is null ? NotFound() : Ok(result);
+        return result is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Cluster infra assessment report not found")
+            : Ok(result);
     }
 
     [HttpGet("denormalized", Name = "GetClusterInfraAssessmentReportDenormalizedDtos")]
-    [ProducesResponseType<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>> GetDenormalized(
+    [ProducesResponseType(typeof(IEnumerable<ClusterInfraAssessmentReportDenormalizedDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetDenormalized(
         CancellationToken ctx = default) =>
-        await clusterInfraAssessmentReportService
-            .GetClusterInfraAssessmentReportDenormalizedDtos(ctx);
+        Ok(await clusterInfraAssessmentReportService
+            .GetClusterInfraAssessmentReportDenormalizedDtos(ctx));
 }

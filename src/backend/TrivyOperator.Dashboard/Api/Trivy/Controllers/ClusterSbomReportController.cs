@@ -9,23 +9,20 @@ namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 public class ClusterSbomReportController(IClusterSbomReportService clusterSbomReportService) : ControllerBase
 {
     [HttpGet("minimal", Name = "GetClusterSbomReportMinimalDtos")]
-    [ProducesResponseType<IEnumerable<SbomReportImageMinimalDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(IEnumerable<SbomReportImageMinimalDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetGroupedByImageMinimal(CancellationToken ctx) =>
         Ok(await clusterSbomReportService.GetClusterSbomReportMinimalDtos(ctx));
-    
+
     [HttpGet(Name = "GetClusterSbomReportDtos")]
-    [ProducesResponseType<IEnumerable<ClusterSbomReportDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterSbomReportDto>> Get() =>
-        await clusterSbomReportService.GetClusterSbomReportDtos();
+    [ProducesResponseType(typeof(IEnumerable<ClusterSbomReportDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> Get() =>
+        Ok(await clusterSbomReportService.GetClusterSbomReportDtos());
 
     [HttpGet("denormalized", Name = "GetClusterSbomReportDenormalizedDtos")]
-    [ProducesResponseType<IEnumerable<ClusterSbomReportDenormalizedDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<ClusterSbomReportDenormalizedDto>> GetDenormalized() =>
-        await clusterSbomReportService.GetClusterSbomReportDenormalizedDtos();
+    [ProducesResponseType(typeof(IEnumerable<ClusterSbomReportDenormalizedDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetDenormalized() =>
+        Ok(await clusterSbomReportService.GetClusterSbomReportDenormalizedDtos());
 }

@@ -9,9 +9,8 @@ public class KubernetesNamespacesController(IKubernetesNamespaceService kubernet
     : ControllerBase
 {
     [HttpGet(Name = "GetAllNamespaces")]
-    [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<string>> GetAll(CancellationToken ctx) =>
-        await kubernetesKubernetesNamespaceService.GetKubernetesNamespaces(ctx);
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetAll(CancellationToken ctx) =>
+        Ok(await kubernetesKubernetesNamespaceService.GetKubernetesNamespaces(ctx));
 }

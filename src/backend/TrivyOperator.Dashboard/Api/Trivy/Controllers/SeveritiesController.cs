@@ -9,11 +9,7 @@ namespace TrivyOperator.Dashboard.Api.Trivy.Controllers;
 public class SeveritiesController(ISeverityService service) : ControllerBase
 {
     [HttpGet(Name = "GetSeverities")]
-    [ProducesResponseType<IEnumerable<SeverityDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
-    public async Task<IEnumerable<SeverityDto>> GetAll(CancellationToken ctx)
-    {
-        return await service.GetAll(ctx);
-    }
+    [ProducesResponseType(typeof(IEnumerable<SeverityDto>), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetAll(CancellationToken ctx) => Ok(await service.GetAll(ctx));
 }
