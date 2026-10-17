@@ -45,7 +45,7 @@
     <ng-template #item let-item>
       <a pRipple class="flex items-center cursor-pointer text-color px-4 py-2">
         @if (item.icon) {
-          <app-icon [name]="item.icon" />
+          <app-icon [name]="item.icon" [class]="'tod-menu-icon'" />
         }
         <span class="ml-2">{{ item.label }}</span>
         @if (item.items?.length) {

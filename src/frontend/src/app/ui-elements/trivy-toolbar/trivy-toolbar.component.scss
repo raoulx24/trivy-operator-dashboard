@@ -20,6 +20,33 @@
     box-shadow var(--p-togglebutton-transition-duration);
 }
 
+/* fade in / out of the scroll buttons (resting opacity of .tod-scroll-btn is 0.7) */
+.tod-scroll-btn-enter {
+  animation: tod-scroll-btn-fade-in 300ms ease-in;
+}
+
+.tod-scroll-btn-leave {
+  animation: tod-scroll-btn-fade-out 300ms ease-in forwards;
+}
+
+@keyframes tod-scroll-btn-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+
+@keyframes tod-scroll-btn-fade-out {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .tod-scroll-btn:hover {
   z-index: 10;
   background: var(--p-togglebutton-content-checked-background);

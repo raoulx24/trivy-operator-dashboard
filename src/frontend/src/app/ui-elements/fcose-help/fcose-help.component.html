@@ -16,13 +16,13 @@
       <ul class="mb-2">
         <li><b>Red</b> - Selected node and adjacent nodes (neighbors)</li>
         <li><b>Blue</b> - Hovered node and adjacent nodes (neighbors)</li>
-        <li><b>Gray</b> - Group of nodes. It is also slightly transparent</li>
-        <li><b>Other colors</b> - Nodes with specific roles. Non-white colors signal functional distinctions</li>
+        <li><b>Dashed outline</b> - Group of nodes, with the group name on top</li>
+        <li><b>Other colors</b> - Nodes with specific roles. The default node color means no special role</li>
       </ul>
       <span class="font-bold text-lg">Shapes</span>
       <ul class="mb-2">
-        <li><b>Rectangle</b> - Nodes with children</li>
-        <li><b>Rounded Rectangle</b> - Leaf nodes (nodes without children)</li>
+        <li><b>Slightly rounded, thicker border</b> - Nodes with children</li>
+        <li><b>Pill-shaped</b> - Leaf nodes (nodes without children)</li>
         <li>
           <b>Container with nodes</b> - A container that groups nodes. Usually, it is based on something similar to
           namespaces or package repositories
@@ -30,14 +30,19 @@
       </ul>
       <span class="font-bold text-lg">Color Intensity</span>
       <ul class="mb-2">
-        <li><b>Darker (red or blue)</b> - Parent of selected/hovered node</li>
-        <li><b>Lighter (red or blue)</b> - Child of selected/hovered node</li>
+        <li><b>Strong fill (red or blue)</b> - Parent of selected/hovered node, with a solid border</li>
+        <li><b>Light fill (red or blue)</b> - Child of selected/hovered node, with a dashed border</li>
         <li>
-          <b>Gradient (red or blue)</b> - Selected/hovered node. These nodes are also emphasized using a strong
-          contrasting border
+          <b>Ring with glow (red or blue)</b> - Selected/hovered node. The node keeps its own color and is emphasized
+          by a thick colored border
         </li>
         <li><b>Haloed (red or blue)</b> - Circular reference. Those nodes also depend on selected/hovered node</li>
         <li><b>Dimmed</b> - Unhighlighted Nodes. Their name do not contain the searched word</li>
+      </ul>
+      <span class="font-bold text-lg">Edges</span>
+      <ul class="mb-2">
+        <li><b>Arrow</b> - Points from a node to the node it depends on</li>
+        <li><b>Thicker, colored (red or blue)</b> - Edges connected to the selected/hovered node</li>
       </ul>
       <span class="font-bold text-lg">Interaction with Graph</span>
       <ul class="mb-2">

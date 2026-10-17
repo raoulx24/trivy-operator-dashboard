@@ -1,10 +1,10 @@
 <div class="gap-4 flex-col">
   <app-trivy-toolbar>
-    <div class="flex items-center">
-      <p-button icon="pi pi-search-plus" label="Zoom In" size="small" [text]="true" (onClick)="onZoomIn()" />
-      <p-button icon="pi pi-search-minus" label="Zoom Out" size="small" [text]="true" (onClick)="onZoomOut()" />
-      <p-button icon="pi pi-arrows-alt" label="Fit" size="small" [text]="true" (onClick)="onZoomFit()" />
-      <div class="h-6 w-[2px] tod-separator mr-3 ml-1"></div>
+    <div class="flex items-center gap-1 shrink-0 whitespace-nowrap">
+      <p-button icon="pi pi-search-plus" label="Zoom In" size="small" raised [text]="true" (onClick)="onZoomIn()" />
+      <p-button icon="pi pi-search-minus" label="Zoom Out" size="small" raised [text]="true" (onClick)="onZoomOut()" />
+      <p-button icon="pi pi-arrows-alt" label="Fit" size="small" raised [text]="true" (onClick)="onZoomFit()" />
+      <div class="h-6 w-[2px] tod-separator mx-1"></div>
       <input
         pInputText
         placeholder="Highlight by name..."
@@ -13,11 +13,12 @@
         [formControl]="inputFilterByNameControl"
       />
       @if (!isStatic()) {
-        <div class="h-6 w-[2px] tod-separator mr-1 ml-3"></div>
+        <div class="h-6 w-[2px] tod-separator mx-1"></div>
         <p-button
           label="Hide Node"
           size="small"
           class="hidden-sm"
+          raised
           [disabled]="graphSelectedNodes.length == 0"
           [text]="true"
           (onClick)="onDeleteNode()"
@@ -28,6 +29,7 @@
           label="Hide Subtree"
           size="small"
           class="hidden-sm"
+          raised
           [disabled]="isStatic() || graphSelectedNodes.length == 0"
           [text]="true"
           (onClick)="onDeleteNodeAndChildren()"
@@ -38,6 +40,7 @@
           label="Undo"
           size="small"
           class="hidden-sm"
+          raised
           [disabled]="isStatic() || currentDeletedNodesIndex == -1 || deletedNodes.length == 0"
           [text]="true"
           (onClick)="onUndo()"
@@ -48,6 +51,7 @@
           label="Redo"
           size="small"
           class="hidden-sm"
+          raised
           [disabled]="isStatic() || currentDeletedNodesIndex >= deletedNodes.length - 1"
           [text]="true"
           (onClick)="onRedo()"
@@ -58,6 +62,7 @@
           label="Show All"
           size="small"
           class="hidden-sm"
+          raised
           [disabled]="deletedNodes.length == 0 || this.currentDeletedNodesIndex == -1"
           [text]="true"
           (onClick)="onShowAll()"
@@ -65,7 +70,7 @@
           <app-icon name="visibility" />
         </p-button>
         <div class="h-6 w-[2px] tod-separator mx-1"></div>
-        <p-button icon="pi pi-question-circle" size="small" class="hidden-sm" [text]="true" (onClick)="onHelp()">
+        <p-button icon="pi pi-question-circle" size="small" class="hidden-sm" raised [text]="true" (onClick)="onHelp()">
         </p-button>
       }
     </div>

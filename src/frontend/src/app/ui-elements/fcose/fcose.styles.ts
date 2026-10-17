@@ -146,6 +146,7 @@ function buildBaseStyles(theme: FcoseTheme): StylesheetJson {
     {
       selector: '.hoveredIncomers',
       style: {
+        'background-color': theme.hoverIncomers,
         'border-width': 2,
         'border-style': 'solid',
         'border-color': theme.hover,
@@ -154,6 +155,7 @@ function buildBaseStyles(theme: FcoseTheme): StylesheetJson {
     {
       selector: '.hoveredOutgoers',
       style: {
+        'background-color': theme.hoverOutgoers,
         'border-width': 2,
         'border-style': 'dashed',
         'border-color': theme.hover,
@@ -187,6 +189,7 @@ function buildBaseStyles(theme: FcoseTheme): StylesheetJson {
     {
       selector: '.selectedIncomers',
       style: {
+        'background-color': theme.selectedIncomers,
         'border-width': 2,
         'border-style': 'solid',
         'border-color': theme.selected,
@@ -195,6 +198,7 @@ function buildBaseStyles(theme: FcoseTheme): StylesheetJson {
     {
       selector: '.selectedOutgoers',
       style: {
+        'background-color': theme.selectedOutgoers,
         'border-width': 2,
         'border-style': 'dashed',
         'border-color': theme.selected,
