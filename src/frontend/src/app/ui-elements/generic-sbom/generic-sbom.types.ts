@@ -12,8 +12,4 @@ export interface GenericSbomReportDetailDto extends SbomReportDetailDto {
   group?: string;
 }
 
-// export interface GenericSbomDetailExtendedDto extends GenericSbomReportDetailDto {
-//
-// }
-
 export interface GenericSbomReportMinimalDto extends SbomReportImageMinimalDto { }
