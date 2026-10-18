@@ -16,6 +16,7 @@ import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { kubernetesContextInterceptor } from './interceptors/kubernetes-context.interceptor';
 import { DarkModeService } from './services/dark-mode.service';
+import { provideLogging } from './services/logging/provide-logging';
 import { MainAppInitService, initializeAppFactory } from './services/main-app-init.service';
 import { trivyOperatorDashboardPreset } from './themes/trivy-operator-dashboard.preset';
 
@@ -29,6 +30,7 @@ export const appConfig: ApplicationConfig = {
     MainAppInitService,
     Title,
     MessageService,
+    provideLogging(),
     provideAppInitializer(() => initializeAppFactory(inject(MainAppInitService))),
     providePrimeNG({
       ripple: true,

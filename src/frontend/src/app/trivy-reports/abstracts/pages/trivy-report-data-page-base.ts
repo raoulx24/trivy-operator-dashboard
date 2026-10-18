@@ -62,12 +62,11 @@ export abstract class TrivyReportMasterDetailDataPageBase<
   private goToComparePage() {
     if (!this.selectedTrivyReportDto) return;
     if (!this.hasSeverities(this.selectedTrivyReportDto)) {
-      this.messageService.pushSimple(
-        'Nothing to compare',
-        this.friendlyReportName,
-        'info',
-        'The selected item has no details, so there is nothing to compare...',
-      );
+      this.log.info('Nothing to compare', {
+        source: this.friendlyReportName,
+        data: 'The selected item has no details, so there is nothing to compare...',
+        toast: true,
+      });
 
       return;
     }

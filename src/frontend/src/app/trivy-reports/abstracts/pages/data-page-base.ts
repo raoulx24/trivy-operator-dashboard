@@ -1,6 +1,6 @@
 import { effect, inject } from '@angular/core';
 import { RouterEventEmitterService } from '../../../services/router-event-emitter.service';
-import { TrivyMessageService } from '../../../services/trivy-message.service';
+import { LogService } from '../../../services/logging/log.service';
 import { KubernetesContextStateService } from '../../../services/kubernetes-context-state.service';
 import { Observable } from 'rxjs';
 
@@ -13,7 +13,7 @@ export abstract class DataPageBase<TData> {
   protected isMainTableLoading: boolean = false;
 
   // injected services for error handling
-  protected readonly messageService = inject(TrivyMessageService);
+  protected readonly log = inject(LogService);
   private readonly routerEventEmitterService = inject(RouterEventEmitterService);
   // injected service for kubernetes context
   protected readonly kubernetesContextService = inject(KubernetesContextStateService);
@@ -58,12 +58,12 @@ export abstract class DataPageBase<TData> {
 
   // Handle errors when fetching data
   protected onError(err: any) {
-    this.messageService.pushSimple('Error on getting data.', this.routerEventEmitterService.title(), 'error', err);
+    this.log.error('Error on getting data.', { source: this.routerEventEmitterService.title(), error: err });
     this.isMainTableLoading = false;
   }
 
   protected showErrorToast(message: string, title: string) {
-    this.messageService.pushSimple(message, title, 'error');
+    this.log.error(message, { source: title });
     this.isMainTableLoading = false;
   }
 }

@@ -50,7 +50,7 @@ export class SbomReportsDetailedComponent extends NamespacedDataPageBase<SbomRep
   }
 
   exportSboms(exportType: 'all' | 'selected') {
-    this.messageService.pushSimple( 'Download SBOMs', 'SBOMs', 'info', 'Download request sent. Please wait...' );
+    this.log.info('Download request sent. Please wait...', { source: 'SBOMs', toast: true });
 
     const sbomsExport: { digest: string }[] =
       exportType === 'all'
