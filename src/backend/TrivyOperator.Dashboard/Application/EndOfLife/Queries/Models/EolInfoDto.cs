@@ -48,10 +48,10 @@ public static class EolInfoDtoExtensions
             Status: info.Status,
             NotApplicableReason: info.NotApplicableReason,
             ErrorMessage: info.ErrorMessage,
-            Product: info.Product?.Slug.Value,
+            Product: info.Product?.Id.Value,
             ProductLabel: info.Product?.Label,
-            ProductLink: info.Product?.Link.Value?.ToString(),
-            ReleasePolicyLink: info.Product?.ReleasePolicyLink.Value?.ToString(),
+            ProductLink: info.Product?.Link.InitialValue,
+            ReleasePolicyLink: info.Product?.ReleasePolicyLink.InitialValue,
             EolLabel: info.Product?.Labels.Eol,
             EoasLabel: info.Product?.Labels.Eoas,
             EoesLabel: info.Product?.Labels.Eoes,
@@ -75,5 +75,5 @@ public static class EolInfoDtoExtensions
             EoesFrom: release.EoesFrom,
             LatestVersion: release.Latest?.Name,
             LatestDate: release.Latest?.Date,
-            LatestLink: release.Latest?.Link.Value?.ToString());
+            LatestLink: release.Latest?.Link.InitialValue);
 }

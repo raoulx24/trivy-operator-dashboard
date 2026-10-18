@@ -17,13 +17,18 @@ public static class TrivyDashboardConfigurationReader
                 .AddEnvironmentVariables();
         IConfiguration configuration = configurationBuilder.Build();
 
-        // end of life product mappings can come from a separate file (e.g. mounted from a configmap)
-        // it is added last and reloaded on change; in k8s, use DOTNET_USE_POLLING_FILE_WATCHER=true and no subPath mount
+        // end of life product mappings: the shipped defaults, then an optional file (e.g. mounted from a configmap)
+        // merged over them per key; both are reloaded on change
+        // in k8s, use DOTNET_USE_POLLING_FILE_WATCHER=true and no subPath mount
+        configurationBuilder.AddJsonFile(DefaultEndOfLifeConfigFile, optional: true, reloadOnChange: true);
+
         string? endOfLifeConfigFile = configuration.GetValue<string>("EndOfLife:ProductMappingsFile");
-        configurationBuilder.AddJsonFile(
-            string.IsNullOrWhiteSpace(endOfLifeConfigFile) ? DefaultEndOfLifeConfigFile : endOfLifeConfigFile,
-            optional: true,
-            reloadOnChange: true);
+
+        if (!string.IsNullOrWhiteSpace(endOfLifeConfigFile))
+        {
+            configurationBuilder.AddJsonFile(endOfLifeConfigFile, optional: true, reloadOnChange: true);
+        }
+
         configuration = configurationBuilder.Build();
 
         string? tempFolder = configuration.GetSection("FileExport")["TempFolder"];

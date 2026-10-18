@@ -27,21 +27,19 @@ public static class EndOfLifeServiceRegistrationExtensions
     {
         EndOfLifeCompositionMode mode = EndOfLifeCompositionResolver.Resolve(configuration);
 
-        // defaults (including product mappings) are in EndOfLifeOptions; configuration is merged over them
+        // product mappings come from endoflife.config.json (+ optional ProductMappingsFile), see the configuration reader
         services.AddOptions<EndOfLifeOptions>().Bind(configuration.GetSection("EndOfLife"));
-
-        services.AddEndOfLifeCommonServices();
 
         switch (mode)
         {
             case EndOfLifeCompositionMode.Disabled:
                 CompositionLogger.Logger?.LogInformation("End of Life related services are disabled");
-                services.AddSingleton<IEndOfLifeRefreshTrigger, NullEndOfLifeRefreshTrigger>();
+                services.AddScoped<IEndOfLifeService, EndOfLifeNullService>();
                 return;
 
             case EndOfLifeCompositionMode.Enabled:
                 CompositionLogger.Logger?.LogInformation("Adding End of Life related services");
-                services.AddEndOfLifeProcessingServices(configuration);
+                services.AddEndOfLifeServices(configuration);
                 break;
 
             default:
@@ -50,20 +48,17 @@ public static class EndOfLifeServiceRegistrationExtensions
     }
 
     // 2nd level - services registration
-    private static void AddEndOfLifeCommonServices(this IServiceCollection services)
+    private static void AddEndOfLifeServices(this IServiceCollection services, IConfiguration configuration)
     {
         // subjects collected by the processors
         services.AddSingleton<ICache<EolSubject, Timestamp>, Cache<EolSubject, Timestamp>>();
         // internal - per product endoflife.date responses
-        services.AddSingleton<ICache<ProductSlug, EolProductFetch>, Cache<ProductSlug, EolProductFetch>>();
+        services.AddSingleton<ICache<ProductId, EolProductFetch>, Cache<ProductId, EolProductFetch>>();
         // public - resolved info, consumed by the service
         services.AddSingleton<ICache<EolSubject, EolInfo>, Cache<EolSubject, EolInfo>>();
 
         services.AddScoped<IEndOfLifeService, EndOfLifeService>();
-    }
 
-    private static void AddEndOfLifeProcessingServices(this IServiceCollection services, IConfiguration configuration)
-    {
         services.AddSingleton<IEndOfLifeRefreshTrigger, EndOfLifeRefreshTrigger>();
 
         services.AddHttpClient<IEndOfLifeProvider, EndOfLifeClient>(client =>

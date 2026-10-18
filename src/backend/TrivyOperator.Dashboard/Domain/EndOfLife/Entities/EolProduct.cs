@@ -5,7 +5,7 @@ using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 namespace TrivyOperator.Dashboard.Domain.EndOfLife.Entities;
 
 public sealed record EolProduct(
-    ProductSlug Slug,
+    ProductId Id,
     string Label,
     ResourceUrl Link,
     ResourceUrl ReleasePolicyLink,

@@ -11,27 +11,10 @@ public class EndOfLifeOptions
     public int ErrorTtlInMinutes { get; init; } = 15;
     public int RequestTimeoutInSeconds { get; init; } = 30;
 
-    // optional json file with an EndOfLife:ProductMappings section; added to configuration with reload on change
+    // optional json file with an EndOfLife:ProductMappings section, merged over the shipped endoflife.config.json
+    // both are added to configuration with reload on change
     public string? ProductMappingsFile { get; init; }
 
-    // Trivy OS family -> endoflife.date product slug
-    // defaults below; configuration entries are merged over them per key
-    public Dictionary<string, string> ProductMappings { get; init; } = new(StringComparer.OrdinalIgnoreCase)
-    {
-        { "alma", "almalinux" },
-        { "alpine", "alpine-linux" },
-        { "amazon", "amazon-linux" },
-        { "centos", "centos" },
-        { "debian", "debian" },
-        { "fedora", "fedora" },
-        { "opensuse-leap", "opensuse" },
-        { "opensuse.leap", "opensuse" },
-        { "oracle", "oracle-linux" },
-        { "photon", "photon" },
-        { "redhat", "rhel" },
-        { "rocky", "rocky-linux" },
-        { "sles", "sles" },
-        { "suse linux enterprise server", "sles" },
-        { "ubuntu", "ubuntu" },
-    };
+    // Trivy OS family -> endoflife.date product id; defaults are shipped in endoflife.config.json
+    public Dictionary<string, string> ProductMappings { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 }

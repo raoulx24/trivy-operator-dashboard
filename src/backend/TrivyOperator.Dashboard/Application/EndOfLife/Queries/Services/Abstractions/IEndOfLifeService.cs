@@ -9,6 +9,6 @@ public interface IEndOfLifeService
     Task<IReadOnlyList<EolInfoDto>> GetByName(EolSubjectKind kind, string name, CancellationToken ctx = default);
     Task<EolInfoDto?> GetByNameAndVersion(EolSubjectKind kind, string name, string version, CancellationToken ctx = default);
 
-    // marks all products for refetch and wakes up the processing; false when the feature is disabled
-    bool RequestRebuild();
+    // marks all products for refetch and wakes up the processing
+    void RequestRebuild();
 }

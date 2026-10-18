@@ -19,7 +19,7 @@ public sealed class EndOfLifeTimedHostedService(
     IEndOfLifeRefreshTrigger trigger,
     IOptionsMonitor<EndOfLifeOptions> options,
     ICache<EolSubject, Timestamp> subjects,
-    ICache<ProductSlug, EolProductFetch> products,
+    ICache<ProductId, EolProductFetch> products,
     ICache<EolSubject, EolInfo> eolInfos,
     ILogger<EndOfLifeTimedHostedService> logger
 ) : BackgroundService
@@ -74,35 +74,35 @@ public sealed class EndOfLifeTimedHostedService(
         {
             logger.LogInformation("End of life rebuild requested - all products will be refetched.");
 
-            foreach (ProductSlug slug in products.Keys.ToArray())
+            foreach (ProductId productId in products.Keys.ToArray())
             {
-                if (products.TryGetValue(slug, out EolProductFetch? fetch))
+                if (products.TryGetValue(productId, out EolProductFetch? fetch))
                 {
-                    products[slug] = fetch.MarkStale();
+                    products[productId] = fetch.MarkStale();
                 }
             }
         }
 
         EolSubject[] currentSubjects = [.. subjects.Keys,];
-        HashSet<ProductSlug> neededSlugs = [];
+        HashSet<ProductId> neededProductIds = [];
 
         foreach (EolSubject subject in currentSubjects)
         {
-            if (TryGetProductSlug(subject, mappings, out ProductSlug slug))
+            if (TryGetProductId(subject, mappings, out ProductId productId))
             {
-                neededSlugs.Add(slug);
+                neededProductIds.Add(productId);
             }
         }
 
         Timestamp now = Timestamp.Now();
 
-        foreach (ProductSlug slug in neededSlugs)
+        foreach (ProductId productId in neededProductIds)
         {
-            products.TryGetValue(slug, out EolProductFetch? previous);
+            products.TryGetValue(productId, out EolProductFetch? previous);
 
             if (previous is null || previous.IsDue(now))
             {
-                products[slug] = await FetchProductAsync(slug, previous, currentOptions, ctx);
+                products[productId] = await FetchProductAsync(productId, previous, currentOptions, ctx);
             }
         }
 
@@ -113,21 +113,21 @@ public sealed class EndOfLifeTimedHostedService(
     }
 
     private async Task<EolProductFetch> FetchProductAsync(
-        ProductSlug slug,
+        ProductId id,
         EolProductFetch? previous,
         EndOfLifeOptions currentOptions,
         CancellationToken ctx)
     {
-        EolProviderResult result = await provider.GetProduct(currentOptions.BaseUrl, slug, previous?.ETag, ctx);
+        EolProviderResult result = await provider.GetProduct(currentOptions.BaseUrl, id, previous?.ETag, ctx);
         Timestamp now = Timestamp.Now();
 
         switch (result.Status)
         {
             case EolProviderStatus.Ok when result.Product is not null:
-                logger.LogDebug("End of life product {productSlug} fetched.", slug);
+                logger.LogDebug("End of life product {productId} fetched.", id);
 
                 return new EolProductFetch(
-                    slug,
+                    id,
                     EolProviderStatus.Ok,
                     result.Product,
                     result.ETag,
@@ -146,11 +146,11 @@ public sealed class EndOfLifeTimedHostedService(
 
             case EolProviderStatus.NotFound:
                 logger.LogWarning(
-                    "End of life product {productSlug} was not found. Check the product mappings.",
-                    slug);
+                    "End of life product {productId} was not found. Check the product mappings.",
+                    id);
 
                 return new EolProductFetch(
-                    slug,
+                    id,
                     EolProviderStatus.NotFound,
                     null,
                     null,
@@ -166,14 +166,14 @@ public sealed class EndOfLifeTimedHostedService(
                     : AddMinutes(now, currentOptions.ErrorTtlInMinutes);
 
                 logger.LogWarning(
-                    "Could not fetch end of life product {productSlug} - {errorMessage}. Next try at {nextFetchAt}. " +
+                    "Could not fetch end of life product {productId} - {errorMessage}. Next try at {nextFetchAt}. " +
                     "If endoflife.date is not reachable from the cluster, consider disabling EndOfLife.",
-                    slug,
+                    id,
                     errorMessage,
                     nextFetchAt);
 
                 return new EolProductFetch(
-                    slug,
+                    id,
                     EolProviderStatus.Error,
                     previous?.Product,
                     previous?.Product is null ? null : previous.ETag,
@@ -185,12 +185,12 @@ public sealed class EndOfLifeTimedHostedService(
 
     private EolInfo Resolve(EolSubject subject, Dictionary<string, string> mappings)
     {
-        if (!TryGetProductSlug(subject, mappings, out ProductSlug slug))
+        if (!TryGetProductId(subject, mappings, out ProductId productId))
         {
             return EolInfo.NotApplicable(subject, EolNotApplicableReason.NoMapping);
         }
 
-        if (!products.TryGetValue(slug, out EolProductFetch? fetch))
+        if (!products.TryGetValue(productId, out EolProductFetch? fetch))
         {
             return EolInfo.Pending(subject);
         }
@@ -214,18 +214,18 @@ public sealed class EndOfLifeTimedHostedService(
     }
 
     // an empty mapping value disables a default mapping
-    private static bool TryGetProductSlug(EolSubject subject, Dictionary<string, string> mappings, out ProductSlug slug)
+    private static bool TryGetProductId(EolSubject subject, Dictionary<string, string> mappings, out ProductId id)
     {
-        slug = new ProductSlug();
+        id = new ProductId();
 
-        if (subject.Kind != EolSubjectKind.Os || !mappings.TryGetValue(subject.Name, out string? mappedSlug))
+        if (subject.Kind != EolSubjectKind.Os || !mappings.TryGetValue(subject.Name, out string? mappedProductId))
         {
             return false;
         }
 
-        slug = new ProductSlug(mappedSlug);
+        id = new ProductId(mappedProductId);
 
-        return slug.IsValid;
+        return id.IsValid;
     }
 
     private static Timestamp AddMinutes(Timestamp timestamp, int minutes) =>

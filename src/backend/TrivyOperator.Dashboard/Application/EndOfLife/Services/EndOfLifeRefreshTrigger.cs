@@ -7,7 +7,7 @@ public sealed class EndOfLifeRefreshTrigger : IEndOfLifeRefreshTrigger, IDisposa
 {
     private readonly SemaphoreSlim signal = new(0, 1);
 
-    public bool RequestRebuild()
+    public void RequestRebuild()
     {
         try
         {
@@ -17,8 +17,6 @@ public sealed class EndOfLifeRefreshTrigger : IEndOfLifeRefreshTrigger, IDisposa
         {
             // already requested
         }
-
-        return true;
     }
 
     public Task<bool> WaitAsync(TimeSpan timeout, CancellationToken ctx = default) => signal.WaitAsync(timeout, ctx);

@@ -34,10 +34,11 @@ public class EndOfLifeController(IEndOfLifeService endOfLifeService) : Controlle
 
     [HttpPost("rebuild", Name = "RebuildEndOfLife")]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict, "application/problem+json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
-    public IActionResult Rebuild() =>
-        endOfLifeService.RequestRebuild()
-            ? Accepted()
-            : Problem(detail: "End of life support is disabled.", statusCode: StatusCodes.Status409Conflict);
+    public IActionResult Rebuild()
+    {
+        endOfLifeService.RequestRebuild();
+
+        return Accepted();
+    }
 }

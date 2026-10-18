@@ -21,11 +21,11 @@ public class EndOfLifeClient(
 {
     public async Task<EolProviderResult> GetProduct(
         string baseUrl,
-        ProductSlug slug,
+        ProductId id,
         string? eTag,
         CancellationToken ctx = default)
     {
-        string url = $"{baseUrl.TrimEnd('/')}/products/{Uri.EscapeDataString(slug.Value)}";
+        string url = $"{baseUrl.TrimEnd('/')}/products/{Uri.EscapeDataString(id.Value)}";
 
         using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ctx);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(Math.Max(1, options.CurrentValue.RequestTimeoutInSeconds)));
@@ -63,7 +63,7 @@ public class EndOfLifeClient(
                 content,
                 EndOfLifeJsonContext.Default.EndOfLifeProductResponse,
                 timeoutCts.Token);
-            EolProduct? product = productResponse?.ToDomain(slug);
+            EolProduct? product = productResponse?.ToDomain(id);
 
             return product is null
                 ? EolProviderResult.Error($"{url} returned an empty or unexpected response")

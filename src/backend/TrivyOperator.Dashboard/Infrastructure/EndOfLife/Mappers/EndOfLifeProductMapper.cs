@@ -9,7 +9,7 @@ public static class EndOfLifeProductMapper
 {
     private const string DefaultEolLabel = "End of Life";
 
-    public static EolProduct? ToDomain(this EndOfLifeProductResponse response, ProductSlug requestedSlug)
+    public static EolProduct? ToDomain(this EndOfLifeProductResponse response, ProductId requestedId)
     {
         EndOfLifeProductDetails? details = response.Result;
 
@@ -18,11 +18,11 @@ public static class EndOfLifeProductMapper
             return null;
         }
 
-        ProductSlug slug = new(details.Name);
+        ProductId id = new(details.Name);
 
         return new EolProduct(
-            slug.IsValid ? slug : requestedSlug,
-            details.Label ?? requestedSlug.Value,
+            id.IsValid ? id : requestedId,
+            details.Label ?? requestedId.Value,
             new ResourceUrl(details.Links?.Html),
             new ResourceUrl(details.Links?.ReleasePolicy),
             new EolPhaseLabels(

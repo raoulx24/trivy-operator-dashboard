@@ -39,7 +39,7 @@ public class EndOfLifeService(
         return Task.FromResult(result);
     }
 
-    public bool RequestRebuild() => trigger.RequestRebuild();
+    public void RequestRebuild() => trigger.RequestRebuild();
 
     private IReadOnlyList<EolInfoDto> GetDtos(Func<EolSubject, bool> predicate) =>
     [
