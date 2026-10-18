@@ -14,12 +14,13 @@ import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
 import { MenubarModule } from 'primeng/menubar';
 import { PanelMenuModule } from 'primeng/panelmenu';
+import { Ripple } from 'primeng/ripple';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
 import { IconComponent } from '../icon/icon.component';
-import {Ripple} from "primeng/ripple";
+import { buildNavMenuItems, createDrawerNavigator } from './nav-menu.items';
 
 @Component({
   selector: 'app-nav-menu',
@@ -50,6 +51,7 @@ export class NavMenuComponent {
   protected k8sContextState = inject(KubernetesContextStateService);
 
   isDrawerVisible = signal(false);
+  private navigateAndClose = createDrawerNavigator(this.router, this.isDrawerVisible);
 
   // --- Signals from services ---
   alerts = this.alertsService.alerts;
@@ -67,8 +69,8 @@ export class NavMenuComponent {
   enabledTrivyReports = computed<string[]>(() => {
     const dto = this.backendSettings();
     if (!dto || !dto.trivyReportConfigDtos) {
-      // Fallback to your original default, if you still want that behavior
-      return ['crar', 'car', 'esr', 'vr'];
+      // Backend settings not loaded yet: assume all reports are enabled
+      return ['vr', 'vrh', 'sr', 'car', 'esr', 'rar', 'iar', 'cvr', 'csr', 'crar', 'ccr', 'ciar'];
     }
 
     return dto.trivyReportConfigDtos
@@ -77,292 +79,10 @@ export class NavMenuComponent {
       .filter((id) => !!id);
   });
 
-  showContextDropdown = computed(() => this.contexts().length >= 2);
-
   items = computed<MenuItem[]>(() => {
-    const dto = this.backendSettings();
-    if (!dto) return [];
+    if (!this.backendSettings()) return [];
 
-    const enabled = this.enabledTrivyReports();
-
-    const items: MenuItem[] = [
-      {
-        label: 'Home',
-        icon: 'home',
-        command: () => {
-          this.router.navigate(['']);
-          this.isDrawerVisible.set(false);
-        },
-      },
-      {
-        label: 'Namespaced',
-        icon: 'dynamic_feed',
-        expanded: true,
-        items: [
-          {
-            label: 'Vulnerabilities',
-            icon: 'security',
-            disabled: !this.enabledTrivyReports().includes('vr'),
-            command: () => {
-              this.router.navigate(['vulnerability-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Vulnerabilities History',
-            icon: 'safety_check',
-            disabled: !this.enabledTrivyReports().includes('vrh'),
-            command: () => {
-              this.router.navigate(['vulnerability-reports-history']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'SBOMs',
-            icon: 'graph_3',
-            disabled: !this.enabledTrivyReports().includes('sr'),
-            command: () => {
-              this.router.navigate(['sbom-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Config Audits',
-            icon: 'assignment',
-            disabled: !this.enabledTrivyReports().includes('car'),
-            command: () => {
-              this.router.navigate(['config-audit-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Exposed Secrets',
-            icon: 'key_off',
-            disabled: !this.enabledTrivyReports().includes('esr'),
-            command: () => {
-              this.router.navigate(['exposed-secret-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'RBAC Assessments',
-            icon: 'admin_panel_settings',
-            disabled: !this.enabledTrivyReports().includes('rar'),
-            command: () => {
-              this.router.navigate(['rbac-assessment-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Infra Assessments',
-            icon: 'host',
-            disabled: !this.enabledTrivyReports().includes('iar'),
-            command: () => {
-              this.router.navigate(['infra-assessment-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-        ],
-      },
-      {
-        label: 'Cluster Level',
-        icon: 'storage',
-        expanded: true,
-        items: [
-          {
-            label: 'Vulnerabilities',
-            icon: 'security',
-            disabled: !this.enabledTrivyReports().includes('cvr'),
-            command: () => {
-              this.router.navigate(['cluster-vulnerability-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'SBOMs',
-            icon: 'graph_3',
-            disabled: !this.enabledTrivyReports().includes('csr'),
-            command: () => {
-              this.router.navigate(['cluster-sbom-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'RBAC Assessments',
-            icon: 'admin_panel_settings',
-            disabled: !this.enabledTrivyReports().includes('crar'),
-            command: () => {
-              this.router.navigate(['cluster-rbac-assessment-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Compliance',
-            icon: 'policy',
-            disabled: !this.enabledTrivyReports().includes('ccr'),
-            command: () => {
-              this.router.navigate(['cluster-compliance-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Infra Assessments',
-            icon: 'host',
-            disabled: !this.enabledTrivyReports().includes('ciar'),
-            command: () => {
-              this.router.navigate(['cluster-infra-assessment-reports']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-        ],
-      },
-      {
-        label: 'Namespaced - Detailed',
-        icon: 'dynamic_feed',
-        expanded: false,
-        items: [
-          {
-            label: 'Vulnerabilities',
-            icon: 'security',
-            disabled: !this.enabledTrivyReports().includes('vr'),
-            command: () => {
-              this.router.navigate(['vulnerability-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Vulnerabilities History',
-            icon: 'safety_check',
-            disabled: !this.enabledTrivyReports().includes('vrh'),
-            command: () => {
-              this.router.navigate(['vulnerability-reports-history-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'SBOMs',
-            icon: 'graph_3',
-            disabled: !this.enabledTrivyReports().includes('sr'),
-            command: () => {
-              this.router.navigate(['sbom-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Config Audits',
-            icon: 'assignment',
-            disabled: !this.enabledTrivyReports().includes('car'),
-            command: () => {
-              this.router.navigate(['config-audit-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Exposed Secrets',
-            icon: 'key_off',
-            disabled: !this.enabledTrivyReports().includes('esr'),
-            command: () => {
-              this.router.navigate(['exposed-secret-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'RBAC Assessments',
-            icon: 'admin_panel_settings',
-            disabled: !this.enabledTrivyReports().includes('rar'),
-            command: () => {
-              this.router.navigate(['rbac-assessment-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Infra Assessments',
-            icon: 'host',
-            disabled: !this.enabledTrivyReports().includes('iar'),
-            command: () => {
-              this.router.navigate(['infra-assessment-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-        ],
-      },
-      {
-        label: 'Cluster Level - Detailed',
-        icon: 'storage',
-        expanded: false,
-        items: [
-          {
-            label: 'Vulnerabilities',
-            icon: 'security',
-            disabled: !this.enabledTrivyReports().includes('cvr'),
-            command: () => {
-              this.router.navigate(['cluster-vulnerability-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'RBAC Assessments',
-            icon: 'admin_panel_settings',
-            disabled: !this.enabledTrivyReports().includes('crar'),
-            command: () => {
-              this.router.navigate(['cluster-rbac-assessment-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Compliance',
-            icon: 'policy',
-            disabled: !this.enabledTrivyReports().includes('ccr'),
-            command: () => {
-              this.router.navigate(['cluster-compliance-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Infra Assessments',
-            icon: 'host',
-            disabled: !this.enabledTrivyReports().includes('ciar'),
-            command: () => {
-              this.router.navigate(['cluster-infra-assessment-reports-detailed']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-        ],
-      },
-      {
-        label: 'System',
-        icon: 'settings',
-        expanded: true,
-        items: [
-          {
-            label: 'Watcher Status',
-            icon: 'mystery',
-            command: () => {
-              this.router.navigate(['watcher-status']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'Settings',
-            icon: 'settings_applications',
-            command: () => {
-              this.router.navigate(['settings']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-          {
-            label: 'About',
-            icon: 'chat_info',
-            command: () => {
-              this.router.navigate(['about']);
-              this.isDrawerVisible.set(false);
-            },
-          },
-        ],
-      },
-    ];
-
-    return items;
+    return buildNavMenuItems(this.enabledTrivyReports(), this.navigateAndClose);
   });
 
   // --- UI actions ---
@@ -371,10 +91,10 @@ export class NavMenuComponent {
   }
 
   onAlertsClick() {
-    if (this.router.url === 'alerts') {
+    if (this.router.url === '/alerts') {
       this.alertsService.triggerRefresh();
     } else {
-      this.router.navigate(['alerts']);
+      this.navigateAndClose('alerts');
     }
   }
 
