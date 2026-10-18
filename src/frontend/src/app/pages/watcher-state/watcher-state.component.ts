@@ -66,7 +66,7 @@ export class WatcherStateComponent extends DataPageBase<WatcherStatusDto> implem
       this.isActionStarted = false;
       this.isRecreateWatcherDialogVisible = true;
     } else {
-      console.warn('Cannot recreate watcher: Missing type or incorrect action');
+      this.log.warn('Cannot recreate watcher: missing type or incorrect action.', { toast: false });
     }
   }
 
@@ -92,7 +92,7 @@ export class WatcherStateComponent extends DataPageBase<WatcherStatusDto> implem
           const payload = err.error;
           this.recreateWatcherResponseError = payload ?? 'Unprocessable Entity.';
         } else {
-          console.error('Unexpected Error:', err.message);
+          this.log.error('Unexpected error recreating watcher.', { error: err, toast: false }); // the dialog shows the failure
         }
       },
     });

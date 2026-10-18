@@ -50,7 +50,7 @@ export abstract class TrivyReportMasterDetailDataPageBase<
         break;
 
       default:
-        console.error(`Unhandled action: ${event}`);
+        this.log.warn('Unhandled action.', { data: event, toast: false });
     }
   }
 

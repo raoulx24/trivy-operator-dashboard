@@ -179,7 +179,7 @@ export class SbomReportsComponent extends DataPageBase<SbomReportImageMinimalDto
         this.goToDependencyTree();
         break;
       default:
-        console.error('sbom - multi action call back - unknown: ', value);
+        this.log.warn('Unknown multi action callback.', { data: value, toast: false });
     }
   }
 

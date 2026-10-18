@@ -8,6 +8,7 @@ export class ConsoleSink implements LogSink {
     if (entry.level === 'debug' && !isDevMode()) return;
 
     const extras = [entry.code, entry.error, entry.data].filter((x) => x !== undefined);
-    console[entry.level](`[${entry.source}] ${entry.message}`, ...extras);
+    const repeated = entry.suppressed ? ` (+${entry.suppressed} repeated)` : '';
+    console[entry.level](`[${entry.source}] ${entry.message}${repeated}`, ...extras);
   }
 }

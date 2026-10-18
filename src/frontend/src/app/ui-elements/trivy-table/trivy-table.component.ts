@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { injectLogger } from '../../services/logging/inject-logger';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -88,6 +89,7 @@ import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrivyTableComponent<TData> implements OnInit {
+  private readonly log = injectLogger('Trivy table');
   // data
   dataDtos = model<TData[]>([]);
   activeNamespaces = input<string[]>([]);
@@ -377,7 +379,7 @@ export class TrivyTableComponent<TData> implements OnInit {
         case 'Collapse All':
           return () => this.onTableCollapseAll();
         default:
-          console.error(actionItem);
+          this.log.warn('Unknown special action.', { data: actionItem, toast: false });
       }
     }
     return () => this.multiHeaderActionRequested.emit(actionItem.label);
@@ -395,7 +397,7 @@ export class TrivyTableComponent<TData> implements OnInit {
         case 'Collapse All':
           return 'pi pi-expand';
         default:
-          console.error(actionItem);
+          this.log.warn('Unknown special action.', { data: actionItem, toast: false });
       }
     }
     return actionItem.icon ?? '';

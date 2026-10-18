@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
-import { LogService } from './logging/log.service';
+import { injectLogger } from './logging/inject-logger';
 
 @Injectable({ providedIn: 'root' })
 export class IconRegistryService {
@@ -11,7 +11,7 @@ export class IconRegistryService {
 
   private readonly cache = new Map<string, SafeHtml>();
 
-  private readonly log = inject(LogService);
+  private readonly log = injectLogger('Icon registry');
 
   async getIcon(name: string): Promise<SafeHtml> {
     const cached = this.cache.get(name);
@@ -26,7 +26,7 @@ export class IconRegistryService {
       this.cache.set(name, safe);
       return safe;
     } catch (err) {
-      this.log.error(`Failed to load icon: ${name}`, { source: 'Icon registry', error: err, toast: false });
+      this.log.error(`Failed to load icon: ${name}`, { error: err, toast: false });
       const fallback = this.sanitizer.bypassSecurityTrustHtml('<svg><!-- fallback --></svg>');
       this.cache.set(name, fallback);
       return fallback;

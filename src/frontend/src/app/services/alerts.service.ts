@@ -4,6 +4,7 @@ import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signal
 import { ApiConfiguration } from '../../api/api-configuration';
 import { AlertDto } from '../../api/models/alert-dto';
 import { RetryPolicy } from '../utils/retry-policy.utils';
+import { injectLogger } from './logging/inject-logger';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class AlertsService {
   private readonly hubPath = 'alerts-hub';
   private hubUrl = '';
 
+  private readonly log = injectLogger('Alerts');
   private readonly apiConfiguration = inject(ApiConfiguration);
 
   constructor() {
@@ -47,12 +49,13 @@ export class AlertsService {
       .build();
 
     this.hubConnection.onreconnecting((error) => {
-      console.warn(`Connection lost due to ${error}. Reconnecting...`);
+      this.log.warn('Connection lost. Reconnecting.', { error, toast: true });
       this._alerts.set([]);
     });
 
     this.hubConnection.onclose((error) => {
-      console.error('Connection closed.', error);
+      if (error) this.log.error('Connection closed.', { error, toast: true });
+      else this.log.info('Connection closed.');
       // Closed with an error means automatic reconnect gave up; a plain stop() passes no error
       if (error) this.startWithRetry();
     });
@@ -67,10 +70,10 @@ export class AlertsService {
     } catch (err) {
       const delay = this.retryPolicy.delayFor(attempt);
       if (delay === null) {
-        console.error('Giving up connecting to alerts hub', err);
+        this.log.error('Giving up connecting to alerts hub.', { error: err, toast: true });
         return;
       }
-      console.error(`Connection error, retrying in ${Math.round(delay)}ms`, err);
+      this.log.error('Connection error, retrying.', { error: err, data: { delayMs: Math.round(delay) }, toast: true });
       setTimeout(() => this.startWithRetry(attempt + 1), delay);
     }
   }

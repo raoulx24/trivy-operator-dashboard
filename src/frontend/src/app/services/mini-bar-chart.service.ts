@@ -1,9 +1,12 @@
 import { Injectable, signal } from '@angular/core';
+import { injectLogger } from './logging/inject-logger';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MiniBarChartService {
+  private readonly log = injectLogger('MiniBarChart');
+
   private _minDays = signal<number | undefined>(undefined);
   private _highlightedDays = signal<number| undefined>(undefined);
 
@@ -12,7 +15,7 @@ export class MiniBarChartService {
 
   setMinDays(minDays?: number): void {
     if (minDays && minDays <= 0) {
-      console.warn('MiniBarChart minDays must be greater than 0');
+      this.log.warn('minDays must be greater than 0.', { toast: false });
       return;
     }
 
@@ -21,7 +24,7 @@ export class MiniBarChartService {
 
   setHighlightedDays(highlightedDays?: number): void {
     if (highlightedDays && (highlightedDays <0 || highlightedDays > (this._minDays() ?? 0))) {
-      console.warn('Highlighted days must be greater than 0 or lower than minDays');
+      this.log.warn('Highlighted days must be greater than 0 or lower than minDays.', { toast: false });
       return;
     }
     this._highlightedDays.set(highlightedDays);

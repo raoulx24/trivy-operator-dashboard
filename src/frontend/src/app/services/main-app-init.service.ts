@@ -6,6 +6,7 @@ import { BackendSettingsDto } from '../../api/models/backend-settings-dto';
 import { BackendSettingsService } from '../../api/services/backend-settings.service';
 import { trivyMigrations } from '../constants/migration.constants';
 import { DarkModeService } from './dark-mode.service';
+import { injectLogger } from './logging/inject-logger';
 import { MigrationService } from './migration.service';
 import { SettingsService } from './settings.service';
 import { RetryPolicy, retryWithBackoff } from '../utils/retry-policy.utils';
@@ -31,6 +32,7 @@ export class MainAppInitService {
     maxRetries: 6, // about 30s in the worst case, then give up
   });
 
+  private readonly log = injectLogger('App init');
   private readonly backendSettingsService = inject(BackendSettingsService);
   private readonly settingsService = inject(SettingsService);
   private readonly darkModeService = inject(DarkModeService);
@@ -54,7 +56,8 @@ export class MainAppInitService {
       this.mergeBackendSettingsDto(backendSettings);
       this.applyMigrations(appVersion);
     } catch (err) {
-      console.error('Error during app initialization:', err);
+      // no toast: a failing initializer aborts bootstrap, so no toast host exists yet
+      this.log.error('Error during app initialization.', { error: err, toast: false });
       throw err;
     }
   }

@@ -23,10 +23,7 @@ export class SbomReportsDetailedComponent extends NamespacedDataPageBase<SbomRep
   trivyTableColumns: TrivyTableColumn[] = [...namespacedColumns, ...sbomReportDenormalizedColumns];
 
   private readonly service = inject(SbomReportService);
-
   protected override dataDtosLoader = () => this.service.getSbomReportImageMinimalDtos();
-
-  private readonly sbomReportsService = inject(SbomReportService);
 
   ngOnInit() {
     this.initialize();
@@ -45,36 +42,35 @@ export class SbomReportsDetailedComponent extends NamespacedDataPageBase<SbomRep
         this.exportSboms('selected');
         break;
       default:
-        console.error('sbom detailed - multi action call back - unknown: ' + event);
+        this.log.warn('Unknown multi action callback.', { data: event, toast: false });
     }
   }
 
   exportSboms(exportType: 'all' | 'selected') {
-    this.log.info('Download request sent. Please wait...', { source: 'SBOMs', toast: true });
+    this.log.info('Download request sent. Please wait...', { toast: true });
 
     const sbomsExport: { digest: string }[] =
       exportType === 'all'
-        ? this.dataDtos?.map((x) => ({ digest: x.digest ?? '' })) ?? []
-        : this.selectedDataDtos?.map((x) => ({ digest: x.digest ?? '' })) ?? [];
+        ? (this.dataDtos?.map((x) => ({ digest: x.digest ?? '' })) ?? [])
+        : (this.selectedDataDtos?.map((x) => ({ digest: x.digest ?? '' })) ?? []);
 
-    this.sbomReportsService
-      .exportSbomReport({ body: sbomsExport, fileType: 'json', })
-      .subscribe({
-        next: (blob: Blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          const datetimeUtc =
-            new Date().toISOString().replace(/:/g, '.').replace('T', '-').slice(0, 19);
+    this.service.exportSbomReport({ body: sbomsExport, fileType: 'json' }).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const datetimeUtc = new Date().toISOString().replace(/:/g, '.').replace('T', '-').slice(0, 19);
 
-          link.href = url;
-          link.download = `sboms.exports.${datetimeUtc}.zip`;
+        link.href = url;
+        link.download = `sboms.exports.${datetimeUtc}.zip`;
 
-          link.click();
-          link.remove();
+        link.click();
+        link.remove();
 
-          setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-        },
-        error: (err) => { this.onError(err); },
-      });
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      },
+      error: (err) => {
+        this.onError(err);
+      },
+    });
   }
 }

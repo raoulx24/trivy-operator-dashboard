@@ -94,7 +94,7 @@ export class ClusterComplianceReportsComponent extends DataPageBase<ClusterCompl
       const url = new URL(urlString);
       return url.hostname;
     } catch (error) {
-      console.error('Invalid URL: ', urlString, error);
+      this.log.warn('Invalid URL.', { data: urlString, error, toast: false });
       return undefined;
     }
   }

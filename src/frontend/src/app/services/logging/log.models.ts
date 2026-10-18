@@ -16,6 +16,7 @@ export interface LogEntry {
   error?: LogError;
   data?: unknown; // structured payload, never pre-stringified
   toast?: boolean; // presentation hint for the toast sink; undefined = level default
+  suppressed?: number; // identical earlier entries dropped by storm protection and summarized by this one
 }
 
 export interface LogOptions {
@@ -26,4 +27,5 @@ export interface LogOptions {
   toast?: boolean;
 }
 
-export type BoundLogOptions = Omit<LogOptions, 'source'>;
+// source is optional on a bound logger: it defaults to the bound one but a call can override it
+export type BoundLogOptions = Omit<LogOptions, 'source'> & { source?: string };

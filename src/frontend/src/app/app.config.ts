@@ -14,6 +14,7 @@ import { providePrimeNG } from 'primeng/config';
 import { provideApiConfiguration } from "../api/api-configuration";
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
+import { httpErrorLoggingInterceptor } from './interceptors/http-error-logging.interceptor';
 import { kubernetesContextInterceptor } from './interceptors/kubernetes-context.interceptor';
 import { DarkModeService } from './services/dark-mode.service';
 import { provideLogging } from './services/logging/provide-logging';
@@ -24,7 +25,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptors([kubernetesContextInterceptor])),
+    provideHttpClient(withInterceptors([httpErrorLoggingInterceptor, kubernetesContextInterceptor])),
     provideRouter(routes),
     provideApiConfiguration(environment.baseUrl),
     MainAppInitService,

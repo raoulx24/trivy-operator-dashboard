@@ -13,6 +13,7 @@ import { VersionUtils } from '../../utils/version.utils';
 import { AboutCredits } from './about.types';
 
 import { BooleanCssStylePipe } from '../../pipes/boolean-css-style.pipe';
+import { injectLogger } from '../../services/logging/inject-logger';
 import { MainAppInitService } from '../../services/main-app-init.service';
 
 export interface BackendFeature {
@@ -89,6 +90,7 @@ export class AboutComponent implements OnInit {
     },
   ];
 
+  private readonly log = injectLogger('About');
   private readonly appVersionsService = inject(AppVersionsService);
   private readonly mainAppInitService = inject(MainAppInitService);
 
@@ -113,11 +115,11 @@ export class AboutComponent implements OnInit {
   getReleaseNotesDtos() {
     this.appVersionsService.getGitHubVersions().subscribe({
       next: (res) => this.onReleaseNoteDtos(res),
-      error: (err) => console.error(err),
+      error: (err) => this.log.error('Failed to load release notes.', { error: err, toast: false }),
     });
     this.appVersionsService.getCurrentVersion().subscribe({
       next: (res) => this.onCurrentVersion(res),
-      error: (err) => console.error(err),
+      error: (err) => this.log.error('Failed to load current version.', { error: err, toast: false }),
     });
   }
 

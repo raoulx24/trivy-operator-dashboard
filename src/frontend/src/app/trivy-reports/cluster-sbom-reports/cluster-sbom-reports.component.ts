@@ -99,7 +99,7 @@ export class ClusterSbomReportsComponent extends DataPageBase<SbomReportImageMin
         this.onSbomReportOverviewDialogOpen();
         break;
       default:
-        console.error('cluster sbom - multi action call back - unknown: ' + value);
+        this.log.warn('Unknown multi action callback.', { data: value, toast: false });
     }
   }
 

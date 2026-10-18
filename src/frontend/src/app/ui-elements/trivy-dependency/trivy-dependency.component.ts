@@ -6,6 +6,7 @@ import { DigestNode } from '../../../api/models/digest-node';
 import { TrivyDependencyTreeDto } from '../../../api/models/trivy-dependency-tree-dto';
 import { TrivyReportDependenciesService } from '../../../api/services/trivy-report-dependencies.service';
 
+import { injectLogger } from '../../services/logging/inject-logger';
 import { NodeDataDto } from '../fcose/fcose.types';
 import { FcoseComponent } from '../fcose/fcose.component';
 import { ButtonModule } from 'primeng/button';
@@ -43,6 +44,7 @@ interface TrivyReportTreeNodeData {
   styleUrl: './trivy-dependency.component.scss',
 })
 export class TrivyDependencyComponent {
+  private readonly log = injectLogger('Trivy dependency');
   trivyImageDigest = input<string | undefined>();
 
   trivyReportDependencyDto?: TrivyDependencyTreeDto;
@@ -93,7 +95,7 @@ export class TrivyDependencyComponent {
       })
       .subscribe({
         next: (res) => this.onData(res),
-        error: (err) => console.error(err),
+        error: (err) => this.log.error('Failed to load the dependency tree.', { error: err, toast: false }),
       });
   }
 

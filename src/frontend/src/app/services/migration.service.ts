@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { injectLogger } from './logging/inject-logger';
 import { LocalStorageUtils } from '../utils/local-storage.utils';
 import { VersionUtils } from '../utils/version.utils';
 
@@ -24,11 +25,13 @@ export interface MigrationStep {
   providedIn: 'root',
 })
 export class MigrationService {
+  private readonly log = injectLogger('Migration');
+
   applyTableMigrations(fromVersion: string, toVersion: string, migrationSteps: readonly MigrationStep[]) {
     for (const step of migrationSteps) {
       if (!this.isFirstVersionOlder(fromVersion, step.version) || this.isFirstVersionOlder(toVersion, step.version))
         continue;
-      console.log('Step version:', step.version, '- Applying migration step:', step.action);
+      this.log.debug(`Applying migration step: ${step.action}`, { data: { version: step.version } });
 
       switch (step.action) {
         case 'deleteAllTableDefinitions': {
@@ -97,7 +100,7 @@ export class MigrationService {
           break;
         }
         default:
-          console.warn(`Unknown migration action: ${step.action}`);
+          this.log.warn(`Unknown migration action: ${step.action}`, { toast: false });
       }
     }
   }
@@ -119,7 +122,7 @@ export class MigrationService {
     try {
       return JSON.parse(value);
     } catch {
-      console.warn('Failed to parse localStorage value.');
+      this.log.warn('Failed to parse localStorage value.', { toast: false });
       return {};
     }
   }
