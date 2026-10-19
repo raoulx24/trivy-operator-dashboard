@@ -3,236 +3,46 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
+    loadComponent: () => import('@features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
     data: { title: 'Home' },
   },
-
-  {
-    path: 'config-audit-reports',
-    loadComponent: () =>
-      import('./trivy-reports/config-audit-reports/config-audit-reports.component').then(
-        (m) => m.ConfigAuditReportsComponent,
-      ),
-    data: { title: 'Config Audit Reports' },
-  },
-  {
-    path: 'config-audit-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/config-audit-reports-detailed/config-audit-reports-detailed.component').then(
-        (m) => m.ConfigAuditReportsDetailedComponent,
-      ),
-    data: { title: 'Config Audit Reports Detailed' },
-  },
-
-  {
-    path: 'exposed-secret-reports',
-    loadComponent: () =>
-      import('./trivy-reports/exposed-secret-reports/exposed-secret-reports.component').then(
-        (m) => m.ExposedSecretReportsComponent,
-      ),
-    data: { title: 'Exposed Secret Reports' },
-  },
-  {
-    path: 'exposed-secret-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/exposed-secret-reports-detailed/exposed-secret-reports-detailed.component').then(
-        (m) => m.ExposedSecretReportsDetailedComponent,
-      ),
-    data: { title: 'Exposed Secret Reports Detailed' },
-  },
-
-  {
-    path: 'infra-assessment-reports',
-    loadComponent: () =>
-      import('./trivy-reports/infra-assessment-reports/infra-assessment-reports.component').then(
-        (m) => m.InfraAssessmentReportsComponent,
-      ),
-    data: { title: 'Infra Assessment Reports' },
-  },
-  {
-    path: 'infra-assessment-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/infra-assessment-reports-detailed/infra-assessment-reports-detailed.component').then(
-        (m) => m.InfraAssessmentReportsDetailedComponent,
-      ),
-    data: { title: 'Infra Assessment Reports Detailed' },
-  },
-
-  {
-    path: 'rbac-assessment-reports',
-    loadComponent: () =>
-      import('./trivy-reports/rbac-assessment-reports/rbac-assessment-reports.component').then(
-        (m) => m.RbacAssessmentReportsComponent,
-      ),
-    data: { title: 'RBAC Assessment Reports' },
-  },
-  {
-    path: 'rbac-assessment-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/rbac-assessment-reports-detailed/rbac-assessment-reports-detailed.component').then(
-        (m) => m.RbacAssessmentReportsDetailedComponent,
-      ),
-    data: { title: 'RBAC Assessment Reports Detailed' },
-  },
-
-  {
-    path: 'sbom-reports',
-    loadComponent: () =>
-      import('./trivy-reports/sbom-reports/sbom-reports.component').then((m) => m.SbomReportsComponent),
-    data: { title: 'SBOM Reports' },
-  },
-  {
-    path: 'sbom-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/sbom-reports-detailed/sbom-reports-detailed.component').then(
-        (m) => m.SbomReportsDetailedComponent,
-      ),
-    data: { title: 'SBOM Reports Detailed' },
-  },
-
-  {
-    path: 'vulnerability-reports',
-    loadComponent: () =>
-      import('./trivy-reports/vulnerability-reports/vulnerability-reports.component').then(
-        (m) => m.VulnerabilityReportsComponent,
-      ),
-    data: { title: 'Vulnerability Reports' },
-  },
-  {
-    path: 'vulnerability-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/vulnerability-reports-detailed/vulnerability-reports-detailed.component').then(
-        (m) => m.VulnerabilityReportsDetailedComponent,
-      ),
-    data: { title: 'Vulnerability Reports Detailed' },
-  },
-
-  {
-    path: 'vulnerability-reports-history',
-    loadComponent: () => import('./history-reports/vulnerability-reports-history/vulnerability-reports-history.component').then((m) => m.VulnerabilityReportsHistoryComponent),
-    data: { title: 'Vulnerability Reports History' },
-  },
-  {
-    path: 'vulnerability-reports-history-detailed',
-    loadComponent: () => import('./history-reports/vulnerability-reports-history-detailed/vulnerability-reports-history-detailed.component').then((m) => m.VulnerabilityReportsHistoryDetailedComponent),
-    data: { title: 'Vulnerability Reports History Detailed' },
-  },
-
-  {
-    path: 'cluster-compliance-reports',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-compliance-reports/cluster-compliance-reports.component').then(
-        (m) => m.ClusterComplianceReportsComponent,
-      ),
-    data: { title: 'Cluster Compliance Reports' },
-  },
-  {
-    path: 'cluster-compliance-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-compliance-reports-detailed/cluster-compliance-reports-detailed.component').then(
-        (m) => m.ClusterComplianceReportsDetailedComponent,
-      ),
-    data: { title: 'Cluster Compliance Reports Detailed' },
-  },
-
-  {
-    path: 'cluster-infra-assessment-reports',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-infra-assessment-reports/cluster-infra-assessment-reports.component').then(
-        (m) => m.ClusterInfraAssessmentReportsComponent,
-      ),
-    data: { title: 'Cluster Infra Assessment Reports' },
-  },
-  {
-    path: 'cluster-infra-assessment-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-infra-assessment-reports-detailed/cluster-infra-assessment-reports-detailed.component').then(
-        (m) => m.ClusterInfraAssessmentReportsDetailedComponent,
-      ),
-    data: { title: 'Cluster Infra Assessment Reports Detailed' },
-  },
-
-  {
-    path: 'cluster-rbac-assessment-reports',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-rbac-assessment-reports/cluster-rbac-assessment-reports.component').then(
-        (m) => m.ClusterRbacAssessmentReportsComponent,
-      ),
-    data: { title: 'Cluster RBAC Assessment Reports' },
-  },
-  {
-    path: 'cluster-rbac-assessment-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-rbac-assessment-reports-detailed/cluster-rbac-assessment-reports-detailed.component').then(
-        (m) => m.ClusterRbacAssessmentReportsDetailedComponent,
-      ),
-    data: { title: 'Cluster RBAC Assessment Reports Detailed' },
-  },
-
-  {
-    path: 'cluster-sbom-reports',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-sbom-reports/cluster-sbom-reports.component').then(
-        (m) => m.ClusterSbomReportsComponent,
-      ),
-    data: { title: 'Cluster SBOM Reports' },
-  },
-
-  {
-    path: 'cluster-vulnerability-reports',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-vulnerability-reports/cluster-vulnerability-reports.component').then(
-        (m) => m.ClusterVulnerabilityReportsComponent,
-      ),
-    data: { title: 'Cluster Vulnerability Reports' },
-  },
-  {
-    path: 'cluster-vulnerability-reports-detailed',
-    loadComponent: () =>
-      import('./trivy-reports/cluster-vulnerability-reports-detailed/cluster-vulnerability-reports-detailed.component').then(
-        (m) => m.ClusterVulnerabilityReportsDetailedComponent,
-      ),
-    data: { title: 'Cluster Vulnerability Reports Detailed' },
-  },
-
-
   {
     path: 'watcher-status',
-    loadComponent: () => import('./pages/watcher-state/watcher-state.component').then((m) => m.WatcherStateComponent),
+    loadComponent: () => import('@features/watcher-state/watcher-state.component').then((m) => m.WatcherStateComponent),
     data: { title: 'Watcher Status' },
   },
   {
     path: 'logs',
-    loadComponent: () => import('./pages/log-messages/log-messages.component').then((m) => m.LogMessagesComponent),
+    loadComponent: () => import('@features/log-messages/log-messages.component').then((m) => m.LogMessagesComponent),
     data: { title: 'Log Messages' },
   },
   {
     path: 'settings',
-    loadComponent: () => import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
+    loadComponent: () => import('@features/settings/settings.component').then((m) => m.SettingsComponent),
     data: { title: 'Settings' },
   },
   {
     path: 'about',
-    loadComponent: () => import('./pages/about/about.component').then((m) => m.AboutComponent),
+    loadComponent: () => import('@features/about/about.component').then((m) => m.AboutComponent),
     data: { title: 'About' },
   },
   {
     path: 'alerts',
-    loadComponent: () => import('./pages/alerts/alerts.component').then((m) => m.AlertsComponent),
+    loadComponent: () => import('@features/alerts/alerts.component').then((m) => m.AlertsComponent),
     data: { title: 'Alerts' },
   },
-
-  {
-    path: 'open-trivy-rep',
-    loadComponent: () => import('./pages/open-trivy-report/open-trivy-report.component').then((m) => m.OpenTrivyReportComponent),
-    data: { title: 'Open Trivy Report' },
-  },
-
-
   {
     path: 'test1',
-    loadComponent: () => import('./tests/tests.component').then((m) => m.TestsComponent),
+    loadComponent: () => import('@features/playground/tests.component').then((m) => m.TestsComponent),
     data: { title: 'Test1' },
+  },
+  {
+    path: '',
+    loadChildren: () => import('@features/trivy-reports/trivy-reports.routes').then((m) => m.trivyReportsRoutes),
+  },
+  {
+    path: '',
+    loadChildren: () => import('@features/history-reports/history-reports.routes').then((m) => m.historyReportsRoutes),
   },
   {
     path: '**',

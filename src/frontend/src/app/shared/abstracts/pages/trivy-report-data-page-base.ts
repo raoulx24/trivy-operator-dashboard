@@ -1,0 +1,80 @@
+import { DataPageBase } from './data-page-base';
+import { TrivyReport, TrivyReportDetail } from '../types/trivy-report';
+import { PairedOptionsDto } from '@shared/ui/paired-options-selector/paired-options-selector.types';
+import { inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+
+export abstract class TrivyReportDataPageBase<
+  TTrivyReport extends TrivyReport<TTrivyReportDetail>,
+  TTrivyReportDetail extends TrivyReportDetail,
+> extends DataPageBase<TTrivyReport> { }
+
+export abstract class TrivyReportMasterDetailDataPageBase<
+  TTrivyReport extends TrivyReport<TTrivyReportDetail>,
+  TTrivyReportDetail extends TrivyReportDetail,
+> extends TrivyReportDataPageBase<TTrivyReport, TTrivyReportDetail> {
+  selectedTrivyReportDto: TTrivyReport | null = null;
+
+  protected compareNamespacedImageDtos?: PairedOptionsDto[];
+  protected isTrivyReportsCompareVisible = signal<boolean>(false);
+  protected compareFirstSelectedId?: string;
+
+  protected abstract detailedPageRoute: string;
+
+  protected abstract friendlyReportName: string;
+
+  protected readonly router = inject(Router);
+
+  protected override onGetDataDtos(dtos: TTrivyReport[]) {
+    this.compareNamespacedImageDtos = [];
+
+    super.onGetDataDtos(dtos);
+  }
+
+  protected onMainTableSelectedRowChanged(event: TTrivyReport | null) {
+    this.selectedTrivyReportDto = event;
+  }
+
+  protected hasSeverities(report: TTrivyReport): boolean {
+    return report.criticalCount > 0 || report.highCount > 0 || report.mediumCount > 0 || report.lowCount > 0;
+  }
+
+  protected onMainTableMultiHeaderActionRequested(event: string) {
+    switch (event) {
+      case 'goToDetailedPage':
+        this.goToDetailedPage();
+        break;
+
+      case 'Compare with...':
+        this.goToComparePage();
+        break;
+
+      default:
+        this.log.warn('Unhandled action.', { data: event, toast: false });
+    }
+  }
+
+  private goToDetailedPage() {
+    const url = this.router.serializeUrl(this.router.createUrlTree([this.detailedPageRoute]));
+    window.open(url, '_blank');
+  }
+
+  private goToComparePage() {
+    if (!this.selectedTrivyReportDto) return;
+    if (!this.hasSeverities(this.selectedTrivyReportDto)) {
+      this.log.info('Nothing to compare', {
+        source: this.friendlyReportName,
+        data: 'The selected item has no details, so there is nothing to compare...',
+        toast: true,
+      });
+
+      return;
+    }
+
+    this.compareNamespacedImageDtos = this.prepareCompareDataDtos();
+    this.compareFirstSelectedId = this.selectedTrivyReportDto.uid;
+    this.isTrivyReportsCompareVisible.set(true);
+  }
+
+  protected abstract prepareCompareDataDtos(): PairedOptionsDto[];
+}

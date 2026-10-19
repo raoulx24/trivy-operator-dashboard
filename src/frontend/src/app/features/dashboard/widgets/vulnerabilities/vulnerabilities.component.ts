@@ -1,0 +1,267 @@
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+import { VulnerabilityReportSummaryDto } from '@api/models/vulnerability-report-summary-dto';
+import { VulnerabilityReportsService } from '@api/services/vulnerability-reports.service';
+import {
+  PrimeNgChartUtils,
+  PrimeNgHorizontalBarChartData,
+  SeveritiesSummary,
+} from '@shared/utils/primeng-chart.utils';
+import {
+  GenericByNsSummaryDto,
+  GenericNsTotalSortable,
+  GenericSummaryDto,
+  OtherSummaryMainStatistics,
+  SeveritySummary,
+  VrDetailsDto,
+} from './vulnerabilities.types';
+
+import { ChartOptions } from 'chart.js';
+import { ButtonModule } from 'primeng/button';
+import { CarouselModule } from 'primeng/carousel';
+import { ChartModule } from 'primeng/chart';
+import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+
+import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
+import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
+import { DarkModeService } from '@core/services/dark-mode.service';
+import { SeverityUtils } from '@shared/utils/severity.utils';
+
+@Component({
+  selector: 'app-dashboard-vulnerability-reports',
+  standalone: true,
+  imports: [
+    FormsModule,
+    ButtonModule,
+    CarouselModule,
+    ChartModule,
+    DialogModule,
+    TableModule,
+    TagModule,
+    SeverityCssStyleByIdPipe,
+    SeverityNameByIdPipe,
+    VulnerabilityCountPipe,
+  ],
+  templateUrl: './vulnerabilities.component.html',
+  styleUrl: './vulnerabilities.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class DashboardVulnerabilityReportsComponent implements OnInit {
+  // backend data
+  vulnerabilityReportSummaryDto?: VulnerabilityReportSummaryDto;
+  slides: string[] = ['vrByNs', 'vrBySev'];
+  // data for charts
+  horizontalBarChartDataByNs = signal<PrimeNgHorizontalBarChartData>({ labels: [], datasets: [], title: '' });
+  horizontalBarChartDataBySeverity = signal<PrimeNgHorizontalBarChartData>({ labels: [], datasets: [], title: '' });
+  horizontalBarChartOption = signal<ChartOptions | null>(null);
+  // data for Vulnerability Reports Statistics
+  severitiesSummaryForTable = signal<SeveritySummary[]>([]);
+  isMoreVRDetailsModalVisible = signal<boolean>(false);
+  vrDetailsReportDtos = signal<VrDetailsDto[]>([]);
+  vrDetailsReportDtoFooter = signal<VrDetailsDto>({ namespaceName: '', isTotal: true, values: [] });
+  // data for Various Statistics
+  othersSummaryForTable = signal<OtherSummaryMainStatistics[]>([]);
+  moreOthersModalTitle = signal<string>('');
+  isMoreOthersModalVisible = signal<boolean>(false);
+  genericSummaryDtos = signal<GenericSummaryDto[]>([]);
+  genericByNsSummaryDtos = signal<GenericByNsSummaryDto[]>([]);
+
+  severityIds: number[] = SeverityUtils.severityDtos.map((x) => x.id);
+
+  showDistinctValues = input.required<boolean>();
+
+  private readonly vulnerabilityReportsService = inject(VulnerabilityReportsService);
+  private readonly darkModeService = inject(DarkModeService);
+
+  constructor() {
+    effect(() => {
+      const x = this.showDistinctValues();
+      this.extractDataForCharts();
+      this.extractDataForTables();
+    });
+
+    effect(() => {
+      const isDark = this.darkModeService.isDarkMode();
+      this.horizontalBarChartOption.set(PrimeNgChartUtils.getHorizontalBarChartOption());
+    });
+  }
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  loadData() {
+    this.vulnerabilityReportsService.getVulnerabilityReportSummaryDto().subscribe({
+      next: (res) => this.onVulnerabilityReportSummaryDtos(res),
+      error: (err) => console.error(err),
+    });
+  }
+
+  onVulnerabilityReportSummaryDtos(vulnerabilityReportSummaryDto: VulnerabilityReportSummaryDto) {
+    vulnerabilityReportSummaryDto.severitiesByNsSummaryDtos =
+      vulnerabilityReportSummaryDto.severitiesByNsSummaryDtos?.sort((a, b) =>
+        a.namespaceName! > b.namespaceName! ? 1 : -1,
+      );
+    this.vulnerabilityReportSummaryDto = vulnerabilityReportSummaryDto;
+
+    this.extractDataForCharts();
+    this.extractDataForTables();
+  }
+
+  public onOthersMore(element: OtherSummaryMainStatistics) {
+    this.moreOthersModalTitle.set(`More Info for ${element.description}`);
+    let tempByNsSummary: GenericByNsSummaryDto[] = [];
+    const tempSummary: GenericSummaryDto[] = [];
+    switch (element.description) {
+      case 'Images':
+        tempByNsSummary = this.vulnerabilityReportSummaryDto?.imagesByNSSummaryDtos! as GenericByNsSummaryDto[];
+        this.genericByNsSummaryDtos.set(tempByNsSummary.sort(this.sortOthersByNsSummary));
+        this.genericSummaryDtos.set(
+          this.vulnerabilityReportSummaryDto?.imagesSummaryDtos!.sort((a, b) =>
+            a.name! > b.name! ? 1 : -1,
+          ) as GenericSummaryDto[],
+        );
+        break;
+      case 'Images OSes':
+        tempByNsSummary = this.vulnerabilityReportSummaryDto?.imageOSesByNSSummaryDtos! as GenericByNsSummaryDto[];
+        this.genericByNsSummaryDtos.set(tempByNsSummary.sort(this.sortOthersByNsSummary));
+        this.genericSummaryDtos.set(
+          this.vulnerabilityReportSummaryDto?.imageOSSummaryDtos!.sort((a, b) =>
+            a.name! > b.name! ? 1 : -1,
+          ) as GenericSummaryDto[],
+        );
+        break;
+      case 'End of Service Life':
+        tempByNsSummary = this.vulnerabilityReportSummaryDto?.imageEOSLByNsSummaryDtos! as GenericByNsSummaryDto[];
+        this.genericByNsSummaryDtos.set(tempByNsSummary.sort(this.sortOthersByNsSummary));
+        this.genericSummaryDtos.set(
+          this.vulnerabilityReportSummaryDto?.imageEOSLSummaryDtos!.sort((a, b) =>
+            a.name! > b.name! ? 1 : -1,
+          ) as GenericSummaryDto[],
+        );
+        break;
+    }
+    this.isMoreOthersModalVisible.set(true);
+  }
+
+  public onVrsMore(_event: MouseEvent) {
+    this.isMoreVRDetailsModalVisible.set(true);
+  }
+
+  sortOthersByNsSummary = (a: GenericNsTotalSortable, b: GenericNsTotalSortable): number => {
+    if (a.isTotal === b.isTotal) {
+      return a.namespaceName > b.namespaceName ? 1 : -1;
+    }
+    return a.isTotal ? 1 : -1;
+  };
+
+  getFooterData(fieldName: string): string {
+    const dto: GenericByNsSummaryDto = this.genericByNsSummaryDtos().filter((x) => x.isTotal)[0];
+    if (!dto) {
+      return '';
+    }
+    switch (fieldName) {
+      case 'namespaceName':
+        return dto.namespaceName;
+      case 'totalCount':
+        return dto.totalCount.toString();
+      case 'distinctCount':
+        return dto.distinctCount.toString();
+      default:
+        return '';
+    }
+  }
+
+  onDistinctSwitch(showDistinctValues: boolean) {
+    if (this.vulnerabilityReportSummaryDto) {
+      this.extractDataForCharts();
+      this.extractDataForTables();
+    }
+  }
+
+  private extractDataForCharts() {
+    this.horizontalBarChartDataByNs.set(
+      PrimeNgChartUtils.getDataForHorizontalBarChartByNamespace(
+        (this.vulnerabilityReportSummaryDto?.severitiesByNsSummaryDtos as SeveritiesSummary[]) ?? [],
+        this.showDistinctValues(),
+      ),
+    );
+    this.horizontalBarChartDataBySeverity.set(
+      PrimeNgChartUtils.getDataForHorizontalBarChartBySeverity(
+        (this.vulnerabilityReportSummaryDto?.severitiesByNsSummaryDtos as SeveritiesSummary[]) ?? [],
+        this.showDistinctValues(),
+      ),
+    );
+  }
+
+  private extractDataForTables() {
+    const severitiesTotal = this.vulnerabilityReportSummaryDto?.severitiesByNsSummaryDtos?.find((x) => x.isTotal);
+    if (severitiesTotal) {
+      const tableValues: SeveritySummary[] = [];
+      severitiesTotal.details
+        ?.sort((a, b) => a.id! - b.id!)
+        .forEach((x) => {
+          tableValues.push({
+            severityName: SeverityUtils.getCapitalizedName(x.id!),
+            count: this.showDistinctValues() ? x.distinctCount! : x.totalCount!,
+            fixable: this.showDistinctValues() ? x.fixableDistinctCount! : x.fixableTotalCount!,
+          });
+        });
+      this.severitiesSummaryForTable.set(tableValues);
+    }
+    const localOtherSummaryMainStatistics: OtherSummaryMainStatistics[] = [];
+    let totalData = this.vulnerabilityReportSummaryDto?.imagesByNSSummaryDtos?.find((x) => x.isTotal);
+    if (totalData) {
+      localOtherSummaryMainStatistics.push({
+        description: 'Images',
+        count: this.showDistinctValues() ? totalData.distinctCount! : totalData.totalCount!,
+      });
+    }
+    totalData = this.vulnerabilityReportSummaryDto?.imageOSesByNSSummaryDtos?.find((x) => x.isTotal);
+    if (totalData) {
+      localOtherSummaryMainStatistics.push({
+        description: 'Images OSes',
+        count: this.showDistinctValues() ? totalData.distinctCount! : totalData.totalCount!,
+      });
+    }
+    totalData = this.vulnerabilityReportSummaryDto?.imageEOSLByNsSummaryDtos?.find((x) => x.isTotal);
+    if (totalData) {
+      localOtherSummaryMainStatistics.push({
+        description: 'End of Service Life',
+        count: this.showDistinctValues() ? totalData.distinctCount! : totalData.totalCount!,
+      });
+    }
+    this.othersSummaryForTable.set(localOtherSummaryMainStatistics);
+    const localSeveritiesByNsSummaryDtos = this.vulnerabilityReportSummaryDto?.severitiesByNsSummaryDtos;
+    if (localSeveritiesByNsSummaryDtos) {
+      const x = localSeveritiesByNsSummaryDtos.map(({ namespaceName, details, isTotal }) => {
+        const values: { severityId: number; count: number }[] = [];
+        this.severityIds.forEach((severityId) => {
+          const detail = details?.find((det) => det.id === severityId);
+          values.push({
+            severityId: severityId,
+            count: this.showDistinctValues() ? (detail?.distinctCount ?? -1) : (detail?.totalCount ?? -1),
+          });
+          values.push({
+            severityId: severityId,
+            count: this.showDistinctValues() ? (detail?.fixableDistinctCount ?? -1) : (detail?.fixableTotalCount ?? -1),
+          });
+        });
+
+        return { namespaceName: namespaceName, values: values, isTotal };
+      });
+      this.vrDetailsReportDtos.set(
+        x
+          .filter((x) => !x.isTotal)
+          .sort((a, b) => {
+            return a.namespaceName.localeCompare(b.namespaceName);
+          }),
+      );
+      this.vrDetailsReportDtoFooter.set(x.find((x) => x.isTotal) ?? this.vrDetailsReportDtoFooter());
+    }
+  }
+}
