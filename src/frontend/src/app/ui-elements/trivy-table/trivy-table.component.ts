@@ -21,7 +21,6 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { Popover, PopoverModule } from 'primeng/popover';
-import { Select } from 'primeng/select';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { Table, TableModule, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -30,6 +29,7 @@ import { SeverityDto } from '../../../api/models/severity-dto';
 import { LocalStorageUtils } from '../../utils/local-storage.utils';
 import { PrimengTableStateUtil } from '../../utils/primeng-table-state.util';
 import { SeverityUtils } from '../../utils/severity.utils';
+import { TagOption, TagSetName, TrivyTableTagSets } from './trivy-table-tag-sets';
 import {
   MultiHeaderAction,
   SelectedDtosEvent,
@@ -65,7 +65,6 @@ import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by
     InputTextModule,
     MultiSelectModule,
     PopoverModule,
-    Select,
     SplitButtonModule,
     TableModule,
     TagModule,
@@ -156,10 +155,6 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   // table custom filters
   protected filterSeverityOptions: number[] = [];
-  protected filterBooleanOptions?: {label: string, value: boolean}[];
-  protected filterSelectedSeverityIds = signal<number[]>([]);
-  protected filterSelectedActiveNamespaces = signal<string[]>([]);
-  protected filterSelectedBoolean = signal<boolean | undefined>(undefined);
   protected severityDtos: SeverityDto[] = [...SeverityUtils.severityDtos.filter((x) => x.isTrivySeverity)];
 
   protected multiHeaderActionItems = computed(() => {
@@ -210,6 +205,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected fullRowHeightPx = computed(() => { return `${this.rowHeight() + 8}px` });
 
   private readonly filterService = inject(FilterService);
+  private readonly tagOptionsByColumn = new WeakMap<TrivyTableColumn, TagOption[]>();
 
   constructor() {
     // new dataDtos()
@@ -261,13 +257,34 @@ export class TrivyTableComponent<TData> implements OnInit {
   ngOnInit() {
     this.tableStateKey = LocalStorageUtils.trivyTableKeyPrefix + this.stateKey();
     this.filterSeverityOptions = this.severityDtos.map((x) => x.id);
+  }
 
-    const boolLabels = this.trivyTableColumns().find(x => x.multiSelectType === 'booleans')?.extraFields?.[1]?.split('|');
-    if (boolLabels && boolLabels.length == 2) {
-      this.filterBooleanOptions = [
-        { label: boolLabels[0], value: true },
-        { label: boolLabels[1], value: false },]
+  // tag sets: 'booleans' multiSelectType stays supported as an alias of the boolean tag set
+  protected tagSetOf(col: TrivyTableColumn): TagSetName | undefined {
+    return col.tagSet ?? (col.multiSelectType === 'booleans' ? 'boolean' : undefined);
+  }
+
+  protected tagOptions(col: TrivyTableColumn): TagOption[] {
+    const tagSet = this.tagSetOf(col);
+    if (!tagSet) {
+      return [];
     }
+    const cached = this.tagOptionsByColumn.get(col);
+    if (cached) {
+      return cached;
+    }
+    const options = TrivyTableTagSets.getOptions(tagSet);
+    // boolean columns can carry their own true|false labels in extraFields[1]
+    const labels = tagSet === 'boolean' ? col.extraFields?.[1]?.split('|') : undefined;
+    const result =
+      labels?.length === 2 ? options.map((x) => ({ ...x, label: x.value ? labels[0] : labels[1] })) : options;
+    // stable reference per column, the multiselect would otherwise reset on every change detection
+    this.tagOptionsByColumn.set(col, result);
+    return result;
+  }
+
+  protected tagFor(col: TrivyTableColumn, value: unknown): TagOption {
+    return TrivyTableTagSets.resolve(this.tagSetOf(col) ?? 'semaphore', value);
   }
 
   // table main actions
@@ -422,9 +439,6 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected onClearSortFilters() {
     PrimengTableStateUtil.clearFilters(this.trivyTable.filters);
     this.trivyTable.clear();
-    this.filterSelectedActiveNamespaces.set([]);
-    this.filterSelectedSeverityIds.set([]);
-    this.filterSelectedBoolean.set(undefined);
     this.isTableFilteredSorted.set(this.checkIfTableIsFilteredOrSorted());
     // this.updateMultiHeaderActionClearSortFilters();
     const stateKey = this.stateKey();

@@ -1,3 +1,5 @@
+import { TagSetName } from './trivy-table-tag-sets';
+
 export interface MultiHeaderAction {
   label: string;
   enabledIfRowSelected?: boolean;
@@ -23,9 +25,13 @@ export interface TrivyTableColumn extends Column {
   isFilterable: boolean;
   isCounter?: boolean;
   style: string;
-  multiSelectType: 'none' | 'namespaces' | 'severities' | 'booleans' | 'namespacesArrays';
+  // legacy filter selector: still honored ('booleans' is an alias of tagSet 'boolean'); new columns use tagSet
+  multiSelectType?: 'none' | 'namespaces' | 'severities' | 'booleans' | 'namespacesArrays';
+  // value -> label/colour mapping, drives the 'tag' render type and the multiselect filter of the column
+  tagSet?: TagSetName;
   renderType:
     | 'standard'
+    | 'tag'
     | 'severityBadge'
     | 'severityMultiTags'
     | 'severityValue'

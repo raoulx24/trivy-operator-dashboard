@@ -2,7 +2,6 @@ import { WritableSignal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { MenuItem } from 'primeng/api';
-import { timeout } from 'rxjs';
 
 interface NavEntry {
   label: string;
@@ -79,6 +78,7 @@ const NAV_SECTIONS: NavSection[] = [
     expanded: true,
     entries: [
       { label: 'Watcher Status', icon: 'mystery', route: 'watcher-status' },
+      { label: 'Log Messages', icon: 'receipt_long', route: 'logs' },
       { label: 'Settings', icon: 'settings_applications', route: 'settings' },
       { label: 'About', icon: 'chat_info', route: 'about' },
     ],

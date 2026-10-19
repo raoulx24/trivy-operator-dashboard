@@ -27,9 +27,9 @@ export const watcherStateColumns: readonly TrivyTableColumn[] = [
     header: 'Status',
     isFilterable: true,
     isSortable: true,
-    multiSelectType: 'none',
+    tagSet: 'semaphore',
     style: 'width: 130px; max-width: 130px;',
-    renderType: 'semaphore',
+    renderType: 'tag',
   },
   {
     field: 'mitigationMessage',

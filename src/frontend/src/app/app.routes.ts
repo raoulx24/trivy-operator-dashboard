@@ -202,6 +202,11 @@ export const routes: Routes = [
     data: { title: 'Watcher Status' },
   },
   {
+    path: 'logs',
+    loadComponent: () => import('./pages/log-messages/log-messages.component').then((m) => m.LogMessagesComponent),
+    data: { title: 'Log Messages' },
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./pages/settings/settings.component').then((m) => m.SettingsComponent),
     data: { title: 'Settings' },

@@ -19,6 +19,9 @@ export interface LogEntry {
   suppressed?: number; // identical earlier entries dropped by storm protection and summarized by this one
 }
 
+// an entry as kept in memory: the id is assigned on write, so tables can key rows on it
+export type StoredLogEntry = LogEntry & { id: number };
+
 export interface LogOptions {
   source: string;
   code?: string;

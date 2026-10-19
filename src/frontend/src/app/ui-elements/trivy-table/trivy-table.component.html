@@ -121,7 +121,8 @@
             @if (col.isSortable && (col.isSortIconVisible ?? col.isSortable)) {
               <p-sortIcon field="{{ col.field }}" class="sm-sortIcon" />
             }
-            @if (col.isFilterable && col.multiSelectType === 'none') {
+            @let tagSet = tagSetOf(col);
+            @if (col.isFilterable && !tagSet && (col.multiSelectType ?? 'none') === 'none') {
               <p-columnFilter display="menu" field="{{ col.field }}" type="text" class="sm-filterIcon" />
             }
             @if (col.isFilterable && col.multiSelectType === 'namespaces') {
@@ -140,7 +141,7 @@
                     style="min-width: 300px"
                     class="text-sm"
                     [options]="activeNamespaces()"
-                    [(ngModel)]="filterSelectedActiveNamespaces"
+                    [ngModel]="value"
                     (onChange)="filter($event.value)"
                   >
                     <ng-template #item let-option>
@@ -170,7 +171,7 @@
                     [showHeader]="false"
                     [showToggleAll]="false"
                     [style]="{ width: '200px' }"
-                    [(ngModel)]="filterSelectedSeverityIds"
+                    [ngModel]="value"
                     (onChange)="filter($event.value)"
                   >
                     <ng-template let-severityIds pTemplate="selectedItems">
@@ -186,26 +187,35 @@
                 </ng-template>
               </p-columnFilter>
             }
-            @if (col.isFilterable && col.multiSelectType === 'booleans') {
-              <p-columnFilter [field]="col.field"
-                              type="boolean"
-                              matchMode="equals"
-                              display="menu"
-                              [showMatchModes]="false"
-                              [showOperator]="false"
-                              [showAddButton]="false">
-                <ng-template pTemplate="filter" let-filter="filterCallback">
-                  <p-select [options]="filterBooleanOptions"
-                            optionLabel="label"
-                            placeholder="Any"
-                            [(ngModel)]="filterSelectedBoolean"
-                            [checkmark]="true"
-                            [showClear]="true"
-                            (onChange)="filter($event.value?.value)"
-                            style="width: 200px">
-                  </p-select>
+            @if (col.isFilterable && tagSet) {
+              <p-columnFilter
+                display="menu"
+                matchMode="in"
+                class="sm-filterIcon"
+                [field]="col.field"
+                [showAddButton]="false"
+                [showMatchModes]="false"
+                [showOperator]="false"
+              >
+                <ng-template let-filter="filterCallback" let-value pTemplate="filter">
+                  <p-multiSelect
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Any"
+                    class="text-sm"
+                    [filter]="false"
+                    [options]="tagOptions(col)"
+                    [showHeader]="false"
+                    [showToggleAll]="false"
+                    [style]="{ width: '200px' }"
+                    [ngModel]="value"
+                    (onChange)="filter($event.value)"
+                  >
+                    <ng-template let-option pTemplate="item">
+                      <p-tag [icon]="option.icon" [rounded]="true" [style]="option.style" [value]="option.label" />
+                    </ng-template>
+                  </p-multiSelect>
                 </ng-template>
-
               </p-columnFilter>
             }
             @if (col.isFilterable && col.multiSelectType === 'namespacesArrays') {
@@ -218,13 +228,13 @@
                 [showMatchModes]="false"
                 [showOperator]="false"
               >
-                <ng-template let-filter="filterCallback" pTemplate="filter">
+                <ng-template let-filter="filterCallback" let-value pTemplate="filter">
                   <p-multiSelect
                     placeholder="Any"
                     style="min-width: 300px"
                     class="text-sm"
                     [options]="activeNamespaces()"
-                    [(ngModel)]="filterSelectedActiveNamespaces"
+                    [ngModel]="value"
                     (onChange)="filter($event.value)"
                   >
                     <ng-template #item let-option>
@@ -313,6 +323,10 @@
                     [value]="'true'"
                   />
                 }
+              }
+              @case ('tag') {
+                @let tagOption = tagFor(col, rowData[col.field]);
+                <p-tag [icon]="tagOption.icon" [rounded]="true" [style]="tagOption.style" [value]="tagOption.label" />
               }
               @case ('semaphore') {
                 <p-tag
@@ -548,7 +562,12 @@
                         @for (row of rowExpandData.details; track row) {
                           <tr>
                             @for (cell of row; track $index) {
-                              <td [ngClass]="cell.class" [ngStyle]="rowExpandData.colStyles[$index]">
+                              <td
+                                [class.font-bold]="$first"
+                                [class.tod-text-muted-color]="$first"
+                                [ngClass]="cell.class"
+                                [ngStyle]="rowExpandData.colStyles[$index]"
+                              >
                                 @if (cell.label) {}
                                 @if (cell.label) {
                                   <span class="pr-1">{{ cell.label }}</span>

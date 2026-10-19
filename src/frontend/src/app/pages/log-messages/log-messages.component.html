@@ -1,0 +1,15 @@
+<div class="tod-content-border overflow-hidden">
+  <app-trivy-table
+    dataKey="id"
+    rowExpansionRender="table"
+    stateKey="Log Messages"
+    [dataDtos]="entries()"
+    [isResetFiltersVisible]="true"
+    [multiHeaderActions]="multiHeaderActions"
+    [rowExpandData]="rowExpandResponse()"
+    [style]="{ width: '1235px' }"
+    [trivyTableColumns]="trivyTableColumns"
+    (multiHeaderActionRequested)="onMultiHeaderActionRequested($event)"
+    (rowExpandDataChange)="onRowExpandChange($event)"
+  />
+</div>

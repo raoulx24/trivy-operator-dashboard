@@ -5,7 +5,8 @@ export class SemaphoreStatusUtils {
 
   public static getCssColorByName(statusName: string): string {
     const documentStyle = getComputedStyle(document.documentElement);
-    const color: string = '--p-' + this.getColorByName(statusName) + '-' + (this.colorIntensity + 100);
+    const colorName = this.getColorByName(statusName);
+    const color: string = '--p-' + colorName + '-' + this.getIntensityByColor(colorName);
 
     return documentStyle.getPropertyValue(color);
   }
@@ -18,10 +19,17 @@ export class SemaphoreStatusUtils {
         return 'yellow';
       case 'red':
         return 'red';
+      case 'neutral':
+        return 'sky';
       case 'unknown':
         return 'blue';
       default:
         return 'blue';
     }
+  }
+
+  // neutral (sky) sits one step lighter than the other colours
+  private static getIntensityByColor(colorName: string): number {
+    return colorName === 'sky' ? this.colorIntensity : this.colorIntensity + 100;
   }
 }
