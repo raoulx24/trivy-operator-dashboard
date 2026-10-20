@@ -608,6 +608,21 @@ mat-icon.text-xs {
   line-height: 1rem;
 }
 
+/* count badge floating in the top-right corner of a (position: relative) cell */
+.tod-count-corner {
+  position: absolute;
+  top: 0.125rem;
+  right: 0.25rem;
+  margin-left: 0;
+  box-shadow: var(--tod-box-shadow);
+}
+
+/* multi-line tooltip (one item per line) */
+.tod-tooltip-lines .p-tooltip-text {
+  white-space: pre-line;
+  box-shadow: var(--tod-box-shadow);
+}
+
 
 
 

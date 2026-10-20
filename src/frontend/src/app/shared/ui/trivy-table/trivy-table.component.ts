@@ -24,6 +24,7 @@ import { Popover, PopoverModule } from 'primeng/popover';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { Table, TableModule, TableRowCollapseEvent, TableRowExpandEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { SeverityDto } from '@api/models/severity-dto';
 import { LocalStorageUtils } from '../../utils/local-storage.utils';
@@ -68,6 +69,7 @@ import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by
     SplitButtonModule,
     TableModule,
     TagModule,
+    TooltipModule,
     VulnerabilityCountPipe,
     BooleanCssStylePipe,
     CapitalizeFirstPipe,

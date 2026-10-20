@@ -85,7 +85,7 @@ export class ExposedSecretReportsComponent
     this.rowExpandResponse = {
       rowKey: dto,
       colStyles: [
-        { width: '70px', 'min-width': '70px', height: '50px' },
+        { width: '100px', 'min-width': '100px', height: '50px' },
         { 'white-space': 'normal', display: 'flex', 'align-items': 'center', height: '50px' },
       ],
       details: [
@@ -104,6 +104,10 @@ export class ExposedSecretReportsComponent
         [
           { label: 'Used By' },
           ReportHelper.getNarrowedResourceNames(dto),
+        ],
+        [
+          { label: 'Namespace(s)' },
+          { label: [...dto.namespaceNames].sort().join(', ') },
         ],
       ],
     };

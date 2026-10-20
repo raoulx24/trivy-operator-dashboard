@@ -270,7 +270,7 @@
           </td>
         }
         @for (col of columns; track col) {
-          <td style="{{ col.style }}" class="h-full">
+          <td style="{{ col.style }}" class="h-full" [class.relative]="col.renderType === 'array'">
             @switch (col.renderType) {
               @case ('standard') {
                 <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
@@ -514,14 +514,14 @@
               @case ('array') {
                 @let items = rowData[col.field]?.split(',') ?? [];
 
-                <span class="truncate-ellipsis">
-                  {{ rowData[col.field] }}
+                <div [pTooltip]="items.length > 1 ? items.join('\n') : ''"
+                     tooltipPosition="top"
+                     tooltipStyleClass="tod-tooltip-lines text-sm tod-text-muted-color">
                   @if (items.length > 1) {
-                    <span class="tod-namespace-count">
-                      {{ items.length }}
-                    </span>
+                    <span class="tod-namespace-count tod-count-corner">{{ items.length }}</span>
                   }
-                </span>
+                  <span class="truncate-ellipsis pr-4">{{ rowData[col.field] }}</span>
+                </div>
               }
 
               @default {
@@ -568,7 +568,6 @@
                                 [ngClass]="cell.class"
                                 [ngStyle]="rowExpandData.colStyles[$index]"
                               >
-                                @if (cell.label) {}
                                 @if (cell.label) {
                                   <span class="pr-1">{{ cell.label }}</span>
                                 }
