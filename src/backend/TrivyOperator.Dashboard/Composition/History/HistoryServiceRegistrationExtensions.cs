@@ -97,7 +97,7 @@ public static class HistoryServiceRegistrationExtensions
 
         services.AddSingleton<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
 
-        services.AddScoped<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
+        services.AddSingleton<IVulnerabilityReportsHistoryRetentionService, VulnerabilityReportsHistoryRetentionService>();
 
         services.AddSingleton<IKubernetesEventProcessor<VulnerabilityReport, Digest>, VulnerabilityReportsHistoryRefresher>();
 

@@ -17,16 +17,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AlertDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/app-versions:
@@ -43,16 +37,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ReleaseDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/app-versions/latest:
@@ -67,16 +55,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReleaseDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/app-versions/current-version:
@@ -91,16 +73,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppVersion'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/backend-settings:
@@ -115,16 +91,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BackendSettingsDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-compliance-reports:
@@ -141,16 +111,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterComplianceReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/cluster-compliance-reports/{uid}':
@@ -174,19 +138,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-compliance-reports/denormalized:
@@ -203,16 +167,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterComplianceReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-config-audit-reports:
@@ -237,13 +195,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/cluster-config-audit-reports/{uid}':
@@ -267,19 +225,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-config-audit-reports/denormalized:
@@ -296,16 +254,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterConfigAuditReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-infra-assessment-reports:
@@ -322,16 +274,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterInfraAssessmentReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/cluster-infra-assessment-reports/{uid}':
@@ -355,19 +301,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-infra-assessment-reports/denormalized:
@@ -384,16 +330,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterInfraAssessmentReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-rbac-assessment-reports:
@@ -410,16 +350,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterRbacAssessmentReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/cluster-rbac-assessment-reports/{uid}':
@@ -443,19 +377,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-rbac-assessment-reports/denormalized:
@@ -472,16 +406,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterRbacAssessmentReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-sbom-reports/minimal:
@@ -498,16 +426,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SbomReportImageMinimalDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-sbom-reports:
@@ -524,16 +446,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterSbomReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-sbom-reports/denormalized:
@@ -550,16 +466,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterSbomReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-vulnerability-reports:
@@ -576,16 +486,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterVulnerabilityReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/cluster-vulnerability-reports/denormalized:
@@ -602,16 +506,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterVulnerabilityReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/cluster-vulnerability-reports/{uid}':
@@ -635,19 +533,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/config-audit-reports:
@@ -676,13 +574,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/config-audit-reports/{uid}':
@@ -706,19 +604,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/config-audit-reports/denormalized:
@@ -740,16 +638,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ConfigAuditReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/config-audit-reports/active-namespaces:
@@ -766,8 +658,83 @@ paths:
                 type: array
                 items:
                   type: string
-        '400':
-          description: Bad Request
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/end-of-life/os:
+    get:
+      tags:
+        - EndOfLife
+      operationId: GetOsEndOfLife
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EolInfoDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/end-of-life/os/{family}':
+    get:
+      tags:
+        - EndOfLife
+      operationId: GetOsEndOfLifeByFamily
+      parameters:
+        - name: family
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EolInfoDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/end-of-life/os/{family}/{version}':
+    get:
+      tags:
+        - EndOfLife
+      operationId: GetOsEndOfLifeByFamilyAndVersion
+      parameters:
+        - name: family
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EolInfoDto'
+        '404':
+          description: Not Found
           content:
             application/json:
               schema:
@@ -775,7 +742,21 @@ paths:
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/end-of-life/rebuild:
+    post:
+      tags:
+        - EndOfLife
+      operationId: RebuildEndOfLife
+      responses:
+        '202':
+          description: Accepted
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/exposed-secret-reports:
@@ -797,16 +778,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ExposedSecretReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/exposed-secret-reports/{uid}':
@@ -830,13 +805,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/exposed-secret-reports/denormalized:
@@ -858,16 +839,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ExposedSecretReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/exposed-secret-reports/grouped-by-image:
@@ -896,13 +871,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/exposed-secret-reports/active-namespaces:
@@ -919,16 +894,10 @@ paths:
                 type: array
                 items:
                   type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/infra-assessment-reports:
@@ -957,13 +926,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/infra-assessment-reports/{uid}':
@@ -984,16 +953,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InfraAssessmentReportDto'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/infra-assessment-reports/denormalized:
@@ -1018,7 +993,7 @@ paths:
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/infra-assessment-reports/active-namespaces:
@@ -1035,16 +1010,10 @@ paths:
                 type: array
                 items:
                   type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/kubernetes-contexts:
@@ -1059,16 +1028,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KubernetesContextsDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/kubernetes-namespaces:
@@ -1085,16 +1048,10 @@ paths:
                 type: array
                 items:
                   type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/rbac-assessment-reports:
@@ -1123,13 +1080,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/rbac-assessment-reports/{uid}':
@@ -1153,19 +1110,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '404':
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/rbac-assessment-reports/denormalized:
@@ -1187,16 +1144,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RbacAssessmentReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/rbac-assessment-reports/active-namespaces:
@@ -1213,16 +1164,10 @@ paths:
                 type: array
                 items:
                   type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/sbom-reports/grouped-by-image/minimal:
@@ -1239,16 +1184,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SbomReportImageMinimalDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/sbom-reports/digest:
@@ -1271,13 +1210,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/sbom-reports/cyclonedx:
@@ -1302,6 +1247,15 @@ paths:
                 $ref: '#/components/schemas/CycloneDxBom'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
           content:
             application/json:
               schema:
@@ -1338,13 +1292,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/sbom-reports/export:
@@ -1409,16 +1369,10 @@ paths:
                 type: array
                 items:
                   type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/severities:
@@ -1435,16 +1389,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SeverityDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/trivy-report-dependencies/digest:
@@ -1471,13 +1419,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/trivy-report-dependencies/digest/check:
@@ -1496,13 +1450,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports:
@@ -1524,16 +1484,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/VulnerabilityReportDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   '/api/vulnerability-reports/{uid}':
@@ -1557,13 +1511,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports/denormalized:
@@ -1580,16 +1540,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/VulnerabilityReportDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports/grouped-by-image:
@@ -1618,13 +1572,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports/active-namespaces:
@@ -1641,16 +1595,10 @@ paths:
                 type: array
                 items:
                   type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports-history:
@@ -1672,16 +1620,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/VulnerabilityReportsHistoryDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports-history/denormalized:
@@ -1703,16 +1645,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/VulnerabilityReportsHistoryDenormalizedDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports-history/snapshots:
@@ -1749,13 +1685,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports-history/reprocess-snapshots:
@@ -1765,16 +1701,14 @@ paths:
       responses:
         '200':
           description: OK
-        '400':
-          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
+                type: string
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/watcher-status:
@@ -1791,16 +1725,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/WatcherStatusDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
   /api/watcher-status/recreate:
@@ -1828,13 +1756,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Unprocessable Content
+          content:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
 components:
@@ -2657,6 +2591,122 @@ components:
         vrHistory:
           $ref: '#/components/schemas/VrHistoryNode'
       additionalProperties: false
+    EolInfoDto:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/EolSubjectKind'
+        name:
+          type: string
+        version:
+          type: string
+        status:
+          $ref: '#/components/schemas/EolStatus'
+        notApplicableReason:
+          $ref: '#/components/schemas/EolNotApplicableReason'
+        errorMessage:
+          type: string
+          nullable: true
+        product:
+          type: string
+          nullable: true
+        productLabel:
+          type: string
+          nullable: true
+        productLink:
+          type: string
+          nullable: true
+        releasePolicyLink:
+          type: string
+          nullable: true
+        eolLabel:
+          type: string
+          nullable: true
+        eoasLabel:
+          type: string
+          nullable: true
+        eoesLabel:
+          type: string
+          nullable: true
+        release:
+          $ref: '#/components/schemas/EolReleaseDto'
+        resolvedAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+    EolNotApplicableReason:
+      enum:
+        - 0
+        - 1
+        - 2
+      type: integer
+      format: int32
+    EolReleaseDto:
+      type: object
+      properties:
+        cycle:
+          type: string
+        codename:
+          type: string
+          nullable: true
+        label:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+          nullable: true
+        isLts:
+          type: boolean
+        ltsFrom:
+          type: string
+          format: date
+          nullable: true
+        isEol:
+          type: boolean
+        eolFrom:
+          type: string
+          format: date
+          nullable: true
+        isMaintained:
+          type: boolean
+        isEoas:
+          type: boolean
+          nullable: true
+        eoasFrom:
+          type: string
+          format: date
+          nullable: true
+        isEoes:
+          type: boolean
+          nullable: true
+        eoesFrom:
+          type: string
+          format: date
+          nullable: true
+        latestVersion:
+          type: string
+          nullable: true
+        latestDate:
+          type: string
+          format: date
+          nullable: true
+        latestLink:
+          type: string
+          nullable: true
+      additionalProperties: false
+    EolStatus:
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+      type: integer
+      format: int32
+    EolSubjectKind:
+      enum:
+        - 0
+      type: integer
+      format: int32
     ExposedSecretReportDenormalizedDto:
       type: object
       properties:
@@ -3873,6 +3923,7 @@ tags:
   - name: ClusterSbomReport
   - name: ClusterVulnerabilityReport
   - name: ConfigAuditReport
+  - name: EndOfLife
   - name: ExposedSecretReports
   - name: InfraAssessmentReport
   - name: KubernetesContexts
