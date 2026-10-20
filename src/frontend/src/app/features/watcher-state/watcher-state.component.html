@@ -1,7 +1,7 @@
 <div class="tod-content-border overflow-hidden">
   <app-trivy-table
-    [dataDtos]="watcherStateInfoDtos()"
-    [isLoading]="isLoading()"
+    [dataDtos]="dataDtos"
+    [isLoading]="isMainTableLoading"
     [isRefreshVisible]="true"
     [isResetFiltersVisible]="true"
     [stateKey]="'Watcher States'"

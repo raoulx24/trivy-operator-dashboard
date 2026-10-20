@@ -22,7 +22,6 @@ public class NamespacedWatcherLifecycleProcessor(
     {
         switch (kubernetesEvent.PipelineEventType)
         {
-            case PipelineEventType.InitialAdded:
             case PipelineEventType.Added:
                 ProcessAddEvent(kubernetesEvent, ctx);
                 break;
@@ -32,9 +31,12 @@ public class NamespacedWatcherLifecycleProcessor(
             case PipelineEventType.Initialized:
                 await ProcessInitEvent(kubernetesEvent, ctx);
                 break;
+            // watchers for the initial list are started in one batch by Reconcile, on Initialized
+            case PipelineEventType.InitialAdded:
             case PipelineEventType.Error:
             case PipelineEventType.Flushed:
             case PipelineEventType.Modified:
+            case PipelineEventType.Throttled:
             default:
                 break;
             case PipelineEventType.Unknown:
@@ -76,14 +78,19 @@ public class NamespacedWatcherLifecycleProcessor(
         if (kubernetesEvent.Resource == null)
         {
             logger.LogWarning(
-                "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
+                "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
                 kubernetesEvent.Key,
                 nameof(KubernetesNamespace)
             );
             return;
         }
 
-        IEnumerable<Task> tasks = namespacedWatcherRegistries.Select(s => s.StopWatcher(kubernetesEvent.Key, ctx));
+        ResourceLocation namespacedEventKey = new(
+            kubernetesEvent.Key.ContextName,
+            new NamespaceName(kubernetesEvent.Resource.Name.Value)
+        );
+
+        IEnumerable<Task> tasks = namespacedWatcherRegistries.Select(s => s.StopWatcher(namespacedEventKey, ctx));
         await Task.WhenAll(tasks);
     }
 

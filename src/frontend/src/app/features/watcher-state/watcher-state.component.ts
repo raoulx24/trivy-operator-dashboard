@@ -20,9 +20,6 @@ import { DataPageBase } from '@shared/abstracts/pages/data-page-base';
   styleUrl: './watcher-state.component.scss',
 })
 export class WatcherStateComponent extends DataPageBase<WatcherStatusDto> implements OnInit {
-  watcherStateInfoDtos = signal<WatcherStatusDto[]>([]);
-  isLoading = signal<boolean>(false);
-
   trivyTableColumns: TrivyTableColumn[] = [...watcherStateColumns];
 
   isRecreateWatcherDialogVisible: boolean = false;
@@ -39,22 +36,20 @@ export class WatcherStateComponent extends DataPageBase<WatcherStatusDto> implem
     this.initialize();
   }
 
-  protected override getTableDataDtos() {
-    this.isLoading.set(true);
-    this.service.getWatcherStateInfos().subscribe({
-      next: (res) => this.onGetWatcherStateInfos(res),
-      error: (err) => this.onError(err),
-    });
-  }
-
-  onGetWatcherStateInfos(dtos: WatcherStatusDto[]) {
-    dtos.forEach((dto) => {
-      // dto.kubernetesObjectType = this.unPascalCase(dto.kubernetesObjectType, ['Cr']);
-      dto.eventsGauge = (dto.eventsGauge ?? -1) < 0 ? -1 : dto.eventsGauge;
-    });
-    this.watcherStateInfoDtos.set(dtos);
-    this.isLoading.set(false);
-  }
+  // protected override getTableDataDtos() {
+  //   this.service.getWatcherStateInfos().subscribe({
+  //     next: (res) => this.onGetWatcherStateInfos(res),
+  //     error: (err) => this.onError(err),
+  //   });
+  // }
+  //
+  // onGetWatcherStateInfos(dtos: WatcherStatusDto[]) {
+  //   dtos.forEach((dto) => {
+  //     // dto.kubernetesObjectType = this.unPascalCase(dto.kubernetesObjectType, ['Cr']);
+  //     dto.eventsGauge = (dto.eventsGauge ?? -1) < 0 ? -1 : dto.eventsGauge;
+  //   });
+  //   this.watcherStateInfoDtos.set(dtos);
+  // }
 
   onRowActionRequested(event: { row: WatcherStatusDto; col: string }) {
     const { row, col } = event;

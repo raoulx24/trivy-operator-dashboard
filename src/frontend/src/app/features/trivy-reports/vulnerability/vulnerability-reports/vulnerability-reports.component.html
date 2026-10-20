@@ -44,8 +44,10 @@
   [namespacedImageDtos]="compareNamespacedImageDtos"
 />
 
-<app-trivy-dependency-dialog
-  [(isVisible)]="isDependencyTreeViewVisible"
-  [digest]="selectedTrivyReportDto?.digest"
-  [imageNameAndTag]="selectedTrivyReportDto?.lastImageNameAndTag ?? 'N/A'"
-/>
+@if (isDependencyTreeViewVisible()) {
+  <app-trivy-dependency-dialog
+    [(isVisible)]="isDependencyTreeViewVisible"
+    [digest]="selectedTrivyReportDto?.digest"
+    [imageNameAndTag]="selectedTrivyReportDto?.lastImageNameAndTag ?? 'N/A'"
+  />
+}

@@ -27,6 +27,7 @@ public class EventPipelineMetricsProcessor<TResource, TKey> (
             case PipelineEventType.Error:
             case PipelineEventType.Flushed:
             case PipelineEventType.Initialized:
+            case PipelineEventType.Throttled:
             case PipelineEventType.Unknown:
                 UpdateMetrics(kubernetesEvent, ctx);
                 break;

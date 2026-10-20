@@ -33,6 +33,8 @@ public class WatcherStateEventProcessor<TResource, TKey>(
                 break;
             case PipelineEventType.Modified:
             case PipelineEventType.Bookmark:
+            // the initial list ended; covers empty namespaces, which emit no InitialAdded to turn Yellow into Green
+            case PipelineEventType.Initialized:
             case PipelineEventType.WatcherConnected:
                 ProcessGreenEvent(kubernetesEvent);
                 break;
@@ -44,7 +46,8 @@ public class WatcherStateEventProcessor<TResource, TKey>(
                 eventsGauge.RemoveKey(kubernetesEvent.Key);
                 ProcessRedEvent(kubernetesEvent);
                 break;
-            case PipelineEventType.Initialized:
+            case PipelineEventType.Throttled:
+                ProcessYellowEvent(kubernetesEvent);
                 break;
             case PipelineEventType.Unknown:
                 logger.LogWarning(
@@ -64,6 +67,19 @@ public class WatcherStateEventProcessor<TResource, TKey>(
         WatcherStateInfo watcherStateInfo = new(
             Id: id,
             Status: WatcherStateStatus.Green,
+            LastException: null,
+            LastEventMoment: DateTime.UtcNow,
+            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));
+
+        cache[id] = watcherStateInfo;
+    }
+
+    private void ProcessYellowEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
+    {
+        WatcherId id = new(typeof(TResource), kubernetesEvent.Key);
+        WatcherStateInfo watcherStateInfo = new(
+            Id: id,
+            Status: WatcherStateStatus.Yellow,
             LastException: null,
             LastEventMoment: DateTime.UtcNow,
             EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));

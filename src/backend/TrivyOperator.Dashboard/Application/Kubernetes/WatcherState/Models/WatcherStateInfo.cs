@@ -13,5 +13,6 @@ public record WatcherStateInfo(
 public enum WatcherStateStatus
 {
     Green,
+    Yellow,
     Red,
 }

@@ -12,6 +12,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Servic
     public sealed class KubernetesWatchSessionFactory<TKubernetesObjectList, TKubernetesObject>(
         IKubernetesResourceWatch<TKubernetesObjectList, TKubernetesObject> resourceWatch,
         IKubernetesEventPublisher<TKubernetesObject> eventPublisher,
+        IKubernetesWatchSessionThrottle throttle,
         IOptions<WatchersOptions> options,
         ILogger<KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>> logger
     ) : IKubernetesWatchSessionFactory<TKubernetesObjectList, TKubernetesObject>
@@ -25,6 +26,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Servic
                 key,
                 resourceWatch,
                 eventPublisher,
+                throttle,
                 options,
                 logger
             );

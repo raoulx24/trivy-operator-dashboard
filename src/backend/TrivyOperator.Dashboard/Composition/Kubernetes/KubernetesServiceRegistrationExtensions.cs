@@ -132,6 +132,9 @@ public static class KubernetesServiceRegistrationExtensions
         services.AddSingleton<IContextProvider>(sp => sp.GetRequiredService<KubernetesClientFactory>());
 
         services.AddScoped<IKubernetesContextService, KubernetesContextService>();
+
+        // one throttle shared by all watch sessions (all types, all contexts)
+        services.AddSingleton<IKubernetesWatchSessionThrottle, KubernetesWatchSessionThrottle>();
     }
 
     private static void AddDefaultContextKubernetesServices(this IServiceCollection services)

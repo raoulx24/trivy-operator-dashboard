@@ -34,6 +34,9 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
             case PipelineEventType.Error:
                 await AddAlert(kubernetesEvent, ctx);
                 break;
+            case PipelineEventType.Throttled:
+                // keep an existing alert until the re-list actually succeeds
+                break;
             case PipelineEventType.Unknown:
                 logger.LogWarning(
                     "{watcherEventType} event type {eventType} for {kubernetesObjectType}.",

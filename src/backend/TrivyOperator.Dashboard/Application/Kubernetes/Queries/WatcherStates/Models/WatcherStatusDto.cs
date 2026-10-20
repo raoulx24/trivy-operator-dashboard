@@ -54,6 +54,11 @@ public static class WatcherStatusExtensions
 
     private static string GetMitigationMessage(WatcherStateInfo watcherStateInfo)
     {
+        if (watcherStateInfo.Status == WatcherStateStatus.Yellow)
+        {
+            return "Throttled: waiting for a free slot to list resources (see Watchers:MaxConcurrentInitialLists)";
+        }
+
         return watcherStateInfo.LastException switch
         {
             null => "All ok",

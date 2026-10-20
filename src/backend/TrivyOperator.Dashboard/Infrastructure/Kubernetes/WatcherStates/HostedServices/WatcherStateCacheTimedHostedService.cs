@@ -85,11 +85,11 @@ public sealed class WatcherStateCacheTimedHostedService(
     {
         try
         {
-            // get expired watchers
+            // get expired watchers; Red ones retry by themselves, Yellow ones wait for a throttle slot
             WatcherStateInfo[] expiredWatcherStates =
             [
                 .. cache.Select(kvp => kvp.Value)
-                    .Where(x => DateTime.UtcNow - x.LastEventMoment > timeFrame)
+                    .Where(x => x.Status == WatcherStateStatus.Green && DateTime.UtcNow - x.LastEventMoment > timeFrame),
             ];
 
             if (expiredWatcherStates.Length == 0)

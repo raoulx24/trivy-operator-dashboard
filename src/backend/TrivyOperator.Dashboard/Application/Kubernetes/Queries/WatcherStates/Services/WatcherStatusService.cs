@@ -42,14 +42,10 @@ public class WatcherStatusService(
                 Message = "KubernetesObjectType is required.",
             };
         }
-        
-        if (string.IsNullOrWhiteSpace(namespaceName))
+
+        if (!kubernetesObjectType.EndsWith("Cr"))
         {
-            return new OperationResult
-            {
-                Success = false,
-                Message = "NamespaceName is required.",
-            };
+            kubernetesObjectType += "Cr";
         }
         
         Type watchedKubernetesType = knownKubernetesTypeFactory.Get(kubernetesObjectType);

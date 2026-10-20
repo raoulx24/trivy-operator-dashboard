@@ -37,6 +37,7 @@ public class ResourceStoreUpdater<TResource, TKey> (
                 break;
             case PipelineEventType.Bookmark:
             case PipelineEventType.WatcherConnected:
+            case PipelineEventType.Throttled:
                 break;
             case PipelineEventType.Unknown:
             default:

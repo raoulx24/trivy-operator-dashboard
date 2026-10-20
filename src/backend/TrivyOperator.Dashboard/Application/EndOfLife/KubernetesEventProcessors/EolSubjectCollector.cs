@@ -31,6 +31,7 @@ public sealed class EolSubjectCollector<TReport, TKey>(
             case PipelineEventType.Flushed:
             case PipelineEventType.Bookmark:
             case PipelineEventType.WatcherConnected:
+            case PipelineEventType.Throttled:
                 break;
             case PipelineEventType.Unknown:
             default:

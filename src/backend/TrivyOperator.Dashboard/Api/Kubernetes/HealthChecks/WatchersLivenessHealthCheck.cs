@@ -23,7 +23,7 @@ public class WatchersLivenessHealthCheck(
         try
         {
             bool isAnyWatcherStale = cache.Select(kvp => kvp.Value)
-                .Any(x => DateTime.UtcNow - x.LastEventMoment > timeFrame);
+                .Any(x => x.Status == WatcherStateStatus.Green && DateTime.UtcNow - x.LastEventMoment > timeFrame);
             if (isAnyWatcherStale)
             {
                 return Task.FromResult(HealthCheckResult.Unhealthy("Some watchers are stale."));

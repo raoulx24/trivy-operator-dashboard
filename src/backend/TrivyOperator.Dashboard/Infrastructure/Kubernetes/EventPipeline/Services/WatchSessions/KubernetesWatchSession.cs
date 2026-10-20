@@ -7,6 +7,7 @@ using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.ResourceWatches.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions;
 
@@ -14,6 +15,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
     ResourceLocation key,
     IKubernetesResourceWatch<TKubernetesObjectList, TKubernetesObject> resourceWatch,
     IKubernetesEventPublisher<TKubernetesObject> eventPublisher,
+    IKubernetesWatchSessionThrottle throttle,
     IOptions<WatchersOptions> options,
     ILogger<KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>> logger
 ) : IDisposable
@@ -72,6 +74,9 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
         {
             // Expected when stopping the session.
         }
+
+        // the session is gone, so drop what downstream processors hold for this key
+        await eventPublisher.Publish(key, PipelineEventType.Flushed, cancellationToken);
     }
 
     private async Task Run(CancellationToken ctx = default)
@@ -88,7 +93,11 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
             {
                 if (string.IsNullOrEmpty(resourceVersion))
                 {
-                    resourceVersion = await ProcessInitialResources(ctx);
+                    resourceVersion = await throttle.Run(
+                        ProcessInitialResources,
+                        () => eventPublisher.Publish(key, PipelineEventType.Throttled, ctx),
+                        ctx
+                    );
 
                     logger.LogInformation(
                         "Initial Resources Processed - {kubernetesObjectType} - {key} - {resourceVersion}",
@@ -148,6 +157,9 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
 
                 shouldRetry = false;
                 resourceVersion = null;
+
+                // the re-list replays the full state, so drop what downstream processors hold for this key
+                await eventPublisher.Publish(key, PipelineEventType.Flushed, ctx);
             }
             catch (Exception ex)
             {

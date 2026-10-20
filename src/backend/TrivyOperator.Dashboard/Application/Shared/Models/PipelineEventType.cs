@@ -11,5 +11,6 @@ public enum PipelineEventType
     Bookmark,
     WatcherConnected,
     Flushed,
+    Throttled,
     Unknown,
 }
