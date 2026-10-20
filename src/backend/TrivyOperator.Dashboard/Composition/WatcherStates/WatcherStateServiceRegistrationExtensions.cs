@@ -7,6 +7,7 @@ using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Composition.Shared;
+using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
@@ -54,7 +55,8 @@ public static class WatcherStateServiceRegistrationExtensions
             ICache<WatcherId, WatcherStateInfo>, 
             Cache<WatcherId, WatcherStateInfo>>();
 
-        services.AddScoped<IKnownKubernetesTypeFactory, KnownKubernetesTypeFactory>();
+        // singleton (stateless), as it is also used by the WatcherStateCacheTimedHostedService
+        services.AddSingleton<IKnownKubernetesTypeFactory, KnownKubernetesTypeFactory>();
         
         services.AddScoped<IWatcherStatusService, WatcherStatusService>();
 
@@ -69,7 +71,16 @@ public static class WatcherStateServiceRegistrationExtensions
         // for each resource type, 2 services - kubernetes event processors
         // WatcherStateAlertRefresh<TResource, TKey>
         // WatcherStateEventProcessor<TResource, TKey>
-        
+
+        // namespaces; if the namespace pipeline is not registered, these are never resolved
+        services.AddSingleton<
+            IKubernetesEventProcessor<KubernetesNamespace, Uid>,
+            WatcherStateAlertRefresh<KubernetesNamespace, Uid>>();
+
+        services.AddSingleton<
+            IKubernetesEventProcessor<KubernetesNamespace, Uid>,
+            WatcherStateEventProcessor<KubernetesNamespace, Uid>>();
+
         if (enabledReports.GetValueOrDefault(nameof(ClusterComplianceReport)))
         {
             services.AddSingleton<

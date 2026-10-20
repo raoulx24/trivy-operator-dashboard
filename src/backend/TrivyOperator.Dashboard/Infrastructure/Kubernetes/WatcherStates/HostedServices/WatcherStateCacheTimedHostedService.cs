@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
@@ -10,6 +11,7 @@ public sealed class WatcherStateCacheTimedHostedService(
     ICache<WatcherId, WatcherStateInfo> cache,
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatchers,
     IEnumerable<INamespacedWatcherRegistry> namespacedWatchers,
+    IKnownKubernetesTypeFactory knownKubernetesTypeFactory,
     IOptions<WatchersOptions> options,
     ILogger<WatcherStateCacheTimedHostedService> logger
 ) : IHostedService, IDisposable
@@ -111,8 +113,12 @@ public sealed class WatcherStateCacheTimedHostedService(
             // for each expired watcher, recreate it
             foreach (WatcherStateInfo expiredWatcherState in expiredWatcherStates)
             {
+                // WatcherId holds the domain type, the registries are keyed by the watched kubernetes object type
+                Type watchedKubernetesObjectType =
+                    knownKubernetesTypeFactory.Get(expiredWatcherState.Id.WatchedKubernetesObjectType.Name);
+
                 if (watcherRegistries.TryGetValue(
-                        expiredWatcherState.Id.WatchedKubernetesObjectType,
+                        watchedKubernetesObjectType,
                         out IKubernetesWatcherRegistry? watcher))
                 {
                     await watcher.RecreateWatcher(expiredWatcherState.Id.Location, ctx);

@@ -43,18 +43,15 @@ public class WatcherStatusService(
             };
         }
 
-        if (!kubernetesObjectType.EndsWith("Cr"))
-        {
-            kubernetesObjectType += "Cr";
-        }
-        
         Type watchedKubernetesType = knownKubernetesTypeFactory.Get(kubernetesObjectType);
 
         IKubernetesWatcherRegistry? watcherRegistry =
             clusterScopedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType)
             ?? (IKubernetesWatcherRegistry?)namespacedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType);
 
-        ResourceLocation resourceLocation = new(new ContextName(contextName), new NamespaceName(namespaceName));
+        ResourceLocation resourceLocation = new(
+            new ContextName(contextName),
+            new NamespaceName(namespaceName));
         
         if (watcherRegistry is null)
         {

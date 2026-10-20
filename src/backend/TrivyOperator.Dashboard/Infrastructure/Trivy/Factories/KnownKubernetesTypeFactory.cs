@@ -1,5 +1,7 @@
 ﻿using k8s.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
+using TrivyOperator.Dashboard.Domain.Kubernetes.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ConfigAuditReports;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ExposedSecretReports;
@@ -10,26 +12,27 @@ using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.VulnerabilityReports.M
 
 namespace TrivyOperator.Dashboard.Infrastructure.Trivy.Factories;
 
+// maps the domain type name to the watched kubernetes object type
 public class KnownKubernetesTypeFactory : IKnownKubernetesTypeFactory
 {
     private static readonly Dictionary<string, Type> Types = new(StringComparer.Ordinal)
     {
         // kubernetes types
-        [nameof(V1Namespace)] = typeof(V1Namespace),
-        
+        [nameof(KubernetesNamespace)] = typeof(V1Namespace),
+
         // trivy types
-        [nameof(ClusterComplianceReportCr)] = typeof(ClusterComplianceReportCr),
-        [nameof(ClusterConfigAuditReportCr)] = typeof(ClusterConfigAuditReportCr),
-        [nameof(ConfigAuditReportCr)] = typeof(ConfigAuditReportCr),
-        [nameof(ClusterInfraAssessmentReportCr)] = typeof(ClusterInfraAssessmentReportCr),
-        [nameof(InfraAssessmentReportCr)] = typeof(InfraAssessmentReportCr),
-        [nameof(ClusterRbacAssessmentReportCr)] = typeof(ClusterRbacAssessmentReportCr),
-        [nameof(RbacAssessmentReportCr)] = typeof(RbacAssessmentReportCr),
-        [nameof(ExposedSecretReportCr)] = typeof(ExposedSecretReportCr),
-        [nameof(ClusterSbomReportCr)] = typeof(ClusterSbomReportCr),
-        [nameof(SbomReportCr)] = typeof(SbomReportCr),
-        [nameof(ClusterVulnerabilityReportCr)] = typeof(ClusterVulnerabilityReportCr),
-        [nameof(VulnerabilityReportCr)] = typeof(VulnerabilityReportCr),
+        [nameof(ClusterComplianceReport)] = typeof(ClusterComplianceReportCr),
+        [nameof(ClusterConfigAuditReport)] = typeof(ClusterConfigAuditReportCr),
+        [nameof(ConfigAuditReport)] = typeof(ConfigAuditReportCr),
+        [nameof(ClusterInfraAssessmentReport)] = typeof(ClusterInfraAssessmentReportCr),
+        [nameof(InfraAssessmentReport)] = typeof(InfraAssessmentReportCr),
+        [nameof(ClusterRbacAssessmentReport)] = typeof(ClusterRbacAssessmentReportCr),
+        [nameof(RbacAssessmentReport)] = typeof(RbacAssessmentReportCr),
+        [nameof(ExposedSecretReport)] = typeof(ExposedSecretReportCr),
+        [nameof(ClusterSbomReport)] = typeof(ClusterSbomReportCr),
+        [nameof(SbomReport)] = typeof(SbomReportCr),
+        [nameof(ClusterVulnerabilityReport)] = typeof(ClusterVulnerabilityReportCr),
+        [nameof(VulnerabilityReport)] = typeof(VulnerabilityReportCr),
     };
 
     public Type Get(string name) =>
@@ -38,5 +41,5 @@ public class KnownKubernetesTypeFactory : IKnownKubernetesTypeFactory
             : throw new ArgumentOutOfRangeException(
                 nameof(name),
                 name,
-                $"Unknown Trivy report CR type: '{name}'.");
+                $"Unknown watched resource type: '{name}'.");
 }

@@ -7,7 +7,8 @@ public readonly record struct NamespaceName
 
     public NamespaceName(string? value)
     {
-        Value = string.Intern(value?.ToLowerInvariant() ?? Sentinel);
+        // null, empty and whitespace all mean cluster scoped, so they must be equal to NamespaceName()
+        Value = string.Intern(string.IsNullOrWhiteSpace(value) ? Sentinel : value.Trim().ToLowerInvariant());
     }
     
     public NamespaceName() : this(Sentinel) { }
