@@ -30,6 +30,7 @@ import { SeverityDto } from '@api/models/severity-dto';
 import { LocalStorageUtils } from '../../utils/local-storage.utils';
 import { PrimengTableStateUtil } from '../../utils/primeng-table-state.util';
 import { SeverityUtils } from '../../utils/severity.utils';
+import { TagOptionPipe } from './tag-option.pipe';
 import { TagOption, TagSetName, TrivyTableTagSets } from './trivy-table-tag-sets';
 import {
   MultiHeaderAction,
@@ -83,6 +84,7 @@ import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by
     UnPascalCasePipe,
     MiniBarChartComponent,
     SeverityDifCssStyleByIdPipe,
+    TagOptionPipe,
   ],
   templateUrl: './trivy-table.component.html',
   styleUrl: './trivy-table.component.scss',
@@ -262,12 +264,8 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   // tag sets: 'booleans' multiSelectType stays supported as an alias of the boolean tag set
-  protected tagSetOf(col: TrivyTableColumn): TagSetName | undefined {
-    return col.tagSet ?? (col.multiSelectType === 'booleans' ? 'boolean' : undefined);
-  }
-
   protected tagOptions(col: TrivyTableColumn): TagOption[] {
-    const tagSet = this.tagSetOf(col);
+    const tagSet: TagSetName | undefined = col.tagSet ?? (col.multiSelectType === 'booleans' ? 'boolean' : undefined);
     if (!tagSet) {
       return [];
     }
@@ -283,10 +281,6 @@ export class TrivyTableComponent<TData> implements OnInit {
     // stable reference per column, the multiselect would otherwise reset on every change detection
     this.tagOptionsByColumn.set(col, result);
     return result;
-  }
-
-  protected tagFor(col: TrivyTableColumn, value: unknown): TagOption {
-    return TrivyTableTagSets.resolve(this.tagSetOf(col) ?? 'semaphore', value);
   }
 
   // table main actions

@@ -611,8 +611,9 @@ mat-icon.text-xs {
 /* count badge floating in the top-right corner of a (position: relative) cell */
 .tod-count-corner {
   position: absolute;
-  top: 0.125rem;
+  top: 50%;
   right: 0.25rem;
+  transform: translateY(-50%);
   margin-left: 0;
   box-shadow: var(--tod-box-shadow);
 }

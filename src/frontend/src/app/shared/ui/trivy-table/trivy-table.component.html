@@ -121,7 +121,7 @@
             @if (col.isSortable && (col.isSortIconVisible ?? col.isSortable)) {
               <p-sortIcon field="{{ col.field }}" class="sm-sortIcon" />
             }
-            @let tagSet = tagSetOf(col);
+            @let tagSet = col.tagSet ?? (col.multiSelectType === 'booleans' ? 'boolean' : undefined);
             @if (col.isFilterable && !tagSet && (col.multiSelectType ?? 'none') === 'none') {
               <p-columnFilter display="menu" field="{{ col.field }}" type="text" class="sm-filterIcon" />
             }
@@ -179,9 +179,11 @@
                     </ng-template>
 
                     <ng-template let-option pTemplate="item">
-                      <div class="flex items-center gap-2" [style]="{ 'font-size': '14px' }">
-                        {{ option | severityNameById }}
-                      </div>
+                      <p-tag
+                        [rounded]="true"
+                        [style]="option | severityCssStyleById: 1 : 'all'"
+                        [value]="option | severityNameById"
+                      />
                     </ng-template>
                   </p-multiSelect>
                 </ng-template>
@@ -325,7 +327,7 @@
                 }
               }
               @case ('tag') {
-                @let tagOption = tagFor(col, rowData[col.field]);
+                @let tagOption = rowData[col.field] | tagOption: col.tagSet;
                 <p-tag [icon]="tagOption.icon" [rounded]="true" [style]="tagOption.style" [value]="tagOption.label" />
               }
               @case ('semaphore') {

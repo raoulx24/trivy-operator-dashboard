@@ -26,7 +26,7 @@ const booleanOption = (value: boolean, label: string): TagOption => ({
 const tagSetBuilders: Record<TagSetName, () => TagOption[]> = {
   semaphore: () => ['Green', 'Yellow', 'Red', 'Neutral', 'Unknown'].map((name) => semaphoreOption(name)),
   boolean: () => [booleanOption(true, 'True'), booleanOption(false, 'False')],
-  // values are the LogLevel strings; colours reuse semaphore. Keep the fallback (last) option as debug/blue
+  // values are the LogLevel strings; colors reuse semaphore. Keep the fallback (last) option as debug/blue
   logLevel: () => [
     semaphoreOption('error', 'Red', 'Error'),
     semaphoreOption('warn', 'Yellow', 'Warn'),
