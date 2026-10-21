@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Application.Shared.EventProcessors.Abstractions;
+﻿namespace TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventProcessors.Abstractions;
 
 public interface IEventProcessor<in TEvent>
 {

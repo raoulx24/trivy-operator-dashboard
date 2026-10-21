@@ -1,5 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Kubernetes.Models;
-using TrivyOperator.Dashboard.Application.Shared.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;

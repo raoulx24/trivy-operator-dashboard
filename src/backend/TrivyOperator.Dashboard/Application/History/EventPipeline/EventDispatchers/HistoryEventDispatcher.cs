@@ -2,7 +2,7 @@
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers.Abstractions;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Models;
-using TrivyOperator.Dashboard.Application.Shared.EventDispatchers;
+using TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventDispatchers;
 
 namespace TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers;
 

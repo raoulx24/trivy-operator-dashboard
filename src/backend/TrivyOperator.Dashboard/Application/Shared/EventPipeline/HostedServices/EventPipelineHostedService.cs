@@ -1,6 +1,6 @@
-﻿using TrivyOperator.Dashboard.Application.Shared.EventPipelineStarters.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventPipelineStarters.Abstractions;
 
-namespace TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.HostedServices;
+namespace TrivyOperator.Dashboard.Application.Shared.EventPipeline.HostedServices;
 
 public sealed class EventPipelineHostedService(
     IEnumerable<IEventPipelineStarter> services,
@@ -9,14 +9,14 @@ public sealed class EventPipelineHostedService(
 {
     public override async Task StopAsync(CancellationToken ctx)
     {
-        logger.LogInformation("Kubernetes Watcher Hosted Service is stopping.");
+        logger.LogInformation("Event Pipeline Hosted Service is stopping.");
         await base.StopAsync(ctx);
-        logger.LogInformation("Kubernetes Watcher Hosted Service stopped.");
+        logger.LogInformation("Event Pipeline Hosted Service stopped.");
     }
 
     protected override Task ExecuteAsync(CancellationToken ctx)
     {
-        logger.LogInformation("Kubernetes Watcher Hosted Service started.");
+        logger.LogInformation("Event Pipeline Hosted Service started.");
 
         foreach (IEventPipelineStarter service in services)
         {

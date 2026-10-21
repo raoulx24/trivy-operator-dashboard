@@ -1,9 +1,8 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.Shared.BackgroundQueues.Abstractions;
-using TrivyOperator.Dashboard.Application.Shared.EventDispatchers.Abstractions;
-using TrivyOperator.Dashboard.Application.Shared.EventProcessors.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Shared.BackgroundQueues.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventDispatchers.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventProcessors.Abstractions;
 
-namespace TrivyOperator.Dashboard.Application.Shared.EventDispatchers;
+namespace TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventDispatchers;
 
 public class EventDispatcher<TResource, TEvent>(
     IEnumerable<IEventProcessor<TEvent>> services,
@@ -19,14 +18,14 @@ public class EventDispatcher<TResource, TEvent>(
         if (IsQueueProcessingStarted)
         {
             logger.LogWarning(
-                "Kubernetes Event Dispatcher for {kubernetesObjectType} already started. Ignoring start request...",
+                "Event Dispatcher for {resourceType} already started. Ignoring start request...",
                 typeof(TResource).Name
             );
             return;
         }
 
         logger.LogInformation(
-            "KubernetesEventDispatcher for {kubernetesObjectType} is starting.",
+            "Event Dispatcher for {resourceType} is starting.",
             typeof(TResource).Name
         );
         dispatcherQueueProcessor = ProcessChannelMessages(ctx);
@@ -44,7 +43,7 @@ public class EventDispatcher<TResource, TEvent>(
                 {
                     if (!ctx.IsCancellationRequested)
                     {
-                        logger.LogWarning("Received null watcher event. Ignoring...");
+                        logger.LogWarning("Received null event. Ignoring...");
                     }
 
                     continue;
@@ -70,7 +69,7 @@ public class EventDispatcher<TResource, TEvent>(
                         {
                             logger.LogError(
                                 inner,
-                                "An error occurred while processing the watcher event for {kubernetesObjectType}.",
+                                "An error occurred while processing the event for {resourceType}.",
                                 typeof(TResource).Name
                             );
                         }
@@ -79,7 +78,7 @@ public class EventDispatcher<TResource, TEvent>(
                     {
                         logger.LogError(
                             ex,
-                            "An error occurred while processing the watcher event for {kubernetesObjectType}.",
+                            "An error occurred while processing the event for {resourceType}.",
                             typeof(TResource).Name
                         );
                     }
@@ -89,7 +88,7 @@ public class EventDispatcher<TResource, TEvent>(
             {
                 logger.LogError(
                     ex,
-                    "Error processing event for {kubernetesObjectType}.",
+                    "Error processing event for {resourceType}.",
                     typeof(TResource).Name
                 );
             }

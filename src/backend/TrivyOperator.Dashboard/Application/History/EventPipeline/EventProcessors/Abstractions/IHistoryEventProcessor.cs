@@ -1,5 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Models;
-using TrivyOperator.Dashboard.Application.Shared.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventProcessors.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.History.EventPipeline.EventProcessors.Abstractions;
 

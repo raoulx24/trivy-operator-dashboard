@@ -55,4 +55,8 @@
       <_ContentIncludedByDefault Remove="Pages\Error.cshtml" />
       <_ContentIncludedByDefault Remove="Pages\_ViewImports.cshtml" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Application\Shared\EventPipeline\" />
+    </ItemGroup>
 </Project>
