@@ -37,14 +37,14 @@ export class MigrationService {
         case 'deleteAllTableDefinitions': {
           const keys = LocalStorageUtils.getKeysWithPrefix(LocalStorageUtils.trivyTableKeyPrefix);
           for (const key of keys) {
-            localStorage.removeItem(key);
+            LocalStorageUtils.removeItem(key);
           }
           break;
         }
         case 'deleteTableDefinition': {
           if (!step.table) break;
           const key = this.getTableKey(step.table);
-          if (key) localStorage.removeItem(key);
+          if (key) LocalStorageUtils.removeItem(key);
           break;
         }
         case 'deleteTableField': {
@@ -62,7 +62,7 @@ export class MigrationService {
           widths.splice(indexToRemove, 1);
           state.columnWidths = widths.join(',');
 
-          localStorage.setItem(key, JSON.stringify(state));
+          LocalStorageUtils.setItem(key, JSON.stringify(state));
           break;
         }
         case 'addTableField': {
@@ -82,7 +82,7 @@ export class MigrationService {
           state.columnOrder.splice(insertAt, 0, step.newFieldName);
           state.columnWidths = this.insertWidth(state.columnWidths, insertAt, step.width ?? 100);
 
-          localStorage.setItem(key, JSON.stringify(state));
+          LocalStorageUtils.setItem(key, JSON.stringify(state));
           break;
         }
         case 'renameTableField': {
@@ -95,7 +95,7 @@ export class MigrationService {
           const renameIndex = state.columnOrder.indexOf(step.oldFieldName);
           if (renameIndex !== -1) {
             state.columnOrder[renameIndex] = step.newFieldName;
-            localStorage.setItem(key, JSON.stringify(state));
+            LocalStorageUtils.setItem(key, JSON.stringify(state));
           }
           break;
         }
@@ -114,7 +114,7 @@ export class MigrationService {
   }
 
   private getTableDefinition(key: string): any {
-    const raw = localStorage.getItem(key);
+    const raw = LocalStorageUtils.getItem(key);
     return raw ? this.safelyParse(raw) : null;
   }
 

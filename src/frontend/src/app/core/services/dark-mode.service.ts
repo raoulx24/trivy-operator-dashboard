@@ -31,7 +31,7 @@ export class DarkModeService {
 
   toggleDarkMode() {
     const next = !this.isDarkMode();
-    localStorage.setItem(this.localStorageKey, next.toString());
+    LocalStorageUtils.setItem(this.localStorageKey, next.toString());
     this.isDarkMode.set(next);
   }
 

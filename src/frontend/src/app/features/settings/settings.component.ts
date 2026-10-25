@@ -69,12 +69,15 @@ export class SettingsComponent implements OnInit {
 
   onClearTableStatesSelected(_event: MouseEvent) {
     this.clearTablesOptions().forEach((option) => {
-      const tableStateJson = localStorage.getItem(option.dataKey);
+      const tableStateJson = LocalStorageUtils.getItem(option.dataKey);
       if (tableStateJson) {
         if (option.all) {
-          localStorage.removeItem(option.dataKey);
+          LocalStorageUtils.removeItem(option.dataKey);
         } else {
-          const tableState = JSON.parse(tableStateJson);
+          const tableState = LocalStorageUtils.parseObject(tableStateJson);
+          if (!tableState) {
+            return;
+          }
           if (option.filters) {
             PrimengTableStateUtil.clearTableFilters(tableState);
           }
@@ -87,7 +90,7 @@ export class SettingsComponent implements OnInit {
           if (option.columnOrder) {
             PrimengTableStateUtil.clearTableColumnOrder(tableState);
           }
-          localStorage.setItem(option.dataKey, JSON.stringify(tableState));
+          LocalStorageUtils.setItem(option.dataKey, JSON.stringify(tableState));
         }
       }
     });
@@ -96,9 +99,9 @@ export class SettingsComponent implements OnInit {
 
   onClearTableStatesAll(_event: MouseEvent) {
     this.clearTablesOptions().forEach((option) => {
-      const tableStateJson = localStorage.getItem(option.dataKey);
+      const tableStateJson = LocalStorageUtils.getItem(option.dataKey);
       if (tableStateJson) {
-        localStorage.removeItem(option.dataKey);
+        LocalStorageUtils.removeItem(option.dataKey);
       }
     });
     this.loadTableOptions();
@@ -106,7 +109,7 @@ export class SettingsComponent implements OnInit {
 
   onUpdateCsvFileNames(_event: MouseEvent) {
     this.csvFileNames().forEach((x) => {
-      localStorage.setItem(x.dataKey, x.savedCsvName);
+      LocalStorageUtils.setItem(x.dataKey, x.savedCsvName);
     });
   }
 
@@ -136,7 +139,7 @@ export class SettingsComponent implements OnInit {
           return {
             dataKey: x,
             description: x.slice(LocalStorageUtils.csvFileNameKeyPrefix.length),
-            savedCsvName: localStorage.getItem(x) ?? '',
+            savedCsvName: LocalStorageUtils.getItem(x) ?? '',
           };
         }),
     );

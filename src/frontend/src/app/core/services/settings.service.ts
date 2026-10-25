@@ -2,6 +2,7 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppVersion } from '@api/models';
 import { AppVersionsService } from '@api/services/app-versions.service';
+import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
 
 export type SeverityColorByNameOption = 'all' | 'grayNulls' | 'grayBelowOne' | 'hideNonPositive';
 
@@ -20,14 +21,23 @@ export class SettingsService {
 
   private readonly appVersionsService = inject(AppVersionsService);
 
-  readonly severityCssStyleByIdOption = signal<SeverityColorByNameOption>(
-    (localStorage.getItem('severityCssStyleByIdOption') as SeverityColorByNameOption) ?? this.defaultOption,
-  );
+  readonly severityCssStyleByIdOption = signal<SeverityColorByNameOption>(this.restoreSeverityCssStyleByIdOption());
 
   constructor() {
     effect(() => {
-      localStorage.setItem('severityCssStyleByIdOption', this.severityCssStyleByIdOption());
+      LocalStorageUtils.setItem('severityCssStyleByIdOption', this.severityCssStyleByIdOption());
     });
+  }
+
+  private restoreSeverityCssStyleByIdOption(): SeverityColorByNameOption {
+    const saved = LocalStorageUtils.getItem('severityCssStyleByIdOption');
+    if (saved === null) {
+      return this.defaultOption;
+    }
+    if (this.severityCssStyleByIdOptions.includes(saved as SeverityColorByNameOption)) {
+      return saved as SeverityColorByNameOption;
+    }
+    return this.defaultOption;
   }
 
   getAppVersion(): Observable<AppVersion> {

@@ -121,9 +121,12 @@ export class GenericReportsCompareComponent<
 
 
     effect(() => {
+      const compareStateKey = this.compareStateKey();
+      if (!compareStateKey) return;
+
       const showOnlyModified = this.showOnlyModified();
-      const keyName = LocalStorageUtils.toCamelCase(`${this.compareStateKey()}.Show Only Modified`);
-      localStorage.setItem(keyName, showOnlyModified.toString());
+      const keyName = LocalStorageUtils.toCamelCase(`${compareStateKey}.Show Only Modified`);
+      LocalStorageUtils.setItem(keyName, showOnlyModified.toString());
     });
   }
 

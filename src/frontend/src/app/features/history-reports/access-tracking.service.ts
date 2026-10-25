@@ -10,8 +10,14 @@ export class AccessTrackingService {
   trackAccess(componentBaseKey: string): AccessDay[] {
     const key = LocalStorageUtils.toCamelCase(`${componentBaseKey}.access days`);
 
-    const stored = localStorage.getItem(key);
-    let days: AccessDay[] = stored ? JSON.parse(stored) : [];
+    const stored = LocalStorageUtils.getItem(key);
+    let days: AccessDay[] = [];
+    try {
+      const parsed = stored ? JSON.parse(stored) : [];
+      days = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      LocalStorageUtils.removeItem(key);
+    }
 
     const now = new Date();
     const todayUtc = now.toISOString().substring(0, 10);
@@ -26,7 +32,7 @@ export class AccessTrackingService {
 
     days = days.slice(0, this.maxDays);
 
-    localStorage.setItem(key, JSON.stringify(days));
+    LocalStorageUtils.setItem(key, JSON.stringify(days));
 
     return days;
   }

@@ -2,6 +2,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { KubernetesContextsDto } from '@api/models/kubernetes-contexts-dto';
 import { KubernetesContextsService } from '@api/services/kubernetes-contexts.service';
+import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -36,7 +37,7 @@ export class KubernetesContextStateService {
     const backendCurrent = dto.current ?? null;
 
     // Try localStorage
-    const stored = this.safeGetFromLocalStorage(this.kubernetesContextKey);
+    const stored = LocalStorageUtils.getItem(this.kubernetesContextKey);
 
     let chosen: string | null = null;
 
@@ -72,29 +73,9 @@ export class KubernetesContextStateService {
     this._selectedContext.set(value);
 
     if (value === null) {
-      this.safeRemoveFromLocalStorage(this.kubernetesContextKey);
+      LocalStorageUtils.removeItem(this.kubernetesContextKey);
     } else {
-      this.safeSetToLocalStorage(this.kubernetesContextKey, value);
+      LocalStorageUtils.setItem(this.kubernetesContextKey, value);
     }
-  }
-
-  private safeGetFromLocalStorage(key: string): string | null {
-    try {
-      return localStorage.getItem(key);
-    } catch {
-      return null;
-    }
-  }
-
-  private safeSetToLocalStorage(key: string, value: string): void {
-    try {
-      localStorage.setItem(key, value);
-    } catch {}
-  }
-
-  private safeRemoveFromLocalStorage(key: string): void {
-    try {
-      localStorage.removeItem(key);
-    } catch {}
   }
 }

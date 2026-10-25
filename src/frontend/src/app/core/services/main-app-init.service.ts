@@ -10,6 +10,7 @@ import { injectLogger } from '../logging/inject-logger';
 import { MigrationService } from '../migration/migration.service';
 import { SettingsService } from './settings.service';
 import { RetryPolicy, retryWithBackoff } from '@shared/utils/retry-policy.utils';
+import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -85,8 +86,8 @@ export class MainAppInitService {
       return newItem;
     });
 
-    localStorage.setItem('backendSettings.trivyReportConfig', newIds.join(','));
-    localStorage.setItem(
+    LocalStorageUtils.setItem('backendSettings.trivyReportConfig', newIds.join(','));
+    LocalStorageUtils.setItem(
       'backendSettings.trivyReportConfig.defaultsPreviousSession',
       (this.defaultBackendSettingsDto?.trivyReportConfigDtos?.filter((x) => x.enabled).map((x) => x.id) ?? []).join(
         ',',
@@ -95,27 +96,34 @@ export class MainAppInitService {
   }
 
   private mergeBackendSettingsDto(backendSettingsDto: BackendSettingsDto) {
-    const previousItems: string[] =
-      localStorage.getItem('backendSettings.trivyReportConfig.defaultsPreviousSession')?.split(',') ?? [];
+    const previousItems = this.parseIds(
+      LocalStorageUtils.getItem('backendSettings.trivyReportConfig.defaultsPreviousSession'),
+    );
     const itemsToAdd = (
       backendSettingsDto.trivyReportConfigDtos?.filter((x) => x.enabled)?.map((x) => x.id ?? '') ?? []
     ).filter((x) => !previousItems.includes(x));
+    // an empty saved value means "no reports enabled", not "no saved value"
+    const savedRaw = LocalStorageUtils.getItem('backendSettings.trivyReportConfig');
     const savedItems: string[] =
-      localStorage.getItem('backendSettings.trivyReportConfig')?.split(',') ??
-      backendSettingsDto.trivyReportConfigDtos?.filter((x) => x.enabled).map((x) => x.id ?? '') ??
-      [];
+      savedRaw !== null
+        ? this.parseIds(savedRaw)
+        : (backendSettingsDto.trivyReportConfigDtos?.filter((x) => x.enabled).map((x) => x.id ?? '') ?? []);
     const mergedItems = [...savedItems, ...itemsToAdd.filter((item) => !savedItems.includes(item))];
     this.updateBackendSettingsTrivyReportConfigDto(mergedItems);
   }
 
+  private parseIds(raw: string | null): string[] {
+    return raw ? raw.split(',').filter((id) => id !== '') : [];
+  }
+
   private applyMigrations(appVersion: AppVersion) {
     const appVersionKeyName = 'settings.appVersion';
-    const savedAppVersion = localStorage.getItem(appVersionKeyName) ?? '1.0';
+    const savedAppVersion = LocalStorageUtils.getItem(appVersionKeyName) ?? '1.0';
 
     this.migrationService.applyTableMigrations(savedAppVersion, appVersion.fileVersion ?? '1.0', trivyMigrations);
     //this.migrationService.applyTableMigrations("1.6", "1.7", trivyMigrations);
 
-    localStorage.setItem(appVersionKeyName, appVersion.fileVersion ?? '1.0');
+    LocalStorageUtils.setItem(appVersionKeyName, appVersion.fileVersion ?? '1.0');
   }
 }
 

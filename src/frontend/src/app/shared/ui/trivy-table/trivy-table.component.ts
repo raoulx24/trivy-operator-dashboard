@@ -295,15 +295,18 @@ export class TrivyTableComponent<TData> implements OnInit {
     // this.updateMultiHeaderActionCollapsed();
     const stateKey = this.stateKey();
     if (stateKey) {
-      const tableState = localStorage.getItem(stateKey);
+      const tableState = LocalStorageUtils.getItem(stateKey);
       if (!tableState) {
         return;
       }
-      const tableStateJson = JSON.parse(tableState);
+      const tableStateJson = LocalStorageUtils.parseObject(tableState);
+      if (!tableStateJson) {
+        return;
+      }
       if (tableStateJson.hasOwnProperty('expandedRowKeys')) {
         delete tableStateJson.expandedRowKeys;
       }
-      localStorage.setItem(stateKey, JSON.stringify(tableStateJson));
+      LocalStorageUtils.setItem(stateKey, JSON.stringify(tableStateJson));
     }
   }
 
@@ -343,7 +346,7 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   // csv export
   protected onExportToCsv(exportType: string) {
-    localStorage.setItem(LocalStorageUtils.csvFileNameKeyPrefix + this.csvStorageKey(), this.internalCsvFileName());
+    LocalStorageUtils.setItem(LocalStorageUtils.csvFileNameKeyPrefix + this.csvStorageKey(), this.internalCsvFileName());
     switch (exportType) {
       case 'all':
         this.trivyTable.exportCSV({ allValues: true });
@@ -358,7 +361,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
   private initCsvFileName() {
     const savedCsvFileName =
-      localStorage.getItem(LocalStorageUtils.csvFileNameKeyPrefix + this.csvStorageKey()) ?? this.csvFileName();
+      LocalStorageUtils.getItem(LocalStorageUtils.csvFileNameKeyPrefix + this.csvStorageKey()) || this.csvFileName();
     this.internalCsvFileName.set(savedCsvFileName);
   }
 
@@ -369,14 +372,17 @@ export class TrivyTableComponent<TData> implements OnInit {
     if (!this.tableStateKey) {
       return;
     }
-    const tableStateJson = localStorage.getItem(this.tableStateKey);
+    const tableStateJson = LocalStorageUtils.getItem(this.tableStateKey);
     if (!tableStateJson) {
       return;
     }
-    const tableState = JSON.parse(tableStateJson);
+    const tableState = LocalStorageUtils.parseObject(tableStateJson);
+    if (!tableState) {
+      return;
+    }
     PrimengTableStateUtil.clearTableSelection(tableState);
     PrimengTableStateUtil.clearTableExpandedRows(tableState);
-    localStorage.setItem(this.tableStateKey, JSON.stringify(tableState));
+    LocalStorageUtils.setItem(this.tableStateKey, JSON.stringify(tableState));
   }
 
   // multiHeader actions - helpers
@@ -439,14 +445,17 @@ export class TrivyTableComponent<TData> implements OnInit {
     // this.updateMultiHeaderActionClearSortFilters();
     const stateKey = this.stateKey();
     if (stateKey) {
-      const tableState = localStorage.getItem(stateKey);
+      const tableState = LocalStorageUtils.getItem(stateKey);
       if (!tableState) {
         return;
       }
-      const tableStateJson = JSON.parse(tableState);
+      const tableStateJson = LocalStorageUtils.parseObject(tableState);
+      if (!tableStateJson) {
+        return;
+      }
       PrimengTableStateUtil.clearTableFilters(tableStateJson);
       PrimengTableStateUtil.clearTableMultiSort(tableStateJson);
-      localStorage.setItem(stateKey, JSON.stringify(tableStateJson));
+      LocalStorageUtils.setItem(stateKey, JSON.stringify(tableStateJson));
     }
   }
 
