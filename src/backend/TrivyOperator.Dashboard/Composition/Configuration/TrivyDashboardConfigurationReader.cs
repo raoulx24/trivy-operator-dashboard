@@ -101,6 +101,12 @@ public static class TrivyDashboardConfigurationReader
 
     internal static bool LoadUseEndOfLife(this IConfiguration config)
         => config.GetValue("EndOfLife:Enabled", true);
+
+    internal static bool LoadUseCveEnrichment(this IConfiguration config)
+        => config.GetValue("CveEnrichment:Enabled", true);
+
+    internal static bool LoadUseCveEnrichmentSource(this IConfiguration config, string source)
+        => config.GetValue($"CveEnrichment:{source}:Enabled", true);
     
     internal static int GetPort(this IConfiguration configuration, string key, int defaultPort)
     {

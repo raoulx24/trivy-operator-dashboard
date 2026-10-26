@@ -37,6 +37,12 @@ public static class EndOfLifeServiceRegistrationExtensions
                 services.AddScoped<IEndOfLifeService, EndOfLifeNullService>();
                 return;
 
+            case EndOfLifeCompositionMode.NoVulnerabilityReports:
+                CompositionLogger.Logger?.LogInformation(
+                    "End of Life related services are disabled - no vulnerability reports are enabled");
+                services.AddScoped<IEndOfLifeService, EndOfLifeNullService>();
+                return;
+
             case EndOfLifeCompositionMode.Enabled:
                 CompositionLogger.Logger?.LogInformation("Adding End of Life related services");
                 services.AddEndOfLifeServices(configuration);
