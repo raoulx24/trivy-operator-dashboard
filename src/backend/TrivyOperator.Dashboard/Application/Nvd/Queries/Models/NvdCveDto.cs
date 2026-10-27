@@ -3,7 +3,8 @@ using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.Nvd.Queries.Models;
 
-// Status - Ok, NotListed (unknown to NVD) or Error (ErrorMessage says why, and when to retry if rate limited)
+// Status - Ok or Error (ErrorMessage says why, and when to retry if rate limited)
+// (unknown to NVD is not a dto - see NvdLookupOutcomes.NotInNvd)
 // FetchedAt - when NVD was asked (a cached Ok keeps its original time)
 // the data fields are null unless Status is Ok
 public sealed record NvdCveDto(

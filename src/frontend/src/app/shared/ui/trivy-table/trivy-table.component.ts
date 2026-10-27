@@ -53,6 +53,7 @@ import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
 
 import { ReactiveMap } from '../../utils/reactive-map';
 import { MiniBarChartComponent } from '../mini-bar-chart/mini-bar-chart.component';
+import { NvdDialogService } from '../nvd-cve-dialog/nvd-dialog.service';
 import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by-id.pipe";
 
 
@@ -207,6 +208,9 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected rowHeightPx = computed(() => { return `${this.rowHeight()}px` });
   protected fullRowHeight = computed(() => { return this.rowHeight() + 8 });
   protected fullRowHeightPx = computed(() => { return `${this.rowHeight() + 8}px` });
+
+  // 'cveLink' columns open the app wide NVD dialog
+  protected readonly nvdDialog = inject(NvdDialogService);
 
   private readonly filterService = inject(FilterService);
   private readonly tagOptionsByColumn = new WeakMap<TrivyTableColumn, TagOption[]>();

@@ -664,6 +664,70 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/cve-enrichment:
+    get:
+      tags:
+        - CveEnrichment
+      operationId: GetCveEnrichments
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CveInfoDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/cve-enrichment/{cveId}':
+    get:
+      tags:
+        - CveEnrichment
+      operationId: GetCveEnrichmentById
+      parameters:
+        - name: cveId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CveInfoDto'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/cve-enrichment/rebuild:
+    post:
+      tags:
+        - CveEnrichment
+      operationId: RebuildCveEnrichment
+      responses:
+        '202':
+          description: Accepted
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/end-of-life/os:
     get:
       tags:
@@ -1048,6 +1112,42 @@ paths:
                 type: array
                 items:
                   type: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/nvd/{cveId}':
+    get:
+      tags:
+        - Nvd
+      operationId: GetNvdCveById
+      parameters:
+        - name: cveId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NvdCveDto'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
@@ -2425,6 +2525,21 @@ components:
           items:
             $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
       additionalProperties: false
+    CveInfoDto:
+      type: object
+      properties:
+        cveId:
+          type: string
+        lastSeen:
+          type: string
+          format: date-time
+        kev:
+          $ref: '#/components/schemas/KevResultDto'
+        epss:
+          $ref: '#/components/schemas/EpssResultDto'
+        euvd:
+          $ref: '#/components/schemas/EuvdResultDto'
+      additionalProperties: false
     CycloneDxBom:
       type: object
       properties:
@@ -2707,6 +2822,53 @@ components:
         - 0
       type: integer
       format: int32
+    EpssResultDto:
+      type: object
+      properties:
+        status:
+          type: string
+        errorMessage:
+          type: string
+          nullable: true
+        fetchedAt:
+          type: string
+          format: date-time
+        score:
+          type: number
+          format: double
+          nullable: true
+        percentile:
+          type: number
+          format: double
+          nullable: true
+        date:
+          type: string
+          format: date
+          nullable: true
+      additionalProperties: false
+    EuvdResultDto:
+      type: object
+      properties:
+        status:
+          type: string
+        errorMessage:
+          type: string
+          nullable: true
+        fetchedAt:
+          type: string
+          format: date-time
+        euvdId:
+          type: string
+          nullable: true
+        exploitedSince:
+          type: string
+          format: date-time
+          nullable: true
+        epss:
+          type: number
+          format: double
+          nullable: true
+      additionalProperties: false
     ExposedSecretReportDenormalizedDto:
       type: object
       properties:
@@ -2934,6 +3096,32 @@ components:
           items:
             $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
       additionalProperties: false
+    KevResultDto:
+      type: object
+      properties:
+        status:
+          type: string
+        errorMessage:
+          type: string
+          nullable: true
+        fetchedAt:
+          type: string
+          format: date-time
+        dateAdded:
+          type: string
+          format: date
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        knownRansomwareCampaignUse:
+          type: boolean
+          nullable: true
+        requiredAction:
+          type: string
+          nullable: true
+      additionalProperties: false
     KubernetesContextsDto:
       type: object
       properties:
@@ -2943,6 +3131,77 @@ components:
             type: string
         current:
           type: string
+      additionalProperties: false
+    NvdCveDto:
+      type: object
+      properties:
+        cveId:
+          type: string
+        status:
+          type: string
+        errorMessage:
+          type: string
+          nullable: true
+        fetchedAt:
+          type: string
+          format: date-time
+        vulnStatus:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        published:
+          type: string
+          format: date-time
+          nullable: true
+        lastModified:
+          type: string
+          format: date-time
+          nullable: true
+        cvss:
+          type: array
+          items:
+            $ref: '#/components/schemas/NvdCvssDto'
+          nullable: true
+        weaknesses:
+          type: array
+          items:
+            type: string
+          nullable: true
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/NvdReferenceDto'
+          nullable: true
+      additionalProperties: false
+    NvdCvssDto:
+      type: object
+      properties:
+        version:
+          type: string
+        source:
+          type: string
+        isPrimary:
+          type: boolean
+        baseScore:
+          type: number
+          format: double
+        severityId:
+          type: integer
+          format: int32
+        vectorString:
+          type: string
+      additionalProperties: false
+    NvdReferenceDto:
+      type: object
+      properties:
+        url:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
       additionalProperties: false
     ProblemDetails:
       type: object
@@ -3923,11 +4182,13 @@ tags:
   - name: ClusterSbomReport
   - name: ClusterVulnerabilityReport
   - name: ConfigAuditReport
+  - name: CveEnrichment
   - name: EndOfLife
   - name: ExposedSecretReports
   - name: InfraAssessmentReport
   - name: KubernetesContexts
   - name: KubernetesNamespaces
+  - name: Nvd
   - name: RbacAssessmentReport
   - name: SbomReport
   - name: Severities

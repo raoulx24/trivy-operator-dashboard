@@ -19,18 +19,23 @@ public class NvdService(
 {
     private readonly ConcurrentDictionary<CveId, Lazy<Task<CveSourceResult<NvdInfo>>>> inFlight = new();
 
-    public async Task<NvdCveDto?> GetById(string cveId, CancellationToken ctx = default)
+    public async Task<NvdCveResult> GetById(string cveId, CancellationToken ctx = default)
     {
         CveId id = new(cveId);
 
-        if (!id.IsValid || !subjects.ContainsKey(id))
+        if (!id.IsValid)
         {
-            return null;
+            return NvdCveResult.Of(NvdLookupOutcomes.InvalidId);
+        }
+
+        if (!subjects.ContainsKey(id))
+        {
+            return NvdCveResult.Of(NvdLookupOutcomes.NotSubject);
         }
 
         if (cache.TryGetValue(id, out CveSourceResult<NvdInfo>? cached))
         {
-            return cached.ToNvdCveDto(id);
+            return NvdCveResult.Found(cached.ToNvdCveDto(id));
         }
 
         Lazy<Task<CveSourceResult<NvdInfo>>> call =
@@ -39,7 +44,9 @@ public class NvdService(
         // the caller may give up (ctx); the shared call goes on for the others (bounded by the client timeout)
         CveSourceResult<NvdInfo> result = await call.Value.WaitAsync(ctx);
 
-        return result.ToNvdCveDto(id);
+        return result.Status == CveSourceStatuses.NotListed
+            ? NvdCveResult.Of(NvdLookupOutcomes.NotInNvd)
+            : NvdCveResult.Found(result.ToNvdCveDto(id));
     }
 
     private async Task<CveSourceResult<NvdInfo>> Fetch(CveId id)

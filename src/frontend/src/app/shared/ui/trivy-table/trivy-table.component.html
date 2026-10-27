@@ -295,6 +295,22 @@
                   {{ rowData[col.field] }}
                 </a>
               }
+              @case ('cveLink') {
+                @let cveId = rowData[col.field];
+                <a href="{{ rowData[col.extraFields[0]] }}" target="_blank">
+                  {{ cveId }}
+                </a>
+                @if (cveId?.startsWith('CVE-')) {
+                  <button type="button"
+                          class="ml-2 cursor-pointer bg-transparent border-0 p-0 tod-text-primary-color"
+                          aria-label="NVD details"
+                          pTooltip="NVD details"
+                          tooltipPosition="top"
+                          (click)="$event.stopPropagation(); nvdDialog.open(cveId)">
+                    <i class="pi pi-info-circle"></i>
+                  </button>
+                }
+              }
               @case ('severityBadge') {
                 <p-tag value=" {{ rowData[col.field] | severityNameById }}"
                        [rounded]="true"

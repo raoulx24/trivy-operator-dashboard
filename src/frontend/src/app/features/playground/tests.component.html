@@ -1,1 +1,6 @@
 <p>It just works, man!</p>
+
+<div class="flex items-center gap-2">
+  <input class="w-64" pInputText placeholder="CVE-YYYY-NNNN" [(ngModel)]="cveId" (keydown.enter)="nvdDialog.open(cveId.trim())" />
+  <p-button icon="pi pi-info-circle" label="NVD details" [disabled]="!cveId.trim()" (onClick)="nvdDialog.open(cveId.trim())" />
+</div>
