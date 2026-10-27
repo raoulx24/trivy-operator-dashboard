@@ -1,5 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.CveEnrichment.Models;
 

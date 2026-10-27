@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
+﻿namespace TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 // a CVE identifier (CVE-YYYY-NNNN...), same shape as in the CISA KEV schema; anything else (GHSA, distro ids) is not valid
 // not interned - the number of distinct CVEs is high and they are short lived outside the caches

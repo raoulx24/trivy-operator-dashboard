@@ -2,15 +2,11 @@
 using TrivyOperator.Dashboard.Application.CveEnrichment.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
-using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.CveEnrichment.Services;
 
-// each tick:
-// - sweeps the CVEs not seen in any report scanned in the last SweepAgeInHours (when the sweep is enabled)
-// - drops the enrichment of CVEs that are no longer subjects
-// a CVE refreshed by the collector right while it is swept is lost until the next event of its report (accepted race)
+// each tick, drops the enrichment of CVEs that are no longer subjects (swept by the CVE subjects housekeeping)
 public sealed class CveEnrichmentHousekeepingHostedService(
     IOptionsMonitor<CveEnrichmentOptions> options,
     ICache<CveId, Timestamp> subjects,
@@ -57,22 +53,6 @@ public sealed class CveEnrichmentHousekeepingHostedService(
 
     private void Process()
     {
-        int sweepAgeInHours = options.CurrentValue.SweepAgeInHours;
-        int swept = 0;
-
-        if (sweepAgeInHours > 0)
-        {
-            Timestamp cutoff = new(DateTime.UtcNow.AddHours(-sweepAgeInHours));
-
-            foreach (KeyValuePair<CveId, Timestamp> subject in subjects.ToArray())
-            {
-                if (subject.Value < cutoff && subjects.TryRemove(subject.Key, out _))
-                {
-                    swept++;
-                }
-            }
-        }
-
         int dropped = 0;
 
         foreach (CveId id in infos.Keys.ToArray())
@@ -83,13 +63,12 @@ public sealed class CveEnrichmentHousekeepingHostedService(
             }
         }
 
-        if (swept > 0 || dropped > 0)
+        if (dropped > 0)
         {
             logger.LogDebug(
-                "CVE enrichment housekeeping - {swept} CVEs swept, {dropped} enrichments dropped, {count} CVEs left.",
-                swept,
+                "CVE enrichment housekeeping - {dropped} enrichments dropped, {count} left.",
                 dropped,
-                subjects.Count);
+                infos.Count);
         }
     }
 }

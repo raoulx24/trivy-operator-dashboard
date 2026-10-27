@@ -1,5 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
-using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Models;
 
 namespace TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Mappers;

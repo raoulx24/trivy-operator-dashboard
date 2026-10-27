@@ -2,12 +2,11 @@
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Models;
-using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
 
-namespace TrivyOperator.Dashboard.Application.CveEnrichment.KubernetesEventProcessors;
+namespace TrivyOperator.Dashboard.Application.Shared.CveSubjects.KubernetesEventProcessors;
 
 // collects the distinct CVEs seen in vulnerability reports; the value is the newest scan timestamp of a report containing it
 // - only moves forward, so an older report (or a late event) does not make a CVE look older than it is

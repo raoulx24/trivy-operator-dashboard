@@ -10,107 +10,26 @@ public class ExpiringResourceDictionaryCache<TKey, TValue> :
     IExpiringResourceDictionaryCache<TKey, TValue>
     where TKey : notnull
 {
-    private readonly TimeSpan expireAfter;
-    private readonly TimeSpan checkInterval;
-
-    private readonly Lock expirationLock = new();
-
-    private Timer? expirationTimer;
-    private DateTimeOffset lastAccess = DateTimeOffset.UtcNow;
+    private readonly CacheExpiration expiration;
 
     public ExpiringResourceDictionaryCache(
         IMetricsClient metricsClient,
         IOptions<InMemoryCacheOptions> options)
         : base(metricsClient)
     {
-        expireAfter = TimeSpan.FromMinutes(options.Value.ExpireInMinutes);
-
-        checkInterval = TimeSpan.FromTicks(expireAfter.Ticks / 10);
+        expiration = new CacheExpiration(TimeSpan.FromMinutes(options.Value.ExpireInMinutes), Clear);
     }
-    
-    // TODO: add in Options the possibility to switch between sliding or absolute expiration
 
-    public bool IsStale()
-    {
-        lock (expirationLock)
-        {
-            if (DateTimeOffset.UtcNow - lastAccess >= expireAfter)
-            {
-                return true;
-            }
-
-            Touch();
-
-            return false;
-        }
-    }
+    public bool IsStale() => expiration.IsStale();
 
     public void ClearIfStale()
     {
         if (IsStale()) Clear();
     }
 
-    protected override void OnAccess()
-    {
-        lock (expirationLock)
-        {
-            Touch();
-        }
-    }
+    protected override void OnAccess() => expiration.OnAccess();
 
-    protected override void OnClear()
-    {
-        lock (expirationLock)
-        {
-            StopExpirationTimer();
-        }
-    }
+    protected override void OnClear() => expiration.OnClear();
 
-    private void Touch()
-    {
-        lastAccess = DateTimeOffset.UtcNow;
-
-        EnsureExpirationTimer();
-    }
-
-    private void EnsureExpirationTimer()
-    {
-        if (expirationTimer is not null)
-        {
-            return;
-        }
-
-        expirationTimer = new Timer(
-            _ => CheckExpiration(),
-            null,
-            checkInterval,
-            checkInterval);
-    }
-
-    private void CheckExpiration()
-    {
-        lock (expirationLock)
-        {
-            if (DateTimeOffset.UtcNow - lastAccess < expireAfter)
-            {
-                return;
-            }
-
-            Clear();
-        }
-    }
-
-    private void StopExpirationTimer()
-    {
-        expirationTimer?.Dispose();
-        expirationTimer = null;
-    }
-
-    public void Dispose()
-    {
-        lock (expirationLock)
-        {
-            StopExpirationTimer();
-        }
-    }
+    public void Dispose() => expiration.Dispose();
 }

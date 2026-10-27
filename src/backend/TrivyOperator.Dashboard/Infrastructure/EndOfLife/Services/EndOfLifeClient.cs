@@ -10,6 +10,7 @@ using TrivyOperator.Dashboard.Domain.EndOfLife.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.EndOfLife.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.EndOfLife.Models;
 using TrivyOperator.Dashboard.Infrastructure.EndOfLife.Serializations;
+using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.EndOfLife.Services;
 
@@ -48,9 +49,7 @@ public class EndOfLifeClient(
                 case HttpStatusCode.NotFound:
                     return EolProviderResult.NotFound();
                 case HttpStatusCode.TooManyRequests:
-                    return EolProviderResult.Error(
-                        $"Rate limited by {url}",
-                        GetRetryAfter(response.Headers.RetryAfter));
+                    return EolProviderResult.Error($"Rate limited by {url}", response.GetRetryAfter());
             }
 
             if (!response.IsSuccessStatusCode)
@@ -83,22 +82,5 @@ public class EndOfLifeClient(
 
             return EolProviderResult.Error($"Error calling {url} - {ex.Message}");
         }
-    }
-
-    private static TimeSpan? GetRetryAfter(RetryConditionHeaderValue? retryAfter)
-    {
-        if (retryAfter?.Delta is { } delta)
-        {
-            return delta;
-        }
-
-        if (retryAfter?.Date is { } date)
-        {
-            TimeSpan untilDate = date - DateTimeOffset.UtcNow;
-
-            return untilDate > TimeSpan.Zero ? untilDate : null;
-        }
-
-        return null;
     }
 }

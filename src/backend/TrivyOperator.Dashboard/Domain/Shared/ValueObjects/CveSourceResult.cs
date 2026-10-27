@@ -1,7 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
-
-namespace TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
+﻿namespace TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 // what one source says about one CVE
 // Data is set for Ok, and kept from a previous successful fetch when a later fetch fails

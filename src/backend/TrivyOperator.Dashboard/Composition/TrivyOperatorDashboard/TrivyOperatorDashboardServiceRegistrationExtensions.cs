@@ -1,10 +1,12 @@
 ﻿using TrivyOperator.Dashboard.Composition.Alerts;
 using TrivyOperator.Dashboard.Composition.BackendSettings;
 using TrivyOperator.Dashboard.Composition.CveEnrichment;
+using TrivyOperator.Dashboard.Composition.CveSubjects;
 using TrivyOperator.Dashboard.Composition.EndOfLife;
 using TrivyOperator.Dashboard.Composition.GitHub;
 using TrivyOperator.Dashboard.Composition.History;
 using TrivyOperator.Dashboard.Composition.Kubernetes;
+using TrivyOperator.Dashboard.Composition.Nvd;
 using TrivyOperator.Dashboard.Composition.Trivy;
 using TrivyOperator.Dashboard.Composition.TrivyDependencies;
 using TrivyOperator.Dashboard.Composition.WatcherStates;
@@ -19,7 +21,9 @@ public static class TrivyOperatorDashboardServiceRegistrationExtensions
         services.AddBackendSettingsRelatedServices(configuration);
         services.AddGitHubRelatedServices(configuration);
         services.AddEndOfLifeRelatedServices(configuration);
+        services.AddCveSubjectsRelatedServices(configuration);
         services.AddCveEnrichmentRelatedServices(configuration);
+        services.AddNvdRelatedServices(configuration);
         services.AddKubernetesRelatedServices(configuration);
         services.AddNamespaceRelatedServices(configuration);
         services.AddTrivyReportRelatedServices(configuration);

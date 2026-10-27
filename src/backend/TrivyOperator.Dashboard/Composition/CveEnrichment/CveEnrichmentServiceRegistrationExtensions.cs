@@ -1,19 +1,13 @@
 ﻿using TrivyOperator.Dashboard.Application.CveEnrichment.Abstractions;
-using TrivyOperator.Dashboard.Application.CveEnrichment.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Options;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Services;
-using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
-using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Services;
 
@@ -54,8 +48,7 @@ public static class CveEnrichmentServiceRegistrationExtensions
     // 2nd level - services registration
     private static void AddCveEnrichmentServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // subjects collected by the processors - CVE -> newest scan timestamp of a report containing it
-        services.AddSingleton<ICache<CveId, Timestamp>, Cache<CveId, Timestamp>>();
+        // the subjects (ICache<CveId, Timestamp>) are registered by CVE Subjects
         // public - the enrichment, each source writes its own part
         services.AddSingleton<ICache<CveId, CveInfo>, Cache<CveId, CveInfo>>();
 
@@ -66,22 +59,6 @@ public static class CveEnrichmentServiceRegistrationExtensions
         services.AddHostedService<CveEnrichmentHousekeepingHostedService>();
 
         services.AddCveEnrichmentSources(configuration);
-
-        Dictionary<string, bool> enabledReports = configuration.LoadEnabledTrivyReports();
-
-        if (enabledReports.GetValueOrDefault(nameof(VulnerabilityReport)))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<VulnerabilityReport, Digest>,
-                CveSubjectCollector<VulnerabilityReport, Digest>>();
-        }
-
-        if (enabledReports.GetValueOrDefault(nameof(ClusterVulnerabilityReport)))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ClusterVulnerabilityReport, Uid>,
-                CveSubjectCollector<ClusterVulnerabilityReport, Uid>>();
-        }
     }
 
     // 3rd level - one hosted service per enabled source; a source is enabled or disabled at startup

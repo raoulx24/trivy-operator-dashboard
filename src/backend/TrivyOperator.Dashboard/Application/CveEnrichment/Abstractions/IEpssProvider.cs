@@ -1,6 +1,6 @@
 ﻿using TrivyOperator.Dashboard.Application.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
-using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.CveEnrichment.Abstractions;
 

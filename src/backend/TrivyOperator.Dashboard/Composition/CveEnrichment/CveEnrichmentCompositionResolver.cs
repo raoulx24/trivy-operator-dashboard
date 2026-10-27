@@ -1,11 +1,11 @@
 ﻿using TrivyOperator.Dashboard.Composition.Configuration;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 
 namespace TrivyOperator.Dashboard.Composition.CveEnrichment;
 
 internal static class CveEnrichmentCompositionResolver
 {
     // without vulnerability reports there are no CVEs to enrich
+    // the subjects are collected by CVE Subjects, enabled whenever this is
     internal static CveEnrichmentCompositionMode Resolve(IConfiguration configuration)
     {
         if (!configuration.LoadUseCveEnrichment())
@@ -13,10 +13,7 @@ internal static class CveEnrichmentCompositionResolver
             return CveEnrichmentCompositionMode.Disabled;
         }
 
-        Dictionary<string, bool> enabledReports = configuration.LoadEnabledTrivyReports();
-
-        return enabledReports.GetValueOrDefault(nameof(VulnerabilityReport)) ||
-               enabledReports.GetValueOrDefault(nameof(ClusterVulnerabilityReport))
+        return configuration.LoadUseAnyVulnerabilityReport()
             ? CveEnrichmentCompositionMode.Enabled
             : CveEnrichmentCompositionMode.NoVulnerabilityReports;
     }

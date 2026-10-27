@@ -5,10 +5,11 @@ using TrivyOperator.Dashboard.Application.CveEnrichment.Abstractions;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Options;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
-using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Serializations;
+using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Services;
 

@@ -9,6 +9,7 @@ using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Serializations;
+using TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
 namespace TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Services;
 

@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Serilog.Extensions.Logging;
 using System.Runtime.InteropServices;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace TrivyOperator.Dashboard.Composition.Configuration;
@@ -107,6 +108,18 @@ public static class TrivyDashboardConfigurationReader
 
     internal static bool LoadUseCveEnrichmentSource(this IConfiguration config, string source)
         => config.GetValue($"CveEnrichment:{source}:Enabled", true);
+
+    internal static bool LoadUseNvd(this IConfiguration config)
+        => config.GetValue("Nvd:Enabled", true);
+
+    // VulnerabilityReport or ClusterVulnerabilityReport - the only sources of CVEs and OS info
+    internal static bool LoadUseAnyVulnerabilityReport(this IConfiguration config)
+    {
+        Dictionary<string, bool> enabledReports = config.LoadEnabledTrivyReports();
+
+        return enabledReports.GetValueOrDefault(nameof(VulnerabilityReport)) ||
+               enabledReports.GetValueOrDefault(nameof(ClusterVulnerabilityReport));
+    }
     
     internal static int GetPort(this IConfiguration configuration, string key, int defaultPort)
     {

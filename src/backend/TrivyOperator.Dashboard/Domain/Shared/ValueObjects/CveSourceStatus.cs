@@ -1,4 +1,4 @@
-﻿namespace TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
+﻿namespace TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 // outcome of a source for one CVE
 // - Ok: the source has data for the CVE

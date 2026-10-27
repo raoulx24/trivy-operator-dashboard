@@ -4,9 +4,8 @@ public class CveEnrichmentOptions
 {
     public bool Enabled { get; init; } = true;
 
-    // CVEs not seen in any report scanned in the last SweepAgeInHours are dropped; 0 disables the sweep
-    // must be larger than the report TTL of trivy-operator; set it to 0 if the report TTL is disabled
-    public int SweepAgeInHours { get; init; } = 48;
+    // the enrichment of CVEs no longer subjects is dropped every HousekeepingIntervalInSeconds
+    // (the subjects themselves are swept by CVE subjects, see CveSubjectsOptions)
     public int HousekeepingIntervalInSeconds { get; init; } = 300;
 
     public KevOptions Kev { get; init; } = new();

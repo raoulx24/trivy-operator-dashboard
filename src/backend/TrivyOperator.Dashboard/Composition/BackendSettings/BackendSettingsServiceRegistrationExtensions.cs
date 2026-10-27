@@ -7,6 +7,7 @@ using TrivyOperator.Dashboard.Application.Kubernetes.Options;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Options;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 
 namespace TrivyOperator.Dashboard.Composition.BackendSettings;
 
@@ -21,7 +22,9 @@ public static class BackendSettingsServiceRegistrationExtensions
         services.Configure<FileRepositoryOptions>(configuration.GetSection("FileRepository"));
         services.Configure<VulnerabilityReportsHistoryOptions>(configuration.GetSection("History"));
         services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
-        
+        // all the expiring caches (resource caches, NVD) - unbound until now, so the class default was always used
+        services.Configure<InMemoryCacheOptions>(configuration.GetSection("InMemoryCache"));
+
         services.AddScoped<IBackendSettingsService, BackendSettingsService>();
     }
 }

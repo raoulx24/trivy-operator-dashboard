@@ -1,4 +1,4 @@
-﻿using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
+﻿using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 

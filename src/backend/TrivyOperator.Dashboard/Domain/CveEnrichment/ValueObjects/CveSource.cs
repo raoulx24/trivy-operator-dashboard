@@ -32,6 +32,6 @@ public static class CveSources
     public static readonly CveSource Kev = new("Kev");
     public static readonly CveSource Epss = new("Epss");
     public static readonly CveSource Euvd = new("Euvd");
-    // on demand only, not part of the background enrichment
+    // not implemented - kept as domain only, maybe later (on demand, per CVE, without a cache)
     public static readonly CveSource Circl = new("Circl");
 }

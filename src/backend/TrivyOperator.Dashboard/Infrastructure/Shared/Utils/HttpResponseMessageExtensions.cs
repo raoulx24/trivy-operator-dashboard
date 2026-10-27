@@ -1,9 +1,10 @@
 ﻿using System.Net.Http.Headers;
 
-namespace TrivyOperator.Dashboard.Infrastructure.CveEnrichment.Services;
+namespace TrivyOperator.Dashboard.Infrastructure.Shared.Utils;
 
-internal static class CveHttpResponseExtensions
+public static class HttpResponseMessageExtensions
 {
+    // Retry-After as a delay (delta seconds) or as a date; null when missing or already passed
     public static TimeSpan? GetRetryAfter(this HttpResponseMessage response)
     {
         RetryConditionHeaderValue? retryAfter = response.Headers.RetryAfter;

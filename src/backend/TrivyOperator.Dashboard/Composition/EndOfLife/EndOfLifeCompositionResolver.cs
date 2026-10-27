@@ -1,5 +1,4 @@
 ﻿using TrivyOperator.Dashboard.Composition.Configuration;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 
 namespace TrivyOperator.Dashboard.Composition.EndOfLife;
 
@@ -13,10 +12,7 @@ internal static class EndOfLifeCompositionResolver
             return EndOfLifeCompositionMode.Disabled;
         }
 
-        Dictionary<string, bool> enabledReports = configuration.LoadEnabledTrivyReports();
-
-        return enabledReports.GetValueOrDefault(nameof(VulnerabilityReport)) ||
-               enabledReports.GetValueOrDefault(nameof(ClusterVulnerabilityReport))
+        return configuration.LoadUseAnyVulnerabilityReport()
             ? EndOfLifeCompositionMode.Enabled
             : EndOfLifeCompositionMode.NoVulnerabilityReports;
     }
