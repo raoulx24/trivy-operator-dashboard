@@ -37,8 +37,6 @@ export interface TrivyTableColumn extends Column {
     | 'severityValue'
     | 'imageNameTag'
     | 'link'
-    // 'link' (extraFields[0] - the url field) plus a button opening the NVD dialog, for CVE ids only
-    | 'cveLink'
     | 'date'
     | 'dateTime'
     | 'eosl'

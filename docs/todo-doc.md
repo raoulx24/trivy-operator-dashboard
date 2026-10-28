@@ -38,6 +38,8 @@ https://api.github.com/repos/raoulx24/trivy-operator-dashboard/releases/latest
 
 Rearrange doc. Maybe wiki?
 
+Add a small doc for NVD and CVE Enrichment
+
 ## Frontend new structure
 
 ```txt
