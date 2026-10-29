@@ -1915,6 +1915,10 @@ components:
         vrHistoryMaxAgeDays:
           type: integer
           format: int32
+        isNvdEnabled:
+          type: boolean
+        isCveEnrichmentEnabled:
+          type: boolean
       additionalProperties: false
     BackendSettingsTrivyReportConfigDto:
       type: object

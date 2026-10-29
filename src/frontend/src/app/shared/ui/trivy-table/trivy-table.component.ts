@@ -26,12 +26,14 @@ import { Table, TableModule, TableRowCollapseEvent, TableRowExpandEvent } from '
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 
+import { CveInfoDto } from '@api/models/cve-info-dto';
 import { SeverityDto } from '@api/models/severity-dto';
 import { LocalStorageUtils } from '../../utils/local-storage.utils';
 import { PrimengTableStateUtil } from '../../utils/primeng-table-state.util';
 import { SeverityUtils } from '../../utils/severity.utils';
 import { TagOptionPipe } from './tag-option.pipe';
 import { TagOption, TagSetName, TrivyTableTagSets } from './trivy-table-tag-sets';
+import { VulnerabilityTagsPipe } from './vulnerability-tags.pipe';
 import {
   MultiHeaderAction,
   SelectedDtosEvent,
@@ -85,6 +87,7 @@ import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by
     MiniBarChartComponent,
     SeverityDifCssStyleByIdPipe,
     TagOptionPipe,
+    VulnerabilityTagsPipe,
   ],
   templateUrl: './trivy-table.component.html',
   styleUrl: './trivy-table.component.scss',
@@ -134,6 +137,10 @@ export class TrivyTableComponent<TData> implements OnInit {
 
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
 
+  // 'vulnerabilityId' render type - the NVD tag is shown only when enabled; KEV/EPSS/EUVD tags come from the map
+  isNvdEnabled = input<boolean>(true);
+  cveInfoById = input<ReadonlyMap<string, CveInfoDto> | undefined>(undefined);
+
   refreshValue = input<number | undefined>(undefined);
   private previousRefreshValue?: number;
 
@@ -142,7 +149,8 @@ export class TrivyTableComponent<TData> implements OnInit {
   refreshRequested = output<void>();
   rowExpandActionCallback = output<TData>();
   rowExpandDataChange = output<TData>();
-  rowActionRequested = output<{ row: TData; col: string }>();
+  // action - set when a column has more than one action (e.g. the VulnerabilityTagSource of a 'vulnerabilityId' tag)
+  rowActionRequested = output<{ row: TData; col: string; action?: string }>();
 
   // models
   selectedData = model<SelectedDtosEvent<TData>>({selectedDtos: [], source: 'user'});
@@ -435,8 +443,10 @@ export class TrivyTableComponent<TData> implements OnInit {
   }
 
   // various table event handlers
-  protected onRowAction(rowDto: TData, columnName: string) {
-    this.rowActionRequested.emit({ row: rowDto, col: columnName });
+  protected onRowAction(rowDto: TData, columnName: string, action?: string, event?: Event) {
+    // a tag click inside a selectable row must not (de)select the row as well
+    event?.stopPropagation();
+    this.rowActionRequested.emit({ row: rowDto, col: columnName, action });
   }
 
   protected onRowExpand(event: TableRowExpandEvent) {

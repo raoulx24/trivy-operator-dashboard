@@ -24,6 +24,9 @@ export class MainAppInitService {
     isKubeConfigUsed: false,
     isNamespaceListUsed: false,
     vrHistoryMaxAgeDays: 14,
+    // off until the backend says otherwise, so the NVD tags do not flash before the settings arrive
+    isNvdEnabled: false,
+    isCveEnrichmentEnabled: false,
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
@@ -81,7 +84,9 @@ export class MainAppInitService {
         isNamespaceListUsed: this.defaultBackendSettingsDto?.isNamespaceListUsed ?? false,
         isKubeConfigUsed: this.defaultBackendSettingsDto?.isKubeConfigUsed ?? false,
         trivyReportConfigDtos: newTrivyReportConfig,
-        vrHistoryMaxAgeDays: 14,
+        vrHistoryMaxAgeDays: this.defaultBackendSettingsDto?.vrHistoryMaxAgeDays ?? 14,
+        isNvdEnabled: this.defaultBackendSettingsDto?.isNvdEnabled ?? false,
+        isCveEnrichmentEnabled: this.defaultBackendSettingsDto?.isCveEnrichmentEnabled ?? false,
       };
       return newItem;
     });

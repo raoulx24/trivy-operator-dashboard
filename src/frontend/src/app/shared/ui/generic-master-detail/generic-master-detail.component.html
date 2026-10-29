@@ -65,7 +65,10 @@
         [rowHeight]="detailsRowHeight()"
         [style]="detailsStyle()"
         [trivyTableColumns]="detailsTableColumns()"
+        [isNvdEnabled]="detailsIsNvdEnabled()"
+        [cveInfoById]="detailsCveInfoById()"
         (multiHeaderActionRequested)="onDetailsTableMultiHeaderActionRequested($event)"
+        (rowActionRequested)="detailsRowActionRequested.emit($event)"
       />
     </div>
   </ng-template>

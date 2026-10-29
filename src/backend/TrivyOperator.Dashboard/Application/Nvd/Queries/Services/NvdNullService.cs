@@ -5,6 +5,8 @@ namespace TrivyOperator.Dashboard.Application.Nvd.Queries.Services;
 
 public class NvdNullService : INvdService
 {
+    public bool IsEnabled => false;
+
     public Task<NvdCveResult> GetById(string cveId, CancellationToken ctx = default) =>
         Task.FromResult(NvdCveResult.Of(NvdLookupOutcomes.Disabled));
 }

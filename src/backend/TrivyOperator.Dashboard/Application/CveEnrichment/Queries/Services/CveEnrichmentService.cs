@@ -13,6 +13,8 @@ public class CveEnrichmentService(
     ICache<CveId, CveInfo> infos,
     ICveEnrichmentRefreshTrigger trigger) : ICveEnrichmentService
 {
+    public bool IsEnabled => true;
+
     public Task<IReadOnlyList<CveInfoDto>> GetAll(CancellationToken ctx = default)
     {
         IReadOnlyList<CveInfoDto> result =

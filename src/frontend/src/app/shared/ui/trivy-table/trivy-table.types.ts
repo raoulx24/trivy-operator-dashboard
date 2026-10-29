@@ -56,8 +56,18 @@ export interface TrivyTableColumn extends Column {
     | 'dateTimeStacked'
     | 'compareDateStacked'
     | 'array'
-    | 'arrayTags';
+    | 'arrayTags'
+    | 'vulnerabilityId';
     extraFields?: string[];
+}
+
+// 'vulnerabilityId' render type - the tags under the id; a click emits rowActionRequested with the source as action
+// 'exploited' - CISA KEV and/or ENISA EUVD
+export type VulnerabilityTagSource = 'nvd' | 'exploited' | 'epss';
+
+export interface VulnerabilityTag {
+  source: VulnerabilityTagSource;
+  label: string;
 }
 
 export interface TrivyTableExpandRowData<TData> {

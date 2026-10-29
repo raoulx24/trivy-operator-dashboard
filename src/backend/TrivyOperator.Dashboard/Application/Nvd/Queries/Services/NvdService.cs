@@ -19,6 +19,8 @@ public class NvdService(
 {
     private readonly ConcurrentDictionary<CveId, Lazy<Task<CveSourceResult<NvdInfo>>>> inFlight = new();
 
+    public bool IsEnabled => true;
+
     public async Task<NvdCveResult> GetById(string cveId, CancellationToken ctx = default)
     {
         CveId id = new(cveId);

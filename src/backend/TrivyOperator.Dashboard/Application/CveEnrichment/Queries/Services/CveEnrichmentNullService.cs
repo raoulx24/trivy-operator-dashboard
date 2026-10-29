@@ -5,6 +5,8 @@ namespace TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services;
 
 public class CveEnrichmentNullService : ICveEnrichmentService
 {
+    public bool IsEnabled => false;
+
     public Task<IReadOnlyList<CveInfoDto>> GetAll(CancellationToken ctx = default) =>
         Task.FromResult<IReadOnlyList<CveInfoDto>>([]);
 

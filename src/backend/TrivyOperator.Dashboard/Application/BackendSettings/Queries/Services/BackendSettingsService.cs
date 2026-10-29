@@ -2,9 +2,11 @@
 using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Models;
 using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Options;
 using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.FileRepository.Options;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Kubernetes.Options;
+using TrivyOperator.Dashboard.Application.Nvd.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Options;
 
 namespace TrivyOperator.Dashboard.Application.BackendSettings.Queries.Services;
@@ -14,7 +16,9 @@ public class BackendSettingsService(
     IOptions<EnabledTrivyReportsOptions> enabledTrivyReportsOptions,
     IOptions<FileRepositoryOptions> frOptions,
     IOptions<RetentionOptions> historyRetentionOptions,
-    IOptions<VulnerabilityReportsHistoryOptions> vrHistoryOptions)
+    IOptions<VulnerabilityReportsHistoryOptions> vrHistoryOptions,
+    INvdService nvdService,
+    ICveEnrichmentService cveEnrichmentService)
     : IBackendSettingsService
 {
     public Task<BackendSettingsDto> GetBackendSettings()
@@ -156,6 +160,8 @@ public class BackendSettingsService(
             IsNamespaceListUsed = !string.IsNullOrWhiteSpace(kubernetesOptions.Value.NamespaceList),
             IsFileRepositoryUsed = !string.IsNullOrWhiteSpace(frOptions.Value.BasePath),
             VrHistoryMaxAgeDays = historyRetentionOptions.Value.KeepDays,
+            IsNvdEnabled = nvdService.IsEnabled,
+            IsCveEnrichmentEnabled = cveEnrichmentService.IsEnabled,
         };
 
         return Task.FromResult(backendSettingsDto);

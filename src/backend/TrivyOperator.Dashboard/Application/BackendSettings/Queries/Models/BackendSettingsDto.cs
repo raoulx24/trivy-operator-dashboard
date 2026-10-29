@@ -8,6 +8,9 @@ public class BackendSettingsDto
     public bool IsNamespaceListUsed { get; init; }
     public bool IsFileRepositoryUsed { get; init; }
     public int VrHistoryMaxAgeDays { get; init; } = 14;
+    // the effective state - false also when no vulnerability reports are enabled
+    public bool IsNvdEnabled { get; init; }
+    public bool IsCveEnrichmentEnabled { get; init; }
 }
 
 public class BackendSettingsTrivyReportConfigDto

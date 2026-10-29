@@ -51,7 +51,7 @@
             raised
             size="small"
             text
-            [disabled]="anyRowExpanded"
+            [disabled]="anyRowExpanded()"
             (onClick)="onTableCollapseAll()"
           />
         }
@@ -78,7 +78,7 @@
         }
         @if (multiHeaderActions() && multiHeaderActions().length == 1) {
           <p-button
-            icon="multiHeaderActions()[0].icon"
+            [icon]="multiHeaderActions()[0].icon"
             raised
             size="small"
             text
@@ -568,6 +568,45 @@
                   }
                   @for (item of items; track item) {
                     <p-tag rounded severity="secondary" class="shrink-0" [value]="item" />
+                  }
+                </div>
+              }
+
+              @case ('vulnerabilityId') {
+                @let link = rowData[col.extraFields?.[0] ?? ''];
+                @let tags = rowData[col.field] | vulnerabilityTags: cveInfoById() : isNvdEnabled();
+                <div class="flex flex-col justify-center tod-vulnerability-id">
+                  <span class="">{{ rowData[col.field] }}</span>
+                  @if (tags.length || link) {
+                    <div class="flex items-center gap-1 tod-vulnerability-tag">
+                      @if (link) {
+                        <!-- a real link (new tab, middle click); the row must not be (de)selected by it -->
+                        <a class="no-underline!"
+                           rel="noopener noreferrer"
+                           target="_blank"
+                           [href]="link"
+                           (click)="$event.stopPropagation()">
+                          <p-tag rounded severity="secondary">
+                            <span class="flex items-center gap-1">TRIVY<i class="pi pi-external-link"></i></span>
+                          </p-tag>
+                        </a>
+                      }
+                      @for (tag of tags; track tag.source) {
+                        <p-tag rounded
+                               role="button"
+                               severity="secondary"
+                               tabindex="0"
+                               (click)="onRowAction(rowData, col.field, tag.source, $event)"
+                               (keydown.enter)="onRowAction(rowData, col.field, tag.source, $event)">
+                          <span class="flex items-center gap-1">
+                            {{ tag.label }}
+                            @if (tag.source === 'exploited') {
+                              <i class="pi pi-exclamation-triangle"></i>
+                            }
+                          </span>
+                        </p-tag>
+                      }
+                    </div>
                   }
                 </div>
               }

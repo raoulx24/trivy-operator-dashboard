@@ -399,6 +399,33 @@ p-tag.border-primary-color {
   border: 2px solid var(--p-primary-contrast-color);
 }
 
+// the vulnerability id and its tags (trivy table 'vulnerabilityId' render type)
+// must stay within the row height - a taller cell grows the row and breaks the virtual scroll (fixed item size)
+.tod-vulnerability-id > span {
+  line-height: 1.2;
+}
+
+// small tags under the vulnerability id, so id + tags fit in one (default 39px) row
+.tod-vulnerability-tag p-tag {
+  margin-top: 0.1rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0.1rem 0.4rem;
+
+  // tinted with the primary color, so it reads the same in light and dark mode
+  &:hover {
+    background: color-mix(in srgb, var(--p-primary-color) 20%, var(--p-tag-secondary-background));
+    color: var(--p-primary-color);
+  }
+
+  // here and not as a Tailwind class on the icon - text-[0.55rem] there did not apply
+  .pi {
+    font-size: 0.55rem;
+  }
+}
+
+
 
 /* ==========================================================================
    PrimeNG: Splitter
