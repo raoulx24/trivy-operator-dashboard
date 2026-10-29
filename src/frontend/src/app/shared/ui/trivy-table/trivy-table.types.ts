@@ -26,7 +26,7 @@ export interface TrivyTableColumn extends Column {
   isCounter?: boolean;
   style: string;
   // legacy filter selector: still honored ('booleans' is an alias of tagSet 'boolean'); new columns use tagSet
-  multiSelectType?: 'none' | 'namespaces' | 'severities' | 'booleans' | 'namespacesArrays';
+  multiSelectType?: 'none' | 'namespaces' | 'severities' | 'booleans' | 'namespacesArrays' | 'arrayValues';
   // value -> label/colour mapping, drives the 'tag' render type and the multiselect filter of the column
   tagSet?: TagSetName;
   renderType:
@@ -55,7 +55,8 @@ export interface TrivyTableColumn extends Column {
     | 'severityStackedBadge'
     | 'dateTimeStacked'
     | 'compareDateStacked'
-    | 'array';
+    | 'array'
+    | 'arrayTags';
     extraFields?: string[];
 }
 

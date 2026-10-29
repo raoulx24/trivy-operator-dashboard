@@ -205,7 +205,19 @@ export class TrivyTableComponent<TData> implements OnInit {
   protected trivyTableFilteredRecords = signal<number>(this.trivyTableTotalRecords())
 
   protected rowHeightPx = computed(() => { return `${this.rowHeight()}px` });
-  protected fullRowHeight = computed(() => { return this.rowHeight() + 8 });
+  // distinct values per 'arrayValues' column (comma-joined cells), for its multiselect filter
+  protected arrayValueOptions = computed(() => {
+    const options = new Map<string, string[]>();
+
+    for (const col of this.trivyTableColumns().filter((c) => c.multiSelectType === 'arrayValues')) {
+      const values = this.dataDtos().flatMap((row) => String((row as Record<string, unknown>)[col.field] ?? '').split(','));
+
+      options.set(col.field, [...new Set(values.map((v) => v.trim()).filter(Boolean))].sort());
+    }
+
+    return options;
+  });
+  protected fullRowHeight =computed(() => { return this.rowHeight() + 8 });
   protected fullRowHeightPx = computed(() => { return `${this.rowHeight() + 8}px` });
 
   private readonly filterService = inject(FilterService);

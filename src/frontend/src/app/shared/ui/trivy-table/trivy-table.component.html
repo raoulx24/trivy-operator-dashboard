@@ -246,6 +246,35 @@
                 </ng-template>
               </p-columnFilter>
             }
+            @if (col.isFilterable && col.multiSelectType === 'arrayValues') {
+              <p-columnFilter
+                display="menu"
+                matchMode="namespaceArrayIn"
+                class="sm-filterIcon"
+                [field]="col.field"
+                [showAddButton]="false"
+                [showMatchModes]="false"
+                [showOperator]="false"
+              >
+                <ng-template let-filter="filterCallback" let-value pTemplate="filter">
+                  <p-multiSelect
+                    placeholder="Any"
+                    class="text-sm"
+                    [filter]="false"
+                    [options]="arrayValueOptions().get(col.field) ?? []"
+                    [showHeader]="false"
+                    [showToggleAll]="false"
+                    [style]="{ width: '200px' }"
+                    [ngModel]="value"
+                    (onChange)="filter($event.value)"
+                  >
+                    <ng-template #item let-option>
+                      <p-tag rounded severity="secondary" [value]="option" />
+                    </ng-template>
+                  </p-multiSelect>
+                </ng-template>
+              </p-columnFilter>
+            }
           </th>
         }
       </tr>
@@ -272,7 +301,7 @@
           </td>
         }
         @for (col of columns; track col) {
-          <td style="{{ col.style }}" class="h-full" [class.relative]="col.renderType === 'array'">
+          <td style="{{ col.style }}" class="h-full" [class.relative]="col.renderType === 'array' || col.renderType === 'arrayTags'">
             @switch (col.renderType) {
               @case ('standard') {
                 <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
@@ -523,6 +552,23 @@
                     <span class="tod-namespace-count tod-count-corner">{{ items.length }}</span>
                   }
                   <span class="truncate-ellipsis pr-4">{{ rowData[col.field] }}</span>
+                </div>
+              }
+
+              @case ('arrayTags') {
+                @let items = rowData[col.field]?.split(',') ?? [];
+
+                <div class="flex items-center gap-1 overflow-hidden"
+                     [class.pr-8]="items.length > 1"
+                     [pTooltip]="items.length > 1 ? items.join('\n') : ''"
+                     tooltipPosition="top"
+                     tooltipStyleClass="tod-tooltip-lines text-sm tod-text-muted-color">
+                  @if (items.length > 1) {
+                    <span class="tod-namespace-count tod-count-corner">{{ items.length }}</span>
+                  }
+                  @for (item of items; track item) {
+                    <p-tag rounded severity="secondary" class="shrink-0" [value]="item" />
+                  }
                 </div>
               }
 
