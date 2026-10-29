@@ -501,6 +501,12 @@ mat-icon.text-xs {
   color: var(--p-text-muted-color);
 }
 
+// section with a thin muted rule on its left edge, the content indented after it
+.tod-left-accent-border {
+  border-left: 2px solid var(--p-text-muted-color);
+  padding-left: 1rem;
+}
+
 // .tod-text-muted-color:hover {
 //   color: var(--tod-text-primary-color);
 // }
