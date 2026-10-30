@@ -564,13 +564,13 @@
               @case ('arrayTags') {
                 @let items = rowData[col.field]?.split(',') ?? [];
 
-                <div class="flex items-center gap-1 overflow-hidden"
-                     [class.pr-8]="items.length > 1"
-                     [pTooltip]="items.length > 1 ? items.join('\n') : ''"
-                     tooltipPosition="top"
-                     tooltipStyleClass="tod-tooltip-lines text-sm tod-text-muted-color">
+                <div class="flex items-center gap-2 overflow-visible"
+                     [class.pr-8]="items.length > 1">
                   @if (items.length > 1) {
-                    <span class="tod-namespace-count tod-count-corner">{{ items.length }}</span>
+                    <span [pTooltip]="items.length > 1 ? items.join('\n') : ''"
+                          tooltipPosition="top"
+                          tooltipStyleClass="tod-tooltip-lines text-sm tod-text-muted-color"
+                          class="tod-namespace-count tod-count-corner">{{ items.length }}</span>
                   }
                   @for (item of items; track item) {
                     <p-tag rounded severity="secondary" class="shrink-0" [value]="item" />
