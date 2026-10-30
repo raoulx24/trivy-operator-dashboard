@@ -30,6 +30,8 @@
                        [rowHeight]="mainTableRowHeight()"
                        [style]="mainTableStyle()"
                        [trivyTableColumns]="mainTableColumns()"
+                       [isNvdEnabled]="detailsIsNvdEnabled()"
+                       [cveInfoById]="detailsCveInfoById()"
                        (multiHeaderActionRequested)="onMainTableMultiHeaderActionRequested($event)"
                        (refreshRequested)="onRefreshRequested()"
                        (rowExpandActionCallback)="onMainTableExpandCallback($event)"

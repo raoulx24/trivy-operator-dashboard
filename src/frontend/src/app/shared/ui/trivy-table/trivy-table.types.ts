@@ -29,6 +29,10 @@ export interface TrivyTableColumn extends Column {
   multiSelectType?: 'none' | 'namespaces' | 'severities' | 'booleans' | 'namespacesArrays' | 'arrayValues';
   // value -> label/colour mapping, drives the 'tag' render type and the multiselect filter of the column
   tagSet?: TagSetName;
+  // 'imageNameTag' only: the boolean field of the row that adds the EOSL tag
+  eoslField?: string;
+  // 'imageNameTag' only: adds a KEV/EUVD tag when any vulnerability of the row (its details) is listed there
+  isExploitedTagVisible?: boolean;
   renderType:
     | 'standard'
     | 'tag'

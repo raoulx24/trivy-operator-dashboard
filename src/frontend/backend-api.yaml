@@ -2392,15 +2392,11 @@ components:
           nullable: true
         resourceContainerName:
           type: string
-        imageName:
-          type: string
-        imageTag:
+        imageNameAndTag:
           type: string
         imageRegistry:
           type: string
-        imageOsFamily:
-          type: string
-        imageOsName:
+        imageOsFamilyAndName:
           type: string
         imageEosl:
           type: boolean
@@ -2837,6 +2833,7 @@ components:
         fetchedAt:
           type: string
           format: date-time
+          nullable: true
         score:
           type: number
           format: double
@@ -2861,6 +2858,7 @@ components:
         fetchedAt:
           type: string
           format: date-time
+          nullable: true
         euvdId:
           type: string
           nullable: true
@@ -3111,6 +3109,7 @@ components:
         fetchedAt:
           type: string
           format: date-time
+          nullable: true
         dateAdded:
           type: string
           format: date

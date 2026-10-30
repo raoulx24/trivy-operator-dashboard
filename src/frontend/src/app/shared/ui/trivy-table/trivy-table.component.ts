@@ -33,7 +33,7 @@ import { PrimengTableStateUtil } from '../../utils/primeng-table-state.util';
 import { SeverityUtils } from '../../utils/severity.utils';
 import { TagOptionPipe } from './tag-option.pipe';
 import { TagOption, TagSetName, TrivyTableTagSets } from './trivy-table-tag-sets';
-import { VulnerabilityTagsPipe } from './vulnerability-tags.pipe';
+import { ExploitedLabelPipe, VulnerabilityTagsPipe } from './vulnerability-tags.pipe';
 import {
   MultiHeaderAction,
   SelectedDtosEvent,
@@ -87,6 +87,7 @@ import {SeverityDifCssStyleByIdPipe} from "../../pipes/severity-dif-css-style-by
     MiniBarChartComponent,
     SeverityDifCssStyleByIdPipe,
     TagOptionPipe,
+    ExploitedLabelPipe,
     VulnerabilityTagsPipe,
   ],
   templateUrl: './trivy-table.component.html',

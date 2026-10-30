@@ -4,38 +4,54 @@ using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 namespace TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Models;
 
 // LastSeen - newest scan timestamp of the reports containing the CVE
-// a null source part means the source did not process the CVE yet (or the source is disabled)
+// a source part is never null: when the source did not process the CVE yet (or is disabled) it has the NotProcessed status,
+// no data and no FetchedAt
 public sealed record CveInfoDto(
     string CveId,
     DateTime LastSeen,
-    KevResultDto? Kev,
-    EpssResultDto? Epss,
-    EuvdResultDto? Euvd);
+    KevResultDto Kev,
+    EpssResultDto Epss,
+    EuvdResultDto Euvd);
 
 public sealed record KevResultDto(
     string Status,
     string? ErrorMessage,
-    DateTime FetchedAt,
+    DateTime? FetchedAt,
     DateOnly? DateAdded,
     DateOnly? DueDate,
     bool? KnownRansomwareCampaignUse,
-    string? RequiredAction);
+    string? RequiredAction)
+{
+    public static readonly KevResultDto NotProcessed = new(CveInfoDtoStatuses.NotProcessed, null, null, null, null, null, null);
+}
 
 public sealed record EpssResultDto(
     string Status,
     string? ErrorMessage,
-    DateTime FetchedAt,
+    DateTime? FetchedAt,
     double? Score,
     double? Percentile,
-    DateOnly? Date);
+    DateOnly? Date)
+{
+    public static readonly EpssResultDto NotProcessed = new(CveInfoDtoStatuses.NotProcessed, null, null, null, null, null);
+}
 
 public sealed record EuvdResultDto(
     string Status,
     string? ErrorMessage,
-    DateTime FetchedAt,
+    DateTime? FetchedAt,
     string? EuvdId,
     DateTime? ExploitedSince,
-    double? Epss);
+    double? Epss)
+{
+    public static readonly EuvdResultDto NotProcessed = new(CveInfoDtoStatuses.NotProcessed, null, null, null, null, null);
+}
+
+// the statuses of the domain (Ok, NotListed, Error) plus the one only the DTO knows
+public static class CveInfoDtoStatuses
+{
+    public const string NotProcessed = "NotProcessed";
+}
 
 public static class CveInfoDtoExtensions
 {
@@ -43,9 +59,9 @@ public static class CveInfoDtoExtensions
         new(
             CveId: id.Value,
             LastSeen: lastSeen.Value,
-            Kev: info?.Kev?.ToKevResultDto(),
-            Epss: info?.Epss?.ToEpssResultDto(),
-            Euvd: info?.Euvd?.ToEuvdResultDto());
+            Kev: info?.Kev?.ToKevResultDto() ?? KevResultDto.NotProcessed,
+            Epss: info?.Epss?.ToEpssResultDto() ?? EpssResultDto.NotProcessed,
+            Euvd: info?.Euvd?.ToEuvdResultDto() ?? EuvdResultDto.NotProcessed);
 
     public static KevResultDto ToKevResultDto(this CveSourceResult<KevEntry> result) =>
         new(

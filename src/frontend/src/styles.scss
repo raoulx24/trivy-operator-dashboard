@@ -414,9 +414,15 @@ p-tag.border-primary-color {
   padding: 0.1rem 0.4rem;
 
   // tinted with the primary color, so it reads the same in light and dark mode
-  &:hover {
+  &:hover:not(.tod-tag-disabled) {
     background: color-mix(in srgb, var(--p-primary-color) 20%, var(--p-tag-secondary-background));
     color: var(--p-primary-color);
+  }
+
+  // a tag with nothing behind it (e.g. no Trivy page): dimmed, no hover effect
+  &.tod-tag-disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
   // here and not as a Tailwind class on the icon - text-[0.55rem] there did not apply
