@@ -4,7 +4,7 @@ public readonly record struct Category
 {
     private const string Sentinel = "N/A";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public Category(string? value)

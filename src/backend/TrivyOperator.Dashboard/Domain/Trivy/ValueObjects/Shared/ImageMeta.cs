@@ -21,7 +21,7 @@ public readonly record struct ImageRegistry
 {
     private const string Sentinel = "n/a";
     
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ImageRegistry(string? value)
@@ -38,7 +38,7 @@ public readonly record struct ImageRepository
 {
     private const string Sentinel = "n/a";
     
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ImageRepository(string? value)
@@ -55,7 +55,7 @@ public readonly record struct ImageTag
 {
     private const string Sentinel = "n/a";
     
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ImageTag(string? value)

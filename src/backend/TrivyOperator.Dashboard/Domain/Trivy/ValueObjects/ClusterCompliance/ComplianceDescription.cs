@@ -4,7 +4,7 @@ public readonly record struct ComplianceDescription
 {
     private const string Sentinel = "N/A";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ComplianceDescription(string? value)

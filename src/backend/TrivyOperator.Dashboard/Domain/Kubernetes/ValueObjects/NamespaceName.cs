@@ -3,7 +3,7 @@
 public readonly record struct NamespaceName
 {
     private const string Sentinel = "__none__";
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
 
     public NamespaceName(string? value)
     {

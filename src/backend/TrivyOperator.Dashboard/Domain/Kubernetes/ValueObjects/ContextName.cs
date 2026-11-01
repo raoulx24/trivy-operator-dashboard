@@ -3,7 +3,7 @@
 public readonly record struct ContextName
 {
     private const string Sentinel = "";
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsUnset => string.IsNullOrEmpty(Value);
 
     public ContextName(string? value)

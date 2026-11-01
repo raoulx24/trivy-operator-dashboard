@@ -17,7 +17,7 @@ public readonly record struct Severity : IComparable<Severity>
     private static readonly Dictionary<int, string> RankToSeverity =
         SeverityToId.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 
-    public string Value { get; }
+    public string Value { get => field ?? Severities.None.Value; }
 
     public int Rank => SeverityToId[Value];
 

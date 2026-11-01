@@ -4,7 +4,7 @@ public readonly record struct Target
 {
     private const string Sentinel = "n/a";
     
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public Target(string? value)

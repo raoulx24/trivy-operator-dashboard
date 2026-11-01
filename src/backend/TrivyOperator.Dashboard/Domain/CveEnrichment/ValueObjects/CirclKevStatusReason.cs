@@ -16,7 +16,7 @@ public readonly record struct CirclKevStatusReason
         "withdrawn",
     };
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public CirclKevStatusReason(string? value)

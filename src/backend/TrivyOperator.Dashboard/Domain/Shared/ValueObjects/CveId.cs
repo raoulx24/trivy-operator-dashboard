@@ -7,7 +7,7 @@ public readonly record struct CveId
     private const string Sentinel = "N/A";
     private const string Prefix = "CVE-";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public CveId(string? value)

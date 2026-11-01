@@ -15,7 +15,7 @@ public readonly record struct CveSourceStatus
         "Error",
     };
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public CveSourceStatus(string? value)

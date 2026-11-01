@@ -39,7 +39,7 @@ public readonly record struct SbomSerialNumber
 {
     private const string Sentinel = "N/A";
     
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
     
     public SbomSerialNumber(string? value)

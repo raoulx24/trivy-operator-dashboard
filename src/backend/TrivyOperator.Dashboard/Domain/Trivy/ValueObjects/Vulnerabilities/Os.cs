@@ -11,7 +11,7 @@ public readonly record struct OsFamily
 {
     private const string Sentinel = "N/A";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public OsFamily(string? value)
@@ -28,7 +28,7 @@ public readonly record struct OsName
 {
     private const string Sentinel = "N/A";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public OsName(string? value)

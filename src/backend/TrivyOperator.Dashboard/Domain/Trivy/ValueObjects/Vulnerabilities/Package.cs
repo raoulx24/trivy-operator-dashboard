@@ -13,7 +13,7 @@ public readonly record struct PackageName
 {
     private const string Sentinel = "N/A";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public PackageName(string value)
@@ -30,7 +30,7 @@ public readonly record struct PackageVersion
 {
     private const string Sentinel = "N/A";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public PackageVersion(string value)

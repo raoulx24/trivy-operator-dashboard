@@ -14,7 +14,7 @@ public readonly record struct CveSource
         "Circl",
     };
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public CveSource(string? value)

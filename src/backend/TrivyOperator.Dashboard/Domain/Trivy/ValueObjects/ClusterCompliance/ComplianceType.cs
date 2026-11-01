@@ -4,7 +4,7 @@ public readonly record struct ComplianceType
 {
     private const string Sentinel = "n/a";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ComplianceType(string? value)

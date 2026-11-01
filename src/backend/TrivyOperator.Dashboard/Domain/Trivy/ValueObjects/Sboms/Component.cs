@@ -18,7 +18,7 @@ public readonly record struct ComponentId
 {
     private const string Sentinel = "n/a";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ComponentId(string value)
@@ -35,7 +35,7 @@ public readonly record struct ComponentName
 {
     private const string Sentinel = "n/a";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ComponentName(string? value)
@@ -52,7 +52,7 @@ public readonly record struct ComponentVersion
 {
     private const string Sentinel = "n/a";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ComponentVersion(string? value)
@@ -69,7 +69,7 @@ public readonly record struct ComponentType
 {
     private const string Sentinel = "n/a";
 
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ComponentType(string? value)

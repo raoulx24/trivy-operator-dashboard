@@ -4,7 +4,7 @@ public readonly record struct ResourceUrl
 {
     private const string Sentinel = "n/a";
     public Uri? Value { get; }
-    public string InitialValue { get; }
+    public string InitialValue { get => field ?? Sentinel; }
     public bool IsValid => Value is not null;
 
     public ResourceUrl(string? value)

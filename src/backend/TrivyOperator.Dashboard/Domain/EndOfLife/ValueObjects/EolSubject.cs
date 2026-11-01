@@ -9,8 +9,8 @@ public readonly record struct EolSubject
     private const string Sentinel = "N/A";
 
     public EolSubjectKind Kind { get; }
-    public string Name { get; }
-    public string Version { get; }
+    public string Name { get => field ?? Sentinel; }
+    public string Version { get => field ?? Sentinel; }
     public bool IsValid => Name != Sentinel && Version != Sentinel;
 
     public EolSubject(EolSubjectKind kind, string? name, string? version)

@@ -11,7 +11,7 @@ public readonly record struct ScannerName
 {
     private const string Sentinel = "N/A";
     
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ScannerName(string? value)
@@ -28,7 +28,7 @@ public readonly record struct ScannerVendor
 {
     private const string Sentinel = "N/A";
     
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ScannerVendor(string? value)
@@ -45,7 +45,7 @@ public readonly record struct ScannerVersion
 {
     private const string Sentinel = "N/A";
     
-    public string Value { get; }
+    public string Value { get => field ?? Sentinel; }
     public bool IsValid => Value != Sentinel;
 
     public ScannerVersion(string? value)
