@@ -21,6 +21,9 @@
                                  [secondSelectedTrivyReportId]="secondSelectedTrivyReportId()"
                                  [namespacedImageDtos]="namespacedImageDtos()"
                                  [firstSelectorLonger]="firstSelectorLonger()"
-                                 [walkingIsEnabled]="walkingIsEnabled()"/>
+                                 [walkingIsEnabled]="walkingIsEnabled()"
+                                 [compareIsNvdEnabled]="isNvdEnabled()"
+                                 [compareCveInfoById]="cveInfoById()"
+                                 (compareRowActionRequested)="rowActionRequested.emit($event)"/>
   }
 </p-dialog>

@@ -60,6 +60,9 @@
     [isResetFiltersVisible]="compareIsResetFiltersVisible()"
     [stateKey]="compareStateKey()"
     [trivyTableColumns]="comparedTableColumns()"
+    [isNvdEnabled]="compareIsNvdEnabled()"
+    [cveInfoById]="compareCveInfoById()"
+    (rowActionRequested)="compareRowActionRequested.emit($event)"
   />
 </div>
 
