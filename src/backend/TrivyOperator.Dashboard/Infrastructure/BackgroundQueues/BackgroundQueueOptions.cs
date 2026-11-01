@@ -2,5 +2,5 @@
 
 public record BackgroundQueueOptions
 {
-    public int Capacity { get; init; } = 500;
+    public int Capacity { get; init; } = 100;
 }

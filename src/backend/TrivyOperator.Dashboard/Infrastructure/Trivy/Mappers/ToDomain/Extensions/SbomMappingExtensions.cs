@@ -38,6 +38,7 @@ public static class SbomMappingExtensions
             {
                 Occurrences = [occurrence,],
                 LastSeenAt = lastSeenAt,
+                Layers = [],
                 Components = [],
             };
 
@@ -62,6 +63,8 @@ public static class SbomMappingExtensions
 
         ComponentId root = ResolveRootNode(cr.Report, idMap);
 
+        List<ImageLayer> layers = ExtractLayers(components, root);
+
         SbomReport incoming = new(
             [occurrence,],
             digest,
@@ -70,6 +73,7 @@ public static class SbomMappingExtensions
             summary,
             sbomMetadata,
             root,
+            layers,
             components);
 
         return existing is null ? incoming : incoming.MergeFrom(existing);
@@ -181,13 +185,14 @@ public static class SbomMappingExtensions
         return result;
     }
     
-    private static Dictionary<string, string> ToProperties(ComponentCr source)
+    private static List<ComponentProperty> ToProperties(ComponentCr source)
     {
-        Dictionary<string, string> dict = new(StringComparer.Ordinal);
-
         PropertyCr[]? props = source.Properties;
         if (props is null)
-            return dict;
+            return [];
+
+        // A list, not a dictionary: CycloneDX allows repeated names (e.g. one DiffID per image layer).
+        List<ComponentProperty> result = new(props.Length);
 
         for (int i = 0; i < props.Length; i++)
         {
@@ -197,10 +202,87 @@ public static class SbomMappingExtensions
             if (key.StartsWith("aquasecurity:trivy:", StringComparison.Ordinal))
                 key = key["aquasecurity:trivy:".Length..];
 
-            dict[key] = p.Value;
+            result.Add(new ComponentProperty(key, p.Value));
         }
 
-        return dict;
+        return result;
+    }
+
+    // Moves the layer properties out of the components into a per-image layer table:
+    // the root's DiffID list gives the layer order, the components' LayerDiffID/LayerDigest
+    // give each layer's digest and become a LayerIndex on the component.
+    private static List<ImageLayer> ExtractLayers(List<Component> components, ComponentId root)
+    {
+        List<ImageLayer> layers = [];
+        Dictionary<Digest, int> indexByDiffId = new();
+
+        int rootIndex = components.FindIndex(c => c.Id == root);
+        if (rootIndex >= 0)
+        {
+            Component rootComponent = components[rootIndex];
+            List<ComponentProperty> remaining = new(rootComponent.Properties.Count);
+
+            foreach (ComponentProperty p in rootComponent.Properties)
+            {
+                if (p.Name != LayerPropertyNames.DiffId)
+                {
+                    remaining.Add(p);
+                    continue;
+                }
+
+                Digest diffId = new(p.Value);
+                if (indexByDiffId.TryAdd(diffId, layers.Count))
+                    layers.Add(new ImageLayer(diffId, new Digest(null)));
+            }
+
+            components[rootIndex] = rootComponent with { Properties = remaining, };
+        }
+
+        for (int i = 0; i < components.Count; i++)
+        {
+            if (i == rootIndex)
+                continue;
+
+            Component component = components[i];
+
+            string? diffIdValue = null;
+            string? digestValue = null;
+            foreach (ComponentProperty p in component.Properties)
+            {
+                if (p.Name == LayerPropertyNames.LayerDiffId)
+                    diffIdValue ??= p.Value;
+                else if (p.Name == LayerPropertyNames.LayerDigest)
+                    digestValue ??= p.Value;
+            }
+
+            // Without a DiffID there is no layer to point at; keep the properties as they are.
+            if (diffIdValue is null)
+                continue;
+
+            Digest diffId = new(diffIdValue);
+            if (!indexByDiffId.TryGetValue(diffId, out int layerIndex))
+            {
+                layerIndex = layers.Count;
+                indexByDiffId[diffId] = layerIndex;
+                layers.Add(new ImageLayer(diffId, new Digest(null)));
+            }
+
+            // DiffID -> digest is 1:1 within an image, so the first digest seen is kept.
+            if (digestValue is not null && !layers[layerIndex].Digest.IsValid)
+                layers[layerIndex] = layers[layerIndex] with { Digest = new Digest(digestValue), };
+
+            components[i] = component with
+            {
+                Properties =
+                [
+                    .. component.Properties.Where(static p =>
+                        p.Name != LayerPropertyNames.LayerDiffId && p.Name != LayerPropertyNames.LayerDigest),
+                ],
+                LayerIndex = layerIndex,
+            };
+        }
+
+        return layers;
     }
     
     private static Uri? TryUri(string? value)
@@ -317,7 +399,8 @@ public static class SbomMappingExtensions
                 ToSupplier(c.Supplier),
                 ToLicenses(c),
                 ToProperties(c),
-                dependsOn.IsDefault ? ImmutableArray<ComponentId>.Empty : dependsOn));
+                dependsOn.IsDefault ? ImmutableArray<ComponentId>.Empty : dependsOn,
+                null));
         }
 
         return result;

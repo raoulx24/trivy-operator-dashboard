@@ -4,7 +4,6 @@ namespace TrivyOperator.Dashboard.Infrastructure.Trivy.PersistenceModels;
 
 [MemoryPackable]
 public sealed partial record ComponentPersistenceModel(
-    string Id,
     string Name,
     string Version,
     string Type,
@@ -13,8 +12,16 @@ public sealed partial record ComponentPersistenceModel(
     string? SupplierEmail,
     string? SupplierPhone,
     LicensePersistenceModel[] Licenses,
-    Dictionary<string, string> Properties,
-    string[] DependsOnIds
+    ComponentPropertyPersistenceModel[] Properties,
+    // positions in the persisted component array
+    int[] DependsOnIds,
+    int? LayerIndex
+);
+
+[MemoryPackable]
+public sealed partial record ComponentPropertyPersistenceModel(
+    string Name,
+    string Value
 );
 
 [MemoryPackable]

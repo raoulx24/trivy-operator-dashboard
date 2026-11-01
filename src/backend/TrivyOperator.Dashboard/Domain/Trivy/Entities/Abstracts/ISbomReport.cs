@@ -6,6 +6,8 @@ public interface ISbomReport<TSelf, out TId>
     : ITrivyReport<TSelf, TId>
 where TSelf : ISbomReport<TSelf, TId>
 {
+    ComponentId RootNodeBomRef { get; }
     IReadOnlyList<Component> Components { get; }
     TSelf WithComponents(IReadOnlyList<Component> components);
+    TSelf WithRootNodeBomRef(ComponentId rootNodeBomRef);
 }

@@ -5,7 +5,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs.Abs
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs;
 
 public sealed class BrotliMemoryPackCacheEntityCodec(
-    CompressionLevel compressionLevel = CompressionLevel.Fastest)
+    CompressionLevel compressionLevel = CompressionLevel.Optimal)
     : ICacheEntityCodec
 {
     public const string Name = "BrotliMemoryPack";

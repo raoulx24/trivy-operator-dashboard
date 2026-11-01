@@ -25,7 +25,7 @@ public sealed record SbomReportDetailDto(
     string Name,
     string Purl,
     string Version,
-    IReadOnlyDictionary<string, string> Properties,
+    IReadOnlyList<SbomReportDetailPropertyDto> Properties,
     IReadOnlyList<string> Licenses,
     int? CriticalCount,
     int? HighCount,
@@ -34,6 +34,11 @@ public sealed record SbomReportDetailDto(
     int? UnknownCount,
     string BomRef,
     IReadOnlyList<string> DependsOn
+);
+
+public sealed record SbomReportDetailPropertyDto(
+    string Name,
+    string Value
 );
 
 public sealed record SecurityAssessmentReportDetailDto(

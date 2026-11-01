@@ -237,6 +237,10 @@ export class TrivyTableComponent<TData> implements OnInit {
     effect(() => {
       const value = this.dataDtos();
 
+      // expanded rows are tracked by dataKey, but their expansion data by row object: new row objects
+      // would render expanded and wait for data that is never requested, so new data starts collapsed.
+      this.expandedRows.set({});
+      this._rowExpandMap = new ReactiveMap<TData, TrivyTableExpandRowData<TData>>();
       this.newData();
     });
     // new rowExpandData (callback)

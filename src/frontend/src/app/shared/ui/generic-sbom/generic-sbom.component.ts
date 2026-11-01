@@ -306,21 +306,22 @@ export class GenericSbomComponent {
   private getGroupFromSbomReportDetail(
     dto: GenericSbomReportDetailDto,
   ): string {
-    const properties = dto.properties ?? {};
+    const properties = dto.properties ?? [];
+    const values = properties.map((p) => p.value);
 
-    if (Object.values(properties).includes('nuget')) {
+    if (values.includes('nuget')) {
       return `${dto.name?.split('.')[0] ?? ''} (nuget)`;
     }
 
-    if (Object.values(properties).includes('dotnet-core')) {
+    if (values.includes('dotnet-core')) {
       return `${dto.name?.split('.')[0] ?? ''} (dotnet-core)`;
     }
 
-    if (Object.values(properties).includes('gobinary')) {
+    if (values.includes('gobinary')) {
       return `${dto.name?.split('/')[0] ?? ''} (gobinary)`;
     }
 
-    const todGroup = properties['tod.group'];
+    const todGroup = properties.find((p) => p.name === 'tod.group')?.value;
     if (todGroup) {
       return todGroup;
     }
@@ -411,8 +412,8 @@ export class GenericSbomComponent {
           height: '50px',
         },
       ],
-      details: Object.entries(dto.properties ?? {}).map(([key, value]) => [
-        { label: key },
+      details: (dto.properties ?? []).map(({ name, value }) => [
+        { label: name },
         { label: value },
       ]),
     };

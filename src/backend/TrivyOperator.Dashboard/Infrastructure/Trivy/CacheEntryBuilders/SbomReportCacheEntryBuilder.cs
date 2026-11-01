@@ -17,15 +17,21 @@ public class SbomReportCacheEntryBuilder<TReport, TId>(ICacheEntityCodec codec)
         IReadOnlyList<Component> components = entry.Components;
         int count = components.Count;
         ComponentPersistenceModel[] persistenceModels = new ComponentPersistenceModel[count];
+        Dictionary<ComponentId, int> indexById = ComponentPersistenceMapper.ToIndexById(components);
 
         for (int i = 0; i < count; i++)
         {
-            persistenceModels[i] = components[i].ToPersistenceModel();
+            persistenceModels[i] = components[i].ToPersistenceModel(indexById);
         }
+
+        // the root must point to the id its component gets on decode
+        ComponentId rootNodeBomRef = indexById.TryGetValue(entry.RootNodeBomRef, out int rootIndex)
+            ? ComponentPersistenceMapper.CreateComponentIds(GetReportKey(entry), count)[rootIndex]
+            : entry.RootNodeBomRef;
 
         return new CacheEntry<TReport, TId>
         {
-            Entry = entry.WithComponents([]),
+            Entry = entry.WithComponents([]).WithRootNodeBomRef(rootNodeBomRef),
             EncodedDetails = codec.Encode(persistenceModels),
         };
     }
@@ -36,12 +42,15 @@ public class SbomReportCacheEntryBuilder<TReport, TId>(ICacheEntityCodec codec)
 
         int count = persistenceModels.Length;
         List<Component> components = new(count);
+        ComponentId[] ids = ComponentPersistenceMapper.CreateComponentIds(GetReportKey(cacheEntry.Entry), count);
 
         for (int i = 0; i < count; i++)
         {
-            components.Add(persistenceModels[i].ToDomain());
+            components.Add(persistenceModels[i].ToDomain(ids[i], ids));
         }
 
         return cacheEntry.Entry.WithComponents(components);
     }
+
+    private static string GetReportKey(TReport report) => report.Id?.ToString() ?? string.Empty;
 }

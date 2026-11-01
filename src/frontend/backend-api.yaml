@@ -3346,9 +3346,9 @@ components:
         version:
           type: string
         properties:
-          type: object
-          additionalProperties:
-            type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/SbomReportDetailPropertyDto'
         licenses:
           type: array
           items:
@@ -3379,6 +3379,14 @@ components:
           type: array
           items:
             type: string
+      additionalProperties: false
+    SbomReportDetailPropertyDto:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
       additionalProperties: false
     SbomReportExportDto:
       type: object

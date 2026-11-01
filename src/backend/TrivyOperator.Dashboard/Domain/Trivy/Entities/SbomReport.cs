@@ -16,8 +16,9 @@ public sealed record SbomReport(
     SbomSummary Summary,
     SbomMetadata SbomMetadata,
     ComponentId RootNodeBomRef,
-    
-    IReadOnlyList<Component> Components) 
+    IReadOnlyList<ImageLayer> Layers,
+
+    IReadOnlyList<Component> Components)
     : IImageReport<SbomReport>, ISbomReport<SbomReport, Digest>, INamespacedTrivyReport
 {
     public Digest Id => ImageDigest;
@@ -29,7 +30,9 @@ public sealed record SbomReport(
         => this with { Occurrences = occurrences };
     public SbomReport WithComponents(IReadOnlyList<Component> components)
         => this with { Components = components, };
-    
+    public SbomReport WithRootNodeBomRef(ComponentId rootNodeBomRef)
+        => this with { RootNodeBomRef = rootNodeBomRef, };
+
     public SbomReport MergeFrom(SbomReport other)
     {
         if (ImageDigest != other.ImageDigest)
@@ -45,6 +48,7 @@ public sealed record SbomReport(
             Summary = otherIsNewer ? other.Summary : Summary,
             SbomMetadata = otherIsNewer ? other.SbomMetadata : SbomMetadata,
             RootNodeBomRef = otherIsNewer ? other.RootNodeBomRef : RootNodeBomRef,
+            Layers = otherIsNewer ? other.Layers : Layers,
             Components = otherIsNewer ? other.Components : Components,
         };
     }

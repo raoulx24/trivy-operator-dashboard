@@ -1,6 +1,7 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Mappers;
 
@@ -34,14 +35,14 @@ public static class CycloneDxBomMappings
 
                 Component = rootComponent is null
                     ? null
-                    : ToCycloneDxComponent(rootComponent),
+                    : ToCycloneDxComponent(rootComponent, report.Layers, isRoot: true),
             },
 
             Components =
             [
                 .. report.Components
                     .Where(component => component.Id != report.RootNodeBomRef)
-                    .Select(ToCycloneDxComponent),
+                    .Select(component => ToCycloneDxComponent(component, report.Layers, isRoot: false)),
             ],
 
             Dependencies =
@@ -65,7 +66,10 @@ public static class CycloneDxBomMappings
         };
     }
 
-    private static CycloneDxComponent ToCycloneDxComponent(Component component)
+    private static CycloneDxComponent ToCycloneDxComponent(
+        Component component,
+        IReadOnlyList<ImageLayer> layers,
+        bool isRoot)
     {
         return new CycloneDxComponent
         {
@@ -96,9 +100,9 @@ public static class CycloneDxBomMappings
 
             Properties =
             [
-                .. component.Properties.Select(property => new CycloneDxProperty
+                .. component.GetAllProperties(layers, isRoot).Select(property => new CycloneDxProperty
                 {
-                    Name = property.Key,
+                    Name = property.Name,
                     Value = property.Value,
                 }),
             ],

@@ -264,7 +264,7 @@ export class SbomReportsComponent extends DataPageBase<SbomReportImageMinimalDto
     this.fullSbomDataDto?.details?.forEach((item) => {
       const usedBy = item.name ?? 'unknown';
 
-      Object.entries(item.properties ?? {}).forEach(([propName, propValue]) => {
+      (item.properties ?? []).forEach(({ name: propName, value: propValue }) => {
         if (propName === 'tod.group') return;
 
         if (!dataMap.has(propName)) {

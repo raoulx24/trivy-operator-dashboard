@@ -29,7 +29,7 @@ public static class SbomReportMappings
                         x.Purl is { } purl && severities.TryGetValue(purl, out SeverityCounters value)
                             ? value
                             : null;
-                    return x.ToDto(counters);
+                    return x.ToDto(counters, report.Layers, x.Id == report.RootNodeBomRef);
                 }),
             ]
         );
@@ -89,7 +89,7 @@ public static class SbomReportMappings
                         x.Purl is { } purl && severities.TryGetValue(purl, out SeverityCounters value)
                             ? value
                             : null;
-                    return x.ToDto(counters);
+                    return x.ToDto(counters, report.Layers, x.Id == report.RootNodeBomRef);
                 }),
             ]
         );

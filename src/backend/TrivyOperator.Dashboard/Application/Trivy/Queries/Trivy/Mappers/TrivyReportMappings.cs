@@ -34,7 +34,11 @@ public static class TrivyReportMappings
         );
     }
     
-    internal static SbomReportDetailDto ToDto(this Component component, SeverityCounters? severityCounters)
+    internal static SbomReportDetailDto ToDto(
+        this Component component,
+        SeverityCounters? severityCounters,
+        IReadOnlyList<ImageLayer> layers,
+        bool isRoot)
     {
         string id = DeterministicId.Create(
                 component.Purl?.Value ?? component.Name.Value,
@@ -48,7 +52,11 @@ public static class TrivyReportMappings
             Name: component.Name.Value,
             Purl: component.Purl?.Value ?? string.Empty,
             Version: component.Version.Value,
-            Properties: component.Properties,
+            Properties:
+            [
+                .. component.GetAllProperties(layers, isRoot)
+                    .Select(static x => new SbomReportDetailPropertyDto(x.Name, x.Value)),
+            ],
             Licenses:
             [
                 .. component.Licenses.Select(x => x.Name ?? string.Empty)
@@ -64,6 +72,36 @@ public static class TrivyReportMappings
         );
     }
     
+    // Re-expands the layer table into Trivy's original properties: the root gets one DiffID per image layer,
+    // a component gets the LayerDiffID/LayerDigest of its layer.
+    internal static IEnumerable<ComponentProperty> GetAllProperties(
+        this Component component,
+        IReadOnlyList<ImageLayer> layers,
+        bool isRoot)
+    {
+        if (isRoot)
+        {
+            foreach (ImageLayer layer in layers)
+            {
+                yield return new ComponentProperty(LayerPropertyNames.DiffId, layer.DiffId.Value);
+            }
+        }
+
+        if (component.LayerIndex is { } layerIndex && layerIndex >= 0 && layerIndex < layers.Count)
+        {
+            ImageLayer layer = layers[layerIndex];
+            yield return new ComponentProperty(LayerPropertyNames.LayerDiffId, layer.DiffId.Value);
+
+            if (layer.Digest.IsValid)
+                yield return new ComponentProperty(LayerPropertyNames.LayerDigest, layer.Digest.Value);
+        }
+
+        foreach (ComponentProperty property in component.Properties)
+        {
+            yield return property;
+        }
+    }
+
     internal static string ToDtoBomRef(this ComponentId value)
     {
         return Guid.TryParse(value.Value, out _) 

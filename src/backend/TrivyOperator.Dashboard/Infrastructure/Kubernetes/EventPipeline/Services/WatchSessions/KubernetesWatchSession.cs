@@ -22,7 +22,6 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    private const int ResourceListPageSize = 500;
     private const double MaxBackoffSeconds = 60;
 
     private static readonly Random Random = new();
@@ -206,7 +205,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                 await resourceWatch.GetInitialResources(
                     key,
                     continueToken,
-                    ResourceListPageSize,
+                    options.Value.ResourceListPageSize,
                     ctx
                 );
 

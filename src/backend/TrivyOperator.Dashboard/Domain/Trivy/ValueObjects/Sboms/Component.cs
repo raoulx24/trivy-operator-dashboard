@@ -11,8 +11,9 @@ public sealed record Component(
     Purl? Purl,
     Supplier? Supplier,
     IReadOnlyList<License> Licenses,
-    IReadOnlyDictionary<string, string> Properties,
-    ImmutableArray<ComponentId> DependsOnIds);
+    IReadOnlyList<ComponentProperty> Properties,
+    ImmutableArray<ComponentId> DependsOnIds,
+    int? LayerIndex);
     
 public readonly record struct ComponentId
 {

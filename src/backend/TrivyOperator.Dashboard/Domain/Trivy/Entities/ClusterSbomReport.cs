@@ -22,7 +22,9 @@ public sealed record ClusterSbomReport(
     public ReportMetadata Metadata => Occurrence.Metadata;
     public ClusterSbomReport WithComponents(IReadOnlyList<Component> components)
         => this with { Components = components, };
-    
+    public ClusterSbomReport WithRootNodeBomRef(ComponentId rootNodeBomRef)
+        => this with { RootNodeBomRef = rootNodeBomRef, };
+
     public ClusterSbomReport MergeFrom(ClusterSbomReport other)
     {
         bool otherIsNewer = IsOtherNewer(other);

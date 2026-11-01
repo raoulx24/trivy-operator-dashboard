@@ -38,7 +38,7 @@ public static class ClusterSbomReportMappings
                             ? value
                             : null;
 
-                    return x.ToDto(counters);
+                    return x.ToDto(counters, [], false);
                 }),
             ]
         );

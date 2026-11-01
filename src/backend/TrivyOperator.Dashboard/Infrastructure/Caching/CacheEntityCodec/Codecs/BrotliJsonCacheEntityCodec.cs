@@ -4,7 +4,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs.Abs
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs;
 
-public sealed class BrotliJsonCacheEntityCodec(CompressionLevel compressionLevel = CompressionLevel.Fastest) : ICacheEntityCodec
+public sealed class BrotliJsonCacheEntityCodec(CompressionLevel compressionLevel = CompressionLevel.Optimal) : ICacheEntityCodec
 {
     public const string Name = "BrotliJson";
     
