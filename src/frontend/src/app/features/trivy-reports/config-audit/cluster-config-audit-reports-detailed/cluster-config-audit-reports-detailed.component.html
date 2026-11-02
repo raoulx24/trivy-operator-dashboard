@@ -1,0 +1,16 @@
+<div class="tod-content-border overflow-hidden">
+  <app-trivy-table
+    csvFileName="Cluster Config Audit Reports"
+    csvStorageKey="Cluster Config Audit Reports"
+    [dataDtos]="dataDtos"
+    [isExportCsvVisible]="true"
+    [isFooterVisible]="true"
+    [isLoading]="isMainTableLoading"
+    [isRefreshVisible]="true"
+    [isResetFiltersVisible]="true"
+    [stateKey]="'Cluster Config Audit Reports Detailed'"
+    [style]="{ width: '2200px' }"
+    [trivyTableColumns]="trivyTableColumns"
+    (refreshRequested)="onRefreshRequested()"
+  />
+</div>

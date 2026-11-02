@@ -2069,6 +2069,11 @@ components:
           type: string
         resourceName:
           type: string
+        resourceKind:
+          type: string
+        updateTimestamp:
+          type: string
+          format: date-time
         criticalCount:
           type: integer
           format: int32
@@ -2107,6 +2112,8 @@ components:
         uid:
           type: string
         resourceName:
+          type: string
+        resourceKind:
           type: string
         criticalCount:
           type: integer

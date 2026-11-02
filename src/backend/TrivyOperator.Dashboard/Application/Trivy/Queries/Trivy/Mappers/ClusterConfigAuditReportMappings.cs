@@ -11,6 +11,7 @@ public static class ClusterConfigAuditReportExtensions
         return new ClusterConfigAuditReportDto(
             Uid: report.Metadata.Uid.Value,
             ResourceName: report.Metadata.GetResourceName().Value,
+            ResourceKind: report.Metadata.GetResourceKind().Value,
             CriticalCount: report.SeverityCounters.CriticalCount,
             HighCount: report.SeverityCounters.HighCount,
             MediumCount: report.SeverityCounters.MediumCount,
@@ -30,6 +31,8 @@ public static class ClusterConfigAuditReportExtensions
             return new ClusterConfigAuditReportDenormalizedDto(
                 Uid: report.Metadata.Uid.Value,
                 ResourceName: report.Metadata.GetResourceName().Value,
+                ResourceKind: report.Metadata.GetResourceKind().Value,
+                UpdateTimestamp: report.LastSeenAt.Value,
                 CriticalCount: report.SeverityCounters.CriticalCount,
                 HighCount: report.SeverityCounters.HighCount,
                 MediumCount: report.SeverityCounters.MediumCount,

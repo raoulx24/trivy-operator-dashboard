@@ -70,7 +70,7 @@ export class NavMenuComponent {
     const dto = this.backendSettings();
     if (!dto || !dto.trivyReportConfigDtos) {
       // Backend settings not loaded yet: assume all reports are enabled
-      return ['vr', 'vrh', 'sr', 'car', 'esr', 'rar', 'iar', 'cvr', 'csr', 'crar', 'ccr', 'ciar'];
+      return ['vr', 'vrh', 'sr', 'car', 'esr', 'rar', 'iar', 'cvr', 'csr', 'crar', 'ccr', 'ccar', 'ciar'];
     }
 
     return dto.trivyReportConfigDtos

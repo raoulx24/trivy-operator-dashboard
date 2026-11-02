@@ -112,6 +112,22 @@ export const trivyReportsRoutes: Routes = [
     data: { title: 'Cluster Compliance Reports Detailed' },
   },
   {
+    path: 'cluster-config-audit-reports',
+    loadComponent: () =>
+      import('./config-audit/cluster-config-audit-reports/cluster-config-audit-reports.component').then(
+        (m) => m.ClusterConfigAuditReportsComponent,
+      ),
+    data: { title: 'Cluster Config Audit Reports' },
+  },
+  {
+    path: 'cluster-config-audit-reports-detailed',
+    loadComponent: () =>
+      import('./config-audit/cluster-config-audit-reports-detailed/cluster-config-audit-reports-detailed.component').then(
+        (m) => m.ClusterConfigAuditReportsDetailedComponent,
+      ),
+    data: { title: 'Cluster Config Audit Reports Detailed' },
+  },
+  {
     path: 'cluster-infra-assessment-reports',
     loadComponent: () =>
       import('./infra-assessment/cluster-infra-assessment-reports/cluster-infra-assessment-reports.component').then(

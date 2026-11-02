@@ -3,6 +3,7 @@
 public sealed record ClusterConfigAuditReportDto(
     string Uid,
     string ResourceName,
+    string ResourceKind,
     int CriticalCount,
     int HighCount,
     int MediumCount,
@@ -14,6 +15,8 @@ public sealed record ClusterConfigAuditReportDto(
 public sealed record ClusterConfigAuditReportDenormalizedDto(
     string Uid,
     string ResourceName,
+    string ResourceKind,
+    DateTime UpdateTimestamp,
     int CriticalCount,
     int HighCount,
     int MediumCount,
