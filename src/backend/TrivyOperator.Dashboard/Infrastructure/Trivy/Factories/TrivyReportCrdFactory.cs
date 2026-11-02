@@ -22,6 +22,7 @@ public class TrivyReportCrdFactory : ICrdFactory
     public CustomResourceDefinition Get<TKubernetesObject>() => typeof(TKubernetesObject) switch
     {
         { } t when t == typeof(ClusterComplianceReportCr) => new ClusterComplianceReportCrd(),
+        { } t when t == typeof(ClusterConfigAuditReportCr) => new ClusterConfigAuditReportCrd(),
         { } t when t == typeof(ClusterInfraAssessmentReportCr) => new ClusterInfraAssessmentReportCrd(),
         { } t when t == typeof(ClusterRbacAssessmentReportCr) => new ClusterRbacAssessmentReportCrd(),
         { } t when t == typeof(ClusterSbomReportCr) => new ClusterSbomReportCrd(),

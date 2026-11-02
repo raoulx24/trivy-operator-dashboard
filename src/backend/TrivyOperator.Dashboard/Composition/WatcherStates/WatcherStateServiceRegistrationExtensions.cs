@@ -92,6 +92,17 @@ public static class WatcherStateServiceRegistrationExtensions
                 WatcherStateEventProcessor<ClusterComplianceReport, Uid>>();
         }
 
+        if (enabledReports.GetValueOrDefault(nameof(ClusterConfigAuditReport)))
+        {
+            services.AddSingleton<
+                IKubernetesEventProcessor<ClusterConfigAuditReport, Uid>,
+                WatcherStateAlertRefresh<ClusterConfigAuditReport, Uid>>();
+
+            services.AddSingleton<
+                IKubernetesEventProcessor<ClusterConfigAuditReport, Uid>,
+                WatcherStateEventProcessor<ClusterConfigAuditReport, Uid>>();
+        }
+
         if (enabledReports.GetValueOrDefault(nameof(ClusterInfraAssessmentReport)))
         {
             services.AddSingleton<

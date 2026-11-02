@@ -8,5 +8,5 @@ public class ClusterConfigAuditReportCrd : CustomResourceDefinition
     public override string Group => "aquasecurity.github.io";
     public override string PluralName => "clusterconfigauditreports";
     public override string Kind => "CResource";
-    public override string? Namespace { get; init; } = "default";
+    public override string? Namespace { get; init; } = null;
 }

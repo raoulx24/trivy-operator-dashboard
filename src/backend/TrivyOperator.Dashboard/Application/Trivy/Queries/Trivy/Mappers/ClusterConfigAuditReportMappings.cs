@@ -6,7 +6,7 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Mappers;
 public static class ClusterConfigAuditReportExtensions
 {
     public static ClusterConfigAuditReportDto ToClusterDto(
-        this ConfigAuditReport report)
+        this ClusterConfigAuditReport report)
     {
         return new ClusterConfigAuditReportDto(
             Uid: report.Metadata.Uid.Value,
@@ -21,7 +21,7 @@ public static class ClusterConfigAuditReportExtensions
     }
 
     public static IEnumerable<ClusterConfigAuditReportDenormalizedDto> ToClusterDenormalizedDtos(
-            this ConfigAuditReport report)
+            this ClusterConfigAuditReport report)
     {
         return report.Checks.Select(check =>
         {

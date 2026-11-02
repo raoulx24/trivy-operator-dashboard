@@ -11,6 +11,8 @@ using TrivyOperator.Dashboard.Application.Trivy.Queries.Severities.Services.Abst
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Options;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterComplianceReports;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterComplianceReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterConfigAuditReports;
+using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterConfigAuditReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterInfraAssessmentReports;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterInfraAssessmentReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterRbacAssessmentReports;
@@ -97,6 +99,8 @@ public static class TrivyReportServiceRegistrationExtensions
 
         services.AddTrivyReportServices<ClusterComplianceReportCr, ClusterComplianceReport, Uid>(configuration);
         
+        services.AddTrivyReportServices<ClusterConfigAuditReportCr, ClusterConfigAuditReport, Uid>(configuration);
+
         services.AddTrivyReportServices<ClusterInfraAssessmentReportCr, ClusterInfraAssessmentReport, Uid>(configuration);
 
         services.AddTrivyReportServices<ClusterRbacAssessmentReportCr, ClusterRbacAssessmentReport, Uid>(configuration);
@@ -279,6 +283,10 @@ public static class TrivyReportServiceRegistrationExtensions
         {
             case nameof(ClusterComplianceReport):
                 services.AddScoped<IClusterComplianceReportService, ClusterComplianceReportNullService>();
+                break;
+
+            case nameof(ClusterConfigAuditReport):
+                services.AddScoped<IClusterConfigAuditReportService, ClusterConfigAuditReportNullService>();
                 break;
 
             case nameof(ClusterInfraAssessmentReport):
@@ -736,6 +744,10 @@ public static class TrivyReportServiceRegistrationExtensions
                 services.AddScoped<IClusterComplianceReportService, ClusterComplianceReportService>();
                 break;
 
+            case nameof(ClusterConfigAuditReport):
+                services.AddScoped<IClusterConfigAuditReportService, ClusterConfigAuditReportService>();
+                break;
+
             case nameof(ClusterInfraAssessmentReport):
                 services.AddScoped<IClusterInfraAssessmentReportService, ClusterInfraAssessmentReportService>();
                 break;
@@ -789,6 +801,11 @@ public static class TrivyReportServiceRegistrationExtensions
                 services.AddSingleton<
                     IResourceAggregator<ClusterComplianceReportCr, ClusterComplianceReport, Uid>,
                     UidKeyedResourceAggregator<ClusterComplianceReportCr, ClusterComplianceReport>>();
+                break;
+            case nameof(ClusterConfigAuditReport):
+                services.AddSingleton<
+                    IResourceAggregator<ClusterConfigAuditReportCr, ClusterConfigAuditReport, Uid>,
+                    UidKeyedResourceAggregator<ClusterConfigAuditReportCr, ClusterConfigAuditReport>>();
                 break;
             case nameof(ClusterInfraAssessmentReport):
                 services.AddSingleton<

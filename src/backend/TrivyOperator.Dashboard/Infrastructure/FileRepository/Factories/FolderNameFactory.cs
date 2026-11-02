@@ -17,6 +17,8 @@ public class FolderNameFactory(IOptions<FileRepositoryOptions> options) : IFolde
     {
         { } t when t == typeof(ClusterComplianceReportCr) => options.Value.ClusterComplianceReportCrSubpath,
 
+        { } t when t == typeof(ClusterConfigAuditReportCr) => options.Value.ClusterConfigAuditReportCrSubpath,
+
         { } t when t == typeof(ClusterInfraAssessmentReportCr) => options.Value.ClusterInfraAssessmentReportCrSubpath,
 
         { } t when t == typeof(ClusterRbacAssessmentReportCr) => options.Value.ClusterRbacAssessmentReportCrSubpath,
