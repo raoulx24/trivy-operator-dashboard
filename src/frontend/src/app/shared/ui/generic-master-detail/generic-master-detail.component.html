@@ -30,8 +30,6 @@
                        [rowHeight]="mainTableRowHeight()"
                        [style]="mainTableStyle()"
                        [trivyTableColumns]="mainTableColumns()"
-                       [isNvdEnabled]="detailsIsNvdEnabled()"
-                       [cveInfoById]="detailsCveInfoById()"
                        (multiHeaderActionRequested)="onMainTableMultiHeaderActionRequested($event)"
                        (refreshRequested)="onRefreshRequested()"
                        (rowExpandActionCallback)="onMainTableExpandCallback($event)"
@@ -67,10 +65,7 @@
         [rowHeight]="detailsRowHeight()"
         [style]="detailsStyle()"
         [trivyTableColumns]="detailsTableColumns()"
-        [isNvdEnabled]="detailsIsNvdEnabled()"
-        [cveInfoById]="detailsCveInfoById()"
         (multiHeaderActionRequested)="onDetailsTableMultiHeaderActionRequested($event)"
-        (rowActionRequested)="detailsRowActionRequested.emit($event)"
       />
     </div>
   </ng-template>

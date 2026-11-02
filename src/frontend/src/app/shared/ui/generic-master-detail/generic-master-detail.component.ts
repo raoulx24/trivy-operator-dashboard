@@ -1,6 +1,5 @@
 import { Component, effect, HostListener, inject, input, output, ViewChild } from '@angular/core';
 
-import { CveInfoDto } from '@api/models/cve-info-dto';
 import { SeverityDto } from '@api/models/severity-dto';
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
 import {
@@ -76,11 +75,8 @@ export class GenericMasterDetailComponent<
   detailsMultiHeaderActions = input<MultiHeaderAction[]>([]);
   detailsRowDimmer = input<((row: TDataSetDetail) => boolean) | undefined>();
   detailsTableRefreshValue = input<number | undefined>(undefined);
-  detailsIsNvdEnabled = input<boolean>(true);
-  detailsCveInfoById = input<ReadonlyMap<string, CveInfoDto> | undefined>(undefined);
 
   detailsTableMultiHeaderActionRequested = output<string>();
-  detailsRowActionRequested = output<{ row: TDataSetDetail; col: string; action?: string }>();
 
   @ViewChild('mainTable', { static: true }) mainTable?: TrivyTableComponent<TDataSet>;
 

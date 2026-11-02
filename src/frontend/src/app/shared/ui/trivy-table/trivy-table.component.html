@@ -319,10 +319,7 @@
                   <p-tag value="EOSL" class="ml-3" [rounded]="true" [style]="1 | severityCssStyleById: 1" />
                 }
                 @if (col.isExploitedTagVisible) {
-                  @let exploitedLabel = rowData['details'] | exploitedLabel: cveInfoById();
-                  @if (exploitedLabel) {
-                    <p-tag class="ml-3" severity="warn" [rounded]="true" [value]="exploitedLabel" />
-                  }
+                  <app-image-exploited-tag [details]="rowData['details']" />
                 }
               }
               @case ('link') {
@@ -549,7 +546,7 @@
                 }
               }
               @case ('array') {
-                @let items = rowData[col.field]?.split(',') ?? [];
+                @let items = rowData[col.field] ? rowData[col.field].split(',') : [];
 
                 <div [pTooltip]="items.length > 1 ? items.join('\n') : ''"
                      tooltipPosition="top"
@@ -562,7 +559,7 @@
               }
 
               @case ('arrayTags') {
-                @let items = rowData[col.field]?.split(',') ?? [];
+                @let items = rowData[col.field] ? rowData[col.field].split(',') : [];
 
                 <div class="flex items-center gap-2 overflow-visible"
                      [class.pr-8]="items.length > 1">
@@ -579,42 +576,7 @@
               }
 
               @case ('vulnerabilityId') {
-                @let link = rowData[col.extraFields?.[0] ?? ''];
-                @let tags = rowData[col.field] | vulnerabilityTags: cveInfoById() : isNvdEnabled();
-                <div class="flex flex-col justify-center tod-vulnerability-id">
-                  <div class="flex items-center gap-1 tod-vulnerability-tag">
-                    <span>{{ rowData[col.field] }}</span>
-                    @if (link) {
-                      @if (link.toLowerCase() === 'n/a') {
-                        <!-- no page for this id: same tag, looks disabled, opens nothing -->
-                        <p-tag rounded class="only-icon tod-tag-disabled" icon="pi pi-external-link" severity="secondary" />
-                      } @else {
-                        <!-- a real link (new tab, middle click); the row must not be (de)selected by it -->
-                        <a class="no-underline!"
-                           rel="noopener noreferrer"
-                           target="_blank"
-                           [href]="link"
-                           (click)="$event.stopPropagation()">
-                          <p-tag rounded class="only-icon pi" icon="pi pi-external-link" severity="secondary" />
-                        </a>
-                      }
-                    }
-                  </div>
-                  @if (tags.length) {
-                    <div class="flex items-center gap-1 tod-vulnerability-tag">
-                      @for (tag of tags; track tag.source) {
-                        <p-tag rounded
-                               role="button"
-                               severity="secondary"
-                               tabindex="0"
-                               (click)="onRowAction(rowData, col.field, tag.source, $event)"
-                               (keydown.enter)="onRowAction(rowData, col.field, tag.source, $event)">
-                          {{ tag.label }}
-                        </p-tag>
-                      }
-                    </div>
-                  }
-                </div>
+                <app-vulnerability-id-cell [link]="rowData[col.extraFields?.[0] ?? '']" [vulnerabilityId]="rowData[col.field]" />
               }
 
               @default {

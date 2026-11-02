@@ -1,6 +1,5 @@
 import { Component, computed, effect, inject, input, model, output, signal } from '@angular/core';
 
-import { CveInfoDto } from '@api/models/cve-info-dto';
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TrivyReportComparable, TrivyReportComparableDetail } from '@shared/abstracts/types/trivy-report';
@@ -46,9 +45,6 @@ export class GenericReportsCompareComponent<
   compareIsResetFiltersVisible = input<boolean | undefined>(false);
   compareStateKey = input<string | undefined>(undefined);
   compareExtraClasses = input<string | undefined>(undefined);
-  compareIsNvdEnabled = input<boolean>(true);
-  compareCveInfoById = input<ReadonlyMap<string, CveInfoDto> | undefined>(undefined);
-  compareRowActionRequested = output<{ row: TrivyReportComparableDetail; col: string; action?: string }>();
 
   namespacePlaceholder = input<string>('Select namespace');
   imagePlaceholder = input<string>('Select image');
