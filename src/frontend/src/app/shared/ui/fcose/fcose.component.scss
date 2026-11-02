@@ -2,6 +2,16 @@
   outline: none; /* Removes the focus outline */
 }
 
+:host ::ng-deep .p-breadcrumb a {
+  cursor: pointer;
+}
+
+/* keep the breadcrumb row as tall as the icon-only (home) row, so the first text item does not push the graph down */
+:host ::ng-deep .p-breadcrumb,
+:host ::ng-deep .p-breadcrumb * {
+  line-height: 1;
+}
+
 /* Define variables for heights */
 $default-height: calc(100vh - 190px);
 $default-dialog-height: calc(100vh - 500px);

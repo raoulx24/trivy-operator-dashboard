@@ -134,9 +134,10 @@ function buildBaseStyles(theme: FcoseTheme): StylesheetJson {
     {
       selector: '.hovered',
       style: {
+        'background-color': theme.hoverFill,
         'border-width': 3,
         'border-style': 'solid',
-        'border-color': theme.hover,
+        'border-color': theme.hoverRing,
         'underlay-color': theme.hover,
         'underlay-opacity': 0.2,
         'underlay-padding': 4,
@@ -177,9 +178,10 @@ function buildBaseStyles(theme: FcoseTheme): StylesheetJson {
     {
       selector: '.selected',
       style: {
+        'background-color': theme.selectedFill,
         'border-width': 3,
         'border-style': 'solid',
-        'border-color': theme.selected,
+        'border-color': theme.selectedRing,
         'underlay-color': theme.selected,
         'underlay-opacity': 0.2,
         'underlay-padding': 4,
