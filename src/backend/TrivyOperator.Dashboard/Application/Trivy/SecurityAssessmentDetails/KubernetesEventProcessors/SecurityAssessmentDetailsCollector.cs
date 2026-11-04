@@ -1,5 +1,5 @@
 using TrivyOperator.Dashboard.Application.Shared.Details.KubernetesEventProcessors;
-using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
+using TrivyOperator.Dashboard.Domain.Shared.Details.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 

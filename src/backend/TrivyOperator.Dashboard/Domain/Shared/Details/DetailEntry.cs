@@ -1,6 +1,6 @@
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
-namespace TrivyOperator.Dashboard.Domain.Shared.Stores;
+namespace TrivyOperator.Dashboard.Domain.Shared.Details;
 
 // immutable, replaced (never changed in place) so a conditional removal can compare by reference
 public sealed class DetailEntry<TDetail>

@@ -3,8 +3,8 @@ using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Details.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
-using TrivyOperator.Dashboard.Domain.Shared.Stores;
-using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
+using TrivyOperator.Dashboard.Domain.Shared.Details;
+using TrivyOperator.Dashboard.Domain.Shared.Details.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.Shared.Details.Services;

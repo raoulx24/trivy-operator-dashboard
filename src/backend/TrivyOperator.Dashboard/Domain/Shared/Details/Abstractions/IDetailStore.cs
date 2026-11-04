@@ -2,7 +2,7 @@ using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
-namespace TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
+namespace TrivyOperator.Dashboard.Domain.Shared.Details.Abstractions;
 
 public interface IDetailStore<TDetail, TId>
     where TDetail : IDetail<TId>

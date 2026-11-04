@@ -6,7 +6,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstraction
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstractions;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.TrivyReports;
 
 public class InMemoryResourceReportCache<TResource>(
     IResourceDictionaryCache<Uid, CacheEntry<TResource, Uid>> cache,

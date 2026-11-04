@@ -5,7 +5,7 @@ using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 
-namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
+namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Details;
 
 // the detail ids referenced by the slim reports of a cache, for the housekeeping of a details store
 public abstract class InMemoryDetailReferenceProvider<TSlim, TKey, TDetailId>(
