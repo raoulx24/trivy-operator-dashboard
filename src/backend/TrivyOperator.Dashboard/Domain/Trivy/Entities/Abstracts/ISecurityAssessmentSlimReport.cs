@@ -4,7 +4,7 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 namespace TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
 public interface ISecurityAssessmentSlimReport<TSelf, out TReport, out TId>
-    : ITrivyReport<TSelf, TId>, IHydratable<TReport>
+    : ITrivyReport<TSelf, TId>, IHydratable<TReport, Check>
 where TSelf : ISecurityAssessmentSlimReport<TSelf, TReport, TId>
 {
     Scanner Scanner { get; }

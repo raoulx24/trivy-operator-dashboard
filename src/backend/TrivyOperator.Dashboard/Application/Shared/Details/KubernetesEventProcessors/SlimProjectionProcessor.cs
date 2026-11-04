@@ -3,7 +3,7 @@ using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 
-namespace TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.KubernetesEventProcessors;
+namespace TrivyOperator.Dashboard.Application.Shared.Details.KubernetesEventProcessors;
 
 // hands the slim form of the report to the processor that stores it (ResourceStoreUpdater of the slim type),
 // so the full report, with its checks, is not kept

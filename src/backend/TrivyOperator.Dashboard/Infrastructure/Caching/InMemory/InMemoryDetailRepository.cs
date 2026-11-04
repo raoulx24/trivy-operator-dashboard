@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
-using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Options;
+using TrivyOperator.Dashboard.Application.Shared.Details.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Stores;
@@ -14,7 +14,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 public class InMemoryDetailRepository<TDetail, TId>(
     IResourceDictionaryCache<TId, DetailEntry<TDetail>> cache,
     IKubernetesContextResolver contextResolver,
-    IOptionsMonitor<SecurityAssessmentDetailsOptions> options,
+    IOptionsMonitor<DetailsOptions> options,
     ILogger<InMemoryDetailRepository<TDetail, TId>> logger)
     : IDetailRepository<TDetail, TId>
     where TDetail : class, IDetail<TId>

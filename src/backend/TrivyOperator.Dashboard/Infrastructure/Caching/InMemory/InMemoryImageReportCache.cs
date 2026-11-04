@@ -14,7 +14,7 @@ public class InMemoryImageReportCache<TResource>(
     ICacheEntryBuilder<TResource, Digest> cacheEntryBuilder,
     IKubernetesContextResolver contextResolver,
     ILogger<InMemoryImageReportCache<TResource>> logger)
-    : InMemoryTrivyReportCacheInMemoryEntityCache<TResource, Digest>(cache, cacheEntryBuilder, contextResolver, logger)
+    : InMemoryTrivyReportCache<TResource, Digest>(cache, cacheEntryBuilder, contextResolver, logger)
     where TResource: class, IImageReport<TResource>
 {
     public override Task ClearByNamespace(NamespaceName ns, CancellationToken ctx = default)

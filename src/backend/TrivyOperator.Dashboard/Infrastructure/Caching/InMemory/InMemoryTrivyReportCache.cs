@@ -8,11 +8,11 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstr
 
 namespace TrivyOperator.Dashboard.Infrastructure.Caching.InMemory;
 
-public abstract class InMemoryTrivyReportCacheInMemoryEntityCache<TResource, TKey>(
+public abstract class InMemoryTrivyReportCache<TResource, TKey>(
     IResourceDictionaryCache<TKey, CacheEntry<TResource, TKey>> cache,
     ICacheEntryBuilder<TResource, TKey> cacheEntryBuilder,
     IKubernetesContextResolver contextResolver,
-    ILogger<InMemoryTrivyReportCacheInMemoryEntityCache<TResource, TKey>> logger) :
+    ILogger<InMemoryTrivyReportCache<TResource, TKey>> logger) :
     InMemoryEntityCache<TResource, TKey>(cache, cacheEntryBuilder, contextResolver, logger)
     where TResource: class, ITrivyReport<TResource, TKey>
     where TKey : notnull

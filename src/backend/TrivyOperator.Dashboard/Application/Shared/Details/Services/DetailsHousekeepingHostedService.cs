@@ -1,27 +1,29 @@
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Abstractions;
-using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Options;
+using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Details.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Stores;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 
-namespace TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Services;
+namespace TrivyOperator.Dashboard.Application.Shared.Details.Services;
 
-// one per family of reports sharing a checks store (e.g. config audit and cluster config audit)
-// each tick removes, per context, the checks that are not referenced by any stored report of the family
+// one per details store of a family of reports (e.g. the checks of config audit and cluster config audit)
+// each tick removes, per context, the details that are not referenced by any stored report of the family
 // and were not touched in the last GraceInHours (0 disables the removal)
-// - the entries are read before the references: a report event arriving in between touches its checks,
+// - the entries are read before the references: a report event arriving in between touches its details,
 //   which makes the removal of that entry skip (it only removes the entry instance it read)
-// - the references are checked, not only the age: a report that is not rescanned does not touch its checks
-public sealed class SecurityAssessmentDetailsHousekeepingHostedService(
+// - the references are checked, not only the age: a report that is not rescanned does not touch its details
+public sealed class DetailsHousekeepingHostedService<TDetail, TId>(
     string familyName,
-    IOptionsMonitor<SecurityAssessmentDetailsOptions> options,
-    IDetailRepository<Check, CheckId> details,
-    IReadOnlyList<IDetailReferenceProvider<CheckId>> references,
-    ILogger<SecurityAssessmentDetailsHousekeepingHostedService> logger
+    IOptionsMonitor<DetailsOptions> options,
+    IDetailRepository<TDetail, TId> details,
+    IReadOnlyList<IDetailReferenceProvider<TId>> references,
+    ILogger<DetailsHousekeepingHostedService<TDetail, TId>> logger
 ) : BackgroundService
+    where TDetail : IDetail<TId>
+    where TId : notnull
 {
     public override async Task StopAsync(CancellationToken ctx)
     {
@@ -76,16 +78,16 @@ public sealed class SecurityAssessmentDetailsHousekeepingHostedService(
 
         Timestamp cutoff = new(DateTime.UtcNow.AddHours(-graceInHours));
 
-        IReadOnlyDictionary<ContextName, IReadOnlyDictionary<CheckId, DetailEntry<Check>>> entries =
+        IReadOnlyDictionary<ContextName, IReadOnlyDictionary<TId, DetailEntry<TDetail>>> entries =
             await details.GetEntries(ctx);
 
-        Dictionary<ContextName, HashSet<CheckId>> referenced = [];
+        Dictionary<ContextName, HashSet<TId>> referenced = [];
 
-        foreach (IDetailReferenceProvider<CheckId> provider in references)
+        foreach (IDetailReferenceProvider<TId> provider in references)
         {
-            foreach ((ContextName contextName, IReadOnlySet<CheckId> ids) in await provider.GetReferencedIds(ctx))
+            foreach ((ContextName contextName, IReadOnlySet<TId> ids) in await provider.GetReferencedIds(ctx))
             {
-                if (!referenced.TryGetValue(contextName, out HashSet<CheckId>? contextReferenced))
+                if (!referenced.TryGetValue(contextName, out HashSet<TId>? contextReferenced))
                 {
                     contextReferenced = [];
                     referenced[contextName] = contextReferenced;
@@ -97,11 +99,11 @@ public sealed class SecurityAssessmentDetailsHousekeepingHostedService(
 
         int swept = 0;
 
-        foreach ((ContextName contextName, IReadOnlyDictionary<CheckId, DetailEntry<Check>> contextEntries) in entries)
+        foreach ((ContextName contextName, IReadOnlyDictionary<TId, DetailEntry<TDetail>> contextEntries) in entries)
         {
-            referenced.TryGetValue(contextName, out HashSet<CheckId>? contextReferenced);
+            referenced.TryGetValue(contextName, out HashSet<TId>? contextReferenced);
 
-            foreach ((CheckId id, DetailEntry<Check> entry) in contextEntries)
+            foreach ((TId id, DetailEntry<TDetail> entry) in contextEntries)
             {
                 if (entry.TouchedAt >= cutoff || contextReferenced?.Contains(id) == true)
                 {
@@ -117,7 +119,7 @@ public sealed class SecurityAssessmentDetailsHousekeepingHostedService(
 
         if (swept > 0)
         {
-            logger.LogDebug("{family} details housekeeping - {swept} checks removed.", familyName, swept);
+            logger.LogDebug("{family} details housekeeping - {swept} details removed.", familyName, swept);
         }
     }
 }

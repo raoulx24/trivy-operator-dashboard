@@ -9,11 +9,14 @@ using TrivyOperator.Dashboard.Application.Kubernetes.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstractions;
 using TrivyOperator.Dashboard.Application.Metrics.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventPipelineStarters.Abstractions;
-using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Details.KubernetesEventProcessors;
+using TrivyOperator.Dashboard.Application.Shared.Details.Options;
+using TrivyOperator.Dashboard.Application.Shared.Details.Services;
 using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.KubernetesEventProcessors;
-using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Options;
 using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Providers;
-using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Services;
+using TrivyOperator.Dashboard.Application.Trivy.VulnerabilityDetails.KubernetesEventProcessors;
+using TrivyOperator.Dashboard.Application.Trivy.VulnerabilityDetails.Providers;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Severities.Services;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Severities.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Options;
@@ -44,12 +47,14 @@ using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.Vulnerabi
 using TrivyOperator.Dashboard.Composition.Configuration;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Stores;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs;
 using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Codecs.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
@@ -99,7 +104,7 @@ public static class TrivyReportServiceRegistrationExtensions
     {
         services.Configure<FileExportOptions>(configuration.GetSection("FileExport"));
 
-        services.AddOptions<SecurityAssessmentDetailsOptions>().Bind(configuration.GetSection("SecurityAssessmentDetails"));
+        services.AddOptions<DetailsOptions>().Bind(configuration.GetSection("Details"));
 
         services.AddSingleton<ICrdFactory, TrivyReportCrdFactory>();
         
@@ -185,11 +190,13 @@ public static class TrivyReportServiceRegistrationExtensions
         // in memory cache
         // -- codec - registered above
         // services.AddSingleton<ICacheEntityCodec, BrotliMemoryPackCacheEntityCodec>();
-        // -- the security assessments keep a slim report here; their check data is in a store of its own
-        bool isSecurityAssessment = services.TryAddSecurityAssessmentSlimServices(typeof(TReport));
+        // -- the security assessments and the vulnerability reports keep a slim report here;
+        //    their shared data (checks, vulnerability definitions, package vulnerabilities) is in stores of its own
+        bool isSlim = services.TryAddSecurityAssessmentSlimServices(typeof(TReport)) ||
+                      services.TryAddVulnerabilitySlimServices(typeof(TReport));
 
         // -- cache entry builder
-        if (!isSecurityAssessment)
+        if (!isSlim)
             services.AddCacheEntryBuilder(typeof(TReport));
         // services.AddSingleton<
         //     ICacheEntryBuilder<VulnerabilityReport, Digest>,
@@ -199,7 +206,7 @@ public static class TrivyReportServiceRegistrationExtensions
             IResourceDictionaryCache<TId, CacheEntry<TReport, TId>>,
             ResourceDictionaryCache<TId, CacheEntry<TReport, TId>>>();     
         // -- IResourceStore (in part) and IResourceProvider (out part)
-        if (!isSecurityAssessment)
+        if (!isSlim)
             services.AddReportInMemoryCache(typeof(TReport));
 
         // kubernetes infra service, event pipeline starter, watcher
@@ -216,8 +223,8 @@ public static class TrivyReportServiceRegistrationExtensions
             KubernetesEventDispatcher<TReport,TId>>();
         
         // kubernetes event processors
-        // -- resource store (the security assessments register theirs above)
-        if (!isSecurityAssessment)
+        // -- resource store (the slim reports register theirs above)
+        if (!isSlim)
             services.AddSingleton<
                 IKubernetesEventProcessor<TReport,TId>,
                 ResourceStoreUpdater<TReport,TId>>();
@@ -435,11 +442,99 @@ public static class TrivyReportServiceRegistrationExtensions
                 sp.GetRequiredService<ResourceStoreUpdater<TSlim, Uid>>()));
     }
 
+    // the vulnerability reports keep a slim report in the report cache and the vulnerability data in stores of their own
+    // (vulnerability definitions and package vulnerabilities), shared by the namespaced and the cluster scoped reports
+    // returns false for the other report types
+    private static bool TryAddVulnerabilitySlimServices(this IServiceCollection services, Type reportType)
+    {
+        const string family = "Vulnerability";
+
+        switch (reportType.Name)
+        {
+            case nameof(ClusterVulnerabilityReport):
+                // slim report cache - IResourceStore (in part) and IResourceProvider (out part)
+                services.AddSingleton<InMemoryResourceReportCache<ClusterVulnerabilityReportSlim>>();
+                services.AddSingleton<IResourceStore<ClusterVulnerabilityReportSlim, Uid>>(sp =>
+                    sp.GetRequiredService<InMemoryResourceReportCache<ClusterVulnerabilityReportSlim>>());
+                services.AddSingleton<IResourceProvider<ClusterVulnerabilityReportSlim, Uid>>(sp =>
+                    sp.GetRequiredService<InMemoryResourceReportCache<ClusterVulnerabilityReportSlim>>());
+
+                services.AddVulnerabilitySlimServices<ClusterVulnerabilityReport, ClusterVulnerabilityReportSlim, Uid>(family);
+                return true;
+
+            case nameof(VulnerabilityReport):
+                // slim report cache - IResourceStore (in part) and IResourceProvider (out part)
+                services.AddSingleton<InMemoryImageReportCache<VulnerabilityReportSlim>>();
+                services.AddSingleton<IResourceStore<VulnerabilityReportSlim, Digest>>(sp =>
+                    sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReportSlim>>());
+                services.AddSingleton<IResourceProvider<VulnerabilityReportSlim, Digest>>(sp =>
+                    sp.GetRequiredService<InMemoryImageReportCache<VulnerabilityReportSlim>>());
+
+                services.AddVulnerabilitySlimServices<VulnerabilityReport, VulnerabilityReportSlim, Digest>(family);
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static void AddVulnerabilitySlimServices<TReport, TSlim, TId>(
+        this IServiceCollection services,
+        string family)
+        where TReport : class, IVulnerabilityReport<TReport, TId>, ISlimmable<TSlim>
+        where TSlim : class, IVulnerabilitySlimReport<TSlim, TReport, TId>
+        where TId : notnull
+    {
+        services.AddDetails<VulnerabilityDefinition, VulnerabilityId>(family);
+        services.AddDetails<PackageVulnerability, PackageVulnerabilityKey>(family);
+
+        // slim report cache (the store and the provider are added by the caller, they depend on the key)
+        services.AddSingleton<ICacheEntryBuilder<TSlim, TId>, PassthroughCacheEntryBuilder<TSlim, TId>>();
+        services.AddSingleton<
+            IResourceDictionaryCache<TId, CacheEntry<TSlim, TId>>,
+            ResourceDictionaryCache<TId, CacheEntry<TSlim, TId>>>();
+
+        // the full report, for the query services
+        services.AddSingleton<IResourceProvider<TReport, TId>>(sp =>
+            new HydratingVulnerabilityReportProvider<TReport, TSlim, TId>(
+                sp.GetRequiredService<IResourceProvider<TSlim, TId>>(),
+                sp.GetRequiredKeyedService<InMemoryDetailRepository<VulnerabilityDefinition, VulnerabilityId>>(family),
+                sp.GetRequiredKeyedService<InMemoryDetailRepository<PackageVulnerability, PackageVulnerabilityKey>>(family),
+                sp.GetRequiredService<ILogger<HydratingVulnerabilityReportProvider<TReport, TSlim, TId>>>()));
+
+        // the details referenced by the stored reports, for the housekeeping
+        services.AddKeyedSingleton<IDetailReferenceProvider<VulnerabilityId>>(family, (sp, _) =>
+            new InMemoryVulnerabilityDefinitionReferenceProvider<TSlim, TReport, TId>(
+                sp.GetRequiredService<IResourceDictionaryCache<TId, CacheEntry<TSlim, TId>>>()));
+        services.AddKeyedSingleton<IDetailReferenceProvider<PackageVulnerabilityKey>>(family, (sp, _) =>
+            new InMemoryPackageVulnerabilityReferenceProvider<TSlim, TReport, TId>(
+                sp.GetRequiredService<IResourceDictionaryCache<TId, CacheEntry<TSlim, TId>>>()));
+
+        // kubernetes event processors
+        // -- the details go first, so they are in their stores before the report is in its own
+        services.AddSingleton<IKubernetesEventProcessor<TReport, TId>>(sp =>
+            new VulnerabilityDetailsCollector<TReport, TId>(
+                sp.GetRequiredKeyedService<InMemoryDetailRepository<VulnerabilityDefinition, VulnerabilityId>>(family),
+                sp.GetRequiredKeyedService<InMemoryDetailRepository<PackageVulnerability, PackageVulnerabilityKey>>(family),
+                sp.GetRequiredService<ILogger<VulnerabilityDetailsCollector<TReport, TId>>>()));
+        // -- slim report store
+        services.AddSingleton<ResourceStoreUpdater<TSlim, TId>>();
+        services.AddSingleton<IKubernetesEventProcessor<TReport, TId>>(sp =>
+            new SlimProjectionProcessor<TReport, TSlim, TId>(
+                sp.GetRequiredService<ResourceStoreUpdater<TSlim, TId>>()));
+    }
+
     // one checks store and one housekeeping per family, added once
     private static void AddSecurityAssessmentDetails(this IServiceCollection services, string family)
+        => services.AddDetails<Check, CheckId>(family);
+
+    // one details store and one housekeeping per family and detail type, added once
+    private static void AddDetails<TDetail, TId>(this IServiceCollection services, string family)
+        where TDetail : class, IDetail<TId>
+        where TId : notnull
     {
         bool isAdded = services.Any(x =>
-            x.ServiceType == typeof(InMemoryDetailRepository<Check, CheckId>) &&
+            x.ServiceType == typeof(InMemoryDetailRepository<TDetail, TId>) &&
             x.ServiceKey is string key && key == family);
 
         if (isAdded)
@@ -447,20 +542,20 @@ public static class TrivyReportServiceRegistrationExtensions
             return;
         }
 
-        services.AddKeyedSingleton<InMemoryDetailRepository<Check, CheckId>>(family, (sp, _) =>
-            new InMemoryDetailRepository<Check, CheckId>(
-                new ResourceDictionaryCache<CheckId, DetailEntry<Check>>(sp.GetRequiredService<IMetricsClient>()),
+        services.AddKeyedSingleton<InMemoryDetailRepository<TDetail, TId>>(family, (sp, _) =>
+            new InMemoryDetailRepository<TDetail, TId>(
+                new ResourceDictionaryCache<TId, DetailEntry<TDetail>>(sp.GetRequiredService<IMetricsClient>()),
                 sp.GetRequiredService<IKubernetesContextResolver>(),
-                sp.GetRequiredService<IOptionsMonitor<SecurityAssessmentDetailsOptions>>(),
-                sp.GetRequiredService<ILogger<InMemoryDetailRepository<Check, CheckId>>>()));
+                sp.GetRequiredService<IOptionsMonitor<DetailsOptions>>(),
+                sp.GetRequiredService<ILogger<InMemoryDetailRepository<TDetail, TId>>>()));
 
         services.AddHostedService(sp =>
-            new SecurityAssessmentDetailsHousekeepingHostedService(
-                family,
-                sp.GetRequiredService<IOptionsMonitor<SecurityAssessmentDetailsOptions>>(),
-                sp.GetRequiredKeyedService<InMemoryDetailRepository<Check, CheckId>>(family),
-                [.. sp.GetKeyedServices<IDetailReferenceProvider<CheckId>>(family),],
-                sp.GetRequiredService<ILogger<SecurityAssessmentDetailsHousekeepingHostedService>>()));
+            new DetailsHousekeepingHostedService<TDetail, TId>(
+                $"{family} {typeof(TDetail).Name}",
+                sp.GetRequiredService<IOptionsMonitor<DetailsOptions>>(),
+                sp.GetRequiredKeyedService<InMemoryDetailRepository<TDetail, TId>>(family),
+                [.. sp.GetKeyedServices<IDetailReferenceProvider<TId>>(family),],
+                sp.GetRequiredService<ILogger<DetailsHousekeepingHostedService<TDetail, TId>>>()));
     }
     private static void AddReportMapper(this IServiceCollection services, Type reportType)
     {

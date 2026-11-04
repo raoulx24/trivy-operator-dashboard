@@ -1,6 +1,6 @@
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 
-namespace TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Abstractions;
+namespace TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
 
 public interface IDetailReferenceProvider<TDetailId>
 {
