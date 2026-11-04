@@ -18,7 +18,7 @@ public static class ConfigAuditReportExtensions
             MediumCount: report.SeverityCounters.MediumCount,
             LowCount: report.SeverityCounters.LowCount,
             UpdateTimestamp: report.LastSeenAt.Value,
-            Details: [.. report.Checks.Select(x => x.ToDto()),]
+            Details: [.. report.Checks.ToDetailDtos(),]
         );
     }
 
@@ -30,11 +30,8 @@ public static class ConfigAuditReportExtensions
         string resourceNamespace = report.Metadata.NamespaceName.Value;
         string resourceKind = report.Metadata.GetResourceKind().Value;
 
-        return report.Checks.Select(check =>
-        {
-            SecurityAssessmentReportDetailDto detail = check.ToDto();
-
-            return new ConfigAuditReportDenormalizedDto(
+        return report.Checks.ToDetailDtos().Select(detail =>
+            new ConfigAuditReportDenormalizedDto(
                 Uid: uid,
                 ResourceName: resourceName,
                 ResourceNamespace: resourceNamespace,
@@ -43,12 +40,11 @@ public static class ConfigAuditReportExtensions
                 Category: detail.Category,
                 CheckId: detail.CheckId,
                 Description: detail.Description,
-                Messages: detail.Messages,
                 Remediation: detail.Remediation,
                 SeverityId: detail.SeverityId,
-                Success: detail.Success,
-                Title: detail.Title
-            );
-        });
+                Title: detail.Title,
+                Count: detail.Count
+            )
+        );
     }
 }

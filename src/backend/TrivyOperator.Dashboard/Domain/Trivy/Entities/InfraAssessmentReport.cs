@@ -12,10 +12,13 @@ public sealed record InfraAssessmentReport(
     SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport<InfraAssessmentReport>, ISecurityAssessmentReport<InfraAssessmentReport, Uid>, IHasSeverityCounters, INamespacedTrivyReport
+    : IResourceReport<InfraAssessmentReport>, ISecurityAssessmentReport<InfraAssessmentReport, Uid>, ISlimmable<InfraAssessmentReportSlim>,IHasSeverityCounters, INamespacedTrivyReport
 {
     public Uid Id => Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;
+
+    public InfraAssessmentReportSlim ToSlim()
+        => new(Metadata, Scanner, SeverityCounters, LastSeenAt, [.. Checks.Select(static x => x.CheckId),]);
 
     public InfraAssessmentReport WithChecks(IReadOnlyList<Check> checks)
         => this with { Checks = checks, };

@@ -191,15 +191,6 @@ export const configAuditReportDenormalizedColumns: readonly TrivyTableColumn[] =
     style: 'width: 360px; max-width: 360px; white-space: normal;',
     renderType: 'standard',
   },
-  {
-    field: 'messages',
-    header: 'Messages',
-    isFilterable: true,
-    isSortable: true,
-    multiSelectType: 'none',
-    style: 'width: 500px; max-width: 500px; white-space: normal;',
-    renderType: 'multiline',
-  },
 ];
 
 export const configAuditReportComparedTableColumns: readonly TrivyTableColumn[] = [

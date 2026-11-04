@@ -53,7 +53,7 @@ export class GenericMasterDetailComponent<
   mainTableStateKey = input<string | undefined>(undefined);
   mainTableDataKey = input<string | undefined>(undefined);
   mainTableRowHeight = input<number>(39);
-  mainTableRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
+  mainTableRowExpansionRender = input<'table' | undefined>(undefined);
   mainTableExtraClasses = input<string | undefined>(undefined);
   mainTableMultiHeaderActions = input<MultiHeaderAction[]>([]);
   mainTableRowDimmer = input<((row: TDataSet) => boolean) | undefined>();
@@ -70,7 +70,7 @@ export class GenericMasterDetailComponent<
   detailsStateKey = input<string | undefined>(undefined);
   detailsDataKey = input<string | undefined>(undefined);
   detailsRowHeight = input<number>(39);
-  detailsRowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
+  detailsRowExpansionRender = input<'table' | undefined>(undefined);
   detailsExtraClasses = input<string | undefined>(undefined);
   detailsMultiHeaderActions = input<MultiHeaderAction[]>([]);
   detailsRowDimmer = input<((row: TDataSetDetail) => boolean) | undefined>();

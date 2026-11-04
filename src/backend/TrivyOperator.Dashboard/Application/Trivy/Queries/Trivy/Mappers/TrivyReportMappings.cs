@@ -109,8 +109,19 @@ public static class TrivyReportMappings
             : DeterministicId.Create(value.Value).ToString();
     }
     
-    internal static SecurityAssessmentReportDetailDto ToDto(
-        this Domain.Trivy.ValueObjects.SecurityAssessments.Check check)
+    // one row per check, with the number of times it is in the report
+    // (a check failing for several containers is in the report several times)
+    internal static IEnumerable<SecurityAssessmentReportDetailDto> ToDetailDtos(
+        this IEnumerable<Domain.Trivy.ValueObjects.SecurityAssessments.Check> checks)
+    {
+        return checks
+            .GroupBy(static x => x.CheckId)
+            .Select(static x => x.First().ToDto(x.Count()));
+    }
+
+    private static SecurityAssessmentReportDetailDto ToDto(
+        this Domain.Trivy.ValueObjects.SecurityAssessments.Check check,
+        int count)
     {
         return new SecurityAssessmentReportDetailDto(
             Id: check.CheckId.Value,
@@ -118,11 +129,10 @@ public static class TrivyReportMappings
             Category: check.Category.Value,
             CheckId: check.CheckId.Value,
             Description: check.Description.Value,
-            Messages: check.Messages,
             Remediation: check.Remediation.Value,
             SeverityId: check.Severity.Rank,
-            Success: check.Success,
-            Title: check.Title.Value
+            Title: check.Title.Value,
+            Count: count
         );
     }
 

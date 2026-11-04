@@ -41,7 +41,8 @@ public static class SecurityAssessmentMappingExtensions
 
         SeverityCounters severityCounters = cr.Report.Summary.ToSeverityCounters();
 
-        List<Check> checks = [.. cr.Report.Checks.Select(ToCheck),];
+        // only the failing checks are kept
+        List<Check> checks = [.. cr.Report.Checks.Where(static x => x?.Success != true).Select(ToCheck),];
 
         TDest incoming = TrivyReportFactory.CreateSecurityAssessment<TDest>(
             metadata,
@@ -61,10 +62,8 @@ public static class SecurityAssessmentMappingExtensions
             new Category(source.Category),
             new CheckId(source.CheckId),
             new Description(source.Description),
-            source.Messages ?? [],
             new Remediation(source.Remediation),
             new Severity(source.SeverityCr.ToString()),
-            source.Success,
             new Title(source.Title)
         );
     }

@@ -18,28 +18,27 @@ public static class InfraAssessmentReportMappings
             MediumCount: report.SeverityCounters.MediumCount,
             LowCount: report.SeverityCounters.LowCount,
             UpdateTimestamp: report.LastSeenAt.Value,
-            Details: [.. report.Checks.Select(static x => x.ToDto()),]
+            Details: [.. report.Checks.ToDetailDtos(),]
         );
     }
 
     public static IEnumerable<InfraAssessmentReportDenormalizedDto> ToDenormalizedDtos(
         this InfraAssessmentReport report)
     {
-        return report.Checks.Select(check =>
+        return report.Checks.ToDetailDtos().Select(detail =>
             new InfraAssessmentReportDenormalizedDto(
                 Uid: report.Metadata.Uid.Value,
                 ResourceName: report.Metadata.GetResourceName().Value,
                 ResourceNamespace: report.Metadata.NamespaceName.Value,
                 ResourceKind: report.Metadata.GetResourceKind().Value,
                 UpdateTimestamp: report.LastSeenAt.Value,
-                Category: check.Category.Value,
-                CheckId: check.CheckId.Value,
-                Description: check.Description.Value,
-                Messages: check.Messages,
-                Remediation: check.Remediation.Value,
-                SeverityId: check.Severity.Rank,
-                Success: check.Success,
-                Title: check.Title.Value
+                Category: detail.Category,
+                CheckId: detail.CheckId,
+                Description: detail.Description,
+                Remediation: detail.Remediation,
+                SeverityId: detail.SeverityId,
+                Title: detail.Title,
+                Count: detail.Count
             )
         );
     }

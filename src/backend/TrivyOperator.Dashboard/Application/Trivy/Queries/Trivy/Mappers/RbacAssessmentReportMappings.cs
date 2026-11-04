@@ -17,18 +17,15 @@ public static class RbacAssessmentReportMappings
             MediumCount: report.SeverityCounters.MediumCount,
             LowCount: report.SeverityCounters.LowCount,
             UpdateTimestamp: report.Metadata.CreationTimestamp.Value,
-            Details: [.. report.Checks.Select(x => x.ToDto()),]
+            Details: [.. report.Checks.ToDetailDtos(),]
         );
     }
 
     public static IEnumerable<RbacAssessmentReportDenormalizedDto> ToDenormalizedDtos(
         this RbacAssessmentReport report)
     {
-        return report.Checks.Select(check =>
-        {
-            SecurityAssessmentReportDetailDto detail = check.ToDto();
-
-            return new RbacAssessmentReportDenormalizedDto(
+        return report.Checks.ToDetailDtos().Select(detail =>
+            new RbacAssessmentReportDenormalizedDto(
                 Uid: report.Metadata.Uid.Value,
                 ResourceName: report.Metadata.GetResourceName().Value,
                 ResourceNamespace: report.Metadata.NamespaceName.Value,
@@ -36,12 +33,11 @@ public static class RbacAssessmentReportMappings
                 Category: detail.Category,
                 CheckId: detail.CheckId,
                 Description: detail.Description,
-                Messages: detail.Messages,
                 Remediation: detail.Remediation,
                 SeverityId: detail.SeverityId,
-                Success: detail.Success,
-                Title: detail.Title
-            );
-        });
+                Title: detail.Title,
+                Count: detail.Count
+            )
+        );
     }
 }

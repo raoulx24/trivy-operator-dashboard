@@ -47,11 +47,10 @@ public sealed record SecurityAssessmentReportDetailDto(
     string Category,
     string CheckId,
     string Description,
-    IReadOnlyList<string> Messages,
     string Remediation,
     int SeverityId,
-    bool Success,
-    string Title
+    string Title,
+    int Count
 );
 
 public sealed record TrivyReportImageInfoDto(

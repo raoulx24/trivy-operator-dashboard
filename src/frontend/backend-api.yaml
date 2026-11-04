@@ -2092,19 +2092,16 @@ components:
           type: string
         description:
           type: string
-        messages:
-          type: array
-          items:
-            type: string
         remediation:
           type: string
         severityId:
           type: integer
           format: int32
-        success:
-          type: boolean
         title:
           type: string
+        count:
+          type: integer
+          format: int32
       additionalProperties: false
     ClusterConfigAuditReportDto:
       type: object
@@ -2153,19 +2150,16 @@ components:
           type: string
         description:
           type: string
-        messages:
-          type: array
-          items:
-            type: string
         remediation:
           type: string
         severityId:
           type: integer
           format: int32
-        success:
-          type: boolean
         title:
           type: string
+        count:
+          type: integer
+          format: int32
       additionalProperties: false
     ClusterInfraAssessmentReportDto:
       type: object
@@ -2224,19 +2218,16 @@ components:
           type: string
         description:
           type: string
-        messages:
-          type: array
-          items:
-            type: string
         remediation:
           type: string
         severityId:
           type: integer
           format: int32
-        success:
-          type: boolean
         title:
           type: string
+        count:
+          type: integer
+          format: int32
       additionalProperties: false
     ClusterRbacAssessmentReportDto:
       type: object
@@ -2487,19 +2478,16 @@ components:
           type: string
         description:
           type: string
-        messages:
-          type: array
-          items:
-            type: string
         remediation:
           type: string
         severityId:
           type: integer
           format: int32
-        success:
-          type: boolean
         title:
           type: string
+        count:
+          type: integer
+          format: int32
       additionalProperties: false
     ConfigAuditReportDto:
       type: object
@@ -3060,19 +3048,16 @@ components:
           type: string
         description:
           type: string
-        messages:
-          type: array
-          items:
-            type: string
         remediation:
           type: string
         severityId:
           type: integer
           format: int32
-        success:
-          type: boolean
         title:
           type: string
+        count:
+          type: integer
+          format: int32
       additionalProperties: false
     InfraAssessmentReportDto:
       type: object
@@ -3251,19 +3236,16 @@ components:
           type: string
         description:
           type: string
-        messages:
-          type: array
-          items:
-            type: string
         remediation:
           type: string
         severityId:
           type: integer
           format: int32
-        success:
-          type: boolean
         title:
           type: string
+        count:
+          type: integer
+          format: int32
       additionalProperties: false
     RbacAssessmentReportDto:
       type: object
@@ -3510,19 +3492,16 @@ components:
           type: string
         description:
           type: string
-        messages:
-          type: array
-          items:
-            type: string
         remediation:
           type: string
         severityId:
           type: integer
           format: int32
-        success:
-          type: boolean
         title:
           type: string
+        count:
+          type: integer
+          format: int32
       additionalProperties: false
     SeverityDto:
       type: object

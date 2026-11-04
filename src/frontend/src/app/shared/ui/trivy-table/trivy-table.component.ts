@@ -130,7 +130,7 @@ export class TrivyTableComponent<TData> implements OnInit {
   // row expand
   dataKey = input<string | undefined>(undefined);
   rowExpandData = input<TrivyTableExpandRowData<TData>>();
-  rowExpansionRender = input<'messages' | 'table' | undefined>(undefined);
+  rowExpansionRender = input<'table' | undefined>(undefined);
 
   // row dimmer
   rowDimmer = input<((row: TData) => boolean) | undefined>();

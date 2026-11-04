@@ -23,9 +23,8 @@ public sealed record ClusterRbacAssessmentReportDenormalizedDto(
     string Category,
     string CheckId,
     string Description,
-    IReadOnlyList<string> Messages,
     string Remediation,
     int SeverityId,
-    bool Success,
-    string Title
+    string Title,
+    int Count
 );

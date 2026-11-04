@@ -592,13 +592,6 @@
         <tr>
           <td [attr.colspan]="trivyTableColumns().length + 1">
             @switch (rowExpansionRender()) {
-              @case ('messages') {
-                <div class="pl-4 whitespace-normal">
-                  @for (mess of rowData.messages; track $index) {
-                    <li>{{ mess }}</li>
-                  }
-                </div>
-              }
               @case ('table') {
                 <div class="pl-4">
                   @if (_rowExpandMap.getAsync(rowData) | async; as rowExpandData) {
@@ -658,13 +651,6 @@
                         }
                       </ng-template>
                     </p-table>
-                  }
-                </div>
-              }
-              @case ('messages') {
-                <div class="pl-4 whitespace-normal">
-                  @for (mess of rowData.messages; track $index) {
-                    <li>{{ mess }}</li>
                   }
                 </div>
               }

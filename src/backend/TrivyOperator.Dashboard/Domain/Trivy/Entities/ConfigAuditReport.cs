@@ -12,10 +12,13 @@ public sealed record ConfigAuditReport(
     SeverityCounters SeverityCounters,
     Timestamp LastSeenAt,
     IReadOnlyList<Check> Checks)
-    : IResourceReport<ConfigAuditReport>, ISecurityAssessmentReport<ConfigAuditReport, Uid>, IHasSeverityCounters, INamespacedTrivyReport
+    : IResourceReport<ConfigAuditReport>, ISecurityAssessmentReport<ConfigAuditReport, Uid>, ISlimmable<ConfigAuditReportSlim>,IHasSeverityCounters, INamespacedTrivyReport
 {
     public Uid Id => Metadata.Uid;
     public bool HasNamespaceName(NamespaceName namespaceName) => Metadata.NamespaceName == namespaceName;
+
+    public ConfigAuditReportSlim ToSlim()
+        => new(Metadata, Scanner, SeverityCounters, LastSeenAt, [.. Checks.Select(static x => x.CheckId),]);
 
     public ConfigAuditReport WithChecks(IReadOnlyList<Check> checks)
         => this with { Checks = checks, };

@@ -17,18 +17,15 @@ public static class ClusterConfigAuditReportExtensions
             MediumCount: report.SeverityCounters.MediumCount,
             LowCount: report.SeverityCounters.LowCount,
             UpdateTimestamp: report.LastSeenAt.Value,
-            Details: [.. report.Checks.Select(static x => x.ToDto()),]
+            Details: [.. report.Checks.ToDetailDtos(),]
         );
     }
 
     public static IEnumerable<ClusterConfigAuditReportDenormalizedDto> ToClusterDenormalizedDtos(
             this ClusterConfigAuditReport report)
     {
-        return report.Checks.Select(check =>
-        {
-            SecurityAssessmentReportDetailDto detail = check.ToDto();
-
-            return new ClusterConfigAuditReportDenormalizedDto(
+        return report.Checks.ToDetailDtos().Select(detail =>
+            new ClusterConfigAuditReportDenormalizedDto(
                 Uid: report.Metadata.Uid.Value,
                 ResourceName: report.Metadata.GetResourceName().Value,
                 ResourceKind: report.Metadata.GetResourceKind().Value,
@@ -40,12 +37,11 @@ public static class ClusterConfigAuditReportExtensions
                 Category: detail.Category,
                 CheckId: detail.CheckId,
                 Description: detail.Description,
-                Messages: detail.Messages,
                 Remediation: detail.Remediation,
                 SeverityId: detail.SeverityId,
-                Success: detail.Success,
-                Title: detail.Title
-            );
-        });
+                Title: detail.Title,
+                Count: detail.Count
+            )
+        );
     }
 }

@@ -16,18 +16,15 @@ public static class ClusterRbacAssessmentReportMappings
             MediumCount: report.SeverityCounters.MediumCount,
             LowCount: report.SeverityCounters.LowCount,
             UpdateTimestamp: report.LastSeenAt.Value,
-            Details: [.. report.Checks.Select(x => x.ToDto()),]
+            Details: [.. report.Checks.ToDetailDtos(),]
         );
     }
 
     public static IEnumerable<ClusterRbacAssessmentReportDenormalizedDto> ToDenormalizedDtos(
         this ClusterRbacAssessmentReport report)
     {
-        return report.Checks.Select(controlCheck =>
-        {
-            SecurityAssessmentReportDetailDto detail = controlCheck.ToDto();
-
-            return new ClusterRbacAssessmentReportDenormalizedDto(
+        return report.Checks.ToDetailDtos().Select(detail =>
+            new ClusterRbacAssessmentReportDenormalizedDto(
                 Uid: report.Metadata.Uid.ToString(),
                 ResourceName: report.Metadata.GetResourceName().Value,
                 CriticalCount: report.SeverityCounters.CriticalCount,
@@ -38,12 +35,11 @@ public static class ClusterRbacAssessmentReportMappings
                 Category: detail.Category,
                 CheckId: detail.CheckId,
                 Description: detail.Description,
-                Messages: detail.Messages,
                 Remediation: detail.Remediation,
                 SeverityId: detail.SeverityId,
-                Success: detail.Success,
-                Title: detail.Title
-            );
-        });
+                Title: detail.Title,
+                Count: detail.Count
+            )
+        );
     }
 }
