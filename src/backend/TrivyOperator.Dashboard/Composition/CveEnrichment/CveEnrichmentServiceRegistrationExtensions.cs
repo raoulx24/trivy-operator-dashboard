@@ -35,6 +35,12 @@ public static class CveEnrichmentServiceRegistrationExtensions
                 services.AddScoped<ICveEnrichmentService, CveEnrichmentNullService>();
                 return;
 
+            case CveEnrichmentCompositionMode.NoDefaultContext:
+                CompositionLogger.Logger?.LogInformation(
+                    "CVE Enrichment related services are disabled - vulnerability reports are watched only in the default context");
+                services.AddScoped<ICveEnrichmentService, CveEnrichmentNullService>();
+                return;
+
             case CveEnrichmentCompositionMode.Enabled:
                 CompositionLogger.Logger?.LogInformation("Adding CVE Enrichment related services");
                 services.AddCveEnrichmentServices(configuration);
@@ -48,7 +54,7 @@ public static class CveEnrichmentServiceRegistrationExtensions
     // 2nd level - services registration
     private static void AddCveEnrichmentServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // the subjects (ICache<CveId, Timestamp>) are registered by CVE Subjects
+        // the subjects (ICveSubjects) are registered by CVE Subjects
         // public - the enrichment, each source writes its own part
         services.AddSingleton<ICache<CveId, CveInfo>, Cache<CveId, CveInfo>>();
 

@@ -8,12 +8,13 @@ using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.Nvd.Queries.Services;
 
-// - only CVE subjects (the CVEs of the current vulnerability reports) - the dashboard is not an open proxy to NVD
+// - only NVD subjects (the CVEs of the vulnerability reports of the current context) - not an open proxy to NVD;
+//   without subjects (Nvd:AllowAnyCve) any CVE is looked up
 // - only Ok is cached, until the whole cache expires; NotListed and Error are not, so asking again retries
 // - concurrent requests for the same CVE share one NVD call
 // singleton - it holds the in-flight calls
 public class NvdService(
-    ICache<CveId, Timestamp> subjects,
+    INvdSubjects? subjects,
     ICache<CveId, CveSourceResult<NvdInfo>> cache,
     INvdProvider provider) : INvdService
 {
@@ -30,7 +31,7 @@ public class NvdService(
             return NvdCveResult.Of(NvdLookupOutcomes.InvalidId);
         }
 
-        if (!subjects.ContainsKey(id))
+        if (subjects is not null && !await subjects.Contains(id, ctx))
         {
             return NvdCveResult.Of(NvdLookupOutcomes.NotSubject);
         }

@@ -58,6 +58,8 @@ public static class KubernetesServiceRegistrationExtensions
         {
             case KubernetesCompositionMode.Disabled:
                 CompositionLogger.Logger?.LogInformation("Kubernetes related services are disabled");
+                // the contexts endpoint is still called by the frontend - no contexts
+                services.AddScoped<IKubernetesContextService, KubernetesContextNullService>();
                 return;
 
             case KubernetesCompositionMode.DefaultContext:
@@ -166,6 +168,8 @@ public static class KubernetesServiceRegistrationExtensions
 
         // cache entry builder
         services.AddSingleton<ICacheEntryBuilder<KubernetesNamespace, Uid>, KubernetesNamespaceCacheEntryBuilder>();
+        services.AddSingleton<ICacheEntryBuilder<KubernetesNamespace, KubernetesNamespace, Uid>>(sp =>
+            sp.GetRequiredService<ICacheEntryBuilder<KubernetesNamespace, Uid>>());
         
         // ICacheEntityCodec is registered by the Trivy composition root
 
@@ -180,13 +184,13 @@ public static class KubernetesServiceRegistrationExtensions
             UidKeyedResourceAggregator<V1Namespace, KubernetesNamespace>>();
 
         // resource provider
-        services.AddSingleton<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>();
+        services.AddSingleton<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, KubernetesNamespace, Uid>>();
         services.AddSingleton<
             IExpiringResourceProvider<KubernetesNamespace, Uid>>(
-            sp => sp.GetRequiredService<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>());
+            sp => sp.GetRequiredService<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, KubernetesNamespace, Uid>>());
         services.AddSingleton<
             IResourceProvider<KubernetesNamespace, Uid>>(
-            sp => sp.GetRequiredService<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, Uid>>());
+            sp => sp.GetRequiredService<KubernetesResourceProvider<V1Namespace, KubernetesNamespace, KubernetesNamespace, Uid>>());
         
         // query service
         services.AddScoped<IKubernetesNamespaceService, KubernetesNamespaceService>();

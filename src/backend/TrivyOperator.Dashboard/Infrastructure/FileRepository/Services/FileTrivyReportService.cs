@@ -55,6 +55,14 @@ public class FileTrivyReportService<TKubernetesObject, TReport, TKey>(
         Task<IReadOnlyDictionary<TKey, TReport>> aggregation =
             aggregator.AggregateFromChannelAsync(channel.Reader, ctx);
 
+        // a failed aggregation reads no more - close the channel so the readers waiting to write do not hang
+        _ = aggregation.ContinueWith(
+            static (task, writer) => ((ChannelWriter<TKubernetesObject>)writer!).TryComplete(task.Exception),
+            channel.Writer,
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted,
+            TaskScheduler.Default);
+
         Task[] readers = files
             .Select(file => DeserializeFileAsync(
                 file,
@@ -67,13 +75,16 @@ public class FileTrivyReportService<TKubernetesObject, TReport, TKey>(
         {
             await Task.WhenAll(readers);
 
-            channel.Writer.Complete();
+            // completed already when the aggregation failed (see above); awaiting it then throws its exception
+            channel.Writer.TryComplete();
 
             return await aggregation;
         }
         catch (Exception ex)
         {
-            channel.Writer.Complete(ex);
+            // the channel may be completed already (the aggregation failed after the files were read);
+            // Complete would throw then and hide the original exception
+            channel.Writer.TryComplete(ex);
 
             throw;
         }

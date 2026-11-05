@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
@@ -13,11 +14,11 @@ public static class CveInfoCacheExtensions
     // returns true if the stored value changed
     public static bool UpdatePart(
         this ICache<CveId, CveInfo> infos,
-        ICache<CveId, Timestamp> subjects,
+        ICveSubjects subjects,
         CveId id,
         Func<CveInfo, CveInfo> update)
     {
-        while (subjects.ContainsKey(id))
+        while (subjects.Contains(id))
         {
             if (!infos.TryGetValue(id, out CveInfo? current))
             {

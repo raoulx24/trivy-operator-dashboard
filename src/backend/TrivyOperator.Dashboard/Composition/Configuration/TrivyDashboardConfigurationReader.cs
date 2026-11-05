@@ -112,6 +112,9 @@ public static class TrivyDashboardConfigurationReader
     internal static bool LoadUseNvd(this IConfiguration config)
         => config.GetValue("Nvd:Enabled", true);
 
+    internal static bool LoadNvdAllowAnyCve(this IConfiguration config)
+        => config.GetValue("Nvd:AllowAnyCve", false);
+
     // VulnerabilityReport or ClusterVulnerabilityReport - the only sources of CVEs and OS info
     internal static bool LoadUseAnyVulnerabilityReport(this IConfiguration config)
     {
@@ -120,6 +123,11 @@ public static class TrivyDashboardConfigurationReader
         return enabledReports.GetValueOrDefault(nameof(VulnerabilityReport)) ||
                enabledReports.GetValueOrDefault(nameof(ClusterVulnerabilityReport));
     }
+
+    // the vulnerability reports are watched (event pipeline, slim reports and their details stores) only in the
+    // default context; in the file repository and multi-context modes they are read on demand
+    internal static bool LoadWatchVulnerabilityReports(this IConfiguration config)
+        => !config.LoadUseFileRepository() && config.LoadUseDefaultContext();
     
     internal static int GetPort(this IConfiguration configuration, string key, int defaultPort)
     {

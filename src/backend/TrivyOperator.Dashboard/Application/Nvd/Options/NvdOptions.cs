@@ -4,11 +4,14 @@
 // (InMemoryCache:ExpireInMinutes without any read)
 // the NVD rate limit is applied locally, failing fast: 5 requests per 30s without an api key, 50 with one
 // ApiKey - optional; request one at https://nvd.nist.gov/developers/request-an-api-key
+// AllowAnyCve - any CVE can be looked up, not only the CVE subjects: the dashboard becomes a proxy to NVD (and spends
+// its rate limit on whatever is asked); NVD then needs no vulnerability reports. Read at startup for the composition
 public class NvdOptions
 {
     public bool Enabled { get; init; } = true;
     public string BaseUrl { get; init; } = "https://services.nvd.nist.gov/rest/json/cves/2.0";
     public string? ApiKey { get; init; }
+    public bool AllowAnyCve { get; init; }
 
     public int RequestTimeoutInSeconds { get; init; } = 30;
 }

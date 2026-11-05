@@ -1,6 +1,7 @@
 ﻿using TrivyOperator.Dashboard.Application.CveEnrichment.Abstractions;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
@@ -16,7 +17,7 @@ namespace TrivyOperator.Dashboard.Application.CveEnrichment.Services;
 // the previous catalog is still used, with the parts marked as Error
 public abstract class CveCatalogTimedHostedService<T>(
     ICveEnrichmentRefreshTrigger trigger,
-    ICache<CveId, Timestamp> subjects,
+    ICveSubjects subjects,
     ICache<CveId, CveInfo> infos,
     ILogger logger
 ) : BackgroundService
@@ -93,7 +94,7 @@ public abstract class CveCatalogTimedHostedService<T>(
 
         int changed = 0;
 
-        foreach (CveId id in subjects.Keys.ToArray())
+        foreach (CveId id in subjects.GetAll().Keys)
         {
             if (infos.UpdatePart(subjects, id, info => WithPart(info, Resolve(id, GetPart(info)))))
             {

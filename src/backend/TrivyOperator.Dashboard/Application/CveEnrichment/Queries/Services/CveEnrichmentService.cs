@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Models;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
@@ -9,7 +10,7 @@ namespace TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services;
 
 // the subjects (Trivy side) drive the result; CVEs not processed yet by a source have that part null
 public class CveEnrichmentService(
-    ICache<CveId, Timestamp> subjects,
+    ICveSubjects subjects,
     ICache<CveId, CveInfo> infos,
     ICveEnrichmentRefreshTrigger trigger) : ICveEnrichmentService
 {
@@ -19,7 +20,7 @@ public class CveEnrichmentService(
     {
         IReadOnlyList<CveInfoDto> result =
         [
-            .. subjects.ToArray()
+            .. subjects.GetAll()
                 .OrderBy(static subject => subject.Key.Value, StringComparer.Ordinal)
                 .Select(subject => GetCveInfo(subject.Key).ToCveInfoDto(subject.Key, subject.Value)),
         ];
@@ -31,7 +32,7 @@ public class CveEnrichmentService(
     {
         CveId id = new(cveId);
 
-        CveInfoDto? result = id.IsValid && subjects.TryGetValue(id, out Timestamp lastSeen)
+        CveInfoDto? result = id.IsValid && subjects.TryGetLastSeen(id, out Timestamp lastSeen)
             ? GetCveInfo(id).ToCveInfoDto(id, lastSeen)
             : null;
 

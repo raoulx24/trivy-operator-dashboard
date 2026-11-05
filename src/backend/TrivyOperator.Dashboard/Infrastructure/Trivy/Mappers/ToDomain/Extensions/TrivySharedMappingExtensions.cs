@@ -4,6 +4,7 @@ using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Extensions;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Trivy.Schema.ReportSchemas.Shared;
 
@@ -13,7 +14,7 @@ public static class TrivySharedMappingExtensions
 {
     public static Uid ToUidKey(this IKubernetesObject<V1ObjectMeta> cr)
     {
-        return new Uid(cr.Metadata.Uid);
+        return (cr.Metadata ??= new V1ObjectMeta()).ToUid();
     }
     
     public static Digest ToDigestKey(this IHasArtifact cr)
@@ -27,7 +28,7 @@ public static class TrivySharedMappingExtensions
             new ResourceName(metadata.Name),
             new NamespaceName(metadata.NamespaceProperty),
             new Timestamp(metadata.CreationTimestamp ?? DateTime.MinValue),
-            new Uid(metadata.Uid),
+            metadata.ToUid(),
             metadata.ToOwnerReferences());
     }
     
@@ -110,7 +111,7 @@ public static class TrivySharedMappingExtensions
         return
         [
             .. metadata.OwnerReferences.Select(x => new OwnerReference(
-                    new Uid(x.Uid),
+                    x.ToUid(),
                     new Kind(x.Kind),
                     new ResourceName(x.Name)
                 )

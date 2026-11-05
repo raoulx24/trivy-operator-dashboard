@@ -14,17 +14,18 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.Providers;
 
-public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
-    IExpiringResourceDictionaryCache<TKey, CacheEntry<TResource, TKey>> cache,
-    ICacheEntryBuilder<TResource, TKey> cacheEntryBuilder,
+public class KubernetesResourceProvider<TKubernetesObject, TResource, TEntry, TKey>(
+    IExpiringResourceDictionaryCache<TKey, CacheEntry<TEntry, TKey>> cache,
+    ICacheEntryBuilder<TResource, TEntry, TKey> cacheEntryBuilder,
     IKubernetesResourceService<TKubernetesObject> resourceService,
     IKubernetesContextResolver contextResolver,
     IResourceAggregator<TKubernetesObject, TResource, TKey> aggregator,
-    ILogger<KubernetesResourceProvider<TKubernetesObject, TResource, TKey>> logger
+    ILogger<KubernetesResourceProvider<TKubernetesObject, TResource, TEntry, TKey>> logger
 )
-    : IExpiringResourceProvider<TResource, TKey>
+    : IExpiringResourceProvider<TResource, TKey>, IResourceEntryProvider<TEntry, TKey>
     where TKubernetesObject : IKubernetesObject<V1ObjectMeta>
     where TResource : class, IEntity<TKey>
+    where TEntry : class, IEntity<TKey>
     where TKey : notnull
 {
     // one refresh at a time by design. if multiple Kubernetes contexts are used concurrently,
@@ -36,7 +37,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
         _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
-        CacheEntry<TResource, TKey>? cacheEntry = cache[contextName].GetValueOrDefault(key);
+        CacheEntry<TEntry, TKey>? cacheEntry = cache[contextName].GetValueOrDefault(key);
         
         return cacheEntry is null ? null : cacheEntryBuilder.ToEntity(cacheEntry);
     }
@@ -59,14 +60,14 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
         _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
-        ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>> reports = cache[contextName];
+        ConcurrentDictionary<TKey, CacheEntry<TEntry, TKey>> reports = cache[contextName];
         List<TResource> result = [];
 
         foreach (TKey key in keys)
         {
             ctx.ThrowIfCancellationRequested();
 
-            if (reports.TryGetValue(key, out CacheEntry<TResource, TKey>? entry))
+            if (reports.TryGetValue(key, out CacheEntry<TEntry, TKey>? entry))
             {
                 result.Add(cacheEntryBuilder.ToEntity(entry));
             }
@@ -80,9 +81,9 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
         _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
         await EnsureCacheLoaded(contextName, ctx);
 
-        CacheEntry<TResource, TKey>? cacheEntry = cache[contextName].GetValueOrDefault(key);
+        CacheEntry<TEntry, TKey>? cacheEntry = cache[contextName].GetValueOrDefault(key);
         
-        return cacheEntry?.Entry;
+        return cacheEntry is null ? null : cacheEntryBuilder.ToSummary(cacheEntry);
     }
 
     public async Task<IReadOnlyList<TResource>> GetResourceSummaries(CancellationToken ctx = default)
@@ -94,7 +95,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
         [
             .. cache[contextName]
                 .Values
-                .Select(x => x.Entry),
+                .Select(cacheEntryBuilder.ToSummary),
         ];
     }
 
@@ -104,6 +105,14 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
         await EnsureCacheLoaded(contextName, ctx);
 
         return [.. cache[contextName].Keys,];
+    }
+
+    public async Task<IReadOnlyList<TEntry>> GetEntries(CancellationToken ctx = default)
+    {
+        _ = contextResolver.TryGetCurrentContext(out ContextName contextName);
+        await EnsureCacheLoaded(contextName, ctx);
+
+        return [.. cache[contextName].Values.Select(static x => x.Entry),];
     }
 
     public async Task Clear(CancellationToken ctx = default)
@@ -150,7 +159,7 @@ public class KubernetesResourceProvider<TKubernetesObject, TResource, TKey>(
 
             IReadOnlyDictionary<TKey, TResource> aggregated = aggregator.Aggregate(resources, ctx);
 
-            ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>> reports = new(Environment.ProcessorCount, aggregated.Count);
+            ConcurrentDictionary<TKey, CacheEntry<TEntry, TKey>> reports = new(Environment.ProcessorCount, aggregated.Count);
 
             foreach ((TKey key, TResource value) in aggregated)
             {

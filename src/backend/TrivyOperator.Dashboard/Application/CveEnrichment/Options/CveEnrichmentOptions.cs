@@ -5,7 +5,7 @@ public class CveEnrichmentOptions
     public bool Enabled { get; init; } = true;
 
     // the enrichment of CVEs no longer subjects is dropped every HousekeepingIntervalInSeconds
-    // (the subjects themselves are swept by CVE subjects, see CveSubjectsOptions)
+    // (the subjects themselves follow the vulnerability definitions store, see DetailsOptions)
     public int HousekeepingIntervalInSeconds { get; init; } = 300;
 
     public KevOptions Kev { get; init; } = new();

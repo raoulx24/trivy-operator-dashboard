@@ -49,6 +49,7 @@ using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Details;
+using TrivyOperator.Dashboard.Domain.Shared.Stores;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
@@ -172,6 +173,9 @@ public static class TrivyReportServiceRegistrationExtensions
             case TrivyReportCompositionMode.Disabled:
                 CompositionLogger.Logger?.LogInformation("Trivy Report {trivyReport} related services are disabled", typeof(TReport).Name);
                 services.AddTrivyQueryRelatedNullServices(typeof(TReport));
+                // an empty provider for the features reading other reports (e.g. Trivy Dependencies); disabled covers
+                // the report turned off in EnabledTrivyReports and the one without a subpath in the file repository
+                services.AddSingleton<IResourceProvider<TReport, TId>, NullResourceRepository<TReport, TId>>();
                 break;
 
 
@@ -253,22 +257,27 @@ public static class TrivyReportServiceRegistrationExtensions
         
         // kubernetes infra services
         services.AddReportKubernetesInfraServices<TReportCr, TReport, TId>();
-        
-        services.AddCacheEntryBuilder(typeof(TReport));
-        // services.AddSingleton<
-        //     ICacheEntryBuilder<VulnerabilityReport, Digest>,
-        //     VulnerabilityReportCacheEntryBuilder<VulnerabilityReport, Digest>>();
-        
-        // expiring cache
-        services.AddSingleton<
-            IExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>,
-            ExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>>();
-        
-        // provider
-        services.AddSingleton<
-            IResourceProvider<TReport, TId>,
-            KubernetesResourceProvider<TReportCr, TReport, TId>>();
-        
+
+        // cache entry builder, expiring cache and provider
+        // -- the vulnerability reports keep a slim report as the entry, like in the default context
+        if (!services.TryAddVulnerabilitySlimEntryServices(typeof(TReport), isFileRepository: false))
+        {
+            services.AddCacheEntryBuilder(typeof(TReport));
+            // -- the providers take the builder with its entry type; here the entry is the report itself
+            services.AddSingleton<ICacheEntryBuilder<TReport, TReport, TId>>(sp =>
+                sp.GetRequiredService<ICacheEntryBuilder<TReport, TId>>());
+
+            // expiring cache
+            services.AddSingleton<
+                IExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>,
+                ExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>>();
+
+            // provider
+            services.AddSingleton<
+                IResourceProvider<TReport, TId>,
+                KubernetesResourceProvider<TReportCr, TReport, TReport, TId>>();
+        }
+
         // query service
         services.AddTrivyQueryRelatedServices(typeof(TReport));
     }
@@ -284,24 +293,29 @@ public static class TrivyReportServiceRegistrationExtensions
         // aggregators
         services.AddAggregatorServices(typeof(TReport));
         
-        services.AddCacheEntryBuilder(typeof(TReport));
-        // services.AddSingleton<
-        //     ICacheEntryBuilder<VulnerabilityReport, Digest>,
-        //     VulnerabilityReportCacheEntryBuilder<VulnerabilityReport, Digest>>();
-
         services.AddSingleton<
             IFileTrivyReportService<TReport, TId>,
             FileTrivyReportService<TReportCr, TReport, TId>>();
-        
-        services.AddSingleton<
-            IExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>,
-            ExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>>();
-        
-        // provider
-        services.AddSingleton<
-            IResourceProvider<TReport, TId>,
-            FileTrivyReportProvider<TReport, TId>>();
-        
+
+        // cache entry builder, expiring cache and provider
+        // -- the vulnerability reports keep a slim report as the entry, like in the default context
+        if (!services.TryAddVulnerabilitySlimEntryServices(typeof(TReport), isFileRepository: true))
+        {
+            services.AddCacheEntryBuilder(typeof(TReport));
+            // -- the providers take the builder with its entry type; here the entry is the report itself
+            services.AddSingleton<ICacheEntryBuilder<TReport, TReport, TId>>(sp =>
+                sp.GetRequiredService<ICacheEntryBuilder<TReport, TId>>());
+
+            services.AddSingleton<
+                IExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>,
+                ExpiringResourceDictionaryCache<TId, CacheEntry<TReport, TId>>>();
+
+            // provider
+            services.AddSingleton<
+                IResourceProvider<TReport, TId>,
+                FileTrivyReportProvider<TReport, TReport, TId>>();
+        }
+
         // query service
         services.AddTrivyQueryRelatedServices(typeof(TReport));
     }
@@ -450,7 +464,7 @@ public static class TrivyReportServiceRegistrationExtensions
     // returns false for the other report types
     private static bool TryAddVulnerabilitySlimServices(this IServiceCollection services, Type reportType)
     {
-        const string family = "Vulnerability";
+        const string family = DetailFamilies.Vulnerability;
 
         switch (reportType.Name)
         {
@@ -478,6 +492,68 @@ public static class TrivyReportServiceRegistrationExtensions
 
             default:
                 return false;
+        }
+    }
+
+    // multi-context and file repository: the vulnerability reports keep a slim report as the cache entry (as in the
+    // default context), with the shared vulnerability data of the report encoded next to it
+    // returns false for the other report types
+    private static bool TryAddVulnerabilitySlimEntryServices(
+        this IServiceCollection services,
+        Type reportType,
+        bool isFileRepository)
+    {
+        switch (reportType.Name)
+        {
+            case nameof(ClusterVulnerabilityReport):
+                services.AddVulnerabilitySlimEntryServices<
+                    ClusterVulnerabilityReportCr, ClusterVulnerabilityReport, ClusterVulnerabilityReportSlim, Uid>(
+                    isFileRepository);
+                return true;
+
+            case nameof(VulnerabilityReport):
+                services.AddVulnerabilitySlimEntryServices<
+                    VulnerabilityReportCr, VulnerabilityReport, VulnerabilityReportSlim, Digest>(
+                    isFileRepository);
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private static void AddVulnerabilitySlimEntryServices<TReportCr, TReport, TSlim, TId>(
+        this IServiceCollection services,
+        bool isFileRepository)
+        where TReportCr : CustomResource
+        where TReport : class, IVulnerabilityReport<TReport, TId>, ISlimmable<TSlim>
+        where TSlim : class, IVulnerabilitySlimReport<TSlim, TReport, TId>
+        where TId : notnull
+    {
+        services.AddSingleton<
+            ICacheEntryBuilder<TReport, TSlim, TId>,
+            VulnerabilityReportSlimCacheEntryBuilder<TReport, TSlim, TId>>();
+
+        services.AddSingleton<
+            IExpiringResourceDictionaryCache<TId, CacheEntry<TSlim, TId>>,
+            ExpiringResourceDictionaryCache<TId, CacheEntry<TSlim, TId>>>();
+
+        // the provider gives the reports (IResourceProvider) and the slim reports as stored (IResourceEntryProvider, for NVD)
+        if (isFileRepository)
+        {
+            services.AddSingleton<FileTrivyReportProvider<TReport, TSlim, TId>>();
+            services.AddSingleton<IResourceProvider<TReport, TId>>(sp =>
+                sp.GetRequiredService<FileTrivyReportProvider<TReport, TSlim, TId>>());
+            services.AddSingleton<IResourceEntryProvider<TSlim, TId>>(sp =>
+                sp.GetRequiredService<FileTrivyReportProvider<TReport, TSlim, TId>>());
+        }
+        else
+        {
+            services.AddSingleton<KubernetesResourceProvider<TReportCr, TReport, TSlim, TId>>();
+            services.AddSingleton<IResourceProvider<TReport, TId>>(sp =>
+                sp.GetRequiredService<KubernetesResourceProvider<TReportCr, TReport, TSlim, TId>>());
+            services.AddSingleton<IResourceEntryProvider<TSlim, TId>>(sp =>
+                sp.GetRequiredService<KubernetesResourceProvider<TReportCr, TReport, TSlim, TId>>());
         }
     }
 
@@ -545,9 +621,12 @@ public static class TrivyReportServiceRegistrationExtensions
             return;
         }
 
+        // the concurrent cache behind the store, keyed as well, for readers outside the family (e.g. the CVE subjects)
+        services.AddKeyedSingleton<IResourceDictionaryCache<TId, DetailEntry<TDetail>>>(family, (sp, _) =>
+            new ResourceDictionaryCache<TId, DetailEntry<TDetail>>(sp.GetRequiredService<IMetricsClient>()));
         services.AddKeyedSingleton<InMemoryDetailRepository<TDetail, TId>>(family, (sp, _) =>
             new InMemoryDetailRepository<TDetail, TId>(
-                new ResourceDictionaryCache<TId, DetailEntry<TDetail>>(sp.GetRequiredService<IMetricsClient>()),
+                sp.GetRequiredKeyedService<IResourceDictionaryCache<TId, DetailEntry<TDetail>>>(family),
                 sp.GetRequiredService<IKubernetesContextResolver>(),
                 sp.GetRequiredService<IOptionsMonitor<DetailsOptions>>(),
                 sp.GetRequiredService<ILogger<InMemoryDetailRepository<TDetail, TId>>>()));

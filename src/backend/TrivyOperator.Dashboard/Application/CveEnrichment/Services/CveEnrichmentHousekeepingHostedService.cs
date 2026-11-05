@@ -1,15 +1,16 @@
 ﻿using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 
 namespace TrivyOperator.Dashboard.Application.CveEnrichment.Services;
 
-// each tick, drops the enrichment of CVEs that are no longer subjects (swept by the CVE subjects housekeeping)
+// each tick, drops the enrichment of CVEs that are no longer subjects (no stored vulnerability report references them)
 public sealed class CveEnrichmentHousekeepingHostedService(
     IOptionsMonitor<CveEnrichmentOptions> options,
-    ICache<CveId, Timestamp> subjects,
+    ICveSubjects subjects,
     ICache<CveId, CveInfo> infos,
     ILogger<CveEnrichmentHousekeepingHostedService> logger
 ) : BackgroundService
@@ -57,7 +58,7 @@ public sealed class CveEnrichmentHousekeepingHostedService(
 
         foreach (CveId id in infos.Keys.ToArray())
         {
-            if (!subjects.ContainsKey(id) && infos.TryRemove(id, out _))
+            if (!subjects.Contains(id) && infos.TryRemove(id, out _))
             {
                 dropped++;
             }

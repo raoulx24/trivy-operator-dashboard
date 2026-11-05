@@ -3,6 +3,7 @@ using TrivyOperator.Dashboard.Application.CveEnrichment.Abstractions;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
@@ -19,7 +20,7 @@ public sealed class EpssTimedHostedService(
     IEpssProvider provider,
     IOptionsMonitor<CveEnrichmentOptions> options,
     ICveEnrichmentRefreshTrigger trigger,
-    ICache<CveId, Timestamp> subjects,
+    ICveSubjects subjects,
     ICache<CveId, CveInfo> infos,
     ILogger<EpssTimedHostedService> logger
 ) : BackgroundService
@@ -90,7 +91,7 @@ public sealed class EpssTimedHostedService(
 
         CveId[] due =
         [
-            .. subjects.Keys
+            .. subjects.GetAll().Keys
                 .Select(id => (Id: id, Part: infos.TryGetValue(id, out CveInfo? info) ? info.Epss : null))
                 .Where(x => rebuild || IsDue(x.Part, now, entryTtl, errorTtl))
                 .OrderBy(static x => x.Part is null ? DateTime.MinValue : x.Part.FetchedAt.Value)

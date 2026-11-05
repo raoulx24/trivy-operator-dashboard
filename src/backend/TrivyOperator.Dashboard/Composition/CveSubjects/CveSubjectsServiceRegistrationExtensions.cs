@@ -1,15 +1,10 @@
-﻿using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
-using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
-using TrivyOperator.Dashboard.Application.Shared.CveSubjects.KubernetesEventProcessors;
-using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Options;
-using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Services;
-using TrivyOperator.Dashboard.Composition.Configuration;
+﻿using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
-using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
-using TrivyOperator.Dashboard.Domain.Trivy.Entities;
-using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
+using TrivyOperator.Dashboard.Composition.Trivy;
+using TrivyOperator.Dashboard.Domain.Shared.Details;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
+using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Details.Vulnerabilities;
 
 namespace TrivyOperator.Dashboard.Composition.CveSubjects;
 
@@ -20,8 +15,6 @@ public static class CveSubjectsServiceRegistrationExtensions
     public static void AddCveSubjectsRelatedServices(this IServiceCollection services, IConfiguration configuration)
     {
         CveSubjectsCompositionMode mode = CveSubjectsCompositionResolver.Resolve(configuration);
-
-        services.AddOptions<CveSubjectsOptions>().Bind(configuration.GetSection("CveSubjects"));
 
         switch (mode)
         {
@@ -35,9 +28,14 @@ public static class CveSubjectsServiceRegistrationExtensions
                     "CVE Subjects related services are disabled - no vulnerability reports are enabled");
                 return;
 
+            case CveSubjectsCompositionMode.NoDefaultContext:
+                CompositionLogger.Logger?.LogInformation(
+                    "CVE Subjects related services are disabled - vulnerability reports are watched only in the default context");
+                return;
+
             case CveSubjectsCompositionMode.Enabled:
                 CompositionLogger.Logger?.LogInformation("Adding CVE Subjects related services");
-                services.AddCveSubjectsServices(configuration);
+                services.AddCveSubjectsServices();
                 break;
 
             default:
@@ -46,27 +44,13 @@ public static class CveSubjectsServiceRegistrationExtensions
     }
 
     // 2nd level - services registration
-    private static void AddCveSubjectsServices(this IServiceCollection services, IConfiguration configuration)
+    private static void AddCveSubjectsServices(this IServiceCollection services)
     {
-        // CVE -> newest scan timestamp of a report containing it
-        services.AddSingleton<ICache<CveId, Timestamp>, Cache<CveId, Timestamp>>();
-
-        services.AddHostedService<CveSubjectsHousekeepingHostedService>();
-
-        Dictionary<string, bool> enabledReports = configuration.LoadEnabledTrivyReports();
-
-        if (enabledReports.GetValueOrDefault(nameof(VulnerabilityReport)))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<VulnerabilityReport, Digest>,
-                CveSubjectCollector<VulnerabilityReport, Digest>>();
-        }
-
-        if (enabledReports.GetValueOrDefault(nameof(ClusterVulnerabilityReport)))
-        {
-            services.AddSingleton<
-                IKubernetesEventProcessor<ClusterVulnerabilityReport, Uid>,
-                CveSubjectCollector<ClusterVulnerabilityReport, Uid>>();
-        }
+        // read from the vulnerability definitions store of the vulnerability reports (collected and swept there);
+        // the store exists only when the vulnerability reports keep slim reports (default context) - no subjects otherwise
+        services.AddSingleton<ICveSubjects>(sp =>
+            new InMemoryCveSubjects(
+                sp.GetKeyedService<IResourceDictionaryCache<VulnerabilityId, DetailEntry<VulnerabilityDefinition>>>(
+                    DetailFamilies.Vulnerability)));
     }
 }

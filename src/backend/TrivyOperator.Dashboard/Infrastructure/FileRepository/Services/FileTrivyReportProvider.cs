@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
@@ -9,13 +10,14 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.CacheEntryBuilders.Abstr
 
 namespace TrivyOperator.Dashboard.Infrastructure.FileRepository.Services;
 
-public class FileTrivyReportProvider<TTrivyReport, TKey>(
-    IExpiringResourceDictionaryCache<TKey, CacheEntry<TTrivyReport, TKey>> cache,
-    ICacheEntryBuilder<TTrivyReport, TKey> cacheEntryBuilder,
+public class FileTrivyReportProvider<TTrivyReport, TEntry, TKey>(
+    IExpiringResourceDictionaryCache<TKey, CacheEntry<TEntry, TKey>> cache,
+    ICacheEntryBuilder<TTrivyReport, TEntry, TKey> cacheEntryBuilder,
     IFileTrivyReportService<TTrivyReport, TKey> reportService,
-    ILogger<FileTrivyReportProvider<TTrivyReport, TKey>> logger
-) : IResourceProvider<TTrivyReport, TKey>
+    ILogger<FileTrivyReportProvider<TTrivyReport, TEntry, TKey>> logger
+) : IResourceProvider<TTrivyReport, TKey>, IResourceEntryProvider<TEntry, TKey>
     where TTrivyReport : class, ITrivyReport<TTrivyReport, TKey>
+    where TEntry : class, IEntity<TKey>
     where TKey : notnull
 {
     private readonly SemaphoreSlim refreshLock = new(1, 1);
@@ -25,7 +27,7 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
     {
         await EnsureCacheLoaded(ctx);
 
-        CacheEntry<TTrivyReport, TKey>? cacheEntry = cache[DefaultContext].GetValueOrDefault(key);
+        CacheEntry<TEntry, TKey>? cacheEntry = cache[DefaultContext].GetValueOrDefault(key);
         
         return cacheEntry is null ? null : cacheEntryBuilder.ToEntity(cacheEntry);
     }
@@ -46,14 +48,14 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
     {
         await EnsureCacheLoaded(ctx);
 
-        ConcurrentDictionary<TKey, CacheEntry<TTrivyReport, TKey>> reports = cache[DefaultContext];
+        ConcurrentDictionary<TKey, CacheEntry<TEntry, TKey>> reports = cache[DefaultContext];
         List<TTrivyReport> result = [];
 
         foreach (TKey key in keys)
         {
             ctx.ThrowIfCancellationRequested();
 
-            if (reports.TryGetValue(key, out CacheEntry<TTrivyReport, TKey>? entry))
+            if (reports.TryGetValue(key, out CacheEntry<TEntry, TKey>? entry))
             {
                 result.Add(cacheEntryBuilder.ToEntity(entry));
             }
@@ -66,9 +68,9 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
     {
         await EnsureCacheLoaded(ctx);
 
-        CacheEntry<TTrivyReport, TKey>? cacheEntry = cache[DefaultContext].GetValueOrDefault(key);
+        CacheEntry<TEntry, TKey>? cacheEntry = cache[DefaultContext].GetValueOrDefault(key);
         
-        return cacheEntry?.Entry;
+        return cacheEntry is null ? null : cacheEntryBuilder.ToSummary(cacheEntry);
     }
 
     public async Task<IReadOnlyList<TTrivyReport>> GetResourceSummaries(CancellationToken ctx = default)
@@ -79,7 +81,7 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
         [
             .. cache[DefaultContext]
                 .Values
-                .Select(x => x.Entry),
+                .Select(cacheEntryBuilder.ToSummary),
         ];
     }
 
@@ -88,6 +90,13 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
         await EnsureCacheLoaded(ctx);
 
         return [.. cache[DefaultContext].Keys,];
+    }
+
+    public async Task<IReadOnlyList<TEntry>> GetEntries(CancellationToken ctx = default)
+    {
+        await EnsureCacheLoaded(ctx);
+
+        return [.. cache[DefaultContext].Values.Select(static x => x.Entry),];
     }
 
     public async Task Clear(CancellationToken ctx = default)
@@ -104,9 +113,13 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
         }
     }
 
+    // loaded when missing: never loaded yet, or cleared because stale (as KubernetesResourceProvider);
+    // IsStale alone is false right after startup, so it does not tell that nothing was loaded
     private async Task EnsureCacheLoaded(CancellationToken ctx)
     {
-        if (!cache.IsStale())
+        cache.ClearIfStale();
+
+        if (cache.ContainsKey(DefaultContext))
         {
             return;
         }
@@ -115,7 +128,9 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
 
         try
         {
-            if (!cache.IsStale())
+            cache.ClearIfStale();
+
+            if (cache.ContainsKey(DefaultContext))
             {
                 return;
             }
@@ -124,7 +139,7 @@ public class FileTrivyReportProvider<TTrivyReport, TKey>(
 
             IReadOnlyDictionary<TKey, TTrivyReport> aggregated = await reportService.GetReportsAsync(ctx);
 
-            ConcurrentDictionary<TKey, CacheEntry<TTrivyReport, TKey>> reports = new(Environment.ProcessorCount, aggregated.Count);
+            ConcurrentDictionary<TKey, CacheEntry<TEntry, TKey>> reports = new(Environment.ProcessorCount, aggregated.Count);
 
             foreach ((TKey key, TTrivyReport value) in aggregated)
             {

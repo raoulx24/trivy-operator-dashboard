@@ -16,7 +16,7 @@ public static class KubernetesNamespaceMappingExtensions
         if (other is null || ns.Metadata.Name != other.Name.Value || other.LastSeenAt < lastSeen)
         {
             return new KubernetesNamespace(
-                new Uid(ns.Metadata.Uid),
+                ns.Metadata.ToUid(),
                 new NamespaceName(ns.Metadata.Name),
                 new ResourceName(ns.Metadata.Name),
                 lastSeen

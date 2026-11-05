@@ -13,9 +13,15 @@ internal static class CveEnrichmentCompositionResolver
             return CveEnrichmentCompositionMode.Disabled;
         }
 
-        return configuration.LoadUseAnyVulnerabilityReport()
+        if (!configuration.LoadUseAnyVulnerabilityReport())
+        {
+            return CveEnrichmentCompositionMode.NoVulnerabilityReports;
+        }
+
+        // the subjects exist only for watched vulnerability reports (default context)
+        return configuration.LoadWatchVulnerabilityReports()
             ? CveEnrichmentCompositionMode.Enabled
-            : CveEnrichmentCompositionMode.NoVulnerabilityReports;
+            : CveEnrichmentCompositionMode.NoDefaultContext;
     }
 }
 
@@ -23,5 +29,6 @@ internal enum CveEnrichmentCompositionMode
 {
     Disabled,
     NoVulnerabilityReports,
+    NoDefaultContext,
     Enabled,
 }

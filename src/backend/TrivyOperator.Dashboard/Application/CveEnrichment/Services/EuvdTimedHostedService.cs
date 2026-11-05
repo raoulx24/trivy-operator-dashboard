@@ -3,6 +3,7 @@ using TrivyOperator.Dashboard.Application.CveEnrichment.Abstractions;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
@@ -14,7 +15,7 @@ public sealed class EuvdTimedHostedService(
     IEuvdProvider provider,
     IOptionsMonitor<CveEnrichmentOptions> options,
     ICveEnrichmentRefreshTrigger trigger,
-    ICache<CveId, Timestamp> subjects,
+    ICveSubjects subjects,
     ICache<CveId, CveInfo> infos,
     ILogger<EuvdTimedHostedService> logger
 ) : CveCatalogTimedHostedService<EuvdEntry>(trigger, subjects, infos, logger)

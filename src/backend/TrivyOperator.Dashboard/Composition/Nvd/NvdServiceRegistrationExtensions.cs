@@ -2,10 +2,16 @@
 using TrivyOperator.Dashboard.Application.Nvd.Options;
 using TrivyOperator.Dashboard.Application.Nvd.Queries.Services;
 using TrivyOperator.Dashboard.Application.Nvd.Queries.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.Nvd.Services;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Composition.Shared;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Nvd.Entities;
+using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Nvd.Services;
 
@@ -35,7 +41,21 @@ public static class NvdServiceRegistrationExtensions
 
             case NvdCompositionMode.Enabled:
                 CompositionLogger.Logger?.LogInformation("Adding NVD related services");
-                services.AddNvdServices();
+                services.AddNvdServices(sp => new CveSubjectsNvdSubjects(sp.GetRequiredService<ICveSubjects>()));
+                break;
+
+            case NvdCompositionMode.EnabledOnDemand:
+                CompositionLogger.Logger?.LogInformation(
+                    "Adding NVD related services - the CVEs are looked for in the vulnerability reports of the current context");
+                services.AddNvdServices(sp => new ReportEntriesNvdSubjects(
+                    sp.GetService<IResourceEntryProvider<VulnerabilityReportSlim, Digest>>(),
+                    sp.GetService<IResourceEntryProvider<ClusterVulnerabilityReportSlim, Uid>>()));
+                break;
+
+            case NvdCompositionMode.AnyCve:
+                CompositionLogger.Logger?.LogWarning(
+                    "Adding NVD related services - any CVE can be looked up (Nvd:AllowAnyCve), the dashboard is a proxy to NVD");
+                services.AddNvdServices(subjectsFactory: null);
                 break;
 
             default:
@@ -44,8 +64,11 @@ public static class NvdServiceRegistrationExtensions
     }
 
     // 2nd level - services registration
-    // all singletons - the service holds the in-flight calls; the subjects (ICache<CveId, Timestamp>) come from CVE Subjects
-    private static void AddNvdServices(this IServiceCollection services)
+    // all singletons - the service holds the in-flight calls
+    // not gated (Nvd:AllowAnyCve, no subjects factory) - the service gets no subjects and looks up any CVE
+    private static void AddNvdServices(
+        this IServiceCollection services,
+        Func<IServiceProvider, INvdSubjects>? subjectsFactory)
     {
         // only Ok results, until the whole cache is not read for InMemoryCache:ExpireInMinutes
         services.AddSingleton<
@@ -60,6 +83,10 @@ public static class NvdServiceRegistrationExtensions
         });
         services.AddSingleton<INvdProvider, NvdClient>();
 
-        services.AddSingleton<INvdService, NvdService>();
+        services.AddSingleton<INvdService>(sp =>
+            new NvdService(
+                subjectsFactory?.Invoke(sp),
+                sp.GetRequiredService<ICache<CveId, CveSourceResult<NvdInfo>>>(),
+                sp.GetRequiredService<INvdProvider>()));
     }
 }
