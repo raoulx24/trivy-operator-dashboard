@@ -1,10 +1,12 @@
 ﻿using TrivyOperator.Dashboard.Application.EndOfLife.Queries.Models;
 using TrivyOperator.Dashboard.Application.EndOfLife.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Domain.EndOfLife.ValueObjects;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.EndOfLife.Queries.Services;
 
-public class EndOfLifeNullService : IEndOfLifeService
+public class EndOfLifeNullService : QueryNullService, IEndOfLifeService
 {
     public Task<IReadOnlyList<EolInfoDto>> GetAll(EolSubjectKind kind, CancellationToken ctx = default) =>
         Task.FromResult<IReadOnlyList<EolInfoDto>>([]);

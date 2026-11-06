@@ -1,10 +1,11 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterConfigAuditReports.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterConfigAuditReports;
 
-public class ClusterConfigAuditReportNullService : IClusterConfigAuditReportService
+public class ClusterConfigAuditReportNullService : QueryNullService, IClusterConfigAuditReportService
 {
     public Task<QueryResponse<IEnumerable<ClusterConfigAuditReportDto>>> GetClusterConfigAuditReportDtos(
             string? excludedSeverities = null,

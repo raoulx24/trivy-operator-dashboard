@@ -1,12 +1,12 @@
 ﻿using TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Models;
 
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services.Abstractions;
+
 namespace TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services.Abstractions;
 
-public interface ICveEnrichmentService
+public interface ICveEnrichmentService : IQueryService
 {
-    // false for the null service - CVE Enrichment disabled, or no vulnerability reports (see CveEnrichmentCompositionResolver)
-    bool IsEnabled { get; }
-
     Task<IReadOnlyList<CveInfoDto>> GetAll(CancellationToken ctx = default);
 
     // null when the id is not a CVE or the CVE is not seen in any report

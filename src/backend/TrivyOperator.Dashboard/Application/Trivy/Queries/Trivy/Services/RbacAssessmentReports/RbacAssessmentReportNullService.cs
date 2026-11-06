@@ -1,10 +1,11 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.RbacAssessmentReports.Abstractions;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.RbacAssessmentReports;
 
-public class RbacAssessmentReportNullService : IRbacAssessmentReportService
+public class RbacAssessmentReportNullService : QueryNullService, IRbacAssessmentReportService
 {
     public Task<IEnumerable<RbacAssessmentReportDenormalizedDto>> GetRbacAssessmentReportDenormalizedDtos(
         string? namespaceName = null,

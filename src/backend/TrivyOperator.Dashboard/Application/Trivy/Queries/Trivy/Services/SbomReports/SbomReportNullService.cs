@@ -1,9 +1,11 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.SbomReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.SbomReports;
 
-public class SbomReportNullService : ISbomReportService
+public class SbomReportNullService : QueryNullService, ISbomReportService
 {
     public Task<IEnumerable<SbomReportImageMinimalDto>> GetSbomReportImageMinimalDtos(CancellationToken ctx = default)
         => Task.FromResult<IEnumerable<SbomReportImageMinimalDto>>([]);

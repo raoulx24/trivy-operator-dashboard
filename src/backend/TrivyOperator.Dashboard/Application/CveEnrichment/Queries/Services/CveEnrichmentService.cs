@@ -5,6 +5,8 @@ using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services;
 
@@ -12,10 +14,8 @@ namespace TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services;
 public class CveEnrichmentService(
     ICveSubjects subjects,
     ICache<CveId, CveInfo> infos,
-    ICveEnrichmentRefreshTrigger trigger) : ICveEnrichmentService
+    ICveEnrichmentRefreshTrigger trigger) : QueryService, ICveEnrichmentService
 {
-    public bool IsEnabled => true;
-
     public Task<IReadOnlyList<CveInfoDto>> GetAll(CancellationToken ctx = default)
     {
         IReadOnlyList<CveInfoDto> result =

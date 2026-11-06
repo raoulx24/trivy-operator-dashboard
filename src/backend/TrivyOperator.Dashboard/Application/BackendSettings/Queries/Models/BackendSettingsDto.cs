@@ -1,6 +1,6 @@
-﻿namespace TrivyOperator.Dashboard.Application.BackendSettings.Queries.Models;
+namespace TrivyOperator.Dashboard.Application.BackendSettings.Queries.Models;
 
-public class BackendSettingsDto
+public sealed record BackendSettingsDto
 {
     public List<BackendSettingsTrivyReportConfigDto> TrivyReportConfigDtos { get; init; } = [];
     public bool IsKubeConfigUsed { get; init; }
@@ -8,12 +8,14 @@ public class BackendSettingsDto
     public bool IsNamespaceListUsed { get; init; }
     public bool IsFileRepositoryUsed { get; init; }
     public int VrHistoryMaxAgeDays { get; init; } = 14;
-    // the effective state - false also when no vulnerability reports are enabled
+    // the effective state of the following - taken from the services, so false also when the feature is not composed
+    // (e.g. no vulnerability reports are enabled)
     public bool IsNvdEnabled { get; init; }
     public bool IsCveEnrichmentEnabled { get; init; }
+    public bool IsVrHistoryEnabled { get; init; }
 }
 
-public class BackendSettingsTrivyReportConfigDto
+public sealed record BackendSettingsTrivyReportConfigDto
 {
     public string Id { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;

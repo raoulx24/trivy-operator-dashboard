@@ -1,9 +1,10 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ConfigAuditReports.Abstractions;
 
-public interface IConfigAuditReportService
+public interface IConfigAuditReportService : IQueryService
 {
     Task<IEnumerable<ConfigAuditReportDenormalizedDto>> GetConfigAuditReportDenormalizedDtos(
         string? namespaceName = null,

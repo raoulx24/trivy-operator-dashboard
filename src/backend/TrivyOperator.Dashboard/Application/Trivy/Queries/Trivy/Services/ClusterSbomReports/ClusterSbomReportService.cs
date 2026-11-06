@@ -5,13 +5,15 @@ using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterSbomReports;
 
 public class ClusterSbomReportService(
     IResourceProvider<ClusterSbomReport, Uid> resourceProvider,
     IResourceProvider<ClusterVulnerabilityReport, Uid> cvrResourceProvider
-) : IClusterSbomReportService
+) : QueryService, IClusterSbomReportService
 {
     public async Task<IEnumerable<SbomReportImageMinimalDto>> GetClusterSbomReportMinimalDtos(CancellationToken ctx = default)
     {

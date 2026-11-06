@@ -32,6 +32,8 @@ public static class WatcherStateServiceRegistrationExtensions
         {
             case WatcherStateCompositionMode.Disabled:
                 CompositionLogger.Logger?.LogInformation("Watcher State related services are disabled");
+                // the status endpoint still resolves the service
+                services.AddScoped<IWatcherStatusService, WatcherStatusNullService>();
                 return;
 
             case WatcherStateCompositionMode.Enabled:

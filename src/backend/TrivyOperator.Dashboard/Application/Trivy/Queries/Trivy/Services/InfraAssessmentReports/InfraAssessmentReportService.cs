@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.InfraAssessmentReports.Abstractions;
@@ -11,7 +12,7 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.Infra
 
 public sealed class InfraAssessmentReportService(
     IResourceProvider<InfraAssessmentReport, Uid> resourceProvider
-) : IInfraAssessmentReportService
+) : QueryService, IInfraAssessmentReportService
 {
     public async Task<QueryResponse<IEnumerable<InfraAssessmentReportDto>>> GetInfraAssessmentReportDtos(
         string? namespaceName = null,

@@ -4,12 +4,14 @@ using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterCo
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterComplianceReports;
 
 public class ClusterComplianceReportService(
     IResourceProvider<ClusterComplianceReport, Uid> resourceProvider
-) : IClusterComplianceReportService
+) : QueryService, IClusterComplianceReportService
 {
     public async Task<IEnumerable<ClusterComplianceReportDto>> GetClusterComplianceReportDtos(
         CancellationToken ctx = default)

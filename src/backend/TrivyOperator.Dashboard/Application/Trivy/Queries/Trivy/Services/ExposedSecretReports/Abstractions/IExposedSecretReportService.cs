@@ -1,9 +1,10 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ExposedSecretReports.Abstractions;
 
-public interface IExposedSecretReportService
+public interface IExposedSecretReportService : IQueryService
 {
     Task<IEnumerable<ExposedSecretReportDto>> GetExposedSecretReportDtos(
         string? namespaceName = null,

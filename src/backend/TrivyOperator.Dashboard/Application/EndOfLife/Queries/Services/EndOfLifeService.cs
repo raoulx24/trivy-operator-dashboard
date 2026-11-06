@@ -5,6 +5,8 @@ using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Domain.EndOfLife.Entities;
 using TrivyOperator.Dashboard.Domain.EndOfLife.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.EndOfLife.Queries.Services;
 
@@ -12,7 +14,7 @@ namespace TrivyOperator.Dashboard.Application.EndOfLife.Queries.Services;
 public class EndOfLifeService(
     ICache<EolSubject, Timestamp> subjects,
     ICache<EolSubject, EolInfo> eolInfos,
-    IEndOfLifeRefreshTrigger trigger) : IEndOfLifeService
+    IEndOfLifeRefreshTrigger trigger) : QueryService, IEndOfLifeService
 {
     public Task<IReadOnlyList<EolInfoDto>> GetAll(EolSubjectKind kind, CancellationToken ctx = default) =>
         Task.FromResult(GetDtos(subject => subject.Kind == kind));

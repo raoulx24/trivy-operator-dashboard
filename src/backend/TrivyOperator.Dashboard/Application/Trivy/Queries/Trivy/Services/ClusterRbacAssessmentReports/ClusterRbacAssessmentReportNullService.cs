@@ -1,9 +1,11 @@
 ﻿using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterRbacAssessmentReports.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterRbacAssessmentReports;
 
-public class ClusterRbacAssessmentReportNullService : IClusterRbacAssessmentReportService
+public class ClusterRbacAssessmentReportNullService : QueryNullService, IClusterRbacAssessmentReportService
 {
     public Task<ClusterRbacAssessmentReportDto?> GetClusterRbacAssessmentReportDtoByUid(
         string uid,

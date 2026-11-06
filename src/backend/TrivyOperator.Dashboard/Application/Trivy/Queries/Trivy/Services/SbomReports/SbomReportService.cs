@@ -11,6 +11,8 @@ using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Shared;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.SbomReports;
 
@@ -19,7 +21,7 @@ public class SbomReportService(
     IResourceProvider<VulnerabilityReport, Digest> vrResourceProvider,
     IOptions<FileExportOptions> fileExportOptions,
     ILogger<SbomReportService> logger
-) : ISbomReportService
+) : QueryService, ISbomReportService
 {
     private static readonly Regex InvalidFileNameCharsRegex = new(
         $"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]",

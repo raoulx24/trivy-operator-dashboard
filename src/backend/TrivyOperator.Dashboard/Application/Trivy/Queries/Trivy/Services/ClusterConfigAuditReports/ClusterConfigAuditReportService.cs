@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterConfigAuditReports.Abstractions;
@@ -11,7 +12,7 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.Clust
 
 public class ClusterConfigAuditReportService(
     IResourceProvider<ClusterConfigAuditReport, Uid> resourceProvider
-) : IClusterConfigAuditReportService
+) : QueryService, IClusterConfigAuditReportService
 {
     public async Task<QueryResponse<IEnumerable<ClusterConfigAuditReportDto>>> GetClusterConfigAuditReportDtos(
             string? excludedSeverities = null,

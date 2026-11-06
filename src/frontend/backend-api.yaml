@@ -1919,6 +1919,8 @@ components:
           type: boolean
         isCveEnrichmentEnabled:
           type: boolean
+        isVrHistoryEnabled:
+          type: boolean
       additionalProperties: false
     BackendSettingsTrivyReportConfigDto:
       type: object

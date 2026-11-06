@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ConfigAuditReports.Abstractions;
@@ -11,7 +12,7 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.Confi
 
 public class ConfigAuditReportService(
     IResourceProvider<ConfigAuditReport, Uid> resourceProvider
-) : IConfigAuditReportService
+) : QueryService, IConfigAuditReportService
 {
     public async Task<QueryResponse<IEnumerable<ConfigAuditReportDto>>> GetConfigAuditReportDtos(
             string? namespaceName = null,

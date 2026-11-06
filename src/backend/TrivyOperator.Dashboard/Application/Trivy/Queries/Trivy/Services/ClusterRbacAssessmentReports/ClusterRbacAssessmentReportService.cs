@@ -4,12 +4,14 @@ using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterRb
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterRbacAssessmentReports;
 
 public class ClusterRbacAssessmentReportService(
     IResourceProvider<ClusterRbacAssessmentReport, Uid> resourceProvider
-) : IClusterRbacAssessmentReportService
+) : QueryService, IClusterRbacAssessmentReportService
 {
     public async Task<ClusterRbacAssessmentReportDto?> GetClusterRbacAssessmentReportDtoByUid(
         string uid,

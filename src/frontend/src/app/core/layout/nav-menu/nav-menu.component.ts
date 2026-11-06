@@ -73,10 +73,13 @@ export class NavMenuComponent {
       return ['vr', 'vrh', 'sr', 'car', 'esr', 'rar', 'iar', 'cvr', 'csr', 'crar', 'ccr', 'ccar', 'ciar'];
     }
 
-    return dto.trivyReportConfigDtos
+    const enabledIds = dto.trivyReportConfigDtos
       .filter((x) => x.enabled)
       .map((x) => x.id ?? '')
       .filter((id) => !!id);
+
+    // history is not a Trivy report; the backend reports it as a separate flag
+    return dto.isVrHistoryEnabled ? [...enabledIds, 'vrh'] : enabledIds;
   });
 
   items = computed<MenuItem[]>(() => {

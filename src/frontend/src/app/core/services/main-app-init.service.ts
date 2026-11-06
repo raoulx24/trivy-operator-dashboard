@@ -27,6 +27,8 @@ export class MainAppInitService {
     // off until the backend says otherwise, so the NVD tags do not flash before the settings arrive
     isNvdEnabled: false,
     isCveEnrichmentEnabled: false,
+    // off until the backend says otherwise, so the history menu items do not flash before the settings arrive
+    isVrHistoryEnabled: false,
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
@@ -87,6 +89,7 @@ export class MainAppInitService {
         vrHistoryMaxAgeDays: this.defaultBackendSettingsDto?.vrHistoryMaxAgeDays ?? 14,
         isNvdEnabled: this.defaultBackendSettingsDto?.isNvdEnabled ?? false,
         isCveEnrichmentEnabled: this.defaultBackendSettingsDto?.isCveEnrichmentEnabled ?? false,
+        isVrHistoryEnabled: this.defaultBackendSettingsDto?.isVrHistoryEnabled ?? false,
       };
       return newItem;
     });

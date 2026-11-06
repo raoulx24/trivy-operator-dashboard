@@ -1,12 +1,12 @@
 ﻿using TrivyOperator.Dashboard.Application.Nvd.Queries.Models;
 
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services.Abstractions;
+
 namespace TrivyOperator.Dashboard.Application.Nvd.Queries.Services.Abstractions;
 
-public interface INvdService
+public interface INvdService : IQueryService
 {
-    // false for the null service - NVD lookups disabled, or no vulnerability reports (see NvdCompositionResolver)
-    bool IsEnabled { get; }
-
     // see NvdLookupOutcome; the dto is set only when Found
     Task<NvdCveResult> GetById(string cveId, CancellationToken ctx = default);
 }

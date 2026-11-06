@@ -5,6 +5,8 @@ using TrivyOperator.Dashboard.Application.Nvd.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Domain.Nvd.Entities;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Nvd.Queries.Services;
 
@@ -16,11 +18,9 @@ namespace TrivyOperator.Dashboard.Application.Nvd.Queries.Services;
 public class NvdService(
     INvdSubjects? subjects,
     ICache<CveId, CveSourceResult<NvdInfo>> cache,
-    INvdProvider provider) : INvdService
+    INvdProvider provider) : QueryService, INvdService
 {
     private readonly ConcurrentDictionary<CveId, Lazy<Task<CveSourceResult<NvdInfo>>>> inFlight = new();
-
-    public bool IsEnabled => true;
 
     public async Task<NvdCveResult> GetById(string cveId, CancellationToken ctx = default)
     {

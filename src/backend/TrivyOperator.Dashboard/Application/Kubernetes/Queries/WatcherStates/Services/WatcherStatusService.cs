@@ -8,6 +8,8 @@ using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Queries.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Kubernetes.Queries.WatcherStates.Services;
 
@@ -17,7 +19,7 @@ public class WatcherStatusService(
     IEnumerable<IClusterScopedWatcherRegistry> clusterScopedWatchers,
     IEnumerable<INamespacedWatcherRegistry> namespacedWatchers,
     IKnownKubernetesTypeFactory knownKubernetesTypeFactory
-) : IWatcherStatusService
+) : QueryService, IWatcherStatusService
 {
     public Task<IEnumerable<WatcherStatusDto>> GetWatcherStatusDtos()
     {

@@ -1,6 +1,9 @@
-﻿namespace TrivyOperator.Dashboard.Application.Kubernetes.Queries.Namespaces.Services.Abstractions;
+﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services.Abstractions;
 
-public interface IKubernetesNamespaceService
+namespace TrivyOperator.Dashboard.Application.Kubernetes.Queries.Namespaces.Services.Abstractions;
+
+public interface IKubernetesNamespaceService : IQueryService
 {
     Task<IReadOnlyList<string>> GetKubernetesNamespaces(CancellationToken ctx = default);
 }

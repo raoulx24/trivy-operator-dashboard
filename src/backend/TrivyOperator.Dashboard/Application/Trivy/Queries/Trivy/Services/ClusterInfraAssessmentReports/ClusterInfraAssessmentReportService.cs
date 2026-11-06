@@ -4,12 +4,14 @@ using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterIn
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 
 namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterInfraAssessmentReports;
 
 public sealed class ClusterInfraAssessmentReportService(
     IResourceProvider<ClusterInfraAssessmentReport, Uid> resourceProvider
-) : IClusterInfraAssessmentReportService
+) : QueryService, IClusterInfraAssessmentReportService
 {
     public async Task<IEnumerable<ClusterInfraAssessmentReportDto>> GetClusterInfraAssessmentReportDtos(
         CancellationToken ctx = default)

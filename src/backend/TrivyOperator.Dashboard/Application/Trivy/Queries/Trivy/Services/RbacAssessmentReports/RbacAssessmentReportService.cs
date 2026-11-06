@@ -1,4 +1,5 @@
 ﻿using TrivyOperator.Dashboard.Application.Shared.Queries;
+using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Mappers;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Models;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.RbacAssessmentReports.Abstractions;
@@ -11,7 +12,7 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.RbacA
 
 public class RbacAssessmentReportService(
     IResourceProvider<RbacAssessmentReport, Uid> resourceProvider
-) : IRbacAssessmentReportService
+) : QueryService, IRbacAssessmentReportService
 {
     public async Task<QueryResponse<IEnumerable<RbacAssessmentReportDto>>> GetRbacAssessmentReportDtos(
         string? namespaceName = null,
