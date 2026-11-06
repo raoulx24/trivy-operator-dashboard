@@ -1,9 +1,9 @@
 import { SemaphoreStatusUtils } from '../../utils/semaphore-status.utils';
 
-export type TagSetName = 'semaphore' | 'boolean' | 'logLevel';
+export type TagSetName = 'semaphore' | 'boolean' | 'logLevel' | 'vrHistoryStatus';
 
 export interface TagOption {
-  value: string | boolean;
+  value: string | boolean | number;
   label: string;
   style: { [key: string]: string };
   icon?: string;
@@ -23,6 +23,13 @@ const booleanOption = (value: boolean, label: string): TagOption => ({
   icon: value ? 'pi pi-verified' : 'pi pi-times-circle',
 });
 
+const cssVarOption = (value: number, label: string, color: string, icon: string): TagOption => ({
+  value,
+  label,
+  style: { background: getComputedStyle(document.documentElement).getPropertyValue(`--p-${color}-400`) },
+  icon,
+});
+
 const tagSetBuilders: Record<TagSetName, () => TagOption[]> = {
   semaphore: () => ['Green', 'Yellow', 'Red', 'Neutral', 'Unknown'].map((name) => semaphoreOption(name)),
   boolean: () => [booleanOption(true, 'True'), booleanOption(false, 'False')],
@@ -32,6 +39,12 @@ const tagSetBuilders: Record<TagSetName, () => TagOption[]> = {
     semaphoreOption('warn', 'Yellow', 'Warn'),
     semaphoreOption('info', 'Neutral', 'Info'),
     semaphoreOption('debug', 'Unknown', 'Debug'),
+  ],
+  // values mirror the backend VulnerabilityReportsHistoryStatus enum (0 Fresh, 1 Active, 2 Stale); last option is the fallback
+  vrHistoryStatus: () => [
+    cssVarOption(0, 'Fresh', 'pink', 'pi pi-sparkles'),
+    cssVarOption(1, 'Active', 'blue', 'pi pi-verified'),
+    cssVarOption(2, 'Stale', 'gray', 'pi pi-times-circle'),
   ],
 };
 
