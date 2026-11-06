@@ -626,7 +626,7 @@ mat-icon.text-xs {
    Trivy Operator Dashboard: Namespace count
    ========================================================================== */
 
-.tod-namespace-count {
+.tod-counter-pill {
   display: inline-flex;
   align-items: center;
   margin-left: 0.25rem;
@@ -648,7 +648,7 @@ mat-icon.text-xs {
 }
 
 /* count badge floating in the top-right corner of a (position: relative) cell */
-.tod-count-corner {
+.tod-counter-pill-corner {
   position: absolute;
   top: 50%;
   right: 0.25rem;

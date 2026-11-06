@@ -283,6 +283,12 @@ export class TrivyTableComponent<TData> implements OnInit {
     this.filterSeverityOptions = this.severityDtos.map((x) => x.id);
   }
 
+  // corner counter: the field holds a number, or an array (its length is used)
+  protected cornerCount(row: TData, col: TrivyTableColumn): number {
+    const value = col.cornerCounter ? (row as Record<string, unknown>)[col.cornerCounter.field] : undefined;
+    return Array.isArray(value) ? value.length : typeof value === 'number' ? value : 0;
+  }
+
   // tag sets: 'booleans' multiSelectType stays supported as an alias of the boolean tag set
   protected tagOptions(col: TrivyTableColumn): TagOption[] {
     const tagSet: TagSetName | undefined = col.tagSet ?? (col.multiSelectType === 'booleans' ? 'boolean' : undefined);

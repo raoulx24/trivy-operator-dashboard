@@ -23,7 +23,10 @@ export interface TrivyTableColumn extends Column {
   isSortable: boolean;
   isSortIconVisible?: boolean;
   isFilterable: boolean;
-  isCounter?: boolean;
+  // pill pinned to the right edge of the cell, shown only when the count is above 1; multiplier adds the 'x' (3x)
+  // do not use on cells that lay out their own right edge (flex justify-end / space-between), like 'severityValue'
+  // and 'severityMultiTags', nor on cells that bring their own corner pill, like 'array' and 'arrayTags'
+  cornerCounter?: { field: string; multiplier?: boolean };
   style: string;
   // legacy filter selector: still honored ('booleans' is an alias of tagSet 'boolean'); new columns use tagSet
   multiSelectType?: 'none' | 'namespaces' | 'severities' | 'booleans' | 'namespacesArrays' | 'arrayValues';

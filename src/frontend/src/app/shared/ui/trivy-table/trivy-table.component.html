@@ -301,7 +301,9 @@
           </td>
         }
         @for (col of columns; track col) {
-          <td style="{{ col.style }}" class="h-full" [class.relative]="col.renderType === 'array' || col.renderType === 'arrayTags'">
+          <td style="{{ col.style }}" class="h-full"
+              [class.relative]="col.renderType === 'array' || col.renderType === 'arrayTags' || col.cornerCounter"
+              [class.pr-8]="col.cornerCounter">
             @switch (col.renderType) {
               @case ('standard') {
                 <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
@@ -552,7 +554,7 @@
                      tooltipPosition="top"
                      tooltipStyleClass="tod-tooltip-lines text-sm tod-text-muted-color">
                   @if (items.length > 1) {
-                    <span class="tod-namespace-count tod-count-corner">{{ items.length }}</span>
+                    <span class="tod-counter-pill tod-counter-pill-corner">{{ items.length }}</span>
                   }
                   <span class="truncate-ellipsis pr-4">{{ rowData[col.field] }}</span>
                 </div>
@@ -567,7 +569,7 @@
                     <span [pTooltip]="items.length > 1 ? items.join('\n') : ''"
                           tooltipPosition="top"
                           tooltipStyleClass="tod-tooltip-lines text-sm tod-text-muted-color"
-                          class="tod-namespace-count tod-count-corner">{{ items.length }}</span>
+                          class="tod-counter-pill tod-counter-pill-corner">{{ items.length }}</span>
                   }
                   @for (item of items; track item) {
                     <p-tag rounded severity="secondary" class="shrink-0" [value]="item" />
@@ -581,6 +583,12 @@
 
               @default {
                 <span class="truncate-ellipsis">{{ rowData[col.field] }}</span>
+              }
+            }
+            @if (col.cornerCounter) {
+              @let count = cornerCount(rowData, col);
+              @if (count > 1) {
+                <span class="tod-counter-pill tod-counter-pill-corner">{{ count }}{{ col.cornerCounter.multiplier ? 'x' : '' }}</span>
               }
             }
           </td>

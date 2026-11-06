@@ -79,6 +79,7 @@ export const rbacAssessmentReportDetailColumns: readonly TrivyTableColumn[] = [
     multiSelectType: 'none',
     style: 'width: 95px; max-width: 95px; white-space: normal;',
     renderType: 'standard',
+    cornerCounter: { field: 'count', multiplier: true },
   },
   {
     field: 'title',
