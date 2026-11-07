@@ -268,6 +268,12 @@ div.p-panelmenu-header-content p-button.tod-text-primary-color button.p-button-t
   background: transparent;
 }
 
+// Light/dark switch: crossfade of the whole page (see DarkModeService, View Transitions API)
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 500ms;
+}
+
 // Table border color utility
 .tod-datatable-border-color {
   color: var(--p-datatable-border-color);

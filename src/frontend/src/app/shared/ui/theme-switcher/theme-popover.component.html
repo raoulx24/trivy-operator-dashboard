@@ -1,0 +1,20 @@
+<div
+  class="tod-theme-popover"
+  role="radiogroup"
+  aria-label="Theme"
+  [class.tod-theme-popover-closing]="closing()"
+>
+  @for (mode of modes; track mode.value) {
+    <button
+      type="button"
+      role="radio"
+      class="tod-theme-popover-item"
+      [class.tod-theme-popover-item-active]="mode.value === themeMode()"
+      [attr.aria-checked]="mode.value === themeMode()"
+      (click)="select(mode.value)"
+    >
+      <app-icon [name]="mode.iconName" />
+      <span>{{ mode.label }}</span>
+    </button>
+  }
+</div>

@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AlertsService } from '../../services/alerts.service';
-import { DarkModeService } from '../../services/dark-mode.service';
 import { KubernetesContextStateService } from '../../state/kubernetes-context-state.service';
 import { MainAppInitService } from '../../services/main-app-init.service';
 import { CurrentPageService } from '../../services/current-page.service';
@@ -20,6 +19,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
 import { IconComponent } from '@shared/ui/icon/icon.component';
+import { ThemeSwitcherComponent } from '@shared/ui/theme-switcher/theme-switcher.component';
 import { buildNavMenuItems, createDrawerNavigator, findSectionIdForRoute } from './nav-menu.items';
 
 @Component({
@@ -36,6 +36,7 @@ import { buildNavMenuItems, createDrawerNavigator, findSectionIdForRoute } from 
     SelectModule,
     ToastModule,
     IconComponent,
+    ThemeSwitcherComponent,
     Ripple,
   ],
   templateUrl: './nav-menu.component.html',
@@ -45,7 +46,6 @@ import { buildNavMenuItems, createDrawerNavigator, findSectionIdForRoute } from 
 export class NavMenuComponent {
   protected router = inject(Router);
   private alertsService = inject(AlertsService);
-  private darkModeService = inject(DarkModeService);
   private mainAppInitService = inject(MainAppInitService);
   private currentPageService = inject(CurrentPageService);
   protected k8sContextState = inject(KubernetesContextStateService);
@@ -56,7 +56,6 @@ export class NavMenuComponent {
   // --- Signals from services ---
   alerts = this.alertsService.alerts;
   backendSettings = this.mainAppInitService.backendSettingsDto;
-  isDarkMode = this.darkModeService.isDarkMode;
   activePageTitle = this.currentPageService.title;
   // matched against MenuItem.id (= NavEntry.route) in the template
   activeRoute = this.currentPageService.route;
@@ -99,10 +98,6 @@ export class NavMenuComponent {
   });
 
   // --- UI actions ---
-  switchLightDarkMode() {
-    this.darkModeService.toggleDarkMode();
-  }
-
   onAlertsClick() {
     if (this.router.url === '/alerts') {
       this.alertsService.triggerRefresh();

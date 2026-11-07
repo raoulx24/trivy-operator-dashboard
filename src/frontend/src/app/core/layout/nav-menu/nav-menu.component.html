@@ -21,14 +21,7 @@
         </p-tag>
       }
 
-      <p-button
-        [icon]="isDarkMode() ? 'pi pi-sun' : 'pi pi-moon'"
-        [raised]="true"
-        [rounded]="true"
-        [text]="true"
-        (click)="switchLightDarkMode()"
-      >
-      </p-button>
+      <app-theme-switcher />
     </div>
   </ng-template>
 </p-menubar>
