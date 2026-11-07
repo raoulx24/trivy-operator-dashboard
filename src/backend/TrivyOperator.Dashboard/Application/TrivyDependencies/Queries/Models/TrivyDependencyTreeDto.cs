@@ -16,7 +16,7 @@ public sealed record DigestNode
     public required string ImageDigest { get; init; }
     public required string ImageName { get; init; }
     public required string ImageTag { get; init; }
-    public required string ImageRepository { get; init; }
+    public required string ImageRegistry { get; init; }
 
     public required TrivyReportNode[] TrivyReports { get; init; }
     public required WorkloadsNode Workloads { get; init; }

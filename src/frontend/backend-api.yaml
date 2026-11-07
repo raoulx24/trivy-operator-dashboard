@@ -2669,7 +2669,7 @@ components:
         - id
         - imageDigest
         - imageName
-        - imageRepository
+        - imageRegistry
         - imageTag
         - trivyReports
         - vrHistory
@@ -2692,7 +2692,7 @@ components:
           type: string
         imageTag:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         trivyReports:
           type: array
@@ -3896,7 +3896,7 @@ components:
           type: string
         imageDigest:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         firstSeenAt:
           type: string
@@ -3971,7 +3971,7 @@ components:
           type: string
         cvesHash:
           type: string
-        imageRepository:
+        imageRegistry:
           type: string
         imageName:
           type: string

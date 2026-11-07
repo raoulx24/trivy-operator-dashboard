@@ -84,9 +84,9 @@ public static class ExposedSecretReportMappings
 
             Digest: report.ImageDigest.Value,
 
-            ImageNameAndTag: $"{occurrence.ImageMeta.Registry.Value}:{occurrence.ImageMeta.Tag.Value}",
+            ImageNameAndTag: $"{occurrence.ImageMeta.Repo.Value}:{occurrence.ImageMeta.Tag.Value}",
 
-            ImageRegistry: occurrence.ImageMeta.Repo.Value,
+            ImageRegistry: occurrence.ImageMeta.Registry.Value,
 
             ResourceName: occurrence.Metadata.GetResourceName().Value,
             ResourceKind: occurrence.Metadata.GetResourceKind().Value,

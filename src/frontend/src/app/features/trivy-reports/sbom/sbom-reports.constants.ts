@@ -110,7 +110,7 @@ export const sbomReportDenormalizedColumns: readonly TrivyTableColumn[] = [
   },
   {
     field: 'imageRegistry',
-    header: 'Repository',
+    header: 'Registry',
     isFilterable: true,
     isSortable: true,
     multiSelectType: 'none',

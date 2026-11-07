@@ -34,7 +34,7 @@ public static class TrivyReportDependenciesMappings
             ImageDigest = digest.Value,
             ImageName = occurrence.ImageMeta.Repo.Value,
             ImageTag = occurrence.ImageMeta.Tag.Value,
-            ImageRepository = occurrence.ImageMeta.Registry.Value,
+            ImageRegistry = occurrence.ImageMeta.Registry.Value,
 
             TrivyReports = reports.ToTrivyReportNodes(),
 

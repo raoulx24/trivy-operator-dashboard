@@ -114,7 +114,7 @@ export class TrivyDependencyComponent {
     const rootNode = this.node(
       root.id,
       'Image',
-      `${root.imageRepository}/${root.imageName}:${root.imageTag}`,
+      `${root.imageRegistry}/${root.imageName}:${root.imageTag}`,
       false,
     );
 
