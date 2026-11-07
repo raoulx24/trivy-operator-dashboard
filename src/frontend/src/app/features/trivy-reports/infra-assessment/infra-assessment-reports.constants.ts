@@ -215,5 +215,6 @@ export const infraAssessmentReportComparedTableColumns: readonly TrivyTableColum
     renderType: 'boolean',
     extraFields: ['secondCount'],
   },
-  ...infraAssessmentReportDetailColumns,
+  // the count of a detail is not the count of a compared row: the 1st and 2nd columns show their own counts
+  ...infraAssessmentReportDetailColumns.map(({ cornerCounter: _cornerCounter, ...col }) => col),
 ];

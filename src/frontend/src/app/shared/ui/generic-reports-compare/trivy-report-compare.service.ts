@@ -37,6 +37,8 @@ export interface TrivyReportComparable<TDetail extends TrivyReportComparableDeta
 
 export interface TrivyReportComparableDetail {
   matchKey: string;
+  // how many times the detail is in its report (a grouped detail); a missing count is 1
+  count?: number;
 }
 
 // TODO:
@@ -117,21 +119,23 @@ export class TrivyReportCompareService {
 
     dto.details.forEach(detail => {
       const existing = detailSet.get(detail.matchKey);
+      // a grouped detail counts for its own count, any other for 1
+      const detailCount = detail.count ?? 1;
 
       if (existing) {
         existing[side] = true;
         if (side === 'first') {
-          existing.firstCount = (existing.firstCount ?? 0) + 1;
+          existing.firstCount = (existing.firstCount ?? 0) + detailCount;
         } else {
-          existing.secondCount = (existing.secondCount ?? 0) + 1;
+          existing.secondCount = (existing.secondCount ?? 0) + detailCount;
         }
         this.mergeValues(existing, detail, side === 'first', groupedFields);
       } else {
         const clone: ComparableWorkingItem<TDetail> = {
           ...(detail as TDetail),
           [side]: true,
-          firstCount: side === 'first' ? 1 : 0,
-          secondCount: side === 'second' ? 1 : 0,
+          firstCount: side === 'first' ? detailCount : 0,
+          secondCount: side === 'second' ? detailCount : 0,
         };
 
         groupedFields.forEach((field) => {
@@ -180,7 +184,7 @@ export class TrivyReportCompareService {
     const compared = Array.from(detailSet.values());
 
     compared.forEach(x => {
-      x.modified = x.modified || x.first !== x.second;
+      x.modified = x.modified || x.first !== x.second || x.firstCount !== x.secondCount;
     });
 
     return compared;

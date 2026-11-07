@@ -3827,6 +3827,9 @@ components:
           type: string
         vulnerabilityId:
           type: string
+        count:
+          type: integer
+          format: int32
       additionalProperties: false
     VulnerabilityReportDto:
       type: object

@@ -9,29 +9,63 @@ namespace TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Mappers;
 
 public static class TrivyReportMappings
 {
-    internal static VulnerabilityReportDetailDto ToDto(this Vulnerability vulnerability)
+    // one row per CVE and package (see PackageKey), with the number of times it is in the report
+    // (the same package found on several targets, or in several versions, is in the report several times)
+    // - the versions and the targets of the repeats are merged
+    // - the score is the highest one, the severity is the most severe one
+    internal static IEnumerable<VulnerabilityReportDetailDto> ToDetailDtos(
+        this IEnumerable<Vulnerability> vulnerabilities)
     {
-        Uid key = new(DeterministicId.Create(
-            vulnerability.Id.Value, 
-            vulnerability.ScannedPackage.Name.Value, 
-            vulnerability.ScannedPackage.InstalledVersion.Value, 
-            vulnerability.ScannedPackage.Target.Value));
+        return vulnerabilities
+            .GroupBy(static x => new PackageVulnerabilityKey(x.Id, PackageKey.From(x.ScannedPackage)))
+            .Select(static group => ToDetailDto([.. group,], group.Key));
+    }
+
+    private static VulnerabilityReportDetailDto ToDetailDto(
+        IReadOnlyList<Vulnerability> repeats,
+        PackageVulnerabilityKey key)
+    {
+        Vulnerability first = repeats[0];
+
+        Uid id = new(DeterministicId.Create(key.VulnerabilityId.Value, key.PackageKey.Value));
+
+        // a package without a purl has no usable package key (name|target): show its own purl value
+        string packageUrl = first.ScannedPackage.Purl.IsValid
+            ? key.PackageKey.Value
+            : first.ScannedPackage.Purl.Value;
+
         return new VulnerabilityReportDetailDto(
-            Id: key.Value,
-            MatchKey: key.Value,
-            FixedVersion: vulnerability.FixedVersion?.Value ?? string.Empty,
-            InstalledVersion: vulnerability.ScannedPackage.InstalledVersion.Value,
-            LastModifiedDate: vulnerability.Modified?.Value,
-            PackageUrl: vulnerability.ScannedPackage.Purl.Value,
-            PrimaryLink: vulnerability.PrimaryLink.InitialValue,
-            PublishedDate: vulnerability.Published?.Value,
-            Resource: vulnerability.ScannedPackage.Name.Value,
-            Score: vulnerability.Score.Value,
-            SeverityId: vulnerability.Severity.Rank,
-            Target: vulnerability.ScannedPackage.Target.Value,
-            Title: vulnerability.Title.Value,
-            VulnerabilityId: vulnerability.Id.Value
+            Id: id.Value,
+            MatchKey: id.Value,
+            FixedVersion: MergeValues(repeats.Select(static x => x.FixedVersion?.Value), split: true),
+            InstalledVersion: MergeValues(repeats.Select(static x => x.ScannedPackage.InstalledVersion.Value), split: true),
+            LastModifiedDate: first.Modified?.Value,
+            PackageUrl: packageUrl,
+            PrimaryLink: first.PrimaryLink.InitialValue,
+            PublishedDate: first.Published?.Value,
+            Resource: first.ScannedPackage.Name.Value,
+            Score: repeats.Max(static x => x.Score.Value),
+            // the lowest rank is the most severe
+            SeverityId: repeats.Min(static x => x.Severity.Rank),
+            Target: MergeValues(repeats.Select(static x => x.ScannedPackage.Target.Value), split: false),
+            Title: first.Title.Value,
+            VulnerabilityId: first.Id.Value,
+            Count: repeats.Count
         );
+    }
+
+    // distinct and ordered, comma-joined; a value that is already a list (i.e. "8.0.8, 9.0.4") is split first
+    private static string MergeValues(IEnumerable<string?> values, bool split)
+    {
+        IEnumerable<string> parts = split
+            ? values.SelectMany(static x => (x ?? string.Empty)
+                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+            : values.Select(static x => (x ?? string.Empty).Trim());
+
+        return string.Join(", ", parts
+            .Where(static x => x.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal));
     }
     
     internal static SbomReportDetailDto ToDto(

@@ -197,5 +197,6 @@ export const rbacAssessmentReportComparedTableColumns: readonly TrivyTableColumn
     renderType: 'boolean',
     extraFields: ['secondCount'],
   },
-  ...rbacAssessmentReportDetailColumns,
+  // the count of a detail is not the count of a compared row: the 1st and 2nd columns show their own counts
+  ...rbacAssessmentReportDetailColumns.map(({ cornerCounter: _cornerCounter, ...col }) => col),
 ];

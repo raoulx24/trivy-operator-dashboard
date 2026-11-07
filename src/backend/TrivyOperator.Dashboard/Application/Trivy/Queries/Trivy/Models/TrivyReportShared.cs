@@ -16,7 +16,8 @@ public sealed record VulnerabilityReportDetailDto(
     int SeverityId,
     string Target,
     string Title,
-    string VulnerabilityId
+    string VulnerabilityId,
+    int Count
 );
 
 public sealed record SbomReportDetailDto(
