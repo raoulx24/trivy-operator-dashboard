@@ -1,0 +1,7 @@
+// Emphasis for the menu entry of the page the user is currently on.
+// Shadow is inset on purpose: .p-panelmenu-item has overflow: hidden, which would clip an outer shadow.
+.tod-menu-item-active {
+  background: var(--tod-menu-item-active-bg);
+  box-shadow: var(--tod-menu-item-active-shadow);
+  font-weight: var(--tod-menu-item-active-font-weight);
+}

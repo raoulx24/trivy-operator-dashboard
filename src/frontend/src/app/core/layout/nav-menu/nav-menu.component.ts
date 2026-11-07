@@ -6,7 +6,7 @@ import { AlertsService } from '../../services/alerts.service';
 import { DarkModeService } from '../../services/dark-mode.service';
 import { KubernetesContextStateService } from '../../state/kubernetes-context-state.service';
 import { MainAppInitService } from '../../services/main-app-init.service';
-import { RouterEventEmitterService } from '../../services/router-event-emitter.service';
+import { CurrentPageService } from '../../services/current-page.service';
 
 import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -20,7 +20,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 
 import { IconComponent } from '@shared/ui/icon/icon.component';
-import { buildNavMenuItems, createDrawerNavigator } from './nav-menu.items';
+import { buildNavMenuItems, createDrawerNavigator, findSectionIdForRoute } from './nav-menu.items';
 
 @Component({
   selector: 'app-nav-menu',
@@ -47,7 +47,7 @@ export class NavMenuComponent {
   private alertsService = inject(AlertsService);
   private darkModeService = inject(DarkModeService);
   private mainAppInitService = inject(MainAppInitService);
-  private routerEventEmitterService = inject(RouterEventEmitterService);
+  private currentPageService = inject(CurrentPageService);
   protected k8sContextState = inject(KubernetesContextStateService);
 
   isDrawerVisible = signal(false);
@@ -57,7 +57,9 @@ export class NavMenuComponent {
   alerts = this.alertsService.alerts;
   backendSettings = this.mainAppInitService.backendSettingsDto;
   isDarkMode = this.darkModeService.isDarkMode;
-  activePageTitle = this.routerEventEmitterService.title;
+  activePageTitle = this.currentPageService.title;
+  // matched against MenuItem.id (= NavEntry.route) in the template
+  activeRoute = this.currentPageService.route;
 
   contexts = this.k8sContextState.contexts;
   selectedContext = this.k8sContextState.selectedContext;
@@ -82,10 +84,18 @@ export class NavMenuComponent {
     return dto.isVrHistoryEnabled ? [...enabledIds, 'vrh'] : enabledIds;
   });
 
-  items = computed<MenuItem[]>(() => {
+  private menuItems = computed<MenuItem[]>(() => {
     if (!this.backendSettings()) return [];
 
     return buildNavMenuItems(this.enabledTrivyReports(), this.navigateAndClose);
+  });
+
+  // p-panelMenu is OnPush and only re-reads `expanded` when its model input changes. Programmatic changes to
+  // `expanded` (auto-expand) bump this, which hands the same item objects over in a new array.
+  private modelVersion = signal(0);
+  items = computed<MenuItem[]>(() => {
+    this.modelVersion();
+    return [...this.menuItems()];
   });
 
   // --- UI actions ---
@@ -102,7 +112,63 @@ export class NavMenuComponent {
   }
 
   openDrawer() {
+    this.syncSectionExpansion();
     this.isDrawerVisible.set(true);
+  }
+
+  toggleSection(section: MenuItem) {
+    section.expanded = !section.expanded;
+    this.releaseAutoExpanded(section);
+  }
+
+  // clicking a section row is handled by p-panelMenu itself; we only note that the user took over
+  onMenuItemClick(item: MenuItem) {
+    if (item.items) {
+      this.releaseAutoExpanded(item);
+    }
+  }
+
+  // --- Auto-expand of the section holding the active page ---
+  // Applied when the drawer opens (not on navigation), so the user never sees it reshuffle while it slides away.
+  // A section we expanded is collapsed again once the active page moves elsewhere, unless the user toggled it meanwhile.
+  private autoExpandedSectionId: string | null = null;
+  private lastSyncedRoute: string | null = null;
+
+  private syncSectionExpansion() {
+    const route = this.activeRoute();
+    // once per page, so a section the user collapsed stays collapsed until the next navigation
+    if (route === this.lastSyncedRoute) return;
+    this.lastSyncedRoute = route;
+
+    const sections = this.menuItems();
+    const targetId = findSectionIdForRoute(route);
+    let changed = false;
+
+    if (this.autoExpandedSectionId && this.autoExpandedSectionId !== targetId) {
+      const previous = sections.find((s) => s.id === this.autoExpandedSectionId);
+      if (previous?.expanded) {
+        previous.expanded = false;
+        changed = true;
+      }
+      this.autoExpandedSectionId = null;
+    }
+
+    const target = targetId ? sections.find((s) => s.id === targetId) : undefined;
+    if (target && !target.expanded) {
+      target.expanded = true;
+      this.autoExpandedSectionId = targetId ?? null;
+      changed = true;
+    }
+
+    if (changed) {
+      this.modelVersion.update((v) => v + 1);
+    }
+  }
+
+  private releaseAutoExpanded(section: MenuItem) {
+    if (section.id === this.autoExpandedSectionId) {
+      this.autoExpandedSectionId = null;
+    }
   }
 
   onContextChange(context: string) {

@@ -100,11 +100,17 @@ export const createDrawerNavigator =
     setTimeout((() => isDrawerVisible.set(false)), 300 );
   };
 
+/** Id (= label) of the section that holds the entry for the given route, if any. Home belongs to no section. */
+export const findSectionIdForRoute = (route: string | null): string | undefined =>
+  route === null ? undefined : NAV_SECTIONS.find((section) => section.entries.some((e) => e.route === route))?.label;
+
 export const buildNavMenuItems = (
   enabledReports: string[],
   navigate: (route: string) => void,
 ): MenuItem[] => {
   const toMenuItem = (entry: NavEntry): MenuItem => ({
+    // the route doubles as the id, so the template can tell which entry is the active page
+    id: entry.route,
     label: entry.label,
     icon: entry.icon,
     disabled: !!entry.reportId && !enabledReports.includes(entry.reportId),
@@ -115,6 +121,7 @@ export const buildNavMenuItems = (
     toMenuItem(HOME_ENTRY),
     ...NAV_SECTIONS.map(
       (section): MenuItem => ({
+        id: section.label,
         label: section.label,
         icon: section.icon,
         expanded: section.expanded,

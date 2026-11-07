@@ -43,7 +43,12 @@
   }
   <p-panelMenu class="w-1000px" [model]="items()" [multiple]="true">
     <ng-template #item let-item>
-      <a pRipple class="flex items-center cursor-pointer text-color px-4 py-2">
+      <a
+        pRipple
+        class="flex items-center cursor-pointer text-color px-4 py-2"
+        [class.tod-menu-item-active]="!item.items && item.id === activeRoute()"
+        (click)="onMenuItemClick(item)"
+      >
         @if (item.icon) {
           <app-icon [name]="item.icon" [class]="'tod-menu-icon'" />
         }
@@ -57,7 +62,7 @@
             [raised]="true"
             [rounded]="true"
             [text]="true"
-            (click)="$event.preventDefault(); $event.stopPropagation(); item.expanded = !item.expanded"
+            (click)="$event.preventDefault(); $event.stopPropagation(); toggleSection(item)"
           />
         }
       </a>

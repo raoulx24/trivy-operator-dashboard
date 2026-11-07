@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
-import { TitleService } from '@core/services/title.service';
+import { CurrentPageService } from '@core/services/current-page.service';
 import { NavMenuComponent } from '@core/layout/nav-menu/nav-menu.component';
 import { VulnerabilityTagDialogsComponent } from '@shared/ui/vulnerability-tag-dialogs/vulnerability-tag-dialogs.component';
 
@@ -12,5 +12,5 @@ import { VulnerabilityTagDialogsComponent } from '@shared/ui/vulnerability-tag-d
   templateUrl: './app.component.html',
 })
 export class AppComponent {
-  constructor(private titleService: TitleService) {}
+  constructor(private currentPageService: CurrentPageService) {}
 }

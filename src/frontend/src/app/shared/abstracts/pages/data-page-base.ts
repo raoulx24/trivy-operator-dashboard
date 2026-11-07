@@ -1,5 +1,5 @@
 import { effect, inject } from '@angular/core';
-import { RouterEventEmitterService } from '@core/services/router-event-emitter.service';
+import { CurrentPageService } from '@core/services/current-page.service';
 import { injectLogger } from '@core/logging/inject-logger';
 import { KubernetesContextStateService } from '@core/state/kubernetes-context-state.service';
 import { Observable } from 'rxjs';
@@ -13,8 +13,8 @@ export abstract class DataPageBase<TData> {
   protected isMainTableLoading: boolean = false;
 
   // injected services for error handling
-  protected readonly log = injectLogger(() => this.routerEventEmitterService.title());
-  private readonly routerEventEmitterService = inject(RouterEventEmitterService);
+  protected readonly log = injectLogger(() => this.currentPageService.title());
+  private readonly currentPageService = inject(CurrentPageService);
   // injected service for kubernetes context
   protected readonly kubernetesContextService = inject(KubernetesContextStateService);
 

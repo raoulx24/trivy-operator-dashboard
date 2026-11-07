@@ -56,6 +56,11 @@
   --tod-filter-drop-shadow: 0 4px 3px rgba(0, 0, 0, 0.3);
   --tod-tag-box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
 
+  /* nav menu: entry of the active page */
+  --tod-menu-item-active-bg: color-mix(in srgb, var(--p-primary-color) 40%, transparent);
+  --tod-menu-item-active-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+  --tod-menu-item-active-font-weight: 700;
+
   --p-popover-shadow: var(--tod-box-shadow);
 }
 
@@ -79,4 +84,8 @@
     0 0 0 1px rgba(255, 255, 255, 0.1),
     0 2px 4px rgba(0, 0, 0, 0.5);
 
+  /* the fill follows --p-primary-color, which PrimeNG already switches per mode; only the shadow differs */
+  --tod-menu-item-active-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 4px rgba(0, 0, 0, 0.6);
 }
