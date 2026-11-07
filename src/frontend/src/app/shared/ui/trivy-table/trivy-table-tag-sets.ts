@@ -42,7 +42,7 @@ const tagSetBuilders: Record<TagSetName, () => TagOption[]> = {
   ],
   // values mirror the backend VulnerabilityReportsHistoryStatus enum (0 Fresh, 1 Active, 2 Stale); last option is the fallback
   vrHistoryStatus: () => [
-    cssVarOption(0, 'Fresh', 'pink', 'pi pi-sparkles'),
+    cssVarOption(0, 'Fresh', 'rose', 'pi pi-sparkles'),
     cssVarOption(1, 'Active', 'blue', 'pi pi-verified'),
     cssVarOption(2, 'Stale', 'gray', 'pi pi-times-circle'),
   ],

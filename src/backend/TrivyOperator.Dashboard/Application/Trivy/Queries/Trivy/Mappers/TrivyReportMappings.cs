@@ -59,7 +59,7 @@ public static class TrivyReportMappings
             ],
             Licenses:
             [
-                .. component.Licenses.Select(x => x.Name ?? string.Empty)
+                .. component.Licenses.Select(x => x.Name ?? x.Id ?? string.Empty)
                        .Where(x => !string.IsNullOrWhiteSpace(x)),
             ],
             CriticalCount: severityCounters?.CriticalCount,

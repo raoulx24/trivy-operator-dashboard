@@ -169,11 +169,11 @@ public static class SbomMappingExtensions
 
         for (int i = 0; i < licenses.Length; i++)
         {
-            var l = licenses[i].License;
+            LicenseCr? l = licenses[i].License;
             if (l is null)
                 continue;
 
-            if (!string.IsNullOrWhiteSpace(l.Name))
+            if (!string.IsNullOrWhiteSpace(l.Name) || !string.IsNullOrWhiteSpace(l.Id))
             {
                 result.Add(new License(
                     l.Id,
