@@ -1,8 +1,10 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError, of } from 'rxjs';
 import { KubernetesContextsDto } from '@api/models/kubernetes-contexts-dto';
 import { KubernetesContextsService } from '@api/services/kubernetes-contexts.service';
 import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
+import { RetryPolicy, retryWithBackoff } from '@shared/utils/retry-policy.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +14,16 @@ export class KubernetesContextStateService {
   private readonly k8sService = inject(KubernetesContextsService);
 
   // --- Backend DTO as a signal ---
-  private readonly dto = toSignal(this.k8sService.getKubernetesContexts(), { initialValue: null });
+  // This service is created by kubernetesContextInterceptor on the very first HTTP call, i.e. during app init, when
+  // the backend may still be down: retry like the init does. A toSignal over an errored observable throws on every
+  // read (and breaks the nav menu), so a non-transient error ends as "no contexts" instead.
+  private readonly dto = toSignal(
+    this.k8sService.getKubernetesContexts().pipe(
+      retryWithBackoff(new RetryPolicy({ initialDelayMs: 500, maxDelayMs: 10_000 })),
+      catchError(() => of(null)),
+    ),
+    { initialValue: null },
+  );
 
   // --- Derived backend values ---
   readonly contexts = computed(() => this.dto()?.contexts ?? []);
