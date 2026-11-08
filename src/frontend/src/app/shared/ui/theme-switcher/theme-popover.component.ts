@@ -28,8 +28,8 @@ export class ThemePopoverComponent {
   // set by the host right before it removes the popover, to play the closing animation
   readonly closing = signal(false);
 
+  // The host applies the mode (after the popover has closed), so it can pass the reveal origin.
   protected select(mode: ThemeMode) {
-    this.darkModeService.setThemeMode(mode);
     this.selected.emit(mode);
   }
 }

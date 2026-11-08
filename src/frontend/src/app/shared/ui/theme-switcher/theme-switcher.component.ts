@@ -12,7 +12,7 @@ import {
 
 import { ButtonModule } from 'primeng/button';
 
-import { DarkModeService } from '@core/services/dark-mode.service';
+import { DarkModeService, ThemeMode } from '@core/services/dark-mode.service';
 import { IconComponent } from '../icon/icon.component';
 import { THEME_MODES, ThemePopoverComponent } from './theme-popover.component';
 
@@ -68,17 +68,22 @@ export class ThemeSwitcherComponent implements OnDestroy {
     }
 
     this.popoverRef = this.overlayRef.attach(new ComponentPortal(ThemePopoverComponent));
-    this.popoverRef.instance.selected.subscribe(() => this.close());
+    this.popoverRef.instance.selected.subscribe((mode) => this.close(mode));
   }
 
-  // Plays the closing animation, then removes the popover.
-  private close() {
+  // Plays the closing animation, removes the popover and then (if a mode was picked) applies it, so the popover
+  // is not part of the view-transition snapshot. The theme change reveals from the center of the button.
+  private close(pickedMode?: ThemeMode) {
     if (!this.overlayRef?.hasAttached() || this.closeTimer !== undefined) return;
 
     this.popoverRef?.instance.closing.set(true);
     this.closeTimer = window.setTimeout(() => {
       this.closeTimer = undefined;
       this.overlayRef?.detach();
+      if (pickedMode) {
+        const rect = this.host.nativeElement.getBoundingClientRect();
+        this.darkModeService.setThemeMode(pickedMode, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+      }
     }, CLOSE_ANIMATION_MS);
   }
 

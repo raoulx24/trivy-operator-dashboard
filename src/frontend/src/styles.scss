@@ -268,10 +268,58 @@ div.p-panelmenu-header-content p-button.tod-text-primary-color button.p-button-t
   background: transparent;
 }
 
-// Light/dark switch: crossfade of the whole page (see DarkModeService, View Transitions API)
+// Light/dark switch: circular reveal of the new theme with a soft edge (see DarkModeService, View Transitions API).
+// The default crossfade is off. The new theme is shown through a radial mask: fully visible up to
+// (radius - feather), fading to transparent at radius, so old and new theme blend inside the feather band.
+// The service animates --tod-reveal-radius and sets x / y / feather. The radius must be a registered <length>
+// to be animatable.
+@property --tod-reveal-radius {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+::view-transition-new(root) {
+  -webkit-mask-image: radial-gradient(
+    circle at var(--tod-reveal-x, 100%) var(--tod-reveal-y, 0),
+    #000 calc(var(--tod-reveal-radius) - var(--tod-reveal-feather, 200px)),
+    transparent var(--tod-reveal-radius)
+  );
+  mask-image: radial-gradient(
+    circle at var(--tod-reveal-x, 100%) var(--tod-reveal-y, 0),
+    #000 calc(var(--tod-reveal-radius) - var(--tod-reveal-feather, 200px)),
+    transparent var(--tod-reveal-radius)
+  );
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 500ms;
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+// Put on a hoverable element (button, menu item): the <app-icon> inside rotates a bit while it is hovered.
+.tod-hover-rotate-icon app-icon {
+  display: inline-flex;
+  transition: transform 200ms ease;
+}
+
+.tod-hover-rotate-icon:hover app-icon {
+  transform: rotate(20deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tod-hover-rotate-icon app-icon {
+    transition: none;
+  }
 }
 
 // Table border color utility
