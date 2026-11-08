@@ -44,6 +44,28 @@ public static class HistoryMetadataMappers
         );
     }
 
+    public static CvesDeltasPersistenceModel ToPersistenceModel(this CvesDeltas source)
+    {
+        return new CvesDeltasPersistenceModel(
+            [.. source.Added.Select(ToPersistenceModel),],
+            [.. source.Dropped.Select(ToPersistenceModel),]
+        );
+    }
+
+    public static CvesDeltas ToDomain(this CvesDeltasPersistenceModel source)
+    {
+        return new CvesDeltas(
+            [.. (source.Added ?? []).Select(ToDomain),],
+            [.. (source.Dropped ?? []).Select(ToDomain),]
+        );
+    }
+
+    private static CveDeltaPersistenceModel ToPersistenceModel(CveDelta source) =>
+        new(source.Id.Value, source.Severity.Value, source.Count);
+
+    private static CveDelta ToDomain(CveDeltaPersistenceModel source) =>
+        new(new VulnerabilityId(source.Id), new Severity(source.Severity), source.Count);
+
     public static Snapshot ToHistorySnapshot(this VulnerabilityReportCr vrCr)
     {
         ArgumentNullException.ThrowIfNull(vrCr);

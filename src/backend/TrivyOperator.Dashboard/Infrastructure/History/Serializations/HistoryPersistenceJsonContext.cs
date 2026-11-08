@@ -6,6 +6,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.History.Serializations;
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(HistoryMetadataPersistenceModel))]
+[JsonSerializable(typeof(CvesDeltasPersistenceModel))]
 
 
 internal partial class HistoryPersistenceJsonContext : JsonSerializerContext;

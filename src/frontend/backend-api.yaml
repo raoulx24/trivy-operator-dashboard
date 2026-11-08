@@ -1794,6 +1794,58 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/vulnerability-reports-history/cve-deltas:
+    get:
+      tags:
+        - VulnerabilityReportsHistory
+      operationId: GetVulnerabilityReportHistoryCveDeltas
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VulnerabilityReportsHistoryCveDeltasDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/vulnerability-reports-history/cve-deltas/{digest}':
+    get:
+      tags:
+        - VulnerabilityReportsHistory
+      operationId: GetVulnerabilityReportHistoryCveDeltasByDigest
+      parameters:
+        - name: digest
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VulnerabilityReportsHistoryCveDeltasDto'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/vulnerability-reports-history/reprocess-snapshots:
     post:
       tags:
@@ -3958,6 +4010,53 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/VulnerabilityReportDetailDto'
+      additionalProperties: false
+    VulnerabilityReportsHistoryCveDeltaDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        count:
+          type: integer
+          format: int32
+      additionalProperties: false
+    VulnerabilityReportsHistoryCveDeltasDto:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        digest:
+          type: string
+        cvesHash:
+          type: string
+        imageRegistry:
+          type: string
+        imageName:
+          type: string
+        imageTag:
+          type: string
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        firstSeenAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        added:
+          type: array
+          items:
+            $ref: '#/components/schemas/VulnerabilityReportsHistoryCveDeltaDto'
+        dropped:
+          type: array
+          items:
+            $ref: '#/components/schemas/VulnerabilityReportsHistoryCveDeltaDto'
       additionalProperties: false
     VulnerabilityReportsHistoryDenormalizedDto:
       type: object

@@ -28,8 +28,12 @@ public static class DistributedCacheKeyExtensions
     public static string GetSnapshotKeyPattern(Digest digest) =>
         $"{DistributedCacheKeyExtensions.SnapshotKeyPrefix}:{{{DistributedCacheDigestCodec.Encode(digest)}}}:*";
     
+    public static string GetAllSnapshotsKeyPattern() =>
+        $"{DistributedCacheKeyExtensions.SnapshotKeyPrefix}:{{*}}:*";
+
     // Digests History
-    public const string DigestsKey = "vr:namespaces";
+    // same key as VulnerabilityReportsHistoryV2Migration.DigestsKey ("vr:namespaces" is the pre-2.0 namespace index)
+    public const string DigestsKey = "vr:digests";
     
     public static RedisKey ToDigestsRedisKey()
         => (RedisKey)DigestsKey;
