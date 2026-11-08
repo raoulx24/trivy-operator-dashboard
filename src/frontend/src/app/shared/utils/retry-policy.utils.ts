@@ -56,17 +56,28 @@ export function isTransientError(err: unknown): boolean {
   return true; // TimeoutError, etc.
 }
 
+export interface RetryWithBackoffOptions {
+  shouldRetry?: (err: unknown) => boolean;
+  /** Called before each wait; `attempt` is 1-based. Replaces the default console warning. */
+  onRetry?: (attempt: number, delayMs: number, err: unknown) => void;
+}
+
 export function retryWithBackoff<T>(
   policy: RetryPolicy,
-  shouldRetry: (err: unknown) => boolean = isTransientError,
+  options: RetryWithBackoffOptions = {},
 ): MonoTypeOperatorFunction<T> {
+  const {
+    shouldRetry = isTransientError,
+    onRetry = (attempt, delayMs, err) => console.warn(`Retry #${attempt} in ${Math.round(delayMs)}ms`, err),
+  } = options;
+
   return retry({
     delay: (error, retryCount) => {
       // rxjs retryCount is 1-based
       const delay = shouldRetry(error) ? policy.delayFor(retryCount - 1) : null;
       if (delay === null) return throwError(() => error);
 
-      console.warn(`Retry #${retryCount} in ${Math.round(delay)}ms`, error);
+      onRetry(retryCount, delay, error);
       return timer(delay);
     },
   });

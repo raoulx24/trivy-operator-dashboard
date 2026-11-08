@@ -47,3 +47,15 @@ It can still happen in a race between housekeeping and a new report, or because 
 ### Why VR History is not affected
 
 Snapshots in Vulnerability Reports History are stored in Redis with a full copy of each finding (`VulnerabilityPersistenceModel`: severity, score, title, links, dates, fixed version...). They are built from the complete report that comes with the Kubernetes event, not from the hydrated one, and they never read the detail stores. History only uses the live VRs to decide whether an image digest is still in use (Stale / Fresh / Active), and that needs only the report ids and occurrences.
+
+## SBOM Reports: license expressions are not mapped
+
+CycloneDX writes a component license either as `{ "license": { "id" | "name" | "url" } }` or as `{ "expression": "MIT OR Apache-2.0" }`. `LicenseContainerCr` maps only `license`, so `SbomMappingExtensions.ToLicenses` skips the expression entries: a component licensed by an expression shows no license, in the SBOM views and in the purl index. On one cluster (2026-11-08) there were 1,562 expression entries. Known, and ignored for now.
+
+## Purl index: open points for the query side
+
+The purl index (`PurlDetail` and `ImagePurls` detail stores, family `Sbom`, fed by `PurlDetailsCollector`) has no reader yet. To decide when the query side is built:
+
+- **Deleted images:** the collector does nothing on delete, so an image stays in `ImagePurls` until the housekeeping removes it (`DetailsOptions`: grace 1 h, plus up to one interval, 10 min by default). Until then, "where is this purl" would still list it. Option: filter at query time by the digests still in the SBOM report cache.
+- **Only in the default context:** the index is registered only there (it needs the event pipeline), not in multi-context or file repository mode. A reader must treat it as optional, like `InMemoryCveSubjects`.
+- **Memory not measured:** compare the backend memory with and without the index on a real cluster.

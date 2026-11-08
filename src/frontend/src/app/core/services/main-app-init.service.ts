@@ -32,11 +32,9 @@ export class MainAppInitService {
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
-  private readonly initRetryPolicy = new RetryPolicy({
-    initialDelayMs: 500,
-    maxDelayMs: 8_000,
-    maxRetries: 6, // about 30s in the worst case, then give up
-  });
+  // retries forever (maxRetries defaults to Infinity): bootstrap waits on the boot screen in index.html until the
+  // backend answers. The 10s cap means the app comes up within ~10s of the backend starting.
+  private readonly initRetryPolicy = new RetryPolicy({ initialDelayMs: 500, maxDelayMs: 10_000 });
 
   private readonly log = injectLogger('App init');
   private readonly backendSettingsService = inject(BackendSettingsService);
@@ -48,7 +46,20 @@ export class MainAppInitService {
     this.darkModeService.restoreMode(); // no network needed; running it first avoids a light-mode flash
 
     const withResilience = <T>(source$: Observable<T>) =>
-      source$.pipe(timeout(10_000), retryWithBackoff<T>(this.initRetryPolicy));
+      source$.pipe(
+        timeout(10_000),
+        retryWithBackoff<T>(this.initRetryPolicy, {
+          onRetry: (attempt, delayMs, err) => {
+            // no toast: the toast host does not exist before bootstrap
+            this.log.warn('Backend unavailable during app initialization, retrying.', {
+              error: err,
+              data: { attempt, delayMs: Math.round(delayMs) },
+              toast: false,
+            });
+            this.setBootStatus(`Server unavailable, retrying (attempt ${attempt})…`);
+          },
+        }),
+      );
 
     try {
       const { backendSettings, appVersion } = await firstValueFrom(
@@ -64,6 +75,9 @@ export class MainAppInitService {
     } catch (err) {
       // no toast: a failing initializer aborts bootstrap, so no toast host exists yet
       this.log.error('Error during app initialization.', { error: err, toast: false });
+      // only non-transient errors get here (transient ones retry forever); without this the spinner would never stop
+      document.querySelector('.boot-spinner')?.remove();
+      this.setBootStatus('The app could not start. See the browser console for details, then reload the page.');
       throw err;
     }
   }
@@ -118,6 +132,12 @@ export class MainAppInitService {
         : (backendSettingsDto.trivyReportConfigDtos?.filter((x) => x.enabled).map((x) => x.id ?? '') ?? []);
     const mergedItems = [...savedItems, ...itemsToAdd.filter((item) => !savedItems.includes(item))];
     this.updateBackendSettingsTrivyReportConfigDto(mergedItems);
+  }
+
+  // the boot screen lives inside <app-root> in index.html and is replaced when bootstrap completes
+  private setBootStatus(text: string) {
+    const status = document.getElementById('boot-status');
+    if (status) status.textContent = text;
   }
 
   private parseIds(raw: string | null): string[] {

@@ -13,6 +13,7 @@ using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Details.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.Shared.Details.Options;
 using TrivyOperator.Dashboard.Application.Shared.Details.Services;
+using TrivyOperator.Dashboard.Application.Trivy.SbomDetails.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Providers;
 using TrivyOperator.Dashboard.Application.Trivy.VulnerabilityDetails.KubernetesEventProcessors;
@@ -53,6 +54,7 @@ using TrivyOperator.Dashboard.Domain.Shared.Stores;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities.Abstracts;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.SecurityAssessments;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
@@ -62,6 +64,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.CacheEntries;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Details;
+using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Details.Sboms;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Details.SecurityAssessments;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Details.Vulnerabilities;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.TrivyReports;
@@ -201,6 +204,8 @@ public static class TrivyReportServiceRegistrationExtensions
         //    their shared data (checks, vulnerability definitions, package vulnerabilities) is in stores of its own
         bool isSlim = services.TryAddSecurityAssessmentSlimServices(typeof(TReport)) ||
                       services.TryAddVulnerabilitySlimServices(typeof(TReport));
+        // -- the sbom reports also feed the purl index (purls and image purls stores)
+        services.TryAddPurlServices(typeof(TReport));
 
         // -- cache entry builder
         if (!isSlim)
@@ -601,6 +606,38 @@ public static class TrivyReportServiceRegistrationExtensions
         services.AddSingleton<IKubernetesEventProcessor<TReport, TId>>(sp =>
             new SlimProjectionProcessor<TReport, TSlim, TId>(
                 sp.GetRequiredService<ResourceStoreUpdater<TSlim, TId>>()));
+    }
+
+    // the purl index: the purls of the sbom reports (PurlDetail) and, per image, its purls (ImagePurls)
+    // only the namespaced sbom reports (not the cluster ones), and only here (default context): it is fed by the events
+    private static void TryAddPurlServices(this IServiceCollection services, Type reportType)
+    {
+        const string family = DetailFamilies.Sbom;
+
+        if (reportType.Name != nameof(SbomReport))
+        {
+            return;
+        }
+
+        services.AddDetails<PurlDetail, Purl>(family);
+        services.AddDetails<ImagePurls, Digest>(family);
+
+        // the details in use, for the housekeeping
+        // -- the image purls of the images still in the sbom report cache
+        services.AddKeyedSingleton<IDetailReferenceProvider<Digest>>(family, (sp, _) =>
+            new InMemoryImagePurlsReferenceProvider<SbomReport>(
+                sp.GetRequiredService<IResourceDictionaryCache<Digest, CacheEntry<SbomReport, Digest>>>()));
+        // -- the purls of the stored image purls
+        services.AddKeyedSingleton<IDetailReferenceProvider<Purl>>(family, (sp, _) =>
+            new InMemoryPurlDetailReferenceProvider(
+                sp.GetRequiredKeyedService<IResourceDictionaryCache<Digest, DetailEntry<ImagePurls>>>(family)));
+
+        // kubernetes event processor, before the sbom report store (registered by the caller)
+        services.AddSingleton<IKubernetesEventProcessor<SbomReport, Digest>>(sp =>
+            new PurlDetailsCollector<SbomReport>(
+                sp.GetRequiredKeyedService<InMemoryDetailRepository<PurlDetail, Purl>>(family),
+                sp.GetRequiredKeyedService<InMemoryDetailRepository<ImagePurls, Digest>>(family),
+                sp.GetRequiredService<ILogger<PurlDetailsCollector<SbomReport>>>()));
     }
 
     // one checks store and one housekeeping per family, added once

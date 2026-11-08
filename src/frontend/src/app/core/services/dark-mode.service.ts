@@ -104,12 +104,6 @@ export class DarkModeService {
     this.themeMode.set(mode);
   }
 
-  toggleDarkMode() {
-    const next = !this.isDarkMode();
-    LocalStorageUtils.setItem(this.localStorageKey, next.toString());
-    this.isDarkMode.set(next);
-  }
-
   private watchSystemDarkMode() {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -118,8 +112,6 @@ export class DarkModeService {
 
       // If user manually set a theme, ignore system changes
       if (saved !== null) return;
-
-      const newValue = event.matches;
 
       this.isDarkMode.set(event.matches);
     });

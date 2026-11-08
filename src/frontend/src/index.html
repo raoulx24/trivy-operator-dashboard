@@ -6,8 +6,44 @@
     <base href="./" />
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <style>
+      /* boot screen, shown until bootstrap replaces the content of <app-root>; currentColor follows the theme */
+      .boot-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        height: 100vh;
+        font-family: system-ui, sans-serif;
+      }
+      .boot-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: boot-spin 1s linear infinite;
+      }
+      @keyframes boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-spinner {
+          animation-duration: 3s;
+        }
+      }
+    </style>
   </head>
   <body>
-    <app-root>Loading...</app-root>
+    <app-root>
+      <div class="boot-screen" role="status" aria-live="polite">
+        <div class="boot-spinner"></div>
+        <p id="boot-status">Loading…</p>
+      </div>
+    </app-root>
   </body>
 </html>
