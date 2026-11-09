@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.home-placeholder-body {
+  border: 1px dashed var(--p-content-border-color);
+  border-radius: var(--tod-app-border-radius-md);
+  color: var(--p-text-muted-color);
+}
+
+.home-placeholder-error {
+  color: var(--p-red-500);
+}

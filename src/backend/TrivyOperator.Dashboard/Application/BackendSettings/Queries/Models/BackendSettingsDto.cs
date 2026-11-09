@@ -13,6 +13,7 @@ public sealed record BackendSettingsDto
     public bool IsNvdEnabled { get; init; }
     public bool IsCveEnrichmentEnabled { get; init; }
     public bool IsVrHistoryEnabled { get; init; }
+    public bool IsEolEnabled { get; init; }
 }
 
 public sealed record BackendSettingsTrivyReportConfigDto

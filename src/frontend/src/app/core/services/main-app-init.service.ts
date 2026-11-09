@@ -29,6 +29,7 @@ export class MainAppInitService {
     isCveEnrichmentEnabled: false,
     // off until the backend says otherwise, so the history menu items do not flash before the settings arrive
     isVrHistoryEnabled: false,
+    isEolEnabled: false,
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
@@ -104,6 +105,7 @@ export class MainAppInitService {
         isNvdEnabled: this.defaultBackendSettingsDto?.isNvdEnabled ?? false,
         isCveEnrichmentEnabled: this.defaultBackendSettingsDto?.isCveEnrichmentEnabled ?? false,
         isVrHistoryEnabled: this.defaultBackendSettingsDto?.isVrHistoryEnabled ?? false,
+        isEolEnabled: this.defaultBackendSettingsDto?.isEolEnabled ?? false,
       };
       return newItem;
     });

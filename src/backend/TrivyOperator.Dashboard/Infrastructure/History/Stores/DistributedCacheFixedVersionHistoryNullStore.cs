@@ -13,8 +13,17 @@ public class DistributedCacheFixedVersionHistoryNullStore : IFixedVersionHistory
         => Task.FromResult<IReadOnlyDictionary<PackageVulnerabilityKey, FixedVersionState>>(
             new Dictionary<PackageVulnerabilityKey, FixedVersionState>());
 
+    public Task<IReadOnlyDictionary<PackageVulnerabilityKey, FixedVersionTimeline>> GetTimelinesAsync(
+        IReadOnlyCollection<PackageVulnerabilityKey> keys,
+        CancellationToken ctx = default)
+        => Task.FromResult<IReadOnlyDictionary<PackageVulnerabilityKey, FixedVersionTimeline>>(
+            new Dictionary<PackageVulnerabilityKey, FixedVersionTimeline>());
+
     public Task ApplyAsync(IReadOnlyCollection<FixedVersionWrite> writes, CancellationToken ctx = default)
         => Task.CompletedTask;
+
+    public Task<Timestamp?> GetTrackingStartedAtAsync(CancellationToken ctx = default)
+        => Task.FromResult<Timestamp?>(null);
 
     public Task<IReadOnlyList<FixedVersionEntry>> GetEntriesAsync(
         PackageVulnerabilityKey key,

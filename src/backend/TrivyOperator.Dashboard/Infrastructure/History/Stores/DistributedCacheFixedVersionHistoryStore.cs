@@ -19,6 +19,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.History.Stores;
 //     touchedAt     last time an event saw the pair (O format)
 //     entries       JSON array of {fixedVersion, at}, oldest first; the first one is the baseline
 // - fv:changes  sorted set of the changes (not the baselines): member "vulnerabilityId|packageKey|at", score = at (unix ms)
+// - fv:startedAt  string, the moment of the first write (O format), set once
 // the vulnerability id never contains '|', the package key may (fallback "name|target"): split at the first '|'
 public sealed class DistributedCacheFixedVersionHistoryStore(
     IDistributedCacheExecutor executor,
@@ -29,6 +30,7 @@ public sealed class DistributedCacheFixedVersionHistoryStore(
     private const string KeySuffix = "}";
     private const string AllKeysPattern = "fv:{*}";
     private static readonly RedisKey ChangesKey = "fv:changes";
+    private static readonly RedisKey StartedAtKey = "fv:startedAt";
 
     private const string FixedVersionFieldName = "fixedVersion";
     private const string AtFieldName = "at";
@@ -72,6 +74,43 @@ public sealed class DistributedCacheFixedVersionHistoryStore(
         }, ctx);
     }
 
+    public async Task<IReadOnlyDictionary<PackageVulnerabilityKey, FixedVersionTimeline>> GetTimelinesAsync(
+        IReadOnlyCollection<PackageVulnerabilityKey> keys,
+        CancellationToken ctx = default)
+    {
+        if (keys.Count == 0)
+        {
+            return new Dictionary<PackageVulnerabilityKey, FixedVersionTimeline>();
+        }
+
+        return await executor.ExecuteAsync(async db =>
+        {
+            IBatch batch = db.CreateBatch();
+            List<(PackageVulnerabilityKey Key, Task<RedisValue> Value)> reads =
+            [
+                .. keys.Select(key => (key, batch.HashGetAsync(ToRedisKey(key), EntriesFieldName))),
+            ];
+            batch.Execute();
+            await Task.WhenAll(reads.Select(x => x.Value));
+
+            Dictionary<PackageVulnerabilityKey, FixedVersionTimeline> result = [];
+
+            foreach ((PackageVulnerabilityKey key, Task<RedisValue> value) in reads)
+            {
+                FixedVersionTimeline? timeline = FixedVersionTimeline.FromEntries(
+                    key,
+                    [.. DeserializeEntries(value.Result, key).Select(ToDomain),]);
+
+                if (timeline is not null)
+                {
+                    result[key] = timeline;
+                }
+            }
+
+            return (IReadOnlyDictionary<PackageVulnerabilityKey, FixedVersionTimeline>)result;
+        }, ctx);
+    }
+
     public async Task ApplyAsync(IReadOnlyCollection<FixedVersionWrite> writes, CancellationToken ctx = default)
     {
         if (writes.Count == 0)
@@ -103,6 +142,11 @@ public sealed class DistributedCacheFixedVersionHistoryStore(
 
             IBatch writeBatch = db.CreateBatch();
             List<Task> pending = [];
+
+            if (writes.Any(x => x.Kind == FixedVersionWriteKind.Baseline))
+            {
+                pending.Add(writeBatch.StringSetAsync(StartedAtKey, FormatTimestamp(Timestamp.Now()), when: When.NotExists));
+            }
 
             foreach (FixedVersionWrite write in writes)
             {
@@ -147,6 +191,16 @@ public sealed class DistributedCacheFixedVersionHistoryStore(
 
             writeBatch.Execute();
             await Task.WhenAll(pending);
+        }, ctx);
+    }
+
+    public async Task<Timestamp?> GetTrackingStartedAtAsync(CancellationToken ctx = default)
+    {
+        return await executor.ExecuteAsync(async db =>
+        {
+            DateTime? startedAt = ParseTimestamp(await db.StringGetAsync(StartedAtKey));
+
+            return startedAt is null ? (Timestamp?)null : new Timestamp(startedAt.Value);
         }, ctx);
     }
 

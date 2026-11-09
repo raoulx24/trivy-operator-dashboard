@@ -8,6 +8,7 @@ using TrivyOperator.Dashboard.Api.BackendSettings.Serializations;
 using TrivyOperator.Dashboard.Api.CveEnrichment.Serializations;
 using TrivyOperator.Dashboard.Api.EndOfLife.Serializations;
 using TrivyOperator.Dashboard.Api.History.Serializations;
+using TrivyOperator.Dashboard.Api.Home.Serializations;
 using TrivyOperator.Dashboard.Api.Nvd.Serializations;
 using TrivyOperator.Dashboard.Api.Serialization;
 using TrivyOperator.Dashboard.Api.Trivy.Serializations;
@@ -77,6 +78,7 @@ public static class ApiServiceRegistrationExtensions
         options.TypeInfoResolverChain.Add(BackendSettingsApiJsonContext.Default);
         options.TypeInfoResolverChain.Add(CveEnrichmentApiJsonContext.Default);
         options.TypeInfoResolverChain.Add(EndOfLifeApiJsonContext.Default);
+        options.TypeInfoResolverChain.Add(HomeApiJsonContext.Default);
         options.TypeInfoResolverChain.Add(NvdApiJsonContext.Default);
         options.TypeInfoResolverChain.Add(VulnerabilityReportsHistoryApiJsonContext.Default);
         options.TypeInfoResolverChain.Add(KubernetesApiJsonContext.Default);

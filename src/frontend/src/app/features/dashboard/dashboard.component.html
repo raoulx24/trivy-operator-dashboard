@@ -1,44 +1,101 @@
-<p>Home - Work in Progress</p>
-<!--<p-tabs scrollable class="tod-content-border" [(value)]="tabPageActiveIndex" (valueChange)="onTabPageChange($event)">-->
-<!--  <p-tablist>-->
-<!--    <p-tab value="0" [disabled]="!enabledTrivyReports.includes('vr')">Vulnerability Reports</p-tab>-->
-<!--    <p-tab value="1" [disabled]="!enabledTrivyReports.includes('car')">Config Audit Reports</p-tab>-->
-<!--    <p-tab value="2" [disabled]="!enabledTrivyReports.includes('crar')">Cluster RBAC Assessment Reports</p-tab>-->
-<!--    <p-tab value="3" [disabled]="!enabledTrivyReports.includes('esr')">Exposed Secret Reports</p-tab>-->
-<!--  </p-tablist>-->
-<!--  <p-tabpanels>-->
-<!--    @if (enabledTrivyReports.includes('vr')) {-->
-<!--      <p-tabpanel value="0">-->
-<!--        <app-dashboard-vulnerability-reports id="home-vr" [showDistinctValues]="showDistinctValues()" />-->
-<!--      </p-tabpanel>-->
-<!--    }-->
-<!--    @if (enabledTrivyReports.includes('car')) {-->
-<!--      <p-tabpanel value="1">-->
-<!--        <app-dashboard-config-audit-reports id="home-car" [showDistinctValues]="showDistinctValues()" />-->
-<!--      </p-tabpanel>-->
-<!--    }-->
-<!--    @if (enabledTrivyReports.includes('crar')) {-->
-<!--      <p-tabpanel value="2">-->
-<!--        <app-dashboard-cluster-rbac-assessment-reports id="home-crar" [showDistinctValues]="showDistinctValues()" />-->
-<!--      </p-tabpanel>-->
-<!--    }-->
-<!--    @if (enabledTrivyReports.includes('esr')) {-->
-<!--      <p-tabpanel value="3">-->
-<!--        <app-dashboard-exposed-secret-reports id="home-esr" [showDistinctValues]="showDistinctValues()" />-->
-<!--      </p-tabpanel>-->
-<!--    }-->
-<!--    <div class="flex text-sm items-center justify-items-center gap-4 pb-1 pt-2">-->
-<!--      <p-button-->
-<!--        icon="pi pi-refresh"-->
-<!--        label="Refresh Data"-->
-<!--        raised-->
-<!--        size="small"-->
-<!--        text-->
-<!--        class="-mt-1"-->
-<!--        (onClick)="onRefreshData()"-->
-<!--      />-->
-<!--      <p-toggleswitch inputId="distinctSwitch" [(ngModel)]="showDistinctValues" />-->
-<!--      <label for="distinctSwitch" [ngClass]="showDistinctValues() ? '' : 'text-muted-color'">Distinct values</label>-->
-<!--    </div>-->
-<!--  </p-tabpanels>-->
-<!--</p-tabs>-->
+<div class="flex flex-col gap-4 p-1">
+  <app-home-filter-bar
+    [namespaceOptions]="namespaceOptions()"
+    [sinceLabel]="sinceLabel()"
+    [(windowMode)]="windowMode"
+    [(severityIds)]="severityIds"
+    [(namespaces)]="namespaces"
+    (refresh)="onRefresh()"
+  />
+
+  <app-home-widget-placeholder
+    title="Data health"
+    hint="not filtered"
+    description="watchers ok / with issues, per report kind the count and the oldest / newest scan, the last fetch of KEV / EPSS / EUVD / EOL, the start of the history and of the fix tracking (could become status chips in the filter bar)"
+    source="GET api/home/data-health → HomeDataHealthDto"
+    [state]="dataHealth()"
+  />
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <app-home-widget-placeholder
+      title="New active vulnerabilities"
+      [hint]="changesHint()"
+      description="(vulnerability id, package) first seen in the window: totals (ids, rows, images, namespaces) and the top rows by reach, with KEV / EPSS markers; rows that existed before the fix tracking started are never new"
+      source="GET api/home/new-vulnerabilities → HomeNewVulnerabilitiesDto"
+      [state]="newVulnerabilities()"
+    />
+    <app-home-widget-placeholder
+      title="Fixes now available"
+      [hint]="changesHint()"
+      description="(vulnerability id, package) whose fix appeared in the window (not the ones that came with their fix): fixed version, images, namespaces"
+      source="GET api/home/new-fixes → HomeNewFixesDto"
+      [state]="newFixes()"
+    />
+    <app-home-widget-placeholder
+      title="Known exploited"
+      [hint]="knownExploitedHint()"
+      description="KEV / EUVD vulnerabilities running now, one per id; the ones exploited in the window marked as new; ransomware flag, fix, reach"
+      source="GET api/home/known-exploited → HomeKnownExploitedDto"
+      [state]="knownExploited()"
+    />
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <app-home-widget-placeholder
+      class="lg:col-span-2"
+      title="Activity"
+      [hint]="activityHint()"
+      description="a heatmap of the last months, rows: first seen / fix appeared / became exploited; quantile shading, visit days outlined, the tracking start day marked"
+      source="GET api/home/activity → HomeActivityDto"
+      [state]="activity()"
+    />
+    <app-home-widget-placeholder
+      title="Base OS status"
+      [hint]="baseOsHint()"
+      description="OS cycles running now, with EOL / EOAS dates, latest version and image counts, sorted by end date"
+      source="GET api/home/base-os → HomeBaseOsDto"
+      [state]="baseOs()"
+    />
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <app-home-widget-placeholder
+      title="Fix waiting time"
+      [hint]="stateHint()"
+      description="fixable (vulnerability id, package) sorted by how long the fix is known (a lower bound), with reach"
+      source="GET api/home/fix-waiting → HomeFixWaitingDto"
+      [state]="fixWaiting()"
+    />
+    <app-home-widget-placeholder
+      title="Failing checks"
+      [hint]="stateHint()"
+      description="failing config audit / RBAC / infra checks grouped by check id: title, severity, resources, namespaces"
+      source="GET api/home/failing-checks → HomeFailingChecksDto"
+      [state]="failingChecks()"
+    />
+    <app-home-widget-placeholder
+      title="Oldest running images"
+      [hint]="oldestImagesHint()"
+      description="running digests by the moment they were first seen by the history: repo:tag, workloads, namespaces, vulnerability ids"
+      source="GET api/home/oldest-images → HomeOldestImagesDto"
+      [state]="oldestImages()"
+    />
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <app-home-widget-placeholder
+      title="Package hotspots"
+      [hint]="stateHint()"
+      description="packages (purl without version) by the number of vulnerability ids, with the fixable ones and the images"
+      source="GET api/home/package-hotspots → HomePackageHotspotsDto"
+      [state]="packageHotspots()"
+    />
+    <app-home-widget-placeholder
+      title="Reach vs EPSS"
+      [hint]="stateHint()"
+      description="per vulnerability id: images (x) against the EPSS percentile (y), known exploited marked"
+      source="GET api/home/reach-epss → HomeReachEpssDto"
+      [state]="reachEpss()"
+    />
+  </div>
+</div>

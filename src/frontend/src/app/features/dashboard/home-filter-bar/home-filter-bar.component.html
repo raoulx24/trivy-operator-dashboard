@@ -1,0 +1,47 @@
+<div class="tod-content-border flex flex-wrap items-center gap-4 p-3">
+  <div class="flex items-center gap-2">
+    <p-select
+      size="small"
+      optionLabel="label"
+      optionValue="value"
+      [options]="windowOptions"
+      [ngModel]="windowMode()"
+      (ngModelChange)="windowMode.set($event)"
+    />
+    @if (sinceLabel()) {
+      <span class="text-xs tod-text-muted-color">since {{ sinceLabel() }}</span>
+    }
+  </div>
+
+  <p-selectbutton
+    size="small"
+    optionLabel="label"
+    optionValue="value"
+    [multiple]="true"
+    [options]="severityOptions"
+    [ngModel]="severityIds()"
+    (ngModelChange)="onSeverityIdsChange($event)"
+  />
+
+  <p-multiselect
+    size="small"
+    placeholder="All namespaces"
+    display="chip"
+    class="min-w-60"
+    [filter]="true"
+    [showClear]="true"
+    [maxSelectedLabels]="3"
+    [options]="namespaceOptions()"
+    [ngModel]="namespaces()"
+    (ngModelChange)="namespaces.set($event ?? [])"
+  />
+
+  <p-button
+    icon="pi pi-refresh"
+    label="Refresh"
+    size="small"
+    class="ml-auto"
+    [text]="true"
+    (onClick)="refresh.emit()"
+  />
+</div>

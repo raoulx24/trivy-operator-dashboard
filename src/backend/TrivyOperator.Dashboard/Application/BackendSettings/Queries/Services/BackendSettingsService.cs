@@ -2,6 +2,7 @@
 using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Models;
 using TrivyOperator.Dashboard.Application.BackendSettings.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services.Abstractions;
+using TrivyOperator.Dashboard.Application.EndOfLife.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.FileRepository.Options;
 using TrivyOperator.Dashboard.Application.History.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
@@ -28,6 +29,7 @@ public class BackendSettingsService(
     IOptions<RetentionOptions> historyRetentionOptions,
     INvdService nvdService,
     ICveEnrichmentService cveEnrichmentService,
+    IEndOfLifeService endOfLifeService,
     IVulnerabilityReportsHistoryService vrHistoryService,
     IClusterComplianceReportService clusterComplianceReportService,
     IClusterConfigAuditReportService clusterConfigAuditReportService,
@@ -131,6 +133,7 @@ public class BackendSettingsService(
             IsNvdEnabled = nvdService.IsEnabled,
             IsCveEnrichmentEnabled = cveEnrichmentService.IsEnabled,
             IsVrHistoryEnabled = vrHistoryService.IsEnabled,
+            IsEolEnabled = endOfLifeService.IsEnabled,
         };
 
         return Task.FromResult(backendSettingsDto);

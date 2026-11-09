@@ -5,6 +5,7 @@ using TrivyOperator.Dashboard.Composition.CveSubjects;
 using TrivyOperator.Dashboard.Composition.EndOfLife;
 using TrivyOperator.Dashboard.Composition.GitHub;
 using TrivyOperator.Dashboard.Composition.History;
+using TrivyOperator.Dashboard.Composition.Home;
 using TrivyOperator.Dashboard.Composition.Kubernetes;
 using TrivyOperator.Dashboard.Composition.Nvd;
 using TrivyOperator.Dashboard.Composition.Trivy;
@@ -30,5 +31,6 @@ public static class TrivyOperatorDashboardServiceRegistrationExtensions
         services.AddTrivyDependenciesRelatedServices(configuration);
         services.AddWatcherStateRelatedServices(configuration);
         services.AddHistoryRelatedServices(configuration);
+        services.AddHomeRelatedServices(configuration);
     }
 }

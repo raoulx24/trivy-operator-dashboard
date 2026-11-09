@@ -1,5 +1,3 @@
-@media (max-width: 768px) {
-  ::ng-deep .p-carousel-nav {
-    display: none;
-  }
+:host {
+  display: block;
 }

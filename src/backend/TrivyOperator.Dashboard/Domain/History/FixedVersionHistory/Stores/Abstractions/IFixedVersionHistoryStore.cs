@@ -15,6 +15,17 @@ public interface IFixedVersionHistoryStore
     // applies the recorder's decisions, in one round trip
     Task ApplyAsync(IReadOnlyCollection<FixedVersionWrite> writes, CancellationToken ctx = default);
 
+    // the timelines of the given pairs (missing pairs are not in the result), derived from their entries, in one
+    // round trip
+    Task<IReadOnlyDictionary<PackageVulnerabilityKey, FixedVersionTimeline>> GetTimelinesAsync(
+        IReadOnlyCollection<PackageVulnerabilityKey> keys,
+        CancellationToken ctx = default);
+
+    // the moment the history started recording (set once, with the first write); null when nothing was written yet
+    // the entries carry the reports' moments, so a baseline older than this is a pair that existed before the
+    // recording started (its age is unknown), not one first seen then
+    Task<Timestamp?> GetTrackingStartedAtAsync(CancellationToken ctx = default);
+
     // all entries of a pair, oldest first (the first one is the baseline)
     Task<IReadOnlyList<FixedVersionEntry>> GetEntriesAsync(PackageVulnerabilityKey key, CancellationToken ctx = default);
 
