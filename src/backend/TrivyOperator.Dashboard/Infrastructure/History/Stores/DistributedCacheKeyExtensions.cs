@@ -37,6 +37,13 @@ public static class DistributedCacheKeyExtensions
     
     public static RedisKey ToDigestsRedisKey()
         => (RedisKey)DigestsKey;
+
+    // digest -> first seen moment ("O" format); entries live and die with the ones in vr:digests
+    // same key as VulnerabilityReportsHistoryV2Migration.DigestsFirstSeenAtKey
+    public const string DigestsFirstSeenAtKey = "vr:digests:firstSeenAt";
+
+    public static RedisKey ToDigestsFirstSeenAtRedisKey()
+        => (RedisKey)DigestsFirstSeenAtKey;
 }
 
 internal static class DistributedCacheDigestCodec
