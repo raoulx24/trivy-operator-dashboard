@@ -1,4 +1,13 @@
-﻿using TrivyOperator.Dashboard.Application.History.EventPipeline.BackgroundQueue;
+﻿using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.History.FixedVersionHistory.Housekeeping;
+using TrivyOperator.Dashboard.Application.History.FixedVersionHistory.KubernetesEventProcessors;
+using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Details.Options;
+using TrivyOperator.Dashboard.Composition.Trivy;
+using TrivyOperator.Dashboard.Domain.History.FixedVersionHistory.Stores.Abstractions;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
+using TrivyOperator.Dashboard.Application.History.EventPipeline.BackgroundQueue;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventDispatchers.Abstractions;
 using TrivyOperator.Dashboard.Application.History.EventPipeline.EventPipelineStarters;
@@ -48,6 +57,10 @@ public static class HistoryServiceRegistrationExtensions
                 services.AddSingleton<
                     IVulnerabilityReportsHistoryStore,
                     DistributedCacheVulnerabilityReportsHistoryNullStore>();
+
+                services.AddSingleton<
+                    IFixedVersionHistoryStore,
+                    DistributedCacheFixedVersionHistoryNullStore>();
                 
                 services.AddSingleton<IPersistenceMigrationRunner, PersistenceMigrationNullRunner>();
 
@@ -106,8 +119,31 @@ public static class HistoryServiceRegistrationExtensions
         services.AddScoped<IVulnerabilityReportsHistoryService, VulnerabilityReportsHistoryService>();
 
         services.AddHostedService<VulnerabilityReportsHistoryRetentionTimedHostedService>();
-        
+
         services.AddHistoryEventPipelineServices<Snapshot>();
+
+        services.AddFixedVersionHistoryServices();
+    }
+
+    // fixed version history per (vulnerability id, package), fed by the namespaced and the cluster vulnerability reports
+    private static void AddFixedVersionHistoryServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IFixedVersionHistoryStore, DistributedCacheFixedVersionHistoryStore>();
+
+        services.AddSingleton<
+            IKubernetesEventProcessor<VulnerabilityReport, Digest>,
+            FixedVersionHistoryCollector<VulnerabilityReport, Digest>>();
+        services.AddSingleton<
+            IKubernetesEventProcessor<ClusterVulnerabilityReport, Uid>,
+            FixedVersionHistoryCollector<ClusterVulnerabilityReport, Uid>>();
+
+        // the references are the ones of the vulnerability details housekeeping (both report kinds)
+        services.AddHostedService(sp =>
+            new FixedVersionHistoryHousekeepingHostedService(
+                sp.GetRequiredService<IOptionsMonitor<DetailsOptions>>(),
+                sp.GetRequiredService<IFixedVersionHistoryStore>(),
+                [.. sp.GetKeyedServices<IDetailReferenceProvider<PackageVulnerabilityKey>>(DetailFamilies.Vulnerability),],
+                sp.GetRequiredService<ILogger<FixedVersionHistoryHousekeepingHostedService>>()));
     }
 
     private static void AddHistoryEventPipelineServices<THistoryResource>(this IServiceCollection services)
