@@ -20,9 +20,6 @@ public interface IHomeService : IQueryService
     // the severities are not used: being exploited matters whatever the severity
     Task<HomeKnownExploitedDto> GetKnownExploited(HomeFilter filter, CancellationToken ctx = default);
 
-    // the window (Since) is not used, days is
-    Task<HomeActivityDto> GetActivity(int days, HomeFilter filter, CancellationToken ctx = default);
-
     // the queries about the current state do not use the window (Since)
     Task<HomeBaseOsDto> GetBaseOs(HomeFilter filter, CancellationToken ctx = default);
 

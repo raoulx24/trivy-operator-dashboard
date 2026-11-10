@@ -20,19 +20,23 @@ public readonly record struct PackageKey
 
     public PackageKey() : this(Sentinel) { }
 
-    public static PackageKey From(Package package)
-    {
-        Purl.Components purl = package.Purl.Parse();
+    public static PackageKey From(Package package) =>
+        FromPurl(package.Purl) ?? new PackageKey($"{package.Name.Value}|{package.Target.Value}");
 
-        if (purl.Type is null || purl.Name is null)
+    // null when the purl has no type or name
+    public static PackageKey? FromPurl(Purl purl)
+    {
+        Purl.Components components = purl.Parse();
+
+        if (components.Type is null || components.Name is null)
         {
-            return new PackageKey($"{package.Name.Value}|{package.Target.Value}");
+            return null;
         }
 
-        string @namespace = purl.Namespace is null ? string.Empty : $"{purl.Namespace}/";
-        string distro = purl.Distro is null ? string.Empty : $"?distro={purl.Distro}";
+        string @namespace = components.Namespace is null ? string.Empty : $"{components.Namespace}/";
+        string distro = components.Distro is null ? string.Empty : $"?distro={components.Distro}";
 
-        return new PackageKey($"pkg:{purl.Type}/{@namespace}{purl.Name}{distro}");
+        return new PackageKey($"pkg:{components.Type}/{@namespace}{components.Name}{distro}");
     }
 
     public override string ToString() => Value;

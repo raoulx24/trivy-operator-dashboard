@@ -6,6 +6,17 @@
     }
   </div>
 
+  @if (searchPlaceholder()) {
+    <input
+      type="text"
+      class="p-inputtext p-inputtext-sm w-full"
+      [placeholder]="searchPlaceholder()"
+      [value]="query()"
+      (input)="query.set($any($event.target).value)"
+      (keydown.enter)="onSearch()"
+    />
+  }
+
   <div class="home-placeholder-body flex-1 text-sm p-2">
     Here it should be: {{ description() }}
   </div>
@@ -16,7 +27,7 @@
     @if (state().error) {
       <span class="home-placeholder-error">Error: {{ state().error }}</span>
     } @else if (state().isAvailable === undefined) {
-      <span class="tod-text-muted-color">Loading...</span>
+      <span class="tod-text-muted-color">{{ state().idleText ?? 'Loading...' }}</span>
     } @else if (!state().isAvailable) {
       <span class="tod-text-muted-color">Not available: {{ state().unavailableReason }}</span>
     } @else {

@@ -7,6 +7,7 @@ using TrivyOperator.Dashboard.Application.Home.Models;
 using TrivyOperator.Dashboard.Application.Home.Queries.Models;
 using TrivyOperator.Dashboard.Application.Home.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Home.Services;
+using static TrivyOperator.Dashboard.Application.Home.Services.HomeNames;
 using TrivyOperator.Dashboard.Application.Kubernetes.Queries.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.Queries.WatcherStates.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
@@ -26,6 +27,7 @@ public class HomeService(
     HomeReportSources sources,
     ActiveVulnerabilityTableCache tableCache,
     ActiveVulnerabilityTableBuilder tableBuilder,
+    HomeAssessmentReportsLoader assessmentReportsLoader,
     IVulnerabilityReportsHistoryService vulnerabilityReportsHistoryService,
     ICveEnrichmentService cveEnrichmentService,
     IEndOfLifeService endOfLifeService,
@@ -37,9 +39,6 @@ public class HomeService(
     private const string NoCveEnrichment = "CVE enrichment is not enabled";
     private const string NoEndOfLife = "End of life is not enabled";
     private const string NoSecurityAssessments = "No security assessment reports (config audit, RBAC, infra) are enabled";
-
-    // the lists of names in an item are capped, the counts are not
-    private const int MaxNamesPerItem = 10;
 
     private static readonly int[] DefaultSeverityIds = [Severities.Critical.Rank, Severities.High.Rank,];
 
@@ -67,7 +66,7 @@ public class HomeService(
                 [.. (await sources.ClusterVulnerabilityReports.GetResources(ctx)).Select(x => x.LastSeenAt),]));
         }
 
-        foreach (IGrouping<string, AssessmentReport> kind in (await LoadAssessmentReports(ctx)).GroupBy(x => x.Kind))
+        foreach (IGrouping<string, HomeAssessmentReport> kind in (await assessmentReportsLoader.Load(ctx)).GroupBy(x => x.Kind))
         {
             reports.Add(ToFreshness(kind.Key, [.. kind.Select(x => x.LastSeenAt),]));
         }
@@ -123,7 +122,7 @@ public class HomeService(
             }
         }
 
-        foreach (AssessmentReport report in await LoadAssessmentReports(ctx))
+        foreach (HomeAssessmentReport report in await assessmentReportsLoader.Load(ctx))
         {
             if (!report.IsClusterScoped)
             {
@@ -280,70 +279,6 @@ public class HomeService(
             [.. items.Take(filter.Limit),]);
     }
 
-    public async Task<HomeActivityDto> GetActivity(int days, HomeFilter filter, CancellationToken ctx = default)
-    {
-        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
-            : !vulnerabilityReportsHistoryService.IsEnabled ? NoHistory
-            : null;
-
-        if (reason is not null)
-        {
-            return new HomeActivityDto(false, reason, null, []);
-        }
-
-        ActiveVulnerabilityTable table = await GetTable(ctx);
-        HomeScope scope = new(table, filter.Namespaces);
-        HashSet<int> severities = ToSeverities(filter.SeverityIds);
-
-        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-        DateOnly firstDay = today.AddDays(-(days - 1));
-
-        List<ActiveVulnerability> scopedRows = [.. table.Rows.Where(scope.Contains),];
-
-        Dictionary<DateOnly, int> firstSeen = [];
-        Dictionary<DateOnly, int> fixAppeared = [];
-
-        foreach (ActiveVulnerability row in scopedRows.Where(x => severities.Contains(x.Severity.Rank)))
-        {
-            if (row.FirstAt is { } firstAt)
-            {
-                Increment(firstSeen, DateOnly.FromDateTime(firstAt.Value));
-            }
-
-            if (row.HasFix && row.FixAppearedAt is { } fixAppearedAt)
-            {
-                Increment(fixAppeared, DateOnly.FromDateTime(fixAppearedAt.Value));
-            }
-        }
-
-        // vulnerability ids, whatever the severity (see GetKnownExploited)
-        Dictionary<DateOnly, int> becameExploited = [];
-
-        foreach (DateTime exploitedSince in scopedRows
-                     .Where(x => x.KnownExploitedSince is not null)
-                     .GroupBy(x => x.Key.VulnerabilityId)
-                     .Select(x => x.First().KnownExploitedSince!.Value))
-        {
-            Increment(becameExploited, DateOnly.FromDateTime(exploitedSince));
-        }
-
-        List<HomeActivityDayDto> result = [];
-
-        for (DateOnly day = firstDay; day <= today; day = day.AddDays(1))
-        {
-            result.Add(new HomeActivityDayDto(
-                day,
-                firstSeen.GetValueOrDefault(day),
-                fixAppeared.GetValueOrDefault(day),
-                becameExploited.GetValueOrDefault(day)));
-        }
-
-        return new HomeActivityDto(true, null, table.FixTrackingStartedAt?.Value, result);
-    }
-
-    private static void Increment(Dictionary<DateOnly, int> counters, DateOnly day) =>
-        counters[day] = counters.GetValueOrDefault(day) + 1;
-
     // ------------------------------------------------------------------------
     // Current state
     // ------------------------------------------------------------------------
@@ -449,7 +384,7 @@ public class HomeService(
 
         List<HomeFailingCheckDto> items =
         [
-            .. (await LoadAssessmentReports(ctx))
+            .. (await assessmentReportsLoader.Load(ctx))
                 .Where(report => scope.Contains(report.NamespaceName, report.IsClusterScoped))
                 .SelectMany(report => report.Checks.Select(check => (Report: report, Check: check)))
                 .Where(x => severities.Contains(x.Check.Severity.Rank))
@@ -663,68 +598,4 @@ public class HomeService(
             Workloads: reach.Workloads.Count,
             NamespaceNames: ToNamespaceNames(reach.Namespaces),
             ImageNames: ToImageNames(reach.ImageKeys, table));
-
-    private static IReadOnlyList<string> ToNamespaceNames(IEnumerable<NamespaceName> namespaces) =>
-        [.. namespaces.Select(x => x.Value).Order(StringComparer.Ordinal).Take(MaxNamesPerItem),];
-
-    private static IReadOnlyList<string> ToImageNames(IEnumerable<string> imageKeys, ActiveVulnerabilityTable table) =>
-    [
-        .. imageKeys
-            .Select(key => table.Images.TryGetValue(key, out ActiveImage? image)
-                ? $"{image.ImageMeta.Repo.Value}:{image.ImageMeta.Tag.Value}"
-                : key)
-            .Distinct()
-            .Order(StringComparer.Ordinal)
-            .Take(MaxNamesPerItem),
-    ];
-
-    // the security assessment reports of all enabled types, flattened
-    private sealed record AssessmentReport(
-        string Family,
-        string Kind,
-        Uid Uid,
-        NamespaceName NamespaceName,
-        bool IsClusterScoped,
-        Timestamp LastSeenAt,
-        IReadOnlyList<Check> Checks);
-
-    private async Task<List<AssessmentReport>> LoadAssessmentReports(CancellationToken ctx)
-    {
-        List<AssessmentReport> result = [];
-
-        await Add(sources.ConfigAuditReports, "ConfigAudit", false, x => (x.Metadata, x.LastSeenAt, x.Checks));
-        await Add(sources.ClusterConfigAuditReports, "ConfigAudit", true, x => (x.Metadata, x.LastSeenAt, x.Checks));
-        await Add(sources.RbacAssessmentReports, "RbacAssessment", false, x => (x.Metadata, x.LastSeenAt, x.Checks));
-        await Add(sources.ClusterRbacAssessmentReports, "RbacAssessment", true, x => (x.Metadata, x.LastSeenAt, x.Checks));
-        await Add(sources.InfraAssessmentReports, "InfraAssessment", false, x => (x.Metadata, x.LastSeenAt, x.Checks));
-        await Add(sources.ClusterInfraAssessmentReports, "InfraAssessment", true, x => (x.Metadata, x.LastSeenAt, x.Checks));
-
-        return result;
-
-        async Task Add<TReport>(
-            IResourceProvider<TReport, Uid>? provider,
-            string family,
-            bool isClusterScoped,
-            Func<TReport, (ReportMetadata Metadata, Timestamp LastSeenAt, IReadOnlyList<Check> Checks)> select)
-        {
-            if (provider is null)
-            {
-                return;
-            }
-
-            foreach (TReport report in await provider.GetResources(ctx))
-            {
-                (ReportMetadata metadata, Timestamp lastSeenAt, IReadOnlyList<Check> checks) = select(report);
-
-                result.Add(new AssessmentReport(
-                    family,
-                    typeof(TReport).Name,
-                    metadata.Uid,
-                    metadata.NamespaceName,
-                    isClusterScoped,
-                    lastSeenAt,
-                    checks));
-            }
-        }
-    }
 }

@@ -74,9 +74,20 @@ export class DashboardComponent {
   );
   protected readonly stateHint = computed(() => `now · ${this.severitiesLabel()}${this.namespacesLabel()}`);
   protected readonly baseOsHint = computed(() => `now${this.namespacesLabel()}`);
-  protected readonly activityHint = computed(
-    () => `per UTC day · ${this.severitiesLabel()}${this.namespacesLabel()}`,
+  protected readonly historyDriftHint = computed(
+    () => `per UTC day, history retention · ${this.severitiesLabel()}${this.namespacesLabel()}`,
   );
+  protected readonly newImagesHint = computed(
+    () => `per UTC day, current state · ${this.severitiesLabel()}${this.namespacesLabel()}`,
+  );
+  // the searches look at everything running now; only the namespaces filter applies to them
+  protected readonly searchHint = computed(() => `now${this.namespacesLabel()}`);
+  private static readonly searchIdle: HomeWidgetState = { idleText: 'Type and press Enter to search' };
+  protected readonly whereIsVulnerability = signal<HomeWidgetState>(DashboardComponent.searchIdle);
+  protected readonly whereIsPackage = signal<HomeWidgetState>(DashboardComponent.searchIdle);
+  protected readonly whereIsLicense = signal<HomeWidgetState>(DashboardComponent.searchIdle);
+  protected readonly whereIsCheck = signal<HomeWidgetState>(DashboardComponent.searchIdle);
+
   protected readonly oldestImagesHint = computed(
     () => `based on history · ${this.severitiesLabel()}${this.namespacesLabel()}`,
   );
@@ -85,7 +96,8 @@ export class DashboardComponent {
   protected readonly newVulnerabilities = signal<HomeWidgetState>({});
   protected readonly newFixes = signal<HomeWidgetState>({});
   protected readonly knownExploited = signal<HomeWidgetState>({});
-  protected readonly activity = signal<HomeWidgetState>({});
+  protected readonly historyDrift = signal<HomeWidgetState>({});
+  protected readonly newImages = signal<HomeWidgetState>({});
   protected readonly baseOs = signal<HomeWidgetState>({});
   protected readonly fixWaiting = signal<HomeWidgetState>({});
   protected readonly failingChecks = signal<HomeWidgetState>({});
@@ -116,6 +128,88 @@ export class DashboardComponent {
 
   protected onRefresh(): void {
     this.refreshCounter.update((x) => x + 1);
+  }
+
+  // ------------------------------------------------------------------------
+  // "where is" searches (the namespaces filter applies; a filter change does not re-run them)
+  // ------------------------------------------------------------------------
+
+  protected onFindVulnerability(query: string): void {
+    this.load(
+      this.whereIsVulnerability,
+      this.homeService.getHomeWhereIsVulnerability({ query, namespaces: this.namespacesParam() }),
+      (x) => ({
+        isAvailable: x.isAvailable,
+        unavailableReason: x.unavailableReason,
+        summary:
+          `${x.totalMatches} ids (${x.items.length} shown)` +
+          (x.items[0]
+            ? `; first: ${x.items[0].vulnerabilityId}, ${x.items[0].packages.length} packages, ${x.items[0].images} images`
+            : '') +
+          this.toNote(x.note),
+      }),
+    );
+  }
+
+  protected onFindPackage(query: string): void {
+    this.load(
+      this.whereIsPackage,
+      this.homeService.getHomeWhereIsPackage({ query, namespaces: this.namespacesParam() }),
+      (x) => ({
+        isAvailable: x.isAvailable,
+        unavailableReason: x.unavailableReason,
+        summary:
+          `${x.totalMatches} packages (${x.items.length} shown, from ${x.source})` +
+          (x.items[0]
+            ? `; first: ${x.items[0].packageKey}, ${x.items[0].versions.length} versions, ${x.items[0].images} images` +
+              `, licenses: ${x.items[0].licenses.join(', ') || 'n/a'}`
+            : '') +
+          this.toNote(x.note),
+      }),
+    );
+  }
+
+  protected onFindLicense(query: string): void {
+    this.load(
+      this.whereIsLicense,
+      this.homeService.getHomeWhereIsLicense({ query, namespaces: this.namespacesParam() }),
+      (x) => ({
+        isAvailable: x.isAvailable,
+        unavailableReason: x.unavailableReason,
+        summary:
+          `${x.totalMatches} licenses (${x.items.length} shown)` +
+          (x.items[0]
+            ? `; first: ${x.items[0].license}, ${x.items[0].totalPackages} packages, ${x.items[0].images} images`
+            : '') +
+          this.toNote(x.note),
+      }),
+    );
+  }
+
+  protected onFindCheck(query: string): void {
+    this.load(
+      this.whereIsCheck,
+      this.homeService.getHomeWhereIsCheck({ query, namespaces: this.namespacesParam() }),
+      (x) => ({
+        isAvailable: x.isAvailable,
+        unavailableReason: x.unavailableReason,
+        summary:
+          `${x.totalMatches} checks (${x.items.length} shown)` +
+          (x.items[0]
+            ? `; first: ${x.items[0].checkId} "${x.items[0].title}", ${x.items[0].resources} resources`
+            : '') +
+          this.toNote(x.note),
+      }),
+    );
+  }
+
+  private namespacesParam(): string[] | undefined {
+    const namespaces = this.namespaces();
+    return namespaces.length > 0 ? namespaces : undefined;
+  }
+
+  private toNote(note?: string | null): string {
+    return note ? ` (${note})` : '';
   }
 
   private loadData(since: string, severities: number[], namespaces: string[]): void {
@@ -152,13 +246,22 @@ export class DashboardComponent {
       }),
     );
 
-    this.load(this.activity, this.homeService.getHomeActivity({ ...scope }), (x) => ({
+    this.load(this.historyDrift, this.homeService.getHomeHistoryDrift({ ...scope }), (x) => ({
       isAvailable: x.isAvailable,
       unavailableReason: x.unavailableReason,
       summary:
-        `${x.days.length} days; first seen ${this.sum(x.days.map((d) => d.firstSeen))}, ` +
-        `fix appeared ${this.sum(x.days.map((d) => d.fixAppeared))}, ` +
-        `became exploited ${this.sum(x.days.map((d) => d.becameExploited))}`,
+        `${x.days.length} days from ${x.from}; added ${this.sum(x.days.map((d) => d.added))} ` +
+        `(${this.sum(x.days.map((d) => d.addedKnownExploited))} known exploited), ` +
+        `on ${x.days.filter((d) => d.added > 0).length} days`,
+    }));
+
+    this.load(this.newImages, this.homeService.getHomeNewImages({ ...scope }), (x) => ({
+      isAvailable: x.isAvailable,
+      unavailableReason: x.unavailableReason,
+      summary:
+        `${x.days.length} days from ${x.from}; ${this.sum(x.days.map((d) => d.images))} images ` +
+        `on ${x.days.filter((d) => d.images > 0).length} days` +
+        (x.items[0] ? `; newest: ${x.items[0].repository}:${x.items[0].tag}, ${x.items[0].vulnerabilities} vulnerabilities` : ''),
     }));
 
     this.load(this.baseOs, this.homeService.getHomeBaseOs({ namespaces: scope.namespaces }), (x) => ({

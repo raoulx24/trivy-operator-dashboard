@@ -87,21 +87,6 @@ public sealed record HomeKnownExploitedDto(
     HomeTotalsDto Totals,
     IReadOnlyList<HomeKnownExploitedItemDto> Items);
 
-// per UTC day: active vulnerabilities first seen, active vulnerabilities whose fix appeared, vulnerability ids that
-// became known exploited; only what is still active is counted (the history of what is gone is not kept)
-public sealed record HomeActivityDayDto(
-    DateOnly Day,
-    int FirstSeen,
-    int FixAppeared,
-    int BecameExploited);
-
-public sealed record HomeActivityDto(
-    bool IsAvailable,
-    string? UnavailableReason,
-    // the start of the fixed version tracking; the rows existing then are not counted (their first seen is unknown)
-    DateTime? FixTrackingStartedAt,
-    IReadOnlyList<HomeActivityDayDto> Days);
-
 // one OS cycle (family + version, as Trivy reports it) with its end of life status
 public sealed record HomeBaseOsItemDto(
     string Family,

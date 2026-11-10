@@ -16,6 +16,45 @@
     [state]="dataHealth()"
   />
 
+  <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
+    <app-home-widget-placeholder
+      title="Where is… vulnerability"
+      [hint]="searchHint()"
+      description="a vulnerability id (CVE, GHSA, distro advisories...), prefix: per id the packages (installed versions, fixed version), images, namespaces, workloads, severity, KEV / EPSS"
+      searchPlaceholder="CVE-2024-3094, GHSA-..."
+      source="GET api/home/where-is/vulnerability → HomeWhereIsVulnerabilityDto"
+      [state]="whereIsVulnerability()"
+      (search)="onFindVulnerability($event)"
+    />
+    <app-home-widget-placeholder
+      title="Where is… package"
+      [hint]="searchHint()"
+      description="a package: name substring, or purl prefix (pkg:..., with @version prefix); per package (purl without version) the licenses and, per version, images, namespaces and its vulnerabilities"
+      searchPlaceholder="openssl or pkg:npm/axios@1.6"
+      source="GET api/home/where-is/package → HomeWhereIsPackageDto"
+      [state]="whereIsPackage()"
+      (search)="onFindPackage($event)"
+    />
+    <app-home-widget-placeholder
+      title="Where is… check"
+      [hint]="searchHint()"
+      description="a security assessment check (config audit, RBAC, infra) by id (KSV014 = AVD-KSV-0014) or title: severity, remediation, failing resources, namespaces"
+      searchPlaceholder="KSV014 or a title, e.g. root"
+      source="GET api/home/where-is/check → HomeWhereIsCheckDto"
+      [state]="whereIsCheck()"
+      (search)="onFindCheck($event)"
+    />
+    <app-home-widget-placeholder
+      title="Where is… license"
+      [hint]="searchHint()"
+      description="a license (SPDX id or name substring): per license the packages (purl without version) with it, their versions, images and namespaces; needs SBOM reports"
+      searchPlaceholder="MIT, GPL-3.0"
+      source="GET api/home/where-is/license → HomeWhereIsLicenseDto"
+      [state]="whereIsLicense()"
+      (search)="onFindLicense($event)"
+    />
+  </div>
+
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-widget-placeholder
       title="New active vulnerabilities"
@@ -42,12 +81,18 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-widget-placeholder
-      class="lg:col-span-2"
-      title="Activity"
-      [hint]="activityHint()"
-      description="a heatmap of the last months, rows: first seen / fix appeared / became exploited; quantile shading, visit days outlined, the tracking start day marked"
-      source="GET api/home/activity → HomeActivityDto"
-      [state]="activity()"
+      title="History drift"
+      [hint]="historyDriftHint()"
+      description="per UTC day, the distinct (vulnerability id, severity) pairs added to images that were already running (from the history deltas, added only), still active now; known exploited ones counted apart and flagged; complete only within the history retention"
+      source="GET api/home/history-drift → HomeHistoryDriftDto"
+      [state]="historyDrift()"
+    />
+    <app-home-widget-placeholder
+      title="New images"
+      [hint]="newImagesHint()"
+      description="per UTC day, the running images first seen that day and their distinct (vulnerability id, severity) pairs as they are now (current state, not as they arrived); known exploited counted apart"
+      source="GET api/home/new-images → HomeNewImagesDto"
+      [state]="newImages()"
     />
     <app-home-widget-placeholder
       title="Base OS status"

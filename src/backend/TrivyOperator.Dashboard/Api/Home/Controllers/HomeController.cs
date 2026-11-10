@@ -11,12 +11,13 @@ namespace TrivyOperator.Dashboard.Api.Home.Controllers;
 // limit: maximum number of items of a list
 [ApiController]
 [Route("api/home")]
-public class HomeController(IHomeService homeService) : ControllerBase
+public class HomeController(
+    IHomeService homeService,
+    IHomeSearchService homeSearchService,
+    IHomeTimelineService homeTimelineService) : ControllerBase
 {
     private const int DefaultLimit = 20;
     private const int MaxLimit = 500;
-    private const int DefaultActivityDays = 182;
-    private const int MaxActivityDays = 366;
 
     [HttpGet("data-health", Name = "GetHomeDataHealth")]
     [ProducesResponseType(typeof(HomeDataHealthDto), StatusCodes.Status200OK, "application/json")]
@@ -62,18 +63,28 @@ public class HomeController(IHomeService homeService) : ControllerBase
         CancellationToken ctx) =>
         Ok(await homeService.GetKnownExploited(ToFilter(since, null, namespaces, limit), ctx));
 
-    [HttpGet("activity", Name = "GetHomeActivity")]
-    [ProducesResponseType(typeof(HomeActivityDto), StatusCodes.Status200OK, "application/json")]
+    // days: the range ending today (UTC), at most 366; default: the history retention
+    [HttpGet("history-drift", Name = "GetHomeHistoryDrift")]
+    [ProducesResponseType(typeof(HomeHistoryDriftDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
-    public async Task<IActionResult> GetActivity(
+    public async Task<IActionResult> GetHistoryDrift(
         [FromQuery] int? days,
         [FromQuery] int[]? severities,
         [FromQuery] string[]? namespaces,
         CancellationToken ctx) =>
-        Ok(await homeService.GetActivity(
-            Math.Clamp(days ?? DefaultActivityDays, 1, MaxActivityDays),
-            ToFilter(null, severities, namespaces, null),
-            ctx));
+        Ok(await homeTimelineService.GetHistoryDrift(days, ToFilter(null, severities, namespaces, null), ctx));
+
+    // days: the range ending today (UTC), at most 366; default: since the history start
+    [HttpGet("new-images", Name = "GetHomeNewImages")]
+    [ProducesResponseType(typeof(HomeNewImagesDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetNewImages(
+        [FromQuery] int? days,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        [FromQuery] int? limit,
+        CancellationToken ctx) =>
+        Ok(await homeTimelineService.GetNewImages(days, ToFilter(null, severities, namespaces, limit), ctx));
 
     [HttpGet("base-os", Name = "GetHomeBaseOs")]
     [ProducesResponseType(typeof(HomeBaseOsDto), StatusCodes.Status200OK, "application/json")]
@@ -130,6 +141,48 @@ public class HomeController(IHomeService homeService) : ControllerBase
         [FromQuery] int? limit,
         CancellationToken ctx) =>
         Ok(await homeService.GetReachEpss(ToFilter(null, severities, namespaces, limit), ctx));
+
+    // "where is" searches: query = what is searched (see HomeSearchDtos for the matching rules)
+
+    [HttpGet("where-is/vulnerability", Name = "GetHomeWhereIsVulnerability")]
+    [ProducesResponseType(typeof(HomeWhereIsVulnerabilityDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> FindVulnerability(
+        [FromQuery] string? query,
+        [FromQuery] string[]? namespaces,
+        [FromQuery] int? limit,
+        CancellationToken ctx) =>
+        Ok(await homeSearchService.FindVulnerability(query ?? string.Empty, ToFilter(null, null, namespaces, limit), ctx));
+
+    [HttpGet("where-is/package", Name = "GetHomeWhereIsPackage")]
+    [ProducesResponseType(typeof(HomeWhereIsPackageDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> FindPackage(
+        [FromQuery] string? query,
+        [FromQuery] string[]? namespaces,
+        [FromQuery] int? limit,
+        CancellationToken ctx) =>
+        Ok(await homeSearchService.FindPackage(query ?? string.Empty, ToFilter(null, null, namespaces, limit), ctx));
+
+    [HttpGet("where-is/license", Name = "GetHomeWhereIsLicense")]
+    [ProducesResponseType(typeof(HomeWhereIsLicenseDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> FindLicense(
+        [FromQuery] string? query,
+        [FromQuery] string[]? namespaces,
+        [FromQuery] int? limit,
+        CancellationToken ctx) =>
+        Ok(await homeSearchService.FindLicense(query ?? string.Empty, ToFilter(null, null, namespaces, limit), ctx));
+
+    [HttpGet("where-is/check", Name = "GetHomeWhereIsCheck")]
+    [ProducesResponseType(typeof(HomeWhereIsCheckDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> FindCheck(
+        [FromQuery] string? query,
+        [FromQuery] string[]? namespaces,
+        [FromQuery] int? limit,
+        CancellationToken ctx) =>
+        Ok(await homeSearchService.FindCheck(query ?? string.Empty, ToFilter(null, null, namespaces, limit), ctx));
 
     private static HomeFilter ToFilter(DateTime? since, int[]? severities, string[]? namespaces, int? limit) =>
         new(

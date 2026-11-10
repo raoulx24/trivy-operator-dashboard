@@ -7,6 +7,7 @@ using TrivyOperator.Dashboard.Composition.Trivy;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
+using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Sboms;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
 using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Details;
@@ -24,6 +25,8 @@ public static class HomeServiceRegistrationExtensions
         {
             CompositionLogger.Logger?.LogInformation("Home related services are disabled - not in the default context");
             services.AddScoped<IHomeService, HomeNullService>();
+            services.AddScoped<IHomeSearchService, HomeSearchNullService>();
+            services.AddScoped<IHomeTimelineService, HomeTimelineNullService>();
             return;
         }
 
@@ -43,6 +46,8 @@ public static class HomeServiceRegistrationExtensions
                 DetailFamilies.Vulnerability),
             PackageVulnerabilities = sp.GetKeyedService<InMemoryDetailRepository<PackageVulnerability, PackageVulnerabilityKey>>(
                 DetailFamilies.Vulnerability),
+            ImagePurls = sp.GetKeyedService<InMemoryDetailRepository<ImagePurls, Digest>>(DetailFamilies.Sbom),
+            PurlDetails = sp.GetKeyedService<InMemoryDetailRepository<PurlDetail, Purl>>(DetailFamilies.Sbom),
             ConfigAuditReports = sp.GetService<IResourceProvider<ConfigAuditReport, Uid>>(),
             ClusterConfigAuditReports = sp.GetService<IResourceProvider<ClusterConfigAuditReport, Uid>>(),
             RbacAssessmentReports = sp.GetService<IResourceProvider<RbacAssessmentReport, Uid>>(),
@@ -53,7 +58,10 @@ public static class HomeServiceRegistrationExtensions
 
         services.AddSingleton<ActiveVulnerabilityTableCache>();
         services.AddScoped<ActiveVulnerabilityTableBuilder>();
+        services.AddSingleton<HomeAssessmentReportsLoader>();
 
         services.AddScoped<IHomeService, HomeService>();
+        services.AddScoped<IHomeSearchService, HomeSearchService>();
+        services.AddScoped<IHomeTimelineService, HomeTimelineService>();
     }
 }

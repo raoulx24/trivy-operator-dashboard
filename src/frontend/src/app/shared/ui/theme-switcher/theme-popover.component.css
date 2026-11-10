@@ -44,8 +44,9 @@
   gap: 2px;
   padding: 4px;
   color: var(--p-text-color);
-  background: var(--p-popover-background);
-  border: 1px solid var(--p-popover-border-color);
+  /* semantic (global) tokens: the --p-popover-* component tokens only exist once a p-popover has been created */
+  background: var(--p-overlay-popover-background);
+  border: 1px solid var(--p-overlay-popover-border-color);
   border-radius: var(--tod-app-border-radius-sm);
   box-shadow: var(--p-popover-shadow);
 }

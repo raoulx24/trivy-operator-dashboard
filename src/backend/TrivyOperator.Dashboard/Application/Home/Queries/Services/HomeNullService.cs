@@ -26,9 +26,6 @@ public class HomeNullService : QueryNullService, IHomeService
     public Task<HomeKnownExploitedDto> GetKnownExploited(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeKnownExploitedDto(false, Reason, filter.Since, 0, EmptyTotals, []));
 
-    public Task<HomeActivityDto> GetActivity(int days, HomeFilter filter, CancellationToken ctx = default) =>
-        Task.FromResult(new HomeActivityDto(false, Reason, null, []));
-
     public Task<HomeBaseOsDto> GetBaseOs(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeBaseOsDto(false, Reason, []));
 

@@ -1121,11 +1121,11 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-  /api/home/activity:
+  /api/home/history-drift:
     get:
       tags:
         - Home
-      operationId: GetHomeActivity
+      operationId: GetHomeHistoryDrift
       parameters:
         - name: days
           in: query
@@ -1151,7 +1151,49 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HomeActivityDto'
+                $ref: '#/components/schemas/HomeHistoryDriftDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/new-images:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeNewImages
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeNewImagesDto'
         '500':
           description: Internal Server Error
           content:
@@ -1362,6 +1404,142 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HomeReachEpssDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/where-is/vulnerability:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeWhereIsVulnerability
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeWhereIsVulnerabilityDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/where-is/package:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeWhereIsPackage
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeWhereIsPackageDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/where-is/license:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeWhereIsLicense
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeWhereIsLicenseDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/where-is/check:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeWhereIsCheck
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeWhereIsCheckDto'
         '500':
           description: Internal Server Error
           content:
@@ -3543,39 +3721,6 @@ components:
           items:
             type: string
       additionalProperties: false
-    HomeActivityDayDto:
-      type: object
-      properties:
-        day:
-          type: string
-          format: date
-        firstSeen:
-          type: integer
-          format: int32
-        fixAppeared:
-          type: integer
-          format: int32
-        becameExploited:
-          type: integer
-          format: int32
-      additionalProperties: false
-    HomeActivityDto:
-      type: object
-      properties:
-        isAvailable:
-          type: boolean
-        unavailableReason:
-          type: string
-          nullable: true
-        fixTrackingStartedAt:
-          type: string
-          format: date-time
-          nullable: true
-        days:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeActivityDayDto'
-      additionalProperties: false
     HomeBaseOsDto:
       type: object
       properties:
@@ -3725,6 +3870,66 @@ components:
           items:
             $ref: '#/components/schemas/HomeActiveVulnerabilityDto'
       additionalProperties: false
+    HomeHistoryDriftDayDto:
+      type: object
+      properties:
+        day:
+          type: string
+          format: date
+        added:
+          type: integer
+          format: int32
+        addedBySeverity:
+          $ref: '#/components/schemas/HomeSeverityCountsDto'
+        addedKnownExploited:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomeHistoryDriftDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        from:
+          type: string
+          format: date
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeHistoryDriftDayDto'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeHistoryDriftItemDto'
+      additionalProperties: false
+    HomeHistoryDriftItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        addedAt:
+          type: string
+          format: date-time
+        isKnownExploited:
+          type: boolean
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
+        images:
+          type: integer
+          format: int32
+        imageNames:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
     HomeKnownExploitedDto:
       type: object
       properties:
@@ -3816,6 +4021,81 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HomeActiveVulnerabilityDto'
+      additionalProperties: false
+    HomeNewImageDto:
+      type: object
+      properties:
+        digest:
+          type: string
+        registry:
+          type: string
+        repository:
+          type: string
+        tag:
+          type: string
+        firstSeenAt:
+          type: string
+          format: date-time
+        vulnerabilities:
+          type: integer
+          format: int32
+        vulnerabilitiesBySeverity:
+          $ref: '#/components/schemas/HomeSeverityCountsDto'
+        knownExploited:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+    HomeNewImagesDayDto:
+      type: object
+      properties:
+        day:
+          type: string
+          format: date
+        images:
+          type: integer
+          format: int32
+        vulnerabilities:
+          type: integer
+          format: int32
+        vulnerabilitiesBySeverity:
+          $ref: '#/components/schemas/HomeSeverityCountsDto'
+        knownExploited:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomeNewImagesDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        from:
+          type: string
+          format: date
+        historyStartedAt:
+          type: string
+          format: date-time
+          nullable: true
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeNewImagesDayDto'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeNewImageDto'
       additionalProperties: false
     HomeNewVulnerabilitiesDto:
       type: object
@@ -3967,6 +4247,25 @@ components:
           format: date-time
           nullable: true
       additionalProperties: false
+    HomeSeverityCountsDto:
+      type: object
+      properties:
+        critical:
+          type: integer
+          format: int32
+        high:
+          type: integer
+          format: int32
+        medium:
+          type: integer
+          format: int32
+        low:
+          type: integer
+          format: int32
+        unknown:
+          type: integer
+          format: int32
+      additionalProperties: false
     HomeSourceStatusDto:
       type: object
       properties:
@@ -4013,6 +4312,290 @@ components:
           type: string
         mitigationMessage:
           type: string
+      additionalProperties: false
+    HomeWhereIsCheckDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        query:
+          type: string
+        note:
+          type: string
+          nullable: true
+        totalMatches:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsCheckItemDto'
+      additionalProperties: false
+    HomeWhereIsCheckItemDto:
+      type: object
+      properties:
+        family:
+          type: string
+        checkId:
+          type: string
+        title:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        remediation:
+          type: string
+        resources:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        sampleResources:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsCheckResourceDto'
+      additionalProperties: false
+    HomeWhereIsCheckResourceDto:
+      type: object
+      properties:
+        reportKind:
+          type: string
+        namespaceName:
+          type: string
+          nullable: true
+        resourceKind:
+          type: string
+        resourceName:
+          type: string
+      additionalProperties: false
+    HomeWhereIsLicenseDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        query:
+          type: string
+        note:
+          type: string
+          nullable: true
+        totalMatches:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsLicenseItemDto'
+      additionalProperties: false
+    HomeWhereIsLicenseItemDto:
+      type: object
+      properties:
+        license:
+          type: string
+        totalPackages:
+          type: integer
+          format: int32
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsLicensePackageDto'
+      additionalProperties: false
+    HomeWhereIsLicensePackageDto:
+      type: object
+      properties:
+        packageKey:
+          type: string
+        name:
+          type: string
+        versions:
+          type: array
+          items:
+            type: string
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomeWhereIsPackageDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        query:
+          type: string
+        note:
+          type: string
+          nullable: true
+        source:
+          type: string
+        totalMatches:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsPackageItemDto'
+      additionalProperties: false
+    HomeWhereIsPackageItemDto:
+      type: object
+      properties:
+        packageKey:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          nullable: true
+        licenses:
+          type: array
+          items:
+            type: string
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsPackageVersionDto'
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomeWhereIsPackageVersionDto:
+      type: object
+      properties:
+        version:
+          type: string
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        vulnerabilityIds:
+          type: integer
+          format: int32
+        maxSeverityId:
+          type: integer
+          format: int32
+          nullable: true
+        imageNames:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+    HomeWhereIsVulnerabilityDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        query:
+          type: string
+        note:
+          type: string
+          nullable: true
+        totalMatches:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsVulnerabilityItemDto'
+      additionalProperties: false
+    HomeWhereIsVulnerabilityItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        isKnownExploited:
+          type: boolean
+        kevDateAdded:
+          type: string
+          format: date
+          nullable: true
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsVulnerabilityPackageDto'
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        imageNames:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+    HomeWhereIsVulnerabilityPackageDto:
+      type: object
+      properties:
+        packageKey:
+          type: string
+        packageName:
+          type: string
+        installedVersions:
+          type: array
+          items:
+            type: string
+        fixedVersion:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        images:
+          type: integer
+          format: int32
       additionalProperties: false
     InfraAssessmentReportDenormalizedDto:
       type: object
