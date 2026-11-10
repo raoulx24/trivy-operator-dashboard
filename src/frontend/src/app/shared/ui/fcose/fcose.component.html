@@ -1,5 +1,5 @@
 <div class="gap-4 flex-col">
-  <app-trivy-toolbar>
+  <app-scroller>
     <div class="flex items-center gap-1 shrink-0 whitespace-nowrap">
       <p-button icon="pi pi-search-plus" label="Zoom In" size="small" raised [text]="true" (onClick)="onZoomIn()" />
       <p-button icon="pi pi-search-minus" label="Zoom Out" size="small" raised [text]="true" (onClick)="onZoomOut()" />
@@ -74,7 +74,7 @@
         </p-button>
       }
     </div>
-  </app-trivy-toolbar>
+  </app-scroller>
   @if (!isStatic()) {
     <div class="flex items-center col-span-12 p-0">
       <p-breadcrumb

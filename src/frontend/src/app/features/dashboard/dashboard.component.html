@@ -86,14 +86,36 @@
       description="per UTC day, the distinct (vulnerability id, severity) pairs added to images that were already running (from the history deltas, added only), still active now; known exploited ones counted apart and flagged; complete only within the history retention"
       source="GET api/home/history-drift → HomeHistoryDriftDto"
       [state]="historyDrift()"
-    />
+    >
+      <app-activity-heatmap
+        [data]="historyDriftChart().data"
+        [from]="historyDriftChart().from"
+        [to]="todayUtc"
+        [emphasis1Days]="visitDays"
+        [emphasis2Days]="historyDriftChart().flaggedDays"
+        valueLabel="added (id, severity) pairs"
+        emphasis1Label="you opened the home page"
+        emphasis2Label="known exploited added"
+      />
+    </app-home-widget-placeholder>
     <app-home-widget-placeholder
       title="New images"
       [hint]="newImagesHint()"
       description="per UTC day, the running images first seen that day and their distinct (vulnerability id, severity) pairs as they are now (current state, not as they arrived); known exploited counted apart"
       source="GET api/home/new-images → HomeNewImagesDto"
       [state]="newImages()"
-    />
+    >
+      <app-activity-heatmap
+        [data]="newImagesChart().data"
+        [from]="newImagesChart().from"
+        [to]="todayUtc"
+        [emphasis1Days]="visitDays"
+        [emphasis2Days]="newImagesChart().flaggedDays"
+        valueLabel="new images"
+        emphasis1Label="you opened the home page"
+        emphasis2Label="known exploited among them"
+      />
+    </app-home-widget-placeholder>
     <app-home-widget-placeholder
       title="Base OS status"
       [hint]="baseOsHint()"

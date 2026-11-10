@@ -25,7 +25,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 
 import { IconComponent } from '../icon/icon.component';
-import { TrivyToolbarComponent } from '../trivy-toolbar/trivy-toolbar.component';
+import { ScrollerComponent } from '../scroller/scroller.component';
 
 import { FcoseDeleteHistory } from './fcose.delete-history';
 import { buildElements } from './fcose.elements';
@@ -53,7 +53,7 @@ const NO_DELETED_NODES: DeletedNodes[] = [];
     InputTextModule,
     TagModule,
     IconComponent,
-    TrivyToolbarComponent,
+    ScrollerComponent,
     CommonModule,
     ReactiveFormsModule,
   ],

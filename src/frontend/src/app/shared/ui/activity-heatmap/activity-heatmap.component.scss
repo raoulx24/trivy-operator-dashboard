@@ -1,0 +1,110 @@
+:host {
+  display: block;
+  // a wide heatmap scrolls inside, it must not widen its grid cell
+  min-width: 0;
+
+  --hm-empty: color-mix(in srgb, var(--p-text-color) 6%, transparent);
+  --hm-border: color-mix(in srgb, var(--p-text-color) 12%, transparent);
+  --hm-level-1: var(--p-blue-200);
+  --hm-level-2: var(--p-blue-300);
+  --hm-level-3: var(--p-blue-400);
+  --hm-level-4: var(--p-blue-600);
+  --hm-ring: var(--p-text-color);
+  --hm-corner: var(--p-orange-500);
+  --hm-corner-outline: var(--p-surface-0);
+}
+
+// dark: more is lighter
+:host-context(.trivy-operator-dashboard-dark) {
+  --hm-level-1: var(--p-blue-800);
+  --hm-level-2: var(--p-blue-600);
+  --hm-level-3: var(--p-blue-400);
+  --hm-level-4: var(--p-blue-200);
+  --hm-corner: var(--p-orange-400);
+  --hm-corner-outline: var(--p-surface-950);
+}
+
+.heatmap {
+  display: block;
+  // the scroller is a flex row: without this the svg shrinks to the available width, so nothing ever overflows
+  flex-shrink: 0;
+}
+
+.week-label {
+  font-size: 0.7rem;
+  fill: currentColor;
+}
+
+// svg cells
+.cell {
+  fill: var(--hm-empty);
+  stroke: var(--hm-border);
+  stroke-width: 1;
+
+  &.level-1 { fill: var(--hm-level-1); }
+  &.level-2 { fill: var(--hm-level-2); }
+  &.level-3 { fill: var(--hm-level-3); }
+  &.level-4 { fill: var(--hm-level-4); }
+}
+
+.ring {
+  fill: none;
+  stroke: var(--hm-ring);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.corner {
+  fill: var(--hm-corner);
+  // the outline separates the marker from any blue behind it
+  stroke: var(--hm-corner-outline);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+// legend swatches are html
+.swatch {
+  display: inline-block;
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  box-sizing: border-box;
+  background: var(--hm-empty);
+  border: 1px solid var(--hm-border);
+
+  &.level-1 { background: var(--hm-level-1); }
+  &.level-2 { background: var(--hm-level-2); }
+  &.level-3 { background: var(--hm-level-3); }
+  &.level-4 { background: var(--hm-level-4); }
+}
+
+.swatch-ring {
+  border: 2px solid var(--hm-ring);
+}
+
+.swatch-corner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 7px;
+  background: var(--hm-corner);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}

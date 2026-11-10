@@ -14,6 +14,8 @@ import {
   homeSeverityOptions,
   homeWindowOptions,
 } from './home-filter-bar/home-filter-bar.types';
+import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
+import { ActivityHeatmapDayDto } from '@shared/ui/activity-heatmap/activity-heatmap.types';
 import { HomeWidgetPlaceholderComponent } from './home-widget-placeholder/home-widget-placeholder.component';
 import { HomeWidgetState } from './home-widget-placeholder/home-widget-placeholder.types';
 
@@ -27,7 +29,7 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [HomeFilterBarComponent, HomeWidgetPlaceholderComponent],
+  imports: [HomeFilterBarComponent, HomeWidgetPlaceholderComponent, ActivityHeatmapComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,8 +43,12 @@ export class DashboardComponent {
   private readonly accessTrackingService = inject(AccessTrackingService);
   private readonly mainAppInitService = inject(MainAppInitService);
 
-  // the previous visit day (not today); read once, as reading also records this visit
+  // read once, as reading also records this visit
+  private readonly trackedDays = this.accessTrackingService.trackAccess('home');
+  // the previous visit day (not today)
   private readonly lastVisitUtc: string | undefined = this.getLastVisit();
+  // the days the home page was opened (UTC, today included), for the heatmaps
+  protected readonly visitDays: string[] = this.trackedDays.map((x) => x.day);
 
   protected readonly windowMode = signal<HomeWindowMode>(this.loadWindowMode());
   protected readonly severityIds = signal<number[]>(this.loadSeverityIds());
@@ -98,6 +104,10 @@ export class DashboardComponent {
   protected readonly knownExploited = signal<HomeWidgetState>({});
   protected readonly historyDrift = signal<HomeWidgetState>({});
   protected readonly newImages = signal<HomeWidgetState>({});
+  // the per day data of the two timelines: the value, and the days with known exploited
+  protected readonly historyDriftChart = signal<HomeHeatmapData>({ data: [], flaggedDays: [] });
+  protected readonly newImagesChart = signal<HomeHeatmapData>({ data: [], flaggedDays: [] });
+  protected readonly todayUtc = new Date().toISOString().substring(0, 10);
   protected readonly baseOs = signal<HomeWidgetState>({});
   protected readonly fixWaiting = signal<HomeWidgetState>({});
   protected readonly failingChecks = signal<HomeWidgetState>({});
@@ -246,23 +256,43 @@ export class DashboardComponent {
       }),
     );
 
-    this.load(this.historyDrift, this.homeService.getHomeHistoryDrift({ ...scope }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary:
-        `${x.days.length} days from ${x.from}; added ${this.sum(x.days.map((d) => d.added))} ` +
-        `(${this.sum(x.days.map((d) => d.addedKnownExploited))} known exploited), ` +
-        `on ${x.days.filter((d) => d.added > 0).length} days`,
-    }));
+    this.load(
+      this.historyDrift,
+      this.homeService.getHomeHistoryDrift({ ...scope }),
+      (x) => ({
+        isAvailable: x.isAvailable,
+        unavailableReason: x.unavailableReason,
+        summary:
+          `${x.days.length} days from ${x.from}; added ${this.sum(x.days.map((d) => d.added))} ` +
+          `(${this.sum(x.days.map((d) => d.addedKnownExploited))} known exploited), ` +
+          `on ${x.days.filter((d) => d.added > 0).length} days`,
+      }),
+      (x) =>
+        this.historyDriftChart.set({
+          from: x.from,
+          data: x.days.map((d) => ({ day: d.day, value: d.added })),
+          flaggedDays: x.days.filter((d) => d.addedKnownExploited > 0).map((d) => d.day),
+        }),
+    );
 
-    this.load(this.newImages, this.homeService.getHomeNewImages({ ...scope }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary:
-        `${x.days.length} days from ${x.from}; ${this.sum(x.days.map((d) => d.images))} images ` +
-        `on ${x.days.filter((d) => d.images > 0).length} days` +
-        (x.items[0] ? `; newest: ${x.items[0].repository}:${x.items[0].tag}, ${x.items[0].vulnerabilities} vulnerabilities` : ''),
-    }));
+    this.load(
+      this.newImages,
+      this.homeService.getHomeNewImages({ ...scope }),
+      (x) => ({
+        isAvailable: x.isAvailable,
+        unavailableReason: x.unavailableReason,
+        summary:
+          `${x.days.length} days from ${x.from}; ${this.sum(x.days.map((d) => d.images))} images ` +
+          `on ${x.days.filter((d) => d.images > 0).length} days` +
+          (x.items[0] ? `; newest: ${x.items[0].repository}:${x.items[0].tag}, ${x.items[0].vulnerabilities} vulnerabilities` : ''),
+      }),
+      (x) =>
+        this.newImagesChart.set({
+          from: x.from,
+          data: x.days.map((d) => ({ day: d.day, value: d.images })),
+          flaggedDays: x.days.filter((d) => d.knownExploited > 0).map((d) => d.day),
+        }),
+    );
 
     this.load(this.baseOs, this.homeService.getHomeBaseOs({ namespaces: scope.namespaces }), (x) => ({
       isAvailable: x.isAvailable,
@@ -303,10 +333,18 @@ export class DashboardComponent {
     }));
   }
 
-  private load<T>(target: WritableSignal<HomeWidgetState>, source: Observable<T>, toState: (dto: T) => HomeWidgetState) {
+  private load<T>(
+    target: WritableSignal<HomeWidgetState>,
+    source: Observable<T>,
+    toState: (dto: T) => HomeWidgetState,
+    onData?: (dto: T) => void,
+  ) {
     target.set({});
     source.subscribe({
-      next: (dto) => target.set(toState(dto)),
+      next: (dto) => {
+        target.set(toState(dto));
+        onData?.(dto);
+      },
       error: (err) => target.set({ error: err?.message ?? 'request failed' }),
     });
   }
@@ -316,7 +354,7 @@ export class DashboardComponent {
   // ------------------------------------------------------------------------
 
   private getLastVisit(): string | undefined {
-    const trackedDays = this.accessTrackingService.trackAccess('home');
+    const trackedDays = this.trackedDays;
     const todayUtc = new Date().toISOString().substring(0, 10);
 
     // trackAccess keeps one entry per day with today first, so [1] is an earlier day; checked anyway
@@ -399,4 +437,11 @@ export class DashboardComponent {
   private sum(values: number[]): number {
     return values.reduce((a, b) => a + b, 0);
   }
+}
+
+interface HomeHeatmapData {
+  // the first day of the range, as the backend returned it
+  from?: string;
+  data: ActivityHeatmapDayDto[];
+  flaggedDays: string[];
 }

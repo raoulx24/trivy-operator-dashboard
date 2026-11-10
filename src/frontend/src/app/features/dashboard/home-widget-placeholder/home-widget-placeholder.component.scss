@@ -1,5 +1,7 @@
 :host {
   display: block;
+  // a grid cell: wide content (a scrolling control) must scroll inside, not widen the cell
+  min-width: 0;
 }
 
 .home-placeholder-body {

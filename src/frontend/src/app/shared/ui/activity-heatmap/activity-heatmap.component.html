@@ -1,0 +1,60 @@
+<app-scroller class="block" startAt="end">
+  @if (weeks().length > 0) {
+    <svg class="heatmap" [attr.width]="width()" [attr.height]="height()" role="img">
+      @for (week of weeks(); track week.x) {
+        <g [attr.transform]="'translate(' + week.x + ',0)'">
+          @if (showWeekLabels()) {
+            <text class="week-label tod-text-muted-color" x="0" y="11">{{ week.label }}</text>
+          }
+          @for (cell of week.cells; track cell.day) {
+            <g>
+              <title>{{ cell.tooltip }}</title>
+              <rect
+                class="cell level-{{ cell.level }}"
+                [attr.x]="cell.x"
+                [attr.y]="cell.y"
+                [attr.width]="cellSize()"
+                [attr.height]="cellSize()"
+                rx="3"
+              />
+              @if (cell.emphasis1) {
+                <rect
+                  class="ring"
+                  [attr.x]="cell.x + 1"
+                  [attr.y]="cell.y + 1"
+                  [attr.width]="cellSize() - 2"
+                  [attr.height]="cellSize() - 2"
+                  rx="2"
+                />
+              }
+              @if (cell.emphasis2) {
+                <path class="corner" [attr.d]="cornerPath(cell)" />
+              }
+            </g>
+          }
+        </g>
+      }
+    </svg>
+  }
+</app-scroller>
+
+@if (showLegend() && weeks().length > 0) {
+  <div class="legend tod-text-muted-color">
+    <span class="legend-item">
+      <span>{{ valueLabel() ? valueLabel() + ':' : 'less' }}</span>
+      <span class="swatch level-0"></span>
+      @for (level of legendLevels(); track level) {
+        <span class="swatch level-{{ level }}"></span>
+      }
+      @if (!valueLabel()) {
+        <span>more</span>
+      }
+    </span>
+    @if (emphasis1Label()) {
+      <span class="legend-item"><span class="swatch swatch-ring"></span>{{ emphasis1Label() }}</span>
+    }
+    @if (emphasis2Label()) {
+      <span class="legend-item"><span class="swatch swatch-corner"></span>{{ emphasis2Label() }}</span>
+    }
+  </div>
+}

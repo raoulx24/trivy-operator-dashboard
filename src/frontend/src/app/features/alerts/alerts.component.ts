@@ -6,7 +6,7 @@ import { GenericObjectArraySummaryPipe } from '@shared/pipes/generic-object-arra
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
 import { AlertsService } from '@core/services/alerts.service';
-import { TrivyToolbarComponent } from '@shared/ui/trivy-toolbar/trivy-toolbar.component';
+import { ScrollerComponent } from '@shared/ui/scroller/scroller.component';
 import { NumberStringUtil } from '@shared/utils/number-string.utils';
 
 import { TreeNode } from 'primeng/api';
@@ -47,7 +47,7 @@ interface TreeExpandLevelOption {
     TreeTableModule,
     SeverityCssStyleByIdPipe,
     VulnerabilityCountPipe,
-    TrivyToolbarComponent,
+    ScrollerComponent,
     GenericObjectArraySummaryPipe,
     FormsModule,
   ],
