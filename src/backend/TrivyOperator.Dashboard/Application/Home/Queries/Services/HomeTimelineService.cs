@@ -155,12 +155,7 @@ public class HomeTimelineService(
         HomeScope scope = new(table, filter.Namespaces);
         HashSet<int> severities = ToSeverities(filter.SeverityIds);
 
-        // default: since the history start
-        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-        int defaultDays = table.HistoryStartedAt is { } historyStartedAt
-            ? today.DayNumber - DateOnly.FromDateTime(historyStartedAt.Value).DayNumber + 1
-            : retentionOptions.Value.KeepDays;
-        DateOnly from = FromDays(days ?? defaultDays);
+        DateOnly from = FromDays(days ?? retentionOptions.Value.KeepDays);
 
         Dictionary<PackageVulnerabilityKey, ActiveVulnerability> rows = table.Rows.ToDictionary(x => x.Key);
 

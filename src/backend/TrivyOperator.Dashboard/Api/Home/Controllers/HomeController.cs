@@ -74,7 +74,7 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeTimelineService.GetHistoryDrift(days, ToFilter(null, severities, namespaces, null), ctx));
 
-    // days: the range ending today (UTC), at most 366; default: since the history start
+    // days: the range ending today (UTC), at most 366; default: the history retention
     [HttpGet("new-images", Name = "GetHomeNewImages")]
     [ProducesResponseType(typeof(HomeNewImagesDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]

@@ -10,6 +10,6 @@ public interface IHomeTimelineService : IQueryService
     // default range: the history retention (KeepDays), beyond it the deltas are not complete
     Task<HomeHistoryDriftDto> GetHistoryDrift(int? days, HomeFilter filter, CancellationToken ctx = default);
 
-    // default range: since the history start
+    // default range: the history retention (KeepDays), as the history drift
     Task<HomeNewImagesDto> GetNewImages(int? days, HomeFilter filter, CancellationToken ctx = default);
 }
