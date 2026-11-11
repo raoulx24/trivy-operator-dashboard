@@ -59,3 +59,11 @@ The purl index (`PurlDetail` and `ImagePurls` detail stores, family `Sbom`, fed 
 - **Deleted images:** the collector does nothing on delete, so an image stays in `ImagePurls` until the housekeeping removes it (`DetailsOptions`: grace 1 h, plus up to one interval, 10 min by default). Until then, "where is this purl" would still list it. Option: filter at query time by the digests still in the SBOM report cache.
 - **Only in the default context:** the index is registered only there (it needs the event pipeline), not in multi-context or file repository mode. A reader must treat it as optional, like `InMemoryCveSubjects`.
 - **Memory not measured:** compare the backend memory with and without the index on a real cluster.
+
+## NVD dialog: the CVSS radar draws every value on the same even scale
+
+The radar in the expanded CVSS rows (`CvssExplanationService.radar`, drawn by `app-radar-chart`) maps each base metric to a radius by the rank of its value: a metric with n values takes the upper n steps of n (the least severe value is one step above the centre, so nothing is drawn at 0 and a vector with several low values does not collapse into spikes). So 2 values are 0.5 and 1, 3 values are 0.33, 0.67 and 1, 4 values are 0.25, 0.5, 0.75 and 1.
+
+The rule does not know what a value means. For example Scope Unchanged (the "nothing special" value) gets 0.5, the same as Attack Complexity High, while OpenCVE draws it around 0.3 (compared by eye on CVE-2026-11850, not measured). Idea, not done: give the 2-value metrics a custom value (for example Scope Unchanged 0.33, Changed 1), or take the numeric weights of the CVSS v3 specification (v4 has none, so it would still need a rule of its own).
+
+Also not done: the v3 axis labels use the short names ("Confidentiality"); NVD and OpenCVE call them "Confidentiality Impact", "Integrity Impact" and "Availability Impact".

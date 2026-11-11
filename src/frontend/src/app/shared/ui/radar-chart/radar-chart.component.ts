@@ -21,7 +21,7 @@ const HALF_HEIGHT = 128;
 export class RadarChartComponent {
   axes = input<RadarChartAxis[]>([]);
   // the concentric grid polygons
-  rings = input<number>(4);
+  rings = input<number>(5);
   hoveredIndex = model<number | undefined>(undefined);
 
   protected readonly viewBox = `${-HALF_WIDTH} ${-HALF_HEIGHT} ${HALF_WIDTH * 2} ${HALF_HEIGHT * 2}`;
