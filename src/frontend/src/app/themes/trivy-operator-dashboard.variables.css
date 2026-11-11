@@ -45,6 +45,7 @@
   --tod-text-primary-color: var(--p-surface-900);
   --tod-text-revert-primary-color: var(--p-surface-100);
   --tod-text-revert-muted-color: var(--p-surface-300);
+  --tod-text-inverted-muted-color: var(--p-surface-300);
   --tod-togglebutton-background-border-color: var(--p-surface-100);
   --tod-blockquote-text-color: var(--p-surface-900);
 
@@ -61,6 +62,12 @@
   --tod-menu-item-active-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
   --tod-menu-item-active-font-weight: 700;
 
+  /* radar chart (the fill follows the stroke, so only the stroke is switched per mode) */
+  --tod-radar-grid-color: color-mix(in srgb, var(--p-text-color) 14%, transparent);
+  --tod-radar-stroke-color: var(--p-red-700);
+  --tod-radar-fill-color: color-mix(in srgb, var(--tod-radar-stroke-color) 18%, transparent);
+  --tod-radar-vertex-outline-color: var(--p-surface-0);
+
   --p-popover-shadow: var(--tod-box-shadow);
 }
 
@@ -69,6 +76,7 @@
   --tod-text-primary-color: var(--p-surface-100);
   --tod-text-revert-primary-color: var(--p-surface-900);
   --tod-text-revert-muted-color: var(--p-surface-700);
+  --tod-text-inverted-muted-color: var(--p-surface-700);
   --tod-togglebutton-background-border-color: var(--p-surface-950);
   --tod-blockquote-text-color: var(--p-surface-200);
 
@@ -83,6 +91,9 @@
   --tod-tag-box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.1),
     0 2px 4px rgba(0, 0, 0, 0.5);
+
+  --tod-radar-stroke-color: var(--p-red-400);
+  --tod-radar-vertex-outline-color: var(--p-surface-950);
 
   /* the fill follows --p-primary-color, which PrimeNG already switches per mode; only the shadow differs */
   --tod-menu-item-active-shadow:

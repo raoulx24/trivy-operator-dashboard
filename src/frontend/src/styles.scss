@@ -579,9 +579,40 @@ mat-icon.text-xs {
   text-align: right;
 }
 
+// The texts of the svg charts (EOL runway, activity heatmap): text-sm and light, the legend a size smaller;
+// -muted for the secondary ones (dates, counts, axes)
+.tod-chart-label {
+  font-size: 0.875rem;
+  font-weight: 300;
+  fill: currentColor;
+}
+
+.tod-chart-label-muted {
+  fill: var(--p-text-muted-color);
+}
+
+.tod-chart-legend {
+  font-size: 0.75rem;
+}
+
 // Text colors
 .tod-text-contrast-color {
   color: var(--p-primary-contrast-color);
+}
+
+// the muted text on a primary background (next to tod-text-contrast-color, e.g. in the popovers)
+.tod-text-inverted-muted-color {
+  color: var(--tod-text-inverted-muted-color);
+}
+
+// a highlighted line (same colours as the popovers): its muted texts switch to the inverted muted colour
+.tod-highlighted-row {
+  background-color: var(--p-highlight-background);
+  color: var(--p-primary-contrast-color);
+
+  .tod-text-muted-color {
+    color: var(--tod-text-inverted-muted-color);
+  }
 }
 
 .tod-text-muted-color {
@@ -639,6 +670,12 @@ mat-icon.text-xs {
   border-color: var(--p-content-border-color);
 }
 
+// the popovers (PopoverService) are cdk overlays; the cdk container defaults to z-index 1000, below modal dialogs
+// (PrimeNG starts at 1100), so a popover of something inside a dialog would be hidden behind it
+.cdk-overlay-container {
+  z-index: 5000;
+}
+
 // Backgrounds
 .tod-content-background {
   background-color: var(--p-content-background);
@@ -664,7 +701,8 @@ mat-icon.text-xs {
   &::before {
     content: '';
     position: absolute;
-    inset: -0.5rem;
+    // above and below only, no blur at the sides; 3px more than the 0.5rem gap
+    inset: calc(-0.5rem - 3px) 0;
     z-index: -1;
     pointer-events: none;
     opacity: 0;
@@ -672,11 +710,7 @@ mat-icon.text-xs {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     // fade only the outermost quarter of the ring, so most of the 0.5rem is fully blurred
-    mask-image:
-      linear-gradient(to right, transparent, #000 0.2rem, #000 calc(100% - 0.2rem), transparent),
-      linear-gradient(to bottom, transparent, #000 0.2rem, #000 calc(100% - 0.2rem), transparent);
-    mask-composite: intersect;
-    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to bottom, transparent, #000 0.2rem, #000 calc(100% - 0.2rem), transparent);
   }
 
   &.tod-sticky-nav-scrolled::before {

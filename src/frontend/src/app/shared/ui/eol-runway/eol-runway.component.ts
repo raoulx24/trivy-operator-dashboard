@@ -47,7 +47,6 @@ export class EolRunwayComponent {
   today = input.required<string>();
   monthsBefore = input<number>(6);
   yearsAfter = input<number>(3);
-
   protected readonly barHeight = BAR_HEIGHT;
   protected readonly rowHeight = ROW_HEIGHT;
   protected readonly top = TOP_HEIGHT;
@@ -153,7 +152,6 @@ export class EolRunwayComponent {
       eol: `${item.eolFrom} (${this.relative(eol, today)})`,
       eoas: eoas === undefined ? undefined : `${item.eoasFrom} (${this.relative(eoas, today)})`,
       securityFixesOnly: state === 'eoas',
-      images: `${item.images} image${item.images === 1 ? '' : 's'}`,
     };
   }
 

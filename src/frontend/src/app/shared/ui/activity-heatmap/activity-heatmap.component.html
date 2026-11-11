@@ -4,7 +4,9 @@
       @for (week of weeks(); track week.x) {
         <g [attr.transform]="'translate(' + week.x + ',0)'">
           @if (showWeekLabels()) {
-            <text class="week-label tod-text-muted-color" x="0" y="11">{{ week.label }}</text>
+            <text class="week-label tod-chart-label" x="0" [attr.y]="labelBaseline">
+              {{ week.label }}
+            </text>
           }
           @for (cell of week.cells; track cell.day) {
             <g
@@ -19,16 +21,26 @@
                 [attr.y]="cell.y"
                 [attr.width]="cellSize()"
                 [attr.height]="cellSize()"
-                rx="3"
+                [attr.rx]="3 * unit()"
               />
               @if (cell.emphasis1) {
                 <rect
                   class="ring"
-                  [attr.x]="cell.x + 1"
-                  [attr.y]="cell.y + 1"
-                  [attr.width]="cellSize() - 2"
-                  [attr.height]="cellSize() - 2"
-                  rx="2"
+                  [attr.x]="cell.x + unit()"
+                  [attr.y]="cell.y + unit()"
+                  [attr.width]="cellSize() - 2 * unit()"
+                  [attr.height]="cellSize() - 2 * unit()"
+                  [attr.rx]="2 * unit()"
+                  [attr.stroke-width]="2 * unit()"
+                />
+                <rect
+                  class="ring-inner"
+                  [attr.x]="cell.x + 2.5 * unit()"
+                  [attr.y]="cell.y + 2.5 * unit()"
+                  [attr.width]="cellSize() - 5 * unit()"
+                  [attr.height]="cellSize() - 5 * unit()"
+                  [attr.rx]="unit()"
+                  [attr.stroke-width]="unit()"
                 />
               }
               @if (cell.emphasis2) {
@@ -43,7 +55,7 @@
 </app-scroller>
 
 @if (showLegend() && weeks().length > 0) {
-  <div class="legend tod-text-muted-color">
+  <div class="legend tod-chart-legend tod-text-muted-color">
     <span class="legend-item">
       <span>{{ valueLabel() ? valueLabel() + ':' : 'less' }}</span>
       <span class="swatch level-0"></span>
@@ -58,20 +70,23 @@
       <span class="legend-item"><span class="swatch swatch-ring"></span>{{ emphasis1Label() }}</span>
     }
     @if (emphasis2Label()) {
-      <span class="legend-item"><span class="swatch swatch-corner"></span>{{ emphasis2Label() }}</span>
+      <span class="legend-item"><span class="swatch swatch-corner"
+          ><svg [attr.width]="legendSwatchSize" [attr.height]="legendSwatchSize">
+            <path class="corner" [attr.d]="legendCornerPath" /></svg
+        ></span>{{ emphasis2Label() }}</span>
     }
   </div>
 }
 
 <ng-template #tip let-cell>
   <div class="tod-text-contrast-color">
-    <div class="font-bold">{{ cell.day }}</div>
+    <div class="font-bold">{{ cell.day }} · {{ cell.day | weekdayName }}</div>
     <div>{{ cell.value }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
     @if (cell.emphasis1 && emphasis1Label()) {
-      <div class="tod-text-muted-color">{{ emphasis1Label() }}</div>
+      <div class="tod-text-inverted-muted-color">{{ emphasis1Label() }}</div>
     }
     @if (cell.emphasis2 && emphasis2Label()) {
-      <div>{{ emphasis2Label() }}</div>
+      <div class="tod-text-inverted-muted-color">{{ emphasis2Label() }}</div>
     }
   </div>
 </ng-template>

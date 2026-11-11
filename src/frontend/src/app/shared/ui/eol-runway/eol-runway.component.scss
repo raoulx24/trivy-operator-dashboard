@@ -15,27 +15,18 @@
 
 .runway {
   display: block;
+  // the plain pointer everywhere, also over the texts (no text caret); they stay selectable
+  cursor: default;
+
+  text {
+    user-select: text;
+  }
 }
 
 .row-hit {
   fill: transparent;
-}
-
-// text-sm
-.row-label,
-.row-count,
-.axis-label {
-  font-size: 0.875rem;
-  font-weight: 300;
-}
-
-.row-label {
-  fill: currentColor;
-}
-
-.row-count,
-.axis-label {
-  fill: var(--p-text-muted-color);
+  // only this area (the bar and its arrow) gets the hover effect and the popover
+  pointer-events: all;
 }
 
 .bar {
@@ -55,7 +46,7 @@
     filter 200ms ease-in-out;
 }
 
-.row:hover {
+.row:has(.row-hit:hover) {
   .bar,
   .goes-on,
   .tip {
@@ -101,11 +92,12 @@
 }
 
 .legend {
+  // plain pointer over the legend texts too (no text caret); they stay selectable
+  cursor: default;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 1.25rem;
   margin-top: 0.25rem;
-  font-size: 0.75rem;
 }
 
 .legend-item {

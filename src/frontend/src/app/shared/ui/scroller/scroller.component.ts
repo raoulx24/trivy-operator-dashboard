@@ -88,8 +88,10 @@ export class ScrollerComponent implements AfterViewInit, OnDestroy {
 
     const { scrollWidth, clientWidth, scrollLeft } = el;
 
-    this.showLeftButton.set(scrollLeft > 0);
-    this.showRightButton.set(scrollLeft + clientWidth < scrollWidth);
+    // 1px of tolerance: scrollLeft can be fractional (zoom, display scaling) while the sizes are rounded, so at the
+    // true end the sum can be a fraction short
+    this.showLeftButton.set(scrollLeft > 1);
+    this.showRightButton.set(scrollLeft + clientWidth < scrollWidth - 1);
 
     this.cdr.markForCheck();
   }

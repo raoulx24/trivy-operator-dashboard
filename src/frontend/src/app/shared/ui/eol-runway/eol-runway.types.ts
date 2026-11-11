@@ -27,7 +27,6 @@ export interface EolRunwayTip {
   eol: string;
   eoas?: string;
   securityFixesOnly: boolean;
-  images: string;
 }
 
 export interface EolRunwayTick {

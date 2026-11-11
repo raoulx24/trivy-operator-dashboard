@@ -4,13 +4,8 @@
       <g
         class="row"
         [attr.transform]="'translate(0,' + bar.y + ')'"
-        (mouseenter)="popover.show(tip, $event, bar.tip)"
-        (mousemove)="popover.move($event)"
-        (mouseleave)="popover.hide()"
       >
-        <!-- the transparent row catches the hover over the whole line, not only over the thin bar -->
-        <rect class="row-hit" x="0" y="0" [attr.width]="viewWidth()" [attr.height]="rowHeight" />
-        <text class="row-label" x="0" [attr.y]="rowHeight / 2" dominant-baseline="central">{{ bar.label }}</text>
+        <text class="row-label tod-chart-label"x="0" [attr.y]="rowHeight / 2" dominant-baseline="central">{{ bar.label }}</text>
         <rect
           class="bar state-{{ bar.state }}"
           [attr.x]="barsLeft"
@@ -33,23 +28,34 @@
             [attr.d]="'M' + (arrowX() + 11) + ',' + (rowHeight / 2 - 4) + ' l6,4 l-6,4 z'"
           />
         }
-        <text class="row-count" [attr.x]="countX()" [attr.y]="rowHeight / 2" text-anchor="end" dominant-baseline="central">
+        <!-- drawn after (so on top of) the bar and its arrow: the only part of the row that reacts to the mouse, a little taller than the bar -->
+        <rect
+          class="row-hit"
+          (mouseenter)="popover.show(tip, $event, bar.tip)"
+          (mousemove)="popover.move($event)"
+          (mouseleave)="popover.hide()"
+          [attr.x]="barsLeft"
+          [attr.y]="(rowHeight - barHeight) / 2 - 3"
+          [attr.width]="bar.width + (bar.clipped ? 18 : 0)"
+          [attr.height]="barHeight + 6"
+        />
+        <text class="row-count tod-chart-label tod-chart-label-muted"[attr.x]="countX()" [attr.y]="rowHeight / 2" text-anchor="end" dominant-baseline="central">
           {{ bar.imagesLabel }}
         </text>
       </g>
     }
 
     <line class="today" [attr.x1]="todayX()" [attr.x2]="todayX()" y1="22" [attr.y2]="rowsBottom()" />
-    <text class="axis-label" [attr.x]="todayX()" y="7" text-anchor="middle" dominant-baseline="central">today</text>
+    <text class="axis-label tod-chart-label tod-chart-label-muted" [attr.x]="todayX()" y="7" text-anchor="middle" dominant-baseline="central">today</text>
     @for (tick of ticks(); track tick.label) {
       <line class="tick" [attr.x1]="tick.x" [attr.x2]="tick.x" [attr.y1]="rowsBottom()" [attr.y2]="rowsBottom() + 4" />
-      <text class="axis-label" [attr.x]="tick.x" [attr.y]="rowsBottom() + 14" text-anchor="middle" dominant-baseline="central">
+      <text class="axis-label tod-chart-label tod-chart-label-muted" [attr.x]="tick.x" [attr.y]="rowsBottom() + 14" text-anchor="middle" dominant-baseline="central">
         {{ tick.label }}
       </text>
     }
   </svg>
 
-  <div class="legend tod-text-muted-color">
+  <div class="legend tod-chart-legend tod-text-muted-color">
     <span class="legend-item"><span class="swatch state-supported"></span>supported</span>
     <span class="legend-item"><span class="swatch state-eoas"></span>security fixes only</span>
     <span class="legend-item"><span class="swatch state-eol"></span>end of life</span>
@@ -61,11 +67,9 @@
     <div class="font-bold">{{ tip.label }}</div>
     <div>End of life: {{ tip.eol }}</div>
     @if (tip.eoas) {
-      <div>End of active support: {{ tip.eoas }}</div>
+      <div class="tod-text-inverted-muted-color">End of active support: {{ tip.eoas }}</div>
     }
     @if (tip.securityFixesOnly) {
-      <div>Security fixes only</div>
-    }
-    <div>{{ tip.images }}</div>
-  </div>
+      <div class="tod-text-inverted-muted-color">Security fixes only</div>
+    }  </div>
 </ng-template>

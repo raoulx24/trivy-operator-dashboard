@@ -1,0 +1,61 @@
+// the colours are the --tod-radar-* variables of the theme
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.radar {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ring,
+.spoke {
+  fill: none;
+  stroke: var(--tod-radar-grid-color);
+  stroke-width: 1;
+}
+
+.spoke.hovered {
+  stroke: var(--tod-radar-stroke-color);
+}
+
+.area {
+  fill: var(--tod-radar-fill-color);
+  stroke: var(--tod-radar-stroke-color);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.hit {
+  fill: transparent;
+}
+
+.vertex {
+  fill: var(--tod-radar-stroke-color);
+  stroke: var(--tod-radar-vertex-outline-color);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 150ms ease-in-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.axis.hovered .vertex {
+  transform: scale(1.6);
+}
+
+.axis {
+  cursor: default;
+}
+
+.label {
+  font-size: 12px;
+  fill: currentColor;
+  // the text stays selectable, but hovering it keeps the plain pointer (no text caret next to the popover)
+  cursor: default;
+}

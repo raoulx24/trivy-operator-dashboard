@@ -39,11 +39,23 @@ export class PopoverService {
 
   private readonly offset = 12;
 
+  private pinnedRef?: OverlayRef;
+  private pinnedAnchor?: HTMLElement;
+  private onPointerDown?: (event: PointerEvent) => void;
+  private onKeydown?: (event: KeyboardEvent) => void;
+  private onScroll?: () => void;
+
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.overlayRef?.dispose());
+    inject(DestroyRef).onDestroy(() => {
+      this.dismissPinned();
+      this.overlayRef?.dispose();
+    });
   }
 
   show(content: PopoverContent, at: PopoverPoint, context?: unknown, options?: PopoverOptions): void {
+    // a pinned popover is not replaced by hovering
+    if (this.pinnedRef) return;
+
     if (!this.overlayRef) {
       this.positionStrategy = this.overlay
         .position()
@@ -86,5 +98,76 @@ export class PopoverService {
     if (this.overlayRef?.hasAttached()) {
       this.overlayRef.detach();
     }
+  }
+
+  /**
+   * Click popover: opens next to `anchor` and stays until it is dismissed - another click anywhere (a click on the
+   * anchor itself toggles it), Escape, or a scroll. While it is open, hover popovers are not shown.
+   * Escape is swallowed, so it closes only the popover and not the dialog it may be shown above.
+   */
+  togglePinned(content: PopoverContent, anchor: HTMLElement, context?: unknown, options?: PopoverOptions): void {
+    if (this.pinnedAnchor === anchor) {
+      this.dismissPinned();
+      return;
+    }
+
+    this.dismissPinned();
+    this.hide();
+
+    this.pinnedRef = this.overlay.create({
+      positionStrategy: this.overlay
+        .position()
+        .flexibleConnectedTo(anchor)
+        .withFlexibleDimensions(false)
+        .withPush(true)
+        .withPositions([
+          { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 },
+          { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -4 },
+          { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
+          { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -4 },
+        ]),
+    });
+    this.pinnedRef.overlayElement.style.pointerEvents = 'none';
+
+    const popover = this.pinnedRef.attach(new ComponentPortal(PopoverComponent)).instance;
+    popover.content.set(content);
+    popover.context.set(context);
+    popover.width.set(options?.width);
+    popover.maxWidth.set(options?.maxWidth);
+    this.pinnedRef.updatePosition();
+    this.pinnedAnchor = anchor;
+
+    // the popover does not take pointer events, so a click lands on what is below it; a click on the anchor is left to
+    // the caller (its toggle), any other one only closes
+    this.onPointerDown = (event) => {
+      if (!anchor.contains(event.target as Node)) {
+        this.dismissPinned();
+      }
+    };
+    this.onKeydown = (event) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        this.dismissPinned();
+      }
+    };
+    this.onScroll = () => this.dismissPinned();
+    window.addEventListener('pointerdown', this.onPointerDown, true);
+    window.addEventListener('keydown', this.onKeydown, true);
+    window.addEventListener('scroll', this.onScroll, true);
+  }
+
+  isPinned(): boolean {
+    return this.pinnedRef !== undefined;
+  }
+
+  dismissPinned(): void {
+    if (this.onPointerDown) window.removeEventListener('pointerdown', this.onPointerDown, true);
+    if (this.onKeydown) window.removeEventListener('keydown', this.onKeydown, true);
+    if (this.onScroll) window.removeEventListener('scroll', this.onScroll, true);
+    this.onPointerDown = this.onKeydown = this.onScroll = undefined;
+
+    this.pinnedRef?.dispose();
+    this.pinnedRef = undefined;
+    this.pinnedAnchor = undefined;
   }
 }

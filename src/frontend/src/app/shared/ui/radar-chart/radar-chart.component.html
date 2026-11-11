@@ -1,0 +1,37 @@
+@if (points().length >= 3) {
+  <svg class="radar" role="img" aria-label="Radar chart" [attr.viewBox]="viewBox">
+    @for (ring of ringPaths(); track $index) {
+      <path class="ring" [attr.d]="ring" />
+    }
+    @for (point of points(); track point.index) {
+      <line class="spoke" [class.hovered]="hoveredIndex() === point.index" x1="0" y1="0" [attr.x2]="point.endX" [attr.y2]="point.endY" />
+    }
+
+    <path class="area" [attr.d]="valuePath()" />
+
+    @for (point of points(); track point.index) {
+      <g
+        class="axis"
+        [class.hovered]="hoveredIndex() === point.index"
+        (mouseenter)="hoveredIndex.set(point.index)"
+        (mouseleave)="hoveredIndex.set(undefined)"
+      >
+        <!-- an axis at 0 has no dot (all of them would pile up in the centre); hovering its label still emphasizes it -->
+        @if (point.axis.value > 0) {
+          <!-- the transparent circle makes the vertex an easier target -->
+          <circle class="hit" [attr.cx]="point.x" [attr.cy]="point.y" r="11" />
+          <circle class="vertex" [attr.cx]="point.x" [attr.cy]="point.y" r="3.5" />
+        }
+        <text
+          class="label tod-text-muted-color"
+          [attr.x]="point.labelX"
+          [attr.y]="point.labelY"
+          [attr.text-anchor]="point.labelAnchor"
+          [attr.dominant-baseline]="point.labelBaseline"
+        >
+          {{ point.axis.label }}
+        </text>
+      </g>
+    }
+  </svg>
+}
