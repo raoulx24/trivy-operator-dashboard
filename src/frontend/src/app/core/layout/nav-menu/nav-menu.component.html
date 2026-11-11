@@ -25,7 +25,7 @@
     </div>
   </ng-template>
 </p-menubar>
-<p-drawer [baseZIndex]="10000" [closable]="false" [(visible)]="isDrawerVisible">
+<p-drawer appendTo="body" [baseZIndex]="10000" [closable]="false" [(visible)]="isDrawerVisible">
   @if (contexts().length > 1) {
     <p-select
       class="w-full mb-2"
@@ -62,4 +62,3 @@
     </ng-template>
   </p-panelMenu>
 </p-drawer>
-<p-toast [preventOpenDuplicates]="true" />

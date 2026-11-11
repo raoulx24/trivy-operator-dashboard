@@ -648,6 +648,47 @@ mat-icon.text-xs {
   background-color: unset !important;
 }
 
+// Nav bar pinned to the top of the viewport, no background of its own: only the rounded menubar is opaque.
+// z-index stays below dialogs/overlays (PrimeNG uses 1000+); the drawer is appended to <body> so it is not trapped here.
+.tod-sticky-nav {
+  position: sticky;
+  top: 0.5rem; // same as the m-2 margin of <main>, so the bar doesn't jump up when it sticks
+  z-index: 100;
+
+  .p-menubar {
+    transition: box-shadow 0.15s ease;
+  }
+
+  // 0.5rem blurred halo around the bar: blurs the content scrolling past it, fading out towards the outer edge.
+  // Sits behind the (opaque) menubar, so it is only visible in the ring around it.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -0.5rem;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    // fade only the outermost quarter of the ring, so most of the 0.5rem is fully blurred
+    mask-image:
+      linear-gradient(to right, transparent, #000 0.2rem, #000 calc(100% - 0.2rem), transparent),
+      linear-gradient(to bottom, transparent, #000 0.2rem, #000 calc(100% - 0.2rem), transparent);
+    mask-composite: intersect;
+    -webkit-mask-composite: source-in;
+  }
+
+  &.tod-sticky-nav-scrolled::before {
+    opacity: 1;
+  }
+
+  // shadow on the menubar itself (follows its rounded corners), only when content has scrolled underneath
+  &.tod-sticky-nav-scrolled .p-menubar {
+    box-shadow: 0 8px 24px -2px rgb(0 0 0 / 0.45);
+  }
+}
+
 // Spacing and sizing
 .tod-py0 {
   padding-top: 0 !important;

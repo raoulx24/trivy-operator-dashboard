@@ -1,10 +1,14 @@
 <body>
   <main class="container-fluid m-2">
-    <app-nav-menu></app-nav-menu>
+    <!-- sticky: stays on top while the page scrolls; the shadow only shows once content has scrolled underneath -->
+    <div class="tod-sticky-nav" [class.tod-sticky-nav-scrolled]="isScrolled()">
+      <app-nav-menu></app-nav-menu>
+    </div>
     <div class="pt-2">
       <router-outlet></router-outlet>
     </div>
     <!-- the dialogs behind the vulnerability tags of any trivy table -->
     <app-vulnerability-tag-dialogs />
+    <p-toast [preventOpenDuplicates]="true" />
   </main>
 </body>

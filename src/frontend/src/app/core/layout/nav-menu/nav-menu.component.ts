@@ -16,7 +16,6 @@ import { PanelMenuModule } from 'primeng/panelmenu';
 import { Ripple } from 'primeng/ripple';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 
 import { IconComponent } from '@shared/ui/icon/icon.component';
 import { ThemeSwitcherComponent } from '@shared/ui/theme-switcher/theme-switcher.component';
@@ -34,7 +33,6 @@ import { buildNavMenuItems, createDrawerNavigator, findSectionIdForRoute } from 
     TagModule,
     BadgeModule,
     SelectModule,
-    ToastModule,
     IconComponent,
     ThemeSwitcherComponent,
     Ripple,
