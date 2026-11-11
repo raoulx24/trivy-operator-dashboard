@@ -122,7 +122,9 @@
       description="OS cycles running now, with EOL / EOAS dates, latest version and image counts, sorted by end date"
       source="GET api/home/base-os → HomeBaseOsDto"
       [state]="baseOs()"
-    />
+    >
+      <app-eol-runway [items]="baseOsCycles()" [today]="todayUtc" />
+    </app-home-widget-placeholder>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">

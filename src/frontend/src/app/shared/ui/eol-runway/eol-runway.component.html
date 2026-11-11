@@ -1,0 +1,52 @@
+@if (bars().length > 0) {
+  <svg class="runway" [attr.width]="viewWidth()" [attr.height]="height()" role="img" aria-label="EOL runway">
+    @for (bar of bars(); track bar.label) {
+      <g [attr.transform]="'translate(0,' + bar.y + ')'">
+        <title>{{ bar.tooltip }}</title>
+        <!-- the transparent row catches the hover over the whole line, not only over the thin bar -->
+        <rect class="row-hit" x="0" y="0" [attr.width]="viewWidth()" [attr.height]="rowHeight" />
+        <text class="row-label" x="0" [attr.y]="rowHeight / 2" dominant-baseline="central">{{ bar.label }}</text>
+        <rect
+          class="bar state-{{ bar.state }}"
+          [attr.x]="barsLeft"
+          [attr.y]="(rowHeight - barHeight) / 2"
+          [attr.width]="bar.width"
+          [attr.height]="barHeight"
+          rx="3"
+        />
+        @if (bar.clipped) {
+          <!-- the end is beyond the axis: a thin dashed line and an arrow -->
+          <line
+            class="goes-on state-{{ bar.state }}"
+            [attr.x1]="arrowX() + 2"
+            [attr.x2]="arrowX() + 11"
+            [attr.y1]="rowHeight / 2"
+            [attr.y2]="rowHeight / 2"
+          />
+          <path
+            class="tip state-{{ bar.state }}"
+            [attr.d]="'M' + (arrowX() + 11) + ',' + (rowHeight / 2 - 4) + ' l6,4 l-6,4 z'"
+          />
+        }
+        <text class="row-count" [attr.x]="countX()" [attr.y]="rowHeight / 2" text-anchor="end" dominant-baseline="central">
+          {{ bar.imagesLabel }}
+        </text>
+      </g>
+    }
+
+    <line class="today" [attr.x1]="todayX()" [attr.x2]="todayX()" y1="22" [attr.y2]="rowsBottom()" />
+    <text class="axis-label" [attr.x]="todayX()" y="7" text-anchor="middle" dominant-baseline="central">today</text>
+    @for (tick of ticks(); track tick.label) {
+      <line class="tick" [attr.x1]="tick.x" [attr.x2]="tick.x" [attr.y1]="rowsBottom()" [attr.y2]="rowsBottom() + 4" />
+      <text class="axis-label" [attr.x]="tick.x" [attr.y]="rowsBottom() + 14" text-anchor="middle" dominant-baseline="central">
+        {{ tick.label }}
+      </text>
+    }
+  </svg>
+
+  <div class="legend tod-text-muted-color">
+    <span class="legend-item"><span class="swatch state-supported"></span>supported</span>
+    <span class="legend-item"><span class="swatch state-eoas"></span>security fixes only</span>
+    <span class="legend-item"><span class="swatch state-eol"></span>end of life</span>
+  </div>
+}

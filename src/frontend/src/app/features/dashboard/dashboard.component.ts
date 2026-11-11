@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, W
 import { Observable } from 'rxjs';
 
 import { HomeService } from '@api/services/home.service';
+import { HomeBaseOsItemDto } from '@api/models/home-base-os-item-dto';
 import { HomeTotalsDto } from '@api/models/home-totals-dto';
 import { MainAppInitService } from '@core/services/main-app-init.service';
 import { AccessTrackingService } from '@features/history-reports/access-tracking.service';
@@ -16,6 +17,8 @@ import {
 } from './home-filter-bar/home-filter-bar.types';
 import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
 import { ActivityHeatmapDayDto } from '@shared/ui/activity-heatmap/activity-heatmap.types';
+import { EolRunwayComponent } from '@shared/ui/eol-runway/eol-runway.component';
+import { EolRunwayItem } from '@shared/ui/eol-runway/eol-runway.types';
 import { HomeWidgetPlaceholderComponent } from './home-widget-placeholder/home-widget-placeholder.component';
 import { HomeWidgetState } from './home-widget-placeholder/home-widget-placeholder.types';
 
@@ -29,7 +32,7 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [HomeFilterBarComponent, HomeWidgetPlaceholderComponent, ActivityHeatmapComponent],
+  imports: [HomeFilterBarComponent, HomeWidgetPlaceholderComponent, ActivityHeatmapComponent, EolRunwayComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -109,6 +112,7 @@ export class DashboardComponent {
   protected readonly newImagesChart = signal<HomeHeatmapData>({ data: [], flaggedDays: [] });
   protected readonly todayUtc = new Date().toISOString().substring(0, 10);
   protected readonly baseOs = signal<HomeWidgetState>({});
+  protected readonly baseOsCycles = signal<EolRunwayItem[]>([]);
   protected readonly fixWaiting = signal<HomeWidgetState>({});
   protected readonly failingChecks = signal<HomeWidgetState>({});
   protected readonly oldestImages = signal<HomeWidgetState>({});
@@ -294,13 +298,18 @@ export class DashboardComponent {
         }),
     );
 
-    this.load(this.baseOs, this.homeService.getHomeBaseOs({ namespaces: scope.namespaces }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary:
-        `${x.items.length} OS cycles; ${x.items.filter((i) => i.isEol).length} end of life, ` +
-        `${x.items.filter((i) => i.status === 'Pending').length} pending`,
-    }));
+    this.load(
+      this.baseOs,
+      this.homeService.getHomeBaseOs({ namespaces: scope.namespaces }),
+      (x) => ({
+        isAvailable: x.isAvailable,
+        unavailableReason: x.unavailableReason,
+        summary:
+          `${x.items.length} OS versions; ${x.items.filter((i) => i.isEol).length} end of life, ` +
+          `${x.items.filter((i) => i.status === 'Pending').length} pending`,
+      }),
+      (x) => this.baseOsCycles.set(this.toEolRunwayItems(x.items)),
+    );
 
     this.load(this.fixWaiting, this.homeService.getHomeFixWaiting({ ...scope }), (x) => ({
       isAvailable: x.isAvailable,
@@ -421,6 +430,32 @@ export class DashboardComponent {
     return severityIds
       .map((id) => homeSeverityOptions.find((o) => o.value === id)?.label.toLowerCase() ?? `${id}`)
       .join('/');
+  }
+
+  // the endpoint has a row per OS version; the runway has a bar per cycle (family + cycle) with the images summed
+  // (an image has one base OS, so that sum is exact; workloads and namespaces are not summable, so not shown)
+  // rows without dates (pending, not applicable, error) are left out
+  private toEolRunwayItems(items: HomeBaseOsItemDto[]): EolRunwayItem[] {
+    const cycles = new Map<string, EolRunwayItem>();
+
+    for (const item of items) {
+      if (item.status !== 'Ok' || !item.eolFrom) continue;
+
+      const cycle = item.cycle ?? item.version;
+      const key = `${item.family}/${cycle}`;
+      const existing = cycles.get(key);
+      if (existing) {
+        existing.images += item.images;
+      } else {
+        cycles.set(key, {
+          label: `${item.productLabel ?? item.family} ${cycle}`,
+          eolFrom: item.eolFrom,
+          eoasFrom: item.eoasFrom,
+          images: item.images,
+        });
+      }
+    }
+    return [...cycles.values()];
   }
 
   private toTotals(totals: HomeTotalsDto): string {

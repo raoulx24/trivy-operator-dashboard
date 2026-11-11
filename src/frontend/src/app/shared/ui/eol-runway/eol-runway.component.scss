@@ -1,0 +1,98 @@
+:host {
+  display: block;
+  min-width: 0;
+
+  --eol-supported: var(--p-blue-400);
+  --eol-eoas: var(--p-orange-400);
+  --eol-eol: var(--p-surface-400);
+  --eol-today: var(--p-text-color);
+}
+
+:host-context(.trivy-operator-dashboard-dark) {
+  --eol-supported: var(--p-blue-500);
+  --eol-eol: var(--p-surface-500);
+}
+
+.runway {
+  display: block;
+}
+
+.row-hit {
+  fill: transparent;
+}
+
+// text-sm
+.row-label,
+.row-count,
+.axis-label {
+  font-size: 0.875rem;
+  font-weight: 300;
+}
+
+.row-label {
+  fill: currentColor;
+}
+
+.row-count,
+.axis-label {
+  fill: var(--p-text-muted-color);
+}
+
+.bar {
+  &.state-supported { fill: var(--eol-supported); }
+  &.state-eoas { fill: var(--eol-eoas); }
+  &.state-eol { fill: var(--eol-eol); }
+}
+
+.goes-on {
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+
+  &.state-supported { stroke: var(--eol-supported); }
+  &.state-eoas { stroke: var(--eol-eoas); }
+  &.state-eol { stroke: var(--eol-eol); }
+}
+
+.tip {
+  &.state-supported { fill: var(--eol-supported); }
+  &.state-eoas { fill: var(--eol-eoas); }
+  &.state-eol { fill: var(--eol-eol); }
+}
+
+.today {
+  stroke: var(--eol-today);
+  stroke-width: 0.75;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.tick {
+  stroke: var(--p-text-muted-color);
+  stroke-width: 0.75;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+
+  &.state-supported { background: var(--eol-supported); }
+  &.state-eoas { background: var(--eol-eoas); }
+  &.state-eol { background: var(--eol-eol); }
+}
