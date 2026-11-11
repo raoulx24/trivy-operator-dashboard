@@ -17,7 +17,17 @@ export interface EolRunwayBar {
   // the end is beyond the right edge of the axis
   clipped: boolean;
   imagesLabel: string;
-  tooltip: string;
+  tip: EolRunwayTip;
+}
+
+// what the popover of a bar shows
+export interface EolRunwayTip {
+  label: string;
+  // "2027-04-30 (in 5 months)"
+  eol: string;
+  eoas?: string;
+  securityFixesOnly: boolean;
+  images: string;
 }
 
 export interface EolRunwayTick {

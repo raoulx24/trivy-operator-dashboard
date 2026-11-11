@@ -13,7 +13,7 @@ import { HomeWidgetState } from './home-widget-placeholder.types';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeWidgetPlaceholderComponent {
-  title = input.required<string>();
+  heading = input.required<string>();
   hint = input<string>('');
   description = input.required<string>();
   source = input.required<string>();

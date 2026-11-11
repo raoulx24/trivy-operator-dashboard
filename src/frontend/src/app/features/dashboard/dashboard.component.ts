@@ -53,9 +53,9 @@ export class DashboardComponent {
   // the days the home page was opened (UTC, today included), for the heatmaps
   protected readonly visitDays: string[] = this.trackedDays.map((x) => x.day);
 
-  protected readonly windowMode = signal<HomeWindowMode>(this.loadWindowMode());
-  protected readonly severityIds = signal<number[]>(this.loadSeverityIds());
-  protected readonly namespaces = signal<string[]>(this.loadNamespaces());
+  protected windowMode = signal<HomeWindowMode>(this.loadWindowMode());
+  protected severityIds = signal<number[]>(this.loadSeverityIds());
+  protected namespaces = signal<string[]>(this.loadNamespaces());
   // the namespaces with data, plus the selected ones that have none now (kept visible, so they can be removed;
   // they are not dropped silently, as right after a backend start the data may be partial)
   private readonly namespacesWithData = signal<string[]>([]);

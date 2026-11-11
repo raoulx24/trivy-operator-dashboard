@@ -1,5 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+} from '@angular/core';
 
+import { PopoverService } from '../popover/popover.service';
 import { ScrollerComponent } from '../scroller/scroller.component';
 
 import {
@@ -49,6 +57,13 @@ export class ActivityHeatmapComponent {
   valueLabel = input<string>('');
   emphasis1Label = input<string>('');
   emphasis2Label = input<string>('');
+
+  protected readonly popover = inject(PopoverService);
+
+  constructor() {
+    // never leave the popover behind when the heatmap goes away while hovered
+    inject(DestroyRef).onDestroy(() => this.popover.hide());
+  }
 
   protected readonly levels = Array.from({ length: LEVELS }, (_, i) => i + 1);
 
@@ -110,7 +125,6 @@ export class ActivityHeatmapComponent {
           emphasis2: e2,
           x: Math.floor(i / rows) * step,
           y: top + (i % rows) * step,
-          tooltip: this.tooltipOf(day, value, e1, e2),
         });
       }
 
@@ -152,14 +166,6 @@ export class ActivityHeatmapComponent {
   private levelOf(value: number): number {
     if (value <= 0) return 0;
     return 1 + this.thresholds().filter((t) => value > t).length;
-  }
-
-  private tooltipOf(day: string, value: number, e1: boolean, e2: boolean): string {
-    const label = this.valueLabel();
-    const parts = [`${day}: ${value}${label ? ' ' + label : ''}`];
-    if (e1 && this.emphasis1Label()) parts.push(this.emphasis1Label());
-    if (e2 && this.emphasis2Label()) parts.push(this.emphasis2Label());
-    return parts.join(' · ');
   }
 
   // 0 = the first day of the week

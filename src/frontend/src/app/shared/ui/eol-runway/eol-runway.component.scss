@@ -44,6 +44,34 @@
   &.state-eol { fill: var(--eol-eol); }
 }
 
+// hover: the bar grows in thickness only (its length is a date, so it never scales) and gets brighter
+.bar,
+.goes-on,
+.tip {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transition:
+    transform 200ms ease-in-out,
+    filter 200ms ease-in-out;
+}
+
+.row:hover {
+  .bar,
+  .goes-on,
+  .tip {
+    transform: scaleY(1.2);
+    filter: brightness(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .goes-on,
+  .tip {
+    transition: none;
+  }
+}
+
 .goes-on {
   stroke-width: 1;
   stroke-dasharray: 2 2;

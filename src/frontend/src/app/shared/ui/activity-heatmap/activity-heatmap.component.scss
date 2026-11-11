@@ -35,6 +35,25 @@
   fill: currentColor;
 }
 
+// a cell with its ring and marker: grows a little and brightens on hover (the gap between cells is larger than
+// the growth, so neighbours are not covered)
+.cell-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 180ms ease-in-out,
+    filter 180ms ease-in-out;
+
+  &:hover {
+    transform: scale(1.15);
+    filter: brightness(1.2) saturate(1.1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
 // svg cells
 .cell {
   fill: var(--hm-empty);

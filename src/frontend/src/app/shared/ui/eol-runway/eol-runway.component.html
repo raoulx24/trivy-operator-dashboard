@@ -1,8 +1,13 @@
 @if (bars().length > 0) {
   <svg class="runway" [attr.width]="viewWidth()" [attr.height]="height()" role="img" aria-label="EOL runway">
     @for (bar of bars(); track bar.label) {
-      <g [attr.transform]="'translate(0,' + bar.y + ')'">
-        <title>{{ bar.tooltip }}</title>
+      <g
+        class="row"
+        [attr.transform]="'translate(0,' + bar.y + ')'"
+        (mouseenter)="popover.show(tip, $event, bar.tip)"
+        (mousemove)="popover.move($event)"
+        (mouseleave)="popover.hide()"
+      >
         <!-- the transparent row catches the hover over the whole line, not only over the thin bar -->
         <rect class="row-hit" x="0" y="0" [attr.width]="viewWidth()" [attr.height]="rowHeight" />
         <text class="row-label" x="0" [attr.y]="rowHeight / 2" dominant-baseline="central">{{ bar.label }}</text>
@@ -50,3 +55,17 @@
     <span class="legend-item"><span class="swatch state-eol"></span>end of life</span>
   </div>
 }
+
+<ng-template #tip let-tip>
+  <div class="tod-text-contrast-color">
+    <div class="font-bold">{{ tip.label }}</div>
+    <div>End of life: {{ tip.eol }}</div>
+    @if (tip.eoas) {
+      <div>End of active support: {{ tip.eoas }}</div>
+    }
+    @if (tip.securityFixesOnly) {
+      <div>Security fixes only</div>
+    }
+    <div>{{ tip.images }}</div>
+  </div>
+</ng-template>

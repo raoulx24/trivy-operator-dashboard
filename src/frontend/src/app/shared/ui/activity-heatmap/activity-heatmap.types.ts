@@ -15,7 +15,6 @@ export interface ActivityHeatmapCell {
   emphasis2: boolean;
   x: number;
   y: number;
-  tooltip: string;
 }
 
 export interface ActivityHeatmapWeek {

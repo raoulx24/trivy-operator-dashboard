@@ -10,7 +10,9 @@ import {
   signal,
 } from '@angular/core';
 
-import { EolRunwayBar, EolRunwayItem, EolRunwayState, EolRunwayTick } from './eol-runway.types';
+import { PopoverService } from '../popover/popover.service';
+
+import { EolRunwayBar, EolRunwayItem, EolRunwayState, EolRunwayTick, EolRunwayTip } from './eol-runway.types';
 
 const DAY_MS = 86_400_000;
 // all sizes are in px: the drawing is as wide as the host, so the text keeps its size (text-sm)
@@ -60,9 +62,13 @@ export class EolRunwayComponent {
   protected readonly countX = computed(() => this.barsLeft + this.barsWidth() + ARROW_WIDTH + COUNT_WIDTH);
   protected readonly arrowX = computed(() => this.barsLeft + this.barsWidth());
 
+  protected readonly popover = inject(PopoverService);
+
   constructor() {
     const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const destroyRef = inject(DestroyRef);
+    // never leave the popover behind when the runway goes away while hovered
+    destroyRef.onDestroy(() => this.popover.hide());
 
     afterNextRender(() => {
       const observer = new ResizeObserver(() => {
@@ -106,7 +112,7 @@ export class EolRunwayComponent {
           width: Math.max(MIN_BAR_WIDTH, this.scale(Math.min(eol, end), start, end)),
           clipped: eol > end,
           imagesLabel: `${item.images} img`,
-          tooltip: this.tooltipOf(item, state, eol, eoas, today),
+          tip: this.tipOf(item, state, eol, eoas, today),
         };
       });
   });
@@ -135,20 +141,20 @@ export class EolRunwayComponent {
     return ((ms - start) / (end - start)) * this.barsWidth();
   }
 
-  private tooltipOf(
+  private tipOf(
     item: EolRunwayItem,
     state: EolRunwayState,
     eol: number,
     eoas: number | undefined,
     today: number,
-  ): string {
-    const parts = [item.label, `end of life ${item.eolFrom} (${this.relative(eol, today)})`];
-    if (eoas !== undefined) {
-      parts.push(`end of active support ${item.eoasFrom} (${this.relative(eoas, today)})`);
-    }
-    if (state === 'eoas') parts.push('security fixes only');
-    parts.push(`${item.images} image${item.images === 1 ? '' : 's'}`);
-    return parts.join(' · ');
+  ): EolRunwayTip {
+    return {
+      label: item.label,
+      eol: `${item.eolFrom} (${this.relative(eol, today)})`,
+      eoas: eoas === undefined ? undefined : `${item.eoasFrom} (${this.relative(eoas, today)})`,
+      securityFixesOnly: state === 'eoas',
+      images: `${item.images} image${item.images === 1 ? '' : 's'}`,
+    };
   }
 
   // "in 1y 7m", "10 days ago"

@@ -9,7 +9,7 @@
   />
 
   <app-home-widget-placeholder
-    title="Data health"
+    heading="Data health"
     hint="not filtered"
     description="watchers ok / with issues, per report kind the count and the oldest / newest scan, the last fetch of KEV / EPSS / EUVD / EOL, the start of the history and of the fix tracking (could become status chips in the filter bar)"
     source="GET api/home/data-health → HomeDataHealthDto"
@@ -18,7 +18,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
     <app-home-widget-placeholder
-      title="Where is… vulnerability"
+      heading="Where is… vulnerability"
       [hint]="searchHint()"
       description="a vulnerability id (CVE, GHSA, distro advisories...), prefix: per id the packages (installed versions, fixed version), images, namespaces, workloads, severity, KEV / EPSS"
       searchPlaceholder="CVE-2024-3094, GHSA-..."
@@ -27,7 +27,7 @@
       (search)="onFindVulnerability($event)"
     />
     <app-home-widget-placeholder
-      title="Where is… package"
+      heading="Where is… package"
       [hint]="searchHint()"
       description="a package: name substring, or purl prefix (pkg:..., with @version prefix); per package (purl without version) the licenses and, per version, images, namespaces and its vulnerabilities"
       searchPlaceholder="openssl or pkg:npm/axios@1.6"
@@ -36,7 +36,7 @@
       (search)="onFindPackage($event)"
     />
     <app-home-widget-placeholder
-      title="Where is… check"
+      heading="Where is… check"
       [hint]="searchHint()"
       description="a security assessment check (config audit, RBAC, infra) by id (KSV014 = AVD-KSV-0014) or title: severity, remediation, failing resources, namespaces"
       searchPlaceholder="KSV014 or a title, e.g. root"
@@ -45,7 +45,7 @@
       (search)="onFindCheck($event)"
     />
     <app-home-widget-placeholder
-      title="Where is… license"
+      heading="Where is… license"
       [hint]="searchHint()"
       description="a license (SPDX id or name substring): per license the packages (purl without version) with it, their versions, images and namespaces; needs SBOM reports"
       searchPlaceholder="MIT, GPL-3.0"
@@ -57,21 +57,21 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-widget-placeholder
-      title="New active vulnerabilities"
+      heading="New active vulnerabilities"
       [hint]="changesHint()"
       description="(vulnerability id, package) first seen in the window: totals (ids, rows, images, namespaces) and the top rows by reach, with KEV / EPSS markers; rows that existed before the fix tracking started are never new"
       source="GET api/home/new-vulnerabilities → HomeNewVulnerabilitiesDto"
       [state]="newVulnerabilities()"
     />
     <app-home-widget-placeholder
-      title="Fixes now available"
+      heading="Fixes now available"
       [hint]="changesHint()"
       description="(vulnerability id, package) whose fix appeared in the window (not the ones that came with their fix): fixed version, images, namespaces"
       source="GET api/home/new-fixes → HomeNewFixesDto"
       [state]="newFixes()"
     />
     <app-home-widget-placeholder
-      title="Known exploited"
+      heading="Known exploited"
       [hint]="knownExploitedHint()"
       description="KEV / EUVD vulnerabilities running now, one per id; the ones exploited in the window marked as new; ransomware flag, fix, reach"
       source="GET api/home/known-exploited → HomeKnownExploitedDto"
@@ -81,7 +81,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-widget-placeholder
-      title="History drift"
+      heading="History drift"
       [hint]="historyDriftHint()"
       description="per UTC day, the distinct (vulnerability id, severity) pairs added to images that were already running (from the history deltas, added only), still active now; known exploited ones counted apart and flagged; complete only within the history retention"
       source="GET api/home/history-drift → HomeHistoryDriftDto"
@@ -99,7 +99,7 @@
       />
     </app-home-widget-placeholder>
     <app-home-widget-placeholder
-      title="New images"
+      heading="New images"
       [hint]="newImagesHint()"
       description="per UTC day, the running images first seen that day and their distinct (vulnerability id, severity) pairs as they are now (current state, not as they arrived); known exploited counted apart"
       source="GET api/home/new-images → HomeNewImagesDto"
@@ -117,7 +117,7 @@
       />
     </app-home-widget-placeholder>
     <app-home-widget-placeholder
-      title="Base OS status"
+      heading="Base OS status"
       [hint]="baseOsHint()"
       description="OS cycles running now, with EOL / EOAS dates, latest version and image counts, sorted by end date"
       source="GET api/home/base-os → HomeBaseOsDto"
@@ -129,21 +129,21 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-widget-placeholder
-      title="Fix waiting time"
+      heading="Fix waiting time"
       [hint]="stateHint()"
       description="fixable (vulnerability id, package) sorted by how long the fix is known (a lower bound), with reach"
       source="GET api/home/fix-waiting → HomeFixWaitingDto"
       [state]="fixWaiting()"
     />
     <app-home-widget-placeholder
-      title="Failing checks"
+      heading="Failing checks"
       [hint]="stateHint()"
       description="failing config audit / RBAC / infra checks grouped by check id: title, severity, resources, namespaces"
       source="GET api/home/failing-checks → HomeFailingChecksDto"
       [state]="failingChecks()"
     />
     <app-home-widget-placeholder
-      title="Oldest running images"
+      heading="Oldest running images"
       [hint]="oldestImagesHint()"
       description="running digests by the moment they were first seen by the history: repo:tag, workloads, namespaces, vulnerability ids"
       source="GET api/home/oldest-images → HomeOldestImagesDto"
@@ -153,14 +153,14 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <app-home-widget-placeholder
-      title="Package hotspots"
+      heading="Package hotspots"
       [hint]="stateHint()"
       description="packages (purl without version) by the number of vulnerability ids, with the fixable ones and the images"
       source="GET api/home/package-hotspots → HomePackageHotspotsDto"
       [state]="packageHotspots()"
     />
     <app-home-widget-placeholder
-      title="Reach vs EPSS"
+      heading="Reach vs EPSS"
       [hint]="stateHint()"
       description="per vulnerability id: images (x) against the EPSS percentile (y), known exploited marked"
       source="GET api/home/reach-epss → HomeReachEpssDto"
