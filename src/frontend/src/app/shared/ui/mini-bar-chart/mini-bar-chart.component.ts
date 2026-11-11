@@ -9,6 +9,7 @@ import {
   ComponentRef,
   OnChanges,
   AfterViewInit,
+  OnDestroy,
 } from '@angular/core';
 import { Overlay, OverlayModule, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
@@ -27,7 +28,7 @@ import { MiniBarChartService } from './mini-bar-chart.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SeverityCssStyleByIdPipe, OverlayModule],
 })
-export class MiniBarChartComponent implements OnChanges, AfterViewInit {
+export class MiniBarChartComponent implements OnChanges, AfterViewInit, OnDestroy {
   dataDtos = input<MiniBarChartDataDto[]>([]);
   minHistoryDays = input<number>(14);
   tooltipTitle = input<string>('');
@@ -200,6 +201,13 @@ export class MiniBarChartComponent implements OnChanges, AfterViewInit {
 
   ngAfterViewInit() {
     this.containerStyles = getComputedStyle(document.documentElement);
+  }
+
+  ngOnDestroy() {
+    // dispose detaches the tooltip too, so it cannot stay on screen if the chart goes away while hovered
+    this.overlayRef?.dispose();
+    this.overlayRef = undefined;
+    this.tooltipComponentRef = undefined;
   }
 
   ngOnChanges() {
