@@ -1,11 +1,11 @@
-<div class="tod-content-border flex flex-col gap-2 p-3 h-full">
-  <div class="flex items-baseline justify-between gap-2">
-    <span class="font-semibold">{{ heading() }}</span>
-    @if (hint()) {
-      <span class="text-xs tod-text-muted-color">{{ hint() }}</span>
-    }
-  </div>
-
+<app-home-widget-frame
+  [heading]="heading()"
+  [hint]="hint()"
+  [state]="state()"
+  [canExpand]="canExpand()"
+  [expanded]="isExpanded()"
+  (expandToggle)="toggleExpand()"
+>
   @if (searchPlaceholder()) {
     <input
       type="text"
@@ -25,16 +25,4 @@
   <ng-content />
 
   <div class="text-xs font-mono tod-text-muted-color">{{ source() }}</div>
-
-  <div class="text-xs">
-    @if (state().error) {
-      <span class="home-placeholder-error">Error: {{ state().error }}</span>
-    } @else if (state().isAvailable === undefined) {
-      <span class="tod-text-muted-color">{{ state().idleText ?? 'Loading...' }}</span>
-    } @else if (!state().isAvailable) {
-      <span class="tod-text-muted-color">Not available: {{ state().unavailableReason }}</span>
-    } @else {
-      <span>Received: {{ state().summary }}</span>
-    }
-  </div>
-</div>
+</app-home-widget-frame>

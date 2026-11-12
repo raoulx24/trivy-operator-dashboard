@@ -853,3 +853,29 @@ ul.p-panelmenu-submenu {
   border-left: 1px solid var(--p-text-muted-color);
   border-radius: 0 0 0 var(--tod-app-border-radius-lg);
 }
+
+// Home page: expanding a widget (HomeWidgetGroupDirective) is animated as a view transition. The class is on <html>
+// only while it runs: the widgets are named only then (so the light/dark reveal, which has no names, is not
+// affected), the groups get a short duration, and the root is not masked (the light/dark rules above are for the reveal).
+:root.tod-widget-vt {
+  app-home-widget-placeholder {
+    view-transition-name: var(--home-widget-vt-name);
+  }
+
+  &::view-transition-group(*) {
+    animation-duration: 450ms;
+    animation-timing-function: ease-in-out;
+  }
+
+  // a widget changes size, so its old and new image fill the group (the default keeps the aspect ratio)
+  &::view-transition-old(*),
+  &::view-transition-new(*) {
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  &::view-transition-new(root) {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}

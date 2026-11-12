@@ -19,6 +19,9 @@ import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-h
 import { ActivityHeatmapDayDto } from '@shared/ui/activity-heatmap/activity-heatmap.types';
 import { EolRunwayComponent } from '@shared/ui/eol-runway/eol-runway.component';
 import { EolRunwayItem } from '@shared/ui/eol-runway/eol-runway.types';
+import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
+import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
+import { HomeWidgetGroupDirective } from './home-widget-group/home-widget-group.directive';
 import { HomeWidgetPlaceholderComponent } from './home-widget-placeholder/home-widget-placeholder.component';
 import { HomeWidgetState } from './home-widget-placeholder/home-widget-placeholder.types';
 
@@ -32,7 +35,16 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [HomeFilterBarComponent, HomeWidgetPlaceholderComponent, ActivityHeatmapComponent, EolRunwayComponent],
+  imports: [
+    HomeFilterBarComponent,
+    HomeWidgetGroupDirective,
+    HomePackageHotspotsComponent,
+    HomeWidgetPlaceholderComponent,
+    ActivityHeatmapComponent,
+    EolRunwayComponent,
+  ],
+  // one expanded widget per page, shared by the widget groups
+  providers: [HomeWidgetExpansionService],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,7 +76,7 @@ export class DashboardComponent {
   );
 
   // bumped by the refresh button, so the data reloads with unchanged filters
-  private readonly refreshCounter = signal(0);
+  protected readonly refreshCounter = signal(0);
 
   protected readonly since = computed(() => this.resolveSince(this.windowMode()));
   protected readonly sinceLabel = computed(() => `${this.since().substring(0, 10)} (UTC)`);
@@ -116,7 +128,6 @@ export class DashboardComponent {
   protected readonly fixWaiting = signal<HomeWidgetState>({});
   protected readonly failingChecks = signal<HomeWidgetState>({});
   protected readonly oldestImages = signal<HomeWidgetState>({});
-  protected readonly packageHotspots = signal<HomeWidgetState>({});
   protected readonly reachEpss = signal<HomeWidgetState>({});
 
   constructor() {
@@ -327,12 +338,6 @@ export class DashboardComponent {
       isAvailable: x.isAvailable,
       unavailableReason: x.unavailableReason,
       summary: `${x.items.length} images; history since ${this.toDay(x.historyStartedAt)}`,
-    }));
-
-    this.load(this.packageHotspots, this.homeService.getHomePackageHotspots({ ...scope }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary: `${x.items.length} packages`,
     }));
 
     this.load(this.reachEpss, this.homeService.getHomeReachEpss({ ...scope }), (x) => ({

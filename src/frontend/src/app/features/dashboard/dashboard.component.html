@@ -16,7 +16,7 @@
     [state]="dataHealth()"
   />
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
     <app-home-widget-placeholder
       heading="Where is… vulnerability"
       [hint]="searchHint()"
@@ -55,7 +55,7 @@
     />
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-widget-placeholder
       heading="New active vulnerabilities"
       [hint]="changesHint()"
@@ -79,7 +79,7 @@
     />
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-widget-placeholder
       heading="History drift"
       [hint]="historyDriftHint()"
@@ -127,7 +127,7 @@
     </app-home-widget-placeholder>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-widget-placeholder
       heading="Fix waiting time"
       [hint]="stateHint()"
@@ -151,13 +151,12 @@
     />
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <app-home-widget-placeholder
-      heading="Package hotspots"
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <app-home-package-hotspots
       [hint]="stateHint()"
-      description="packages (purl without version) by the number of vulnerability ids, with the fixable ones and the images"
-      source="GET api/home/package-hotspots → HomePackageHotspotsDto"
-      [state]="packageHotspots()"
+      [severities]="severityIds()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
     />
     <app-home-widget-placeholder
       heading="Reach vs EPSS"

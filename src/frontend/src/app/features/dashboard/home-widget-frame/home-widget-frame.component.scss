@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  height: 100%;
+  // a grid cell: wide content (a scrolling control) must scroll inside, not widen the cell
+  min-width: 0;
+}
+
+.home-widget-error {
+  color: var(--p-red-500);
+}

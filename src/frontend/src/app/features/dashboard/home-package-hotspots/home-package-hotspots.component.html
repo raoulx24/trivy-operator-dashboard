@@ -1,0 +1,37 @@
+<app-home-widget-frame
+  heading="Package hotspots"
+  [hint]="hint()"
+  [state]="state()"
+  [canExpand]="canExpand()"
+  [expanded]="isExpanded()"
+  (expandToggle)="toggleExpand()"
+>
+  <div class="flex-1 overflow-auto" [class.max-h-[70vh]]="isExpanded()">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs tod-text-muted-color">
+          <th class="font-normal">Package</th>
+          <th class="font-normal text-right pl-2">Ids</th>
+          <th class="font-normal text-right pl-2">Fixable</th>
+          <th class="font-normal text-right pl-2">Images</th>
+          @if (isExpanded()) {
+            <th class="font-normal text-right pl-2">Namespaces</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.packageKey) {
+          <tr>
+            <td class="max-w-0 w-full truncate" [title]="item.packageKey">{{ item.packageName }}</td>
+            <td class="text-right pl-2">{{ item.vulnerabilityIds }}</td>
+            <td class="text-right pl-2">{{ item.fixableVulnerabilityIds }}</td>
+            <td class="text-right pl-2">{{ item.images }}</td>
+            @if (isExpanded()) {
+              <td class="text-right pl-2">{{ item.namespaces }}</td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</app-home-widget-frame>
