@@ -579,11 +579,11 @@ mat-icon.text-xs {
   text-align: right;
 }
 
-// The texts of the svg charts (EOL runway, activity heatmap): text-sm and light, the legend a size smaller;
-// -muted for the secondary ones (dates, counts, axes)
+// The texts of the svg charts (EOL runway, activity heatmap): text-sm and normal weight (300 looked too thin next to
+// the rest of the app), the legend a size smaller; -muted for the secondary ones (dates, counts, axes)
 .tod-chart-label {
   font-size: 0.875rem;
-  font-weight: 300;
+  font-weight: 400;
   fill: currentColor;
 }
 
@@ -701,8 +701,9 @@ mat-icon.text-xs {
   &::before {
     content: '';
     position: absolute;
-    // above and below only, no blur at the sides; 3px more than the 0.5rem gap
-    inset: calc(-0.5rem - 3px) 0;
+    // above the bar only (no blur at the sides or below); 3px more than the 0.5rem gap
+    inset: calc(-0.5rem - 3px) 0 auto 0;
+    height: calc(0.5rem + 3px + 1rem);
     z-index: -1;
     pointer-events: none;
     opacity: 0;
@@ -710,7 +711,8 @@ mat-icon.text-xs {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     // fade only the outermost quarter of the ring, so most of the 0.5rem is fully blurred
-    mask-image: linear-gradient(to bottom, transparent, #000 0.2rem, #000 calc(100% - 0.2rem), transparent);
+    // fade only at the top edge; the lower part is hidden behind the opaque menubar
+    mask-image: linear-gradient(to bottom, transparent, #000 0.2rem);
   }
 
   &.tod-sticky-nav-scrolled::before {
