@@ -12,9 +12,9 @@ import {
 
 import { PopoverService } from '../popover/popover.service';
 
+import { EOL_RISK_DAYS, eolRelative, eolStateOf, parseEolDay } from './eol-runway.state';
 import { EolRunwayBar, EolRunwayItem, EolRunwayState, EolRunwayTick, EolRunwayTip } from './eol-runway.types';
 
-const DAY_MS = 86_400_000;
 // all sizes are in px: the drawing is as wide as the host, so the text keeps its size (text-sm)
 const DEFAULT_WIDTH = 480;
 const LABEL_WIDTH = 130;
@@ -31,7 +31,8 @@ const MIN_BAR_WIDTH = 6;
 // the runway of OS cycles: one bar per cycle, from the left edge of the axis to its end of life, with today marked
 // - the axis shows monthsBefore months before today and yearsAfter years after; a later end is a bar to the axis end, then a dashed line and an arrow
 // - an end older than the axis start is a short stub at the left; the stub tells it is over, not when
-// - colors: supported, only security fixes (end of active support passed), end of life passed
+// - colors: supported, only security fixes (end of active support passed), risky (end of life in less than riskDays
+//   days, whatever the support phase), end of life passed
 // - "today" is above the chart, the years below it, so they never overlap
 // - dates are "yyyy-MM-dd" (UTC); items are drawn sorted by end of life
 @Component({
@@ -47,6 +48,8 @@ export class EolRunwayComponent {
   today = input.required<string>();
   monthsBefore = input<number>(6);
   yearsAfter = input<number>(3);
+  // an end of life in less than this many days is risky: it has its own color, whatever the support phase
+  riskDays = input<number>(EOL_RISK_DAYS);
   protected readonly barHeight = BAR_HEIGHT;
   protected readonly rowHeight = ROW_HEIGHT;
   protected readonly top = TOP_HEIGHT;
@@ -101,8 +104,7 @@ export class EolRunwayComponent {
       .filter((x): x is { item: EolRunwayItem; eol: number; eoas: number | undefined } => x.eol !== undefined)
       .sort((a, b) => a.eol - b.eol)
       .map(({ item, eol, eoas }, i) => {
-        const state: EolRunwayState =
-          eol <= today ? 'eol' : eoas !== undefined && eoas <= today ? 'eoas' : 'supported';
+        const state = eolStateOf(eol, eoas, today, this.riskDays());
 
         return {
           label: item.label,
@@ -152,28 +154,15 @@ export class EolRunwayComponent {
       eol: `${item.eolFrom} (${this.relative(eol, today)})`,
       eoas: eoas === undefined ? undefined : `${item.eoasFrom} (${this.relative(eoas, today)})`,
       securityFixesOnly: state === 'eoas',
+      endsSoon: state === 'risky',
     };
   }
 
-  // "in 1y 7m", "10 days ago"
   private relative(ms: number, today: number): string {
-    const days = Math.round((ms - today) / DAY_MS);
-    if (days === 0) return 'today';
-
-    const abs = Math.abs(days);
-    let text: string;
-    if (abs < 60) {
-      text = `${abs} day${abs === 1 ? '' : 's'}`;
-    } else {
-      const months = Math.round(abs / 30.4375);
-      text = months < 24 ? `${months} months` : `${Math.floor(months / 12)}y ${months % 12}m`;
-    }
-    return days > 0 ? `in ${text}` : `${text} ago`;
+    return eolRelative(ms, today);
   }
 
   private parse(day: string | undefined): number | undefined {
-    if (!day) return undefined;
-    const ms = Date.parse(`${day.slice(0, 10)}T00:00:00Z`);
-    return Number.isNaN(ms) ? undefined : ms;
+    return parseEolDay(day);
   }
 }

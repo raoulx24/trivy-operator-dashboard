@@ -58,6 +58,7 @@
   <div class="legend tod-chart-legend tod-text-muted-color">
     <span class="legend-item"><span class="swatch state-supported"></span>supported</span>
     <span class="legend-item"><span class="swatch state-eoas"></span>security fixes only</span>
+    <span class="legend-item"><span class="swatch state-risky"></span>end of life in less than {{ riskDays() }} days</span>
     <span class="legend-item"><span class="swatch state-eol"></span>end of life</span>
   </div>
 }
@@ -68,6 +69,9 @@
     <div>End of life: {{ tip.eol }}</div>
     @if (tip.eoas) {
       <div class="tod-text-inverted-muted-color">End of active support: {{ tip.eoas }}</div>
+    }
+    @if (tip.endsSoon) {
+      <div class="tod-text-inverted-muted-color">End of life is near</div>
     }
     @if (tip.securityFixesOnly) {
       <div class="tod-text-inverted-muted-color">Security fixes only</div>

@@ -1,0 +1,6 @@
+<div class="tod-content-border relative h-full px-3 pb-3" [class.pt-4]="title()" [class.pt-3]="!title()">
+  @if (title()) {
+    <span class="tod-content-background absolute left-2 top-0 -translate-y-1/2 px-1 text-xs font-semibold">{{ title() }}</span>
+  }
+  <ng-content />
+</div>

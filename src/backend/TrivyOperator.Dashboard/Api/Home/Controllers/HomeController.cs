@@ -89,8 +89,11 @@ public class HomeController(
     [HttpGet("base-os", Name = "GetHomeBaseOs")]
     [ProducesResponseType(typeof(HomeBaseOsDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
-    public async Task<IActionResult> GetBaseOs([FromQuery] string[]? namespaces, CancellationToken ctx) =>
-        Ok(await homeService.GetBaseOs(ToFilter(null, null, namespaces, null), ctx));
+    public async Task<IActionResult> GetBaseOs(
+        [FromQuery] string[]? namespaces,
+        [FromQuery] int? limit,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetBaseOs(ToFilter(null, null, namespaces, limit), ctx));
 
     [HttpGet("fix-waiting", Name = "GetHomeFixWaiting")]
     [ProducesResponseType(typeof(HomeFixWaitingDto), StatusCodes.Status200OK, "application/json")]

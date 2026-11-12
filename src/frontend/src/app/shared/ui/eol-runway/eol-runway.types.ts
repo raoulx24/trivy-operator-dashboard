@@ -7,7 +7,7 @@ export interface EolRunwayItem {
   images: number;
 }
 
-export type EolRunwayState = 'supported' | 'eoas' | 'eol';
+export type EolRunwayState = 'supported' | 'eoas' | 'risky' | 'eol';
 
 export interface EolRunwayBar {
   label: string;
@@ -27,6 +27,8 @@ export interface EolRunwayTip {
   eol: string;
   eoas?: string;
   securityFixesOnly: boolean;
+  // the end of life is near (see EolRunwayComponent.riskDays)
+  endsSoon: boolean;
 }
 
 export interface EolRunwayTick {

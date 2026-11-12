@@ -1212,6 +1212,11 @@ paths:
             type: array
             items:
               type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
       responses:
         '200':
           description: OK
@@ -3734,6 +3739,16 @@ components:
           items:
             $ref: '#/components/schemas/HomeBaseOsItemDto'
       additionalProperties: false
+    HomeBaseOsImageDto:
+      type: object
+      properties:
+        imageNameAndTag:
+          type: string
+        imageDigest:
+          type: string
+        imageRegistry:
+          type: string
+      additionalProperties: false
     HomeBaseOsItemDto:
       type: object
       properties:
@@ -3778,6 +3793,14 @@ components:
         workloads:
           type: integer
           format: int32
+        imageDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeBaseOsImageDto'
+        namespaceNames:
+          type: array
+          items:
+            type: string
       additionalProperties: false
     HomeDataHealthDto:
       type: object

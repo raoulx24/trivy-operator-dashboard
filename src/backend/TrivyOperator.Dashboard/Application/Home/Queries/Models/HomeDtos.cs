@@ -87,7 +87,15 @@ public sealed record HomeKnownExploitedDto(
     HomeTotalsDto Totals,
     IReadOnlyList<HomeKnownExploitedItemDto> Items);
 
-// one OS cycle (family + version, as Trivy reports it) with its end of life status
+// one image (one digest) running on an OS cycle; the digest is empty for a cluster scoped image
+public sealed record HomeBaseOsImageDto(
+    string ImageNameAndTag,
+    string ImageDigest,
+    string ImageRegistry);
+
+// one OS cycle (family + cycle, e.g. alpine 3.19 for the 3.19.0 and 3.19.1 images) with its end of life status
+// Version is the cycle; for an OS without end of life data it is the version as Trivy reports it
+// ImageDetails and NamespaceNames: sorted and capped by the limit query param (the counts are not)
 public sealed record HomeBaseOsItemDto(
     string Family,
     string Version,
@@ -103,7 +111,9 @@ public sealed record HomeBaseOsItemDto(
     string? LatestVersion,
     int Images,
     int Namespaces,
-    int Workloads);
+    int Workloads,
+    IReadOnlyList<HomeBaseOsImageDto> ImageDetails,
+    IReadOnlyList<string> NamespaceNames);
 
 public sealed record HomeBaseOsDto(
     bool IsAvailable,

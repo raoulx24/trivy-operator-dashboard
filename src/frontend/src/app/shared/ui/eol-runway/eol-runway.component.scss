@@ -5,12 +5,14 @@
   --eol-supported: var(--p-blue-400);
   --eol-eoas: var(--p-orange-400);
   --eol-eol: var(--p-surface-400);
+  --eol-risky: var(--p-red-400);
   --eol-today: var(--p-text-color);
 }
 
 :host-context(.trivy-operator-dashboard-dark) {
   --eol-supported: var(--p-blue-500);
   --eol-eol: var(--p-surface-500);
+  --eol-risky: var(--p-red-500);
 }
 
 .runway {
@@ -33,6 +35,7 @@
   &.state-supported { fill: var(--eol-supported); }
   &.state-eoas { fill: var(--eol-eoas); }
   &.state-eol { fill: var(--eol-eol); }
+  &.state-risky { fill: var(--eol-risky); }
 }
 
 // hover: the bar grows in thickness only (its length is a date, so it never scales) and gets brighter
@@ -70,12 +73,14 @@
   &.state-supported { stroke: var(--eol-supported); }
   &.state-eoas { stroke: var(--eol-eoas); }
   &.state-eol { stroke: var(--eol-eol); }
+  &.state-risky { stroke: var(--eol-risky); }
 }
 
 .tip {
   &.state-supported { fill: var(--eol-supported); }
   &.state-eoas { fill: var(--eol-eoas); }
   &.state-eol { fill: var(--eol-eol); }
+  &.state-risky { fill: var(--eol-risky); }
 }
 
 .today {
@@ -115,4 +120,5 @@
   &.state-supported { background: var(--eol-supported); }
   &.state-eoas { background: var(--eol-eoas); }
   &.state-eol { background: var(--eol-eol); }
+  &.state-risky { background: var(--eol-risky); }
 }

@@ -116,15 +116,12 @@
         emphasis2Label="known exploited among them"
       />
     </app-home-widget-placeholder>
-    <app-home-widget-placeholder
-      heading="Base OS status"
+    <app-home-base-os
       [hint]="baseOsHint()"
-      description="OS cycles running now, with EOL / EOAS dates, latest version and image counts, sorted by end date"
-      source="GET api/home/base-os → HomeBaseOsDto"
-      [state]="baseOs()"
-    >
-      <app-eol-runway [items]="baseOsCycles()" [today]="todayUtc" />
-    </app-home-widget-placeholder>
+      [namespaces]="namespaces()"
+      [today]="todayUtc"
+      [refresh]="refreshCounter()"
+    />
   </div>
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">

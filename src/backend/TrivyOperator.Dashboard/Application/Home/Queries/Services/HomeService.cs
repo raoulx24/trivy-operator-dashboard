@@ -307,15 +307,20 @@ public class HomeService(
             .. table.Images.Values
                 .Where(x => x.Os.Family.IsValid && x.Os.Name.IsValid && scope.Contains(x))
                 .GroupBy(x => (Family: x.Os.Family.Value.Trim().ToLowerInvariant(), Version: x.Os.Name.Value.Trim()))
+                // the versions Trivy reports (alpine 3.19.0, 3.19.1) are one OS cycle (3.19) when the end of life data has it;
+                // the ones without are left as they are
+                .Select(group => (group.Key.Family, group.Key.Version, Info: eolInfos.GetValueOrDefault(group.Key), Images: group))
+                .GroupBy(x => (x.Family, Cycle: x.Info?.Release?.Cycle ?? x.Version))
                 .Select(group =>
                 {
-                    EolInfoDto? info = eolInfos.GetValueOrDefault(group.Key);
+                    EolInfoDto? info = group.First().Info;
                     EolReleaseDto? release = info?.Release;
-                    HomeReach reach = scope.GetReach(group.Select(x => x.Key));
+                    // the cycle counts each image, namespace and workload once
+                    HomeReach reach = scope.GetReach(group.SelectMany(x => x.Images).Select(x => x.Key));
 
                     return new HomeBaseOsItemDto(
                         Family: group.Key.Family,
-                        Version: group.Key.Version,
+                        Version: group.Key.Cycle,
                         Status: (info?.Status ?? EolStatus.Pending).ToString(),
                         NotApplicableReason: info?.NotApplicableReason?.ToString(),
                         ProductLabel: info?.ProductLabel,
@@ -327,7 +332,9 @@ public class HomeService(
                         LatestVersion: release?.LatestVersion,
                         Images: reach.ImageKeys.Count,
                         Namespaces: reach.Namespaces.Count,
-                        Workloads: reach.Workloads.Count);
+                        Workloads: reach.Workloads.Count,
+                        ImageDetails: HomeNames.ToBaseOsImages(reach.ImageKeys, table, filter.Limit),
+                        NamespaceNames: [.. reach.Namespaces.Select(x => x.Value).Order(StringComparer.Ordinal).Take(filter.Limit),]);
                 })
                 // end of life first, then by the date it ends; the ones without a date last
                 .OrderByDescending(x => x.IsEol == true)

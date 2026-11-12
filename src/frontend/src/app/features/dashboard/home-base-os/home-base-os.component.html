@@ -1,0 +1,73 @@
+<app-home-widget-frame
+  heading="Base OS status"
+  [hint]="hint()"
+  [state]="state()"
+  [canExpand]="canExpand()"
+  [expanded]="isExpanded()"
+  (expandToggle)="toggleExpand()"
+>
+  <div class="grid grid-cols-3 gap-4">
+    @for (item of boxes(); track item.family + '/' + item.version) {
+      <ng-container *ngTemplateOutlet="box; context: { $implicit: item }" />
+    }
+
+    <!-- two thirds of the row (all of it without boxes); the box left over, if any, sits beside it -->
+    <div class="min-w-0" [class.col-span-3]="!hasBoxes()" [class.col-span-2]="hasBoxes()">
+      @if (isExpanded()) {
+        <!-- a box like the OS ones, without a title -->
+        <app-titled-box>
+          <app-eol-runway [items]="cycles()" [today]="today()" />
+        </app-titled-box>
+      } @else {
+        <app-eol-runway [items]="cycles()" [today]="today()" />
+      }
+    </div>
+    @if (besideBox(); as item) {
+      <ng-container *ngTemplateOutlet="box; context: { $implicit: item }" />
+    }
+  </div>
+</app-home-widget-frame>
+
+<ng-template #box let-item>
+  <app-titled-box [title]="title(item)">
+    <div class="flex flex-col gap-2 text-sm">
+      <div class="flex flex-col text-xs tod-text-muted-color">
+        @for (line of info(item); track line) {
+          <span>{{ line }}</span>
+        }
+      </div>
+
+      <div class="flex flex-col">
+        @for (image of item.imageDetails; track image.imageDigest + image.imageNameAndTag) {
+          <div class="flex items-center justify-between gap-1">
+            <span class="break-all">{{ image.imageNameAndTag }}</span>
+            <!-- a cluster scoped image has no digest, so no report to open -->
+            @if (image.imageDigest) {
+              <p-button
+                icon="pi pi-external-link"
+                size="small"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                [ariaLabel]="'Open the vulnerability report of ' + image.imageNameAndTag"
+                (onClick)="openReport(image.imageDigest)"
+              />
+            }
+          </div>
+        }
+        @if (moreImages(item) > 0) {
+          <span class="text-xs tod-text-muted-color">+{{ moreImages(item) }} more</span>
+        }
+      </div>
+
+      @if (item.namespaceNames.length > 0) {
+        <div class="pt-2 break-words" style="border-top: 1px solid var(--p-content-border-color)">
+          {{ item.namespaceNames.join(', ') }}
+          @if (moreNamespaces(item) > 0) {
+            <span class="text-xs tod-text-muted-color">+{{ moreNamespaces(item) }} more</span>
+          }
+        </div>
+      }
+    </div>
+  </app-titled-box>
+</ng-template>
