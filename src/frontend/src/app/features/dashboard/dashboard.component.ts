@@ -17,6 +17,7 @@ import {
 import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
 import { ActivityHeatmapDayDto } from '@shared/ui/activity-heatmap/activity-heatmap.types';
 import { HomeBaseOsComponent } from './home-base-os/home-base-os.component';
+import { HomeMotionService } from './home-motion/home-motion.service';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
 import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
 import { HomeWidgetGroupDirective } from './home-widget-group/home-widget-group.directive';
@@ -42,7 +43,7 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomeBaseOsComponent,
   ],
   // one expanded widget per page, shared by the widget groups
-  providers: [HomeWidgetExpansionService],
+  providers: [HomeWidgetExpansionService, HomeMotionService],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

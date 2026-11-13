@@ -380,6 +380,22 @@ p-selectbutton {
   box-shadow: var(--tod-box-shadow);
 }
 
+/* the theme sets the font size on the toggle buttons, so the text-sm class on the host does not reach the text */
+p-selectbutton.text-sm .p-togglebutton,
+p-selectbutton.text-sm .p-togglebutton-content {
+  font-size: 0.875rem;
+}
+
+/* a small colored dot (set its background), e.g. the state in a select button option; the border is the text contrast color */
+.tod-state-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 1px solid var(--p-primary-contrast-color);
+  border-radius: 9999px;
+}
+
 /* ==========================================================================
    Input
    ========================================================================== */
@@ -443,6 +459,11 @@ p-tag.text-xs span.p-tag-label {
 
 p-tag.text-lg span.p-tag-label {
   font-size: 0.825rem;
+}
+
+/* the state tag (e.g. EOL, Risky): its background is set per state, the text follows the theme */
+p-tag.tod-state-tag span.p-tag-label {
+  color: var(--tod-text-primary-color);
 }
 
 p-tag.only-icon {
@@ -860,7 +881,8 @@ ul.p-panelmenu-submenu {
 // only while it runs: the widgets are named only then (so the light/dark reveal, which has no names, is not
 // affected), the groups get a short duration, and the root is not masked (the light/dark rules above are for the reveal).
 :root.tod-widget-vt {
-  app-home-widget-placeholder {
+  // every widget (HomeWidgetBase), not only the placeholders
+  .tod-home-widget {
     view-transition-name: var(--home-widget-vt-name);
   }
 
@@ -879,5 +901,59 @@ ul.p-panelmenu-submenu {
   &::view-transition-new(root) {
     -webkit-mask-image: none;
     mask-image: none;
+  }
+}
+
+// Home page: a change inside a widget (HomeWidgetBase.animateItems) is a view transition too. The things marked with
+// HomeVtItemDirective (.tod-vt-item) are named only while it runs (the class is on <html>, as above): they glide from
+// where they were to where they are, new ones fade in, removed ones fade out
+:root.tod-items-vt {
+  .tod-vt-item {
+    view-transition-name: var(--tod-vt-name);
+  }
+
+  &::view-transition-group(*) {
+    animation-duration: 300ms;
+    animation-timing-function: ease-in-out;
+  }
+
+  // an item changes size or shape, so its old and new image fill the group (the default keeps the aspect ratio)
+  &::view-transition-old(*),
+  &::view-transition-new(*) {
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  &::view-transition-new(root) {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+// something that appears (animate.enter="tod-vt-enter"), e.g. the boxes of a widget when its data arrives
+@keyframes tod-vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tod-vt-enter {
+  animation: tod-vt-fade-in 150ms ease-out;
+}
+
+// a view transition does its own fade in; and no motion when it is not wanted
+:root.tod-items-vt .tod-vt-enter,
+:root.tod-widget-vt .tod-vt-enter {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tod-vt-enter {
+    animation: none;
   }
 }

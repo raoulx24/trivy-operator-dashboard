@@ -1,14 +1,6 @@
-import {
-  DestroyRef,
-  Directive,
-  Injector,
-  afterNextRender,
-  computed,
-  effect,
-  inject,
-  signal,
-} from '@angular/core';
+import { DestroyRef, Directive, computed, effect, inject, signal } from '@angular/core';
 
+import { HomeMotionService } from '../home-motion/home-motion.service';
 import { HomeWidgetExpansionService } from './home-widget-expansion.service';
 
 // a group of home widgets laid out in a grid (one row, or a few that wrap by breakpoint); at most one widget on the
@@ -31,15 +23,11 @@ import { HomeWidgetExpansionService } from './home-widget-expansion.service';
 export class HomeWidgetGroupDirective {
   // the same as the tailwind "lg" breakpoint
   private static readonly wideQuery = '(min-width: 1024px)';
-  // set on <html> while the transition runs (styles.scss: the widgets get their names, the duration, no mask)
-  private static readonly transitionClass = 'tod-widget-vt';
   private static nextId = 0;
 
-  private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly expansion = inject(HomeWidgetExpansionService);
-
-  private transitionEnd: Promise<void> = Promise.resolve();
+  private readonly motion = inject(HomeMotionService);
 
   // the ids of the widgets of this group
   private readonly widgetIds = signal<ReadonlySet<number>>(new Set());
@@ -91,36 +79,12 @@ export class HomeWidgetGroupDirective {
   // expands the widget (the expanded one of any group collapses); when it is the expanded one already, collapses it
   toggle(id: number): void {
     const next = this.expandedId() === id ? null : id;
-    this.animate(() => this.expansion.expandedId.set(next));
+    this.motion.run(() => this.expansion.expandedId.set(next), 'widget');
   }
 
-  private animate(change: () => void): void {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion || !document.startViewTransition) {
-      change();
-      return;
-    }
-
-    // the class lets styles.scss tell this transition from the light/dark one, which uses the same root pseudo-elements
-    const root = document.documentElement;
-    root.classList.add(HomeWidgetGroupDirective.transitionClass);
-    // the new state is captured when the promise resolves, so it resolves after the render of the change (calling
-    // ApplicationRef.tick here instead throws NG0101, as the callback can run while a tick is in progress)
-    const transition = document.startViewTransition(
-      () =>
-        new Promise<void>((resolve) => {
-          afterNextRender(() => resolve(), { injector: this.injector });
-          change();
-        }),
-    );
-    this.transitionEnd = transition.finished
-      .catch(() => undefined) // skipped (e.g. tab hidden): the layout is still changed, only the animation is lost
-      .then(() => root.classList.remove(HomeWidgetGroupDirective.transitionClass));
-  }
-
-  // resolves when the running expand / collapse animation is over (at once when there is none): a scroll made before
-  // it would be hidden under the animation and then jump
+  // resolves when the running animation (expand / collapse, or of the items of a widget) is over (at once when there
+  // is none): a scroll made before it would be hidden under the animation and then jump
   whenSettled(): Promise<void> {
-    return this.transitionEnd;
+    return this.motion.whenSettled();
   }
 }

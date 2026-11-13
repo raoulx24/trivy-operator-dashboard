@@ -1,30 +1,60 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { TagModule } from 'primeng/tag';
 
 import { HomeBaseOsItemDto } from '@api/models/home-base-os-item-dto';
 import { HomeService } from '@api/services/home.service';
 import { EolRunwayComponent } from '@shared/ui/eol-runway/eol-runway.component';
-import { eolRelative, eolStateOf, parseEolDay } from '@shared/ui/eol-runway/eol-runway.state';
-import { EolRunwayItem } from '@shared/ui/eol-runway/eol-runway.types';
-import { TitledBoxComponent } from '@shared/ui/titled-box/titled-box.component';
+import {
+  EOL_STATE_COLORS,
+  EOL_STATE_LABELS,
+  EOL_STATE_ORDER,
+  eolRelative,
+  eolStateOf,
+  parseEolDay,
+} from '@shared/ui/eol-runway/eol-runway.state';
+import { EolRunwayItem, EolRunwayState } from '@shared/ui/eol-runway/eol-runway.types';
+import { PopoverService } from '@shared/ui/popover/popover.service';
+import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 
+import { HomeVtItemDirective } from '../home-motion/home-vt-item.directive';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
-// Base OS status: the EOL runway (one bar per OS cycle); while expanded, also a box per OS version (family + version as
-// Trivy reports it) with its images and namespaces
+// the states of a cycle, with the colors, labels and order of the runway (and its legend)
+const stateOptions = EOL_STATE_ORDER.map((value) => ({
+  label: EOL_STATE_LABELS[value],
+  value,
+  color: EOL_STATE_COLORS[value],
+}));
+
+// Base OS status: the EOL runway (one bar per OS cycle); while expanded, also a box per OS cycle (family + cycle) with
+// its state as a tag, its dates, images and namespaces
 // it loads by itself (a change of a filter, or of refresh, reloads it): the lists of images and namespaces are asked
 // from the server only while expanded (the runway needs the counts only)
-// expanded layout: three boxes per row; the runway takes two thirds of the last row; when one box is left over after
-// the full rows (or there is only one), it sits beside the runway, else the runway has its row alone
+// expanded: the boxes of the states picked in the select button (default: EOL and risky; the runway has all the cycles)
+// layout: three boxes per row; the runway takes two thirds of the last row; when one box is left over after the full
+// rows (or there is only one), it sits beside the runway, on its left, else the runway has its row alone, on the left
 @Component({
   selector: 'app-home-base-os',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, EolRunwayComponent, TitledBoxComponent, NgTemplateOutlet, ButtonModule],
+  imports: [
+    HomeWidgetFrameComponent,
+    HomeVtItemDirective,
+    EolRunwayComponent,
+    TrivyBoxComponent,
+    NgTemplateOutlet,
+    ButtonModule,
+    FormsModule,
+    SelectButtonModule,
+    TagModule,
+  ],
   templateUrl: './home-base-os.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // a grid cell: wide content must scroll inside, not widen the cell
@@ -35,9 +65,15 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   private static readonly collapsedLimit = 1;
   private static readonly expandedLimit = 10;
   private static readonly columns = 3;
+  // the namespaces named in the footer of a box; the pill counts the others
+  private static readonly shownNamespaces = 2;
 
   private readonly homeService = inject(HomeService);
   private readonly router = inject(Router);
+  protected readonly popover = inject(PopoverService);
+
+  protected readonly stateOptions = stateOptions;
+  protected readonly selectedStates = signal<EolRunwayState[]>(['eol', 'risky']);
 
   hint = input<string>('');
   namespaces = input.required<string[]>();
@@ -95,13 +131,18 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
 
   protected readonly cycles = computed(() => this.toEolRunwayItems(this.shown().value()?.items ?? []));
 
-  // the boxes exist only with the lists, so only from the expanded data
-  // only the cycles at risk: end of life passed, or in less than EOL_RISK_DAYS days (on the "today" of the runway)
+  // the boxes exist only with the lists, so only from the expanded data; the cycles in the picked states (a cycle
+  // without dates has no state, so it is never picked)
   private readonly allBoxes = computed<HomeBaseOsItemDto[]>(() =>
     this.isExpanded() && this.expandedData.hasValue()
       ? (this.expandedData.value()?.items ?? [])
-          .filter((item) => this.isAtRisk(item))
-          .sort((a, b) => this.title(a).localeCompare(this.title(b), undefined, { numeric: true, sensitivity: 'base' }))
+          .filter((item) => this.selectedStates().includes(this.stateOf(item) as EolRunwayState))
+          // by the end of life date, the earliest (the ones already over) first; the same date: by name
+          .sort(
+            (a, b) =>
+              (parseEolDay(a.eolFrom) ?? 0) - (parseEolDay(b.eolFrom) ?? 0) ||
+              this.title(a).localeCompare(this.title(b), undefined, { numeric: true, sensitivity: 'base' }),
+          )
       : [],
   );
   protected readonly hasBoxes = computed(() => this.allBoxes().length > 0);
@@ -132,14 +173,32 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
     };
   });
 
-  // the same states as the runway bars; a version without dates (pending, not applicable, error) is not at risk
-  private isAtRisk(item: HomeBaseOsItemDto): boolean {
+  // the same states as the runway bars; none for a cycle without dates (pending, not applicable, error)
+  protected stateOf(item: HomeBaseOsItemDto): EolRunwayState | undefined {
     const eol = parseEolDay(item.eolFrom);
     const today = parseEolDay(this.today());
-    if (item.status !== 'Ok' || eol === undefined || today === undefined) return false;
+    if (item.status !== 'Ok' || eol === undefined || today === undefined) return undefined;
 
-    const state = eolStateOf(eol, parseEolDay(item.eoasFrom), today);
-    return state === 'eol' || state === 'risky';
+    return eolStateOf(eol, parseEolDay(item.eoasFrom), today);
+  }
+
+  // the tag of the title: the state, in its color (the text color is in the global styles, tod-state-tag)
+  protected statusTag(item: HomeBaseOsItemDto): { label: string; style: Record<string, string> } | undefined {
+    const state = this.stateOf(item);
+    return state ? { label: EOL_STATE_LABELS[state], style: { background: EOL_STATE_COLORS[state] } } : undefined;
+  }
+
+  protected shownNamespaces(item: HomeBaseOsItemDto): string[] {
+    return item.namespaceNames.slice(0, HomeBaseOsComponent.shownNamespaces);
+  }
+
+  // what the popover of the "+N" pill lists: the namespaces that were sent and are not in the footer, and how many
+  // were not sent (the server caps the list)
+  protected namespacesTipData(item: HomeBaseOsItemDto): { names: string[]; more: number } {
+    return {
+      names: item.namespaceNames.slice(HomeBaseOsComponent.shownNamespaces),
+      more: Math.max(0, item.namespaces - item.namespaceNames.length),
+    };
   }
 
   // the vulnerability report of the image, in a new tab (the same way the image dependency tree opens its reports)
@@ -173,13 +232,14 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
     ];
   }
 
+  // a state is picked or dropped: the boxes that stay glide to their places, the others fade in or out
+  protected onStatesChange(states: EolRunwayState[] | null): void {
+    this.animateItems(() => this.selectedStates.set(states ?? []));
+  }
+
   // the lists are capped by the server; the counts are not
   protected moreImages(item: HomeBaseOsItemDto): number {
     return Math.max(0, item.images - item.imageDetails.length);
-  }
-
-  protected moreNamespaces(item: HomeBaseOsItemDto): number {
-    return Math.max(0, item.namespaces - item.namespaceNames.length);
   }
 
   // the endpoint has a row per OS cycle, and so has the runway; rows without dates (pending, not applicable, error)

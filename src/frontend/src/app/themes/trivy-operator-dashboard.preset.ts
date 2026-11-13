@@ -142,6 +142,10 @@ export const trivyOperatorDashboardPreset = definePreset(Nora, {
         checkedShadow: '0px 1px 2px 0 rgba(0, 0, 0, 0.6)',
         borderRadius: '4px',
         padding: '0.25rem 0.25rem',
+        // every select button of the app is small: the same padding as the default size
+        sm: {
+          padding: '0.25rem 0.25rem',
+        },
       },
       root: {
         background: 'var(--tod-togglebutton-background-border-color)',
@@ -152,6 +156,9 @@ export const trivyOperatorDashboardPreset = definePreset(Nora, {
         borderRadius: '4px',
         fontWeight: '500',
         padding: '.20rem .20rem',
+        sm: {
+          padding: '.20rem .20rem',
+        },
       },
     },
   },

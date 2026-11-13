@@ -56,12 +56,26 @@
   </svg>
 
   <div class="legend tod-chart-legend tod-text-muted-color">
-    <span class="legend-item"><span class="swatch state-supported"></span>supported</span>
-    <span class="legend-item"><span class="swatch state-eoas"></span>security fixes only</span>
-    <span class="legend-item"><span class="swatch state-risky"></span>end of life in less than {{ riskDays() }} days</span>
-    <span class="legend-item"><span class="swatch state-eol"></span>end of life</span>
+    <!-- the labels and the order of the state select button of the base os widget; the popover says what a state means -->
+    @for (item of legend(); track item.state) {
+      <span
+        class="legend-item"
+        (mouseenter)="popover.show(legendTip, $event, item)"
+        (mousemove)="popover.move($event)"
+        (mouseleave)="popover.hide()"
+      >
+        <span class="swatch state-{{ item.state }}"></span>{{ item.label }}
+      </span>
+    }
   </div>
 }
+
+<ng-template #legendTip let-item>
+  <div class="tod-text-contrast-color">
+    <div class="font-bold">{{ item.label }}</div>
+    <div>{{ item.description }}</div>
+  </div>
+</ng-template>
 
 <ng-template #tip let-tip>
   <div class="tod-text-contrast-color">

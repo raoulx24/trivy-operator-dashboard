@@ -13,15 +13,24 @@
     }
   </div>
 
+  <!-- the same select button as the state one of the base os widget: dot (the severity color) and label -->
   <p-selectbutton
     size="small"
+    class="text-sm inline-flex w-fit"
     optionLabel="label"
     optionValue="value"
     [multiple]="true"
     [options]="severityOptions"
     [ngModel]="severityIds()"
     (ngModelChange)="onSeverityIdsChange($event)"
-  />
+  >
+    <ng-template #item let-item>
+      <span class="inline-flex items-center gap-1.5 px-1">
+        <span class="tod-state-dot" [style.background]="item.color"></span>
+        {{ item.label }}
+      </span>
+    </ng-template>
+  </p-selectbutton>
 
   <p-multiselect
     size="small"

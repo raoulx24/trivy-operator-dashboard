@@ -1,0 +1,41 @@
+.box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 0.75rem;
+}
+
+// the title sits on the top border, so the box makes room for the half of it that is inside
+.box:has(> .box-title:not(:empty)) {
+  padding-top: 1rem;
+}
+
+.box-title {
+  position: absolute;
+  top: 0;
+  left: 0.5rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.25rem;
+}
+
+.box-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.box-footer {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+// a section with nothing projected takes no room
+.box-title:empty,
+.box-header:empty,
+.box-footer:empty {
+  display: none;
+}

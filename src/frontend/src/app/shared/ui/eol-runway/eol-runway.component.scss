@@ -1,18 +1,6 @@
 :host {
   display: block;
   min-width: 0;
-
-  --eol-supported: var(--p-blue-400);
-  --eol-eoas: var(--p-orange-400);
-  --eol-eol: var(--p-surface-400);
-  --eol-risky: var(--p-red-400);
-  --eol-today: var(--p-text-color);
-}
-
-:host-context(.trivy-operator-dashboard-dark) {
-  --eol-supported: var(--p-blue-500);
-  --eol-eol: var(--p-surface-500);
-  --eol-risky: var(--p-red-500);
 }
 
 .runway {
@@ -32,10 +20,10 @@
 }
 
 .bar {
-  &.state-supported { fill: var(--eol-supported); }
-  &.state-eoas { fill: var(--eol-eoas); }
-  &.state-eol { fill: var(--eol-eol); }
-  &.state-risky { fill: var(--eol-risky); }
+  &.state-supported { fill: var(--tod-eol-state-supported); }
+  &.state-eoas { fill: var(--tod-eol-state-eoas); }
+  &.state-eol { fill: var(--tod-eol-state-eol); }
+  &.state-risky { fill: var(--tod-eol-state-risky); }
 }
 
 // hover: the bar grows in thickness only (its length is a date, so it never scales) and gets brighter
@@ -70,21 +58,21 @@
   stroke-width: 1;
   stroke-dasharray: 2 2;
 
-  &.state-supported { stroke: var(--eol-supported); }
-  &.state-eoas { stroke: var(--eol-eoas); }
-  &.state-eol { stroke: var(--eol-eol); }
-  &.state-risky { stroke: var(--eol-risky); }
+  &.state-supported { stroke: var(--tod-eol-state-supported); }
+  &.state-eoas { stroke: var(--tod-eol-state-eoas); }
+  &.state-eol { stroke: var(--tod-eol-state-eol); }
+  &.state-risky { stroke: var(--tod-eol-state-risky); }
 }
 
 .tip {
-  &.state-supported { fill: var(--eol-supported); }
-  &.state-eoas { fill: var(--eol-eoas); }
-  &.state-eol { fill: var(--eol-eol); }
-  &.state-risky { fill: var(--eol-risky); }
+  &.state-supported { fill: var(--tod-eol-state-supported); }
+  &.state-eoas { fill: var(--tod-eol-state-eoas); }
+  &.state-eol { fill: var(--tod-eol-state-eol); }
+  &.state-risky { fill: var(--tod-eol-state-risky); }
 }
 
 .today {
-  stroke: var(--eol-today);
+  stroke: var(--p-text-color);
   stroke-width: 0.75;
   stroke-dasharray: 3 3;
   opacity: 0.6;
@@ -117,8 +105,8 @@
   height: 12px;
   border-radius: 3px;
 
-  &.state-supported { background: var(--eol-supported); }
-  &.state-eoas { background: var(--eol-eoas); }
-  &.state-eol { background: var(--eol-eol); }
-  &.state-risky { background: var(--eol-risky); }
+  &.state-supported { background: var(--tod-eol-state-supported); }
+  &.state-eoas { background: var(--tod-eol-state-eoas); }
+  &.state-eol { background: var(--tod-eol-state-eol); }
+  &.state-risky { background: var(--tod-eol-state-risky); }
 }

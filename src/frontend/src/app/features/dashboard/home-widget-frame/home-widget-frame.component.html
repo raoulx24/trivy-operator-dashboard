@@ -1,32 +1,37 @@
 <div class="tod-content-border tod-content-background flex flex-col gap-2 p-3 h-full">
-  <div class="flex items-baseline justify-between gap-2">
-    <span class="font-semibold">{{ heading() }}</span>
-    @if (hint()) {
-      <span class="text-xs tod-text-muted-color">{{ hint() }}</span>
+  <!-- collapsed: the heading at the left, the hint at the right; expanded: the status (muted) in the center -->
+  <div class="flex items-baseline gap-2 pb-0.25">
+    <span class="flex-1 min-w-0 font-semibold">{{ heading() }}</span>
+    @if (expanded()) {
+      <span class="shrink-0 text-xs">
+        <ng-container *ngTemplateOutlet="status; context: { muted: true }" />
+      </span>
+    }
+    @if (hint() || expanded()) {
+      <span class="text-xs tod-text-muted-color" [class.flex-1]="expanded()" [class.text-right]="expanded()">{{ hint() }}</span>
     }
   </div>
 
   <ng-content />
 
-  <div class="flex items-end justify-between gap-2">
-    <div class="text-xs">
-      @if (state().error) {
-        <span class="home-widget-error">Error: {{ state().error }}</span>
-      } @else if (state().isAvailable === undefined) {
-        <span class="tod-text-muted-color">{{ state().idleText ?? 'Loading...' }}</span>
-      } @else if (!state().isAvailable) {
-        <span class="tod-text-muted-color">Not available: {{ state().unavailableReason }}</span>
-      } @else {
-        <span>Received: {{ state().summary }}</span>
-      }
-    </div>
+  <!-- bottom row: collapsed: the status at the left; expanded: the controls of the widget (frameActions); the button at the right -->
+  <div class="flex items-center justify-between gap-2">
+    @if (expanded()) {
+      <div><ng-content select="[frameActions]" /></div>
+    } @else {
+      <div class="text-xs">
+        <ng-container *ngTemplateOutlet="status; context: { muted: false }" />
+      </div>
+    }
 
     @if (canExpand()) {
       <p-button
+        class="ml-auto"
         icon="pi pi-ellipsis-h"
         size="small"
         severity="secondary"
         [text]="true"
+        [raised]="true"
         [rounded]="true"
         [ariaLabel]="expanded() ? 'Collapse ' + heading() : 'Expand ' + heading()"
         [attr.aria-expanded]="expanded()"
@@ -35,3 +40,15 @@
     }
   </div>
 </div>
+
+<ng-template #status let-muted="muted">
+  @if (state().error) {
+    <span class="home-widget-error">Error: {{ state().error }}</span>
+  } @else if (state().isAvailable === undefined) {
+    <span class="tod-text-muted-color">{{ state().idleText ?? 'Loading...' }}</span>
+  } @else if (!state().isAvailable) {
+    <span class="tod-text-muted-color">Not available: {{ state().unavailableReason }}</span>
+  } @else {
+    <span [class.tod-text-muted-color]="muted">Received: {{ state().summary }}</span>
+  }
+</ng-template>

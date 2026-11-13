@@ -12,7 +12,15 @@ import {
 
 import { PopoverService } from '../popover/popover.service';
 
-import { EOL_RISK_DAYS, eolRelative, eolStateOf, parseEolDay } from './eol-runway.state';
+import {
+  EOL_RISK_DAYS,
+  EOL_STATE_LABELS,
+  EOL_STATE_ORDER,
+  eolRelative,
+  eolStateDescription,
+  eolStateOf,
+  parseEolDay,
+} from './eol-runway.state';
 import { EolRunwayBar, EolRunwayItem, EolRunwayState, EolRunwayTick, EolRunwayTip } from './eol-runway.types';
 
 // all sizes are in px: the drawing is as wide as the host, so the text keeps its size (text-sm)
@@ -117,6 +125,14 @@ export class EolRunwayComponent {
         };
       });
   });
+
+  protected readonly legend = computed(() =>
+    EOL_STATE_ORDER.map((state) => ({
+      state,
+      label: EOL_STATE_LABELS[state],
+      description: eolStateDescription(state, this.riskDays()),
+    })),
+  );
 
   protected readonly todayX = computed(() => {
     const domain = this.domain();

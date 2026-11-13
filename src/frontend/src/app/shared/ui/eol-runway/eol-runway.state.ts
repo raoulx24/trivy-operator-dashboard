@@ -2,6 +2,39 @@ import { EolRunwayState } from './eol-runway.types';
 
 export const EOL_RISK_DAYS = 30;
 
+// the states in the order the users of the runway list them (the legend, the select button of the base os widget)
+export const EOL_STATE_ORDER: readonly EolRunwayState[] = ['eol', 'risky', 'eoas', 'supported'];
+
+export const EOL_STATE_LABELS: Record<EolRunwayState, string> = {
+  eol: 'EOL',
+  risky: 'Risky',
+  eoas: 'EOAS',
+  supported: 'Supported',
+};
+
+// what a state means, for the popovers of the legend
+export function eolStateDescription(state: EolRunwayState, riskDays = EOL_RISK_DAYS): string {
+  switch (state) {
+    case 'eol':
+      return 'End of life (EOL): the end of life date has passed. The vendor no longer provides fixes for this OS cycle, not even security ones.';
+    case 'risky':
+      return `The end of life is in less than ${riskDays} days, whatever the support phase (even if it is in security fixes only).`;
+    case 'eoas':
+      return 'End of active support (EOAS): active support has ended, only security fixes are provided until the end of life.';
+    case 'supported':
+      return `Supported: the end of life is ${riskDays} days or more away and active support has not ended (or the OS has no such phase).`;
+  }
+}
+
+// the color of each state (css vars of the theme, with their dark shade): the runway uses them in its styles, the
+// users of the runway (the dots of the select button, the tags) through this
+export const EOL_STATE_COLORS: Record<EolRunwayState, string> = {
+  eol: 'var(--tod-eol-state-eol)',
+  risky: 'var(--tod-eol-state-risky)',
+  eoas: 'var(--tod-eol-state-eoas)',
+  supported: 'var(--tod-eol-state-supported)',
+};
+
 const DAY_MS = 86_400_000;
 
 // "yyyy-MM-dd" (or a longer ISO string) as UTC midnight, in ms; undefined when it is not a date

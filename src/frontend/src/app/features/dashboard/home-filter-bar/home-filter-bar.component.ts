@@ -6,6 +6,8 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 
+import { SeverityUtils } from '@shared/utils/severity.utils';
+
 import { HomeWindowMode, homeSeverityOptions, homeWindowOptions } from './home-filter-bar.types';
 
 // the filters of the home page: the window of the widgets about changes, the severities, the namespaces, and a refresh
@@ -28,7 +30,11 @@ export class HomeFilterBarComponent {
   refresh = output<void>();
 
   protected readonly windowOptions = homeWindowOptions;
-  protected readonly severityOptions = homeSeverityOptions;
+  // with the color of the severity, as everywhere else in the app
+  protected readonly severityOptions = homeSeverityOptions.map((option) => ({
+    ...option,
+    color: SeverityUtils.getCssColor(option.value),
+  }));
 
   // at least one severity stays selected (none would mean "default" to the backend, which would be confusing)
   protected onSeverityIdsChange(value: number[] | null) {
