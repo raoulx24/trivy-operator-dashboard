@@ -894,6 +894,14 @@ ul.p-panelmenu-submenu {
 // Home page: expanding a widget (HomeWidgetGroupDirective) is animated as a view transition. The class is on <html>
 // only while it runs: the widgets are named only then (so the light/dark reveal, which has no names, is not
 // affected), the groups get a short duration, and the root is not masked (the light/dark rules above are for the reveal).
+// The sticky nav bar is named while one of the two home page transitions runs: unnamed, it is part of the root image, which
+// is under all the named groups, so the moving widgets would slide over it. As a group of its own it is stacked by its
+// z-index, above them. (Not for the light/dark switch: there everything is in the root image.)
+:root.tod-widget-vt .tod-sticky-nav,
+:root.tod-items-vt .tod-sticky-nav {
+  view-transition-name: tod-sticky-nav;
+}
+
 :root.tod-widget-vt {
   // every widget (HomeWidgetBase), not only the placeholders
   .tod-home-widget {

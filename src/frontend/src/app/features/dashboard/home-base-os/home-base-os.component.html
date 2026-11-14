@@ -58,6 +58,7 @@
         </ng-template>
       </p-selectbutton>
       <p-button
+        class="inline-flex"
         label="Show all images"
         icon="pi pi-list"
         size="small"
@@ -105,7 +106,7 @@
             <!-- a cluster scoped image has no digest, so no report to open -->
             @if (image.imageDigest) {
               <p-button
-                class="text-sm tod-button-compact"
+                class="text-sm tod-button-compact inline-flex"
                 icon="pi pi-external-link"
                 size="small"
                 severity="secondary"
