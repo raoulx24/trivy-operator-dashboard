@@ -8,7 +8,7 @@ export type PopoverContent = string | TemplateRef<{ $implicit: unknown }>;
   imports: [NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="tod-popover tod-content-border-contrast-color tod-tooltip-shadow"
+    <div class="tod-popover tod-text-contrast-color tod-content-border-contrast-color tod-tooltip-shadow"
          [style.width]="width()" [style.max-width]="maxWidth()">
       @let c = content();
       @if (isTemplate(c)) {

@@ -582,9 +582,8 @@
               @case ('array') {
                 @let items = rowData[col.field] ? rowData[col.field].split(',') : [];
 
-                <div [pTooltip]="items.length > 1 ? items.join('\n') : ''"
-                     tooltipPosition="top"
-                     tooltipStyleClass="tod-tooltip-lines text-sm tod-text-muted-color">
+                <div [todPopover]="items.length > 1 ? itemsTip : null"
+                     [todPopoverContext]="items">
                   @if (items.length > 1) {
                     <span class="tod-counter-pill tod-counter-pill-corner">{{ items.length }}</span>
                   }
@@ -598,9 +597,8 @@
                 <div class="flex items-center gap-2 overflow-visible"
                      [class.pr-8]="items.length > 1">
                   @if (items.length > 1) {
-                    <span [pTooltip]="items.length > 1 ? items.join('\n') : ''"
-                          tooltipPosition="top"
-                          tooltipStyleClass="tod-tooltip-lines text-sm tod-text-muted-color"
+                    <span [todPopover]="itemsTip"
+                          [todPopoverContext]="items"
                           class="tod-counter-pill tod-counter-pill-corner">{{ items.length }}</span>
                   }
                   @for (item of items; track item) {
@@ -745,3 +743,10 @@
     </div>
   </p-popover>
 </div>
+
+<!-- one item per line, used by the array / arrayTags cells -->
+<ng-template #itemsTip let-items>
+  @for (item of items; track $index) {
+    <div>{{ item }}</div>
+  }
+</ng-template>

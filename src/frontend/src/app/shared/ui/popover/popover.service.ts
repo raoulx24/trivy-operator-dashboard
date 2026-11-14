@@ -36,6 +36,7 @@ export class PopoverService {
   private overlayRef?: OverlayRef;
   private positionStrategy?: FlexibleConnectedPositionStrategy;
   private popover?: PopoverComponent;
+  private anchoredMode = false;
 
   private readonly offset = 12;
 
@@ -52,29 +53,57 @@ export class PopoverService {
     });
   }
 
-  show(content: PopoverContent, at: PopoverPoint, context?: unknown, options?: PopoverOptions): void {
+  /**
+   * `at` is either a point (the popover follows the mouse via move()) or an element (the popover is anchored above it,
+   * flipping below when there is no room). Nothing is shown for an empty string.
+   */
+  show(content: PopoverContent, at: PopoverPoint | HTMLElement, context?: unknown, options?: PopoverOptions): void {
     // a pinned popover is not replaced by hovering
     if (this.pinnedRef) return;
 
+    // nothing to show: no text and no template
+    if (typeof content === 'string' && content.trim() === '') {
+      this.hide();
+      return;
+    }
+
+    const anchored = at instanceof HTMLElement;
+    // the strategy differs between the two modes, so the overlay is rebuilt when the mode changes
+    if (this.overlayRef && this.anchoredMode !== anchored) {
+      this.overlayRef.dispose();
+      this.overlayRef = undefined;
+    }
+
     if (!this.overlayRef) {
-      this.positionStrategy = this.overlay
-        .position()
-        .flexibleConnectedTo({ x: at.clientX, y: at.clientY })
-        .withFlexibleDimensions(false)
-        .withPush(true)
-        .withPositions([
-          // below-right, then flip when near the viewport edges
-          { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'top', offsetX: this.offset, offsetY: this.offset },
-          { originX: 'start', originY: 'top', overlayX: 'end', overlayY: 'top', offsetX: -this.offset, offsetY: this.offset },
-          { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetX: this.offset, offsetY: -this.offset },
-          { originX: 'start', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetX: -this.offset, offsetY: -this.offset },
-        ]);
+      this.anchoredMode = anchored;
+      this.positionStrategy = anchored
+        ? this.overlay
+            .position()
+            .flexibleConnectedTo(at)
+            .withFlexibleDimensions(false)
+            .withPush(true)
+            .withPositions([
+              { originX: 'center', originY: 'top', overlayX: 'center', overlayY: 'bottom', offsetY: -6 },
+              { originX: 'center', originY: 'bottom', overlayX: 'center', overlayY: 'top', offsetY: 6 },
+            ])
+        : this.overlay
+            .position()
+            .flexibleConnectedTo({ x: at.clientX, y: at.clientY })
+            .withFlexibleDimensions(false)
+            .withPush(true)
+            .withPositions([
+              // below-right, then flip when near the viewport edges
+              { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'top', offsetX: this.offset, offsetY: this.offset },
+              { originX: 'start', originY: 'top', overlayX: 'end', overlayY: 'top', offsetX: -this.offset, offsetY: this.offset },
+              { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetX: this.offset, offsetY: -this.offset },
+              { originX: 'start', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetX: -this.offset, offsetY: -this.offset },
+            ]);
       this.overlayRef = this.overlay.create({ positionStrategy: this.positionStrategy });
       // the popover must never steal mouse events from the element being hovered
       this.overlayRef.overlayElement.style.pointerEvents = 'none';
     }
 
-    this.positionStrategy!.setOrigin({ x: at.clientX, y: at.clientY });
+    this.positionStrategy!.setOrigin(anchored ? at : { x: at.clientX, y: at.clientY });
 
     if (!this.overlayRef.hasAttached()) {
       this.popover = this.overlayRef.attach(new ComponentPortal(PopoverComponent)).instance;
@@ -89,7 +118,8 @@ export class PopoverService {
 
   /** Follow the mouse; no-op when nothing is shown. */
   move(at: PopoverPoint): void {
-    if (!this.overlayRef?.hasAttached()) return;
+    // an anchored popover stays where it is
+    if (!this.overlayRef?.hasAttached() || this.anchoredMode) return;
     this.positionStrategy!.setOrigin({ x: at.clientX, y: at.clientY });
     this.overlayRef.updatePosition();
   }

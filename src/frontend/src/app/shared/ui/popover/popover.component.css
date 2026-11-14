@@ -8,7 +8,6 @@
   max-width: 24rem;
   padding: 6px 8px;
   font-size: 0.85rem;
-  color: var(--tod-text-primary-color);
   background: var(--p-highlight-background);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
