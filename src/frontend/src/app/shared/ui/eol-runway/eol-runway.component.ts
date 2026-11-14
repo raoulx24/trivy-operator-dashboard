@@ -25,7 +25,12 @@ import { EolRunwayBar, EolRunwayItem, EolRunwayState, EolRunwayTick, EolRunwayTi
 
 // all sizes are in px: the drawing is as wide as the host, so the text keeps its size (text-sm)
 const DEFAULT_WIDTH = 480;
-const LABEL_WIDTH = 130;
+// the label (130) and, at its right end, the room for the state icon (EOL, risky)
+const LABEL_WIDTH = 144;
+const ICON_SIZE = 10;
+const ICON_GUTTER = 14;
+// one pattern id per runway (the ids of a page are shared)
+let nextHatchId = 0;
 const COUNT_WIDTH = 64;
 // the room after the axis end for the "goes on" arrow
 const ARROW_WIDTH = 18;
@@ -62,6 +67,9 @@ export class EolRunwayComponent {
   protected readonly rowHeight = ROW_HEIGHT;
   protected readonly top = TOP_HEIGHT;
   protected readonly barsLeft = LABEL_WIDTH;
+  protected readonly iconSize = ICON_SIZE;
+  protected readonly iconX = LABEL_WIDTH - ICON_GUTTER;
+  protected readonly hatchId = `eol-runway-hatch-${nextHatchId++}`;
 
   protected readonly viewWidth = signal(DEFAULT_WIDTH);
 
@@ -113,13 +121,15 @@ export class EolRunwayComponent {
       .sort((a, b) => a.eol - b.eol)
       .map(({ item, eol, eoas }, i) => {
         const state = eolStateOf(eol, eoas, today, this.riskDays());
+        const width = Math.max(MIN_BAR_WIDTH, this.scale(Math.min(eol, end), start, end));
 
         return {
           label: item.label,
           state,
           y: TOP_HEIGHT + i * ROW_HEIGHT,
-          width: Math.max(MIN_BAR_WIDTH, this.scale(Math.min(eol, end), start, end)),
+          width,
           clipped: eol > end,
+          overdueWidth: state === 'eol' ? Math.max(0, this.scale(today, start, end) - width) : 0,
           imagesLabel: `${item.images} img`,
           tip: this.tipOf(item, state, eol, eoas, today),
         };

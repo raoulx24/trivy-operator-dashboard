@@ -30,6 +30,8 @@ namespace TrivyOperator.Dashboard.Api.Home.Serializations;
 [JsonSerializable(typeof(HomeBaseOsImageDto))]
 [JsonSerializable(typeof(HomeBaseOsItemDto))]
 [JsonSerializable(typeof(HomeBaseOsDto))]
+[JsonSerializable(typeof(HomeBaseOsImageRowDto))]
+[JsonSerializable(typeof(HomeBaseOsImagesDto))]
 [JsonSerializable(typeof(HomeFailingCheckDto))]
 [JsonSerializable(typeof(HomeFailingChecksDto))]
 [JsonSerializable(typeof(HomeOldestImageDto))]

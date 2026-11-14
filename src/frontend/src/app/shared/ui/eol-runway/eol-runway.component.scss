@@ -54,6 +54,27 @@
   }
 }
 
+// the overdue part of an end of life row (calm: half transparent, thin lines) and the icon of the states that need a look
+.hatch-line {
+  stroke: var(--tod-eol-state-eol);
+  stroke-width: 2.5;
+}
+
+.overdue {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.state-icon {
+  fill: none;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  &.state-eol { stroke: var(--tod-eol-state-eol); }
+  &.state-risky { stroke: var(--tod-eol-state-risky); }
+}
+
 .goes-on {
   stroke-width: 1;
   stroke-dasharray: 2 2;

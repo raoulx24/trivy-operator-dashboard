@@ -16,6 +16,9 @@ export interface EolRunwayBar {
   width: number;
   // the end is beyond the right edge of the axis
   clipped: boolean;
+  // end of life passed: the length from the end of the bar to today (the time it still runs after its end of life,
+  // as far as the axis shows), 0 otherwise
+  overdueWidth: number;
   imagesLabel: string;
   tip: EolRunwayTip;
 }

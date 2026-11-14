@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 
+import { HomeBaseOsImageRowDto } from '@api/models/home-base-os-image-row-dto';
 import { HomeBaseOsItemDto } from '@api/models/home-base-os-item-dto';
 import { HomeService } from '@api/services/home.service';
 import { EolRunwayComponent } from '@shared/ui/eol-runway/eol-runway.component';
@@ -21,6 +22,8 @@ import {
 import { EolRunwayItem, EolRunwayState } from '@shared/ui/eol-runway/eol-runway.types';
 import { PopoverService } from '@shared/ui/popover/popover.service';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
+import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
+import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 
 import { HomeVtItemDirective } from '../home-motion/home-vt-item.directive';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
@@ -33,6 +36,10 @@ const stateOptions = EOL_STATE_ORDER.map((value) => ({
   value,
   color: EOL_STATE_COLORS[value],
 }));
+
+// a row of "Show all images": the image row of the server, with the state of its OS (as in the runway and the boxes);
+// null for an OS without dates
+type BaseOsImageTableRow = HomeBaseOsImageRowDto & { eolState: EolRunwayState | null };
 
 // Base OS status: the EOL runway (one bar per OS cycle); while expanded, also a box per OS cycle (family + cycle) with
 // its state as a tag, its dates, images and namespaces
@@ -54,6 +61,7 @@ const stateOptions = EOL_STATE_ORDER.map((value) => ({
     FormsModule,
     SelectButtonModule,
     TagModule,
+    TrivyTableDialogComponent,
   ],
   templateUrl: './home-base-os.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -106,6 +114,48 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
         limit: HomeBaseOsComponent.expandedLimit,
       }),
   });
+
+  // "Show all images": the dialog with every running image per namespace; the data is asked only while it is open
+  // (no filters: it is all of them)
+  protected readonly showTheDialogMan = signal(false);
+
+  private readonly allImagesData = rxResource({
+    params: () => (this.showTheDialogMan() ? this.refresh() : undefined),
+    stream: () => this.homeService.getHomeBaseOsImages(),
+  });
+
+  protected readonly imageRows = computed<BaseOsImageTableRow[]>(() => {
+    const today = parseEolDay(this.today());
+
+    return (this.allImagesData.value()?.items ?? []).map((row) => {
+      const eol = parseEolDay(row.osEolFrom);
+
+      return {
+        ...row,
+        eolState: eol === undefined || today === undefined ? null : eolStateOf(eol, parseEolDay(row.osEoasFrom), today),
+      };
+    });
+  });
+
+  protected readonly imageColumns: TrivyTableColumn[] = [
+    { field: 'osName', header: 'OS', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 10%', renderType: 'standard' },
+    { field: 'osVersion', header: 'OS Version', isFilterable: true,isSortable: true, style: 'width: 10%', renderType: 'standard' },
+    { field: 'eolState', header: 'State', isFilterable: true, isSortable: true, tagSet: 'eolState', style: 'width: 10%', renderType: 'tag' },
+    { field: 'osEolFrom', header: 'EOL Date', isFilterable: false, isSortable: true, style: 'width: 10%', renderType: 'date' },
+    { field: 'namespaceName', header: 'Namespace', isFilterable: true, isSortable: true, multiSelectType: 'namespaces', style: 'width: 15%', renderType: 'standard' },
+    { field: 'imageRegistry', header: 'Registry', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 15%', renderType: 'standard' },
+    { field: 'imageName', header: 'Image', isFilterable: true, isSortable: true, style: 'width: 20%', renderType: 'standard' },
+    { field: 'imageTag', header: 'Tag', isFilterable: true, isSortable: true, style: 'width: 10%', renderType: 'standard' },
+    { field: 'openReport', header: 'Report', isFilterable: false, isSortable: false, actionIcon: 'pi pi-external-link', style: 'width: 5rem; text-align: center;', renderType: 'action' },
+  ];
+
+  // the button of the report column: the same report, in a new tab, as the boxes open (a cluster scoped image has no
+  // digest, so no report)
+  protected onImageRowAction(event: { row: BaseOsImageTableRow; col: string }): void {
+    if (event.col === 'openReport' && event.row.imageDigest) {
+      this.openReport(event.row.imageDigest);
+    }
+  }
 
   // set when the lists of this expand were revealed; reset on collapse (so a reload by a filter does not scroll)
   private revealed = false;
@@ -182,7 +232,7 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
     return eolStateOf(eol, parseEolDay(item.eoasFrom), today);
   }
 
-  // the tag of the title: the state, in its color (the text color is in the global styles, tod-state-tag)
+  // the tag of the title: the state, in its color (the inverted text color is in the global styles, tod-state-tag-inverted)
   protected statusTag(item: HomeBaseOsItemDto): { label: string; style: Record<string, string> } | undefined {
     const state = this.stateOf(item);
     return state ? { label: EOL_STATE_LABELS[state], style: { background: EOL_STATE_COLORS[state] } } : undefined;

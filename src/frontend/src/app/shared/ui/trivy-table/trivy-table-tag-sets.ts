@@ -57,7 +57,6 @@ const tagSetBuilders: Record<TagSetName, () => TagOption[]> = {
       value: state,
       label: EOL_STATE_LABELS[state],
       style: { background: EOL_STATE_COLORS[state] },
-      styleClass: 'tod-state-tag',
     })),
 };
 

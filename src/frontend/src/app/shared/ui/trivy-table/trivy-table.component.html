@@ -417,7 +417,9 @@
                   size="small"
                   text
                   class="tod-text-primary-color"
-                  [label]="col.extraFields?.[0] ?? 'Change label!'"
+                  [ariaLabel]="col.extraFields?.[0] ?? col.header"
+                  [icon]="col.actionIcon"
+                  [label]="col.extraFields?.[0] ?? (col.actionIcon ? undefined : 'Change label!')"
                   (onClick)="onRowAction(rowData, col.field)"
                 />
               }

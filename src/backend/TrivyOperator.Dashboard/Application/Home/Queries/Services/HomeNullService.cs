@@ -29,6 +29,9 @@ public class HomeNullService : QueryNullService, IHomeService
     public Task<HomeBaseOsDto> GetBaseOs(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeBaseOsDto(false, Reason, []));
 
+    public Task<HomeBaseOsImagesDto> GetBaseOsImages(CancellationToken ctx = default) =>
+        Task.FromResult(new HomeBaseOsImagesDto(false, Reason, []));
+
     public Task<HomeFixWaitingDto> GetFixWaiting(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeFixWaitingDto(false, Reason, null, EmptyTotals, []));
 

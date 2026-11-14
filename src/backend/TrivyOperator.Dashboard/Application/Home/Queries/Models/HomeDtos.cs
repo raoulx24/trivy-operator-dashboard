@@ -120,6 +120,26 @@ public sealed record HomeBaseOsDto(
     string? UnavailableReason,
     IReadOnlyList<HomeBaseOsItemDto> Items);
 
+// one row per running image and namespace, denormalized (OS family, OS cycle and its end of life date next to the image)
+// OsVersion is the version as Trivy reports it (e.g. 3.19.1); OsEolFrom comes from its end of life cycle (3.19)
+// NamespaceName is null for a cluster scoped image; OsEolFrom is null when unknown; not sorted
+public sealed record HomeBaseOsImageRowDto(
+    string OsName,
+    string OsVersion,
+    DateOnly? OsEolFrom,
+    DateOnly? OsEoasFrom,
+    string? NamespaceName,
+    string ImageRegistry,
+    string ImageName,
+    string ImageTag,
+    // empty for a cluster scoped image
+    string ImageDigest);
+
+public sealed record HomeBaseOsImagesDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    IReadOnlyList<HomeBaseOsImageRowDto> Items);
+
 // failing checks grouped by check id; Resources = distinct reports (one per resource)
 public sealed record HomeFailingCheckDto(
     // ConfigAudit, RbacAssessment, InfraAssessment

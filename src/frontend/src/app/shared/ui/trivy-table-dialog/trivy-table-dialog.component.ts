@@ -1,10 +1,10 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, contentChild, input, model, TemplateRef } from '@angular/core';
+import { Component, computed, contentChild, input, model, output, TemplateRef } from '@angular/core';
 
 import { DialogModule } from 'primeng/dialog';
 
 import { TrivyTableComponent } from '../trivy-table/trivy-table.component';
-import { TrivyTableColumn } from '../trivy-table/trivy-table.types';
+import { MultiHeaderAction, TrivyTableColumn } from '../trivy-table/trivy-table.types';
 
 // Generic dialog showing one trivy table. Optional content around the table is given as templates:
 //   <app-trivy-table-dialog ...>
@@ -28,11 +28,18 @@ export class TrivyTableDialogComponent<TData> {
   readonly width = input<string>('60rem');
   readonly height = input<string>('60vh');
 
+  // commands: buttons in the table header; a click emits the action label (or the special action's event)
+  readonly multiHeaderActions = input<MultiHeaderAction[]>([]);
+  readonly multiHeaderActionRequested = output<string>();
+
   // pass-through to the table: set a unique key to persist sort/filters of this table separately
   readonly stateKey = input<string | undefined>(undefined);
 
   // options of the 'namespaces' / 'namespacesArrays' column filters; when not given, the distinct namespaces of the data
   readonly activeNamespaces = input<string[] | undefined>(undefined);
+
+  // a click on an 'action' column button of the table
+  readonly rowActionRequested = output<{ row: TData; col: string }>();
 
   protected readonly namespaceOptions = computed(() => {
     const given = this.activeNamespaces();

@@ -461,8 +461,22 @@ p-tag.text-lg span.p-tag-label {
   font-size: 0.825rem;
 }
 
-/* the state tag (e.g. EOL, Risky): its background is set per state, the text follows the theme */
-p-tag.tod-state-tag span.p-tag-label {
+/* the icon of a button follows the text size class of the button (the theme sets it from the size of the button) */
+p-button.text-sm .p-button-icon {
+  font-size: 0.875rem;
+}
+
+/* an icon button as tall as a line of text-sm (1.25rem), so it does not make its row taller than the rows around it;
+   the theme gives a small icon button 2rem and padding */
+p-button.tod-button-compact button.p-button {
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+}
+
+/* the state tag (e.g. EOL, Risky) in the title of a trivy box: its background is set per state, the text is inverted
+   (follows the theme, not the contrast color of the other tags) */
+p-tag.tod-state-tag-inverted span.p-tag-label {
   color: var(--tod-text-primary-color);
 }
 

@@ -35,6 +35,8 @@ export interface TrivyTableColumn extends Column {
   // with isFilterable: the filter is a multiselect of the distinct values of the column in the data (exact values, no
   // splitting); ignored when tagSet or multiSelectType is set
   autoFilter?: boolean;
+  // 'action' only: an icon on the button; without a label (extraFields[0]) it is an icon-only button
+  actionIcon?: string;
   // 'imageNameTag' only: the boolean field of the row that adds the EOSL tag
   eoslField?: string;
   // 'imageNameTag' only: adds a KEV/EUVD tag when any vulnerability of the row (its details) is listed there

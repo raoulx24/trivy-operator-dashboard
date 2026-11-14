@@ -1,11 +1,29 @@
 @if (bars().length > 0) {
   <svg class="runway" [attr.width]="viewWidth()" [attr.height]="height()" role="img" aria-label="EOL runway">
+    <defs>
+      <!-- the overdue part of an end of life row: diagonal lines in the end of life color -->
+      <pattern [attr.id]="hatchId" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line class="hatch-line" x1="0" y1="0" x2="0" y2="6" />
+      </pattern>
+    </defs>
     @for (bar of bars(); track bar.label) {
       <g
         class="row"
         [attr.transform]="'translate(0,' + bar.y + ')'"
       >
         <text class="row-label tod-chart-label"x="0" [attr.y]="rowHeight / 2" dominant-baseline="central">{{ bar.label }}</text>
+        @if (bar.state === 'eol') {
+          <g class="state-icon state-eol" [attr.transform]="'translate(' + iconX + ',' + (rowHeight - iconSize) / 2 + ')'">
+            <title>End of life</title>
+            <path d="M5,0.8 L9.6,9.2 H0.4 Z M5,3.9 V6.2 M5,7.7 V7.8" />
+          </g>
+        } @else if (bar.state === 'risky') {
+          <g class="state-icon state-risky" [attr.transform]="'translate(' + iconX + ',' + (rowHeight - iconSize) / 2 + ')'">
+            <title>End of life is near</title>
+            <circle cx="5" cy="5" r="4.4" />
+            <path d="M5,2.6 V5 L6.7,6" />
+          </g>
+        }
         <rect
           class="bar state-{{ bar.state }}"
           [attr.x]="barsLeft"
@@ -14,6 +32,18 @@
           [attr.height]="barHeight"
           rx="3"
         />
+        @if (bar.overdueWidth > 0) {
+          <!-- from the end of the bar to today: it still runs after its end of life -->
+          <rect
+            class="overdue"
+            [attr.x]="barsLeft + bar.width"
+            [attr.y]="(rowHeight - barHeight) / 2"
+            [attr.width]="bar.overdueWidth"
+            [attr.height]="barHeight"
+            [attr.fill]="'url(#' + hatchId + ')'"
+            rx="3"
+          />
+        }
         @if (bar.clipped) {
           <!-- the end is beyond the axis: a thin dashed line and an arrow -->
           <line

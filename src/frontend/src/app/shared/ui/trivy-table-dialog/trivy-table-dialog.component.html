@@ -23,7 +23,10 @@
                          [activeNamespaces]="namespaceOptions()"
                          [dataDtos]="dataDtos()"
                          [stateKey]="stateKey()"
-                         [trivyTableColumns]="columns()" />
+                         [multiHeaderActions]="multiHeaderActions()"
+                         [trivyTableColumns]="columns()"
+                         (multiHeaderActionRequested)="multiHeaderActionRequested.emit($event)"
+                         (rowActionRequested)="rowActionRequested.emit($event)" />
       </div>
     </div>
 

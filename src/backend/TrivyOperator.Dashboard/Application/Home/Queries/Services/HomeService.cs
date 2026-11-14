@@ -347,6 +347,55 @@ public class HomeService(
         return new HomeBaseOsDto(true, null, items);
     }
 
+    public async Task<HomeBaseOsImagesDto> GetBaseOsImages(CancellationToken ctx = default)
+    {
+        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+            : !endOfLifeService.IsEnabled ? NoEndOfLife
+            : null;
+
+        if (reason is not null)
+        {
+            return new HomeBaseOsImagesDto(false, reason, []);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+
+        // same normalization and cycle as GetBaseOs
+        Dictionary<(string Family, string Version), EolInfoDto> eolInfos = (await endOfLifeService.GetAll(EolSubjectKind.Os, ctx))
+            .GroupBy(x => (x.Name, x.Version))
+            .ToDictionary(x => x.Key, x => x.First());
+
+        List<HomeBaseOsImageRowDto> items =
+        [
+            .. table.Images.Values
+                .Where(x => x.Os.Family.IsValid && x.Os.Name.IsValid)
+                .SelectMany(image =>
+                {
+                    (string Family, string Version) key =
+                        (image.Os.Family.Value.Trim().ToLowerInvariant(), image.Os.Name.Value.Trim());
+                    EolReleaseDto? release = eolInfos.GetValueOrDefault(key)?.Release;
+
+                    // a cluster scoped image has no namespace
+                    IEnumerable<string?> namespaces = image.WorkloadsByNamespace.Count == 0
+                        ? [null,]
+                        : image.WorkloadsByNamespace.Keys.Select(x => (string?)x.Value);
+
+                    return namespaces.Select(namespaceName => new HomeBaseOsImageRowDto(
+                        OsName: key.Family,
+                        OsVersion: image.Os.Name.Value,
+                        OsEolFrom: release?.EolFrom,
+                        OsEoasFrom: release?.EoasFrom,
+                        NamespaceName: namespaceName,
+                        ImageRegistry: image.ImageMeta.Registry.Value,
+                        ImageName: image.ImageMeta.Repo.Value,
+                        ImageTag: image.ImageMeta.Tag.Value,
+                        ImageDigest: image.Digest?.Value ?? string.Empty));
+                }),
+        ];
+
+        return new HomeBaseOsImagesDto(true, null, items);
+    }
+
     public async Task<HomeFixWaitingDto> GetFixWaiting(HomeFilter filter, CancellationToken ctx = default)
     {
         if (!sources.HasVulnerabilityReports)

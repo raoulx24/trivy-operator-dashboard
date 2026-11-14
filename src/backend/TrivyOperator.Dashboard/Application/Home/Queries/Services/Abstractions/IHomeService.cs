@@ -23,6 +23,9 @@ public interface IHomeService : IQueryService
     // the queries about the current state do not use the window (Since)
     Task<HomeBaseOsDto> GetBaseOs(HomeFilter filter, CancellationToken ctx = default);
 
+    // not filtered and not limited: every running image per namespace, with its OS
+    Task<HomeBaseOsImagesDto> GetBaseOsImages(CancellationToken ctx = default);
+
     Task<HomeFixWaitingDto> GetFixWaiting(HomeFilter filter, CancellationToken ctx = default);
 
     Task<HomeFailingChecksDto> GetFailingChecks(HomeFilter filter, CancellationToken ctx = default);

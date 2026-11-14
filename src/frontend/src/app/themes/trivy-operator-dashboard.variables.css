@@ -101,8 +101,8 @@
   --tod-radar-stroke-color: var(--p-red-400);
   --tod-radar-vertex-outline-color: var(--p-surface-950);
 
-  --tod-eol-state-supported: var(--p-blue-600);
-  --tod-eol-state-eoas: var(--p-blue-300);
+  --tod-eol-state-supported: var(--p-blue-700);
+  --tod-eol-state-eoas: var(--p-blue-500);
   --tod-eol-state-risky: var(--p-orange-500);
   --tod-eol-state-eol: var(--p-red-500);
 

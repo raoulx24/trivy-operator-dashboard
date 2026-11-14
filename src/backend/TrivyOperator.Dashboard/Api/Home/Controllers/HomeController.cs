@@ -95,7 +95,14 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeService.GetBaseOs(ToFilter(null, null, namespaces, limit), ctx));
 
-    [HttpGet("fix-waiting", Name = "GetHomeFixWaiting")]
+    // every running image per namespace with its OS, no filters
+    [HttpGet("base-os/images", Name = "GetHomeBaseOsImages")]
+    [ProducesResponseType(typeof(HomeBaseOsImagesDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetBaseOsImages(CancellationToken ctx) =>
+        Ok(await homeService.GetBaseOsImages(ctx));
+
+    [HttpGet("fix-waiting",Name = "GetHomeFixWaiting")]
     [ProducesResponseType(typeof(HomeFixWaitingDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
     public async Task<IActionResult> GetFixWaiting(

@@ -57,16 +57,37 @@
           </span>
         </ng-template>
       </p-selectbutton>
+      <p-button
+        label="Show all images"
+        icon="pi pi-list"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [raised]="true"
+        (onClick)="showTheDialogMan.set(true)"
+      />
     </div>
   }
 </app-home-widget-frame>
+
+@if (showTheDialogMan()) {
+  <app-trivy-table-dialog
+    stateKey="Home Base OS Images"
+    title="All images by base OS"
+    width="80rem"
+    [columns]="imageColumns"
+    [dataDtos]="imageRows()"
+    [(isVisible)]="showTheDialogMan"
+    (rowActionRequested)="onImageRowAction($event)"
+  />
+}
 
 <ng-template #box let-item>
   <app-trivy-box [appHomeVtItem]="'base-os-box-' + item.family + '-' + item.version" animate.enter="tod-vt-enter">
     <span boxTitle>
       {{ title(item) }}
       @if (statusTag(item); as tag) {
-        <p-tag [value]="tag.label" [style]="tag.style" [rounded]="true" class="tod-state-tag" styleClass="text-xs" />
+        <p-tag [value]="tag.label" [style]="tag.style" [rounded]="true" class="tod-state-tag-inverted" styleClass="text-xs" />
       }
     </span>
 
@@ -84,6 +105,7 @@
             <!-- a cluster scoped image has no digest, so no report to open -->
             @if (image.imageDigest) {
               <p-button
+                class="text-sm tod-button-compact"
                 icon="pi pi-external-link"
                 size="small"
                 severity="secondary"

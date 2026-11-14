@@ -1230,6 +1230,24 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/base-os/images:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeBaseOsImages
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeBaseOsImagesDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/fix-waiting:
     get:
       tags:
@@ -3748,6 +3766,46 @@ components:
           type: string
         imageRegistry:
           type: string
+      additionalProperties: false
+    HomeBaseOsImageRowDto:
+      type: object
+      properties:
+        osName:
+          type: string
+        osVersion:
+          type: string
+        osEolFrom:
+          type: string
+          format: date
+          nullable: true
+        osEoasFrom:
+          type: string
+          format: date
+          nullable: true
+        namespaceName:
+          type: string
+          nullable: true
+        imageRegistry:
+          type: string
+        imageName:
+          type: string
+        imageTag:
+          type: string
+        imageDigest:
+          type: string
+      additionalProperties: false
+    HomeBaseOsImagesDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeBaseOsImageRowDto'
       additionalProperties: false
     HomeBaseOsItemDto:
       type: object
