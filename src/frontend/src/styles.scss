@@ -957,3 +957,9 @@ ul.p-panelmenu-submenu {
     animation: none;
   }
 }
+
+/* trivy-table that fills its (flex) parent instead of the page-sized default height, e.g. in dialogs */
+.trivy-table.tod-trivy-table-fill {
+  height: 100%;
+  min-height: 0;
+}

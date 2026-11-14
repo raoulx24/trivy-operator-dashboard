@@ -1,0 +1,35 @@
+<p-dialog closable="true"
+          closeOnEscape="true"
+          dismissableMask="true"
+          resizable="true"
+          [breakpoints]="{ '890px': '90vw' }"
+          [contentStyle]="{ height: height() }"
+          [header]="title()"
+          [modal]="true"
+          [style]="{ width: width() }"
+          [visible]="isVisible()"
+          (visibleChange)="isVisible.set($event)" >
+  <div class="flex flex-col h-full">
+    @if (beforeTemplate(); as before) {
+      <div class="flex-none">
+        <ng-container [ngTemplateOutlet]="before" />
+      </div>
+    }
+
+    <!-- the table needs a definite height (scrollHeight="flex"), so it is laid out absolutely inside the flex-1 box -->
+    <div class="relative flex-1 min-h-0">
+      <div class="absolute inset-0">
+        <app-trivy-table extraClasses="tod-trivy-table-fill"
+                         [dataDtos]="dataDtos()"
+                         [stateKey]="stateKey()"
+                         [trivyTableColumns]="columns()" />
+      </div>
+    </div>
+
+    @if (afterTemplate(); as after) {
+      <div class="flex-none">
+        <ng-container [ngTemplateOutlet]="after" />
+      </div>
+    }
+  </div>
+</p-dialog>
