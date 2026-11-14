@@ -214,7 +214,7 @@
                     (onChange)="filter($event.value)"
                   >
                     <ng-template let-option pTemplate="item">
-                      <p-tag [icon]="option.icon" [rounded]="true" [style]="option.style" [value]="option.label" />
+                      <p-tag [icon]="option.icon" [rounded]="true" [style]="option.style" [class]="option.styleClass ?? ''" [value]="option.label" />
                     </ng-template>
                   </p-multiSelect>
                 </ng-template>
@@ -362,7 +362,7 @@
               }
               @case ('tag') {
                 @let tagOption = rowData[col.field] | tagOption: col.tagSet;
-                <p-tag [icon]="tagOption.icon" [rounded]="true" [style]="tagOption.style" [value]="tagOption.label" />
+                <p-tag [icon]="tagOption.icon" [rounded]="true" [style]="tagOption.style" [class]="tagOption.styleClass ?? ''" [value]="tagOption.label" />
               }
               @case ('semaphore') {
                 <p-tag

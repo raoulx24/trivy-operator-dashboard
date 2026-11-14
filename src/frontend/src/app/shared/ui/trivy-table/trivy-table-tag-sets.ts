@@ -1,15 +1,19 @@
 import { SemaphoreStatusUtils } from '../../utils/semaphore-status.utils';
+import { EOL_STATE_COLORS, EOL_STATE_LABELS, EOL_STATE_ORDER } from '../eol-runway/eol-runway.state';
 
-export type TagSetName = 'semaphore' | 'boolean' | 'logLevel' | 'vrHistoryStatus';
+export type TagSetName = 'semaphore' | 'boolean' | 'logLevel' | 'vrHistoryStatus' | 'eolState';
 
 export interface TagOption {
   value: string | boolean | number;
   label: string;
   style: { [key: string]: string };
   icon?: string;
+  // a global style class for the tag (e.g. the text color of the state tags, which a style on the tag cannot set)
+  styleClass?: string;
 }
 
 // colors are theme independent, so every set is built once and shared by all tables
+// (the eolState colors are css variables of the theme, so they follow the theme without a rebuild)
 const semaphoreOption = (value: string, semaphoreName: string = value, label: string = value): TagOption => ({
   value,
   label,
@@ -46,6 +50,15 @@ const tagSetBuilders: Record<TagSetName, () => TagOption[]> = {
     cssVarOption(1, 'Active', 'blue', 'pi pi-verified'),
     cssVarOption(2, 'Stale', 'gray', 'pi pi-times-circle'),
   ],
+  // the states of an OS cycle (the eol runway, the base os widget): values are the EolRunwayState strings (eol, risky,
+  // eoas, supported); labels, colors and order are the ones of the runway; the last option (supported) is the fallback
+  eolState: () =>
+    EOL_STATE_ORDER.map((state) => ({
+      value: state,
+      label: EOL_STATE_LABELS[state],
+      style: { background: EOL_STATE_COLORS[state] },
+      styleClass: 'tod-state-tag',
+    })),
 };
 
 export class TrivyTableTagSets {
