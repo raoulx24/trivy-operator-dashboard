@@ -17,9 +17,9 @@ export class TrivyImageUsageDialogComponent {
   readonly resources = input<TrivyReportResourceInfoDto[]>([]);
 
   protected readonly columns: TrivyTableColumn[] = [
-    { field: 'namespaceName', header: 'Resource Namespace', isFilterable: false, isSortable: true, style: 'width: 25%', renderType: 'standard' },
-    { field: 'name', header: 'Resource Name', isFilterable: false, isSortable: true, style: 'width: 30%', renderType: 'standard' },
-    { field: 'kind', header: 'Kind', isFilterable: false, isSortable: true, style: 'width: 20%', renderType: 'standard' },
-    { field: 'containerName', header: 'Container', isFilterable: false, isSortable: true, style: 'width: 25%', renderType: 'standard' },
+    { field: 'namespaceName', header: 'Resource Namespace', isFilterable: true, isSortable: true, multiSelectType: 'namespaces', style: 'width: 25%', renderType: 'standard' },
+    { field: 'name', header: 'Resource Name', isFilterable: true, isSortable: true, style: 'width: 30%', renderType: 'standard' },
+    { field: 'kind', header: 'Kind', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 20%', renderType: 'standard' },
+    { field: 'containerName', header: 'Container', isFilterable: true, isSortable: true, style: 'width: 25%', renderType: 'standard' },
   ];
 }

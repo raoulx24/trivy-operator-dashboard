@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, contentChild, input, model, TemplateRef } from '@angular/core';
+import { Component, computed, contentChild, input, model, TemplateRef } from '@angular/core';
 
 import { DialogModule } from 'primeng/dialog';
 
@@ -30,6 +30,25 @@ export class TrivyTableDialogComponent<TData> {
 
   // pass-through to the table: set a unique key to persist sort/filters of this table separately
   readonly stateKey = input<string | undefined>(undefined);
+
+  // options of the 'namespaces' / 'namespacesArrays' column filters; when not given, the distinct namespaces of the data
+  readonly activeNamespaces = input<string[] | undefined>(undefined);
+
+  protected readonly namespaceOptions = computed(() => {
+    const given = this.activeNamespaces();
+    if (given) {
+      return given;
+    }
+
+    const fields = this.columns()
+      .filter((c) => c.multiSelectType === 'namespaces' || c.multiSelectType === 'namespacesArrays')
+      .map((c) => c.field);
+    const values = this.dataDtos().flatMap((row) =>
+      fields.flatMap((field) => String((row as Record<string, unknown>)[field] ?? '').split(',')),
+    );
+
+    return [...new Set(values.map((v) => v.trim()).filter(Boolean))].sort();
+  });
 
   protected readonly beforeTemplate = contentChild<TemplateRef<unknown>>('before');
   protected readonly afterTemplate = contentChild<TemplateRef<unknown>>('after');

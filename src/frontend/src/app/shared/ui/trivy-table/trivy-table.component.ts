@@ -221,6 +221,23 @@ export class TrivyTableComponent<TData> implements OnInit {
 
     return options;
   });
+  // distinct values per 'autoFilter' column, for its multiselect filter
+  protected autoFilterOptions = computed(() => {
+    const options = new Map<string, unknown[]>();
+
+    for (const col of this.trivyTableColumns().filter((c) => c.autoFilter)) {
+      const values = this.dataDtos()
+        .map((row) => (row as Record<string, unknown>)[col.field])
+        .filter((v) => v !== null && v !== undefined && v !== '');
+
+      options.set(
+        col.field,
+        [...new Set(values)].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })),
+      );
+    }
+
+    return options;
+  });
   protected fullRowHeight =computed(() => { return this.rowHeight() + 8 });
   protected fullRowHeightPx = computed(() => { return `${this.rowHeight() + 8}px` });
 

@@ -20,6 +20,7 @@
     <div class="relative flex-1 min-h-0">
       <div class="absolute inset-0">
         <app-trivy-table extraClasses="tod-trivy-table-fill"
+                         [activeNamespaces]="namespaceOptions()"
                          [dataDtos]="dataDtos()"
                          [stateKey]="stateKey()"
                          [trivyTableColumns]="columns()" />
