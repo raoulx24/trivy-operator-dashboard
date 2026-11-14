@@ -1,5 +1,5 @@
-import { definePreset } from '@primeng/themes';
-import Nora from '@primeng/themes/nora';
+import { definePreset } from '@primeuix/themes';
+import Nora from '@primeuix/themes/nora';
 
 export const trivyOperatorDashboardPreset = definePreset(Nora, {
   semantic: {
