@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -9,6 +9,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 // the widget class extends HomeWidgetBase and binds canExpand / expanded / expandToggle to it
 // the same rule for every widget:
 // - collapsed: the top row is the heading (left) and the hint (right), the bottom row the status (left) and the button
+// the top row ends with the refresh button (when refreshable), after the hint
 // - expanded: the top row is the heading (left), the status (center, muted) and the hint (right); the bottom row the
 //   controls of the widget (the projected content with the attribute frameActions, left) and the button
 @Component({
@@ -26,5 +27,15 @@ export class HomeWidgetFrameComponent {
   canExpand = input(false);
   expanded = input(false);
 
+  // the widget can refresh itself: a button after the hint (in the top row); the widget reloads only its own data
+  refreshable = input(false);
+
   expandToggle = output<void>();
+  refreshRequested = output<void>();
+
+  // no answer yet (the status line says "Loading..."): the refresh icon spins
+  protected readonly isLoading = computed(() => {
+    const state = this.state();
+    return state.isAvailable === undefined && !state.error && !state.idleText;
+  });
 }

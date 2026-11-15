@@ -5,6 +5,8 @@
   [canExpand]="canExpand()"
   [expanded]="isExpanded()"
   (expandToggle)="toggleExpand()"
+  [refreshable]="true"
+  (refreshRequested)="onRefresh()"
 >
   @if (searchPlaceholder()) {
     <input

@@ -1,0 +1,43 @@
+<div class="relative flex w-full items-center">
+  @if (showLeftButton()) {
+    <button
+      animate.enter="tod-scroll-btn-enter"
+      animate.leave="tod-scroll-btn-leave"
+      class="absolute left-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full tod-box-shadow"
+      (click)="scrollLeft()"
+    >
+      <i class="pi pi-chevron-left text-sm"></i>
+    </button>
+  }
+
+  <!-- the buffers: two items on each side at least, four at most -->
+  <cdk-virtual-scroll-viewport
+    orientation="horizontal"
+    class="flex-1 min-w-0 tod-virtual-row tod-scrollbar-hide"
+    [itemSize]="itemSize()"
+    [maxBufferPx]="itemSize() * 4"
+    [minBufferPx]="itemSize() * 2"
+    [style.height.px]="height()"
+  >
+    <!-- the padding: the gap after the item, and room above and below it (e.g. for a box title on its top border) -->
+    <div
+      *cdkVirtualFor="let item of items(); let i = index; trackBy: trackBy(); templateCacheSize: 0"
+      class="shrink-0 box-border py-2"
+      [style.padding-right.rem]="gap()"
+      [style.width.px]="itemSize()"
+    >
+      <ng-container *ngTemplateOutlet="itemTemplate(); context: { $implicit: item, index: i }" />
+    </div>
+  </cdk-virtual-scroll-viewport>
+
+  @if (showRightButton()) {
+    <button
+      animate.enter="tod-scroll-btn-enter"
+      animate.leave="tod-scroll-btn-leave"
+      class="absolute right-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full tod-box-shadow"
+      (click)="scrollRight()"
+    >
+      <i class="pi pi-chevron-right text-sm"></i>
+    </button>
+  }
+</div>

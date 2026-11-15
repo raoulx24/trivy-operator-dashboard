@@ -94,6 +94,7 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   private readonly scope = computed(() => ({
     namespaces: this.namespaces().length > 0 ? this.namespaces() : undefined,
     refresh: this.refresh(),
+    localRefresh: this.localRefresh(),
   }));
 
   private readonly collapsedData = rxResource({
@@ -120,7 +121,7 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   protected readonly showTheDialogMan = signal(false);
 
   private readonly allImagesData = rxResource({
-    params: () => (this.showTheDialogMan() ? this.refresh() : undefined),
+    params: () => (this.showTheDialogMan() ? this.refresh() + this.localRefresh() : undefined),
     stream: () => this.homeService.getHomeBaseOsImages(),
   });
 

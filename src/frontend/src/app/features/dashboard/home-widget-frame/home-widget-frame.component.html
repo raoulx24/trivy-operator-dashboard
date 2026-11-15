@@ -10,12 +10,25 @@
     @if (hint() || expanded()) {
       <span class="text-xs tod-text-muted-color" [class.flex-1]="expanded()" [class.text-right]="expanded()">{{ hint() }}</span>
     }
+    @if (refreshable()) {
+      <p-button
+        class="tod-button-compact inline-flex self-center"
+        size="small"
+        severity="secondary"
+        [icon]="isLoading() ? 'pi pi-spin pi-refresh' : 'pi pi-refresh'"
+        [text]="true"
+        [rounded]="true"
+        [ariaLabel]="'Refresh ' + heading()"
+        [attr.title]="'Refresh'"
+        (onClick)="refreshRequested.emit()"
+      />
+    }
   </div>
 
   <ng-content />
 
   <!-- bottom row: collapsed: the status at the left; expanded: the controls of the widget (frameActions); the button at the right -->
-  <div class="flex items-center justify-between gap-2">
+  <div class="flex items-center justify-between gap-2 mt-auto">
     @if (expanded()) {
       <div><ng-content select="[frameActions]" /></div>
     } @else {

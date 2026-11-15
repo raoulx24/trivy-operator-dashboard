@@ -1,4 +1,4 @@
-import { DestroyRef, Directive, ElementRef, Injector, afterNextRender, computed, effect, inject } from '@angular/core';
+import { DestroyRef, Directive, ElementRef, Injector, afterNextRender, computed, effect, inject, signal } from '@angular/core';
 
 import { HomeMotionService } from '../home-motion/home-motion.service';
 import { HomeWidgetGroupDirective } from '../home-widget-group/home-widget-group.directive';
@@ -30,6 +30,10 @@ export abstract class HomeWidgetBase {
   protected readonly transitionName = this.id === undefined ? null : `home-widget-${this.id}`;
 
   // a widget can be expanded only inside a group, and only when the group is wide enough (lg and up)
+  // the refresh button of the frame: a counter the widgets that load by themselves put in the params of their resources,
+  // so only this widget reloads
+  protected readonly localRefresh = signal(0);
+
   readonly canExpand = computed(() => !!this.group && this.group.isWide());
   readonly isExpanded = computed(() => this.id !== undefined && this.group?.expandedId() === this.id);
 
@@ -75,6 +79,10 @@ export abstract class HomeWidgetBase {
     } else {
       change();
     }
+  }
+
+  protected refreshWidget(): void {
+    this.localRefresh.update((x) => x + 1);
   }
 
   protected toggleExpand(): void {

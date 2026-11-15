@@ -5,6 +5,8 @@
   [canExpand]="canExpand()"
   [expanded]="isExpanded()"
   (expandToggle)="toggleExpand()"
+  [refreshable]="true"
+  (refreshRequested)="refreshWidget()"
 >
   @if (isLoadingBoxes()) {
     <div class="text-sm tod-text-muted-color">Loading...</div>
@@ -14,14 +16,20 @@
     <!-- row one: the images; each box has the days as groups: the day, then the lines without it -->
     <section class="flex flex-col">
       <div class="text-xs tod-text-muted-color">
-        Images: the pairs (vulnerability id, severity) added to each (count: its occurrences in the image that day)
-        @if (moreImageBoxes() > 0) {
-          (first {{ imageBoxes().length }}, +{{ moreImageBoxes() }} more)
-        }
+        Images: the pairs (vulnerability id, severity) added to each (count: its occurrences in the image that day);
+        {{ imageBoxes().length }} images
       </div>
-      <app-scroller class="block pt-3">
-        @for (box of imageBoxes(); track box.digest) {
-          <app-trivy-box class="w-80 shrink-0 mt-2" [attr.data-box]="'i:' + box.digest">
+      <!-- virtual: only the boxes in view are rendered; every box has the same width (the item width) and height -->
+      <app-virtual-scroller
+        #imagesRow
+        class="pt-3"
+        [items]="imageBoxes()"
+        [itemWidth]="20"
+        [trackBy]="trackImageBox"
+        (heightChange)="imagesRowHeight.set($event)"
+      >
+        <ng-template let-box>
+          <app-trivy-box class="block mt-2">
             <!-- the title of a selected box is a tag; the elements of a title are separate, so the box puts a gap between them -->
             @if (selection()?.digest === box.digest) {
               <p-tag boxTitle class="text-xs" severity="secondary" [rounded]="true" [value]="box.name" />
@@ -29,7 +37,8 @@
               <span boxTitle>{{ box.name }}</span>
             }
 
-            <div class="max-h-64 overflow-auto">
+            <!-- a size, not a maximum: every box has the same dimensions, empty or with a long list -->
+            <div class="h-64 overflow-auto">
               <table class="w-full text-sm">
                 <thead>
                   <tr class="text-left text-xs tod-text-muted-color">
@@ -89,25 +98,27 @@
               </table>
             </div>
 
-            @if (box.namespaceNames.length > 0) {
-              <div boxFooter><ng-container *ngTemplateOutlet="footer; context: { $implicit: box }" /></div>
-            }
+            <div boxFooter><ng-container *ngTemplateOutlet="footer; context: { $implicit: box }" /></div>
           </app-trivy-box>
-        }
-      </app-scroller>
+        </ng-template>
+      </app-virtual-scroller>
     </section>
 
     <!-- row two: the pairs, with the same day groups -->
     <section class="flex flex-col">
       <div class="text-xs tod-text-muted-color">
-        Pairs (vulnerability id, severity): the images each was added to
-        @if (morePairBoxes() > 0) {
-          (first {{ pairBoxes().length }}, +{{ morePairBoxes() }} more)
-        }
+        Pairs (vulnerability id, severity): the images each was added to; {{ pairBoxes().length }} pairs
       </div>
-      <app-scroller class="block pt-3">
-        @for (box of pairBoxes(); track box.key) {
-          <app-trivy-box class="w-80 shrink-0 mt-2" [attr.data-box]="'p:' + box.key">
+      <app-virtual-scroller
+        #pairsRow
+        class="pt-3"
+        [items]="pairBoxes()"
+        [itemWidth]="20"
+        [trackBy]="trackPairBox"
+        (heightChange)="pairsRowHeight.set($event)"
+      >
+        <ng-template let-box>
+          <app-trivy-box class="block mt-2">
             @if (selection()?.pairKey === box.key) {
               <p-tag boxTitle class="text-xs" severity="secondary" [rounded]="true" [value]="box.vulnerabilityId" />
             } @else {
@@ -135,7 +146,8 @@
               />
             }
 
-            <div class="max-h-64 overflow-auto">
+            <!-- a size, not a maximum: every box has the same dimensions, empty or with a long list -->
+            <div class="h-64 overflow-auto">
               <table class="w-full text-sm">
                 <thead>
                   <tr class="text-left text-xs tod-text-muted-color">
@@ -168,18 +180,19 @@
               </table>
             </div>
 
-            @if (box.namespaceNames.length > 0) {
-              <div boxFooter><ng-container *ngTemplateOutlet="footer; context: { $implicit: box }" /></div>
-            }
+            <div boxFooter><ng-container *ngTemplateOutlet="footer; context: { $implicit: box }" /></div>
           </app-trivy-box>
-        }
-      </app-scroller>
+        </ng-template>
+      </app-virtual-scroller>
     </section>
   }
 
-  <!-- last: the overview of the days, and (while expanded) the summary of the selection -->
+  <!-- last: the overview of the days, in a box like the runway of the Base OS widget, and (while expanded) the box of the
+       selection, which takes the rest of the width
+       the gap above the band is the one between the boxes (1rem), and both boxes start there: the title of the Selected box
+       (it sticks out of its top border) hangs into that gap -->
   <div class="flex items-stretch gap-4">
-    <div class="flex-1 min-w-0">
+    <app-trivy-box [class]="showBoxes() ? 'max-w-[55%]' : 'flex-1'">
       <app-activity-heatmap
         [data]="chart().data"
         [from]="chart().from"
@@ -190,100 +203,128 @@
         emphasis1Label="you opened the home page"
         emphasis2Label="known exploited added"
       />
-    </div>
+    </app-trivy-box>
 
     @if (showBoxes()) {
-      <app-trivy-box class="w-[32rem] shrink-0 mt-2">
-        <span boxTitle>Selection</span>
+      <app-trivy-box class="flex-1 min-w-[24rem]">
+        <span boxTitle>Selected</span>
 
-        @if (selected(); as s) {
-          @let image = s.image;
-          @let pair = s.pair;
-          <!-- one grid, so the labels of both sections have the same width; an empty line between the sections; a side
-               that is not selected (a pick in a select chooses one side) shows dashes -->
-          <div class="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0.5 text-sm">
-            <span class="text-xs tod-text-muted-color">Image</span>
-            <span class="flex items-center justify-between gap-1">
-              <span class="break-all">{{ image?.repository ?? '—' }}</span>
-              @if (image) {
-                <p-button
-                  class="text-sm tod-button-compact inline-flex"
-                  icon="pi pi-external-link"
-                  size="small"
-                  severity="secondary"
-                  [text]="true"
-                  [rounded]="true"
-                  [ariaLabel]="'Open the vulnerability reports history of ' + image.name"
-                  (onClick)="openHistory(image.digest)"
-                />
-              }
-            </span>
-            <span class="text-xs tod-text-muted-color">Tag</span>
-            <span class="break-all">{{ image?.tag ?? '—' }}</span>
-            <span class="text-xs tod-text-muted-color">Registry</span>
-            <span class="break-all">{{ image?.registry ?? '—' }}</span>
-
-            <span class="col-span-2 h-3"></span>
-
-            <span class="text-xs tod-text-muted-color">Vuln.</span>
-            <span class="flex items-center justify-between gap-1">
-              <span class="break-all">{{ pair?.vulnerabilityId ?? '—' }}</span>
-              @if (pair && hasCveDetails(pair.vulnerabilityId)) {
-                <p-button
-                  class="text-sm tod-button-compact inline-flex"
-                  icon="pi pi-info-circle"
-                  size="small"
-                  severity="secondary"
-                  [text]="true"
-                  [rounded]="true"
-                  [ariaLabel]="'Open the details of ' + pair.vulnerabilityId"
-                  (onClick)="openCveDetails(pair.vulnerabilityId)"
-                />
-              }
-            </span>
-            <span class="text-xs tod-text-muted-color">Severity</span>
-            <span class="flex items-center justify-between gap-1">
-              @if (pair) {
-                <p-tag
-                  class="text-xs"
-                  [rounded]="true"
-                  [style]="pair.severityId | severityCssStyleById: 1"
-                  [value]="severityLabel(pair.severityId)"
-                />
-                @if (pair.isKnownExploited) {
-                  <p-tag
-                    class="text-xs cursor-pointer"
-                    role="button"
-                    tabindex="0"
+        @let image = selected()?.image;
+        @let pair = selected()?.pair;
+        <!-- always the same fields, so the box never changes its size: a side that is not selected shows n/a (a pick in a
+             select chooses one side), with no icons and no severity; each field is its muted name with the value under it;
+             two columns, the second one wider, as it has the title -->
+        <div class="grid grid-cols-[minmax(14rem,2fr)_minmax(0,3fr)] items-start gap-x-8 text-sm">
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">Image</span>
+              <span class="flex items-center justify-between gap-1">
+                @if (image) {
+                  <span class="break-all">{{ image.name }}</span>
+                  <p-button
+                    class="text-sm tod-button-compact inline-flex"
+                    icon="pi pi-external-link"
+                    size="small"
                     severity="secondary"
+                    [text]="true"
                     [rounded]="true"
-                    value="EXPLOIT"
-                    (click)="openExploited(pair.vulnerabilityId)"
-                    (keydown.enter)="openExploited(pair.vulnerabilityId)"
+                    [ariaLabel]="'Open the vulnerability reports history of ' + image.name"
+                    (onClick)="openHistory(image.digest)"
                   />
+                } @else {
+                  <span class="tod-text-muted-color">n/a</span>
                 }
-              } @else {
-                <span>—</span>
-              }
-            </span>
-            <span class="text-xs tod-text-muted-color">Title</span>
-            <span class="line-clamp-2 break-words">{{ pair ? (pair.title ?? 'n/a') : '—' }}</span>
+              </span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">Registry</span>
+              <span class="break-all" [class.tod-text-muted-color]="!image">{{ image?.registry ?? 'n/a' }}</span>
+            </div>
           </div>
-        } @else {
-          <div class="text-sm tod-text-muted-color">
-            Click a line of an image or of a pair (the other box is selected too), or pick an image or a vulnerability below: the details are here.
+
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">Vulnerability</span>
+              <span class="flex items-center justify-between gap-2">
+                @if (pair) {
+                  <span class="inline-flex flex-wrap items-center gap-1">
+                    <span class="break-all">{{ pair.vulnerabilityId }}</span>
+                    <p-tag
+                      class="text-xs"
+                      [rounded]="true"
+                      [style]="pair.severityId | severityCssStyleById: 1"
+                      [value]="severityLabel(pair.severityId)"
+                    />
+                  </span>
+                  <span class="inline-flex items-center gap-1">
+                    @if (pair.isKnownExploited) {
+                      <p-tag
+                        class="text-xs cursor-pointer"
+                        role="button"
+                        tabindex="0"
+                        severity="secondary"
+                        [rounded]="true"
+                        value="EXPLOIT"
+                        (click)="openExploited(pair.vulnerabilityId)"
+                        (keydown.enter)="openExploited(pair.vulnerabilityId)"
+                      />
+                    }
+                    @if (hasCveDetails(pair.vulnerabilityId)) {
+                      <p-button
+                        class="text-sm tod-button-compact inline-flex"
+                        icon="pi pi-info-circle"
+                        size="small"
+                        severity="secondary"
+                        [text]="true"
+                        [rounded]="true"
+                        [ariaLabel]="'Open the details of ' + pair.vulnerabilityId"
+                        (onClick)="openCveDetails(pair.vulnerabilityId)"
+                      />
+                    }
+                  </span>
+                } @else {
+                  <span class="tod-text-muted-color">n/a</span>
+                }
+              </span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">Title</span>
+              <!-- four rows are reserved, so a long title does not move the box and a short one does not shrink it -->
+              <span class="min-h-20 line-clamp-4 break-words" [class.tod-text-muted-color]="!pair">{{ pair ? (pair.title ?? 'n/a') : 'n/a' }}</span>
+            </div>
           </div>
-        }
+        </div>
       </app-trivy-box>
     }
   </div>
+
   <!-- the controls of the expanded widget, in the bottom row of the frame: the images and the pairs to pick from -->
   @if (showBoxes()) {
     <div frameActions class="flex items-center gap-2">
       <p-select
         size="small"
+        class="w-56"
+        placeholder="Filter by date"
+        optionLabel="label"
+        optionValue="value"
+        appendTo="body"
+        [filter]="true"
+        [showClear]="true"
+        [options]="dayOptions()"
+        [ngModel]="selection()?.day ?? null"
+        (onChange)="onDayPicked($event.value)"
+      >
+        <ng-template #item let-option>
+          <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
+        </ng-template>
+        <ng-template #selectedItem let-option>
+          <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
+        </ng-template>
+      </p-select>
+      <p-select
+        size="small"
         class="w-72"
-        placeholder="Image"
+        placeholder="Select an image"
         optionLabel="label"
         optionValue="value"
         filterBy="label,digest"
@@ -304,7 +345,7 @@
       <p-select
         size="small"
         class="w-72"
-        placeholder="Vulnerability"
+        placeholder="Select a vulnerability"
         optionLabel="label"
         optionValue="value"
         filterBy="label"
@@ -322,14 +363,38 @@
           <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
         </ng-template>
       </p-select>
+      <p-button
+        class="inline-flex"
+        label="Show all"
+        icon="pi pi-list"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [raised]="true"
+        (onClick)="showAllDialog.set(true)"
+      />
     </div>
   }
 </app-home-widget-frame>
 
-<!-- the first namespaces, then a pill with how many more; its popover lists the ones that were sent -->
+@if (showAllDialog()) {
+  <app-trivy-table-dialog
+    stateKey="Home History Drift All"
+    title="History drift: all rows"
+    width="90rem"
+    [columns]="tableColumns"
+    [dataDtos]="tableRows()"
+    [(isVisible)]="showAllDialog"
+    (rowActionRequested)="onTableRowAction($event)"
+  />
+}
+
+<!-- the first namespaces, then a pill with how many more; its popover lists the ones that were sent
+     one line (cut with an ellipsis): the boxes of a row must have the same height (the virtual row is as tall as its
+     tallest rendered box) -->
 <ng-template #footer let-box>
-  <div class="flex flex-wrap items-center text-sm">
-    <span class="break-words">{{ shownNamespaces(box).join(', ') }}</span>
+  <div class="flex items-center text-sm">
+    <span class="truncate min-w-0" [class.tod-text-muted-color]="box.namespaceNames.length === 0">{{ box.namespaceNames.length === 0 ? 'n/a' : shownNamespaces(box).join(', ') }}</span>
     @if (box.namespaces > shownNamespaces(box).length) {
       <span
         class="tod-counter-pill"
@@ -359,6 +424,9 @@
   <div class="flex w-full items-center justify-between gap-2">
     <span class="inline-flex items-center gap-1 break-all">
       {{ option.label }}
+      @if (option.note) {
+        <span class="text-xs tod-text-muted-color">{{ option.note }}</span>
+      }
       @if (option.severityId !== undefined) {
         <p-tag
           class="text-xs"

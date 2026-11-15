@@ -25,8 +25,19 @@ export class HomeWidgetPlaceholderComponent extends HomeWidgetBase {
   searchPlaceholder = input<string>('');
 
   search = output<string>();
+  // the refresh button: the dashboard reloads the data of this widget (a search widget runs its search again)
+  refresh = output<void>();
 
   protected readonly query = signal('');
+
+  protected onRefresh(): void {
+    if (this.searchPlaceholder()) {
+      // nothing to run again before the first search
+      if (this.query().trim()) this.onSearch();
+    } else {
+      this.refresh.emit();
+    }
+  }
 
   protected onSearch(): void {
     this.search.emit(this.query().trim());

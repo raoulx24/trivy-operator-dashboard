@@ -37,6 +37,7 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
     severities: this.severities(),
     namespaces: this.namespaces().length > 0 ? this.namespaces() : undefined,
     refresh: this.refresh(),
+    localRefresh: this.localRefresh(),
   }));
 
   private readonly collapsedData = rxResource({

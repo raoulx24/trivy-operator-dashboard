@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,10 +14,12 @@ import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.serv
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
 import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
-import { ScrollerComponent } from '@shared/ui/scroller/scroller.component';
 import { eolRelative, parseEolDay } from '@shared/ui/eol-runway/eol-runway.state';
 import { PopoverService } from '@shared/ui/popover/popover.service';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
+import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
+import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
+import { VirtualScrollerComponent } from '@shared/ui/virtual-scroller/virtual-scroller.component';
 import { VulnerabilityTagDialogsService } from '@shared/ui/vulnerability-tag-dialogs/vulnerability-tag-dialogs.service';
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
@@ -87,20 +89,40 @@ interface PairBoxRow {
 
 // the selection: a click on a line of a box selects its image and its pair (both boxes are marked, the other one is
 // scrolled to); a pick in a select chooses one side only; the summary shows what is selected
+// day is not a selection of a box but a filter: the boxes show only the rows of that UTC day
 interface DriftSelection {
   digest: string | null;
   pairKey: string | null;
+  day: string | null;
 }
 
-// an entry of the selects: an image (value = digest) or a pair (value = pair key), with its exploited flag
+// an entry of the selects: a day, an image (value = digest) or a pair (value = pair key), with its exploited flag
 interface DriftOption {
   value: string;
   label: string;
+  // a day: how long ago
+  note?: string;
   // the digest of an image, to search by it
   digest?: string;
   // the severity of a pair
   severityId?: number;
   isKnownExploited: boolean;
+}
+
+// a row of "Show all": an item of the server (a history entry and a pair), with what the table shows of its pair
+interface DriftTableRow {
+  addedAt: string;
+  vulnerabilityId: string;
+  severityId: number;
+  title: string | null | undefined;
+  isKnownExploited: boolean;
+  count: number;
+  registry: string;
+  // repository:tag
+  imageName: string;
+  imageDigest: string;
+  // comma separated, as the 'array' column (the count pill and its popover) and its filter split them
+  namespaceNames: string;
 }
 
 // History drift: the heatmap of the pairs added per UTC day; while expanded, two rows of boxes that pivot the same
@@ -122,7 +144,8 @@ interface DriftOption {
     FormsModule,
     SelectModule,
     TagModule,
-    ScrollerComponent,
+    VirtualScrollerComponent,
+    TrivyTableDialogComponent,
     SeverityCssStyleByIdPipe,
     VulnerabilityCountPipe,
   ],
@@ -132,8 +155,6 @@ interface DriftOption {
   host: { class: 'block min-w-0' },
 })
 export class HomeHistoryDriftComponent extends HomeWidgetBase {
-  // the boxes of a row; the others are counted
-  private static readonly maxBoxes = 50;
   // the namespaces named in the footer of a box; the pill counts the others
   private static readonly shownNamespaces = 2;
 
@@ -142,8 +163,11 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
   private readonly mainAppInitService = inject(MainAppInitService);
   private readonly cveEnrichmentState = inject(CveEnrichmentStateService);
   private readonly vulnerabilityTagDialogsService = inject(VulnerabilityTagDialogsService);
-  private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly popover = inject(PopoverService);
+
+  // the two rows of boxes (virtual: only the boxes in view are rendered, so a box is scrolled to by its index)
+  private readonly imagesRow = viewChild<VirtualScrollerComponent<ImageBox>>('imagesRow');
+  private readonly pairsRow = viewChild<VirtualScrollerComponent<PairBox>>('pairsRow');
 
   hint = input<string>('');
   namespaces = input.required<string[]>();
@@ -160,6 +184,7 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
     severities: this.severities(),
     namespaces: this.namespaces().length > 0 ? this.namespaces() : undefined,
     refresh: this.refresh(),
+    localRefresh: this.localRefresh(),
   }));
 
   private readonly daysData = rxResource({
@@ -218,6 +243,15 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
     () => this.isExpanded() && this.daysData.value()?.isAvailable === true && !this.rowsData.hasValue(),
   );
 
+  // the day filter: the boxes are made of the items of that UTC day only (none selected: all of them)
+  private readonly selectedDay = computed(() => this.selection()?.day ?? null);
+  private readonly dayItems = computed(() => {
+    const items = this.rowsData.value()?.items ?? [];
+    const day = this.selectedDay();
+
+    return day ? items.filter((x) => x.addedAt.substring(0, 10) === day) : items;
+  });
+
   // the pivot: the same rows, once per image and once per pair
   private readonly boxes = computed(() => {
     const dto = this.rowsData.value();
@@ -234,7 +268,7 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
     const imageRows = new Map<string, ImageBoxRow>();
     const pairRows = new Set<string>();
 
-    for (const item of dto?.items ?? []) {
+    for (const item of this.dayItems()) {
       const key = this.pairKey(item.vulnerabilityId, item.severityId);
       const group = groups.get(key);
       const day = item.addedAt.substring(0, 10);
@@ -327,10 +361,59 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
     return { imageBoxes, pairBoxes };
   });
 
-  protected readonly imageBoxes = computed(() => this.boxes().imageBoxes.slice(0, HomeHistoryDriftComponent.maxBoxes));
-  protected readonly moreImageBoxes = computed(() => Math.max(0, this.boxes().imageBoxes.length - HomeHistoryDriftComponent.maxBoxes));
-  protected readonly pairBoxes = computed(() => this.boxes().pairBoxes.slice(0, HomeHistoryDriftComponent.maxBoxes));
-  protected readonly morePairBoxes = computed(() => Math.max(0, this.boxes().pairBoxes.length - HomeHistoryDriftComponent.maxBoxes));
+  protected readonly imageBoxes = computed(() => this.boxes().imageBoxes);
+  protected readonly pairBoxes = computed(() => this.boxes().pairBoxes);
+
+  protected readonly trackImageBox = (_: number, box: ImageBox) => box.digest;
+  protected readonly trackPairBox = (_: number, box: PairBox) => box.key;
+
+  // "Show all": the dialog with the denormalized rows, as the server sent them (they are not asked again)
+  protected readonly showAllDialog = signal(false);
+
+  protected readonly tableRows = computed<DriftTableRow[]>(() => {
+    const dto = this.rowsData.value();
+    const groups = new Map<string, HomeHistoryDriftGroupDto>();
+    for (const group of dto?.groups ?? []) {
+      groups.set(this.pairKey(group.vulnerabilityId, group.severityId), group);
+    }
+
+    return (dto?.items ?? []).map((item) => {
+      const group = groups.get(this.pairKey(item.vulnerabilityId, item.severityId));
+
+      return {
+        addedAt: item.addedAt,
+        vulnerabilityId: item.vulnerabilityId,
+        severityId: item.severityId,
+        title: group?.title,
+        isKnownExploited: group?.isKnownExploited ?? false,
+        count: item.count,
+        registry: item.registry,
+        imageName: `${item.repository}:${item.tag}`,
+        imageDigest: item.imageDigest,
+        namespaceNames: item.namespaceNames.join(','),
+      };
+    });
+  });
+
+  protected readonly tableColumns: TrivyTableColumn[] = [
+    { field: 'addedAt', header: 'Added', isFilterable: false, isSortable: true, style: 'width: 9rem', renderType: 'dateTime' },
+    { field: 'vulnerabilityId', header: 'Vulnerability', isFilterable: true, isSortable: true, style: 'width: 13rem', renderType: 'vulnerabilityId' },
+    { field: 'severityId', header: 'Sev', isFilterable: true, isSortable: true, multiSelectType: 'severities', style: 'width: 7rem', renderType: 'severityBadge' },
+    { field: 'isKnownExploited', header: 'Exploit', isFilterable: true, isSortable: true, tagSet: 'boolean', style: 'width: 7rem', renderType: 'tag' },
+    { field: 'count', header: 'Count', isFilterable: false, isSortable: true, style: 'width: 5rem', renderType: 'standard' },
+    { field: 'title', header: 'Title', isFilterable: true, isSortable: true, style: 'width: 20%', renderType: 'standard' },
+    { field: 'imageName', header: 'Image', isFilterable: true, isSortable: true, style: 'width: 18%', renderType: 'standard' },
+    { field: 'registry', header: 'Registry', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 10%', renderType: 'standard' },
+    { field: 'namespaceNames', header: 'Namespaces', isFilterable: true, isSortable: true, multiSelectType: 'namespacesArrays', style: 'width: 12%', renderType: 'array' },
+    { field: 'openHistory', header: 'History', isFilterable: false, isSortable: false, actionIcon: 'pi pi-external-link', style: 'width: 5rem; text-align: center;', renderType: 'action' },
+  ];
+
+  // the button of the history column: the history of the image, as the one of the Selected box
+  protected onTableRowAction(event: { row: DriftTableRow; col: string }): void {
+    if (event.col === 'openHistory') {
+      this.openHistory(event.row.imageDigest);
+    }
+  }
 
   protected readonly selection = signal<DriftSelection | null>(null);
 
@@ -346,30 +429,87 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
     return image || pair ? { image, pair } : undefined;
   });
 
-  // the selects: every image, and every pair (id + severity); exploited when it has at least one pair that is
-  protected readonly imageOptions = computed<DriftOption[]>(() =>
-    this.boxes()
-      .imageBoxes.map((box) => ({
-        value: box.digest,
-        label: box.name,
-        digest: box.digest,
-        isKnownExploited: box.rows.some((row) => row.isKnownExploited),
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label) || a.value.localeCompare(b.value)),
+  // the selects: the days, the images and the pairs (id + severity); an image or a pair is exploited when it has at least
+  // one entry of a pair that is
+  // all three depend on each other: each offers what is consistent with the other two (nothing selected: everything), so
+  // a day offers the days of the image and the pair selected, an image the images of the day and the pair, and so on
+  private readonly entries = computed(() => {
+    const dto = this.rowsData.value();
+    const exploited = new Map<string, boolean>();
+    for (const group of dto?.groups ?? []) {
+      exploited.set(this.pairKey(group.vulnerabilityId, group.severityId), group.isKnownExploited);
+    }
+
+    return (dto?.items ?? []).map((item) => {
+      const pairKey = this.pairKey(item.vulnerabilityId, item.severityId);
+
+      return {
+        day: item.addedAt.substring(0, 10),
+        digest: item.imageDigest,
+        name: `${item.repository}:${item.tag}`,
+        pairKey,
+        vulnerabilityId: item.vulnerabilityId,
+        severityId: item.severityId,
+        isKnownExploited: exploited.get(pairKey) ?? false,
+      };
+    });
+  });
+
+  // the entries that agree with the selection of the other two selects
+  private entriesFor(select: 'day' | 'digest' | 'pairKey') {
+    const selection = this.selection();
+
+    return this.entries().filter(
+      (x) =>
+        (select === 'day' || !selection?.day || x.day === selection.day) &&
+        (select === 'digest' || !selection?.digest || x.digest === selection.digest) &&
+        (select === 'pairKey' || !selection?.pairKey || x.pairKey === selection.pairKey),
+    );
+  }
+
+  protected readonly dayOptions = computed<DriftOption[]>(() =>
+    [...new Set(this.entriesFor('day').map((x) => x.day))]
+      .sort()
+      .reverse()
+      .map((day) => ({ value: day, label: day, note: this.age(day), isKnownExploited: false })),
   );
-  protected readonly pairOptions = computed<DriftOption[]>(() =>
-    this.boxes()
-      .pairBoxes.map((box) => ({
-        value: box.key,
-        label: box.vulnerabilityId,
-        severityId: box.severityId,
-        isKnownExploited: box.isKnownExploited,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label) || (a.severityId ?? 0) - (b.severityId ?? 0)),
-  );
+
+  protected readonly imageOptions = computed<DriftOption[]>(() => {
+    const options = new Map<string, DriftOption>();
+    for (const x of this.entriesFor('digest')) {
+      const option = options.get(x.digest);
+      if (option) {
+        option.isKnownExploited ||= x.isKnownExploited;
+      } else {
+        options.set(x.digest, { value: x.digest, label: x.name, digest: x.digest, isKnownExploited: x.isKnownExploited });
+      }
+    }
+
+    return [...options.values()].sort((a, b) => a.label.localeCompare(b.label) || a.value.localeCompare(b.value));
+  });
+
+  protected readonly pairOptions = computed<DriftOption[]>(() => {
+    const options = new Map<string, DriftOption>();
+    for (const x of this.entriesFor('pairKey')) {
+      if (!options.has(x.pairKey)) {
+        options.set(x.pairKey, {
+          value: x.pairKey,
+          label: x.vulnerabilityId,
+          severityId: x.severityId,
+          isKnownExploited: x.isKnownExploited,
+        });
+      }
+    }
+
+    return [...options.values()].sort((a, b) => a.label.localeCompare(b.label) || (a.severityId ?? 0) - (b.severityId ?? 0));
+  });
 
   // set when the rows of this expand were revealed; reset on collapse (so a reload by a filter does not scroll)
   private revealed = false;
+  // the rows have no height until their boxes are rendered and measured (virtual rows): the widget is revealed when
+  // both have one (or at once when there are no boxes); 0 while the rows are not shown
+  protected readonly imagesRowHeight = signal(0);
+  protected readonly pairsRowHeight = signal(0);
 
   constructor() {
     super();
@@ -384,11 +524,20 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
       }
     });
 
-    // the rows arrived: after they are rendered the page may scroll to show the whole widget
+    // the rows are shown (rendered, with their height): the page may scroll to show the whole widget
     effect(() => {
       if (!this.isExpanded()) {
         this.revealed = false;
-      } else if (this.rowsData.hasValue() && !this.revealed) {
+      }
+      if (!this.showBoxes()) {
+        // the rows (and their heights) are made again when they are shown again
+        this.imagesRowHeight.set(0);
+        this.pairsRowHeight.set(0);
+        return;
+      }
+
+      const isShown = this.boxes().imageBoxes.length === 0 || (this.imagesRowHeight() > 0 && this.pairsRowHeight() > 0);
+      if (isShown && !this.revealed) {
         this.revealed = true;
         this.revealAfterRender();
       }
@@ -398,23 +547,41 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
   // a click on a line of an image box: selects the image and the pair, and goes to the box of the pair; the same line
   // again clears it
   protected selectFromImage(image: ImageBox, row: ImageBoxRow): void {
-    this.select({ digest: image.digest, pairKey: row.pairKey }, 'p:' + row.pairKey);
+    if (this.select({ digest: image.digest, pairKey: row.pairKey, day: this.selection()?.day ?? null })) {
+      this.scrollToPairBox(row.pairKey);
+    }
   }
 
   // a click on a line of a pair box: selects the pair and the image, and goes to the box of the image
   protected selectFromPair(pair: PairBox, row: PairBoxRow): void {
-    this.select({ digest: row.digest, pairKey: pair.key }, 'i:' + row.digest);
+    if (this.select({ digest: row.digest, pairKey: pair.key, day: this.selection()?.day ?? null })) {
+      this.scrollToImageBox(row.digest);
+    }
   }
 
-  // a pick in a select: that side only, and its box is scrolled to (a box beyond the shown ones is not there)
+  // a pick (or a clear) in a select changes its side only: the other side stays, and the options of the selects follow
+  // (an image picked narrows the pairs offered, cleared it widens them); the box of the pick is scrolled to
   protected onImagePicked(digest: string | null): void {
-    this.selection.set(digest ? { digest, pairKey: null } : null);
-    if (digest) this.scrollToBox('i:' + digest);
+    const current = this.selection();
+    this.selectSide({ digest, pairKey: current?.pairKey ?? null, day: current?.day ?? null });
+    if (digest) this.scrollToImageBox(digest);
   }
 
   protected onPairPicked(pairKey: string | null): void {
-    this.selection.set(pairKey ? { digest: null, pairKey } : null);
-    if (pairKey) this.scrollToBox('p:' + pairKey);
+    const current = this.selection();
+    this.selectSide({ digest: current?.digest ?? null, pairKey, day: current?.day ?? null });
+    if (pairKey) this.scrollToPairBox(pairKey);
+  }
+
+  // the day filters the boxes (and the other two selects); the selected image and pair stay, as the options of the
+  // selects keep them consistent with the day
+  protected onDayPicked(day: string | null): void {
+    const current = this.selection();
+    this.selectSide({ digest: current?.digest ?? null, pairKey: current?.pairKey ?? null, day });
+  }
+
+  private selectSide(selection: DriftSelection): void {
+    this.selection.set(selection.digest || selection.pairKey || selection.day ? selection : null);
   }
 
   protected isImageRowSelected(image: ImageBox, row: ImageBoxRow): boolean {
@@ -478,23 +645,28 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
     window.open(url, '_blank');
   }
 
-  private select(selection: DriftSelection, boxToShow: string): void {
+  // true when the line is selected now, false when it was the selected one (then it is cleared)
+  private select(selection: DriftSelection): boolean {
     const current = this.selection();
     if (current?.digest === selection.digest && current.pairKey === selection.pairKey) {
-      this.selection.set(null);
-      return;
+      // the same line again: image and pair are cleared, the day filter stays
+      this.selectSide({ digest: null, pairKey: null, day: current.day });
+      return false;
     }
 
     this.selection.set(selection);
-    this.scrollToBox(boxToShow);
+    return true;
   }
 
-  // the box scrolls into view inside its row (centered), and the page the least needed (as a widget that expands);
-  // a box beyond the shown ones is not there
-  private scrollToBox(id: string): void {
-    this.hostElement.nativeElement
-      .querySelector(`[data-box="${CSS.escape(id)}"]`)
-      ?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  // the box scrolls into view inside its row (centered), and the page the least needed to show the widget
+  private scrollToImageBox(digest: string): void {
+    this.imagesRow()?.scrollToIndex(this.imageBoxes().findIndex((x) => x.digest === digest));
+    this.revealAfterRender();
+  }
+
+  private scrollToPairBox(pairKey: string): void {
+    this.pairsRow()?.scrollToIndex(this.pairBoxes().findIndex((x) => x.key === pairKey));
+    this.revealAfterRender();
   }
 
   // the rows are sorted by day, so the ones of a day are next to each other

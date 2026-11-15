@@ -144,7 +144,7 @@ export class DashboardComponent {
       LocalStorageUtils.setItem(DashboardComponent.severityIdsKey, JSON.stringify(severityIds));
       LocalStorageUtils.setItem(DashboardComponent.namespacesKey, JSON.stringify(namespaces));
 
-      this.loadData(this.since(), severityIds, namespaces);
+      this.loadData();
     });
   }
 
@@ -234,10 +234,26 @@ export class DashboardComponent {
     return note ? ` (${note})` : '';
   }
 
-  private loadData(since: string, severities: number[], namespaces: string[]): void {
-    // empty arrays are not sent (the backend defaults apply)
-    const scope = { severities, namespaces: namespaces.length > 0 ? namespaces : undefined };
+  private loadData(): void {
+    this.reloadDataHealth();
+    this.reloadNewVulnerabilities();
+    this.reloadNewFixes();
+    this.reloadKnownExploited();
+    this.reloadNewImages();
+    this.reloadFixWaiting();
+    this.reloadFailingChecks();
+    this.reloadOldestImages();
+    this.reloadReachEpss();
+  }
 
+  // the loaders of the placeholder widgets: all of them at a change of the filters, and one at the refresh button of its
+  // widget (each reads the filters as they are)
+  // empty arrays are not sent (the backend defaults apply)
+  private scopeParams(): { severities: number[]; namespaces: string[] | undefined } {
+    return { severities: this.severityIds(), namespaces: this.namespacesParam() };
+  }
+
+  protected reloadDataHealth(): void {
     this.load(this.dataHealth, this.homeService.getHomeDataHealth(), (x) => ({
       isAvailable: true,
       summary:
@@ -245,32 +261,46 @@ export class DashboardComponent {
         `${x.sources.filter((s) => s.isEnabled).length} sources enabled, ` +
         `history since ${this.toDay(x.historyStartedAt)}, fix tracking since ${this.toDay(x.fixTrackingStartedAt)}`,
     }));
+  }
 
-    this.load(this.newVulnerabilities, this.homeService.getHomeNewVulnerabilities({ since, ...scope }), (x) => ({
+  protected reloadNewVulnerabilities(): void {
+    this.load(
+      this.newVulnerabilities,
+      this.homeService.getHomeNewVulnerabilities({ since: this.since(), ...this.scopeParams() }),
+      (x) => ({
+        isAvailable: x.isAvailable,
+        unavailableReason: x.unavailableReason,
+        summary: `${x.items.length} items; ${this.toTotals(x.totals)}`,
+      }),
+    );
+  }
+
+  protected reloadNewFixes(): void {
+    this.load(this.newFixes, this.homeService.getHomeNewFixes({ since: this.since(), ...this.scopeParams() }), (x) => ({
       isAvailable: x.isAvailable,
       unavailableReason: x.unavailableReason,
       summary: `${x.items.length} items; ${this.toTotals(x.totals)}`,
     }));
+  }
 
-    this.load(this.newFixes, this.homeService.getHomeNewFixes({ since, ...scope }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary: `${x.items.length} items; ${this.toTotals(x.totals)}`,
-    }));
+  protected reloadKnownExploited(): void {
+    const since = this.since();
 
     this.load(
       this.knownExploited,
-      this.homeService.getHomeKnownExploited({ since, namespaces: scope.namespaces }),
+      this.homeService.getHomeKnownExploited({ since, namespaces: this.namespacesParam() }),
       (x) => ({
         isAvailable: x.isAvailable,
         unavailableReason: x.unavailableReason,
         summary: `${x.items.length} items (${x.newSinceCount} new since ${this.toDay(since)}); ${this.toTotals(x.totals)}`,
       }),
     );
+  }
 
+  protected reloadNewImages(): void {
     this.load(
       this.newImages,
-      this.homeService.getHomeNewImages({ ...scope }),
+      this.homeService.getHomeNewImages({ ...this.scopeParams() }),
       (x) => ({
         isAvailable: x.isAvailable,
         unavailableReason: x.unavailableReason,
@@ -286,26 +316,34 @@ export class DashboardComponent {
           flaggedDays: x.days.filter((d) => d.knownExploited > 0).map((d) => d.day),
         }),
     );
+  }
 
-    this.load(this.fixWaiting, this.homeService.getHomeFixWaiting({ ...scope }), (x) => ({
+  protected reloadFixWaiting(): void {
+    this.load(this.fixWaiting, this.homeService.getHomeFixWaiting({ ...this.scopeParams() }), (x) => ({
       isAvailable: x.isAvailable,
       unavailableReason: x.unavailableReason,
       summary: `${x.items.length} items; ${this.toTotals(x.totals)}`,
     }));
+  }
 
-    this.load(this.failingChecks, this.homeService.getHomeFailingChecks({ ...scope }), (x) => ({
+  protected reloadFailingChecks(): void {
+    this.load(this.failingChecks, this.homeService.getHomeFailingChecks({ ...this.scopeParams() }), (x) => ({
       isAvailable: x.isAvailable,
       unavailableReason: x.unavailableReason,
       summary: `${x.items.length} of ${x.totalChecks} checks`,
     }));
+  }
 
-    this.load(this.oldestImages, this.homeService.getHomeOldestImages({ ...scope }), (x) => ({
+  protected reloadOldestImages(): void {
+    this.load(this.oldestImages, this.homeService.getHomeOldestImages({ ...this.scopeParams() }), (x) => ({
       isAvailable: x.isAvailable,
       unavailableReason: x.unavailableReason,
       summary: `${x.items.length} images; history since ${this.toDay(x.historyStartedAt)}`,
     }));
+  }
 
-    this.load(this.reachEpss, this.homeService.getHomeReachEpss({ ...scope }), (x) => ({
+  protected reloadReachEpss(): void {
+    this.load(this.reachEpss, this.homeService.getHomeReachEpss({ ...this.scopeParams() }), (x) => ({
       isAvailable: x.isAvailable,
       unavailableReason: x.unavailableReason,
       summary: `${x.items.length} vulnerability ids`,

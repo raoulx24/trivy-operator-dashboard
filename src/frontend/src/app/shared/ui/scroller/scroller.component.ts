@@ -16,7 +16,7 @@ import {
   standalone: true,
   imports: [],
   templateUrl: './scroller.component.html',
-  styleUrl: './scroller.component.scss',
+  // the styles of the buttons and of the hidden scrollbar are in styles.scss (shared with app-virtual-scroller)
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScrollerComponent implements AfterViewInit, OnDestroy {

@@ -5,6 +5,8 @@
   [canExpand]="canExpand()"
   [expanded]="isExpanded()"
   (expandToggle)="toggleExpand()"
+  [refreshable]="true"
+  (refreshRequested)="refreshWidget()"
 >
   <!-- expanded: the titles of the boxes stick out of their top border, so the boxes are pushed down from the title row -->
   <div class="grid grid-cols-3 gap-4" [class.pt-3]="isExpanded()">

@@ -14,6 +14,7 @@
     description="watchers ok / with issues, per report kind the count and the oldest / newest scan, the last fetch of KEV / EPSS / EUVD / EOL, the start of the history and of the fix tracking (could become status chips in the filter bar)"
     source="GET api/home/data-health → HomeDataHealthDto"
     [state]="dataHealth()"
+      (refresh)="reloadDataHealth()"
   />
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
@@ -62,6 +63,7 @@
       description="(vulnerability id, package) first seen in the window: totals (ids, rows, images, namespaces) and the top rows by reach, with KEV / EPSS markers; rows that existed before the fix tracking started are never new"
       source="GET api/home/new-vulnerabilities → HomeNewVulnerabilitiesDto"
       [state]="newVulnerabilities()"
+      (refresh)="reloadNewVulnerabilities()"
     />
     <app-home-widget-placeholder
       heading="Fixes now available"
@@ -69,6 +71,7 @@
       description="(vulnerability id, package) whose fix appeared in the window (not the ones that came with their fix): fixed version, images, namespaces"
       source="GET api/home/new-fixes → HomeNewFixesDto"
       [state]="newFixes()"
+      (refresh)="reloadNewFixes()"
     />
     <app-home-widget-placeholder
       heading="Known exploited"
@@ -76,6 +79,7 @@
       description="KEV / EUVD vulnerabilities running now, one per id; the ones exploited in the window marked as new; ransomware flag, fix, reach"
       source="GET api/home/known-exploited → HomeKnownExploitedDto"
       [state]="knownExploited()"
+      (refresh)="reloadKnownExploited()"
     />
   </div>
 
@@ -94,6 +98,7 @@
       description="per UTC day, the running images first seen that day and their distinct (vulnerability id, severity) pairs as they are now (current state, not as they arrived); known exploited counted apart"
       source="GET api/home/new-images → HomeNewImagesDto"
       [state]="newImages()"
+      (refresh)="reloadNewImages()"
     >
       <app-activity-heatmap
         [data]="newImagesChart().data"
@@ -121,6 +126,7 @@
       description="fixable (vulnerability id, package) sorted by how long the fix is known (a lower bound), with reach"
       source="GET api/home/fix-waiting → HomeFixWaitingDto"
       [state]="fixWaiting()"
+      (refresh)="reloadFixWaiting()"
     />
     <app-home-widget-placeholder
       heading="Failing checks"
@@ -128,6 +134,7 @@
       description="failing config audit / RBAC / infra checks grouped by check id: title, severity, resources, namespaces"
       source="GET api/home/failing-checks → HomeFailingChecksDto"
       [state]="failingChecks()"
+      (refresh)="reloadFailingChecks()"
     />
     <app-home-widget-placeholder
       heading="Oldest running images"
@@ -135,6 +142,7 @@
       description="running digests by the moment they were first seen by the history: repo:tag, workloads, namespaces, vulnerability ids"
       source="GET api/home/oldest-images → HomeOldestImagesDto"
       [state]="oldestImages()"
+      (refresh)="reloadOldestImages()"
     />
   </div>
 
@@ -151,6 +159,7 @@
       description="per vulnerability id: images (x) against the EPSS percentile (y), known exploited marked"
       source="GET api/home/reach-epss → HomeReachEpssDto"
       [state]="reachEpss()"
+      (refresh)="reloadReachEpss()"
     />
   </div>
 </div>
