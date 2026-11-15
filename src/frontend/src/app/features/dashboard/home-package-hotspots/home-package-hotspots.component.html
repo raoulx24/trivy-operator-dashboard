@@ -7,6 +7,7 @@
   (expandToggle)="toggleExpand()"
   [refreshable]="true"
   (refreshRequested)="refreshWidget()"
+  [fillGap]="false"
 >
   <div class="flex-1 overflow-auto" [class.max-h-[70vh]]="isExpanded()">
     <table class="w-full text-sm">

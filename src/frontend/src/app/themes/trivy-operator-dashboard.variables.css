@@ -74,6 +74,13 @@
   --tod-radar-fill-color: color-mix(in srgb, var(--tod-radar-stroke-color) 18%, transparent);
   --tod-radar-vertex-outline-color: var(--p-surface-0);
 
+  /* network fill: the faint nodes and links in the space a shorter home widget gets from its row */
+  --tod-network-line-color: color-mix(in srgb, var(--p-primary-color) 22%, transparent);
+  --tod-network-node-color: color-mix(in srgb, var(--p-primary-color) 35%, transparent);
+  /* how far in from the edges the drawing fades out (across, down) */
+  --tod-network-fade-x: 2rem;
+  --tod-network-fade-y: 1rem;
+
   --p-popover-shadow: var(--tod-box-shadow);
 }
 
@@ -100,6 +107,9 @@
 
   --tod-radar-stroke-color: var(--p-red-400);
   --tod-radar-vertex-outline-color: var(--p-surface-950);
+
+  --tod-network-line-color: color-mix(in srgb, var(--p-primary-color) 18%, transparent);
+  --tod-network-node-color: color-mix(in srgb, var(--p-primary-color) 30%, transparent);
 
   --tod-eol-state-supported: var(--p-blue-700);
   --tod-eol-state-eoas: var(--p-blue-500);

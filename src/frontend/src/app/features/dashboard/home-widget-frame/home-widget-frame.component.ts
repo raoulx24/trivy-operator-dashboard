@@ -2,6 +2,8 @@ import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 
+import { NetworkFillComponent } from '../../../shared/ui/network-fill/network-fill.component';
+
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // the frame of a home widget: border, heading with its hint, the status line and the "..." button that expands the
@@ -15,7 +17,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-widget-frame',
   standalone: true,
-  imports: [ButtonModule, NgTemplateOutlet],
+  imports: [ButtonModule, NetworkFillComponent, NgTemplateOutlet],
   templateUrl: './home-widget-frame.component.html',
   styleUrl: './home-widget-frame.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +31,15 @@ export class HomeWidgetFrameComponent {
 
   // the widget can refresh itself: a button after the hint (in the top row); the widget reloads only its own data
   refreshable = input(false);
+
+  // the empty space under the content (when the row is taller than the widget) gets a faint network drawing; false for a widget
+  // whose content already grows (flex-1): the two would share the space
+  fillGap = input(true);
+
+  // a new drawing every time the widget is created (e.g. on every visit of the home page); taken once, not in the
+  // template: there it would change on every change detection, and the drawing with it
+  private readonly createdAt = new Date().toISOString();
+  protected readonly fillSeed = computed(() => `${this.heading()} ${this.createdAt}`);
 
   expandToggle = output<void>();
   refreshRequested = output<void>();

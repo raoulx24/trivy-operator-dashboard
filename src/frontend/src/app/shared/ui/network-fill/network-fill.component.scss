@@ -1,0 +1,55 @@
+:host {
+  position: relative;
+  display: block;
+  // the drawing is larger than the space: only the part that fits shows
+  overflow: hidden;
+  pointer-events: none;
+
+  // the edges fade out instead of cutting the drawing: one fade across, one down, the two intersected (the corners
+  // fade in both directions)
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent,
+      #000 var(--tod-network-fade-x),
+      #000 calc(100% - var(--tod-network-fade-x)),
+      transparent
+    ),
+    linear-gradient(
+      to bottom,
+      transparent,
+      #000 var(--tod-network-fade-y),
+      #000 calc(100% - var(--tod-network-fade-y)),
+      transparent
+    );
+  mask-composite: intersect;
+}
+
+// anchored at the bottom right: a short space shows the bottom strip, a narrow one the right part
+.network-fill {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.link {
+  fill: none;
+  stroke: var(--tod-network-line-color);
+  stroke-width: 0.75;
+  stroke-linecap: round;
+}
+
+.node {
+  fill: var(--tod-network-node-color);
+}
+
+.ring {
+  fill: none;
+  stroke: var(--tod-network-node-color);
+  stroke-width: 0.75;
+}
+
+// the group is drawn first, then faded as a whole: further away
+.back-layer {
+  opacity: 0.45;
+}

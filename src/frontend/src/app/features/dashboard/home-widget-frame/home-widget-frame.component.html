@@ -27,6 +27,12 @@
 
   <ng-content />
 
+  <!-- the space the row gives a widget shorter than the tallest one: a faint network drawing (nothing shows when there
+       is no space); -my-1 takes back the gap-2 this extra child adds -->
+  @if (fillGap()) {
+    <app-network-fill class="flex-1 -my-1" [seed]="fillSeed()" />
+  }
+
   <!-- bottom row: collapsed: the status at the left; expanded: the controls of the widget (frameActions); the button at the right -->
   <div class="flex items-center justify-between gap-2 mt-auto">
     @if (expanded()) {

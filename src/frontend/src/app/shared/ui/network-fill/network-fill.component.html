@@ -1,0 +1,13 @@
+<svg class="network-fill" [attr.width]="width" [attr.height]="height" [attr.viewBox]="'0 0 ' + width + ' ' + height">
+  @for (layer of layers(); track $index) {
+    <g [class.back-layer]="layer.isBack">
+      <path class="link" [attr.d]="layer.links" />
+      @for (node of layer.nodes; track $index) {
+        <circle class="node" [attr.cx]="node.x" [attr.cy]="node.y" [attr.r]="node.r" />
+        @if (node.hasRing) {
+          <circle class="ring" [attr.cx]="node.x" [attr.cy]="node.y" [attr.r]="node.r + ringGap" />
+        }
+      }
+    </g>
+  }
+</svg>
