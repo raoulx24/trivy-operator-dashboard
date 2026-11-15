@@ -12,6 +12,7 @@ import { HomeBaseOsItemDto } from '@api/models/home-base-os-item-dto';
 import { HomeService } from '@api/services/home.service';
 import { EolRunwayComponent } from '@shared/ui/eol-runway/eol-runway.component';
 import {
+  EOL_RISK_DAYS,
   EOL_STATE_COLORS,
   EOL_STATE_LABELS,
   EOL_STATE_ORDER,
@@ -79,6 +80,19 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   private readonly homeService = inject(HomeService);
   private readonly router = inject(Router);
   protected readonly popover = inject(PopoverService);
+
+  // the help dialog of the frame (html): short, the important parts in bold
+  protected readonly help = `
+    <p class="mb-2">Which <strong>operating systems</strong> your running images are built on, and how long each is <strong>supported</strong>. One row per OS cycle (e.g. Alpine 3.19 covers 3.19.0 and 3.19.1).</p>
+    <p class="mb-2"><strong>The bar</strong> runs to the end of life (EOL); the dashed line is today, an arrow means it ends beyond the axis. A <strong>hatched</strong> part is time already spent <strong>past EOL</strong>.</p>
+    <p class="mb-1"><strong>States</strong></p>
+    <p class="mb-2"><strong>EOL</strong>: the end of life has passed, no more fixes, not even security ones.<br>
+    <strong>Risky</strong>: EOL in less than ${EOL_RISK_DAYS} days.<br>
+    <strong>EOAS</strong>: active support ended, security fixes only.<br>
+    <strong>Supported</strong>: everything else.</p>
+    <p class="mb-2"><strong>Expanded</strong>: a box per cycle in the picked states (default: EOL and Risky), with its images and namespaces. <strong>Show all images</strong> lists every image per namespace with its OS and state; it <strong>ignores the namespaces filter</strong>.</p>
+    <p class="mb-0 tod-text-muted-color">Cycles without end of life data (pending, not applicable) are not on the runway. Needs vulnerability reports and end of life enabled.</p>
+  `;
 
   protected readonly stateOptions = stateOptions;
   protected readonly selectedStates = signal<EolRunwayState[]>(['eol', 'risky']);

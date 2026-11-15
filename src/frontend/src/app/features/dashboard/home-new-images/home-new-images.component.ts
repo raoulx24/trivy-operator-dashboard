@@ -8,6 +8,7 @@ import { TagModule } from 'primeng/tag';
 
 import { HomeNewImagesGroupDto } from '@api/models/home-new-images-group-dto';
 import { HomeService } from '@api/services/home.service';
+import { DarkModeService } from '@core/services/dark-mode.service';
 import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
@@ -135,8 +136,25 @@ interface NewImagesTableRow {
   host: { class: 'block min-w-0' },
 })
 export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBox> {
+  // the help dialog of the frame (html, short: what is easy to get wrong is in bold)
+  protected readonly help = `
+    <p>The <strong>running images</strong> that the history saw for the first time in the range, with what they have <strong>now</strong>.</p>
+    <p class="mt-2"><strong>Current state:</strong> the vulnerabilities and severities are today's, not the ones the image arrived with.</p>
+    <p class="mt-2"><strong>Filters:</strong> a pair is (vulnerability id, severity). An image with no pair at the selected severities is <strong>not counted</strong>.</p>
+    <p class="mt-2"><strong>Heatmap:</strong> images per UTC day. While expanded, click a day to filter the boxes.</p>
+    <p class="mt-2"><strong>Boxes:</strong> images (newest first) and pairs (the images that have each). A click on a line selects both sides and the other box scrolls to it.</p>
+    <p class="mt-2"><strong>Count</strong> is the occurrences (package, version, target), not distinct vulnerabilities.</p>
+    <p class="mt-2"><strong>First day of the history:</strong> the images already running then are first seen then, so that day can look inflated.</p>
+  `;
+
   private readonly homeService = inject(HomeService);
   private readonly imageHistory = inject(HomeImageHistoryService);
+  private readonly darkModeService = inject(DarkModeService);
+
+  // the popover of the heatmap legend: more is darker in light mode and lighter in dark mode, so it says which
+  protected readonly valueHint = computed(
+    () => `Running images first seen by the history that day, with at least one vulnerability at the selected severities. ${this.darkModeService.isDarkMode() ? 'Lighter' : 'Darker'} = more.`,
+  );
 
   private readonly daysData = rxResource({
     params: this.scope,

@@ -2,30 +2,9 @@
   display: block;
   // a wide heatmap scrolls inside, it must not widen its grid cell
   min-width: 0;
-
-  --hm-empty: color-mix(in srgb, var(--p-text-color) 6%, transparent);
-  --hm-border: color-mix(in srgb, var(--p-text-color) 12%, transparent);
-  --hm-level-1: var(--p-blue-200);
-  --hm-level-2: var(--p-blue-300);
-  --hm-level-3: var(--p-blue-400);
-  --hm-level-4: var(--p-blue-600);
-  --hm-ring: var(--p-text-color);
-  // the thin line inside the ring: the opposite of the ring, so the ring shows on light and dark fills alike
-  --hm-ring-inner: var(--p-surface-0);
-  --hm-corner: var(--p-orange-500);
-  --hm-corner-outline: var(--p-surface-0);
 }
 
-// dark: more is lighter
-:host-context(.trivy-operator-dashboard-dark) {
-  --hm-level-1: var(--p-blue-800);
-  --hm-level-2: var(--p-blue-600);
-  --hm-level-3: var(--p-blue-400);
-  --hm-level-4: var(--p-blue-200);
-  --hm-corner: var(--p-orange-400);
-  --hm-corner-outline: var(--p-surface-950);
-  --hm-ring-inner: var(--p-surface-950);
-}
+// the colors are the --tod-heatmap-* variables of the theme file (light and dark)
 
 .heatmap {
   display: block;
@@ -77,51 +56,46 @@
 
 // svg cells
 .cell {
-  fill: var(--hm-empty);
-  stroke: var(--hm-border);
+  fill: var(--tod-heatmap-empty);
+  stroke: var(--tod-heatmap-border);
   stroke-width: 1;
 
-  &.level-1 { fill: var(--hm-level-1); }
-  &.level-2 { fill: var(--hm-level-2); }
-  &.level-3 { fill: var(--hm-level-3); }
-  &.level-4 { fill: var(--hm-level-4); }
+  &.level-1 { fill: var(--tod-heatmap-level-1); }
+  &.level-2 { fill: var(--tod-heatmap-level-2); }
+  &.level-3 { fill: var(--tod-heatmap-level-3); }
+  &.level-4 { fill: var(--tod-heatmap-level-4); }
 }
 
 // two-tone: the ring on the cell edge, with a thin opposite line just inside it (the widths scale with the cell
 // size: attributes)
 .ring {
   fill: none;
-  stroke: var(--hm-ring);
+  stroke: var(--tod-heatmap-ring);
   pointer-events: none;
 }
 
 .ring-inner {
   fill: none;
-  stroke: var(--hm-ring-inner);
+  stroke: var(--tod-heatmap-ring-inner);
   pointer-events: none;
 }
 
 .corner {
-  fill: var(--hm-corner);
+  fill: var(--tod-heatmap-corner);
   // the outline separates the marker from any blue behind it
-  stroke: var(--hm-corner-outline);
+  stroke: var(--tod-heatmap-marker-outline);
   stroke-width: 1;
   stroke-linejoin: round;
   pointer-events: none;
 }
 
-// the visit marker: a teal triangle (a shade lighter in dark mode, as the orange one); the outline separates it from the blue
-// behind it, as the one of the orange marker
+// the visit marker: a teal triangle; the outline separates it from the blue behind it, as the one of the orange marker
 .visit {
-  fill: var(--p-teal-500);
-  stroke: var(--hm-corner-outline);
+  fill: var(--tod-heatmap-visit);
+  stroke: var(--tod-heatmap-marker-outline);
   stroke-width: 1;
   stroke-linejoin: round;
   pointer-events: none;
-}
-
-:host-context(.trivy-operator-dashboard-dark) .visit {
-  fill: var(--p-teal-400);
 }
 
 .legend {
@@ -147,19 +121,19 @@
   height: 17px;
   border-radius: 4px;
   box-sizing: border-box;
-  background: var(--hm-empty);
-  border: 1px solid var(--hm-border);
+  background: var(--tod-heatmap-empty);
+  border: 1px solid var(--tod-heatmap-border);
 
-  &.level-1 { background: var(--hm-level-1); }
-  &.level-2 { background: var(--hm-level-2); }
-  &.level-3 { background: var(--hm-level-3); }
-  &.level-4 { background: var(--hm-level-4); }
+  &.level-1 { background: var(--tod-heatmap-level-1); }
+  &.level-2 { background: var(--tod-heatmap-level-2); }
+  &.level-3 { background: var(--tod-heatmap-level-3); }
+  &.level-4 { background: var(--tod-heatmap-level-4); }
 }
 
 .swatch-ring {
-  border: 3px solid var(--hm-ring);
+  border: 3px solid var(--tod-heatmap-ring);
   // the inner line of the two-tone ring
-  box-shadow: inset 0 0 0 1.5px var(--hm-ring-inner);
+  box-shadow: inset 0 0 0 1.5px var(--tod-heatmap-ring-inner);
 }
 
 // the same marker as in the cells (the swatch has a 1px border: the svg covers the whole box, border included)

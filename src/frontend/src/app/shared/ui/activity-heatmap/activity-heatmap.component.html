@@ -63,7 +63,11 @@
 
 @if (showLegend() && weeks().length > 0) {
   <div class="legend tod-chart-legend tod-text-muted-color">
-    <span class="legend-item">
+    <span
+      class="legend-item"
+      (mouseenter)="popover.show(valueHint(), $any($event.currentTarget))"
+      (mouseleave)="popover.hide()"
+    >
       <span>{{ valueLabel() ? valueLabel() + ':' : 'less' }}</span>
       <span class="swatch level-0"></span>
       @for (level of legendLevels(); track level) {
@@ -74,19 +78,34 @@
       }
     </span>
     @if (emphasis1Label()) {
-      <span class="legend-item"><span class="swatch swatch-corner"
+      <span
+        class="legend-item"
+        (mouseenter)="popover.show(emphasis1Hint(), $any($event.currentTarget))"
+        (mouseleave)="popover.hide()"
+        ><span class="swatch swatch-corner"
           ><svg [attr.width]="legendSwatchSize" [attr.height]="legendSwatchSize">
             <path class="visit" [attr.d]="legendVisitPath" /></svg
-        ></span>{{ emphasis1Label() }}</span>
+        ></span>{{ emphasis1Label() }}</span
+      >
     }
     @if (selectedDay()) {
-      <span class="legend-item"><span class="swatch swatch-ring"></span>selected day</span>
+      <span
+        class="legend-item"
+        (mouseenter)="popover.show(selectedHint(), $any($event.currentTarget))"
+        (mouseleave)="popover.hide()"
+        ><span class="swatch swatch-ring"></span>{{ selectedLabel() }}</span
+      >
     }
     @if (emphasis2Label()) {
-      <span class="legend-item"><span class="swatch swatch-corner"
+      <span
+        class="legend-item"
+        (mouseenter)="popover.show(emphasis2Hint(), $any($event.currentTarget))"
+        (mouseleave)="popover.hide()"
+        ><span class="swatch swatch-corner"
           ><svg [attr.width]="legendSwatchSize" [attr.height]="legendSwatchSize">
             <path class="corner" [attr.d]="legendCornerPath" /></svg
-        ></span>{{ emphasis2Label() }}</span>
+        ></span>{{ emphasis2Label() }}</span
+      >
     }
   </div>
 }

@@ -1,7 +1,23 @@
 <div class="tod-content-border tod-content-background flex flex-col gap-2 p-3 h-full">
   <!-- collapsed: the heading at the left, the hint at the right; expanded: the status (muted) in the center -->
   <div class="flex items-baseline gap-2 pb-0.25">
-    <span class="flex-1 min-w-0 font-semibold">{{ heading() }}</span>
+    <span class="flex-1 min-w-0 flex items-baseline gap-1">
+      <span class="font-semibold">{{ heading() }}</span>
+      @if (help()) {
+        <p-button
+          class="tod-button-compact inline-flex self-center"
+          size="small"
+          severity="secondary"
+          icon="pi pi-question-circle"
+          [text]="true"
+          [raised]="true"
+          [rounded]="true"
+          [ariaLabel]="'Help for ' + heading()"
+          [attr.title]="'Help'"
+          (onClick)="isHelpVisible.set(true)"
+        />
+      }
+    </span>
     @if (expanded()) {
       <span class="shrink-0 text-xs">
         <ng-container *ngTemplateOutlet="status; context: { muted: true }" />
@@ -17,6 +33,7 @@
         severity="secondary"
         [icon]="isLoading() ? 'pi pi-spin pi-refresh' : 'pi pi-refresh'"
         [text]="true"
+        [raised]="true"
         [rounded]="true"
         [ariaLabel]="'Refresh ' + heading()"
         [attr.title]="'Refresh'"
@@ -60,6 +77,23 @@
     }
   </div>
 </div>
+
+@if (help()) {
+  <!-- not modal: it can stay open beside the widget it explains; appended to the body, away from the widget's transforms -->
+  <p-dialog
+    appendTo="body"
+    [header]="heading()"
+    [modal]="false"
+    [draggable]="true"
+    [resizable]="true"
+    [closable]="true"
+    [closeOnEscape]="true"
+    [style]="{ width: '30rem', maxWidth: '95vw', maxHeight: '80vh' }"
+    [(visible)]="isHelpVisible"
+  >
+    <div class="text-sm leading-relaxed" [innerHTML]="help()"></div>
+  </p-dialog>
+}
 
 <ng-template #status let-muted="muted">
   @if (state().error) {

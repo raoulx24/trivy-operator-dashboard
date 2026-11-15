@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 
 import { NetworkFillComponent } from '../../../shared/ui/network-fill/network-fill.component';
 
@@ -17,7 +18,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-widget-frame',
   standalone: true,
-  imports: [ButtonModule, NetworkFillComponent, NgTemplateOutlet],
+  imports: [ButtonModule, DialogModule, NetworkFillComponent, NgTemplateOutlet],
   templateUrl: './home-widget-frame.component.html',
   styleUrl: './home-widget-frame.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +32,11 @@ export class HomeWidgetFrameComponent {
 
   // the widget can refresh itself: a button after the hint (in the top row); the widget reloads only its own data
   refreshable = input(false);
+
+  // the explanation of the widget, as HTML (Angular sanitizes it: no scripts, no style attributes); a "?" button after the
+  // heading opens it in a movable, resizable dialog; no help text, no button
+  help = input<string>('');
+  protected readonly isHelpVisible = signal(false);
 
   // the empty space under the content (when the row is taller than the widget) gets a faint network drawing; false for a widget
   // whose content already grows (flex-1): the two would share the space

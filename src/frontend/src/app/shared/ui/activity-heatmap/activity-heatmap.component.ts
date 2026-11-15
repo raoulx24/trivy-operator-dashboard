@@ -68,6 +68,13 @@ export class ActivityHeatmapComponent {
   valueLabel = input<string>('');
   emphasis1Label = input<string>('');
   emphasis2Label = input<string>('');
+  // the caption of the selected day in the legend (shown while a day is selected)
+  selectedLabel = input<string>('selected day');
+  // the popover of each legend item (on hover); none for an empty text
+  valueHint = input<string>('');
+  emphasis1Hint = input<string>('');
+  emphasis2Hint = input<string>('');
+  selectedHint = input<string>('');
 
   // the days that can be clicked ("yyyy-MM-dd"); without it the heatmap only shows (nothing is clickable)
   selectableDays = input<string[] | undefined>(undefined);

@@ -8,6 +8,7 @@ import { TagModule } from 'primeng/tag';
 
 import { HomeHistoryDriftGroupDto } from '@api/models/home-history-drift-group-dto';
 import { HomeService } from '@api/services/home.service';
+import { DarkModeService } from '@core/services/dark-mode.service';
 import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
@@ -135,8 +136,24 @@ interface DriftTableRow {
   host: { class: 'block min-w-0' },
 })
 export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, PairBox> {
+  // the help dialog of the frame (html, short: what is easy to get wrong is in bold)
+  protected readonly help = `
+    <p>The <strong>pairs</strong> (vulnerability id, severity) <strong>added</strong> to images that were <strong>already running</strong>, per UTC day, and still active now.</p>
+    <p class="mt-2"><strong>Not here:</strong> what a new image brings with its first scan (see <em>New images</em>).</p>
+    <p class="mt-2"><strong>Heatmap:</strong> pairs per day. A pair counts on <strong>every day</strong> it is added to some image, so the days do not sum to the distinct pairs. Only the history retention is complete.</p>
+    <p class="mt-2"><strong>Boxes</strong> (expanded): images with the pairs added to each, and pairs with the images they were added to, by day. <strong>Count</strong> is the occurrences (package, version, target), not distinct vulnerabilities.</p>
+    <p class="mt-2"><strong>Click a line</strong> to select an image and a pair together: the other box scrolls to it and <strong>Selected</strong> shows the details. <strong>Click a day</strong> to filter by it; that clears the selection.</p>
+    <p class="mt-2"><strong>Filters</strong> (date, image, vulnerability) depend on each other: each offers only what fits the other two. <strong>Show all</strong> opens every row in a table.</p>
+  `;
+
   private readonly homeService = inject(HomeService);
   private readonly imageHistory = inject(HomeImageHistoryService);
+  private readonly darkModeService = inject(DarkModeService);
+
+  // the popover of the heatmap legend: more is darker in light mode and lighter in dark mode, so it says which
+  protected readonly valueHint = computed(
+    () => `Distinct (vulnerability id, severity) pairs added that day to images that were already running, at the selected severities. A new image's first snapshot is not here (see New images). A pair added on several days counts on each. ${this.darkModeService.isDarkMode() ? 'Lighter' : 'Darker'} = more.`,
+  );
 
   private readonly daysData = rxResource({
     params: this.scope,

@@ -74,6 +74,21 @@
   --tod-radar-fill-color: color-mix(in srgb, var(--tod-radar-stroke-color) 18%, transparent);
   --tod-radar-vertex-outline-color: var(--p-surface-0);
 
+  /* activity heatmap: more is darker in light mode (lighter in dark mode); the ring is the selected day, the inner line
+     is its opposite (so the ring shows on light and dark cells alike); the markers are the corner triangles (the
+     outline separates them from the blue behind) */
+  --tod-heatmap-empty: color-mix(in srgb, var(--p-text-color) 6%, transparent);
+  --tod-heatmap-border: color-mix(in srgb, var(--p-text-color) 12%, transparent);
+  --tod-heatmap-level-1: var(--p-blue-200);
+  --tod-heatmap-level-2: var(--p-blue-300);
+  --tod-heatmap-level-3: var(--p-blue-400);
+  --tod-heatmap-level-4: var(--p-blue-600);
+  --tod-heatmap-ring: var(--p-text-color);
+  --tod-heatmap-ring-inner: var(--p-surface-0);
+  --tod-heatmap-corner: var(--p-orange-500);
+  --tod-heatmap-visit: var(--p-teal-500);
+  --tod-heatmap-marker-outline: var(--p-surface-0);
+
   /* network fill: the faint nodes and links in the space a shorter home widget gets from its row */
   --tod-network-line-color: color-mix(in srgb, var(--p-primary-color) 22%, transparent);
   --tod-network-node-color: color-mix(in srgb, var(--p-primary-color) 35%, transparent);
@@ -107,6 +122,15 @@
 
   --tod-radar-stroke-color: var(--p-red-400);
   --tod-radar-vertex-outline-color: var(--p-surface-950);
+
+  --tod-heatmap-level-1: var(--p-blue-800);
+  --tod-heatmap-level-2: var(--p-blue-600);
+  --tod-heatmap-level-3: var(--p-blue-400);
+  --tod-heatmap-level-4: var(--p-blue-200);
+  --tod-heatmap-ring-inner: var(--p-surface-950);
+  --tod-heatmap-corner: var(--p-orange-400);
+  --tod-heatmap-visit: var(--p-teal-400);
+  --tod-heatmap-marker-outline: var(--p-surface-950);
 
   --tod-network-line-color: color-mix(in srgb, var(--p-primary-color) 18%, transparent);
   --tod-network-node-color: color-mix(in srgb, var(--p-primary-color) 30%, transparent);
