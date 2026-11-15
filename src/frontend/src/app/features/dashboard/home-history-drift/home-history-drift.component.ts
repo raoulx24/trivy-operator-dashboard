@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 
 import { HomeHistoryDriftGroupDto } from '@api/models/home-history-drift-group-dto';
@@ -73,6 +74,8 @@ interface PairBox extends NamespacesFooter {
   title: string | null | undefined;
   // known exploited (KEV / EUVD)
   isKnownExploited: boolean;
+  // the first moment the pair was added to any image in the range (ISO)
+  firstAddedAt: string | undefined;
   rows: PairBoxRow[];
   // the rows by day, the most recent first
   days: DayGroup<PairBoxRow>[];
@@ -143,6 +146,7 @@ interface DriftTableRow {
     ButtonModule,
     FormsModule,
     SelectModule,
+    SkeletonModule,
     TagModule,
     VirtualScrollerComponent,
     TrivyTableDialogComponent,
@@ -239,9 +243,23 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
   protected readonly showBoxes = computed(
     () => this.isExpanded() && this.daysData.value()?.isAvailable === true && this.rowsData.hasValue(),
   );
+  // the skeleton of the boxes while the rows are asked: two rows of boxes, as the real ones
+  protected readonly skeletonRows = [0, 1];
+  protected readonly skeletonBoxes = [0, 1, 2, 3];
+  protected readonly skeletonLines = [0, 1, 2, 3, 4, 5];
+
+  // a refresh (or a change of a filter) clears the days as well as the rows: the skeleton shows from the first moment
+  // of the wait, not only once the days are back; it does not for a widget that is known to be unavailable
   protected readonly isLoadingBoxes = computed(
-    () => this.isExpanded() && this.daysData.value()?.isAvailable === true && !this.rowsData.hasValue(),
+    () =>
+      this.isExpanded() &&
+      this.daysData.value()?.isAvailable !== false &&
+      !this.rowsData.error() &&
+      !this.rowsData.hasValue(),
   );
+
+  // the days (the heatmap) are not here: the heatmap box shows a skeleton of its own size, so it does not collapse
+  protected readonly isLoadingDays = computed(() => !this.daysData.hasValue() && !this.daysData.error());
 
   // the day filter: the boxes are made of the items of that UTC day only (none selected: all of them)
   private readonly selectedDay = computed(() => this.selection()?.day ?? null);
@@ -320,6 +338,7 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
           severityId: item.severityId,
           title: group?.title,
           isKnownExploited: group?.isKnownExploited ?? false,
+          firstAddedAt: group?.firstAddedAt,
           namespaces: group?.namespaces ?? 0,
           namespaceNames: group?.namespaceNames ?? [],
           rows: [],
@@ -474,6 +493,10 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
       .map((day) => ({ value: day, label: day, note: this.age(day), isKnownExploited: false })),
   );
 
+  // the days the heatmap lets you click: every day with rows, whatever image and pair are selected (a click starts over:
+  // it clears them); the day select offers fewer, only the days of the selected image and pair
+  protected readonly heatmapDays = computed(() => [...new Set(this.entries().map((x) => x.day))]);
+
   protected readonly imageOptions = computed<DriftOption[]>(() => {
     const options = new Map<string, DriftOption>();
     for (const x of this.entriesFor('digest')) {
@@ -578,6 +601,12 @@ export class HomeHistoryDriftComponent extends HomeWidgetBase {
   protected onDayPicked(day: string | null): void {
     const current = this.selection();
     this.selectSide({ digest: current?.digest ?? null, pairKey: current?.pairKey ?? null, day });
+  }
+
+  // a click on a day of the heatmap filters by it, and starts over: the selected image and pair are cleared (the selects
+  // still offer them for the day); on the selected day again, it clears the filter
+  protected onHeatmapDay(day: string): void {
+    this.selectSide({ digest: null, pairKey: null, day: this.selection()?.day === day ? null : day });
   }
 
   private selectSide(selection: DriftSelection): void {

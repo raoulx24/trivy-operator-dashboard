@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class AccessTrackingService {
-  private readonly maxDays = 3;
+  private readonly maxDays = 10;
 
   trackAccess(componentBaseKey: string): AccessDay[] {
     const key = LocalStorageUtils.toCamelCase(`${componentBaseKey}.access days`);

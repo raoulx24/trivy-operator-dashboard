@@ -4149,7 +4149,7 @@ components:
         count:
           type: integer
           format: int32
-        addedAt:
+        firstAddedAt:
           type: string
           format: date-time
         isKnownExploited:

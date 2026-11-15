@@ -13,6 +13,10 @@ export interface ActivityHeatmapCell {
   level: number;
   emphasis1: boolean;
   emphasis2: boolean;
+  // with selectableDays: the day can be clicked; a day with a value that cannot is inactive (dimmed)
+  selectable: boolean;
+  inactive: boolean;
+  selected: boolean;
   x: number;
   y: number;
 }

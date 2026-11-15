@@ -11,6 +11,10 @@
           @for (cell of week.cells; track cell.day) {
             <g
               class="cell-group"
+              [class.selectable]="cell.selectable"
+              [class.selected]="cell.selected"
+              [class.inactive]="cell.inactive"
+              (click)="onCellClick(cell)"
               (mouseenter)="popover.show(tip, $event, cell)"
               (mousemove)="popover.move($event)"
               (mouseleave)="popover.hide()"
@@ -23,7 +27,7 @@
                 [attr.height]="cellSize()"
                 [attr.rx]="3 * unit()"
               />
-              @if (cell.emphasis1) {
+              @if (cell.selected) {
                 <rect
                   class="ring"
                   [attr.x]="cell.x + unit()"
@@ -42,6 +46,9 @@
                   [attr.rx]="unit()"
                   [attr.stroke-width]="unit()"
                 />
+              }
+              @if (cell.emphasis1) {
+                <path class="visit" [attr.d]="visitPath(cell)" />
               }
               @if (cell.emphasis2) {
                 <path class="corner" [attr.d]="cornerPath(cell)" />
@@ -67,7 +74,13 @@
       }
     </span>
     @if (emphasis1Label()) {
-      <span class="legend-item"><span class="swatch swatch-ring"></span>{{ emphasis1Label() }}</span>
+      <span class="legend-item"><span class="swatch swatch-corner"
+          ><svg [attr.width]="legendSwatchSize" [attr.height]="legendSwatchSize">
+            <path class="visit" [attr.d]="legendVisitPath" /></svg
+        ></span>{{ emphasis1Label() }}</span>
+    }
+    @if (selectedDay()) {
+      <span class="legend-item"><span class="swatch swatch-ring"></span>selected day</span>
     }
     @if (emphasis2Label()) {
       <span class="legend-item"><span class="swatch swatch-corner"

@@ -33,6 +33,8 @@
   flex-shrink: 0;
   // the plain pointer everywhere, also over the texts (no text caret); they stay selectable
   cursor: default;
+  // a cell grows on hover: without this the svg clips it at its edge (the last row, the first and last weeks)
+  overflow: visible;
 }
 
 .week-label {
@@ -54,9 +56,23 @@
     filter: brightness(1.2) saturate(1.1);
   }
 
+  // the selected day (selectedDay) is as big as a hovered cell, and hovering it does not make it any bigger
+  &.selected {
+    transform: scale(1.15);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
+}
+
+// the days that can be clicked (selectableDays); a day with a value that cannot be is dimmed
+.cell-group.selectable {
+  cursor: pointer;
+}
+
+.cell-group.inactive {
+  opacity: 0.4;
 }
 
 // svg cells
@@ -92,6 +108,20 @@
   stroke-width: 1;
   stroke-linejoin: round;
   pointer-events: none;
+}
+
+// the visit marker: a teal triangle (a shade lighter in dark mode, as the orange one); the outline separates it from the blue
+// behind it, as the one of the orange marker
+.visit {
+  fill: var(--p-teal-500);
+  stroke: var(--hm-corner-outline);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+:host-context(.trivy-operator-dashboard-dark) .visit {
+  fill: var(--p-teal-400);
 }
 
 .legend {

@@ -45,14 +45,14 @@ public class HomeTimelineService(
             return new HomeHistoryDriftDto(false, drift.Reason, drift.From, []);
         }
 
-        // distinct (vulnerability id, severity) pairs per day of their first addition
+        // distinct (vulnerability id, severity) pairs per day they were added to any image: a pair counts on every day it
+        // was added, also when it was added on an earlier day to other images
         Dictionary<DateOnly, List<(int SeverityId, bool IsKnownExploited)>> byDay = drift.Entries
-            .GroupBy(x => x.Pair)
-            .Select(x => (x.Key, AddedAt: x.Min(entry => entry.AddedAt)))
-            .GroupBy(x => DateOnly.FromDateTime(x.AddedAt))
+            .GroupBy(x => (x.Pair, Day: DateOnly.FromDateTime(x.AddedAt)))
+            .GroupBy(x => x.Key.Day)
             .ToDictionary(
                 x => x.Key,
-                x => x.Select(pair => (pair.Key.SeverityId, drift.ActiveById[pair.Key.Id].IsKnownExploited)).ToList());
+                x => x.Select(pair => (pair.Key.Pair.SeverityId, drift.ActiveById[pair.Key.Pair.Id].IsKnownExploited)).ToList());
 
         return new HomeHistoryDriftDto(
             true,
@@ -120,13 +120,13 @@ public class HomeTimelineService(
                             SeverityId: group.Key.SeverityId,
                             Title: row.Title,
                             Count: group.Sum(x => x.Count),
-                            AddedAt: group.Min(x => x.AddedAt),
+                            FirstAddedAt: group.Min(x => x.AddedAt),
                             IsKnownExploited: row.IsKnownExploited,
                             EpssPercentile: row.EpssPercentile,
                             Namespaces: namespaces.Count,
                             NamespaceNames: ToNamespaceNames(namespaces));
                     })
-                    .OrderBy(x => x.AddedAt)
+                    .OrderBy(x => x.FirstAddedAt)
                     .ThenBy(x => x.SeverityId)
                     .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal),
             ]);

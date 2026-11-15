@@ -5,6 +5,7 @@ import {
   computed,
   inject,
   input,
+  output,
 } from '@angular/core';
 
 import { WeekdayNamePipe } from '../../pipes/weekday-name.pipe';
@@ -28,13 +29,17 @@ const LABEL_BASELINE = 14;
 const LEVELS = 4;
 // the legend swatches (px), as in the scss
 const LEGEND_SWATCH = 17;
+// the corner markers: the side of the triangle, as a share of the cell
+const MARKER_SIZE = 0.44;
 // only when the browser has no Intl week info
 const SUNDAY_REGIONS = new Set(['US', 'CA', 'MX', 'BR', 'JP', 'IL', 'IN', 'PH', 'ZA', 'AU']);
 
 // a per-day heatmap, one block per week (first day of the week of the locale, Monday in EU), the days of a week running top down, then left right
 // - cells have a fixed size: if the blocks do not fit, they scroll horizontally (app-scroller, with its buttons)
 // - fill: quantile shading (blue) of the non-zero values; zero is empty
-// - emphasis1: a ring around the cell; emphasis2: a marker in the cell corner (both independent of the fill)
+// - emphasis1: a white triangle in the bottom-left corner; emphasis2: a triangle in the top-right corner (both independent of the fill)
+// - the selected day (selectedDay) has a ring around the cell
+// - selectableDays (optional) makes the listed days clickable (daySelected)
 // - days are "yyyy-MM-dd" (UTC); the control does not know what the emphasis days mean
 @Component({
   selector: 'app-activity-heatmap',
@@ -63,6 +68,13 @@ export class ActivityHeatmapComponent {
   valueLabel = input<string>('');
   emphasis1Label = input<string>('');
   emphasis2Label = input<string>('');
+
+  // the days that can be clicked ("yyyy-MM-dd"); without it the heatmap only shows (nothing is clickable)
+  selectableDays = input<string[] | undefined>(undefined);
+  // the day marked as selected, by the owner (a click only says which day: daySelected)
+  selectedDay = input<string | null>(null);
+
+  daySelected = output<string>();
 
   protected readonly popover = inject(PopoverService);
 
@@ -106,6 +118,9 @@ export class ActivityHeatmapComponent {
     const byDay = new Map(data.map((d) => [d.day, d.value]));
     const emphasis1 = new Set(this.emphasis1Days());
     const emphasis2 = new Set(this.emphasis2Days());
+    const selectableDays = this.selectableDays();
+    const selectable = selectableDays ? new Set(selectableDays) : undefined;
+    const selectedDay = this.selectedDay();
     const rows = this.rows();
     const step = this.cellSize() + this.cellGap();
     const weekWidth = Math.ceil(WEEK_DAYS / rows) * step - this.cellGap();
@@ -133,6 +148,9 @@ export class ActivityHeatmapComponent {
           level: this.levelOf(value),
           emphasis1: e1,
           emphasis2: e2,
+          selectable: selectable?.has(day) ?? false,
+          inactive: !!selectable && !selectable.has(day) && value > 0,
+          selected: day === selectedDay,
           x: Math.floor(i / rows) * step,
           y: top + (i % rows) * step,
         });
@@ -159,25 +177,47 @@ export class ActivityHeatmapComponent {
       (this.showWeekLabels() ? LABEL_HEIGHT : 0) + this.rows() * (this.cellSize() + this.cellGap()) - this.cellGap(),
   );
 
+  protected onCellClick(cell: ActivityHeatmapCell): void {
+    if (cell.selectable) {
+      this.daySelected.emit(cell.day);
+    }
+  }
+
   // the corner marker: a right triangle in the top-right of the cell, its three corners rounded
   protected cornerPath(cell: ActivityHeatmapCell): string {
-    return this.roundedCorner(cell.x, cell.y, this.cellSize());
+    return this.roundedCorner(cell.x, cell.y, this.cellSize(), 'top-right');
+  }
+
+  // the marker of emphasis1: the same triangle in the opposite corner (bottom-left)
+  protected visitPath(cell: ActivityHeatmapCell): string {
+    return this.roundedCorner(cell.x, cell.y, this.cellSize(), 'bottom-left');
   }
 
   // the same marker for the legend swatch (a square of LEGEND_SWATCH px)
-  protected readonly legendCornerPath = this.roundedCorner(0, 0, LEGEND_SWATCH);
+  protected readonly legendCornerPath = this.roundedCorner(0, 0, LEGEND_SWATCH, 'top-right');
+  protected readonly legendVisitPath = this.roundedCorner(0, 0, LEGEND_SWATCH, 'bottom-left');
   protected readonly legendSwatchSize = LEGEND_SWATCH;
 
-  // a marker for the square at (x, y) of `size`
-  private roundedCorner(x: number, y: number, size: number): string {
-    const s = Math.round(size * 0.55);
+  // a marker for the square at (x, y) of `size`: a right triangle in one of two opposite corners
+  private roundedCorner(x: number, y: number, size: number, corner: 'top-right' | 'bottom-left'): string {
+    // 20% smaller than the 55% it had
+    const s = Math.round(size * MARKER_SIZE);
     const right = x + size - 1;
     const top = y + 1;
-    const points: [number, number][] = [
-      [right - s, top],
-      [right, top],
-      [right, top + s],
-    ];
+    const left = x + 1;
+    const bottom = y + size - 1;
+    const points: [number, number][] =
+      corner === 'top-right'
+        ? [
+            [right - s, top],
+            [right, top],
+            [right, top + s],
+          ]
+        : [
+            [left + s, bottom],
+            [left, bottom],
+            [left, bottom - s],
+          ];
     // how far from each corner the rounding starts along the edges (a quadratic curve with the corner as control)
     const trim = s * 0.28;
 

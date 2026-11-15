@@ -8,8 +8,32 @@
   [refreshable]="true"
   (refreshRequested)="refreshWidget()"
 >
+  <!-- expanded and the rows are not here yet: the skeleton of the two rows, with the size of the real boxes -->
   @if (isLoadingBoxes()) {
-    <div class="text-sm tod-text-muted-color">Loading...</div>
+    @for (row of skeletonRows; track row) {
+      <section class="flex flex-col">
+        <div class="flex h-4 items-center">
+          <p-skeleton width="24rem" height="0.75rem" />
+        </div>
+        <!-- a plain row, clipped at the right edge: the skeleton does not scroll -->
+        <div class="flex gap-4 overflow-hidden pt-3">
+          @for (box of skeletonBoxes; track box) {
+            <app-trivy-box class="w-80 shrink-0 mt-2">
+              <p-skeleton boxTitle width="9rem" height="1rem" />
+
+              <div class="flex h-64 flex-col gap-3 overflow-hidden">
+                <p-skeleton width="45%" height="0.75rem" />
+                @for (line of skeletonLines; track line) {
+                  <p-skeleton height="1.25rem" />
+                }
+              </div>
+
+              <div boxFooter><p-skeleton width="55%" height="1.25rem" /></div>
+            </app-trivy-box>
+          }
+        </div>
+      </section>
+    }
   }
 
   @if (showBoxes()) {
@@ -192,18 +216,42 @@
        the gap above the band is the one between the boxes (1rem), and both boxes start there: the title of the Selected box
        (it sticks out of its top border) hangs into that gap -->
   <div class="flex items-stretch gap-4">
-    <app-trivy-box [class]="showBoxes() ? 'max-w-[55%]' : 'flex-1'">
-      <app-activity-heatmap
-        [data]="chart().data"
-        [from]="chart().from"
-        [to]="today()"
-        [emphasis1Days]="visitDays()"
-        [emphasis2Days]="chart().flaggedDays"
-        valueLabel="added (id, severity) pairs"
-        emphasis1Label="you opened the home page"
-        emphasis2Label="known exploited added"
-      />
+    <app-trivy-box [class]="showBoxes() || isLoadingBoxes() ? 'max-w-[55%]' : 'flex-1'">
+      @if (isLoadingDays()) {
+        <!-- about the size of the heatmap with its legend, so the box does not collapse while the days are asked -->
+        <p-skeleton height="9rem" />
+      } @else {
+        <app-activity-heatmap
+          [data]="chart().data"
+          [from]="chart().from"
+          [to]="today()"
+          [emphasis1Days]="visitDays()"
+          [emphasis2Days]="chart().flaggedDays"
+          valueLabel="added (id, severity) pairs"
+          emphasis1Label="you opened the home page"
+          emphasis2Label="known exploited added"
+          [selectableDays]="showBoxes() ? heatmapDays() : undefined"
+          [selectedDay]="selection()?.day ?? null"
+          (daySelected)="onHeatmapDay($event)"
+        />
+      }
     </app-trivy-box>
+
+    @if (isLoadingBoxes()) {
+      <app-trivy-box class="flex-1 min-w-[24rem]">
+        <span boxTitle>Selected</span>
+        <div class="grid grid-cols-[minmax(14rem,2fr)_minmax(0,3fr)] gap-x-8">
+          <div class="flex flex-col gap-3">
+            <p-skeleton width="70%" height="1.25rem" />
+            <p-skeleton width="50%" height="1.25rem" />
+          </div>
+          <div class="flex flex-col gap-3">
+            <p-skeleton width="60%" height="1.25rem" />
+            <p-skeleton height="5rem" />
+          </div>
+        </div>
+      </app-trivy-box>
+    }
 
     @if (showBoxes()) {
       <app-trivy-box class="flex-1 min-w-[24rem]">
@@ -286,6 +334,17 @@
                   <span class="tod-text-muted-color">n/a</span>
                 }
               </span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">First added</span>
+              @if (pair?.firstAddedAt; as firstAdded) {
+                <span class="inline-flex items-baseline gap-1.5">
+                  {{ firstAdded.substring(0, 10) }}
+                  <span class="text-xs tod-text-muted-color">{{ age(firstAdded.substring(0, 10)) }}</span>
+                </span>
+              } @else {
+                <span class="tod-text-muted-color">n/a</span>
+              }
             </div>
             <div class="flex flex-col gap-0.5">
               <span class="text-xs tod-text-muted-color">Title</span>
