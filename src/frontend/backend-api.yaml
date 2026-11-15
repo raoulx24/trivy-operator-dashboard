@@ -664,6 +664,42 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  '/api/cve-details/{cveId}':
+    get:
+      tags:
+        - CveDetails
+      operationId: GetCveDetailsById
+      parameters:
+        - name: cveId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CveDetailsDto'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/cve-enrichment:
     get:
       tags:
@@ -1152,6 +1188,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HomeHistoryDriftDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/history-drift/denormalized:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeHistoryDriftDenormalized
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeHistoryDriftDenormalizedDto'
         '500':
           description: Internal Server Error
           content:
@@ -1717,42 +1790,6 @@ paths:
                 type: array
                 items:
                   type: string
-        '500':
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-  '/api/nvd/{cveId}':
-    get:
-      tags:
-        - Nvd
-      operationId: GetNvdCveById
-      parameters:
-        - name: cveId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NvdCveDto'
-        '400':
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '404':
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500':
           description: Internal Server Error
           content:
@@ -2572,7 +2609,7 @@ components:
         vrHistoryMaxAgeDays:
           type: integer
           format: int32
-        isNvdEnabled:
+        isCveDetailsEnabled:
           type: boolean
         isCveEnrichmentEnabled:
           type: boolean
@@ -3180,6 +3217,72 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SecurityAssessmentReportDetailDto'
+      additionalProperties: false
+    CveDetailsCvssDto:
+      type: object
+      properties:
+        version:
+          type: string
+        source:
+          type: string
+        baseScore:
+          type: number
+          format: double
+        severityId:
+          type: integer
+          format: int32
+        vectorString:
+          type: string
+      additionalProperties: false
+    CveDetailsDto:
+      type: object
+      properties:
+        cveId:
+          type: string
+        status:
+          type: string
+        errorMessage:
+          type: string
+          nullable: true
+        fetchedAt:
+          type: string
+          format: date-time
+        description:
+          type: string
+          nullable: true
+        published:
+          type: string
+          format: date-time
+          nullable: true
+        lastModified:
+          type: string
+          format: date-time
+          nullable: true
+        cvss:
+          type: array
+          items:
+            $ref: '#/components/schemas/CveDetailsCvssDto'
+          nullable: true
+        weaknesses:
+          type: array
+          items:
+            type: string
+          nullable: true
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/CveDetailsReferenceDto'
+          nullable: true
+      additionalProperties: false
+    CveDetailsReferenceDto:
+      type: object
+      properties:
+        url:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
       additionalProperties: false
     CveInfoDto:
       type: object
@@ -3966,6 +4069,56 @@ components:
           type: integer
           format: int32
       additionalProperties: false
+    HomeHistoryDriftDenormalizedDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        from:
+          type: string
+          format: date
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeHistoryDriftDenormalizedItemDto'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeHistoryDriftGroupDto'
+      additionalProperties: false
+    HomeHistoryDriftDenormalizedItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        addedAt:
+          type: string
+          format: date-time
+        imageDigest:
+          type: string
+        registry:
+          type: string
+        repository:
+          type: string
+        tag:
+          type: string
+        count:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
     HomeHistoryDriftDto:
       type: object
       properties:
@@ -3981,17 +4134,19 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HomeHistoryDriftDayDto'
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeHistoryDriftItemDto'
       additionalProperties: false
-    HomeHistoryDriftItemDto:
+    HomeHistoryDriftGroupDto:
       type: object
       properties:
         vulnerabilityId:
           type: string
         severityId:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        count:
           type: integer
           format: int32
         addedAt:
@@ -4003,10 +4158,10 @@ components:
           type: number
           format: double
           nullable: true
-        images:
+        namespaces:
           type: integer
           format: int32
-        imageNames:
+        namespaceNames:
           type: array
           items:
             type: string
@@ -4776,77 +4931,6 @@ components:
             type: string
         current:
           type: string
-      additionalProperties: false
-    NvdCveDto:
-      type: object
-      properties:
-        cveId:
-          type: string
-        status:
-          type: string
-        errorMessage:
-          type: string
-          nullable: true
-        fetchedAt:
-          type: string
-          format: date-time
-        vulnStatus:
-          type: string
-          nullable: true
-        description:
-          type: string
-          nullable: true
-        published:
-          type: string
-          format: date-time
-          nullable: true
-        lastModified:
-          type: string
-          format: date-time
-          nullable: true
-        cvss:
-          type: array
-          items:
-            $ref: '#/components/schemas/NvdCvssDto'
-          nullable: true
-        weaknesses:
-          type: array
-          items:
-            type: string
-          nullable: true
-        references:
-          type: array
-          items:
-            $ref: '#/components/schemas/NvdReferenceDto'
-          nullable: true
-      additionalProperties: false
-    NvdCvssDto:
-      type: object
-      properties:
-        version:
-          type: string
-        source:
-          type: string
-        isPrimary:
-          type: boolean
-        baseScore:
-          type: number
-          format: double
-        severityId:
-          type: integer
-          format: int32
-        vectorString:
-          type: string
-      additionalProperties: false
-    NvdReferenceDto:
-      type: object
-      properties:
-        url:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
       additionalProperties: false
     ProblemDetails:
       type: object
@@ -5886,6 +5970,7 @@ tags:
   - name: ClusterSbomReport
   - name: ClusterVulnerabilityReport
   - name: ConfigAuditReport
+  - name: CveDetails
   - name: CveEnrichment
   - name: EndOfLife
   - name: ExposedSecretReports
@@ -5893,7 +5978,6 @@ tags:
   - name: InfraAssessmentReport
   - name: KubernetesContexts
   - name: KubernetesNamespaces
-  - name: Nvd
   - name: RbacAssessmentReport
   - name: SbomReport
   - name: Severities

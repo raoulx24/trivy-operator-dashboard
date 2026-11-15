@@ -24,24 +24,54 @@ public sealed record HomeHistoryDriftDayDto(
     HomeSeverityCountsDto AddedBySeverity,
     int AddedKnownExploited);
 
-public sealed record HomeHistoryDriftItemDto(
-    string VulnerabilityId,
-    // as it was added
-    int SeverityId,
-    DateTime AddedAt,
-    bool IsKnownExploited,
-    double? EpssPercentile,
-    // the running images it was added to, in the range
-    int Images,
-    IReadOnlyList<string> ImageNames);
-
 public sealed record HomeHistoryDriftDto(
     bool IsAvailable,
     string? UnavailableReason,
     DateOnly From,
-    IReadOnlyList<HomeHistoryDriftDayDto> Days,
+    IReadOnlyList<HomeHistoryDriftDayDto> Days);
+
+// the flat form of the history drift
+// - Items: one row per history entry (image digest + cves hash, of a running image) and (vulnerability id, severity)
+//   added in it, as the history has them: AddedAt (the first seen of the entry), the image, the namespaces; the
+//   severity is as it was added
+//   a pair can appear in several entries of a digest (even on the same day): summing the Count is up to the reader
+// - Groups: one per (vulnerability id, severity), the distinct pairs the days count; Count = the sum of the Count of
+//   its items, AddedAt =
+//   the first of them, Namespaces = the union of theirs; Title: of the vulnerability definition (null when the
+//   definitions are not available)
+public sealed record HomeHistoryDriftDenormalizedItemDto(
+    string VulnerabilityId,
+    int SeverityId,
+    DateTime AddedAt,
+    string ImageDigest,
+    string Registry,
+    string Repository,
+    string Tag,
+    // the occurrences (package, version, target) of the pair in the entry, as the history counts them
+    int Count,
+    // of the history entry (the namespaces filter applies): the count, and the first names (sorted, capped)
+    int Namespaces,
+    IReadOnlyList<string> NamespaceNames);
+
+public sealed record HomeHistoryDriftGroupDto(
+    string VulnerabilityId,
+    int SeverityId,
+    string? Title,
+    int Count,
+    DateTime AddedAt,
+    bool IsKnownExploited,
+    double? EpssPercentile,
+    // where the images of the pair run now: the count, and the first names (sorted, capped)
+    int Namespaces,
+    IReadOnlyList<string> NamespaceNames);
+
+public sealed record HomeHistoryDriftDenormalizedDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    DateOnly From,
     // first added first, the most recent last
-    IReadOnlyList<HomeHistoryDriftItemDto> Items);
+    IReadOnlyList<HomeHistoryDriftDenormalizedItemDto> Items,
+    IReadOnlyList<HomeHistoryDriftGroupDto> Groups);
 
 // --- new images: the running images by the day their digest was first seen by the history, with what they have now
 // (current state: the vulnerabilities and severities of today's reports, not of the moment they arrived)

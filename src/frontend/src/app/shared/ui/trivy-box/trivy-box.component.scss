@@ -23,6 +23,18 @@
   padding: 0 0.25rem;
 }
 
+// the same on the right of the top border (e.g. a tag that belongs to the box, not to its name)
+.box-title-end {
+  position: absolute;
+  top: 0;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.25rem;
+}
+
 .box-body {
   flex: 1;
   min-width: 0;
@@ -35,6 +47,7 @@
 
 // a section with nothing projected takes no room
 .box-title:empty,
+.box-title-end:empty,
 .box-header:empty,
 .box-footer:empty {
   display: none;

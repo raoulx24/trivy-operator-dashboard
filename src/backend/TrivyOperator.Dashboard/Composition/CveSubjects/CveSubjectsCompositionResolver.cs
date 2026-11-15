@@ -7,10 +7,10 @@ internal static class CveSubjectsCompositionResolver
     // CVE subjects have no use of their own - they are collected only when a feature consumes them
     internal static CveSubjectsCompositionMode Resolve(IConfiguration configuration)
     {
-        // NVD consumes them only when gated (not Nvd:AllowAnyCve)
-        bool isNvdConsumer = configuration.LoadUseNvd() && !configuration.LoadNvdAllowAnyCve();
+        // CVE Details consumes them only when gated (not CveDetails:AllowAnyCve)
+        bool isCveDetailsConsumer = configuration.LoadUseCveDetails() && !configuration.LoadCveDetailsAllowAnyCve();
 
-        if (!configuration.LoadUseCveEnrichment() && !isNvdConsumer)
+        if (!configuration.LoadUseCveEnrichment() && !isCveDetailsConsumer)
         {
             return CveSubjectsCompositionMode.NoConsumers;
         }

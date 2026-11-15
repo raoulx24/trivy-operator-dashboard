@@ -22,7 +22,7 @@ public static class BackendSettingsServiceRegistrationExtensions
         services.Configure<FileRepositoryOptions>(configuration.GetSection("FileRepository"));
         services.Configure<VulnerabilityReportsHistoryOptions>(configuration.GetSection("History"));
         services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
-        // all the expiring caches (resource caches, NVD) - unbound until now, so the class default was always used
+        // all the expiring caches (resource caches, CVE details) - unbound until now, so the class default was always used
         services.Configure<InMemoryCacheOptions>(configuration.GetSection("InMemoryCache"));
 
         services.AddScoped<IBackendSettingsService, BackendSettingsService>();

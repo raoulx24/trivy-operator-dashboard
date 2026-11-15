@@ -75,7 +75,7 @@ export interface TrivyTableColumn extends Column {
 
 // 'vulnerabilityId' render type - the tags under the id; a click emits rowActionRequested with the source as action
 // 'exploited' - CISA KEV and/or ENISA EUVD
-export type VulnerabilityTagSource = 'nvd' | 'exploited' | 'epss';
+export type VulnerabilityTagSource = 'cveDetails' | 'exploited' | 'epss';
 
 export interface VulnerabilityTag {
   source: VulnerabilityTagSource;

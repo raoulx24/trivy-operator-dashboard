@@ -24,8 +24,8 @@ export class MainAppInitService {
     isKubeConfigUsed: false,
     isNamespaceListUsed: false,
     vrHistoryMaxAgeDays: 14,
-    // off until the backend says otherwise, so the NVD tags do not flash before the settings arrive
-    isNvdEnabled: false,
+    // off until the backend says otherwise, so the Details tags do not flash before the settings arrive
+    isCveDetailsEnabled: false,
     isCveEnrichmentEnabled: false,
     // off until the backend says otherwise, so the history menu items do not flash before the settings arrive
     isVrHistoryEnabled: false,
@@ -102,7 +102,7 @@ export class MainAppInitService {
         isKubeConfigUsed: this.defaultBackendSettingsDto?.isKubeConfigUsed ?? false,
         trivyReportConfigDtos: newTrivyReportConfig,
         vrHistoryMaxAgeDays: this.defaultBackendSettingsDto?.vrHistoryMaxAgeDays ?? 14,
-        isNvdEnabled: this.defaultBackendSettingsDto?.isNvdEnabled ?? false,
+        isCveDetailsEnabled: this.defaultBackendSettingsDto?.isCveDetailsEnabled ?? false,
         isCveEnrichmentEnabled: this.defaultBackendSettingsDto?.isCveEnrichmentEnabled ?? false,
         isVrHistoryEnabled: this.defaultBackendSettingsDto?.isVrHistoryEnabled ?? false,
         isEolEnabled: this.defaultBackendSettingsDto?.isEolEnabled ?? false,

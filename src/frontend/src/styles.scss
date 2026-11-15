@@ -705,6 +705,18 @@ mat-icon.text-xs {
   border-color: var(--p-content-border-color);
 }
 
+.tod-content-border-bottom-light {
+  border-bottom-width: 1px;
+  border-style: solid;
+  border-color: var(--p-content-border-color);
+}
+
+// a selected line of a box or a table (PrimeNG's own highlight colors, so it follows the theme and dark mode)
+.tod-selected-row {
+  background: var(--p-highlight-background);
+  color: var(--p-highlight-color);
+}
+
 // the popovers (PopoverService) are cdk overlays; the cdk container defaults to z-index 1000, below modal dialogs
 // (PrimeNG starts at 1100), so a popover of something inside a dialog would be hidden behind it
 .cdk-overlay-container {

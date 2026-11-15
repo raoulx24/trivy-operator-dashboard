@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 // a small rectangle in sections; every section is projected, and one that gets nothing takes no room
 // - [boxTitle]: on the top border, like the legend of a fieldset (text, and e.g. a tag)
+// - [boxTitleEnd]: the same, on the right of the top border
 // - [boxHeader]: above the body
 // - the rest (no attribute): the body
 // - [boxFooter]: below the body, after a thin line

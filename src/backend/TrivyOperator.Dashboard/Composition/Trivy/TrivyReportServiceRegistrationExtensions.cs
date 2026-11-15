@@ -543,7 +543,7 @@ public static class TrivyReportServiceRegistrationExtensions
             IExpiringResourceDictionaryCache<TId, CacheEntry<TSlim, TId>>,
             ExpiringResourceDictionaryCache<TId, CacheEntry<TSlim, TId>>>();
 
-        // the provider gives the reports (IResourceProvider) and the slim reports as stored (IResourceEntryProvider, for NVD)
+        // the provider gives the reports (IResourceProvider) and the slim reports as stored (IResourceEntryProvider, for CVE Details)
         if (isFileRepository)
         {
             services.AddSingleton<FileTrivyReportProvider<TReport, TSlim, TId>>();

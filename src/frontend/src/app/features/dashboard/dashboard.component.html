@@ -80,24 +80,14 @@
   </div>
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <app-home-widget-placeholder
-      heading="History drift"
+    <app-home-history-drift
       [hint]="historyDriftHint()"
-      description="per UTC day, the distinct (vulnerability id, severity) pairs added to images that were already running (from the history deltas, added only), still active now; known exploited ones counted apart and flagged; complete only within the history retention"
-      source="GET api/home/history-drift → HomeHistoryDriftDto"
-      [state]="historyDrift()"
-    >
-      <app-activity-heatmap
-        [data]="historyDriftChart().data"
-        [from]="historyDriftChart().from"
-        [to]="todayUtc"
-        [emphasis1Days]="visitDays"
-        [emphasis2Days]="historyDriftChart().flaggedDays"
-        valueLabel="added (id, severity) pairs"
-        emphasis1Label="you opened the home page"
-        emphasis2Label="known exploited added"
-      />
-    </app-home-widget-placeholder>
+      [namespaces]="namespaces()"
+      [severities]="severityIds()"
+      [today]="todayUtc"
+      [visitDays]="visitDays"
+      [refresh]="refreshCounter()"
+    />
     <app-home-widget-placeholder
       heading="New images"
       [hint]="newImagesHint()"

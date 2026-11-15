@@ -85,12 +85,11 @@
 
 <ng-template #box let-item>
   <app-trivy-box [appHomeVtItem]="'base-os-box-' + item.family + '-' + item.version" animate.enter="tod-vt-enter">
-    <span boxTitle>
-      {{ title(item) }}
-      @if (statusTag(item); as tag) {
-        <p-tag [value]="tag.label" [style]="tag.style" [rounded]="true" class="tod-state-tag-inverted" styleClass="text-xs" />
-      }
-    </span>
+    <!-- the elements of a title are separate, so the box puts a gap between them -->
+    <span boxTitle>{{ title(item) }}</span>
+    @if (statusTag(item); as tag) {
+      <p-tag boxTitle [value]="tag.label" [style]="tag.style" [rounded]="true" class="tod-state-tag-inverted" styleClass="text-xs" />
+    }
 
     <div class="flex flex-col gap-2 text-sm">
       <div class="flex flex-col text-xs tod-text-muted-color">

@@ -9,6 +9,7 @@ using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Entities;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.ValueObjects;
+using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
 using static TrivyOperator.Dashboard.Application.Home.Services.HomeNames;
@@ -37,19 +38,133 @@ public class HomeTimelineService(
 
     public async Task<HomeHistoryDriftDto> GetHistoryDrift(int? days, HomeFilter filter, CancellationToken ctx = default)
     {
+        HistoryDrift drift = await CollectHistoryDrift(days, filter, ctx);
+
+        if (drift.Reason is not null)
+        {
+            return new HomeHistoryDriftDto(false, drift.Reason, drift.From, []);
+        }
+
+        // distinct (vulnerability id, severity) pairs per day of their first addition
+        Dictionary<DateOnly, List<(int SeverityId, bool IsKnownExploited)>> byDay = drift.Entries
+            .GroupBy(x => x.Pair)
+            .Select(x => (x.Key, AddedAt: x.Min(entry => entry.AddedAt)))
+            .GroupBy(x => DateOnly.FromDateTime(x.AddedAt))
+            .ToDictionary(
+                x => x.Key,
+                x => x.Select(pair => (pair.Key.SeverityId, drift.ActiveById[pair.Key.Id].IsKnownExploited)).ToList());
+
+        return new HomeHistoryDriftDto(
+            true,
+            null,
+            drift.From,
+            [
+                .. EachDay(drift.From).Select(day =>
+                {
+                    List<(int SeverityId, bool IsKnownExploited)> dayPairs = byDay.GetValueOrDefault(day) ?? [];
+                    return new HomeHistoryDriftDayDto(
+                        day,
+                        dayPairs.Count,
+                        ToSeverityCounts(dayPairs.Select(x => x.SeverityId)),
+                        dayPairs.Count(x => x.IsKnownExploited));
+                }),
+            ]);
+    }
+
+    // Items: one row per history entry (digest + cves hash) and (vulnerability id, severity) added in it, as the history
+    // has them; Groups: one per (vulnerability id, severity)
+    public async Task<HomeHistoryDriftDenormalizedDto> GetHistoryDriftDenormalized(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        HistoryDrift drift = await CollectHistoryDrift(days, filter, ctx);
+
+        if (drift.Reason is not null)
+        {
+            return new HomeHistoryDriftDenormalizedDto(false, drift.Reason, drift.From, [], []);
+        }
+
+        return new HomeHistoryDriftDenormalizedDto(
+            true,
+            null,
+            drift.From,
+            [
+                .. drift.Entries
+                    .Select(entry => new HomeHistoryDriftDenormalizedItemDto(
+                        VulnerabilityId: entry.Pair.Id.Value,
+                        SeverityId: entry.Pair.SeverityId,
+                        AddedAt: entry.AddedAt,
+                        ImageDigest: entry.ImageDigest,
+                        Registry: entry.Meta.Registry.Value,
+                        Repository: entry.Meta.Repo.Value,
+                        Tag: entry.Meta.Tag.Value,
+                        Count: entry.Count,
+                        Namespaces: entry.Namespaces.Count,
+                        NamespaceNames: ToNamespaceNames(entry.Namespaces)))
+                    .OrderBy(x => x.AddedAt)
+                    .ThenBy(x => x.SeverityId)
+                    .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal)
+                    .ThenBy(x => x.ImageDigest, StringComparer.Ordinal),
+            ],
+            [
+                .. drift.Entries
+                    .GroupBy(x => x.Pair)
+                    .Select(group =>
+                    {
+                        ActiveVulnerability row = drift.ActiveById[group.Key.Id];
+                        HashSet<NamespaceName> namespaces = [.. group.SelectMany(x => x.Namespaces),];
+
+                        return new HomeHistoryDriftGroupDto(
+                            VulnerabilityId: group.Key.Id.Value,
+                            SeverityId: group.Key.SeverityId,
+                            Title: row.Title,
+                            Count: group.Sum(x => x.Count),
+                            AddedAt: group.Min(x => x.AddedAt),
+                            IsKnownExploited: row.IsKnownExploited,
+                            EpssPercentile: row.EpssPercentile,
+                            Namespaces: namespaces.Count,
+                            NamespaceNames: ToNamespaceNames(namespaces));
+                    })
+                    .OrderBy(x => x.AddedAt)
+                    .ThenBy(x => x.SeverityId)
+                    .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal),
+            ]);
+    }
+
+    // a history entry (digest + cves hash) and a (vulnerability id, severity) added in it; Namespaces: the ones of the
+    // entry, inside the namespaces filter
+    private sealed record DriftEntry(
+        (VulnerabilityId Id, int SeverityId) Pair,
+        DateTime AddedAt,
+        string ImageDigest,
+        // the occurrences (package, version, target) of the pair in the entry, as the history counts them
+        int Count,
+        ImageMeta Meta,
+        IReadOnlyCollection<NamespaceName> Namespaces);
+
+    private sealed record HistoryDrift(
+        string? Reason,
+        DateOnly From,
+        Dictionary<VulnerabilityId, ActiveVulnerability> ActiveById,
+        List<DriftEntry> Entries);
+
+    private async Task<HistoryDrift> CollectHistoryDrift(int? days, HomeFilter filter, CancellationToken ctx)
+    {
         DateOnly from = FromDays(days ?? retentionOptions.Value.KeepDays);
         string? reason = GetUnavailableReason();
 
         if (reason is not null)
         {
-            return new HomeHistoryDriftDto(false, reason, from, [], []);
+            return new HistoryDrift(reason, from, [], []);
         }
 
         ActiveVulnerabilityTable table = await GetTable(ctx);
         HomeScope scope = new(table, filter.Namespaces);
         HashSet<int> severities = ToSeverities(filter.SeverityIds);
 
-        // the active vulnerability ids (for the "still active" check and the exploited flag) and the running images
+        // the active vulnerability ids (for the "still active" check, the title and the exploited flag) and the
+        // running images
         Dictionary<VulnerabilityId, ActiveVulnerability> activeById = table.Rows
             .Where(scope.Contains)
             .GroupBy(x => x.Key.VulnerabilityId)
@@ -57,18 +172,26 @@ public class HomeTimelineService(
         HashSet<string> runningImageKeys =
             [.. table.Images.Values.Where(x => x.Digest is not null && scope.Contains(x)).Select(x => x.Key),];
 
-        // (id, severity) -> the first moment it was added in the range, and the images it was added to
-        Dictionary<(VulnerabilityId Id, int SeverityId), (DateTime AddedAt, HashSet<string> ImageKeys)> added = [];
+        List<DriftEntry> entries = [];
 
         foreach (SnapshotCveDeltas snapshot in await vulnerabilityReportsHistoryStore.GetAllCveDeltasAsync(ctx))
         {
             DateTime addedAt = snapshot.IndexEntry.FirstSeenAt.Value;
-            string imageKey = snapshot.IndexEntry.Key.Digest.Value;
+            string imageDigest = snapshot.IndexEntry.Key.Digest.Value;
 
-            if (DateOnly.FromDateTime(addedAt) < from || !runningImageKeys.Contains(imageKey))
+            if (DateOnly.FromDateTime(addedAt) < from || !runningImageKeys.Contains(imageDigest))
             {
                 continue;
             }
+
+            ImageMeta meta = snapshot.IndexEntry.HistoryMetadata.ImageMeta;
+            NamespaceName[] namespaces =
+            [
+                .. snapshot.IndexEntry.HistoryMetadata.NamespaceNames.Where(x => scope.Contains(x, false)),
+            ];
+
+            // a pair once per entry, with its occurrences (the history counts one per package, version and target)
+            Dictionary<(VulnerabilityId Id, int SeverityId), int> pairs = [];
 
             foreach (CveDelta delta in snapshot.CvesDeltas.Added)
             {
@@ -77,65 +200,17 @@ public class HomeTimelineService(
                     continue;
                 }
 
-                (VulnerabilityId, int) key = (delta.Id, delta.Severity.Rank);
+                (VulnerabilityId, int) pair = (delta.Id, delta.Severity.Rank);
+                pairs[pair] = pairs.GetValueOrDefault(pair) + delta.Count;
+            }
 
-                if (added.TryGetValue(key, out (DateTime AddedAt, HashSet<string> ImageKeys) current))
-                {
-                    current.ImageKeys.Add(imageKey);
-
-                    if (addedAt < current.AddedAt)
-                    {
-                        added[key] = (addedAt, current.ImageKeys);
-                    }
-                }
-                else
-                {
-                    added[key] = (addedAt, [imageKey,]);
-                }
+            foreach (((VulnerabilityId Id, int SeverityId) pair, int count) in pairs)
+            {
+                entries.Add(new DriftEntry(pair, addedAt, imageDigest, count, meta, namespaces));
             }
         }
 
-        List<HomeHistoryDriftItemDto> items =
-        [
-            .. added
-                .Select(x =>
-                {
-                    ActiveVulnerability row = activeById[x.Key.Id];
-
-                    return new HomeHistoryDriftItemDto(
-                        VulnerabilityId: x.Key.Id.Value,
-                        SeverityId: x.Key.SeverityId,
-                        AddedAt: x.Value.AddedAt,
-                        IsKnownExploited: row.IsKnownExploited,
-                        EpssPercentile: row.EpssPercentile,
-                        Images: x.Value.ImageKeys.Count,
-                        ImageNames: ToImageNames(x.Value.ImageKeys, table));
-                })
-                .OrderBy(x => x.AddedAt)
-                .ThenBy(x => x.SeverityId)
-                .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal),
-        ];
-
-        Dictionary<DateOnly, HomeHistoryDriftItemDto[]> byDay = items
-            .GroupBy(x => DateOnly.FromDateTime(x.AddedAt))
-            .ToDictionary(x => x.Key, x => x.ToArray());
-
-        return new HomeHistoryDriftDto(
-            true,
-            null,
-            from,
-            [
-                .. EachDay(from).Select(day =>
-                {
-                    HomeHistoryDriftItemDto[] dayItems = byDay.GetValueOrDefault(day) ?? [];
-                    return new HomeHistoryDriftDayDto(
-                        day,
-                        dayItems.Length,
-                        ToSeverityCounts(dayItems.Select(x => x.SeverityId)),
-                        dayItems.Count(x => x.IsKnownExploited));
-                }),
-            ],
-            items);
+        return new HistoryDrift(null, from, activeById, entries);
     }
 
     // ------------------------------------------------------------------------

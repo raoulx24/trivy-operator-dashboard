@@ -10,7 +10,14 @@ public class HomeTimelineNullService : QueryNullService, IHomeTimelineService
     private const string Reason = "The home page data is available only for the default context";
 
     public Task<HomeHistoryDriftDto> GetHistoryDrift(int? days, HomeFilter filter, CancellationToken ctx = default) =>
-        Task.FromResult(new HomeHistoryDriftDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), [], []));
+        Task.FromResult(new HomeHistoryDriftDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), []));
+
+    public Task<HomeHistoryDriftDenormalizedDto> GetHistoryDriftDenormalized(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(
+            new HomeHistoryDriftDenormalizedDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), [], []));
 
     public Task<HomeNewImagesDto> GetNewImages(int? days, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeNewImagesDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), null, [], []));

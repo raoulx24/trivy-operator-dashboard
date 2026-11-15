@@ -10,7 +10,7 @@ public sealed record BackendSettingsDto
     public int VrHistoryMaxAgeDays { get; init; } = 14;
     // the effective state of the following - taken from the services, so false also when the feature is not composed
     // (e.g. no vulnerability reports are enabled)
-    public bool IsNvdEnabled { get; init; }
+    public bool IsCveDetailsEnabled { get; init; }
     public bool IsCveEnrichmentEnabled { get; init; }
     public bool IsVrHistoryEnabled { get; init; }
     public bool IsEolEnabled { get; init; }

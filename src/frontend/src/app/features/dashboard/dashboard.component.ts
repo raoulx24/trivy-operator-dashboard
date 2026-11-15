@@ -17,6 +17,7 @@ import {
 import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
 import { ActivityHeatmapDayDto } from '@shared/ui/activity-heatmap/activity-heatmap.types';
 import { HomeBaseOsComponent } from './home-base-os/home-base-os.component';
+import { HomeHistoryDriftComponent } from './home-history-drift/home-history-drift.component';
 import { HomeMotionService } from './home-motion/home-motion.service';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
 import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
@@ -41,6 +42,7 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomeWidgetPlaceholderComponent,
     ActivityHeatmapComponent,
     HomeBaseOsComponent,
+    HomeHistoryDriftComponent,
   ],
   // one expanded widget per page, shared by the widget groups
   providers: [HomeWidgetExpansionService, HomeMotionService],
@@ -116,10 +118,8 @@ export class DashboardComponent {
   protected readonly newVulnerabilities = signal<HomeWidgetState>({});
   protected readonly newFixes = signal<HomeWidgetState>({});
   protected readonly knownExploited = signal<HomeWidgetState>({});
-  protected readonly historyDrift = signal<HomeWidgetState>({});
   protected readonly newImages = signal<HomeWidgetState>({});
-  // the per day data of the two timelines: the value, and the days with known exploited
-  protected readonly historyDriftChart = signal<HomeHeatmapData>({ data: [], flaggedDays: [] });
+  // the per day data of the timeline: the value, and the days with known exploited
   protected readonly newImagesChart = signal<HomeHeatmapData>({ data: [], flaggedDays: [] });
   protected readonly todayUtc = new Date().toISOString().substring(0, 10);
   protected readonly fixWaiting = signal<HomeWidgetState>({});
@@ -266,25 +266,6 @@ export class DashboardComponent {
         unavailableReason: x.unavailableReason,
         summary: `${x.items.length} items (${x.newSinceCount} new since ${this.toDay(since)}); ${this.toTotals(x.totals)}`,
       }),
-    );
-
-    this.load(
-      this.historyDrift,
-      this.homeService.getHomeHistoryDrift({ ...scope }),
-      (x) => ({
-        isAvailable: x.isAvailable,
-        unavailableReason: x.unavailableReason,
-        summary:
-          `${x.days.length} days from ${x.from}; added ${this.sum(x.days.map((d) => d.added))} ` +
-          `(${this.sum(x.days.map((d) => d.addedKnownExploited))} known exploited), ` +
-          `on ${x.days.filter((d) => d.added > 0).length} days`,
-      }),
-      (x) =>
-        this.historyDriftChart.set({
-          from: x.from,
-          data: x.days.map((d) => ({ day: d.day, value: d.added })),
-          flaggedDays: x.days.filter((d) => d.addedKnownExploited > 0).map((d) => d.day),
-        }),
     );
 
     this.load(

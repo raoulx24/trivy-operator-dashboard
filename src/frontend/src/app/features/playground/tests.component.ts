@@ -4,26 +4,26 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 
-import { NvdCveDialogComponent } from '@shared/ui/nvd-cve-dialog/nvd-cve-dialog.component';
+import { CveDetailsDialogComponent } from '@shared/ui/cve-details-dialog/cve-details-dialog.component';
 
 @Component({
   selector: 'app-tests',
-  imports: [ButtonModule, FormsModule, InputTextModule, NvdCveDialogComponent],
+  imports: [ButtonModule, FormsModule, InputTextModule, CveDetailsDialogComponent],
   templateUrl: './tests.component.html',
   styleUrl: './tests.component.scss',
 })
 export class TestsComponent {
   protected cveIdInput = '';
   // set only on open - binding the input directly would reload an open dialog on every keystroke
-  protected readonly nvdCveId = signal<string | undefined>(undefined);
-  protected readonly isNvdDialogVisible = signal(false);
+  protected readonly cveDetailsCveId = signal<string | undefined>(undefined);
+  protected readonly isCveDetailsDialogVisible = signal(false);
 
-  protected openNvdDialog() {
+  protected openCveDetailsDialog() {
     const cveId = this.cveIdInput.trim();
 
     if (cveId) {
-      this.nvdCveId.set(cveId);
-      this.isNvdDialogVisible.set(true);
+      this.cveDetailsCveId.set(cveId);
+      this.isCveDetailsDialogVisible.set(true);
     }
   }
 }

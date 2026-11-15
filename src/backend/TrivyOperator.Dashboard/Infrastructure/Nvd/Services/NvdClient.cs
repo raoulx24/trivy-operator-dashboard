@@ -2,9 +2,9 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using TrivyOperator.Dashboard.Application.Nvd.Abstractions;
-using TrivyOperator.Dashboard.Application.Nvd.Options;
-using TrivyOperator.Dashboard.Domain.Nvd.Entities;
+using TrivyOperator.Dashboard.Application.CveDetails.Abstractions;
+using TrivyOperator.Dashboard.Application.CveDetails.Options;
+using TrivyOperator.Dashboard.Domain.CveDetails.Entities;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Nvd.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Nvd.Models;
@@ -23,7 +23,7 @@ public class NvdClient(
     IHttpClientFactory httpClientFactory,
     NvdRateLimiter rateLimiter,
     IOptionsMonitor<NvdOptions> options,
-    ILogger<NvdClient> logger) : INvdProvider
+    ILogger<NvdClient> logger) : ICveDetailsProvider
 {
     public const string HttpClientName = "Nvd";
 
@@ -32,7 +32,7 @@ public class NvdClient(
     private const int PermitLimitWithApiKey = 50;
     private static readonly TimeSpan RateLimitWindow = TimeSpan.FromSeconds(30);
 
-    public async Task<CveSourceResult<NvdInfo>> GetCve(CveId id, CancellationToken ctx = default)
+    public async Task<CveSourceResult<CveDetailsInfo>> GetCve(CveId id, CancellationToken ctx = default)
     {
         NvdOptions nvdOptions = options.CurrentValue;
         string? apiKey = string.IsNullOrWhiteSpace(nvdOptions.ApiKey) ? null : nvdOptions.ApiKey.Trim();
@@ -88,14 +88,14 @@ public class NvdClient(
 
             if (nvdResponse.TotalResults == 0)
             {
-                return CveSourceResult<NvdInfo>.NotListed(Timestamp.Now());
+                return CveSourceResult<CveDetailsInfo>.NotListed(Timestamp.Now());
             }
 
-            NvdInfo? info = nvdResponse.ToDomain(id);
+            CveDetailsInfo? info = nvdResponse.ToDomain(id);
 
             return info is null
                 ? Failed($"NVD returned no record for {id}")
-                : CveSourceResult<NvdInfo>.Ok(info, Timestamp.Now());
+                : CveSourceResult<CveDetailsInfo>.Ok(info, Timestamp.Now());
         }
         catch (OperationCanceledException) when (ctx.IsCancellationRequested)
         {
@@ -113,8 +113,8 @@ public class NvdClient(
         }
     }
 
-    private static CveSourceResult<NvdInfo> Failed(string errorMessage) =>
-        CveSourceResult<NvdInfo>.Failed(null, errorMessage, Timestamp.Now());
+    private static CveSourceResult<CveDetailsInfo> Failed(string errorMessage) =>
+        CveSourceResult<CveDetailsInfo>.Failed(null, errorMessage, Timestamp.Now());
 }
 
 internal static class NvdHttpResponseExtensions

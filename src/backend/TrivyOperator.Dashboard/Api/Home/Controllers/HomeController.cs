@@ -74,6 +74,20 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeTimelineService.GetHistoryDrift(days, ToFilter(null, severities, namespaces, null), ctx));
 
+    // the same data as history-drift, flat: one row per (vulnerability id, severity, image)
+    [HttpGet("history-drift/denormalized", Name = "GetHomeHistoryDriftDenormalized")]
+    [ProducesResponseType(typeof(HomeHistoryDriftDenormalizedDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetHistoryDriftDenormalized(
+        [FromQuery] int? days,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeTimelineService.GetHistoryDriftDenormalized(
+            days,
+            ToFilter(null, severities, namespaces, null),
+            ctx));
+
     // days: the range ending today (UTC), at most 366; default: the history retention
     [HttpGet("new-images", Name = "GetHomeNewImages")]
     [ProducesResponseType(typeof(HomeNewImagesDto), StatusCodes.Status200OK, "application/json")]

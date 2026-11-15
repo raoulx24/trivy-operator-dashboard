@@ -8,7 +8,7 @@ using TrivyOperator.Dashboard.Infrastructure.Caching.InMemory.Details.Vulnerabil
 
 namespace TrivyOperator.Dashboard.Composition.CveSubjects;
 
-// shared by CVE Enrichment and NVD; when disabled nothing is registered - the consumers are disabled as well
+// shared by CVE Enrichment and CVE Details; when disabled nothing is registered - the consumers are disabled as well
 public static class CveSubjectsServiceRegistrationExtensions
 {
     // 1st level - main entrance
@@ -20,7 +20,7 @@ public static class CveSubjectsServiceRegistrationExtensions
         {
             case CveSubjectsCompositionMode.NoConsumers:
                 CompositionLogger.Logger?.LogInformation(
-                    "CVE Subjects related services are disabled - neither CVE Enrichment nor NVD is enabled");
+                    "CVE Subjects related services are disabled - neither CVE Enrichment nor CVE Details is enabled");
                 return;
 
             case CveSubjectsCompositionMode.NoVulnerabilityReports:
