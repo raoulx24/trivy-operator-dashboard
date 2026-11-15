@@ -20,5 +20,12 @@ public class HomeTimelineNullService : QueryNullService, IHomeTimelineService
             new HomeHistoryDriftDenormalizedDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), [], []));
 
     public Task<HomeNewImagesDto> GetNewImages(int? days, HomeFilter filter, CancellationToken ctx = default) =>
-        Task.FromResult(new HomeNewImagesDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), null, [], []));
+        Task.FromResult(new HomeNewImagesDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), null, []));
+
+    public Task<HomeNewImagesDenormalizedDto> GetNewImagesDenormalized(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(
+            new HomeNewImagesDenormalizedDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), [], []));
 }

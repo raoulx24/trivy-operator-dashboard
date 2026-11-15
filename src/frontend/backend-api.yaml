@@ -1255,11 +1255,6 @@ paths:
             type: array
             items:
               type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            format: int32
       responses:
         '200':
           description: OK
@@ -1267,6 +1262,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HomeNewImagesDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/new-images/denormalized:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeNewImagesDenormalized
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeNewImagesDenormalizedDto'
         '500':
           description: Internal Server Error
           content:
@@ -4258,39 +4290,6 @@ components:
           items:
             $ref: '#/components/schemas/HomeActiveVulnerabilityDto'
       additionalProperties: false
-    HomeNewImageDto:
-      type: object
-      properties:
-        digest:
-          type: string
-        registry:
-          type: string
-        repository:
-          type: string
-        tag:
-          type: string
-        firstSeenAt:
-          type: string
-          format: date-time
-        vulnerabilities:
-          type: integer
-          format: int32
-        vulnerabilitiesBySeverity:
-          $ref: '#/components/schemas/HomeSeverityCountsDto'
-        knownExploited:
-          type: integer
-          format: int32
-        workloads:
-          type: integer
-          format: int32
-        namespaces:
-          type: integer
-          format: int32
-        namespaceNames:
-          type: array
-          items:
-            type: string
-      additionalProperties: false
     HomeNewImagesDayDto:
       type: object
       properties:
@@ -4308,6 +4307,59 @@ components:
         knownExploited:
           type: integer
           format: int32
+      additionalProperties: false
+    HomeNewImagesDenormalizedDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        from:
+          type: string
+          format: date
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeNewImagesDenormalizedItemDto'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeNewImagesGroupDto'
+      additionalProperties: false
+    HomeNewImagesDenormalizedItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        firstSeenAt:
+          type: string
+          format: date-time
+        imageDigest:
+          type: string
+        registry:
+          type: string
+        repository:
+          type: string
+        tag:
+          type: string
+        count:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
       additionalProperties: false
     HomeNewImagesDto:
       type: object
@@ -4328,10 +4380,40 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HomeNewImagesDayDto'
-        items:
+      additionalProperties: false
+    HomeNewImagesGroupDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        count:
+          type: integer
+          format: int32
+        images:
+          type: integer
+          format: int32
+        firstSeenAt:
+          type: string
+          format: date-time
+        isKnownExploited:
+          type: boolean
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
+        namespaces:
+          type: integer
+          format: int32
+        namespaceNames:
           type: array
           items:
-            $ref: '#/components/schemas/HomeNewImageDto'
+            type: string
       additionalProperties: false
     HomeNewVulnerabilitiesDto:
       type: object

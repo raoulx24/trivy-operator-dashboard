@@ -92,25 +92,14 @@
       [visitDays]="visitDays"
       [refresh]="refreshCounter()"
     />
-    <app-home-widget-placeholder
-      heading="New images"
+    <app-home-new-images
       [hint]="newImagesHint()"
-      description="per UTC day, the running images first seen that day and their distinct (vulnerability id, severity) pairs as they are now (current state, not as they arrived); known exploited counted apart"
-      source="GET api/home/new-images → HomeNewImagesDto"
-      [state]="newImages()"
-      (refresh)="reloadNewImages()"
-    >
-      <app-activity-heatmap
-        [data]="newImagesChart().data"
-        [from]="newImagesChart().from"
-        [to]="todayUtc"
-        [emphasis1Days]="visitDays"
-        [emphasis2Days]="newImagesChart().flaggedDays"
-        valueLabel="new images"
-        emphasis1Label="you opened the home page"
-        emphasis2Label="known exploited among them"
-      />
-    </app-home-widget-placeholder>
+      [namespaces]="namespaces()"
+      [severities]="severityIds()"
+      [today]="todayUtc"
+      [visitDays]="visitDays"
+      [refresh]="refreshCounter()"
+    />
     <app-home-base-os
       [hint]="baseOsHint()"
       [namespaces]="namespaces()"

@@ -18,4 +18,10 @@ public interface IHomeTimelineService : IQueryService
 
     // default range: the history retention (KeepDays), as the history drift
     Task<HomeNewImagesDto> GetNewImages(int? days, HomeFilter filter, CancellationToken ctx = default);
+
+    // the same data as the new images, flat: one row per (vulnerability id, severity, image)
+    Task<HomeNewImagesDenormalizedDto> GetNewImagesDenormalized(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default);
 }

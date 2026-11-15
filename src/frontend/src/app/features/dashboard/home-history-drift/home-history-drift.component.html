@@ -10,30 +10,7 @@
 >
   <!-- expanded and the rows are not here yet: the skeleton of the two rows, with the size of the real boxes -->
   @if (isLoadingBoxes()) {
-    @for (row of skeletonRows; track row) {
-      <section class="flex flex-col">
-        <div class="flex h-4 items-center">
-          <p-skeleton width="24rem" height="0.75rem" />
-        </div>
-        <!-- a plain row, clipped at the right edge: the skeleton does not scroll -->
-        <div class="flex gap-4 overflow-hidden pt-3">
-          @for (box of skeletonBoxes; track box) {
-            <app-trivy-box class="w-80 shrink-0 mt-2">
-              <p-skeleton boxTitle width="9rem" height="1rem" />
-
-              <div class="flex h-64 flex-col gap-3 overflow-hidden">
-                <p-skeleton width="45%" height="0.75rem" />
-                @for (line of skeletonLines; track line) {
-                  <p-skeleton height="1.25rem" />
-                }
-              </div>
-
-              <div boxFooter><p-skeleton width="55%" height="1.25rem" /></div>
-            </app-trivy-box>
-          }
-        </div>
-      </section>
-    }
+    <app-home-pivot-skeleton />
   }
 
   @if (showBoxes()) {
@@ -55,7 +32,7 @@
         <ng-template let-box>
           <app-trivy-box class="block mt-2">
             <!-- the title of a selected box is a tag; the elements of a title are separate, so the box puts a gap between them -->
-            @if (selection()?.digest === box.digest) {
+            @if (pivot.selection()?.digest === box.digest) {
               <p-tag boxTitle class="text-xs" severity="secondary" [rounded]="true" [value]="box.name" />
             } @else {
               <span boxTitle>{{ box.name }}</span>
@@ -76,33 +53,23 @@
                       <th colspan="2" class="text-left pt-2 pb-0.5 tod-content-border-bottom-light">
                         <div class="flex items-baseline justify-between gap-2">
                           <span class="text-sm font-semibold">{{ group.day }}</span>
-                          <span class="text-xs font-normal tod-text-muted-color">{{ age(group.day) }}</span>
+                          <span class="text-xs font-normal tod-text-muted-color">{{ pivot.age(group.day) }}</span>
                         </div>
                       </th>
                     </tr>
                     @for (row of group.rows; track row.key) {
                       <tr
                         class="cursor-pointer"
-                        [class.tod-selected-row]="isImageRowSelected(box, row)"
+                        [class.tod-selected-row]="pivot.isSelected(box.digest, row.pairKey)"
                         tabindex="0"
-                        (click)="selectFromImage(box, row)"
-                        (keydown.enter)="selectFromImage(box, row)"
+                        (click)="selectFromImage(box, row.pairKey)"
+                        (keydown.enter)="selectFromImage(box, row.pairKey)"
                       >
                         <td class="break-all">
                           <span class="inline-flex flex-wrap items-center gap-1">
                             {{ row.vulnerabilityId }}
                             @if (row.isKnownExploited) {
-                              <!-- a click on the tag opens its dialog, not the selection of the line -->
-                              <p-tag
-                                class="text-xs cursor-pointer"
-                                role="button"
-                                tabindex="0"
-                                severity="secondary"
-                                [rounded]="true"
-                                value="EXPLOIT"
-                                (click)="$event.stopPropagation(); openExploited(row.vulnerabilityId)"
-                                (keydown.enter)="$event.stopPropagation(); openExploited(row.vulnerabilityId)"
-                              />
+                              <app-home-exploit-tag [vulnerabilityId]="row.vulnerabilityId" />
                             }
                           </span>
                         </td>
@@ -122,7 +89,7 @@
               </table>
             </div>
 
-            <div boxFooter><ng-container *ngTemplateOutlet="footer; context: { $implicit: box }" /></div>
+            <div boxFooter><app-home-namespaces-footer [footer]="box" /></div>
           </app-trivy-box>
         </ng-template>
       </app-virtual-scroller>
@@ -143,7 +110,7 @@
       >
         <ng-template let-box>
           <app-trivy-box class="block mt-2">
-            @if (selection()?.pairKey === box.key) {
+            @if (pivot.selection()?.pairKey === box.key) {
               <p-tag boxTitle class="text-xs" severity="secondary" [rounded]="true" [value]="box.vulnerabilityId" />
             } @else {
               <span boxTitle>{{ box.vulnerabilityId }}</span>
@@ -157,17 +124,7 @@
             />
             @if (box.isKnownExploited) {
               <!-- on the right of the top border: it belongs to the pair, not to its name -->
-              <p-tag
-                boxTitleEnd
-                class="text-xs cursor-pointer"
-                role="button"
-                tabindex="0"
-                severity="secondary"
-                [rounded]="true"
-                value="EXPLOIT"
-                (click)="openExploited(box.vulnerabilityId)"
-                (keydown.enter)="openExploited(box.vulnerabilityId)"
-              />
+              <app-home-exploit-tag boxTitleEnd [vulnerabilityId]="box.vulnerabilityId" />
             }
 
             <!-- a size, not a maximum: every box has the same dimensions, empty or with a long list -->
@@ -184,17 +141,17 @@
                       <th colspan="1" class="text-left pt-2 pb-0.5 tod-content-border-bottom-light">
                         <div class="flex items-baseline justify-between gap-2">
                           <span class="text-sm font-semibold">{{ group.day }}</span>
-                          <span class="text-xs font-normal tod-text-muted-color">{{ age(group.day) }}</span>
+                          <span class="text-xs font-normal tod-text-muted-color">{{ pivot.age(group.day) }}</span>
                         </div>
                       </th>
                     </tr>
                     @for (row of group.rows; track row.key) {
                       <tr
                         class="cursor-pointer"
-                        [class.tod-selected-row]="isPairRowSelected(box, row)"
+                        [class.tod-selected-row]="pivot.isSelected(row.digest, box.key)"
                         tabindex="0"
-                        (click)="selectFromPair(box, row)"
-                        (keydown.enter)="selectFromPair(box, row)"
+                        (click)="selectFromPair(box, row.digest)"
+                        (keydown.enter)="selectFromPair(box, row.digest)"
                       >
                         <td class="break-all">{{ row.name }}</td>
                       </tr>
@@ -204,7 +161,7 @@
               </table>
             </div>
 
-            <div boxFooter><ng-container *ngTemplateOutlet="footer; context: { $implicit: box }" /></div>
+            <div boxFooter><app-home-namespaces-footer [footer]="box" /></div>
           </app-trivy-box>
         </ng-template>
       </app-virtual-scroller>
@@ -230,27 +187,15 @@
           valueLabel="added (id, severity) pairs"
           emphasis1Label="you opened the home page"
           emphasis2Label="known exploited added"
-          [selectableDays]="showBoxes() ? heatmapDays() : undefined"
-          [selectedDay]="selection()?.day ?? null"
-          (daySelected)="onHeatmapDay($event)"
+          [selectableDays]="showBoxes() ? pivot.heatmapDays() : undefined"
+          [selectedDay]="pivot.selection()?.day ?? null"
+          (daySelected)="pivot.pickHeatmapDay($event)"
         />
       }
     </app-trivy-box>
 
     @if (isLoadingBoxes()) {
-      <app-trivy-box class="flex-1 min-w-[24rem]">
-        <span boxTitle>Selected</span>
-        <div class="grid grid-cols-[minmax(14rem,2fr)_minmax(0,3fr)] gap-x-8">
-          <div class="flex flex-col gap-3">
-            <p-skeleton width="70%" height="1.25rem" />
-            <p-skeleton width="50%" height="1.25rem" />
-          </div>
-          <div class="flex flex-col gap-3">
-            <p-skeleton width="60%" height="1.25rem" />
-            <p-skeleton height="5rem" />
-          </div>
-        </div>
-      </app-trivy-box>
+      <app-home-pivot-selected-skeleton />
     }
 
     @if (showBoxes()) {
@@ -264,83 +209,17 @@
              two columns, the second one wider, as it has the title -->
         <div class="grid grid-cols-[minmax(14rem,2fr)_minmax(0,3fr)] items-start gap-x-8 text-sm">
           <div class="flex flex-col gap-2">
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs tod-text-muted-color">Image</span>
-              <span class="flex items-center justify-between gap-1">
-                @if (image) {
-                  <span class="break-all">{{ image.name }}</span>
-                  <p-button
-                    class="text-sm tod-button-compact inline-flex"
-                    icon="pi pi-external-link"
-                    size="small"
-                    severity="secondary"
-                    [text]="true"
-                    [rounded]="true"
-                    [ariaLabel]="'Open the vulnerability reports history of ' + image.name"
-                    (onClick)="openHistory(image.digest)"
-                  />
-                } @else {
-                  <span class="tod-text-muted-color">n/a</span>
-                }
-              </span>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs tod-text-muted-color">Registry</span>
-              <span class="break-all" [class.tod-text-muted-color]="!image">{{ image?.registry ?? 'n/a' }}</span>
-            </div>
+            <app-home-pivot-image-fields [value]="image" />
           </div>
 
           <div class="flex flex-col gap-2">
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs tod-text-muted-color">Vulnerability</span>
-              <span class="flex items-center justify-between gap-2">
-                @if (pair) {
-                  <span class="inline-flex flex-wrap items-center gap-1">
-                    <span class="break-all">{{ pair.vulnerabilityId }}</span>
-                    <p-tag
-                      class="text-xs"
-                      [rounded]="true"
-                      [style]="pair.severityId | severityCssStyleById: 1"
-                      [value]="severityLabel(pair.severityId)"
-                    />
-                  </span>
-                  <span class="inline-flex items-center gap-1">
-                    @if (pair.isKnownExploited) {
-                      <p-tag
-                        class="text-xs cursor-pointer"
-                        role="button"
-                        tabindex="0"
-                        severity="secondary"
-                        [rounded]="true"
-                        value="EXPLOIT"
-                        (click)="openExploited(pair.vulnerabilityId)"
-                        (keydown.enter)="openExploited(pair.vulnerabilityId)"
-                      />
-                    }
-                    @if (hasCveDetails(pair.vulnerabilityId)) {
-                      <p-button
-                        class="text-sm tod-button-compact inline-flex"
-                        icon="pi pi-info-circle"
-                        size="small"
-                        severity="secondary"
-                        [text]="true"
-                        [rounded]="true"
-                        [ariaLabel]="'Open the details of ' + pair.vulnerabilityId"
-                        (onClick)="openCveDetails(pair.vulnerabilityId)"
-                      />
-                    }
-                  </span>
-                } @else {
-                  <span class="tod-text-muted-color">n/a</span>
-                }
-              </span>
-            </div>
+            <app-home-pivot-vulnerability-field [pair]="pair" />
             <div class="flex flex-col gap-0.5">
               <span class="text-xs tod-text-muted-color">First added</span>
               @if (pair?.firstAddedAt; as firstAdded) {
                 <span class="inline-flex items-baseline gap-1.5">
                   {{ firstAdded.substring(0, 10) }}
-                  <span class="text-xs tod-text-muted-color">{{ age(firstAdded.substring(0, 10)) }}</span>
+                  <span class="text-xs tod-text-muted-color">{{ pivot.age(firstAdded.substring(0, 10)) }}</span>
                 </span>
               } @else {
                 <span class="tod-text-muted-color">n/a</span>
@@ -369,16 +248,12 @@
         appendTo="body"
         [filter]="true"
         [showClear]="true"
-        [options]="dayOptions()"
-        [ngModel]="selection()?.day ?? null"
-        (onChange)="onDayPicked($event.value)"
+        [options]="pivot.dayOptions()"
+        [ngModel]="pivot.selection()?.day ?? null"
+        (onChange)="pivot.pickDay($event.value)"
       >
-        <ng-template #item let-option>
-          <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
-        </ng-template>
-        <ng-template #selectedItem let-option>
-          <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
-        </ng-template>
+        <ng-template #item let-option><app-home-pivot-option [option]="option" /></ng-template>
+        <ng-template #selectedItem let-option><app-home-pivot-option [option]="option" /></ng-template>
       </p-select>
       <p-select
         size="small"
@@ -390,16 +265,12 @@
         appendTo="body"
         [filter]="true"
         [showClear]="true"
-        [options]="imageOptions()"
-        [ngModel]="selection()?.digest ?? null"
+        [options]="pivot.imageOptions()"
+        [ngModel]="pivot.selection()?.digest ?? null"
         (onChange)="onImagePicked($event.value)"
       >
-        <ng-template #item let-option>
-          <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
-        </ng-template>
-        <ng-template #selectedItem let-option>
-          <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
-        </ng-template>
+        <ng-template #item let-option><app-home-pivot-option [option]="option" /></ng-template>
+        <ng-template #selectedItem let-option><app-home-pivot-option [option]="option" /></ng-template>
       </p-select>
       <p-select
         size="small"
@@ -411,16 +282,12 @@
         appendTo="body"
         [filter]="true"
         [showClear]="true"
-        [options]="pairOptions()"
-        [ngModel]="selection()?.pairKey ?? null"
+        [options]="pivot.pairOptions()"
+        [ngModel]="pivot.selection()?.pairKey ?? null"
         (onChange)="onPairPicked($event.value)"
       >
-        <ng-template #item let-option>
-          <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
-        </ng-template>
-        <ng-template #selectedItem let-option>
-          <ng-container *ngTemplateOutlet="optionRow; context: { $implicit: option }" />
-        </ng-template>
+        <ng-template #item let-option><app-home-pivot-option [option]="option" /></ng-template>
+        <ng-template #selectedItem let-option><app-home-pivot-option [option]="option" /></ng-template>
       </p-select>
       <p-button
         class="inline-flex"
@@ -447,56 +314,3 @@
     (rowActionRequested)="onTableRowAction($event)"
   />
 }
-
-<!-- the first namespaces, then a pill with how many more; its popover lists the ones that were sent
-     one line (cut with an ellipsis): the boxes of a row must have the same height (the virtual row is as tall as its
-     tallest rendered box) -->
-<ng-template #footer let-box>
-  <div class="flex items-center text-sm">
-    <span class="truncate min-w-0" [class.tod-text-muted-color]="box.namespaceNames.length === 0">{{ box.namespaceNames.length === 0 ? 'n/a' : shownNamespaces(box).join(', ') }}</span>
-    @if (box.namespaces > shownNamespaces(box).length) {
-      <span
-        class="tod-counter-pill"
-        (mouseenter)="popover.show(namespacesTip, $event, namespacesTipData(box))"
-        (mousemove)="popover.move($event)"
-        (mouseleave)="popover.hide()"
-      >
-        +{{ box.namespaces - shownNamespaces(box).length }}
-      </span>
-    }
-  </div>
-</ng-template>
-
-<ng-template #namespacesTip let-tip>
-  <div class="tod-text-contrast-color">
-    @for (name of tip.names; track name) {
-      <div>{{ name }}</div>
-    }
-    @if (tip.more > 0) {
-      <div class="tod-text-inverted-muted-color">+{{ tip.more }} more</div>
-    }
-  </div>
-</ng-template>
-
-<!-- an entry of the selects: the name (and the severity of a pair), the exploited tag on the right -->
-<ng-template #optionRow let-option>
-  <div class="flex w-full items-center justify-between gap-2">
-    <span class="inline-flex items-center gap-1 break-all">
-      {{ option.label }}
-      @if (option.note) {
-        <span class="text-xs tod-text-muted-color">{{ option.note }}</span>
-      }
-      @if (option.severityId !== undefined) {
-        <p-tag
-          class="text-xs"
-          [rounded]="true"
-          [style]="option.severityId | severityCssStyleById: 1"
-          [value]="severityLabel(option.severityId)"
-        />
-      }
-    </span>
-    @if (option.isKnownExploited) {
-      <p-tag class="text-xs" severity="secondary" [rounded]="true" value="EXPLOIT" />
-    }
-  </div>
-</ng-template>

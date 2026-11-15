@@ -14,11 +14,10 @@ import {
   homeSeverityOptions,
   homeWindowOptions,
 } from './home-filter-bar/home-filter-bar.types';
-import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
-import { ActivityHeatmapDayDto } from '@shared/ui/activity-heatmap/activity-heatmap.types';
 import { HomeBaseOsComponent } from './home-base-os/home-base-os.component';
 import { HomeHistoryDriftComponent } from './home-history-drift/home-history-drift.component';
 import { HomeMotionService } from './home-motion/home-motion.service';
+import { HomeNewImagesComponent } from './home-new-images/home-new-images.component';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
 import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
 import { HomeWidgetGroupDirective } from './home-widget-group/home-widget-group.directive';
@@ -40,9 +39,9 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomeWidgetGroupDirective,
     HomePackageHotspotsComponent,
     HomeWidgetPlaceholderComponent,
-    ActivityHeatmapComponent,
     HomeBaseOsComponent,
     HomeHistoryDriftComponent,
+    HomeNewImagesComponent,
   ],
   // one expanded widget per page, shared by the widget groups
   providers: [HomeWidgetExpansionService, HomeMotionService],
@@ -118,9 +117,6 @@ export class DashboardComponent {
   protected readonly newVulnerabilities = signal<HomeWidgetState>({});
   protected readonly newFixes = signal<HomeWidgetState>({});
   protected readonly knownExploited = signal<HomeWidgetState>({});
-  protected readonly newImages = signal<HomeWidgetState>({});
-  // the per day data of the timeline: the value, and the days with known exploited
-  protected readonly newImagesChart = signal<HomeHeatmapData>({ data: [], flaggedDays: [] });
   protected readonly todayUtc = new Date().toISOString().substring(0, 10);
   protected readonly fixWaiting = signal<HomeWidgetState>({});
   protected readonly failingChecks = signal<HomeWidgetState>({});
@@ -239,7 +235,6 @@ export class DashboardComponent {
     this.reloadNewVulnerabilities();
     this.reloadNewFixes();
     this.reloadKnownExploited();
-    this.reloadNewImages();
     this.reloadFixWaiting();
     this.reloadFailingChecks();
     this.reloadOldestImages();
@@ -294,27 +289,6 @@ export class DashboardComponent {
         unavailableReason: x.unavailableReason,
         summary: `${x.items.length} items (${x.newSinceCount} new since ${this.toDay(since)}); ${this.toTotals(x.totals)}`,
       }),
-    );
-  }
-
-  protected reloadNewImages(): void {
-    this.load(
-      this.newImages,
-      this.homeService.getHomeNewImages({ ...this.scopeParams() }),
-      (x) => ({
-        isAvailable: x.isAvailable,
-        unavailableReason: x.unavailableReason,
-        summary:
-          `${x.days.length} days from ${x.from}; ${this.sum(x.days.map((d) => d.images))} images ` +
-          `on ${x.days.filter((d) => d.images > 0).length} days` +
-          (x.items[0] ? `; newest: ${x.items[0].repository}:${x.items[0].tag}, ${x.items[0].vulnerabilities} vulnerabilities` : ''),
-      }),
-      (x) =>
-        this.newImagesChart.set({
-          from: x.from,
-          data: x.days.map((d) => ({ day: d.day, value: d.images })),
-          flaggedDays: x.days.filter((d) => d.knownExploited > 0).map((d) => d.day),
-        }),
     );
   }
 
@@ -450,15 +424,4 @@ export class DashboardComponent {
   private toDay(value?: string | null): string {
     return value ? value.substring(0, 10) : 'n/a';
   }
-
-  private sum(values: number[]): number {
-    return values.reduce((a, b) => a + b, 0);
-  }
-}
-
-interface HomeHeatmapData {
-  // the first day of the range, as the backend returned it
-  from?: string;
-  data: ActivityHeatmapDayDto[];
-  flaggedDays: string[];
 }

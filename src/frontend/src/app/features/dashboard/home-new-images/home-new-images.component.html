@@ -1,0 +1,322 @@
+<app-home-widget-frame
+  heading="New images"
+  [hint]="hint()"
+  [state]="state()"
+  [canExpand]="canExpand()"
+  [expanded]="isExpanded()"
+  (expandToggle)="toggleExpand()"
+  [refreshable]="true"
+  (refreshRequested)="refreshWidget()"
+>
+  <!-- expanded and the rows are not here yet: the skeleton of the two rows, with the size of the real boxes -->
+  @if (isLoadingBoxes()) {
+    <app-home-pivot-skeleton />
+  }
+
+  @if (showBoxes()) {
+    <!-- row one: the new images, the newest first; an image arrived on one day, shown above its pairs -->
+    <section class="flex flex-col">
+      <div class="text-xs tod-text-muted-color">
+        New images: the pairs (vulnerability id, severity) each has now (count: its occurrences in the image);
+        {{ imageBoxes().length }} images
+      </div>
+      <!-- virtual: only the boxes in view are rendered; every box has the same width (the item width) and height -->
+      <app-virtual-scroller
+        #imagesRow
+        class="pt-3"
+        [items]="imageBoxes()"
+        [itemWidth]="20"
+        [trackBy]="trackImageBox"
+        (heightChange)="imagesRowHeight.set($event)"
+      >
+        <ng-template let-box>
+          <app-trivy-box class="block mt-2">
+            <!-- the title of a selected box is a tag; the elements of a title are separate, so the box puts a gap between them -->
+            @if (pivot.selection()?.digest === box.digest) {
+              <p-tag boxTitle class="text-xs" severity="secondary" [rounded]="true" [value]="box.name" />
+            } @else {
+              <span boxTitle>{{ box.name }}</span>
+            }
+
+            <!-- a size, not a maximum: every box has the same dimensions, empty or with a long list -->
+            <div class="h-64 overflow-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs tod-text-muted-color">
+                    <th class="font-normal">Vulnerability</th>
+                    <th class="font-normal text-right pl-2">Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th colspan="2" class="text-left pt-2 pb-0.5 tod-content-border-bottom-light">
+                      <div class="flex items-baseline justify-between gap-2">
+                        <span class="text-sm font-semibold">{{ box.day }}</span>
+                        <span class="text-xs font-normal tod-text-muted-color">{{ pivot.age(box.day) }}</span>
+                      </div>
+                    </th>
+                  </tr>
+                  @for (row of box.rows; track row.pairKey) {
+                    <tr
+                      class="cursor-pointer"
+                      [class.tod-selected-row]="pivot.isSelected(box.digest, row.pairKey)"
+                      tabindex="0"
+                      (click)="selectFromImage(box, row.pairKey)"
+                      (keydown.enter)="selectFromImage(box, row.pairKey)"
+                    >
+                      <td class="break-all">
+                        <span class="inline-flex flex-wrap items-center gap-1">
+                          {{ row.vulnerabilityId }}
+                          @if (row.isKnownExploited) {
+                            <app-home-exploit-tag [vulnerabilityId]="row.vulnerabilityId" />
+                          }
+                        </span>
+                      </td>
+                      <!-- the color of the count is the severity of the pair, as the severity columns of the tables -->
+                      <td class="text-right pl-2">
+                        <p-tag
+                          class="text-xs"
+                          [rounded]="true"
+                          [style]="row.severityId | severityCssStyleById: row.count"
+                          [value]="row.count | vulnerabilityCount"
+                        />
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div boxFooter><app-home-namespaces-footer [footer]="box" /></div>
+          </app-trivy-box>
+        </ng-template>
+      </app-virtual-scroller>
+    </section>
+
+    <!-- row two: the pairs, with the new images that have each, by the day they arrived -->
+    <section class="flex flex-col">
+      <div class="text-xs tod-text-muted-color">
+        Pairs (vulnerability id, severity): the new images that have each; {{ pairBoxes().length }} pairs
+      </div>
+      <app-virtual-scroller
+        #pairsRow
+        class="pt-3"
+        [items]="pairBoxes()"
+        [itemWidth]="20"
+        [trackBy]="trackPairBox"
+        (heightChange)="pairsRowHeight.set($event)"
+      >
+        <ng-template let-box>
+          <app-trivy-box class="block mt-2">
+            @if (pivot.selection()?.pairKey === box.key) {
+              <p-tag boxTitle class="text-xs" severity="secondary" [rounded]="true" [value]="box.vulnerabilityId" />
+            } @else {
+              <span boxTitle>{{ box.vulnerabilityId }}</span>
+            }
+            <p-tag
+              boxTitle
+              class="text-xs"
+              [rounded]="true"
+              [style]="box.severityId | severityCssStyleById: 1"
+              [value]="severityLabel(box.severityId)"
+            />
+            @if (box.isKnownExploited) {
+              <!-- on the right of the top border: it belongs to the pair, not to its name -->
+              <app-home-exploit-tag boxTitleEnd [vulnerabilityId]="box.vulnerabilityId" />
+            }
+
+            <!-- a size, not a maximum: every box has the same dimensions, empty or with a long list -->
+            <div class="h-64 overflow-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs tod-text-muted-color">
+                    <th class="font-normal">Image</th>
+                  </tr>
+                </thead>
+                @for (group of box.days; track group.day) {
+                  <tbody>
+                    <tr>
+                      <th colspan="1" class="text-left pt-2 pb-0.5 tod-content-border-bottom-light">
+                        <div class="flex items-baseline justify-between gap-2">
+                          <span class="text-sm font-semibold">{{ group.day }}</span>
+                          <span class="text-xs font-normal tod-text-muted-color">{{ pivot.age(group.day) }}</span>
+                        </div>
+                      </th>
+                    </tr>
+                    @for (row of group.rows; track row.key) {
+                      <tr
+                        class="cursor-pointer"
+                        [class.tod-selected-row]="pivot.isSelected(row.digest, box.key)"
+                        tabindex="0"
+                        (click)="selectFromPair(box, row.digest)"
+                        (keydown.enter)="selectFromPair(box, row.digest)"
+                      >
+                        <td class="break-all">{{ row.name }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                }
+              </table>
+            </div>
+
+            <div boxFooter><app-home-namespaces-footer [footer]="box" /></div>
+          </app-trivy-box>
+        </ng-template>
+      </app-virtual-scroller>
+    </section>
+  }
+
+  <!-- last: the overview of the days, in a box like the runway of the Base OS widget, and (while expanded) the box of the
+       selection, which takes the rest of the width
+       the gap above the band is the one between the boxes (1rem), and both boxes start there: the title of the Selected box
+       (it sticks out of its top border) hangs into that gap -->
+  <div class="flex items-stretch gap-4">
+    <app-trivy-box [class]="showBoxes() || isLoadingBoxes() ? 'max-w-[55%]' : 'flex-1'">
+      @if (isLoadingDays()) {
+        <!-- about the size of the heatmap with its legend, so the box does not collapse while the days are asked -->
+        <p-skeleton height="9rem" />
+      } @else {
+        <app-activity-heatmap
+          [data]="chart().data"
+          [from]="chart().from"
+          [to]="today()"
+          [emphasis1Days]="visitDays()"
+          [emphasis2Days]="chart().flaggedDays"
+          valueLabel="new images"
+          emphasis1Label="you opened the home page"
+          emphasis2Label="known exploited among them"
+          [selectableDays]="showBoxes() ? pivot.heatmapDays() : undefined"
+          [selectedDay]="pivot.selection()?.day ?? null"
+          (daySelected)="pivot.pickHeatmapDay($event)"
+        />
+      }
+    </app-trivy-box>
+
+    @if (isLoadingBoxes()) {
+      <app-home-pivot-selected-skeleton />
+    }
+
+    @if (showBoxes()) {
+      <app-trivy-box class="flex-1 min-w-[24rem]">
+        <span boxTitle>Selected</span>
+
+        @let image = selected()?.image;
+        @let pair = selected()?.pair;
+        <!-- always the same fields, so the box never changes its size: a side that is not selected shows n/a (a pick in a
+             select chooses one side), with no icons and no severity; each field is its muted name with the value under it;
+             two columns, the second one wider, as it has the title -->
+        <div class="grid grid-cols-[minmax(14rem,2fr)_minmax(0,3fr)] items-start gap-x-8 text-sm">
+          <div class="flex flex-col gap-2">
+            <app-home-pivot-image-fields [value]="image" target="report" />
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">First seen</span>
+              @if (image) {
+                <span class="inline-flex items-baseline gap-1.5">
+                  {{ image.day }}
+                  <span class="text-xs tod-text-muted-color">{{ pivot.age(image.day) }}</span>
+                </span>
+              } @else {
+                <span class="tod-text-muted-color">n/a</span>
+              }
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">Workloads</span>
+              <span [class.tod-text-muted-color]="!image">{{ image ? image.workloads : 'n/a' }}</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <app-home-pivot-vulnerability-field [pair]="pair" />
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">New images</span>
+              <span [class.tod-text-muted-color]="!pair">{{ pair ? pair.images : 'n/a' }}</span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">Title</span>
+              <!-- four rows are reserved, so a long title does not move the box and a short one does not shrink it -->
+              <span class="min-h-20 line-clamp-4 break-words" [class.tod-text-muted-color]="!pair">{{ pair ? (pair.title ?? 'n/a') : 'n/a' }}</span>
+            </div>
+          </div>
+        </div>
+      </app-trivy-box>
+    }
+  </div>
+
+  <!-- the controls of the expanded widget, in the bottom row of the frame: the images and the pairs to pick from -->
+  @if (showBoxes()) {
+    <div frameActions class="flex items-center gap-2">
+      <p-select
+        size="small"
+        class="w-56"
+        placeholder="Filter by date"
+        optionLabel="label"
+        optionValue="value"
+        appendTo="body"
+        [filter]="true"
+        [showClear]="true"
+        [options]="pivot.dayOptions()"
+        [ngModel]="pivot.selection()?.day ?? null"
+        (onChange)="pivot.pickDay($event.value)"
+      >
+        <ng-template #item let-option><app-home-pivot-option [option]="option" /></ng-template>
+        <ng-template #selectedItem let-option><app-home-pivot-option [option]="option" /></ng-template>
+      </p-select>
+      <p-select
+        size="small"
+        class="w-72"
+        placeholder="Select an image"
+        optionLabel="label"
+        optionValue="value"
+        filterBy="label,digest"
+        appendTo="body"
+        [filter]="true"
+        [showClear]="true"
+        [options]="pivot.imageOptions()"
+        [ngModel]="pivot.selection()?.digest ?? null"
+        (onChange)="onImagePicked($event.value)"
+      >
+        <ng-template #item let-option><app-home-pivot-option [option]="option" /></ng-template>
+        <ng-template #selectedItem let-option><app-home-pivot-option [option]="option" /></ng-template>
+      </p-select>
+      <p-select
+        size="small"
+        class="w-72"
+        placeholder="Select a vulnerability"
+        optionLabel="label"
+        optionValue="value"
+        filterBy="label"
+        appendTo="body"
+        [filter]="true"
+        [showClear]="true"
+        [options]="pivot.pairOptions()"
+        [ngModel]="pivot.selection()?.pairKey ?? null"
+        (onChange)="onPairPicked($event.value)"
+      >
+        <ng-template #item let-option><app-home-pivot-option [option]="option" /></ng-template>
+        <ng-template #selectedItem let-option><app-home-pivot-option [option]="option" /></ng-template>
+      </p-select>
+      <p-button
+        class="inline-flex"
+        label="Show all"
+        icon="pi pi-list"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [raised]="true"
+        (onClick)="showAllDialog.set(true)"
+      />
+    </div>
+  }
+</app-home-widget-frame>
+
+@if (showAllDialog()) {
+  <app-trivy-table-dialog
+    stateKey="Home New Images All"
+    title="New images: all rows"
+    width="90rem"
+    [columns]="tableColumns"
+    [dataDtos]="tableRows()"
+    [(isVisible)]="showAllDialog"
+    (rowActionRequested)="onTableRowAction($event)"
+  />
+}

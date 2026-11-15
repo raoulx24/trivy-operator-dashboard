@@ -219,45 +219,14 @@ public class HomeTimelineService(
 
     public async Task<HomeNewImagesDto> GetNewImages(int? days, HomeFilter filter, CancellationToken ctx = default)
     {
-        string? reason = GetUnavailableReason();
+        NewImages data = await CollectNewImages(days, filter, ctx);
 
-        if (reason is not null)
+        if (data.Reason is not null)
         {
-            return new HomeNewImagesDto(false, reason, FromDays(days ?? retentionOptions.Value.KeepDays), null, [], []);
+            return new HomeNewImagesDto(false, data.Reason, data.From, null, []);
         }
 
-        ActiveVulnerabilityTable table = await GetTable(ctx);
-        HomeScope scope = new(table, filter.Namespaces);
-        HashSet<int> severities = ToSeverities(filter.SeverityIds);
-
-        DateOnly from = FromDays(days ?? retentionOptions.Value.KeepDays);
-
-        Dictionary<PackageVulnerabilityKey, ActiveVulnerability> rows = table.Rows.ToDictionary(x => x.Key);
-
-        // the images with their distinct (id, severity) pairs and known exploited ids, now
-        List<(ActiveImage Image, HashSet<(VulnerabilityId Id, int SeverityId)> Pairs, HashSet<VulnerabilityId> Exploited)> images =
-        [
-            .. table.Images.Values
-                .Where(x => x.Digest is not null && x.FirstSeenAt is { } firstSeenAt &&
-                            DateOnly.FromDateTime(firstSeenAt.Value) >= from && scope.Contains(x))
-                .Select(image =>
-                {
-                    ActiveVulnerability[] imageRows =
-                    [
-                        .. image.Keys
-                            .Select(key => rows.GetValueOrDefault(key))
-                            .OfType<ActiveVulnerability>()
-                            .Where(x => severities.Contains(x.Severity.Rank)),
-                    ];
-
-                    return (
-                        image,
-                        imageRows.Select(x => (x.Key.VulnerabilityId, x.Severity.Rank)).ToHashSet(),
-                        imageRows.Where(x => x.IsKnownExploited).Select(x => x.Key.VulnerabilityId).ToHashSet());
-                }),
-        ];
-
-        Dictionary<DateOnly, HomeNewImagesDayDto> byDay = images
+        Dictionary<DateOnly, HomeNewImagesDayDto> byDay = data.Images
             .GroupBy(x => DateOnly.FromDateTime(x.Image.FirstSeenAt!.Value.Value))
             .ToDictionary(
                 x => x.Key,
@@ -276,31 +245,162 @@ public class HomeTimelineService(
         return new HomeNewImagesDto(
             true,
             null,
-            from,
-            table.HistoryStartedAt?.Value,
-            [.. EachDay(from).Select(day => byDay.GetValueOrDefault(day) ?? new HomeNewImagesDayDto(day, 0, 0, NoSeverityCounts, 0)),],
-            [
-                .. images
-                    .OrderByDescending(x => x.Image.FirstSeenAt)
-                    .Take(filter.Limit)
-                    .Select(x =>
-                    {
-                        HomeReach reach = scope.GetReach([x.Image.Key,]);
+            data.From,
+            data.HistoryStartedAt,
+            [.. EachDay(data.From).Select(day => byDay.GetValueOrDefault(day) ?? new HomeNewImagesDayDto(day, 0, 0, NoSeverityCounts, 0)),]);
+    }
 
-                        return new HomeNewImageDto(
-                            Digest: x.Image.Digest!.Value.Value,
-                            Registry: x.Image.ImageMeta.Registry.Value,
-                            Repository: x.Image.ImageMeta.Repo.Value,
-                            Tag: x.Image.ImageMeta.Tag.Value,
-                            FirstSeenAt: x.Image.FirstSeenAt!.Value.Value,
-                            Vulnerabilities: x.Pairs.Count,
-                            VulnerabilitiesBySeverity: ToSeverityCounts(x.Pairs.Select(y => y.SeverityId)),
-                            KnownExploited: x.Exploited.Count,
-                            Workloads: reach.Workloads.Count,
-                            Namespaces: reach.Namespaces.Count,
-                            NamespaceNames: ToNamespaceNames(reach.Namespaces));
-                    }),
+    // Items: one row per new image and (vulnerability id, severity) it has now; Groups: one per (vulnerability id, severity)
+    public async Task<HomeNewImagesDenormalizedDto> GetNewImagesDenormalized(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        NewImages data = await CollectNewImages(days, filter, ctx);
+
+        if (data.Reason is not null)
+        {
+            return new HomeNewImagesDenormalizedDto(false, data.Reason, data.From, [], []);
+        }
+
+        // per image and pair: the occurrences (package, version, target); an image without pairs has no rows
+        List<NewImageEntry> entries =
+        [
+            .. data.Images.SelectMany(x =>
+            {
+                HomeReach reach = data.Scope!.GetReach([x.Image.Key,]);
+                IReadOnlyList<string> namespaceNames = ToNamespaceNames(reach.Namespaces);
+
+                return x.Rows
+                    .GroupBy(row => (row.Key.VulnerabilityId, SeverityId: row.Severity.Rank))
+                    .Select(group => new NewImageEntry(
+                        group.Key,
+                        x.Image,
+                        group.Count(),
+                        reach.Workloads.Count,
+                        reach.Namespaces,
+                        namespaceNames));
+            }),
+        ];
+
+        return new HomeNewImagesDenormalizedDto(
+            true,
+            null,
+            data.From,
+            [
+                .. entries
+                    .Select(entry => new HomeNewImagesDenormalizedItemDto(
+                        VulnerabilityId: entry.Pair.Id.Value,
+                        SeverityId: entry.Pair.SeverityId,
+                        FirstSeenAt: entry.Image.FirstSeenAt!.Value.Value,
+                        ImageDigest: entry.Image.Digest!.Value.Value,
+                        Registry: entry.Image.ImageMeta.Registry.Value,
+                        Repository: entry.Image.ImageMeta.Repo.Value,
+                        Tag: entry.Image.ImageMeta.Tag.Value,
+                        Count: entry.Count,
+                        Workloads: entry.Workloads,
+                        Namespaces: entry.Namespaces.Count,
+                        NamespaceNames: entry.NamespaceNames))
+                    .OrderBy(x => x.FirstSeenAt)
+                    .ThenBy(x => x.SeverityId)
+                    .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal)
+                    .ThenBy(x => x.ImageDigest, StringComparer.Ordinal),
+            ],
+            [
+                .. entries
+                    .GroupBy(x => x.Pair)
+                    .Select(group =>
+                    {
+                        ActiveVulnerability row = data.RowById[group.Key.Id];
+                        HashSet<NamespaceName> namespaces = [.. group.SelectMany(x => x.Namespaces),];
+
+                        return new HomeNewImagesGroupDto(
+                            VulnerabilityId: group.Key.Id.Value,
+                            SeverityId: group.Key.SeverityId,
+                            Title: row.Title,
+                            Count: group.Sum(x => x.Count),
+                            Images: group.Count(),
+                            FirstSeenAt: group.Min(x => x.Image.FirstSeenAt!.Value.Value),
+                            IsKnownExploited: row.IsKnownExploited,
+                            EpssPercentile: row.EpssPercentile,
+                            Namespaces: namespaces.Count,
+                            NamespaceNames: ToNamespaceNames(namespaces));
+                    })
+                    .OrderBy(x => x.FirstSeenAt)
+                    .ThenBy(x => x.SeverityId)
+                    .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal),
             ]);
+    }
+
+    // a new image with its rows now (inside the severities filter): the distinct (id, severity) pairs and the known
+    // exploited ids come from them
+    private sealed record NewImage(ActiveImage Image, ActiveVulnerability[] Rows)
+    {
+        public HashSet<(VulnerabilityId Id, int SeverityId)> Pairs { get; } =
+            [.. Rows.Select(x => (x.Key.VulnerabilityId, x.Severity.Rank)),];
+
+        public HashSet<VulnerabilityId> Exploited { get; } =
+            [.. Rows.Where(x => x.IsKnownExploited).Select(x => x.Key.VulnerabilityId),];
+    }
+
+    // an image and a (vulnerability id, severity) it has; Namespaces: the ones of the image, inside the namespaces filter
+    private sealed record NewImageEntry(
+        (VulnerabilityId Id, int SeverityId) Pair,
+        ActiveImage Image,
+        int Count,
+        int Workloads,
+        IReadOnlySet<NamespaceName> Namespaces,
+        IReadOnlyList<string> NamespaceNames);
+
+    private sealed record NewImages(
+        string? Reason,
+        DateOnly From,
+        DateTime? HistoryStartedAt,
+        HomeScope? Scope,
+        // a row per vulnerability id (any of its rows: the title and the exploited flag are of the id)
+        Dictionary<VulnerabilityId, ActiveVulnerability> RowById,
+        List<NewImage> Images);
+
+    private async Task<NewImages> CollectNewImages(int? days, HomeFilter filter, CancellationToken ctx)
+    {
+        DateOnly from = FromDays(days ?? retentionOptions.Value.KeepDays);
+        string? reason = GetUnavailableReason();
+
+        if (reason is not null)
+        {
+            return new NewImages(reason, from, null, null, [], []);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+        HashSet<int> severities = ToSeverities(filter.SeverityIds);
+
+        Dictionary<PackageVulnerabilityKey, ActiveVulnerability> rows = table.Rows.ToDictionary(x => x.Key);
+
+        // the images first seen in the range, with their rows now; an image without rows (inside the severities filter)
+        // is not a new image of this view: neither the days nor the rows have it
+        List<NewImage> images =
+        [
+            .. table.Images.Values
+                .Where(x => x.Digest is not null && x.FirstSeenAt is { } firstSeenAt &&
+                            DateOnly.FromDateTime(firstSeenAt.Value) >= from && scope.Contains(x))
+                .Select(image => new NewImage(
+                    image,
+                    [
+                        .. image.Keys
+                            .Select(key => rows.GetValueOrDefault(key))
+                            .OfType<ActiveVulnerability>()
+                            .Where(x => severities.Contains(x.Severity.Rank)),
+                    ]))
+                .Where(x => x.Rows.Length > 0),
+        ];
+
+        Dictionary<VulnerabilityId, ActiveVulnerability> rowById = images
+            .SelectMany(x => x.Rows)
+            .GroupBy(x => x.Key.VulnerabilityId)
+            .ToDictionary(x => x.Key, x => x.First());
+
+        return new NewImages(null, from, table.HistoryStartedAt?.Value, scope, rowById, images);
     }
 
     // ------------------------------------------------------------------------

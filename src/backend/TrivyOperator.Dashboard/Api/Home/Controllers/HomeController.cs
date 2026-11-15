@@ -96,9 +96,22 @@ public class HomeController(
         [FromQuery] int? days,
         [FromQuery] int[]? severities,
         [FromQuery] string[]? namespaces,
-        [FromQuery] int? limit,
         CancellationToken ctx) =>
-        Ok(await homeTimelineService.GetNewImages(days, ToFilter(null, severities, namespaces, limit), ctx));
+        Ok(await homeTimelineService.GetNewImages(days, ToFilter(null, severities, namespaces, null), ctx));
+
+    // the same data as new-images, flat: one row per (vulnerability id, severity, image)
+    [HttpGet("new-images/denormalized", Name = "GetHomeNewImagesDenormalized")]
+    [ProducesResponseType(typeof(HomeNewImagesDenormalizedDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetNewImagesDenormalized(
+        [FromQuery] int? days,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeTimelineService.GetNewImagesDenormalized(
+            days,
+            ToFilter(null, severities, namespaces, null),
+            ctx));
 
     [HttpGet("base-os", Name = "GetHomeBaseOs")]
     [ProducesResponseType(typeof(HomeBaseOsDto), StatusCodes.Status200OK, "application/json")]

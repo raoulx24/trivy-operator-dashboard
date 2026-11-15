@@ -79,6 +79,8 @@ public sealed record HomeHistoryDriftDenormalizedDto(
 // (current state: the vulnerabilities and severities of today's reports, not of the moment they arrived)
 // - per day the pairs are distinct across the images of that day; the same pair on two days counts on both (each
 //   deployment brought it)
+// - an image counts only if it has at least one pair inside the severities filter (an image without any is not here,
+//   so every counted day has rows in the flat form)
 public sealed record HomeNewImagesDayDto(
     DateOnly Day,
     int Images,
@@ -86,25 +88,51 @@ public sealed record HomeNewImagesDayDto(
     HomeSeverityCountsDto VulnerabilitiesBySeverity,
     int KnownExploited);
 
-public sealed record HomeNewImageDto(
-    string Digest,
-    string Registry,
-    string Repository,
-    string Tag,
-    DateTime FirstSeenAt,
-    // distinct (vulnerability id, severity) pairs of the image, now
-    int Vulnerabilities,
-    HomeSeverityCountsDto VulnerabilitiesBySeverity,
-    int KnownExploited,
-    int Workloads,
-    int Namespaces,
-    IReadOnlyList<string> NamespaceNames);
-
 public sealed record HomeNewImagesDto(
     bool IsAvailable,
     string? UnavailableReason,
     DateOnly From,
     DateTime? HistoryStartedAt,
-    IReadOnlyList<HomeNewImagesDayDto> Days,
-    // the newest first
-    IReadOnlyList<HomeNewImageDto> Items);
+    IReadOnlyList<HomeNewImagesDayDto> Days);
+
+// the flat form of the new images
+// - Items: one row per new image (digest) and (vulnerability id, severity) it has now
+// - Groups: one per (vulnerability id, severity), the distinct pairs the days count; Count = the sum of the Count of its
+//   items, Images = the new images that have it, FirstSeenAt = the first of them, Namespaces = the union of theirs
+//   (where they run now, inside the namespaces filter); Title: of the vulnerability definition
+public sealed record HomeNewImagesDenormalizedItemDto(
+    string VulnerabilityId,
+    int SeverityId,
+    // the moment the digest was first seen by the history
+    DateTime FirstSeenAt,
+    string ImageDigest,
+    string Registry,
+    string Repository,
+    string Tag,
+    // the occurrences (package, version, target) of the pair in the image, now
+    int Count,
+    // of the image (the namespaces filter applies): the workloads, the namespaces count, and the first names (sorted,
+    // capped)
+    int Workloads,
+    int Namespaces,
+    IReadOnlyList<string> NamespaceNames);
+
+public sealed record HomeNewImagesGroupDto(
+    string VulnerabilityId,
+    int SeverityId,
+    string? Title,
+    int Count,
+    int Images,
+    DateTime FirstSeenAt,
+    bool IsKnownExploited,
+    double? EpssPercentile,
+    int Namespaces,
+    IReadOnlyList<string> NamespaceNames);
+
+public sealed record HomeNewImagesDenormalizedDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    DateOnly From,
+    // first seen first, the most recent last
+    IReadOnlyList<HomeNewImagesDenormalizedItemDto> Items,
+    IReadOnlyList<HomeNewImagesGroupDto> Groups);
