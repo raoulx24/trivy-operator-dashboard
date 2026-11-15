@@ -78,6 +78,9 @@ export abstract class NamespacedAggregateTrivyReportDataPageBase<
 
     if (this.queryDigest) {
       this.singleSelectDataDto = dtos.find((x) => x.digest == this.queryDigest);
+      // programmatic preselection does not go through onMainTableSelectedRowChanged,
+      // but "Compare with..." and "Dependency tree" read selectedTrivyReportDto
+      this.selectedTrivyReportDto = this.singleSelectDataDto ?? null;
     }
 
     // we do not need to keep the original dataDtos since we have viewDataDtos, so we can clear it to save memory
