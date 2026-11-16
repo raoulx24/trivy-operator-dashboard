@@ -79,7 +79,8 @@ public partial class HomeSearchService(
                         Packages: group.Count(),
                         FixablePackages: group.Count(x => x.HasFix),
                         Images: reach.ImageKeys.Count,
-                        Namespaces: reach.Namespaces.Count);
+                        Namespaces: reach.Namespaces.Count,
+                        Workloads: reach.Workloads.Count);
                 })
                 .OrderByDescending(x => string.Equals(x.VulnerabilityId, q, StringComparison.OrdinalIgnoreCase))
                 .ThenByDescending(x => x.Images)

@@ -560,52 +560,6 @@ p-drawer .p-drawer-left {
   overflow: hidden;
 }
 
-// a drawer that covers only a widget, not the page: it is appended to this layer, which fills the widget (its frame is the
-// positioning box) and clips what slides in; the layer lets the clicks through, except while the drawer is open (-open), when
-// it takes them, to close the drawer on a click outside it
-.tod-widget-drawer-host {
-  position: absolute;
-  inset: 0;
-  // above the buttons of the widget (a p-button is positioned, so it would paint over a layer with no z-index)
-  z-index: 1;
-  isolation: isolate;
-  overflow: hidden;
-  pointer-events: none;
-  border-radius: var(--tod-app-border-radius-md);
-}
-
-.tod-widget-drawer-host.tod-widget-drawer-host-open {
-  pointer-events: auto;
-}
-
-.p-drawer.tod-widget-drawer {
-  pointer-events: auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 0;
-
-  // the theme gives the header of a drawer no side padding (the menu drawer has none), so the title would stick to the edge
-  // while the content has its own: the same here, and a title that fits the widget
-  .p-drawer-header {
-    padding: 0.5rem 0.5rem 0.25rem;
-  }
-
-  .p-drawer-title {
-    font-size: 1rem;
-  }
-
-  // the content is a flex column too, so what is in it can take the height that is left (flex-1) without a percentage
-  .p-drawer-content {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
-}
-
 
 
 

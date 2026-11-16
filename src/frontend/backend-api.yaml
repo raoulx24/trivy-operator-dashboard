@@ -4968,6 +4968,9 @@ components:
         namespaces:
           type: integer
           format: int32
+        workloads:
+          type: integer
+          format: int32
       additionalProperties: false
     HomeWhereIsVulnerabilityPackageDto:
       type: object

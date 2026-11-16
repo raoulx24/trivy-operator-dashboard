@@ -28,7 +28,8 @@ public sealed record HomeWhereIsVulnerabilityItemDto(
     // the packages with a fix
     int FixablePackages,
     int Images,
-    int Namespaces);
+    int Namespaces,
+    int Workloads);
 
 public sealed record HomeWhereIsVulnerabilityDto(
     bool IsAvailable,
