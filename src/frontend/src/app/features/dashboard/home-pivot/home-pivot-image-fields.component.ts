@@ -17,7 +17,8 @@ import { PivotImage } from './home-pivot.types';
     @let image = value();
     <div class="flex flex-col gap-0.5">
       <span class="text-xs tod-text-muted-color">Image</span>
-      <span class="flex items-center justify-between gap-1">
+      <!-- the button follows the name, with a small gap (not spread to the far edge) -->
+      <span class="flex flex-wrap items-center gap-x-1">
         @if (image) {
           <span class="break-all">{{ image.name }}</span>
           <p-button

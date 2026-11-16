@@ -1,4 +1,4 @@
-<svg class="network-fill" [attr.width]="width" [attr.height]="height" [attr.viewBox]="'0 0 ' + width + ' ' + height">
+<svg class="network-fill" [attr.width]="width" [attr.height]="height()" [attr.viewBox]="'0 0 ' + width + ' ' + height()">
   @for (layer of layers(); track $index) {
     <g [class.back-layer]="layer.isBack">
       <path class="link" [attr.d]="layer.links" />

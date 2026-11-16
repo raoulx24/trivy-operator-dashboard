@@ -12,7 +12,9 @@
   @if (searchPlaceholder()) {
     <input
       type="text"
-      class="p-inputtext p-inputtext-sm w-full"
+      pInputText
+      pSize="small"
+      class="w-full"
       [placeholder]="searchPlaceholder()"
       [value]="query()"
       (input)="query.set($any($event.target).value)"

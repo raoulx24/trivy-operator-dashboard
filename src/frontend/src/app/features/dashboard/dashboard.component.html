@@ -18,15 +18,7 @@
   />
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
-    <app-home-widget-placeholder
-      heading="Where is… vulnerability"
-      [hint]="searchHint()"
-      description="a vulnerability id (CVE, GHSA, distro advisories...), prefix: per id the packages (installed versions, fixed version), images, namespaces, workloads, severity, KEV / EPSS"
-      searchPlaceholder="CVE-2024-3094, GHSA-..."
-      source="GET api/home/where-is/vulnerability → HomeWhereIsVulnerabilityDto"
-      [state]="whereIsVulnerability()"
-      (search)="onFindVulnerability($event)"
-    />
+    <app-home-where-is-vulnerability [hint]="searchHint()" [namespaces]="namespaces()" />
     <app-home-widget-placeholder
       heading="Where is… package"
       [hint]="searchHint()"

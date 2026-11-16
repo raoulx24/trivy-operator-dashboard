@@ -20,6 +20,12 @@
       <ng-container *ngTemplateOutlet="box; context: { $implicit: item }" />
     }
 
+    <!-- two boxes left on the last row: the cell after them is empty, and so is the one beside the runway (two cells wide,
+         it goes to the next row): one drawing over both cells (the third column, two rows), so it is contiguous -->
+    @if (fillAfterBoxes()) {
+      <app-network-fill class="row-span-2" [seed]="fillSeedBoxes" animate.enter="tod-vt-enter" />
+    }
+
     <!-- two thirds of the row while expanded, even without boxes (all the width is too long for the runway) -->
     <div
       class="min-w-0"
@@ -36,6 +42,11 @@
         <app-eol-runway [items]="cycles()" [today]="today()" />
       }
     </div>
+
+    <!-- the third cell of the runway's row, when no box sits beside it (with two boxes on the last row, the drawing above covers it) -->
+    @if (fillAfterRunway()) {
+      <app-network-fill [seed]="fillSeedRunway" animate.enter="tod-vt-enter" />
+    }
   </div>
 
   <!-- the controls of the expanded widget, in the bottom row of the frame: the states whose boxes are shown (the runway has all of them) -->

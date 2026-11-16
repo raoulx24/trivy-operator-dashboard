@@ -193,9 +193,9 @@
           emphasis2Hint="Days when a known exploited (KEV / EUVD) vulnerability was added to a running image (orange corner)."
           selectedLabel="selected"
           selectedHint="The day that filters the boxes. Click it again to clear."
-          [selectableDays]="showBoxes() ? pivot.heatmapDays() : undefined"
+          [selectableDays]="selectableDays()"
           [selectedDay]="pivot.selection()?.day ?? null"
-          (daySelected)="pivot.pickHeatmapDay($event)"
+          (daySelected)="onHeatmapDay($event)"
         />
       }
     </app-trivy-box>
@@ -219,22 +219,25 @@
           </div>
 
           <div class="flex flex-col gap-2">
-            <app-home-pivot-vulnerability-field [pair]="pair" />
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs tod-text-muted-color">First added</span>
-              @if (pair?.firstAddedAt; as firstAdded) {
-                <span class="inline-flex items-baseline gap-1.5">
-                  {{ firstAdded.substring(0, 10) }}
-                  <span class="text-xs tod-text-muted-color">{{ pivot.age(firstAdded.substring(0, 10)) }}</span>
-                </span>
-              } @else {
-                <span class="tod-text-muted-color">n/a</span>
-              }
+            <!-- the vulnerability and the first added day share a row, half each -->
+            <div class="grid grid-cols-2 gap-x-2">
+              <app-home-pivot-vulnerability-field [pair]="pair" />
+              <div class="flex flex-col gap-0.5 pl-4">
+                <span class="text-xs tod-text-muted-color">First added</span>
+                @if (pair?.firstAddedAt; as firstAdded) {
+                  <span class="inline-flex items-baseline gap-1.5">
+                    {{ firstAdded.substring(0, 10) }}
+                    <span class="text-xs tod-text-muted-color">{{ pivot.age(firstAdded.substring(0, 10)) }}</span>
+                  </span>
+                } @else {
+                  <span class="tod-text-muted-color">n/a</span>
+                }
+              </div>
             </div>
             <div class="flex flex-col gap-0.5">
               <span class="text-xs tod-text-muted-color">Title</span>
-              <!-- four rows are reserved, so a long title does not move the box and a short one does not shrink it -->
-              <span class="min-h-20 line-clamp-4 break-words" [class.tod-text-muted-color]="!pair">{{ pair ? (pair.title ?? 'n/a') : 'n/a' }}</span>
+              <!-- three rows are reserved, so a long title does not move the box and a short one does not shrink it -->
+              <span class="min-h-[3.75rem] line-clamp-3 break-words" [class.tod-text-muted-color]="!pair">{{ pair ? (pair.title ?? 'n/a') : 'n/a' }}</span>
             </div>
           </div>
         </div>

@@ -204,6 +204,10 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
     };
   });
 
+  protected override readonly valueDays = computed(() =>
+    (this.daysData.value()?.days ?? []).filter((d) => d.added > 0).map((d) => d.day),
+  );
+
   protected override readonly showBoxes = computed(
     () => this.isExpanded() && this.daysData.value()?.isAvailable === true && this.rowsData.hasValue(),
   );

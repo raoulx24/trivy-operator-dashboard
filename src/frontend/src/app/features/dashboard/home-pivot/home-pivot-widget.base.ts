@@ -40,7 +40,16 @@ export abstract class HomePivotWidgetBase<
   protected abstract readonly imageBoxes: Signal<I[]>;
   protected abstract readonly pairBoxes: Signal<P[]>;
 
-  // the two rows of boxes (virtual: only the boxes in view are rendered, so a box is scrolled to by its index)
+  // the days with a value in the heatmap (known from the days, before the rows are asked)
+  protected abstract readonly valueDays: Signal<string[]>;
+
+  // the days the heatmap lets you click: while collapsed, every day with a value (a click expands the widget); while
+  // expanded, the days that have rows; none while the rows are asked (nothing is dimmed), or where it cannot expand
+  protected readonly selectableDays = computed(() =>
+    this.showBoxes() ? this.pivot.heatmapDays() : !this.isExpanded() && this.canExpand() ? this.valueDays() : undefined,
+  );
+
+  // two rows of boxes (virtual: only the boxes in view are rendered, so a box is scrolled to by its index)
   private readonly imagesRow = viewChild<VirtualScrollerComponent<I>>('imagesRow');
   private readonly pairsRow = viewChild<VirtualScrollerComponent<P>>('pairsRow');
 
@@ -104,6 +113,15 @@ export abstract class HomePivotWidgetBase<
   protected selectFromPair(pair: P, digest: string): void {
     if (this.pivot.selectLine(digest, pair.key)) {
       this.scrollToImageBox(digest);
+    }
+  }
+
+  // a click on a day of the heatmap: filters by it; on a collapsed widget it expands it first (the selection is set
+  // before, and it lives as long as the widget is expanded), so the boxes come already filtered
+  protected onHeatmapDay(day: string): void {
+    this.pivot.pickHeatmapDay(day);
+    if (!this.isExpanded()) {
+      this.toggleExpand();
     }
   }
 

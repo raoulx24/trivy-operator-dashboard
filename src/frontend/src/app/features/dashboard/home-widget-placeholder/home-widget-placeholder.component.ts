@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { InputTextModule } from 'primeng/inputtext';
 
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
@@ -11,7 +12,7 @@ import { HomeWidgetState } from './home-widget-placeholder.types';
 @Component({
   selector: 'app-home-widget-placeholder',
   standalone: true,
-  imports: [HomeWidgetFrameComponent],
+  imports: [HomeWidgetFrameComponent, InputTextModule],
   templateUrl: './home-widget-placeholder.component.html',
   styleUrl: './home-widget-placeholder.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

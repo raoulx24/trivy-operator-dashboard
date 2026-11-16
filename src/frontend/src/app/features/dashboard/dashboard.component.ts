@@ -19,6 +19,7 @@ import { HomeHistoryDriftComponent } from './home-history-drift/home-history-dri
 import { HomeMotionService } from './home-motion/home-motion.service';
 import { HomeNewImagesComponent } from './home-new-images/home-new-images.component';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
+import { HomeWhereIsVulnerabilityComponent } from './home-where-is-vulnerability/home-where-is-vulnerability.component';
 import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
 import { HomeWidgetGroupDirective } from './home-widget-group/home-widget-group.directive';
 import { HomeWidgetPlaceholderComponent } from './home-widget-placeholder/home-widget-placeholder.component';
@@ -42,6 +43,7 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomeBaseOsComponent,
     HomeHistoryDriftComponent,
     HomeNewImagesComponent,
+    HomeWhereIsVulnerabilityComponent,
   ],
   // one expanded widget per page, shared by the widget groups
   providers: [HomeWidgetExpansionService, HomeMotionService],
@@ -104,7 +106,6 @@ export class DashboardComponent {
   // the searches look at everything running now; only the namespaces filter applies to them
   protected readonly searchHint = computed(() => `now${this.namespacesLabel()}`);
   private static readonly searchIdle: HomeWidgetState = { idleText: 'Type and press Enter to search' };
-  protected readonly whereIsVulnerability = signal<HomeWidgetState>(DashboardComponent.searchIdle);
   protected readonly whereIsPackage = signal<HomeWidgetState>(DashboardComponent.searchIdle);
   protected readonly whereIsLicense = signal<HomeWidgetState>(DashboardComponent.searchIdle);
   protected readonly whereIsCheck = signal<HomeWidgetState>(DashboardComponent.searchIdle);
@@ -151,23 +152,6 @@ export class DashboardComponent {
   // ------------------------------------------------------------------------
   // "where is" searches (the namespaces filter applies; a filter change does not re-run them)
   // ------------------------------------------------------------------------
-
-  protected onFindVulnerability(query: string): void {
-    this.load(
-      this.whereIsVulnerability,
-      this.homeService.getHomeWhereIsVulnerability({ query, namespaces: this.namespacesParam() }),
-      (x) => ({
-        isAvailable: x.isAvailable,
-        unavailableReason: x.unavailableReason,
-        summary:
-          `${x.totalMatches} ids (${x.items.length} shown)` +
-          (x.items[0]
-            ? `; first: ${x.items[0].vulnerabilityId}, ${x.items[0].packages.length} packages, ${x.items[0].images} images`
-            : '') +
-          this.toNote(x.note),
-      }),
-    );
-  }
 
   protected onFindPackage(query: string): void {
     this.load(

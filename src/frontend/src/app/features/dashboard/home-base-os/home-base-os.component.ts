@@ -21,6 +21,7 @@ import {
   parseEolDay,
 } from '@shared/ui/eol-runway/eol-runway.state';
 import { EolRunwayItem, EolRunwayState } from '@shared/ui/eol-runway/eol-runway.types';
+import { NetworkFillComponent } from '@shared/ui/network-fill/network-fill.component';
 import { PopoverService } from '@shared/ui/popover/popover.service';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
@@ -56,6 +57,7 @@ type BaseOsImageTableRow = HomeBaseOsImageRowDto & { eolState: EolRunwayState | 
     HomeWidgetFrameComponent,
     HomeVtItemDirective,
     EolRunwayComponent,
+    NetworkFillComponent,
     TrivyBoxComponent,
     NgTemplateOutlet,
     ButtonModule,
@@ -216,6 +218,21 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   protected readonly boxes = computed(() => (this.leftOver() ? this.allBoxes().slice(0, -1) : this.allBoxes()));
   // the box beside the runway
   protected readonly besideBox = computed(() => (this.leftOver() ? this.allBoxes().at(-1) : undefined));
+
+  // the empty cells of the grid (expanded only), filled with the network drawing; the boxes left on the last row, after
+  // the full rows, are 0 (the runway is alone on its row), 1 (beside the runway, no gap) or 2 (a gap after them, and the
+  // runway, which needs two cells, goes to the next row)
+  private readonly lastRowBoxes = computed(() => this.allBoxes().length % HomeBaseOsComponent.columns);
+  // after the boxes, in the last row of them; it spans the next row too, the cell beside the runway (one drawing, so
+  // contiguous)
+  protected readonly fillAfterBoxes = computed(() => this.isExpanded() && this.lastRowBoxes() > 1);
+  // after the runway, when the boxes end on a full row (the runway is alone on its row)
+  protected readonly fillAfterRunway = computed(() => this.isExpanded() && this.lastRowBoxes() === 0);
+
+  // a new drawing on every creation of the widget (e.g. every visit of the home page), the same while it lives
+  private readonly createdAt = new Date().toISOString();
+  protected readonly fillSeedBoxes = `Base OS boxes ${this.createdAt}`;
+  protected readonly fillSeedRunway = `Base OS runway ${this.createdAt}`;
 
   protected readonly state = computed<HomeWidgetState>(() => {
     const resource = this.shown();

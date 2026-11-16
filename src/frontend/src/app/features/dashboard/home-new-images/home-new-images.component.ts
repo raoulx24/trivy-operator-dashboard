@@ -202,6 +202,10 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
     };
   });
 
+  protected override readonly valueDays = computed(() =>
+    (this.daysData.value()?.days ?? []).filter((d) => d.images > 0).map((d) => d.day),
+  );
+
   protected override readonly showBoxes = computed(
     () => this.isExpanded() && this.daysData.value()?.isAvailable === true && this.rowsData.hasValue(),
   );
