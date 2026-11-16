@@ -50,7 +50,10 @@ namespace TrivyOperator.Dashboard.Api.Home.Serializations;
 [JsonSerializable(typeof(HomeDataHealthDto))]
 
 [JsonSerializable(typeof(HomeWhereIsVulnerabilityPackageDto))]
+[JsonSerializable(typeof(HomeWhereIsVulnerabilitySeverityDto))]
 [JsonSerializable(typeof(HomeWhereIsVulnerabilityItemDto))]
+[JsonSerializable(typeof(HomeWhereIsVulnerabilityDetailItemDto))]
+[JsonSerializable(typeof(HomeWhereIsVulnerabilityDetailDto))]
 [JsonSerializable(typeof(HomeWhereIsVulnerabilityDto))]
 [JsonSerializable(typeof(HomeWhereIsPackageVersionDto))]
 [JsonSerializable(typeof(HomeWhereIsPackageItemDto))]

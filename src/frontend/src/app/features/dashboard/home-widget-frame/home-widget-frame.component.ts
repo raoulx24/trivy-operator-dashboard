@@ -34,7 +34,7 @@ export class HomeWidgetFrameComponent {
   refreshable = input(false);
 
   // the explanation of the widget, as HTML (Angular sanitizes it: no scripts, no style attributes); a "?" button after the
-  // heading opens it in a movable, resizable dialog; no help text, no button
+  // heading opens it in a modal, movable, resizable dialog (a click outside closes it); no help text, no button
   help = input<string>('');
   protected readonly isHelpVisible = signal(false);
 

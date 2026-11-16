@@ -58,9 +58,7 @@ public partial class HomeSearchService(
 
         List<HomeWhereIsVulnerabilityItemDto> items =
         [
-            .. table.Rows
-                .Where(x => x.Key.VulnerabilityId.Value.StartsWith(q, StringComparison.OrdinalIgnoreCase) && scope.Contains(x))
-                .GroupBy(x => x.Key.VulnerabilityId)
+            .. VulnerabilityGroups(table, scope, id => id.StartsWith(q, StringComparison.OrdinalIgnoreCase))
                 .Select(group =>
                 {
                     ActiveVulnerability first = group.First();
@@ -71,26 +69,17 @@ public partial class HomeSearchService(
                         Title: first.Title,
                         SeverityId: group.Min(x => x.Severity.Rank),
                         IsKnownExploited: first.IsKnownExploited,
-                        KevDateAdded: first.KevDateAdded,
-                        EpssPercentile: first.EpssPercentile,
-                        Packages:
+                        PackagesBySeverity:
                         [
                             .. group
-                                .Select(row => new HomeWhereIsVulnerabilityPackageDto(
-                                    PackageKey: row.Key.PackageKey.Value,
-                                    PackageName: row.PackageName.Value,
-                                    InstalledVersions: InstalledVersionsInScope(row, scope, table),
-                                    FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
-                                    SeverityId: row.Severity.Rank,
-                                    Images: scope.GetReach(row).ImageKeys.Count))
-                                .OrderBy(x => x.SeverityId)
-                                .ThenByDescending(x => x.Images),
+                                .GroupBy(x => x.Severity.Rank)
+                                .OrderBy(x => x.Key)
+                                .Select(x => new HomeWhereIsVulnerabilitySeverityDto(x.Key, x.Count())),
                         ],
+                        Packages: group.Count(),
+                        FixablePackages: group.Count(x => x.HasFix),
                         Images: reach.ImageKeys.Count,
-                        Namespaces: reach.Namespaces.Count,
-                        Workloads: reach.Workloads.Count,
-                        NamespaceNames: ToNamespaceNames(reach.Namespaces),
-                        ImageNames: ToImageNames(reach.ImageKeys, table));
+                        Namespaces: reach.Namespaces.Count);
                 })
                 .OrderByDescending(x => string.Equals(x.VulnerabilityId, q, StringComparison.OrdinalIgnoreCase))
                 .ThenByDescending(x => x.Images)
@@ -105,6 +94,79 @@ public partial class HomeSearchService(
 
         return new HomeWhereIsVulnerabilityDto(true, null, q, note, items.Count, [.. items.Take(filter.Limit),]);
     }
+
+    // everything about one id (exact, case-insensitive), with all its images and namespaces
+    public async Task<HomeWhereIsVulnerabilityDetailDto> FindVulnerabilityDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string id = vulnerabilityId.Trim();
+
+        if (!sources.HasVulnerabilityReports)
+        {
+            return new HomeWhereIsVulnerabilityDetailDto(false, NoVulnerabilityReports, id, null, null);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+
+        IGrouping<VulnerabilityId, ActiveVulnerability>? group = VulnerabilityGroups(
+                table,
+                scope,
+                x => string.Equals(x, id, StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault();
+
+        if (group is null)
+        {
+            return new HomeWhereIsVulnerabilityDetailDto(
+                true,
+                null,
+                id,
+                "Not found. Trivy may report it under another id (e.g. a GHSA or a distro advisory); aliases are not known here.",
+                null);
+        }
+
+        ActiveVulnerability first = group.First();
+        HomeReach reach = scope.GetReach(group.SelectMany(x => x.ImageKeys));
+
+        HomeWhereIsVulnerabilityDetailItemDto item = new(
+            VulnerabilityId: group.Key.Value,
+            Title: first.Title,
+            SeverityId: group.Min(x => x.Severity.Rank),
+            IsKnownExploited: first.IsKnownExploited,
+            KevDateAdded: first.KevDateAdded,
+            EpssPercentile: first.EpssPercentile,
+            Packages:
+            [
+                .. group
+                    .Select(row => new HomeWhereIsVulnerabilityPackageDto(
+                        PackageKey: row.Key.PackageKey.Value,
+                        PackageName: row.PackageName.Value,
+                        InstalledVersions: InstalledVersionsInScope(row, scope, table),
+                        FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
+                        SeverityId: row.Severity.Rank,
+                        Images: scope.GetReach(row).ImageKeys.Count))
+                    .OrderBy(x => x.SeverityId)
+                    .ThenByDescending(x => x.Images),
+            ],
+            Images: reach.ImageKeys.Count,
+            Namespaces: reach.Namespaces.Count,
+            Workloads: reach.Workloads.Count,
+            NamespaceNames: ToNamespaceNames(reach.Namespaces, int.MaxValue),
+            ImageNames: ToImageNames(reach.ImageKeys, table, int.MaxValue));
+
+        return new HomeWhereIsVulnerabilityDetailDto(true, null, id, null, item);
+    }
+
+    // the rows in scope whose id is accepted, by id
+    private static IEnumerable<IGrouping<VulnerabilityId, ActiveVulnerability>> VulnerabilityGroups(
+        ActiveVulnerabilityTable table,
+        HomeScope scope,
+        Func<string, bool> acceptsId) =>
+        table.Rows
+            .Where(x => acceptsId(x.Key.VulnerabilityId.Value) && scope.Contains(x))
+            .GroupBy(x => x.Key.VulnerabilityId);
 
     private static IReadOnlyList<string> InstalledVersionsInScope(
         ActiveVulnerability row,

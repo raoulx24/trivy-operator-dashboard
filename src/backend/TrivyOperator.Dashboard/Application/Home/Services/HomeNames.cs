@@ -10,8 +10,10 @@ public static class HomeNames
     public const int MaxNamesPerItem = 10;
 
 
-    public static IReadOnlyList<string> ToNamespaceNames(IEnumerable<NamespaceName> namespaces) =>
-        [.. namespaces.Select(x => x.Value).Order(StringComparer.Ordinal).Take(MaxNamesPerItem),];
+    public static IReadOnlyList<string> ToNamespaceNames(
+        IEnumerable<NamespaceName> namespaces,
+        int limit = MaxNamesPerItem) =>
+        [.. namespaces.Select(x => x.Value).Order(StringComparer.Ordinal).Take(limit),];
 
     public static IReadOnlyList<HomeBaseOsImageDto> ToBaseOsImages(
         IEnumerable<string> imageKeys,
@@ -31,7 +33,10 @@ public static class HomeNames
             .Take(limit),
     ];
 
-    public static IReadOnlyList<string> ToImageNames(IEnumerable<string> imageKeys, ActiveVulnerabilityTable table) =>
+    public static IReadOnlyList<string> ToImageNames(
+        IEnumerable<string> imageKeys,
+        ActiveVulnerabilityTable table,
+        int limit = MaxNamesPerItem) =>
     [
         .. imageKeys
             .Select(key => table.Images.TryGetValue(key, out ActiveImage? image)
@@ -39,6 +44,6 @@ public static class HomeNames
                 : key)
             .Distinct()
             .Order(StringComparer.Ordinal)
-            .Take(MaxNamesPerItem),
+            .Take(limit),
     ];
 }

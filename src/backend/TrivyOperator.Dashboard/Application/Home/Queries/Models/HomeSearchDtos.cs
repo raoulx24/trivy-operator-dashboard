@@ -13,10 +13,35 @@ public sealed record HomeWhereIsVulnerabilityPackageDto(
     int SeverityId,
     int Images);
 
+// the list (collapsed widget, picker): only what a row shows, the rest is in the detailed one
+public sealed record HomeWhereIsVulnerabilitySeverityDto(int SeverityId, int Packages);
+
 public sealed record HomeWhereIsVulnerabilityItemDto(
     string VulnerabilityId,
     string? Title,
     // the highest severity of its packages
+    int SeverityId,
+    bool IsKnownExploited,
+    // the packages by severity, most severe first
+    IReadOnlyList<HomeWhereIsVulnerabilitySeverityDto> PackagesBySeverity,
+    int Packages,
+    // the packages with a fix
+    int FixablePackages,
+    int Images,
+    int Namespaces);
+
+public sealed record HomeWhereIsVulnerabilityDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    string Query,
+    string? Note,
+    int TotalMatches,
+    IReadOnlyList<HomeWhereIsVulnerabilityItemDto> Items);
+
+// one vulnerability id, everything: all the images and namespaces (sorted, not capped)
+public sealed record HomeWhereIsVulnerabilityDetailItemDto(
+    string VulnerabilityId,
+    string? Title,
     int SeverityId,
     bool IsKnownExploited,
     DateOnly? KevDateAdded,
@@ -28,13 +53,13 @@ public sealed record HomeWhereIsVulnerabilityItemDto(
     IReadOnlyList<string> NamespaceNames,
     IReadOnlyList<string> ImageNames);
 
-public sealed record HomeWhereIsVulnerabilityDto(
+// Item is null when the id (exact, case-insensitive) does not run now
+public sealed record HomeWhereIsVulnerabilityDetailDto(
     bool IsAvailable,
     string? UnavailableReason,
-    string Query,
+    string VulnerabilityId,
     string? Note,
-    int TotalMatches,
-    IReadOnlyList<HomeWhereIsVulnerabilityItemDto> Items);
+    HomeWhereIsVulnerabilityDetailItemDto? Item);
 
 // --- package: "pkg:..." = purl prefix (an "@" adds a version prefix), anything else = name substring;
 // case-insensitive; grouped by package (purl without version, see PackageKey)

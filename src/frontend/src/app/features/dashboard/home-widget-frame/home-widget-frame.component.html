@@ -1,4 +1,4 @@
-<div class="tod-content-border tod-content-background flex flex-col gap-2 p-3 h-full">
+<div class="tod-content-border tod-content-background relative flex flex-col gap-2 p-3 h-full">
   <!-- collapsed: the heading at the left, the hint at the right; expanded: the status (muted) in the center -->
   <div class="flex items-baseline gap-2 pb-0.25">
     <span class="flex-1 min-w-0 flex items-baseline gap-1">
@@ -79,11 +79,12 @@
 </div>
 
 @if (help()) {
-  <!-- not modal: it can stay open beside the widget it explains; appended to the body, away from the widget's transforms -->
+  <!-- modal (dimmed background), closes on a click outside; appended to the body, away from the widget's transforms -->
   <p-dialog
     appendTo="body"
     [header]="heading()"
-    [modal]="false"
+    [modal]="true"
+    [dismissableMask]="true"
     [draggable]="true"
     [resizable]="true"
     [closable]="true"

@@ -66,3 +66,9 @@ $default-breakpoint: 640px;
 .trivy-table-row-dimmed {
   opacity: 0.5;
 }
+
+/* the caption is always made (it has the buttons the page asks for and a slot, ng-table-header): with none of them it would be an
+   empty bar above the column headers, so it is hidden */
+.trivy-table .p-datatable-header:not(:has(p-button, p-splitbutton, .ng-table-header > *)) {
+  display: none;
+}

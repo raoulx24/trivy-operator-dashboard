@@ -12,6 +12,12 @@ public class HomeSearchNullService : QueryNullService, IHomeSearchService
     public Task<HomeWhereIsVulnerabilityDto> FindVulnerability(string query, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeWhereIsVulnerabilityDto(false, Reason, query, null, 0, []));
 
+    public Task<HomeWhereIsVulnerabilityDetailDto> FindVulnerabilityDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeWhereIsVulnerabilityDetailDto(false, Reason, vulnerabilityId, null, null));
+
     public Task<HomeWhereIsPackageDto> FindPackage(string query, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeWhereIsPackageDto(false, Reason, query, null, string.Empty, 0, []));
 

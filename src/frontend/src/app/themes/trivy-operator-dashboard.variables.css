@@ -45,6 +45,8 @@
   --tod-text-primary-color: var(--p-surface-900);
   --tod-text-revert-primary-color: var(--p-surface-100);
   --tod-text-revert-muted-color: var(--p-surface-300);
+  /* the muted text on a selected item (a list row on the highlight background) */
+  --tod-text-selected-muted-color: color-mix(in srgb, var(--p-highlight-color) 78%, var(--p-highlight-background));
   --tod-text-inverted-muted-color: var(--p-surface-300);
   --tod-togglebutton-background-border-color: var(--p-surface-100);
   --tod-blockquote-text-color: var(--p-surface-900);
@@ -104,6 +106,7 @@
   --tod-text-primary-color: var(--p-surface-100);
   --tod-text-revert-primary-color: var(--p-surface-900);
   --tod-text-revert-muted-color: var(--p-surface-700);
+  --tod-text-selected-muted-color: color-mix(in srgb, var(--p-surface-950) 70%, transparent);
   --tod-text-inverted-muted-color: var(--p-surface-700);
   --tod-togglebutton-background-border-color: var(--p-surface-950);
   --tod-blockquote-text-color: var(--p-surface-200);

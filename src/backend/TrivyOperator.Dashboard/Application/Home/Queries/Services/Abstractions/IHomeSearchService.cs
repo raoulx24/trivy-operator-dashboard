@@ -9,6 +9,12 @@ public interface IHomeSearchService : IQueryService
 {
     Task<HomeWhereIsVulnerabilityDto> FindVulnerability(string query, HomeFilter filter, CancellationToken ctx = default);
 
+    // one id (exact match) with everything: all images and namespaces, packages, KEV / EPSS
+    Task<HomeWhereIsVulnerabilityDetailDto> FindVulnerabilityDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default);
+
     Task<HomeWhereIsPackageDto> FindPackage(string query, HomeFilter filter, CancellationToken ctx = default);
 
     Task<HomeWhereIsLicenseDto> FindLicense(string query, HomeFilter filter, CancellationToken ctx = default);

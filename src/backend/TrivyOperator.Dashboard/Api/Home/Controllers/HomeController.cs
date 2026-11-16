@@ -191,6 +191,19 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeSearchService.FindVulnerability(query ?? string.Empty, ToFilter(null, null, namespaces, limit), ctx));
 
+    // one id (exact match) with everything: all images and namespaces, packages, KEV / EPSS; the limit does not apply
+    [HttpGet("where-is/vulnerability/detailed", Name = "GetHomeWhereIsVulnerabilityDetailed")]
+    [ProducesResponseType(typeof(HomeWhereIsVulnerabilityDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> FindVulnerabilityDetailed(
+        [FromQuery] string? vulnerabilityId,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeSearchService.FindVulnerabilityDetailed(
+            vulnerabilityId ?? string.Empty,
+            ToFilter(null, null, namespaces, null),
+            ctx));
+
     [HttpGet("where-is/package", Name = "GetHomeWhereIsPackage")]
     [ProducesResponseType(typeof(HomeWhereIsPackageDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]

@@ -1572,6 +1572,35 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/where-is/vulnerability/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeWhereIsVulnerabilityDetailed
+      parameters:
+        - name: vulnerabilityId
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeWhereIsVulnerabilityDetailDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/where-is/package:
     get:
       tags:
@@ -4830,7 +4859,7 @@ components:
           items:
             type: string
       additionalProperties: false
-    HomeWhereIsVulnerabilityDto:
+    HomeWhereIsVulnerabilityDetailDto:
       type: object
       properties:
         isAvailable:
@@ -4838,20 +4867,15 @@ components:
         unavailableReason:
           type: string
           nullable: true
-        query:
+        vulnerabilityId:
           type: string
         note:
           type: string
           nullable: true
-        totalMatches:
-          type: integer
-          format: int32
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeWhereIsVulnerabilityItemDto'
+        item:
+          $ref: '#/components/schemas/HomeWhereIsVulnerabilityDetailItemDto'
       additionalProperties: false
-    HomeWhereIsVulnerabilityItemDto:
+    HomeWhereIsVulnerabilityDetailItemDto:
       type: object
       properties:
         vulnerabilityId:
@@ -4894,6 +4918,57 @@ components:
           items:
             type: string
       additionalProperties: false
+    HomeWhereIsVulnerabilityDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        query:
+          type: string
+        note:
+          type: string
+          nullable: true
+        totalMatches:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsVulnerabilityItemDto'
+      additionalProperties: false
+    HomeWhereIsVulnerabilityItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        isKnownExploited:
+          type: boolean
+        packagesBySeverity:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsVulnerabilitySeverityDto'
+        packages:
+          type: integer
+          format: int32
+        fixablePackages:
+          type: integer
+          format: int32
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+      additionalProperties: false
     HomeWhereIsVulnerabilityPackageDto:
       type: object
       properties:
@@ -4912,6 +4987,16 @@ components:
           type: integer
           format: int32
         images:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomeWhereIsVulnerabilitySeverityDto:
+      type: object
+      properties:
+        severityId:
+          type: integer
+          format: int32
+        packages:
           type: integer
           format: int32
       additionalProperties: false
