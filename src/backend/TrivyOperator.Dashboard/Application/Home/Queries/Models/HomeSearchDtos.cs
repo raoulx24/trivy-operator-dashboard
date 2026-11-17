@@ -11,7 +11,9 @@ public sealed record HomeWhereIsVulnerabilityPackageDto(
     IReadOnlyList<string> InstalledVersions,
     string? FixedVersion,
     int SeverityId,
-    int Images);
+    int Images,
+    // the images that have it: indexes in the ImageNames of the item
+    IReadOnlyList<int> ImageIndexes);
 
 // the list (collapsed widget, picker): only what a row shows, the rest is in the detailed one
 public sealed record HomeWhereIsVulnerabilitySeverityDto(int SeverityId, int Packages);
@@ -52,7 +54,10 @@ public sealed record HomeWhereIsVulnerabilityDetailItemDto(
     int Namespaces,
     int Workloads,
     IReadOnlyList<string> NamespaceNames,
-    IReadOnlyList<string> ImageNames);
+    IReadOnlyList<string> ImageNames,
+    // per image (as ImageNames), the namespaces it runs in: indexes in NamespaceNames; with the ImageIndexes of the packages,
+    // that is what a page needs to filter the three lists by each other
+    IReadOnlyList<IReadOnlyList<int>> ImageNamespaceIndexes);
 
 // Item is null when the id (exact, case-insensitive) does not run now
 public sealed record HomeWhereIsVulnerabilityDetailDto(

@@ -268,7 +268,7 @@
         [showClear]="true"
         [options]="pivot.dayOptions()"
         [ngModel]="pivot.selection()?.day ?? null"
-        (onChange)="pivot.pickDay($event.value)"
+        (onChange)="onDayPicked($event.value)"
       >
         <ng-template #item let-option><app-home-pivot-option [option]="option" /></ng-template>
         <ng-template #selectedItem let-option><app-home-pivot-option [option]="option" /></ng-template>

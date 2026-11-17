@@ -1,4 +1,4 @@
-import { Directive, Signal, computed, effect, input, signal, viewChild } from '@angular/core';
+import { Directive, Injector, Signal, afterNextRender, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 
 import { VirtualScrollerComponent } from '@shared/ui/virtual-scroller/virtual-scroller.component';
 import { SeverityUtils } from '@shared/utils/severity.utils';
@@ -71,6 +71,8 @@ export abstract class HomePivotWidgetBase<
   // "Show all": the dialog with the denormalized rows, as the server sent them (they are not asked again)
   protected readonly showAllDialog = signal(false);
 
+  private readonly renderInjector = inject(Injector);
+
   // set when the rows of this expand were revealed; reset on collapse (so a reload by a filter does not scroll)
   private revealed = false;
   // the rows have no height until their boxes are rendered and measured (virtual rows): the widget is revealed when
@@ -125,15 +127,34 @@ export abstract class HomePivotWidgetBase<
     }
   }
 
-  // a pick in a select: the box of the pick is scrolled to
+  // a change in any of the three selects (date, image, pair): whatever is selected, the image and/or the pair, is brought
+  // into view
+  protected onDayPicked(day: string | null): void {
+    this.pivot.pickDay(day);
+    this.bringSelectionIntoView();
+  }
+
   protected onImagePicked(digest: string | null): void {
     this.pivot.pickImage(digest);
-    if (digest) this.scrollToImageBox(digest);
+    this.bringSelectionIntoView();
   }
 
   protected onPairPicked(pairKey: string | null): void {
     this.pivot.pickPair(pairKey);
-    if (pairKey) this.scrollToPairBox(pairKey);
+    this.bringSelectionIntoView();
+  }
+
+  // after the render: a day filters the boxes (they are other ones, at other places), so the boxes are looked up when they
+  // are there; a clear of one side still brings the other one, which is still selected
+  private bringSelectionIntoView(): void {
+    afterNextRender(
+      () => {
+        const selection = this.pivot.selection();
+        if (selection?.digest) this.scrollToImageBox(selection.digest);
+        if (selection?.pairKey) this.scrollToPairBox(selection.pairKey);
+      },
+      { injector: this.renderInjector },
+    );
   }
 
   protected severityLabel(severityId: number): string {

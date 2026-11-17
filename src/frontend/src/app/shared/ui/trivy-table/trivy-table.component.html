@@ -314,6 +314,7 @@
       <tr [style.height] = fullRowHeightPx()
           [pSelectableRow]="rowData"
           [pSelectableRowIndex]="rowIndex"
+          [pSelectableRowDisabled]="isRowDimmed && !dimmedRowsSelectable()"
           [class.trivy-table-row-dimmed]="isRowDimmed">
         @let localRefreshValue = refreshValue();
         <ng-template>{{ localRefreshValue }}</ng-template>

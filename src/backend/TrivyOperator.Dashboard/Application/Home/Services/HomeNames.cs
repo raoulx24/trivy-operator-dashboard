@@ -33,15 +33,19 @@ public static class HomeNames
             .Take(limit),
     ];
 
+    // the name an image has in the lists: repo:tag (the key itself for an image the table does not know)
+    public static string ToImageName(string imageKey, ActiveVulnerabilityTable table) =>
+        table.Images.TryGetValue(imageKey, out ActiveImage? image)
+            ? $"{image.ImageMeta.Repo.Value}:{image.ImageMeta.Tag.Value}"
+            : imageKey;
+
     public static IReadOnlyList<string> ToImageNames(
         IEnumerable<string> imageKeys,
         ActiveVulnerabilityTable table,
         int limit = MaxNamesPerItem) =>
     [
         .. imageKeys
-            .Select(key => table.Images.TryGetValue(key, out ActiveImage? image)
-                ? $"{image.ImageMeta.Repo.Value}:{image.ImageMeta.Tag.Value}"
-                : key)
+            .Select(key => ToImageName(key, table))
             .Distinct()
             .Order(StringComparer.Ordinal)
             .Take(limit),

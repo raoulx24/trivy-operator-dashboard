@@ -4917,6 +4917,13 @@ components:
           type: array
           items:
             type: string
+        imageNamespaceIndexes:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
       additionalProperties: false
     HomeWhereIsVulnerabilityDto:
       type: object
@@ -4992,6 +4999,11 @@ components:
         images:
           type: integer
           format: int32
+        imageIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
       additionalProperties: false
     HomeWhereIsVulnerabilitySeverityDto:
       type: object

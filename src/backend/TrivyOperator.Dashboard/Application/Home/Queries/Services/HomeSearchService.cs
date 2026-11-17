@@ -131,6 +131,23 @@ public partial class HomeSearchService(
         ActiveVulnerability first = group.First();
         HomeReach reach = scope.GetReach(group.SelectMany(x => x.ImageKeys));
 
+        IReadOnlyList<string> namespaceNames = ToNamespaceNames(reach.Namespaces, int.MaxValue);
+        IReadOnlyList<string> imageNames = ToImageNames(reach.ImageKeys, table, int.MaxValue);
+        Dictionary<string, int> namespaceIndexes = ToIndexes(namespaceNames);
+        Dictionary<string, int> imageIndexes = ToIndexes(imageNames);
+
+        // the namespaces of each image, by name (the images of one name, with other digests, are one line), as indexes
+        SortedSet<int>[] namespacesOfImage = [.. imageNames.Select(_ => new SortedSet<int>()),];
+        foreach (string imageKey in reach.ImageKeys)
+        {
+            SortedSet<int> namespacesOfThis = namespacesOfImage[imageIndexes[ToImageName(imageKey, table)]];
+
+            foreach (NamespaceName namespaceName in scope.GetReach(new[] { imageKey, }).Namespaces)
+            {
+                namespacesOfThis.Add(namespaceIndexes[namespaceName.Value]);
+            }
+        }
+
         HomeWhereIsVulnerabilityDetailItemDto item = new(
             VulnerabilityId: group.Key.Value,
             Title: first.Title,
@@ -147,18 +164,30 @@ public partial class HomeSearchService(
                         InstalledVersions: InstalledVersionsInScope(row, scope, table),
                         FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
                         SeverityId: row.Severity.Rank,
-                        Images: scope.GetReach(row).ImageKeys.Count))
+                        Images: scope.GetReach(row).ImageKeys.Count,
+                        ImageIndexes:
+                        [
+                            .. scope.GetReach(row).ImageKeys
+                                .Select(key => imageIndexes[ToImageName(key, table)])
+                                .Distinct()
+                                .Order(),
+                        ]))
                     .OrderBy(x => x.SeverityId)
                     .ThenByDescending(x => x.Images),
             ],
             Images: reach.ImageKeys.Count,
             Namespaces: reach.Namespaces.Count,
             Workloads: reach.Workloads.Count,
-            NamespaceNames: ToNamespaceNames(reach.Namespaces, int.MaxValue),
-            ImageNames: ToImageNames(reach.ImageKeys, table, int.MaxValue));
+            NamespaceNames: namespaceNames,
+            ImageNames: imageNames,
+            ImageNamespaceIndexes: [.. namespacesOfImage.Select(x => (IReadOnlyList<int>)x.ToArray()),]);
 
         return new HomeWhereIsVulnerabilityDetailDto(true, null, id, null, item);
     }
+
+    // name -> its index in the list (the names are distinct)
+    private static Dictionary<string, int> ToIndexes(IReadOnlyList<string> names) =>
+        names.Select((name, index) => (name, index)).ToDictionary(x => x.name, x => x.index);
 
     // the rows in scope whose id is accepted, by id
     private static IEnumerable<IGrouping<VulnerabilityId, ActiveVulnerability>> VulnerabilityGroups(

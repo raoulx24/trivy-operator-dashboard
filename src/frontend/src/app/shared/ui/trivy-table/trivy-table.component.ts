@@ -135,6 +135,8 @@ export class TrivyTableComponent<TData> implements OnInit {
   // row dimmer
   rowDimmer = input<((row: TData) => boolean) | undefined>();
   readonly defaultRowDimmer = () => false;
+  // false: a dimmed row cannot be selected (a click on it does nothing), it is only faded; the default keeps the rows selectable
+  dimmedRowsSelectable = input<boolean>(true);
 
   selectionMode = input<'single' | 'multiple' | undefined>(undefined);
 
