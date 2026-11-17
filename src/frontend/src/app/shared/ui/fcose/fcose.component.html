@@ -4,6 +4,14 @@
       <p-button icon="pi pi-search-plus" label="Zoom In" size="small" raised [text]="true" (onClick)="onZoomIn()" />
       <p-button icon="pi pi-search-minus" label="Zoom Out" size="small" raised [text]="true" (onClick)="onZoomOut()" />
       <p-button icon="pi pi-arrows-alt" label="Fit" size="small" raised [text]="true" (onClick)="onZoomFit()" />
+      <p-button
+        icon="pi pi-bullseye"
+        label="Focus"
+        size="small"
+        raised
+        [text]="true"
+        (onClick)="onZoomHighlighted()"
+      />
       <div class="h-6 w-[2px] tod-separator mx-1"></div>
       <input
         pInputText

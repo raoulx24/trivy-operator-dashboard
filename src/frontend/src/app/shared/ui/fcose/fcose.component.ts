@@ -277,6 +277,24 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     });
   }
 
+  /** Zooms to the highlighted elements: selected node(s) + neighbours, else the nodes matching the name filter. */
+  onZoomHighlighted() {
+    let eles = this.cy.nodes('.selectedCommon, .selected');
+    if (eles.empty()) {
+      eles = this.cy.nodes('.filtered-highlighted, .filtered-semihighlighted');
+    }
+    if (eles.empty()) {
+      return;
+    }
+    this.cy.animate({
+      fit: {
+        eles: eles.union(eles.connectedEdges()),
+        padding: 40,
+      },
+      duration: 300,
+    });
+  }
+
   onDeleteNode() {
     this.deleteHistory.deleteNodes(false);
   }
