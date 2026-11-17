@@ -240,6 +240,16 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeSearchService.FindLicense(query ?? string.Empty, ToFilter(null, null, namespaces, limit), ctx));
 
+    // one license (exact match) with everything: all the package versions, images and namespaces; the limit does not apply
+    [HttpGet("where-is/license/detailed", Name = "GetHomeWhereIsLicenseDetailed")]
+    [ProducesResponseType(typeof(HomeWhereIsLicenseDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> FindLicenseDetailed(
+        [FromQuery] string? license,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeSearchService.FindLicenseDetailed(license ?? string.Empty, ToFilter(null, null, namespaces, null), ctx));
+
     [HttpGet("where-is/check", Name = "GetHomeWhereIsCheck")]
     [ProducesResponseType(typeof(HomeWhereIsCheckDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
@@ -249,6 +259,21 @@ public class HomeController(
         [FromQuery] int? limit,
         CancellationToken ctx) =>
         Ok(await homeSearchService.FindCheck(query ?? string.Empty, ToFilter(null, null, namespaces, limit), ctx));
+
+    // one check (family and id, exact match) with everything: one row per failing resource; the limit does not apply
+    [HttpGet("where-is/check/detailed", Name = "GetHomeWhereIsCheckDetailed")]
+    [ProducesResponseType(typeof(HomeWhereIsCheckDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> FindCheckDetailed(
+        [FromQuery] string? family,
+        [FromQuery] string? checkId,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeSearchService.FindCheckDetailed(
+            family ?? string.Empty,
+            checkId ?? string.Empty,
+            ToFilter(null, null, namespaces, null),
+            ctx));
 
     private static HomeFilter ToFilter(DateTime? since, int[]? severities, string[]? namespaces, int? limit) =>
         new(

@@ -19,6 +19,8 @@ import { HomeHistoryDriftComponent } from './home-history-drift/home-history-dri
 import { HomeMotionService } from './home-motion/home-motion.service';
 import { HomeNewImagesComponent } from './home-new-images/home-new-images.component';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
+import { HomeWhereIsLicenseComponent } from './home-where-is-license/home-where-is-license.component';
+import { HomeWhereIsCheckComponent } from './home-where-is-check/home-where-is-check.component';
 import { HomeWhereIsPackageComponent } from './home-where-is-package/home-where-is-package.component';
 import { HomeWhereIsVulnerabilityComponent } from './home-where-is-vulnerability/home-where-is-vulnerability.component';
 import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
@@ -44,6 +46,8 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomeBaseOsComponent,
     HomeHistoryDriftComponent,
     HomeNewImagesComponent,
+    HomeWhereIsCheckComponent,
+    HomeWhereIsLicenseComponent,
     HomeWhereIsPackageComponent,
     HomeWhereIsVulnerabilityComponent,
   ],
@@ -107,9 +111,6 @@ export class DashboardComponent {
   );
   // the searches look at everything running now; only the namespaces filter applies to them
   protected readonly searchHint = computed(() => `now${this.namespacesLabel()}`);
-  private static readonly searchIdle: HomeWidgetState = { idleText: 'Type and press Enter to search' };
-  protected readonly whereIsLicense = signal<HomeWidgetState>(DashboardComponent.searchIdle);
-  protected readonly whereIsCheck = signal<HomeWidgetState>(DashboardComponent.searchIdle);
 
   protected readonly oldestImagesHint = computed(
     () => `based on history · ${this.severitiesLabel()}${this.namespacesLabel()}`,
@@ -150,59 +151,9 @@ export class DashboardComponent {
     this.refreshCounter.update((x) => x + 1);
   }
 
-  // ------------------------------------------------------------------------
-  // "where is" searches (the namespaces filter applies; a filter change does not re-run them)
-  // ------------------------------------------------------------------------
-
-  protected onFindLicense(query: string): void {
-    if (!query) {
-      this.whereIsLicense.set(DashboardComponent.searchIdle);
-      return;
-    }
-    this.load(
-      this.whereIsLicense,
-      this.homeService.getHomeWhereIsLicense({ query, namespaces: this.namespacesParam() }),
-      (x) => ({
-        isAvailable: x.isAvailable,
-        unavailableReason: x.unavailableReason,
-        summary:
-          `${x.totalMatches} licenses (${x.items.length} shown)` +
-          (x.items[0]
-            ? `; first: ${x.items[0].license}, ${x.items[0].totalPackages} packages, ${x.items[0].images} images`
-            : '') +
-          this.toNote(x.note),
-      }),
-    );
-  }
-
-  protected onFindCheck(query: string): void {
-    if (!query) {
-      this.whereIsCheck.set(DashboardComponent.searchIdle);
-      return;
-    }
-    this.load(
-      this.whereIsCheck,
-      this.homeService.getHomeWhereIsCheck({ query, namespaces: this.namespacesParam() }),
-      (x) => ({
-        isAvailable: x.isAvailable,
-        unavailableReason: x.unavailableReason,
-        summary:
-          `${x.totalMatches} checks (${x.items.length} shown)` +
-          (x.items[0]
-            ? `; first: ${x.items[0].checkId} "${x.items[0].title}", ${x.items[0].resources} resources`
-            : '') +
-          this.toNote(x.note),
-      }),
-    );
-  }
-
   private namespacesParam(): string[] | undefined {
     const namespaces = this.namespaces();
     return namespaces.length > 0 ? namespaces : undefined;
-  }
-
-  private toNote(note?: string | null): string {
-    return note ? ` (${note})` : '';
   }
 
   private loadData(): void {

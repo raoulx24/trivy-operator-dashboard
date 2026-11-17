@@ -1,0 +1,197 @@
+@let w = widget();
+<app-home-widget-frame
+  [heading]="heading()"
+  [help]="help()"
+  [hint]="w.hint()"
+  [state]="w.state()"
+  [canExpand]="w.canExpand()"
+  [expanded]="w.isExpanded()"
+  (expandToggle)="w.toggle()"
+  [refreshable]="true"
+  (refreshRequested)="w.onRefresh()"
+  [fillGap]="!w.isExpanded()"
+>
+  @if (!w.isExpanded()) {
+    <ng-container *ngTemplateOutlet="searchBox" />
+
+    @if (w.searched() && w.items().length === 0 && w.state().isAvailable) {
+      <div class="text-sm tod-text-muted-color p-2">{{ w.note() ?? emptyText() }}</div>
+    }
+
+    <div class="flex flex-col gap-4 pt-2">
+      @for (item of w.items(); track key(item)) {
+        <ng-container *ngTemplateOutlet="rowBody(); context: { $implicit: item, inList: false }" />
+      }
+      @if (w.more() > 0) {
+        <span class="text-xs tod-text-muted-color px-1">+{{ w.more() }} more</span>
+      }
+    </div>
+  } @else {
+    <!-- expanded, a fixed height: on the left, in a box, the search and its results (the width of the collapsed widget); on
+         the right the selected row: on the first half of the height the namespaces (with the extra), and the images; on
+         the second half the bottom -->
+    <div
+      class="grid gap-3 pt-2 flex-1"
+      [style.min-height]="expandedHeight()"
+      [style.grid-template-columns]="'minmax(0, min(' + (w.collapsedWidth() ?? 384) + 'px, 22rem)) minmax(0, 1fr)'"
+    >
+      <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
+        <ng-container *ngTemplateOutlet="searchBox" />
+        <div class="text-xs tod-text-muted-color">
+          @if (w.searched()) {
+            {{ w.items().length }} of {{ w.totalMatches() }}
+          }
+        </div>
+
+        @if (w.searched() && w.items().length === 0 && w.state().isAvailable) {
+          <div class="text-sm tod-text-muted-color p-2">{{ w.note() ?? emptyText() }}</div>
+        } @else if (w.note()) {
+          <div class="text-xs tod-text-muted-color">{{ w.note() }}</div>
+        }
+
+        <!-- the rows have all the same height, as the scroller needs -->
+        <div class="relative flex-1 min-h-0">
+          <p-scroller
+            appScrollerResize
+            class="absolute inset-0"
+            scrollHeight="100%"
+            [items]="w.items()"
+            [itemSize]="rowHeight()"
+            [style]="{ width: '100%', height: '100%' }"
+          >
+            <ng-template #item let-item>
+              <div
+                class="px-2 py-2 cursor-pointer overflow-hidden border-b border-[var(--p-content-border-color)]"
+                [style.height.px]="rowHeight()"
+                [class.tod-selected-item]="w.isSelected(item)"
+                (click)="w.select(item)"
+              >
+                <ng-container *ngTemplateOutlet="rowBody(); context: { $implicit: item, inList: true }" />
+              </div>
+            </ng-template>
+          </p-scroller>
+        </div>
+      </div>
+
+      <!-- the rows of this column: half of the height each (otherwise they would be as tall as their content, and the lists
+           and the table, laid out absolutely, have none) -->
+      <div class="flex flex-col gap-3 min-h-0 min-w-0">
+        @if (w.detail(); as head) {
+          <ng-container *ngTemplateOutlet="detailHead(); context: { $implicit: head }" />
+        }
+
+        <div
+          class="grid gap-3 min-h-0 min-w-0 flex-1"
+          [style.grid-template-rows]="detailBottom() && (!w.detail() || w.hasDetailBottom(w.detail()))
+            ? 'minmax(0, 1fr) minmax(0, 1fr)'
+            : 'minmax(0, 1fr)'"
+        >
+          @if (w.detail(); as d) {
+            <!-- the namespaces (over the extra) and the images, half and half; each box is laid out absolutely in its cell,
+                 so a long list scrolls inside it and never makes the row taller -->
+            <div class="grid grid-cols-2 gap-3 min-h-0">
+              <div
+                class="grid gap-3 min-h-0 min-w-0"
+                [style.grid-template-rows]="detailExtra() ? 'minmax(0, 1fr) minmax(0, auto)' : 'minmax(0, 1fr)'"
+              >
+                <div class="relative min-h-0 min-w-0">
+                  <div class="absolute inset-0">
+                    <app-trivy-box class="h-full">
+                      <span boxTitle>Namespaces ({{ w.countLabel(w.allowedNamespaces().size, d.namespaceNames.length) }})</span>
+                      <div class="relative h-full">
+                        <div class="absolute inset-0 overflow-auto flex flex-col text-sm">
+                          @for (name of d.namespaceNames; track name; let i = $index) {
+                            <button
+                              type="button"
+                              class="text-left break-all rounded px-1 cursor-pointer disabled:opacity-50 disabled:cursor-default"
+                              [class.tod-selected-item]="w.selectedNamespace() === i"
+                              [disabled]="!w.allowedNamespaces().has(i)"
+                              [attr.aria-pressed]="w.selectedNamespace() === i"
+                              (click)="w.toggleNamespace(i)"
+                            >
+                              {{ name }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    </app-trivy-box>
+                  </div>
+                </div>
+
+                @if (detailExtra(); as extra) {
+                  <ng-container *ngTemplateOutlet="extra; context: { $implicit: d }" />
+                }
+              </div>
+
+              <div class="relative min-h-0 min-w-0">
+                <div class="absolute inset-0">
+                  <app-trivy-box class="h-full">
+                    <span boxTitle>Images ({{ w.countLabel(w.allowedImages().size, d.imageNames.length) }})</span>
+                    <div class="relative h-full">
+                      <div class="absolute inset-0 overflow-auto flex flex-col text-sm">
+                        @for (name of d.imageNames; track name; let i = $index) {
+                          <button
+                            type="button"
+                            class="text-left break-all rounded px-1 cursor-pointer disabled:opacity-50 disabled:cursor-default"
+                            [class.tod-selected-item]="w.selectedImage() === i"
+                            [disabled]="!w.allowedImages().has(i)"
+                            [attr.aria-pressed]="w.selectedImage() === i"
+                            (click)="w.toggleImage(i)"
+                          >
+                            {{ name }}
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  </app-trivy-box>
+                </div>
+              </div>
+            </div>
+
+            <!-- the bottom: its table needs a definite height, so it is laid out absolutely inside its box (the template does that) -->
+            @if (detailBottom(); as bottom) {
+              @if (w.hasDetailBottom(d)) {
+                <div class="relative min-h-0 min-w-0">
+                  <div class="absolute inset-0">
+                    <ng-container *ngTemplateOutlet="bottom; context: { $implicit: d }" />
+                  </div>
+                </div>
+              }
+            }
+          } @else if (w.detailError()) {
+            <div class="text-sm home-widget-error">Error: {{ w.detailError() }}</div>
+          } @else if (w.isDetailLoading()) {
+            <div class="text-sm tod-text-muted-color">Loading...</div>
+          } @else if (w.selected() !== undefined) {
+            <div class="text-sm tod-text-muted-color">{{ w.detailNote() ?? emptyText() }}</div>
+          } @else {
+            <div class="text-sm tod-text-muted-color">{{ w.searched() ? selectText() : searchText() }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- the controls of the expanded widget, in the bottom row of the frame: the selections in the namespaces and the images filter each other -->
+  @if (w.isExpanded()) {
+    <div frameActions class="flex items-center gap-2">
+      <p-button
+        class="inline-flex"
+        label="Clear filters"
+        icon="pi pi-filter-slash"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [raised]="true"
+        [disabled]="!w.isFiltered()"
+        (onClick)="w.clearFilters()"
+      />
+      <span class="text-xs tod-text-muted-color">A click on a namespace or an image fades what does not go with it</span>
+    </div>
+  }
+</app-home-widget-frame>
+
+<!-- the search box: the same in the collapsed widget (at the top) and in the box of the expanded one -->
+<ng-template #searchBox>
+  <app-home-search-box [placeholder]="searchPlaceholder()" [(query)]="w.query" (search)="w.onSearch()" />
+</ng-template>

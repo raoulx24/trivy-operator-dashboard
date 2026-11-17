@@ -1,0 +1,70 @@
+<app-home-where-is-shell
+  [widget]="this"
+  heading="Where is… license"
+  [help]="help"
+  searchPlaceholder="MIT or a part of a name (2+ characters)"
+  emptyText="Nothing running has this license."
+  selectText="Select a license"
+  searchText="Search for a license"
+  [rowHeight]="rowHeight"
+  [rowBody]="rowBody"
+  [detailHead]="detailHead"
+  [detailBottom]="detailPackages"
+/>
+
+<!-- the selected license and its counts -->
+<ng-template #detailHead let-head>
+  <div class="tod-content-border flex flex-wrap items-center gap-x-3 gap-y-1 px-2 py-1.5 text-sm">
+    <span class="font-medium break-all">{{ head.license }}</span>
+    <span class="text-xs tod-text-muted-color">
+      {{ head.packages }} {{ head.packages === 1 ? 'package' : 'packages' }} · {{ head.images }}
+      {{ head.images === 1 ? 'image' : 'images' }} · {{ head.namespaces }} ns · {{ head.workloads }}
+      {{ head.workloads === 1 ? 'workload' : 'workloads' }}
+    </span>
+  </div>
+</ng-template>
+
+<!-- the package versions that have the license, filtered by the selected namespace and image -->
+<ng-template #detailPackages let-d>
+  <app-trivy-box class="h-full">
+    <span boxTitle>Packages ({{ countLabel(packageRows().length, d.packageVersions.length) }})</span>
+    <div class="relative h-full">
+      <div class="absolute inset-0">
+        <app-trivy-table
+          extraClasses="tod-trivy-table-fill"
+          stateKey="Home Where Is License Packages"
+          [dataDtos]="packageRows()"
+          [trivyTableColumns]="packageColumns"
+        />
+      </div>
+    </div>
+  </app-trivy-box>
+</ng-template>
+
+<!-- a license of the list: in the collapsed widget (the license is a button) and in the list of the expanded one (the whole row is) -->
+<ng-template #rowBody let-item let-inList="inList">
+  <div class="flex flex-col gap-1.5 px-1 text-sm">
+    @if (inList) {
+      <span class="break-all line-clamp-2 font-medium" [attr.title]="item.license">{{ item.license }}</span>
+    } @else {
+      <button
+        type="button"
+        class="break-all text-left cursor-pointer font-medium"
+        [attr.title]="item.license"
+        [attr.aria-label]="'Show where ' + item.license + ' runs'"
+        (click)="select(item)"
+      >
+        {{ item.license }}
+      </button>
+    }
+
+    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+      <span class="tod-text-muted-color" [attr.title]="'Package versions: a purl with its version'">
+        {{ item.packages }} {{ item.packages === 1 ? 'package' : 'packages' }}
+      </span>
+      <span class="tod-text-muted-color">{{ item.images }} {{ item.images === 1 ? 'image' : 'images' }}</span>
+      <span class="tod-text-muted-color">{{ item.namespaces }} ns</span>
+      <span class="tod-text-muted-color">{{ item.workloads }} {{ item.workloads === 1 ? 'workload' : 'workloads' }}</span>
+    </span>
+  </div>
+</ng-template>

@@ -63,8 +63,12 @@ namespace TrivyOperator.Dashboard.Api.Home.Serializations;
 [JsonSerializable(typeof(HomeWhereIsLicensePackageDto))]
 [JsonSerializable(typeof(HomeWhereIsLicenseItemDto))]
 [JsonSerializable(typeof(HomeWhereIsLicenseDto))]
+[JsonSerializable(typeof(HomeWhereIsLicenseDetailItemDto))]
+[JsonSerializable(typeof(HomeWhereIsLicenseDetailDto))]
 [JsonSerializable(typeof(HomeWhereIsCheckResourceDto))]
 [JsonSerializable(typeof(HomeWhereIsCheckItemDto))]
 [JsonSerializable(typeof(HomeWhereIsCheckDto))]
+[JsonSerializable(typeof(HomeWhereIsCheckDetailItemDto))]
+[JsonSerializable(typeof(HomeWhereIsCheckDetailDto))]
 
 public partial class HomeApiJsonContext : JsonSerializerContext;

@@ -20,24 +20,8 @@
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
     <app-home-where-is-vulnerability [hint]="searchHint()" [namespaces]="namespaces()" />
     <app-home-where-is-package [hint]="searchHint()" [namespaces]="namespaces()" />
-    <app-home-widget-placeholder
-      heading="Where is… check"
-      [hint]="searchHint()"
-      description="a security assessment check (config audit, RBAC, infra) by id (KSV014 = AVD-KSV-0014) or title: severity, remediation, failing resources, namespaces"
-      searchPlaceholder="KSV014 or a title, e.g. root"
-      source="GET api/home/where-is/check → HomeWhereIsCheckDto"
-      [state]="whereIsCheck()"
-      (search)="onFindCheck($event)"
-    />
-    <app-home-widget-placeholder
-      heading="Where is… license"
-      [hint]="searchHint()"
-      description="a license (SPDX id or name substring): per license the packages (purl without version) with it, their versions, images and namespaces; needs SBOM reports"
-      searchPlaceholder="MIT, GPL-3.0"
-      source="GET api/home/where-is/license → HomeWhereIsLicenseDto"
-      [state]="whereIsLicense()"
-      (search)="onFindLicense($event)"
-    />
+    <app-home-where-is-check [hint]="searchHint()" [namespaces]="namespaces()" />
+    <app-home-where-is-license [hint]="searchHint()" [namespaces]="namespaces()" />
   </div>
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">

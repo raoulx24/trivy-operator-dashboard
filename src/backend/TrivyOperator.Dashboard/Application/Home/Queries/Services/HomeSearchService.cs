@@ -29,8 +29,6 @@ public partial class HomeSearchService(
     private const int MinQueryLength = 3;
     private const int MinLicenseQueryLength = 2;
 
-    private const int MaxPackagesPerLicense = 20;
-    private const int MaxSampleResources = 20;
 
     // ------------------------------------------------------------------------
     // vulnerability
@@ -512,16 +510,6 @@ public partial class HomeSearchService(
         // image name -> its index in ImageNames
         IReadOnlyDictionary<string, int> ImageIndexes,
         IReadOnlyList<IReadOnlyList<int>> ImageNamespaceIndexes);
-    private static PackageMatch GetMatch(Dictionary<string, PackageMatch> matches, string packageKey, string name, string? type)
-    {
-        if (!matches.TryGetValue(packageKey, out PackageMatch? match))
-        {
-            match = new PackageMatch(packageKey, name, type);
-            matches[packageKey] = match;
-        }
-
-        return match;
-    }
 
     // "pkg:..." = purl prefix, matched on the package key (purl without version) and, after an "@", on the version;
     // anything else = name substring; all case-insensitive
@@ -548,43 +536,16 @@ public partial class HomeSearchService(
                   (string.IsNullOrEmpty(VersionPrefix) || version.StartsWith(VersionPrefix, StringComparison.OrdinalIgnoreCase));
     }
 
-    private sealed class PackageMatch(string packageKey, string name, string? type)
-    {
-        public string PackageKey { get; } = packageKey;
-        public string Name { get; } = name;
-        public string? Type { get; } = type;
-        public Dictionary<string, HashSet<string>> ImageKeysByVersion { get; } = new(StringComparer.Ordinal);
-        public HashSet<Purl> Purls { get; } = [];
-        public HashSet<string> Licenses { get; } = new(StringComparer.Ordinal);
-
-        public void Add(string version, string imageKey, Purl? purl)
-        {
-            if (!ImageKeysByVersion.TryGetValue(version, out HashSet<string>? imageKeys))
-            {
-                imageKeys = [];
-                ImageKeysByVersion[version] = imageKeys;
-            }
-
-            imageKeys.Add(imageKey);
-
-            if (purl is { } value)
-            {
-                Purls.Add(value);
-            }
-        }
-    }
-
     // ------------------------------------------------------------------------
     // license
     // ------------------------------------------------------------------------
 
+    // one item per license: the licenses of the sbom packages that match (substring)
     public async Task<HomeWhereIsLicenseDto> FindLicense(string query, HomeFilter filter, CancellationToken ctx = default)
     {
         string q = query.Trim();
 
-        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
-            : !sources.HasSbom ? NoSbom
-            : null;
+        string? reason = LicenseUnavailableReason();
 
         if (reason is not null)
         {
@@ -599,6 +560,116 @@ public partial class HomeSearchService(
         ActiveVulnerabilityTable table = await GetTable(ctx);
         HomeScope scope = new(table, filter.Namespaces);
 
+        (Dictionary<string, Dictionary<(string Key, string Version), PackageVersionMatch>> byLicense, string? note) =
+            await CollectLicenses(table, scope, license => license.Contains(q, StringComparison.OrdinalIgnoreCase), ctx);
+
+        List<HomeWhereIsLicenseItemDto> items =
+        [
+            .. byLicense
+                .Select(license =>
+                {
+                    HomeReach reach = scope.GetReach(license.Value.Values.SelectMany(x => x.ImageKeys));
+
+                    return new HomeWhereIsLicenseItemDto(
+                        License: license.Key,
+                        Packages: license.Value.Count,
+                        Images: reach.ImageKeys.Count,
+                        Namespaces: reach.Namespaces.Count,
+                        Workloads: reach.Workloads.Count);
+                })
+                .OrderByDescending(x => string.Equals(x.License, q, StringComparison.OrdinalIgnoreCase))
+                .ThenByDescending(x => x.Images)
+                .ThenBy(x => x.License, StringComparer.Ordinal),
+        ];
+
+        return new HomeWhereIsLicenseDto(true, null, q, note, items.Count, [.. items.Take(filter.Limit),]);
+    }
+
+    // one license (exact match on its label) with all its package versions, images and namespaces
+    public async Task<HomeWhereIsLicenseDetailDto> FindLicenseDetailed(
+        string license,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string label = license.Trim();
+
+        string? reason = LicenseUnavailableReason();
+
+        if (reason is not null)
+        {
+            return new HomeWhereIsLicenseDetailDto(false, reason, label, null, null);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+
+        (Dictionary<string, Dictionary<(string Key, string Version), PackageVersionMatch>> byLicense, string? note) =
+            await CollectLicenses(table, scope, x => string.Equals(x, label, StringComparison.Ordinal), ctx);
+
+        if (!byLicense.TryGetValue(label, out Dictionary<(string Key, string Version), PackageVersionMatch>? packages))
+        {
+            return new HomeWhereIsLicenseDetailDto(true, null, label, "Not found: this license does not run now.", null);
+        }
+
+        HomeReach reach = scope.GetReach(packages.Values.SelectMany(x => x.ImageKeys));
+        ImageRelations relations = BuildImageRelations(reach, scope, table);
+
+        HomeWhereIsLicensePackageDto[] versions =
+        [
+            .. packages.Values
+                .Select(match =>
+                {
+                    int[] imageIndexes =
+                    [
+                        .. match.ImageKeys
+                            .Where(reach.ImageKeys.Contains)
+                            .Select(imageKey => relations.ImageIndexes[ToImageName(imageKey, table)])
+                            .Distinct()
+                            .Order(),
+                    ];
+
+                    return new HomeWhereIsLicensePackageDto(
+                        PackageKey: match.PackageKey,
+                        Version: match.Version,
+                        Purl: ToPurl(match.PackageKey, match.Version),
+                        Name: match.Name,
+                        Type: match.Type,
+                        Images: imageIndexes.Length,
+                        ImageIndexes: imageIndexes);
+                })
+                .OrderByDescending(x => x.Images)
+                .ThenBy(x => x.PackageKey, StringComparer.Ordinal)
+                .ThenBy(x => x.Version, StringComparer.Ordinal),
+        ];
+
+        HomeWhereIsLicenseDetailItemDto item = new(
+            License: label,
+            Packages: versions.Length,
+            Images: reach.ImageKeys.Count,
+            Namespaces: reach.Namespaces.Count,
+            Workloads: reach.Workloads.Count,
+            NamespaceNames: relations.NamespaceNames,
+            ImageNames: relations.ImageNames,
+            ImageNamespaceIndexes: relations.ImageNamespaceIndexes,
+            PackageVersions: versions);
+
+        return new HomeWhereIsLicenseDetailDto(true, null, label, note, item);
+    }
+
+    // the licenses need the sbom, and the images and namespaces come from the vulnerability reports
+    private string? LicenseUnavailableReason() =>
+        !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+        : !sources.HasSbom ? NoSbom
+        : null;
+
+    // license label -> its package versions (with images and purls) in scope, for the licenses that the filter accepts
+    private async Task<(Dictionary<string, Dictionary<(string Key, string Version), PackageVersionMatch>> ByLicense, string? Note)>
+        CollectLicenses(
+            ActiveVulnerabilityTable table,
+            HomeScope scope,
+            Func<string, bool> accepts,
+            CancellationToken ctx)
+    {
         (IReadOnlyDictionary<Digest, ImagePurls> imagePurls, int imagesWithoutSbom) = await GetImagePurls(table, scope, ctx);
 
         Dictionary<Purl, HashSet<string>> imageKeysByPurl = [];
@@ -619,78 +690,40 @@ public partial class HomeSearchService(
 
         IReadOnlyDictionary<Purl, PurlDetail> purlDetails = await sources.PurlDetails!.GetDetails(imageKeysByPurl.Keys, ctx);
 
-        // license -> package key -> its versions and images
-        Dictionary<string, Dictionary<string, PackageMatch>> byLicense = new(StringComparer.Ordinal);
+        Dictionary<string, Dictionary<(string Key, string Version), PackageVersionMatch>> byLicense = new(StringComparer.Ordinal);
 
         foreach ((Purl purl, PurlDetail detail) in purlDetails)
         {
-            foreach (string license in detail.Licenses.Select(ToLicenseLabel))
+            foreach (string license in detail.Licenses.Select(ToLicenseLabel).Where(x => x.Length > 0).Distinct())
             {
-                if (!license.Contains(q, StringComparison.OrdinalIgnoreCase))
+                if (!accepts(license))
                 {
                     continue;
                 }
 
-                if (!byLicense.TryGetValue(license, out Dictionary<string, PackageMatch>? packages))
+                if (!byLicense.TryGetValue(license, out Dictionary<(string Key, string Version), PackageVersionMatch>? packages))
                 {
-                    packages = new Dictionary<string, PackageMatch>(StringComparer.Ordinal);
+                    packages = [];
                     byLicense[license] = packages;
                 }
 
                 Purl.Components components = purl.Parse();
-                PackageMatch match = GetMatch(
+
+                PackageVersionMatch match = GetVersionMatch(
                     packages,
                     PackageKey.FromPurl(purl)?.Value ?? purl.Value,
                     components.Name ?? purl.Value,
-                    components.Type);
+                    components.Type,
+                    components.Version ?? string.Empty);
 
                 foreach (string imageKey in imageKeysByPurl[purl])
                 {
-                    match.Add(components.Version ?? string.Empty, imageKey, purl);
+                    match.Add(imageKey, purl);
                 }
             }
         }
 
-        List<HomeWhereIsLicenseItemDto> items =
-        [
-            .. byLicense
-                .Select(license =>
-                {
-                    HomeReach reach = scope.GetReach(license.Value.Values.SelectMany(x => x.ImageKeysByVersion.Values.SelectMany(y => y)));
-
-                    return new HomeWhereIsLicenseItemDto(
-                        License: license.Key,
-                        TotalPackages: license.Value.Count,
-                        Images: reach.ImageKeys.Count,
-                        Namespaces: reach.Namespaces.Count,
-                        NamespaceNames: ToNamespaceNames(reach.Namespaces),
-                        Packages:
-                        [
-                            .. license.Value.Values
-                                .Select(match =>
-                                {
-                                    HomeReach packageReach = scope.GetReach(match.ImageKeysByVersion.Values.SelectMany(x => x));
-
-                                    return new HomeWhereIsLicensePackageDto(
-                                        PackageKey: match.PackageKey,
-                                        Name: match.Name,
-                                        Versions: [.. match.ImageKeysByVersion.Keys.Order(StringComparer.Ordinal),],
-                                        Images: packageReach.ImageKeys.Count,
-                                        Namespaces: packageReach.Namespaces.Count);
-                                })
-                                .OrderByDescending(x => x.Images)
-                                .ThenBy(x => x.PackageKey, StringComparer.Ordinal)
-                                .Take(MaxPackagesPerLicense),
-                        ]);
-                })
-                .OrderByDescending(x => string.Equals(x.License, q, StringComparison.OrdinalIgnoreCase))
-                .ThenByDescending(x => x.Images)
-                .ThenBy(x => x.License, StringComparer.Ordinal),
-        ];
-
-        string? note = WithoutSbomNote(imagesWithoutSbom);
-
-        return new HomeWhereIsLicenseDto(true, null, q, note, items.Count, [.. items.Take(filter.Limit),]);
+        return (byLicense, WithoutSbomNote(imagesWithoutSbom));
     }
 
     // the license as stored: its SPDX id, else its name (see PurlDetail.Create)
@@ -738,35 +771,19 @@ public partial class HomeSearchService(
 
         List<(HomeWhereIsCheckItemDto Item, bool IsIdMatch)> matches =
         [
-            .. (await assessmentReportsLoader.Load(ctx))
-                .Where(report => scope.Contains(report.NamespaceName, report.IsClusterScoped))
-                .SelectMany(report => report.Checks.Select(check => (Report: report, Check: check)))
-                .Where(x => IsCheckMatch(x.Check, q, normalizedQuery))
-                .GroupBy(x => (x.Report.Family, x.Check.CheckId))
+            .. CheckGroups(await assessmentReportsLoader.Load(ctx), scope, (check, _) => IsCheckMatch(check, q, normalizedQuery))
                 .Select(group =>
                 {
                     Check check = group.First().Check;
-                    HomeAssessmentReport[] reports = [.. group.Select(x => x.Report).DistinctBy(x => x.Uid),];
-                    NamespaceName[] namespaces =
-                        [.. reports.Where(x => !x.IsClusterScoped).Select(x => x.NamespaceName).Distinct(),];
+                    HomeAssessmentReport[] reports = DistinctReports(group);
 
                     HomeWhereIsCheckItemDto item = new(
                         Family: group.Key.Family,
                         CheckId: group.Key.CheckId.Value,
                         Title: check.Title.Value,
                         SeverityId: check.Severity.Rank,
-                        Remediation: check.Remediation.Value,
                         Resources: reports.Length,
-                        Namespaces: namespaces.Length,
-                        NamespaceNames: ToNamespaceNames(namespaces),
-                        SampleResources:
-                        [
-                            .. reports
-                                .Select(ToResource)
-                                .OrderBy(x => x.NamespaceName, StringComparer.Ordinal)
-                                .ThenBy(x => x.ResourceName, StringComparer.Ordinal)
-                                .Take(MaxSampleResources),
-                        ]);
+                        Namespaces: CountNamespaces(reports));
 
                     return (item, NormalizeCheckId(group.Key.CheckId.Value) == normalizedQuery);
                 }),
@@ -784,6 +801,79 @@ public partial class HomeSearchService(
 
         return new HomeWhereIsCheckDto(true, null, q, null, items.Count, [.. items.Take(filter.Limit),]);
     }
+
+    // one check (family and id, exact), one row per failing resource
+    public async Task<HomeWhereIsCheckDetailDto> FindCheckDetailed(
+        string family,
+        string checkId,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string familyValue = family.Trim();
+        string id = checkId.Trim();
+
+        if (!sources.HasSecurityAssessmentReports)
+        {
+            return new HomeWhereIsCheckDetailDto(false, NoSecurityAssessments, familyValue, id, null, null);
+        }
+
+        HomeScope scope = new(EmptyTable, filter.Namespaces);
+
+        IGrouping<(string Family, CheckId CheckId), (HomeAssessmentReport Report, Check Check)>? group = CheckGroups(
+                await assessmentReportsLoader.Load(ctx),
+                scope,
+                (check, report) => string.Equals(report.Family, familyValue, StringComparison.Ordinal) &&
+                                   string.Equals(check.CheckId.Value, id, StringComparison.Ordinal))
+            .FirstOrDefault();
+
+        if (group is null)
+        {
+            return new HomeWhereIsCheckDetailDto(true, null, familyValue, id, "Not found: this check does not fail now.", null);
+        }
+
+        Check first = group.First().Check;
+        HomeAssessmentReport[] reports = DistinctReports(group);
+
+        HomeWhereIsCheckDetailItemDto item = new(
+            Family: group.Key.Family,
+            CheckId: group.Key.CheckId.Value,
+            Title: first.Title.Value,
+            SeverityId: first.Severity.Rank,
+            Category: first.Category.Value,
+            Description: first.Description.Value,
+            Remediation: first.Remediation.Value,
+            Resources: reports.Length,
+            Namespaces: CountNamespaces(reports),
+            Rows:
+            [
+                .. reports
+                    .Select(ToResource)
+                    .OrderBy(x => x.NamespaceName is null)
+                    .ThenBy(x => x.NamespaceName, StringComparer.Ordinal)
+                    .ThenBy(x => x.ResourceKind, StringComparer.Ordinal)
+                    .ThenBy(x => x.ResourceName, StringComparer.Ordinal),
+            ]);
+
+        return new HomeWhereIsCheckDetailDto(true, null, familyValue, id, null, item);
+    }
+
+    // the failing checks of the reports in scope that are accepted, by (family, check id)
+    private static IEnumerable<IGrouping<(string Family, CheckId CheckId), (HomeAssessmentReport Report, Check Check)>>
+        CheckGroups(
+            IEnumerable<HomeAssessmentReport> reports,
+            HomeScope scope,
+            Func<Check, HomeAssessmentReport, bool> accepts) =>
+        reports
+            .Where(report => scope.Contains(report.NamespaceName, report.IsClusterScoped))
+            .SelectMany(report => report.Checks.Select(check => (Report: report, Check: check)))
+            .Where(x => accepts(x.Check, x.Report))
+            .GroupBy(x => (x.Report.Family, x.Check.CheckId));
+
+    private static HomeAssessmentReport[] DistinctReports(IEnumerable<(HomeAssessmentReport Report, Check Check)> group) =>
+        [.. group.Select(x => x.Report).DistinctBy(x => x.Uid),];
+
+    private static int CountNamespaces(IEnumerable<HomeAssessmentReport> reports) =>
+        reports.Where(x => !x.IsClusterScoped).Select(x => x.NamespaceName).Distinct().Count();
 
     private static bool IsCheckMatch(Check check, string query, string normalizedQuery) =>
         NormalizeCheckId(check.CheckId.Value) == normalizedQuery ||

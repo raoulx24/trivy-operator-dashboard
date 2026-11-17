@@ -1,0 +1,281 @@
+import { NgTemplateOutlet } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { ScrollerModule } from 'primeng/scroller';
+import { TagModule } from 'primeng/tag';
+
+import { HomeWhereIsCheckDetailDto } from '@api/models/home-where-is-check-detail-dto';
+import { HomeWhereIsCheckItemDto } from '@api/models/home-where-is-check-item-dto';
+import { HomeService } from '@api/services/home.service';
+import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
+import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
+import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
+import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
+
+import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
+import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
+import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import { ScrollerResizeDirective } from '../../../shared/ui/scroller-resize/scroller-resize.directive';
+
+// a failing resource of the selected check: namespace and resource denormalized (one row each)
+interface ResourceRow {
+  namespaceName: string;
+  resourceKind: string;
+  resourceName: string;
+  reportKind: string;
+}
+
+interface CheckKey {
+  family: string;
+  checkId: string;
+}
+
+// Where is... check: a security assessment check (config audit, RBAC, infra) by id or title, and where it fails
+// - searches only on Enter (and on the refresh button, once something was searched); the namespaces are read when the
+//   search is made, so a change of the filter does not re-run it
+// - collapsed: the first checks with their counts only (the server sorts them by severity, then reach, and is asked for
+//   just these); a click on a check selects it and expands the widget (where it can expand)
+// - expanded: on the left, in a box, the search and all the checks it found (a list that scrolls); on the right one check
+//   at a time (asked from the detailed endpoint): its data and a table with one row per failing resource
+@Component({
+  selector: 'app-home-where-is-check',
+  standalone: true,
+  imports: [
+    HomeWidgetFrameComponent,
+    HomeSearchBoxComponent,
+    ScrollerResizeDirective,
+    NgTemplateOutlet,
+    ScrollerModule,
+    TagModule,
+    TrivyBoxComponent,
+    TrivyTableComponent,
+    SeverityCssStyleByIdPipe,
+    SeverityNameByIdPipe,
+  ],
+  templateUrl: './home-where-is-check.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  // a grid cell: wide content must not widen the cell
+  host: { class: 'block min-w-0' },
+})
+export class HomeWhereIsCheckComponent extends HomeWidgetBase {
+  private static readonly collapsedLimit = 5;
+  // the server allows 500
+  private static readonly expandedLimit = 500;
+
+  // the help dialog of the frame (html): short, the important parts in bold
+  protected readonly help = `
+    <p class="mb-2">Where a <strong>security assessment check</strong> (config audit, RBAC, infra) fails now. Type an <strong>id or a part of the title</strong> (at least 3 characters, e.g. <em>KSV014</em>, <em>root</em>) and press <strong>Enter</strong>. <em>KSV014</em>, <em>KSV-0014</em> and <em>AVD-KSV-0014</em> are the same check; case does not matter.</p>
+    <p class="mb-2"><strong>Collapsed</strong>: the 5 most severe checks found (then the ones failing in most resources), with the number of resources and namespaces. A click on a check expands the widget on it.</p>
+    <p class="mb-2"><strong>Expanded</strong>: on the left every check found (up to 500; a click selects one), on the right its description and remediation, and one row per failing <strong>resource</strong>: namespace, resource kind and name, and the report type. The columns can be filtered and sorted.</p>
+    <p class="mb-0 tod-text-muted-color">Only the <strong>namespaces filter</strong> applies (cluster scoped resources are then out); a change of it does not run the search again, the refresh button does. The resource is the owner of the report (e.g. the Deployment) when there is one. Trivy reports a check per resource, not per container.</p>
+  `;
+
+  // the height of a row of the list (a scroller needs the same for all): the id, two lines of title, the counts
+  protected readonly rowHeight = 110;
+  // the height of the expanded widget body (it needs a fixed one: the list and the table scroll in it)
+  protected readonly expandedHeight = '40rem';
+
+  private readonly homeService = inject(HomeService);
+
+  protected readonly resourceColumns: TrivyTableColumn[] = [
+    { field: 'namespaceName', header: 'Namespace', isFilterable: true,isSortable: true, style: 'width: 22%', renderType: 'standard' },
+    { field: 'resourceKind', header: 'Resource type', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 18%', renderType: 'standard' },
+    { field: 'resourceName', header: 'Resource', isFilterable: true, isSortable: true, style: 'width: 38%', renderType: 'standard' },
+    { field: 'reportKind', header: 'Report', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 22%', renderType: 'standard' },
+  ];
+
+  hint = input<string>('');
+  namespaces = input.required<string[]>();
+
+  protected readonly query = signal('');
+  // what was asked: a new object at every search (so the same query runs again); undefined before the first search
+  private readonly request = signal<{ query: string; namespaces: string[] | undefined } | undefined>(undefined);
+  protected readonly selected = signal<CheckKey | undefined>(undefined);
+
+  // the width of the widget as it is collapsed, which is the width of the box of the list (measured while it is collapsed)
+  protected readonly collapsedWidth = signal<number | undefined>(undefined);
+
+  private readonly scope = computed(() => {
+    const request = this.request();
+    return request ? { ...request, localRefresh: this.localRefresh() } : undefined;
+  });
+
+  private readonly collapsedData = rxResource({
+    params: this.scope,
+    stream: ({ params }) =>
+      this.homeService.getHomeWhereIsCheck({
+        query: params.query,
+        namespaces: params.namespaces,
+        limit: HomeWhereIsCheckComponent.collapsedLimit,
+      }),
+  });
+
+  // idle (and empty) while collapsed
+  private readonly expandedData = rxResource({
+    params: () => (this.isExpanded() ? this.scope() : undefined),
+    stream: ({ params }) =>
+      this.homeService.getHomeWhereIsCheck({
+        query: params.query,
+        namespaces: params.namespaces,
+        limit: HomeWhereIsCheckComponent.expandedLimit,
+      }),
+  });
+
+  // what is shown: the many rows when they are there, else the few
+  private readonly shown = computed(() =>
+    this.isExpanded() && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
+  );
+
+  protected readonly items = computed(() => this.shown().value()?.items ?? []);
+  protected readonly totalMatches = computed(() => this.shown().value()?.totalMatches ?? 0);
+  protected readonly more = computed(() => Math.max(0, this.totalMatches() - this.items().length));
+  protected readonly searched = computed(() => this.request() !== undefined);
+
+  // the selected check, all of its data (only while expanded); the namespaces are those of the search
+  private readonly detailData = rxResource({
+    params: () => {
+      const scope = this.scope();
+      const key = this.selected();
+      return this.isExpanded() && scope && key
+        ? { ...key, namespaces: scope.namespaces, localRefresh: scope.localRefresh }
+        : undefined;
+    },
+    stream: ({ params }) =>
+      this.homeService.getHomeWhereIsCheckDetailed({
+        family: params.family,
+        checkId: params.checkId,
+        namespaces: params.namespaces,
+      }),
+  });
+
+  // what is on screen: the last data that arrived for the selected check; it stays while the next one loads, so a change
+  // of check does not tear the layout down
+  private readonly loaded = signal<HomeWhereIsCheckDetailDto | undefined>(undefined);
+  protected readonly detail = computed(() => this.loaded()?.item ?? undefined);
+  protected readonly detailNote = computed(() => this.loaded()?.note);
+  protected readonly displayedId = computed(() => this.detail()?.checkId ?? this.selected()?.checkId);
+  protected readonly isDetailLoading = computed(() => this.detailData.isLoading());
+  protected readonly detailError = computed(() => (this.detailData.error() as Error | undefined)?.message);
+
+  // the table: namespaced resources by namespace; a cluster scoped one has no namespace
+  protected readonly resourceRows = computed<ResourceRow[]>(() =>
+    (this.detail()?.rows ?? []).map((x) => ({
+      namespaceName: x.namespaceName ?? '(cluster scoped)',
+      resourceKind: x.resourceKind,
+      resourceName: x.resourceName,
+      reportKind: x.reportKind,
+    })),
+  );
+
+  protected readonly state = computed<HomeWidgetState>(() => {
+    const resource = this.shown();
+    if (resource.error()) {
+      return { error: (resource.error() as Error)?.message ?? 'request failed' };
+    }
+
+    const dto = resource.value();
+    if (!this.searched()) {
+      return { idleText: 'Type and press Enter to search' };
+    }
+    if (!dto) {
+      return {};
+    }
+
+    return {
+      isAvailable: dto.isAvailable,
+      unavailableReason: dto.unavailableReason,
+      summary:
+        `${dto.totalMatches} checks (${dto.items.length} shown)` +
+        (this.isExpanded() && this.expandedData.isLoading() ? ' (loading more...)' : ''),
+    };
+  });
+
+  constructor() {
+    super();
+
+    // the width of the collapsed widget (what is measured while it is expanded is not kept)
+    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      const observer = new ResizeObserver(() => {
+        if (!this.isExpanded() && host.offsetWidth > 0) {
+          this.collapsedWidth.set(host.offsetWidth);
+        }
+      });
+      observer.observe(host);
+      destroyRef.onDestroy(() => observer.disconnect());
+    });
+
+    // expanded without a choice (the expand button, or a new search): the first check of the list
+    effect(() => {
+      const first = this.items()[0];
+      if (this.isExpanded() && !this.selected() && first) {
+        this.selected.set({ family: first.family, checkId: first.checkId });
+      }
+    });
+
+    // the data of the selected check arrived (or failed): it goes on screen
+    effect(() => {
+      const dto = this.detailData.value();
+      const key = this.selected();
+      if (this.detailData.isLoading() || !key) {
+        return;
+      }
+
+      if (this.detailData.error()) {
+        this.loaded.set(undefined);
+      } else if (dto?.checkId === key.checkId && dto.family === key.family) {
+        this.loaded.set(dto);
+      }
+      // else the resource did not take the new check yet
+    });
+  }
+
+  protected onSearch(): void {
+    const query = this.query().trim();
+    if (!query) {
+      // an empty box and Enter: the widget goes back to before the first search
+      this.request.set(undefined);
+      this.selected.set(undefined);
+      this.loaded.set(undefined);
+      return;
+    }
+
+    const namespaces = this.namespaces();
+    this.selected.set(undefined);
+    this.loaded.set(undefined);
+    this.request.set({ query, namespaces: namespaces.length > 0 ? namespaces : undefined });
+  }
+
+  protected onRefresh(): void {
+    if (this.searched()) {
+      this.refreshWidget();
+    }
+  }
+
+  // a click on a check (of the collapsed widget, or of the list of the expanded one)
+  protected select(item: HomeWhereIsCheckItemDto): void {
+    this.selected.set({ family: item.family, checkId: item.checkId });
+    if (this.canExpand() && !this.isExpanded()) {
+      this.toggleExpand();
+    }
+  }
+
+  protected isSelected(item: HomeWhereIsCheckItemDto): boolean {
+    const key = this.selected();
+    return key?.family === item.family && key.checkId === item.checkId;
+  }
+}

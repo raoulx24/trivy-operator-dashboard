@@ -136,22 +136,16 @@ public sealed record HomeWhereIsPackageDetailDto(
     string? Note,
     HomeWhereIsPackageDetailItemDto? Item);
 
-// --- license: SPDX id or name substring, case-insensitive; needs the sbom
-public sealed record HomeWhereIsLicensePackageDto(
-    string PackageKey,
-    string Name,
-    IReadOnlyList<string> Versions,
-    int Images,
-    int Namespaces);
+// --- license: SPDX id or name substring, case-insensitive; needs the sbom; one item per license
 
+// the list (collapsed widget, picker): only what a row shows, the rest is in the detailed one
 public sealed record HomeWhereIsLicenseItemDto(
     string License,
-    int TotalPackages,
+    // the package versions (a purl with its version) that have it
+    int Packages,
     int Images,
     int Namespaces,
-    IReadOnlyList<string> NamespaceNames,
-    // limited, the ones in most images first
-    IReadOnlyList<HomeWhereIsLicensePackageDto> Packages);
+    int Workloads);
 
 public sealed record HomeWhereIsLicenseDto(
     bool IsAvailable,
@@ -160,6 +154,42 @@ public sealed record HomeWhereIsLicenseDto(
     string? Note,
     int TotalMatches,
     IReadOnlyList<HomeWhereIsLicenseItemDto> Items);
+
+// one version of a package that has the license
+public sealed record HomeWhereIsLicensePackageDto(
+    // the purl without version: the id of the package
+    string PackageKey,
+    string Version,
+    // the package key with the version (not percent-encoded)
+    string Purl,
+    string Name,
+    string? Type,
+    int Images,
+    // the images that have it: indexes in the ImageNames of the item
+    IReadOnlyList<int> ImageIndexes);
+
+// one license (exact), everything: all the package versions, images and namespaces (sorted, not capped)
+public sealed record HomeWhereIsLicenseDetailItemDto(
+    string License,
+    int Packages,
+    int Images,
+    int Namespaces,
+    int Workloads,
+    IReadOnlyList<string> NamespaceNames,
+    IReadOnlyList<string> ImageNames,
+    // per image (as ImageNames), the namespaces it runs in: indexes in NamespaceNames; with the ImageIndexes of the
+    // packages, that is what a page needs to filter the three lists by each other
+    IReadOnlyList<IReadOnlyList<int>> ImageNamespaceIndexes,
+    // the ones in most images first
+    IReadOnlyList<HomeWhereIsLicensePackageDto> PackageVersions);
+
+// Item is null when the license (exact) does not run now
+public sealed record HomeWhereIsLicenseDetailDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    string License,
+    string? Note,
+    HomeWhereIsLicenseDetailItemDto? Item);
 
 // --- check: by id (KSV014, KSV-0014 and AVD-KSV-0014 are the same check) or title substring, case-insensitive
 public sealed record HomeWhereIsCheckResourceDto(
@@ -170,18 +200,16 @@ public sealed record HomeWhereIsCheckResourceDto(
     string ResourceKind,
     string ResourceName);
 
+// the list (collapsed widget, picker): only what a row shows, the rest is in the detailed one
 public sealed record HomeWhereIsCheckItemDto(
     // ConfigAudit, RbacAssessment, InfraAssessment
     string Family,
     string CheckId,
     string Title,
     int SeverityId,
-    string Remediation,
+    // the assessed resources that fail it
     int Resources,
-    int Namespaces,
-    IReadOnlyList<string> NamespaceNames,
-    // limited
-    IReadOnlyList<HomeWhereIsCheckResourceDto> SampleResources);
+    int Namespaces);
 
 public sealed record HomeWhereIsCheckDto(
     bool IsAvailable,
@@ -190,3 +218,26 @@ public sealed record HomeWhereIsCheckDto(
     string? Note,
     int TotalMatches,
     IReadOnlyList<HomeWhereIsCheckItemDto> Items);
+
+// one check (a family and an id, exact), everything: the denormalized rows, one per failing resource (sorted, not capped)
+public sealed record HomeWhereIsCheckDetailItemDto(
+    string Family,
+    string CheckId,
+    string Title,
+    int SeverityId,
+    string Category,
+    string Description,
+    string Remediation,
+    int Resources,
+    int Namespaces,
+    // by namespace (cluster scoped ones last), resource kind, resource name
+    IReadOnlyList<HomeWhereIsCheckResourceDto> Rows);
+
+// Item is null when the check (exact) does not fail now
+public sealed record HomeWhereIsCheckDetailDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    string Family,
+    string CheckId,
+    string? Note,
+    HomeWhereIsCheckDetailItemDto? Item);

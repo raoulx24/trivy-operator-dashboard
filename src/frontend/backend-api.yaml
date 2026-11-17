@@ -1702,6 +1702,35 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/where-is/license/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeWhereIsLicenseDetailed
+      parameters:
+        - name: license
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeWhereIsLicenseDetailDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/where-is/check:
     get:
       tags:
@@ -1730,6 +1759,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HomeWhereIsCheckDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/where-is/check/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeWhereIsCheckDetailed
+      parameters:
+        - name: family
+          in: query
+          schema:
+            type: string
+        - name: checkId
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeWhereIsCheckDetailDto'
         '500':
           description: Internal Server Error
           content:
@@ -4693,6 +4755,53 @@ components:
         mitigationMessage:
           type: string
       additionalProperties: false
+    HomeWhereIsCheckDetailDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        family:
+          type: string
+        checkId:
+          type: string
+        note:
+          type: string
+          nullable: true
+        item:
+          $ref: '#/components/schemas/HomeWhereIsCheckDetailItemDto'
+      additionalProperties: false
+    HomeWhereIsCheckDetailItemDto:
+      type: object
+      properties:
+        family:
+          type: string
+        checkId:
+          type: string
+        title:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        category:
+          type: string
+        description:
+          type: string
+        remediation:
+          type: string
+        resources:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsCheckResourceDto'
+      additionalProperties: false
     HomeWhereIsCheckDto:
       type: object
       properties:
@@ -4726,22 +4835,12 @@ components:
         severityId:
           type: integer
           format: int32
-        remediation:
-          type: string
         resources:
           type: integer
           format: int32
         namespaces:
           type: integer
           format: int32
-        namespaceNames:
-          type: array
-          items:
-            type: string
-        sampleResources:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeWhereIsCheckResourceDto'
       additionalProperties: false
     HomeWhereIsCheckResourceDto:
       type: object
@@ -4755,6 +4854,59 @@ components:
           type: string
         resourceName:
           type: string
+      additionalProperties: false
+    HomeWhereIsLicenseDetailDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        license:
+          type: string
+        note:
+          type: string
+          nullable: true
+        item:
+          $ref: '#/components/schemas/HomeWhereIsLicenseDetailItemDto'
+      additionalProperties: false
+    HomeWhereIsLicenseDetailItemDto:
+      type: object
+      properties:
+        license:
+          type: string
+        packages:
+          type: integer
+          format: int32
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        imageNames:
+          type: array
+          items:
+            type: string
+        imageNamespaceIndexes:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
+        packageVersions:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsLicensePackageDto'
       additionalProperties: false
     HomeWhereIsLicenseDto:
       type: object
@@ -4782,7 +4934,7 @@ components:
       properties:
         license:
           type: string
-        totalPackages:
+        packages:
           type: integer
           format: int32
         images:
@@ -4791,32 +4943,32 @@ components:
         namespaces:
           type: integer
           format: int32
-        namespaceNames:
-          type: array
-          items:
-            type: string
-        packages:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeWhereIsLicensePackageDto'
+        workloads:
+          type: integer
+          format: int32
       additionalProperties: false
     HomeWhereIsLicensePackageDto:
       type: object
       properties:
         packageKey:
           type: string
+        version:
+          type: string
+        purl:
+          type: string
         name:
           type: string
-        versions:
-          type: array
-          items:
-            type: string
+        type:
+          type: string
+          nullable: true
         images:
           type: integer
           format: int32
-        namespaces:
-          type: integer
-          format: int32
+        imageIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
       additionalProperties: false
     HomeWhereIsPackageDetailDto:
       type: object

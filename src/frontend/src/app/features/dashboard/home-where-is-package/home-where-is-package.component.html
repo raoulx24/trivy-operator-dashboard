@@ -1,249 +1,87 @@
-<app-home-widget-frame
+<app-home-where-is-shell
+  [widget]="this"
   heading="Where is… package"
   [help]="help"
-  [hint]="hint()"
-  [state]="state()"
-  [canExpand]="canExpand()"
-  [expanded]="isExpanded()"
-  (expandToggle)="toggleExpand()"
-  [refreshable]="true"
-  (refreshRequested)="onRefresh()"
-  [fillGap]="!isExpanded()"
->
-  @if (!isExpanded()) {
-    <ng-container *ngTemplateOutlet="searchBox" />
+  searchPlaceholder="openssl or pkg:npm/axios@1.6 (3+ characters)"
+  emptyText="Nothing running matches this package."
+  selectText="Select a package"
+  searchText="Search for a package"
+  [rowHeight]="rowHeight"
+  [rowBody]="rowBody"
+  [detailHead]="detailHead"
+  [detailExtra]="detailLicenses"
+  [detailBottom]="detailVulnerabilities"
+/>
 
-    @if (searched() && items().length === 0 && state().isAvailable) {
-      <div class="text-sm tod-text-muted-color p-2">{{ note() ?? 'Nothing running matches this package.' }}</div>
-    }
-
-    <div class="flex flex-col gap-4 pt-2">
-      @for (item of items(); track item.purl) {
-        <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: false }" />
-      }
-      @if (more() > 0) {
-        <span class="text-xs tod-text-muted-color px-1">+{{ more() }} more</span>
-      }
-    </div>
-  } @else {
-    <!-- expanded, a fixed height: on the left, in a box, the search and its results (the width of the collapsed widget); on
-         the right the selected purl: on the first half of the height the namespaces with the licenses, and the images; on
-         the second half the vulnerabilities -->
-    <div
-      class="grid gap-3 pt-2 flex-1"
-      [style.min-height]="expandedHeight"
-      [style.grid-template-columns]="'minmax(0, min(' + (collapsedWidth() ?? 384) + 'px, 22rem)) minmax(0, 1fr)'"
-    >
-      <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
-        <ng-container *ngTemplateOutlet="searchBox" />
-        <div class="text-xs tod-text-muted-color">
-          @if (searched()) {
-            {{ items().length }} of {{ totalMatches() }}
-          }
-        </div>
-
-        @if (searched() && items().length === 0 && state().isAvailable) {
-          <div class="text-sm tod-text-muted-color p-2">{{ note() ?? 'Nothing running matches this package.' }}</div>
-        } @else if (note()) {
-          <div class="text-xs tod-text-muted-color">{{ note() }}</div>
+<!-- the selected purl, split as in the list (name, version, type, distro, severity), and the button that copies it -->
+<ng-template #detailHead let-head>
+  @let headParts = head.purl | purlParts;
+  <div class="tod-content-border flex items-start gap-2 px-2 py-1.5">
+    <span class="flex-1 min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+      <span class="break-all" [attr.title]="head.purl">
+        <ng-container *ngTemplateOutlet="purlText; context: { $implicit: headParts, purl: head.purl }" />
+      </span>
+      @if (headParts) {
+        <p-tag class="text-xs" severity="secondary" [rounded]="true" [value]="headParts.type" [attr.title]="'Package type'" />
+        @if (headParts.distro) {
+          <p-tag class="text-xs" severity="secondary" [rounded]="true" [value]="headParts.distro" [attr.title]="'Distro'" />
         }
-
-        <!-- the rows have all the same height, as the scroller needs -->
-        <div class="relative flex-1 min-h-0">
-          <p-scroller
-            appScrollerResize
-            class="absolute inset-0"
-            scrollHeight="100%"
-            [items]="items()"
-            [itemSize]="rowHeight"
-            [style]="{ width: '100%', height: '100%' }"
-          >
-            <ng-template #item let-item>
-              <div
-                class="px-2 py-2 cursor-pointer overflow-hidden border-b border-[var(--p-content-border-color)]"
-                [style.height.px]="rowHeight"
-                [class.tod-selected-item]="isSelected(item)"
-                (click)="select(item)"
-              >
-                <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: true }" />
-              </div>
-            </ng-template>
-          </p-scroller>
-        </div>
-      </div>
-
-      <!-- the rows of this column: half of the height each (otherwise they would be as tall as their content, and the lists
-           and the table, laid out absolutely, have none) -->
-      <div class="flex flex-col gap-3 min-h-0 min-w-0">
-      <!-- the selected purl, split as in the list (name, version, type, distro, severity), and the button that copies it -->
-      @if (detail(); as head) {
-        @let headParts = head.purl | purlParts;
-        <div class="tod-content-border flex items-start gap-2 px-2 py-1.5">
-          <span class="flex-1 min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-            <span class="break-all" [attr.title]="head.purl">
-              <ng-container *ngTemplateOutlet="purlText; context: { $implicit: headParts, purl: head.purl }" />
-            </span>
-            @if (headParts) {
-              <p-tag class="text-xs" severity="secondary" [rounded]="true" [value]="headParts.type" [attr.title]="'Package type'" />
-              @if (headParts.distro) {
-                <p-tag class="text-xs" severity="secondary" [rounded]="true" [value]="headParts.distro" [attr.title]="'Distro'" />
-              }
-            }
-            @if (head.maxSeverityId !== null && head.maxSeverityId !== undefined) {
-              <p-tag
-                class="text-xs"
-                [rounded]="true"
-                [style]="head.maxSeverityId | severityCssStyleById: 1"
-                [value]="head.maxSeverityId | severityNameById"
-                [attr.title]="'The highest severity of its vulnerabilities'"
-              />
-            }
-          </span>
-          <p-button
-            class="tod-button-compact inline-flex shrink-0"
-            size="small"
-            severity="secondary"
-            [icon]="copiedPurl() === head.purl ? 'pi pi-check' : 'pi pi-copy'"
-            [text]="true"
-            [raised]="true"
-            [rounded]="true"
-            [ariaLabel]="'Copy purl'"
-            [attr.title]="'Copy purl'"
-            (onClick)="copyPurl(head.purl, $event)"
-          />
-        </div>
       }
+      @if (head.maxSeverityId !== null && head.maxSeverityId !== undefined) {
+        <p-tag
+          class="text-xs"
+          [rounded]="true"
+          [style]="head.maxSeverityId | severityCssStyleById: 1"
+          [value]="head.maxSeverityId | severityNameById"
+          [attr.title]="'The highest severity of its vulnerabilities'"
+        />
+      }
+    </span>
+    <p-button
+      class="tod-button-compact inline-flex shrink-0"
+      size="small"
+      severity="secondary"
+      [icon]="copiedPurl() === head.purl ? 'pi pi-check' : 'pi pi-copy'"
+      [text]="true"
+      [raised]="true"
+      [rounded]="true"
+      [ariaLabel]="'Copy purl'"
+      [attr.title]="'Copy purl'"
+      (onClick)="copyPurl(head.purl, $event)"
+    />
+  </div>
+</ng-template>
 
-      <div
-        class="grid gap-3 min-h-0 min-w-0 flex-1"
-        [style.grid-template-rows]="detail()?.vulnerabilities?.length === 0 ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(0, 1fr)'"
-      >
-        @if (detail(); as d) {
-          <!-- the namespaces over the licenses, and the images, half and half; each box is laid out absolutely in its cell,
-               so a long list scrolls inside it and never makes the row taller -->
-          <div class="grid grid-cols-2 gap-3 min-h-0">
-            <div class="grid grid-rows-[minmax(0,1fr)_minmax(0,auto)] gap-3 min-h-0 min-w-0">
-              <div class="relative min-h-0 min-w-0">
-                <div class="absolute inset-0">
-                  <app-trivy-box class="h-full">
-                    <span boxTitle>Namespaces ({{ countLabel(allowedNamespaces().size, d.namespaceNames.length) }})</span>
-                    <div class="relative h-full">
-                      <div class="absolute inset-0 overflow-auto flex flex-col text-sm">
-                        @for (name of d.namespaceNames; track name; let i = $index) {
-                          <button
-                            type="button"
-                            class="text-left break-all rounded px-1 cursor-pointer disabled:opacity-50 disabled:cursor-default"
-                            [class.tod-selected-item]="selectedNamespace() === i"
-                            [disabled]="!allowedNamespaces().has(i)"
-                            [attr.aria-pressed]="selectedNamespace() === i"
-                            (click)="toggleNamespace(i)"
-                          >
-                            {{ name }}
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  </app-trivy-box>
-                </div>
-              </div>
+<!-- fixed to the purl: nothing selects or fades it -->
+<!-- the scroll is inside the box: on the box itself it would cut its title, which sits on the border -->
+<ng-template #detailLicenses let-d>
+  <app-trivy-box>
+    <span boxTitle>License ({{ d.licenses.length }})</span>
+    <div class="flex flex-col text-sm px-1 max-h-24 overflow-auto">
+      @for (license of d.licenses; track license) {
+        <span class="break-all">{{ license }}</span>
+      } @empty {
+        <span class="tod-text-muted-color">No license data</span>
+      }
+    </div>
+  </app-trivy-box>
+</ng-template>
 
-              <!-- fixed to the purl: nothing selects or fades it -->
-              <!-- the scroll is inside the box: on the box itself it would cut its title, which sits on the border -->
-              <app-trivy-box>
-                <span boxTitle>License ({{ d.licenses.length }})</span>
-                <div class="flex flex-col text-sm px-1 max-h-24 overflow-auto">
-                  @for (license of d.licenses; track license) {
-                    <span class="break-all">{{ license }}</span>
-                  } @empty {
-                    <span class="tod-text-muted-color">No license data</span>
-                  }
-                </div>
-              </app-trivy-box>
-            </div>
-
-            <div class="relative min-h-0 min-w-0">
-              <div class="absolute inset-0">
-                <app-trivy-box class="h-full">
-                  <span boxTitle>Images ({{ countLabel(allowedImages().size, d.imageNames.length) }})</span>
-                  <div class="relative h-full">
-                    <div class="absolute inset-0 overflow-auto flex flex-col text-sm">
-                      @for (name of d.imageNames; track name; let i = $index) {
-                        <button
-                          type="button"
-                          class="text-left break-all rounded px-1 cursor-pointer disabled:opacity-50 disabled:cursor-default"
-                          [class.tod-selected-item]="selectedImage() === i"
-                          [disabled]="!allowedImages().has(i)"
-                          [attr.aria-pressed]="selectedImage() === i"
-                          (click)="toggleImage(i)"
-                        >
-                          {{ name }}
-                        </button>
-                      }
-                    </div>
-                  </div>
-                </app-trivy-box>
-              </div>
-            </div>
-          </div>
-
-          <!-- the vulnerabilities (fixed to the purl, like the licenses): the table needs a definite height, so it is laid out absolutely inside its box -->
-          @if (d.vulnerabilities.length > 0) {
-          <div class="relative min-h-0 min-w-0">
-            <div class="absolute inset-0">
-              <app-trivy-box class="h-full">
-                <span boxTitle>
-                  Vulnerabilities ({{ d.vulnerabilities.length }})
-                </span>
-                <div class="relative h-full">
-                  <div class="absolute inset-0">
-                    <app-trivy-table
-                      extraClasses="tod-trivy-table-fill"
-                      stateKey="Home Where Is Package Vulnerabilities"
-                      [dataDtos]="vulnerabilityRows()"
-                      [trivyTableColumns]="vulnerabilityColumns"
-                    />
-                  </div>
-                </div>
-              </app-trivy-box>
-            </div>
-          </div>
-          }
-        } @else if (detailError()) {
-          <div class="text-sm home-widget-error">Error: {{ detailError() }}</div>
-        } @else if (isDetailLoading()) {
-          <div class="text-sm tod-text-muted-color">Loading...</div>
-        } @else if (selected()) {
-          <div class="text-sm tod-text-muted-color">{{ detailNote() ?? 'Nothing running matches this package.' }}</div>
-        } @else {
-          <div class="text-sm tod-text-muted-color">{{ searched() ? 'Select a package' : 'Search for a package' }}</div>
-        }
-      </div>
+<!-- the vulnerabilities (fixed to the purl, like the licenses) -->
+<ng-template #detailVulnerabilities let-d>
+  <app-trivy-box class="h-full">
+    <span boxTitle>Vulnerabilities ({{ d.vulnerabilities.length }})</span>
+    <div class="relative h-full">
+      <div class="absolute inset-0">
+        <app-trivy-table
+          extraClasses="tod-trivy-table-fill"
+          stateKey="Home Where Is Package Vulnerabilities"
+          [dataDtos]="vulnerabilityRows()"
+          [trivyTableColumns]="vulnerabilityColumns"
+        />
       </div>
     </div>
-  }
-
-  <!-- the controls of the expanded widget, in the bottom row of the frame: the selections in the namespaces and the images filter each other -->
-  @if (isExpanded()) {
-    <div frameActions class="flex items-center gap-2">
-      <p-button
-        class="inline-flex"
-        label="Clear filters"
-        icon="pi pi-filter-slash"
-        size="small"
-        severity="secondary"
-        [text]="true"
-        [raised]="true"
-        [disabled]="!isFiltered()"
-        (onClick)="clearFilters()"
-      />
-      <span class="text-xs tod-text-muted-color">A click on a namespace or an image fades what does not go with it</span>
-    </div>
-  }
-</app-home-widget-frame>
-
-<!-- the search box: the same in the collapsed widget (at the top) and in the box of the expanded one -->
-<ng-template #searchBox>
-  <app-home-search-box placeholder="openssl or pkg:npm/axios@1.6 (3+ characters)" [(query)]="query" (search)="onSearch()" />
+  </app-trivy-box>
 </ng-template>
 
 <!-- a package version of the list: in the collapsed widget (the purl is a button) and in the list of the expanded one (the

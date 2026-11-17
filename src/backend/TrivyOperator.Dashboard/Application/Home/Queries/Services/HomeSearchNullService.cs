@@ -31,6 +31,19 @@ public class HomeSearchNullService : QueryNullService, IHomeSearchService
     public Task<HomeWhereIsLicenseDto> FindLicense(string query, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeWhereIsLicenseDto(false, Reason, query, null, 0, []));
 
+    public Task<HomeWhereIsLicenseDetailDto> FindLicenseDetailed(
+        string license,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeWhereIsLicenseDetailDto(false, Reason, license, null, null));
+
     public Task<HomeWhereIsCheckDto> FindCheck(string query, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeWhereIsCheckDto(false, Reason, query, null, 0, []));
+
+    public Task<HomeWhereIsCheckDetailDto> FindCheckDetailed(
+        string family,
+        string checkId,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeWhereIsCheckDetailDto(false, Reason, family, checkId, null, null));
 }
