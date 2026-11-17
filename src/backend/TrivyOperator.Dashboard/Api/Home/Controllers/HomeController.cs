@@ -214,6 +214,22 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeSearchService.FindPackage(query ?? string.Empty, ToFilter(null, null, namespaces, limit), ctx));
 
+    // one version of a package (exact match) with everything: all images and namespaces, licenses, vulnerabilities; the
+    // limit does not apply
+    [HttpGet("where-is/package/detailed", Name = "GetHomeWhereIsPackageDetailed")]
+    [ProducesResponseType(typeof(HomeWhereIsPackageDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> FindPackageDetailed(
+        [FromQuery] string? packageKey,
+        [FromQuery] string? version,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeSearchService.FindPackageDetailed(
+            packageKey ?? string.Empty,
+            version ?? string.Empty,
+            ToFilter(null, null, namespaces, null),
+            ctx));
+
     [HttpGet("where-is/license", Name = "GetHomeWhereIsLicense")]
     [ProducesResponseType(typeof(HomeWhereIsLicenseDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]

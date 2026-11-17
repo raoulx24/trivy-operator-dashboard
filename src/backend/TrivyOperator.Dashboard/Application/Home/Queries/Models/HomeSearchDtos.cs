@@ -68,26 +68,24 @@ public sealed record HomeWhereIsVulnerabilityDetailDto(
     HomeWhereIsVulnerabilityDetailItemDto? Item);
 
 // --- package: "pkg:..." = purl prefix (an "@" adds a version prefix), anything else = name substring;
-// case-insensitive; grouped by package (purl without version, see PackageKey)
-public sealed record HomeWhereIsPackageVersionDto(
+// case-insensitive; one item per package version (a purl with its version; the package is the purl without version,
+// see PackageKey)
+
+// the list (collapsed widget, picker): only what a row shows, the rest is in the detailed one
+public sealed record HomeWhereIsPackageItemDto(
+    // the purl without version: the id of the package
+    string PackageKey,
     string Version,
+    // the package key with the version: pkg:deb/ubuntu/libc6@2.35-1?distro=ubuntu-22.04 (not percent-encoded)
+    string Purl,
+    string Name,
+    string? Type,
     int Images,
     int Namespaces,
     int Workloads,
     // active vulnerabilities of this version of the package (all severities)
     int VulnerabilityIds,
-    int? MaxSeverityId,
-    IReadOnlyList<string> ImageNames);
-
-public sealed record HomeWhereIsPackageItemDto(
-    string PackageKey,
-    string Name,
-    string? Type,
-    // from the sbom; empty when the source is the vulnerability reports
-    IReadOnlyList<string> Licenses,
-    IReadOnlyList<HomeWhereIsPackageVersionDto> Versions,
-    int Images,
-    int Namespaces);
+    int? MaxSeverityId);
 
 public sealed record HomeWhereIsPackageDto(
     bool IsAvailable,
@@ -98,6 +96,45 @@ public sealed record HomeWhereIsPackageDto(
     string Source,
     int TotalMatches,
     IReadOnlyList<HomeWhereIsPackageItemDto> Items);
+
+public sealed record HomeWhereIsPackageVulnerabilityDto(
+    string VulnerabilityId,
+    string? Title,
+    int SeverityId,
+    string? FixedVersion,
+    bool IsKnownExploited,
+    // the images that have it: indexes in the ImageNames of the item
+    IReadOnlyList<int> ImageIndexes);
+
+// one version of a package, everything: all the images and namespaces (sorted, not capped)
+public sealed record HomeWhereIsPackageDetailItemDto(
+    string PackageKey,
+    string Version,
+    string Purl,
+    string Name,
+    string? Type,
+    // from the sbom; empty when the source is the vulnerability reports
+    IReadOnlyList<string> Licenses,
+    int Images,
+    int Namespaces,
+    int Workloads,
+    int? MaxSeverityId,
+    IReadOnlyList<string> NamespaceNames,
+    IReadOnlyList<string> ImageNames,
+    // per image (as ImageNames), the namespaces it runs in: indexes in NamespaceNames; with the ImageIndexes of the
+    // vulnerabilities, that is what a page needs to filter the three lists by each other
+    IReadOnlyList<IReadOnlyList<int>> ImageNamespaceIndexes,
+    // the most severe first
+    IReadOnlyList<HomeWhereIsPackageVulnerabilityDto> Vulnerabilities);
+
+// Item is null when the package version (exact) does not run now
+public sealed record HomeWhereIsPackageDetailDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    string PackageKey,
+    string Version,
+    string? Note,
+    HomeWhereIsPackageDetailItemDto? Item);
 
 // --- license: SPDX id or name substring, case-insensitive; needs the sbom
 public sealed record HomeWhereIsLicensePackageDto(

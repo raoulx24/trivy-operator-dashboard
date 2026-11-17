@@ -19,6 +19,7 @@ import { HomeHistoryDriftComponent } from './home-history-drift/home-history-dri
 import { HomeMotionService } from './home-motion/home-motion.service';
 import { HomeNewImagesComponent } from './home-new-images/home-new-images.component';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
+import { HomeWhereIsPackageComponent } from './home-where-is-package/home-where-is-package.component';
 import { HomeWhereIsVulnerabilityComponent } from './home-where-is-vulnerability/home-where-is-vulnerability.component';
 import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
 import { HomeWidgetGroupDirective } from './home-widget-group/home-widget-group.directive';
@@ -43,6 +44,7 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomeBaseOsComponent,
     HomeHistoryDriftComponent,
     HomeNewImagesComponent,
+    HomeWhereIsPackageComponent,
     HomeWhereIsVulnerabilityComponent,
   ],
   // one expanded widget per page, shared by the widget groups
@@ -106,7 +108,6 @@ export class DashboardComponent {
   // the searches look at everything running now; only the namespaces filter applies to them
   protected readonly searchHint = computed(() => `now${this.namespacesLabel()}`);
   private static readonly searchIdle: HomeWidgetState = { idleText: 'Type and press Enter to search' };
-  protected readonly whereIsPackage = signal<HomeWidgetState>(DashboardComponent.searchIdle);
   protected readonly whereIsLicense = signal<HomeWidgetState>(DashboardComponent.searchIdle);
   protected readonly whereIsCheck = signal<HomeWidgetState>(DashboardComponent.searchIdle);
 
@@ -152,24 +153,6 @@ export class DashboardComponent {
   // ------------------------------------------------------------------------
   // "where is" searches (the namespaces filter applies; a filter change does not re-run them)
   // ------------------------------------------------------------------------
-
-  protected onFindPackage(query: string): void {
-    this.load(
-      this.whereIsPackage,
-      this.homeService.getHomeWhereIsPackage({ query, namespaces: this.namespacesParam() }),
-      (x) => ({
-        isAvailable: x.isAvailable,
-        unavailableReason: x.unavailableReason,
-        summary:
-          `${x.totalMatches} packages (${x.items.length} shown, from ${x.source})` +
-          (x.items[0]
-            ? `; first: ${x.items[0].packageKey}, ${x.items[0].versions.length} versions, ${x.items[0].images} images` +
-              `, licenses: ${x.items[0].licenses.join(', ') || 'n/a'}`
-            : '') +
-          this.toNote(x.note),
-      }),
-    );
-  }
 
   protected onFindLicense(query: string): void {
     this.load(

@@ -21,6 +21,13 @@ public class HomeSearchNullService : QueryNullService, IHomeSearchService
     public Task<HomeWhereIsPackageDto> FindPackage(string query, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeWhereIsPackageDto(false, Reason, query, null, string.Empty, 0, []));
 
+    public Task<HomeWhereIsPackageDetailDto> FindPackageDetailed(
+        string packageKey,
+        string version,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeWhereIsPackageDetailDto(false, Reason, packageKey, version, null, null));
+
     public Task<HomeWhereIsLicenseDto> FindLicense(string query, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeWhereIsLicenseDto(false, Reason, query, null, 0, []));
 

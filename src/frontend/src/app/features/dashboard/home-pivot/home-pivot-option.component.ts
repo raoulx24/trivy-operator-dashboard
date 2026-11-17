@@ -31,7 +31,8 @@ import { PivotOption } from './home-pivot.types';
         }
       </span>
       @if (o.isKnownExploited) {
-        <p-tag class="text-xs" severity="secondary" [rounded]="true" value="EXPLOIT" />
+        <!-- a label of the option (filled, not clickable): the option itself is what a click selects -->
+        <p-tag class="text-xs" [rounded]="true" severity="secondary" value="KEV/EUVD" />
       }
     </div>
   `,

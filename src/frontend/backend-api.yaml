@@ -1635,6 +1635,39 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/where-is/package/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeWhereIsPackageDetailed
+      parameters:
+        - name: packageKey
+          in: query
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeWhereIsPackageDetailDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/where-is/license:
     get:
       tags:
@@ -4785,6 +4818,75 @@ components:
           type: integer
           format: int32
       additionalProperties: false
+    HomeWhereIsPackageDetailDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        packageKey:
+          type: string
+        version:
+          type: string
+        note:
+          type: string
+          nullable: true
+        item:
+          $ref: '#/components/schemas/HomeWhereIsPackageDetailItemDto'
+      additionalProperties: false
+    HomeWhereIsPackageDetailItemDto:
+      type: object
+      properties:
+        packageKey:
+          type: string
+        version:
+          type: string
+        purl:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          nullable: true
+        licenses:
+          type: array
+          items:
+            type: string
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        maxSeverityId:
+          type: integer
+          format: int32
+          nullable: true
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        imageNames:
+          type: array
+          items:
+            type: string
+        imageNamespaceIndexes:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
+        vulnerabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsPackageVulnerabilityDto'
+      additionalProperties: false
     HomeWhereIsPackageDto:
       type: object
       properties:
@@ -4813,31 +4915,15 @@ components:
       properties:
         packageKey:
           type: string
+        version:
+          type: string
+        purl:
+          type: string
         name:
           type: string
         type:
           type: string
           nullable: true
-        licenses:
-          type: array
-          items:
-            type: string
-        versions:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeWhereIsPackageVersionDto'
-        images:
-          type: integer
-          format: int32
-        namespaces:
-          type: integer
-          format: int32
-      additionalProperties: false
-    HomeWhereIsPackageVersionDto:
-      type: object
-      properties:
-        version:
-          type: string
         images:
           type: integer
           format: int32
@@ -4854,10 +4940,28 @@ components:
           type: integer
           format: int32
           nullable: true
-        imageNames:
+      additionalProperties: false
+    HomeWhereIsPackageVulnerabilityDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        fixedVersion:
+          type: string
+          nullable: true
+        isKnownExploited:
+          type: boolean
+        imageIndexes:
           type: array
           items:
-            type: string
+            type: integer
+            format: int32
       additionalProperties: false
     HomeWhereIsVulnerabilityDetailDto:
       type: object

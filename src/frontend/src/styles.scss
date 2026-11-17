@@ -256,6 +256,15 @@ tr.p-treetable-row-selected .tod-text-muted-color {
   .tod-text-muted-color {
     color: var(--tod-text-selected-muted-color);
   }
+
+  // a text button in it (e.g. copy): the reverted color, as the buttons of a selected table row
+  p-button button.p-button-text {
+    color: var(--tod-text-revert-primary-color);
+
+    &:hover {
+      background: transparent;
+    }
+  }
 }
 
 .tod-text-primary-color,
@@ -505,30 +514,75 @@ p-tag.border-primary-color {
   line-height: 1.2;
 }
 
-// small tags under the vulnerability id, so id + tags fit in one (default 39px) row
-.tod-vulnerability-tag p-tag {
-  margin-top: 0.1rem;
-  cursor: pointer;
-  font-size: 0.7rem;
-  line-height: 1;
+// a tag that opens something (CVSS / EPSS / KEV/EUVD dialogs, the Trivy page): outlined, in the color of the text around
+// it (currentColor), so it reads as clickable the same way on a plain, hovered or selected row, in light and dark mode;
+// the filled tags (severity, ...) are labels only. Small enough for a 39px table row (id + one line of tags).
+.tod-score-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
   padding: 0.1rem 0.4rem;
+  border: 1px solid color-mix(in srgb, currentColor 70%, transparent);
+  border-radius: 9999px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: var(--p-tag-font-weight);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--tod-score-tag-shadow);
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s,
+    background 0.15s;
 
-  // tinted with the primary color, so it reads the same in light and dark mode
-  &:hover:not(.tod-tag-disabled) {
-    background: color-mix(in srgb, var(--p-primary-color) 20%, var(--p-tag-secondary-background));
-    color: var(--p-primary-color);
+  &:hover {
+    background: color-mix(in srgb, currentColor 15%, transparent);
+    box-shadow: var(--tod-score-tag-hover-shadow);
+    transform: translateY(-1px);
   }
 
-  // a tag with nothing behind it (e.g. no Trivy page): dimmed, no hover effect
-  &.tod-tag-disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  // pressed: back down, no shadow
+  &:active {
+    box-shadow: none;
+    transform: translateY(0);
+  }
+
+  // currentColor and not the primary color: on a selected row (highlight background) a primary ring would not show
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
   }
 
   // here and not as a Tailwind class on the icon - text-[0.55rem] there did not apply
   .pi {
     font-size: 0.55rem;
   }
+
+  // a tag with nothing behind it (e.g. no Trivy page): dimmed, dashed, no hover effect
+  &.tod-score-tag-disabled {
+    border-style: dashed;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    &:hover {
+      background: transparent;
+      box-shadow: none;
+      transform: none;
+    }
+  }
+}
+
+// a selectable table row does not show its own hover while the pointer is on one of its tags, so it is clear that the
+// click goes to the tag, not to the row
+.p-datatable-hoverable .p-datatable-tbody > tr:not(.p-datatable-row-selected):has(.tod-score-tag:hover) {
+  background: var(--p-datatable-row-background);
+  color: var(--p-datatable-row-color);
 }
 
 

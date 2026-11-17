@@ -131,22 +131,7 @@ public partial class HomeSearchService(
         ActiveVulnerability first = group.First();
         HomeReach reach = scope.GetReach(group.SelectMany(x => x.ImageKeys));
 
-        IReadOnlyList<string> namespaceNames = ToNamespaceNames(reach.Namespaces, int.MaxValue);
-        IReadOnlyList<string> imageNames = ToImageNames(reach.ImageKeys, table, int.MaxValue);
-        Dictionary<string, int> namespaceIndexes = ToIndexes(namespaceNames);
-        Dictionary<string, int> imageIndexes = ToIndexes(imageNames);
-
-        // the namespaces of each image, by name (the images of one name, with other digests, are one line), as indexes
-        SortedSet<int>[] namespacesOfImage = [.. imageNames.Select(_ => new SortedSet<int>()),];
-        foreach (string imageKey in reach.ImageKeys)
-        {
-            SortedSet<int> namespacesOfThis = namespacesOfImage[imageIndexes[ToImageName(imageKey, table)]];
-
-            foreach (NamespaceName namespaceName in scope.GetReach(new[] { imageKey, }).Namespaces)
-            {
-                namespacesOfThis.Add(namespaceIndexes[namespaceName.Value]);
-            }
-        }
+        ImageRelations relations = BuildImageRelations(reach, scope, table);
 
         HomeWhereIsVulnerabilityDetailItemDto item = new(
             VulnerabilityId: group.Key.Value,
@@ -168,7 +153,7 @@ public partial class HomeSearchService(
                         ImageIndexes:
                         [
                             .. scope.GetReach(row).ImageKeys
-                                .Select(key => imageIndexes[ToImageName(key, table)])
+                                .Select(key => relations.ImageIndexes[ToImageName(key, table)])
                                 .Distinct()
                                 .Order(),
                         ]))
@@ -178,9 +163,9 @@ public partial class HomeSearchService(
             Images: reach.ImageKeys.Count,
             Namespaces: reach.Namespaces.Count,
             Workloads: reach.Workloads.Count,
-            NamespaceNames: namespaceNames,
-            ImageNames: imageNames,
-            ImageNamespaceIndexes: [.. namespacesOfImage.Select(x => (IReadOnlyList<int>)x.ToArray()),]);
+            NamespaceNames: relations.NamespaceNames,
+            ImageNames: relations.ImageNames,
+            ImageNamespaceIndexes: relations.ImageNamespaceIndexes);
 
         return new HomeWhereIsVulnerabilityDetailDto(true, null, id, null, item);
     }
@@ -213,6 +198,7 @@ public partial class HomeSearchService(
     // package
     // ------------------------------------------------------------------------
 
+    // one item per package version: the packages of the sbom (or, without it, the vulnerable ones) that match
     public async Task<HomeWhereIsPackageDto> FindPackage(string query, HomeFilter filter, CancellationToken ctx = default)
     {
         string q = query.Trim();
@@ -233,9 +219,155 @@ public partial class HomeSearchService(
         HomeScope scope = new(table, filter.Namespaces);
         PackageMatcher matcher = PackageMatcher.Parse(q);
 
-        // (package key, version) -> images, plus the purls for the licenses
-        Dictionary<string, PackageMatch> matches = new(StringComparer.Ordinal);
-        string? note;
+        (Dictionary<(string Key, string Version), PackageVersionMatch> matches, string? note) =
+            await CollectPackageVersions(table, scope, matcher.Matches, ctx);
+
+        // the active vulnerabilities of a version of a package: the rows of the package found in that version
+        ILookup<string, ActiveVulnerability> rowsByPackageKey = table.Rows.ToLookup(x => x.Key.PackageKey.Value, StringComparer.Ordinal);
+
+        List<HomeWhereIsPackageItemDto> items =
+        [
+            .. matches.Values
+                .Select(match =>
+                {
+                    HomeReach reach = scope.GetReach(match.ImageKeys);
+                    ActiveVulnerability[] vulnerable = VulnerabilitiesOf(match, rowsByPackageKey[match.PackageKey]);
+
+                    return new HomeWhereIsPackageItemDto(
+                        PackageKey: match.PackageKey,
+                        Version: match.Version,
+                        Purl: ToPurl(match.PackageKey, match.Version),
+                        Name: match.Name,
+                        Type: match.Type,
+                        Images: reach.ImageKeys.Count,
+                        Namespaces: reach.Namespaces.Count,
+                        Workloads: reach.Workloads.Count,
+                        VulnerabilityIds: vulnerable.Length,
+                        MaxSeverityId: vulnerable.Length == 0 ? null : vulnerable.Min(x => x.Severity.Rank));
+                })
+                .OrderByDescending(x => string.Equals(x.Name, q, StringComparison.OrdinalIgnoreCase))
+                .ThenByDescending(x => x.Images)
+                .ThenBy(x => x.PackageKey, StringComparer.Ordinal)
+                .ThenBy(x => x.Version, StringComparer.Ordinal),
+        ];
+
+        return new HomeWhereIsPackageDto(true, null, q, note, source, items.Count, [.. items.Take(filter.Limit),]);
+    }
+
+    // one version of a package (exact match on the package key and the version) with all its images and namespaces, its
+    // licenses and its vulnerabilities
+    public async Task<HomeWhereIsPackageDetailDto> FindPackageDetailed(
+        string packageKey,
+        string version,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string key = packageKey.Trim();
+        string versionValue = version.Trim();
+
+        if (!sources.HasVulnerabilityReports)
+        {
+            return new HomeWhereIsPackageDetailDto(false, NoVulnerabilityReports, key, versionValue, null, null);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+
+        (Dictionary<(string Key, string Version), PackageVersionMatch> matches, string? note) =
+            await CollectPackageVersions(
+                table,
+                scope,
+                (matchKey, _, matchVersion) =>
+                    string.Equals(matchKey, key, StringComparison.Ordinal) &&
+                    string.Equals(matchVersion, versionValue, StringComparison.Ordinal),
+                ctx);
+
+        if (!matches.TryGetValue((key, versionValue), out PackageVersionMatch? match))
+        {
+            return new HomeWhereIsPackageDetailDto(
+                true,
+                null,
+                key,
+                versionValue,
+                "Not found: this version of the package does not run now.",
+                null);
+        }
+
+        HomeReach reach = scope.GetReach(match.ImageKeys);
+        ImageRelations relations = BuildImageRelations(reach, scope, table);
+
+        HomeWhereIsPackageVulnerabilityDto[] vulnerabilities =
+        [
+            .. VulnerabilitiesOf(match, table.Rows.Where(x => x.Key.PackageKey.Value == key))
+                .Select(row => new HomeWhereIsPackageVulnerabilityDto(
+                    VulnerabilityId: row.Key.VulnerabilityId.Value,
+                    Title: row.Title,
+                    SeverityId: row.Severity.Rank,
+                    FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
+                    IsKnownExploited: row.IsKnownExploited,
+                    ImageIndexes:
+                    [
+                        .. row.ImageKeysByInstalledVersion[versionValue]
+                            .Where(reach.ImageKeys.Contains)
+                            .Select(imageKey => relations.ImageIndexes[ToImageName(imageKey, table)])
+                            .Distinct()
+                            .Order(),
+                    ]))
+                .OrderBy(x => x.SeverityId)
+                .ThenByDescending(x => x.ImageIndexes.Count)
+                .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal),
+        ];
+
+        // only the sbom knows the licenses
+        IReadOnlyList<string> licenses = [];
+
+        if (sources.HasSbom)
+        {
+            IReadOnlyDictionary<Purl, PurlDetail> purlDetails = await sources.PurlDetails!.GetDetails(match.Purls, ctx);
+
+            licenses =
+            [
+                .. match.Purls
+                    .Select(x => purlDetails.GetValueOrDefault(x))
+                    .OfType<PurlDetail>()
+                    .SelectMany(x => x.Licenses)
+                    .Select(ToLicenseLabel)
+                    .Where(x => x.Length > 0)
+                    .Distinct()
+                    .Order(StringComparer.Ordinal),
+            ];
+        }
+
+        HomeWhereIsPackageDetailItemDto item = new(
+            PackageKey: key,
+            Version: versionValue,
+            Purl: ToPurl(key, versionValue),
+            Name: match.Name,
+            Type: match.Type,
+            Licenses: licenses,
+            Images: reach.ImageKeys.Count,
+            Namespaces: reach.Namespaces.Count,
+            Workloads: reach.Workloads.Count,
+            MaxSeverityId: vulnerabilities.Length == 0 ? null : vulnerabilities.Min(x => x.SeverityId),
+            NamespaceNames: relations.NamespaceNames,
+            ImageNames: relations.ImageNames,
+            ImageNamespaceIndexes: relations.ImageNamespaceIndexes,
+            Vulnerabilities: vulnerabilities);
+
+        return new HomeWhereIsPackageDetailDto(true, null, key, versionValue, note, item);
+    }
+
+    // the (package key, version) pairs in scope that the filter accepts, with their images (and purls, from the sbom):
+    // the sbom when there is one (all the packages, and how many running images have none yet is in the note), else the
+    // vulnerability reports (only the vulnerable packages)
+    private async Task<(Dictionary<(string Key, string Version), PackageVersionMatch> Matches, string? Note)>
+        CollectPackageVersions(
+            ActiveVulnerabilityTable table,
+            HomeScope scope,
+            Func<string, string, string, bool> accepts,
+            CancellationToken ctx)
+    {
+        Dictionary<(string Key, string Version), PackageVersionMatch> matches = [];
 
         if (sources.HasSbom)
         {
@@ -250,101 +382,136 @@ public partial class HomeSearchService(
                     string name = components.Name ?? purl.Value;
                     string version = components.Version ?? string.Empty;
 
-                    if (matcher.Matches(packageKey, name, version))
+                    if (accepts(packageKey, name, version))
                     {
-                        GetMatch(matches, packageKey, name, components.Type).Add(version, digest.Value, purl);
+                        GetVersionMatch(matches, packageKey, name, components.Type, version).Add(digest.Value, purl);
                     }
                 }
             }
 
-            IReadOnlyDictionary<Purl, PurlDetail> purlDetails =
-                await sources.PurlDetails!.GetDetails(matches.Values.SelectMany(x => x.Purls).Distinct(), ctx);
-
-            foreach (PackageMatch match in matches.Values)
-            {
-                match.Licenses.UnionWith(match.Purls
-                    .Select(x => purlDetails.GetValueOrDefault(x))
-                    .OfType<PurlDetail>()
-                    .SelectMany(x => x.Licenses)
-                    .Select(ToLicenseLabel));
-            }
-
-            note = WithoutSbomNote(imagesWithoutSbom);
+            return (matches, WithoutSbomNote(imagesWithoutSbom));
         }
-        else
+
+        foreach (ActiveVulnerability row in table.Rows)
         {
-            foreach (ActiveVulnerability row in table.Rows)
+            foreach ((string version, HashSet<string> imageKeys) in row.ImageKeysByInstalledVersion)
             {
-                foreach ((string version, HashSet<string> imageKeys) in row.ImageKeysByInstalledVersion)
+                if (!accepts(row.Key.PackageKey.Value, row.PackageName.Value, version))
                 {
-                    if (!matcher.Matches(row.Key.PackageKey.Value, row.PackageName.Value, version))
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    PackageMatch match = GetMatch(matches, row.Key.PackageKey.Value, row.PackageName.Value, new Purl(row.Key.PackageKey.Value).Type);
-
-                    foreach (string imageKey in imageKeys.Where(key => scope.Contains(table.Images[key])))
-                    {
-                        match.Add(version, imageKey, null);
-                    }
+                foreach (string imageKey in imageKeys.Where(key => scope.Contains(table.Images[key])))
+                {
+                    GetVersionMatch(
+                            matches,
+                            row.Key.PackageKey.Value,
+                            row.PackageName.Value,
+                            new Purl(row.Key.PackageKey.Value).Type,
+                            version)
+                        .Add(imageKey, null);
                 }
             }
-
-            note = "Only the vulnerable packages are searched (SBOM reports are not enabled).";
         }
 
-        // the active vulnerabilities of a version of a package: the rows of the package found in that version
-        ILookup<string, ActiveVulnerability> rowsByPackageKey = table.Rows.ToLookup(x => x.Key.PackageKey.Value, StringComparer.Ordinal);
-
-        List<HomeWhereIsPackageItemDto> items =
-        [
-            .. matches.Values
-                .Where(x => x.ImageKeysByVersion.Count > 0)
-                .Select(match =>
-                {
-                    HomeReach reach = scope.GetReach(match.ImageKeysByVersion.Values.SelectMany(x => x));
-
-                    return new HomeWhereIsPackageItemDto(
-                        PackageKey: match.PackageKey,
-                        Name: match.Name,
-                        Type: match.Type,
-                        Licenses: [.. match.Licenses.Order(StringComparer.Ordinal),],
-                        Versions:
-                        [
-                            .. match.ImageKeysByVersion
-                                .Select(version =>
-                                {
-                                    HomeReach versionReach = scope.GetReach(version.Value);
-                                    ActiveVulnerability[] vulnerable =
-                                    [
-                                        .. rowsByPackageKey[match.PackageKey]
-                                            .Where(row => row.ImageKeysByInstalledVersion.ContainsKey(version.Key)),
-                                    ];
-
-                                    return new HomeWhereIsPackageVersionDto(
-                                        Version: version.Key,
-                                        Images: versionReach.ImageKeys.Count,
-                                        Namespaces: versionReach.Namespaces.Count,
-                                        Workloads: versionReach.Workloads.Count,
-                                        VulnerabilityIds: vulnerable.Select(x => x.Key.VulnerabilityId).Distinct().Count(),
-                                        MaxSeverityId: vulnerable.Length == 0 ? null : vulnerable.Min(x => x.Severity.Rank),
-                                        ImageNames: ToImageNames(versionReach.ImageKeys, table));
-                                })
-                                .OrderByDescending(x => x.Images)
-                                .ThenBy(x => x.Version, StringComparer.Ordinal),
-                        ],
-                        Images: reach.ImageKeys.Count,
-                        Namespaces: reach.Namespaces.Count);
-                })
-                .OrderByDescending(x => string.Equals(x.Name, q, StringComparison.OrdinalIgnoreCase))
-                .ThenByDescending(x => x.Images)
-                .ThenBy(x => x.PackageKey, StringComparer.Ordinal),
-        ];
-
-        return new HomeWhereIsPackageDto(true, null, q, note, source, items.Count, [.. items.Take(filter.Limit),]);
+        return (matches, "Only the vulnerable packages are searched (SBOM reports are not enabled).");
     }
 
+    private static PackageVersionMatch GetVersionMatch(
+        Dictionary<(string Key, string Version), PackageVersionMatch> matches,
+        string packageKey,
+        string name,
+        string? type,
+        string version)
+    {
+        if (!matches.TryGetValue((packageKey, version), out PackageVersionMatch? match))
+        {
+            match = new PackageVersionMatch(packageKey, name, type, version);
+            matches[(packageKey, version)] = match;
+        }
+
+        return match;
+    }
+
+    // the rows of the package that were found in this version, in the images of the match
+    private static ActiveVulnerability[] VulnerabilitiesOf(
+        PackageVersionMatch match,
+        IEnumerable<ActiveVulnerability> rowsOfPackage) =>
+    [
+        .. rowsOfPackage
+            .Where(row => row.ImageKeysByInstalledVersion.TryGetValue(match.Version, out HashSet<string>? imageKeys) &&
+                          imageKeys.Any(match.ImageKeys.Contains)),
+    ];
+
+    // the package key with the version before the qualifiers: pkg:deb/ubuntu/libc6?distro=ubuntu-22.04 + 2.35-1
+    // -> pkg:deb/ubuntu/libc6@2.35-1?distro=ubuntu-22.04 (what the reports give, not percent-encoded)
+    private static string ToPurl(string packageKey, string version)
+    {
+        if (version.Length == 0)
+        {
+            return packageKey;
+        }
+
+        int qualifiers = packageKey.IndexOf('?', StringComparison.Ordinal);
+
+        return qualifiers < 0
+            ? $"{packageKey}@{version}"
+            : $"{packageKey[..qualifiers]}@{version}{packageKey[qualifiers..]}";
+    }
+
+    private sealed class PackageVersionMatch(string packageKey, string name, string? type, string version)
+    {
+        public string PackageKey { get; } = packageKey;
+        public string Name { get; } = name;
+        public string? Type { get; } = type;
+        public string Version { get; } = version;
+        public HashSet<string> ImageKeys { get; } = new(StringComparer.Ordinal);
+        public HashSet<Purl> Purls { get; } = [];
+
+        public void Add(string imageKey, Purl? purl)
+        {
+            ImageKeys.Add(imageKey);
+
+            if (purl is { } value)
+            {
+                Purls.Add(value);
+            }
+        }
+    }
+
+    // the namespaces and the images of a reach as the lists of a detailed item: the images by name (the images of one name,
+    // with other digests, are one line), and per image the namespaces it runs in, as indexes in the namespaces
+    private static ImageRelations BuildImageRelations(HomeReach reach, HomeScope scope, ActiveVulnerabilityTable table)
+    {
+        IReadOnlyList<string> namespaceNames = ToNamespaceNames(reach.Namespaces, int.MaxValue);
+        IReadOnlyList<string> imageNames = ToImageNames(reach.ImageKeys, table, int.MaxValue);
+        Dictionary<string, int> namespaceIndexes = ToIndexes(namespaceNames);
+        Dictionary<string, int> imageIndexes = ToIndexes(imageNames);
+
+        SortedSet<int>[] namespacesOfImage = [.. imageNames.Select(_ => new SortedSet<int>()),];
+        foreach (string imageKey in reach.ImageKeys)
+        {
+            SortedSet<int> namespacesOfThis = namespacesOfImage[imageIndexes[ToImageName(imageKey, table)]];
+
+            foreach (NamespaceName namespaceName in scope.GetReach(new[] { imageKey, }).Namespaces)
+            {
+                namespacesOfThis.Add(namespaceIndexes[namespaceName.Value]);
+            }
+        }
+
+        return new ImageRelations(
+            namespaceNames,
+            imageNames,
+            imageIndexes,
+            [.. namespacesOfImage.Select(x => (IReadOnlyList<int>)x.ToArray()),]);
+    }
+
+    private sealed record ImageRelations(
+        IReadOnlyList<string> NamespaceNames,
+        IReadOnlyList<string> ImageNames,
+        // image name -> its index in ImageNames
+        IReadOnlyDictionary<string, int> ImageIndexes,
+        IReadOnlyList<IReadOnlyList<int>> ImageNamespaceIndexes);
     private static PackageMatch GetMatch(Dictionary<string, PackageMatch> matches, string packageKey, string name, string? type)
     {
         if (!matches.TryGetValue(packageKey, out PackageMatch? match))

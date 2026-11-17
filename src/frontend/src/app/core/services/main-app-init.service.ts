@@ -24,7 +24,7 @@ export class MainAppInitService {
     isKubeConfigUsed: false,
     isNamespaceListUsed: false,
     vrHistoryMaxAgeDays: 14,
-    // off until the backend says otherwise, so the Details tags do not flash before the settings arrive
+    // off until the backend says otherwise, so the CVSS tags do not flash before the settings arrive
     isCveDetailsEnabled: false,
     isCveEnrichmentEnabled: false,
     // off until the backend says otherwise, so the history menu items do not flash before the settings arrive

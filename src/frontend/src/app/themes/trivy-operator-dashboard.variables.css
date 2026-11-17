@@ -58,6 +58,9 @@
   --tod-box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
   --tod-filter-drop-shadow: 0 4px 3px rgba(0, 0, 0, 0.3);
   --tod-tag-box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  /* the clickable tags (.tod-score-tag): raised like the other tags at rest, lifted more on hover (pressed: no shadow) */
+  --tod-score-tag-shadow: var(--tod-tag-box-shadow);
+  --tod-score-tag-hover-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
 
   /* nav menu: entry of the active page */
   --tod-menu-item-active-bg: color-mix(in srgb, var(--p-primary-color) 40%, transparent);
@@ -122,6 +125,9 @@
   --tod-tag-box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.1),
     0 2px 4px rgba(0, 0, 0, 0.5);
+  /* no white ring here: the clickable tags have their own border */
+  --tod-score-tag-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  --tod-score-tag-hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
 
   --tod-radar-stroke-color: var(--p-red-400);
   --tod-radar-vertex-outline-color: var(--p-surface-950);

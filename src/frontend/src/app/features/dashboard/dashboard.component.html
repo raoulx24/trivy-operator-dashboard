@@ -19,15 +19,7 @@
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
     <app-home-where-is-vulnerability [hint]="searchHint()" [namespaces]="namespaces()" />
-    <app-home-widget-placeholder
-      heading="Where is… package"
-      [hint]="searchHint()"
-      description="a package: name substring, or purl prefix (pkg:..., with @version prefix); per package (purl without version) the licenses and, per version, images, namespaces and its vulnerabilities"
-      searchPlaceholder="openssl or pkg:npm/axios@1.6"
-      source="GET api/home/where-is/package → HomeWhereIsPackageDto"
-      [state]="whereIsPackage()"
-      (search)="onFindPackage($event)"
-    />
+    <app-home-where-is-package [hint]="searchHint()" [namespaces]="namespaces()" />
     <app-home-widget-placeholder
       heading="Where is… check"
       [hint]="searchHint()"

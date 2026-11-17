@@ -17,6 +17,14 @@ public interface IHomeSearchService : IQueryService
 
     Task<HomeWhereIsPackageDto> FindPackage(string query, HomeFilter filter, CancellationToken ctx = default);
 
+    // one version of a package (exact match on the package key and the version) with everything: all images and
+    // namespaces, licenses, vulnerabilities
+    Task<HomeWhereIsPackageDetailDto> FindPackageDetailed(
+        string packageKey,
+        string version,
+        HomeFilter filter,
+        CancellationToken ctx = default);
+
     Task<HomeWhereIsLicenseDto> FindLicense(string query, HomeFilter filter, CancellationToken ctx = default);
 
     Task<HomeWhereIsCheckDto> FindCheck(string query, HomeFilter filter, CancellationToken ctx = default);

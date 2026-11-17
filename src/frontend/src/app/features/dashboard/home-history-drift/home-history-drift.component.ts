@@ -412,7 +412,7 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
   constructor() {
     super();
 
-    // the CVE dialogs (EXPLOIT tag, details) read the enrichment of the app state, as the vulnerability id cell does
+    // the CVE dialogs (KEV/EUVD tag, details) read the enrichment of the app state, as the vulnerability id cell does
     inject(CveEnrichmentStateService).ensureLoaded();
   }
 
