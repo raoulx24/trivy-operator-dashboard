@@ -14,7 +14,8 @@ import {
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
+import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
+import { ScrollerResizeDirective } from '../../../shared/ui/scroller-resize/scroller-resize.directive';
 import { ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
@@ -57,7 +58,8 @@ interface VulnerabilityRow {
   imports: [
     HomeWidgetFrameComponent,
     ButtonModule,
-    InputTextModule,
+    HomeSearchBoxComponent,
+    ScrollerResizeDirective,
     NgTemplateOutlet,
     ScrollerModule,
     TagModule,
@@ -344,6 +346,10 @@ export class HomeWhereIsPackageComponent extends HomeWidgetBase {
   protected onSearch(): void {
     const query = this.query().trim();
     if (!query) {
+      // an empty box and Enter: the widget goes back to before the first search
+      this.request.set(undefined);
+      this.selected.set(undefined);
+      this.loaded.set(undefined);
       return;
     }
 

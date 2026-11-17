@@ -51,7 +51,9 @@
         <!-- the rows have all the same height, as the scroller needs -->
         <div class="relative flex-1 min-h-0">
           <p-scroller
+            appScrollerResize
             class="absolute inset-0"
+            scrollHeight="100%"
             [items]="items()"
             [itemSize]="rowHeight"
             [style]="{ width: '100%', height: '100%' }"
@@ -246,16 +248,7 @@
 
 <!-- the search box: the same in the collapsed widget (at the top) and in the box of the expanded one -->
 <ng-template #searchBox>
-  <input
-    type="text"
-    pInputText
-    pSize="small"
-    class="w-full"
-    placeholder="openssl or pkg:npm/axios@1.6 (3+ characters)"
-    [value]="query()"
-    (input)="query.set($any($event.target).value)"
-    (keydown.enter)="onSearch()"
-  />
+  <app-home-search-box placeholder="openssl or pkg:npm/axios@1.6 (3+ characters)" [(query)]="query" (search)="onSearch()" />
 </ng-template>
 
 <!-- a package version of the list: in the collapsed widget (the purl is a button) and in the list of the expanded one (the

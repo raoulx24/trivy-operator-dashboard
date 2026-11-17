@@ -10,16 +10,7 @@
   [fillGap]="false"
 >
   @if (searchPlaceholder()) {
-    <input
-      type="text"
-      pInputText
-      pSize="small"
-      class="w-full"
-      [placeholder]="searchPlaceholder()"
-      [value]="query()"
-      (input)="query.set($any($event.target).value)"
-      (keydown.enter)="onSearch()"
-    />
+    <app-home-search-box [placeholder]="searchPlaceholder()" [(query)]="query" (search)="onSearch()" />
   }
 
   <div class="home-placeholder-body flex-1 text-sm p-2">

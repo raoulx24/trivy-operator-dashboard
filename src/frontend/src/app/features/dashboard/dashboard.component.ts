@@ -155,6 +155,10 @@ export class DashboardComponent {
   // ------------------------------------------------------------------------
 
   protected onFindLicense(query: string): void {
+    if (!query) {
+      this.whereIsLicense.set(DashboardComponent.searchIdle);
+      return;
+    }
     this.load(
       this.whereIsLicense,
       this.homeService.getHomeWhereIsLicense({ query, namespaces: this.namespacesParam() }),
@@ -172,6 +176,10 @@ export class DashboardComponent {
   }
 
   protected onFindCheck(query: string): void {
+    if (!query) {
+      this.whereIsCheck.set(DashboardComponent.searchIdle);
+      return;
+    }
     this.load(
       this.whereIsCheck,
       this.homeService.getHomeWhereIsCheck({ query, namespaces: this.namespacesParam() }),
