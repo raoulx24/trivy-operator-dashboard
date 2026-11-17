@@ -8,7 +8,8 @@ import {
   TrivyTableExpandRowData,
 } from '../trivy-table/trivy-table.types';
 
-import { SplitterModule } from 'primeng/splitter';
+import { Splitter, SplitterModule } from 'primeng/splitter';
+import { resetSplitterSizes } from '../splitter/splitter.utils';
 import { KubernetesContextStateService } from '@core/state/kubernetes-context-state.service';
 import { DataSet, DataSetDetail } from '@shared/abstracts/types/data-set';
 
@@ -170,6 +171,11 @@ export class GenericMasterDetailComponent<
 
   onMainTableRowExpandChange(event: TDataSet) {
     this.mainTableRowExpandChange.emit(event);
+  }
+
+  /** Double click on the gutter restores the default panel sizes (and the saved ones). */
+  onSplitterDoubleClick(event: MouseEvent, splitter: Splitter, defaultSizes: number[]) {
+    resetSplitterSizes(event, splitter, defaultSizes);
   }
 
   // screen size

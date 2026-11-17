@@ -32,7 +32,8 @@ import {
 } from '../trivy-table/trivy-table.types';
 
 import { DialogModule } from 'primeng/dialog';
-import { SplitterModule } from 'primeng/splitter';
+import { Splitter, SplitterModule } from 'primeng/splitter';
+import { resetSplitterSizes } from '../splitter/splitter.utils';
 import { TagModule } from 'primeng/tag';
 
 import { KubernetesContextStateService } from '@core/state/kubernetes-context-state.service';
@@ -417,6 +418,11 @@ export class GenericSbomComponent {
         { label: value },
       ]),
     };
+  }
+
+  /** Double click on the gutter restores the default panel sizes (and the saved ones). */
+  onSplitterDoubleClick(event: MouseEvent, splitter: Splitter) {
+    resetSplitterSizes(event, splitter, [35, 65]);
   }
 
   // screen size

@@ -1,4 +1,6 @@
 <p-splitter
+  #splitter
+  (dblclick)="onSplitterDoubleClick($event, splitter)"
   stateStorage="local"
   class="tod-splitter-no-borders tod-no-background mb-8"
   [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"

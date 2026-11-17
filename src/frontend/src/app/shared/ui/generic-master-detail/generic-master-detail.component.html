@@ -1,4 +1,6 @@
 <p-splitter
+  #splitter
+  (dblclick)="onSplitterDoubleClick($event, splitter, splitterPanelSizes())"
   stateStorage="local"
   class="mb-8 overflow-hidden"
   [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
