@@ -186,26 +186,21 @@
             </div>
           </div>
 
-          <!-- the vulnerabilities: the table needs a definite height, so it is laid out absolutely inside its box -->
+          <!-- the vulnerabilities (fixed to the purl, like the licenses): the table needs a definite height, so it is laid out absolutely inside its box -->
           @if (d.vulnerabilities.length > 0) {
           <div class="relative min-h-0 min-w-0">
             <div class="absolute inset-0">
               <app-trivy-box class="h-full">
                 <span boxTitle>
-                  Vulnerabilities ({{ countLabel(allowedVulnerabilities().size, d.vulnerabilities.length) }})
+                  Vulnerabilities ({{ d.vulnerabilities.length }})
                 </span>
                 <div class="relative h-full">
                   <div class="absolute inset-0">
                     <app-trivy-table
                       extraClasses="tod-trivy-table-fill"
                       stateKey="Home Where Is Package Vulnerabilities"
-                      selectionMode="single"
                       [dataDtos]="vulnerabilityRows()"
                       [trivyTableColumns]="vulnerabilityColumns"
-                      [rowDimmer]="vulnerabilityRowDimmer"
-                      [dimmedRowsSelectable]="false"
-                      [selectedData]="vulnerabilitySelection()"
-                      (selectedDataChange)="onVulnerabilitySelection($event)"
                     />
                   </div>
                 </div>
@@ -227,7 +222,7 @@
     </div>
   }
 
-  <!-- the controls of the expanded widget, in the bottom row of the frame: the selections in the lists filter each other -->
+  <!-- the controls of the expanded widget, in the bottom row of the frame: the selections in the namespaces and the images filter each other -->
   @if (isExpanded()) {
     <div frameActions class="flex items-center gap-2">
       <p-button
@@ -241,7 +236,7 @@
         [disabled]="!isFiltered()"
         (onClick)="clearFilters()"
       />
-      <span class="text-xs tod-text-muted-color">A click on a namespace, an image or a vulnerability fades what does not go with it</span>
+      <span class="text-xs tod-text-muted-color">A click on a namespace or an image fades what does not go with it</span>
     </div>
   }
 </app-home-widget-frame>

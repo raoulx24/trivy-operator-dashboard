@@ -27,7 +27,7 @@ import { PurlPartsPipe } from '@shared/pipes/purl-parts.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
-import { SelectedDtosEvent, TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
+import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
@@ -188,46 +188,25 @@ export class HomeWhereIsPackageComponent extends HomeWidgetBase {
     })),
   );
 
-  // ---- the filter: the lists of the detail filter each other
-  // one selection per list (an index in the list; the vulnerability is the selected row of the table). Each list is
-  // filtered only by the selections of the other two, never by its own: so what is faded is what cannot go with them, and
-  // it cannot be selected (that would be an empty combination). A selection that was allowed stays so when another is made.
+  // ---- the filter: the namespaces and the images filter each other (the licenses and the vulnerabilities are fixed to the purl)
+  // one selection per list (an index in the list). Each list is filtered only by the selection of the other, never by its
+  // own: so what is faded is what cannot go with it, and it cannot be selected (that would be an empty combination).
   protected readonly selectedNamespace = signal<number | null>(null);
   protected readonly selectedImage = signal<number | null>(null);
-  protected readonly vulnerabilitySelection = signal<SelectedDtosEvent<VulnerabilityRow>>({
-    selectedDtos: [],
-    source: 'programmatic',
-  });
-  private readonly selectedVulnerability = computed(() => this.vulnerabilitySelection().selectedDtos[0]?.index ?? null);
 
-  protected readonly isFiltered = computed(
-    () => this.selectedNamespace() !== null || this.selectedImage() !== null || this.selectedVulnerability() !== null,
-  );
+  protected readonly isFiltered = computed(() => this.selectedNamespace() !== null || this.selectedImage() !== null);
 
-  // the relations of the detail as sets: the namespaces of each image, the images of each vulnerability
-  private readonly relations = computed(() => {
-    const d = this.detail();
-    return d
-      ? {
-          namespacesOfImage: d.imageNamespaceIndexes.map((x) => new Set(x)),
-          imagesOfVulnerability: d.vulnerabilities.map((x) => new Set(x.imageIndexes)),
-        }
-      : undefined;
-  });
+  // the relation of the detail as sets: the namespaces of each image
+  private readonly namespacesOfImage = computed(() => this.detail()?.imageNamespaceIndexes.map((x) => new Set(x)));
 
   protected readonly allowedNamespaces = computed<ReadonlySet<number>>(() => {
     const d = this.detail();
-    const r = this.relations();
+    const relation = this.namespacesOfImage();
     const image = this.selectedImage();
-    const vulnerability = this.selectedVulnerability();
     const allowed = new Set<number>();
 
-    for (let n = 0; d && r && n < d.namespaceNames.length; n++) {
-      const inImage = image === null || !!r.namespacesOfImage[image]?.has(n);
-      const inVulnerability =
-        vulnerability === null ||
-        [...(r.imagesOfVulnerability[vulnerability] ?? [])].some((i) => r.namespacesOfImage[i]?.has(n));
-      if (inImage && inVulnerability) {
+    for (let n = 0; d && relation && n < d.namespaceNames.length; n++) {
+      if (image === null || relation[image]?.has(n)) {
         allowed.add(n);
       }
     }
@@ -236,42 +215,17 @@ export class HomeWhereIsPackageComponent extends HomeWidgetBase {
 
   protected readonly allowedImages = computed<ReadonlySet<number>>(() => {
     const d = this.detail();
-    const r = this.relations();
+    const relation = this.namespacesOfImage();
     const namespace = this.selectedNamespace();
-    const vulnerability = this.selectedVulnerability();
     const allowed = new Set<number>();
 
-    for (let i = 0; d && r && i < d.imageNames.length; i++) {
-      const inNamespace = namespace === null || !!r.namespacesOfImage[i]?.has(namespace);
-      const inVulnerability = vulnerability === null || !!r.imagesOfVulnerability[vulnerability]?.has(i);
-      if (inNamespace && inVulnerability) {
+    for (let i = 0; d && relation && i < d.imageNames.length; i++) {
+      if (namespace === null || relation[i]?.has(namespace)) {
         allowed.add(i);
       }
     }
     return allowed;
   });
-
-  protected readonly allowedVulnerabilities = computed<ReadonlySet<number>>(() => {
-    const d = this.detail();
-    const r = this.relations();
-    const namespace = this.selectedNamespace();
-    const image = this.selectedImage();
-    const allowed = new Set<number>();
-
-    for (let v = 0; d && r && v < d.vulnerabilities.length; v++) {
-      const images = r.imagesOfVulnerability[v] ?? new Set<number>();
-      const inImage = image === null || images.has(image);
-      const inNamespace = namespace === null || [...images].some((i) => r.namespacesOfImage[i]?.has(namespace));
-      if (inImage && inNamespace) {
-        allowed.add(v);
-      }
-    }
-    return allowed;
-  });
-
-  // the rows of the table that do not go with the selections are faded, and cannot be selected (dimmedRowsSelectable)
-  protected readonly vulnerabilityRowDimmer = (row: VulnerabilityRow): boolean =>
-    !this.allowedVulnerabilities().has(row.index);
 
   protected readonly state = computed<HomeWidgetState>(() => {
     const resource = this.shown();
@@ -417,16 +371,8 @@ export class HomeWhereIsPackageComponent extends HomeWidgetBase {
     }
   }
 
-  // a click on a row of the vulnerabilities table (the table does not take it on a faded row)
-  protected onVulnerabilitySelection(event: SelectedDtosEvent<VulnerabilityRow>): void {
-    if (event.source === 'user') {
-      this.vulnerabilitySelection.set(event);
-    }
-  }
-
   protected clearFilters(): void {
     this.selectedNamespace.set(null);
     this.selectedImage.set(null);
-    this.vulnerabilitySelection.set({ selectedDtos: [], source: 'programmatic' });
   }
 }
