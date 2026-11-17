@@ -1,23 +1,37 @@
-<p-iconfield class="block">
-  <input
-    #box
-    type="text"
-    pInputText
-    pSize="small"
-    class="w-full"
-    enterkeyhint="search"
-    [placeholder]="placeholder()"
-    [value]="query()"
-    (input)="query.set(box.value)"
-    (keydown.enter)="onEnter($event)"
-  />
-  @if (query()) {
-    <p-inputicon
-      class="pi pi-times cursor-pointer"
-      role="button"
-      aria-label="Clear the search"
-      (mousedown)="$event.preventDefault()"
-      (click)="clear(box)"
+<div class="flex items-center gap-2">
+  <p-iconfield class="block flex-1 min-w-0">
+    <input
+      #box
+      type="text"
+      pInputText
+      pSize="small"
+      class="w-full"
+      enterkeyhint="search"
+      [placeholder]="placeholder()"
+      [value]="query()"
+      (input)="query.set(box.value)"
+      (keydown.enter)="onEnter($event)"
+    />
+    @if (query()) {
+      <p-inputicon
+        class="pi pi-times cursor-pointer"
+        role="button"
+        aria-label="Clear the search"
+        (mousedown)="$event.preventDefault()"
+        (click)="clear(box)"
+      />
+    }
+  </p-iconfield>
+  @if (resettable()) {
+    <p-button
+      icon="pi pi-eraser"
+      size="small"
+      severity="secondary"
+      [text]="true"
+      [raised]="true"
+      title="Clear"
+      aria-label="Clear"
+      (onClick)="reset()"
     />
   }
-</p-iconfield>
+</div>

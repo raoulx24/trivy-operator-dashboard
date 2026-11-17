@@ -128,7 +128,7 @@
 
 <!-- the search box: the same in the collapsed widget (at the top) and in the box of the expanded one -->
 <ng-template #searchBox>
-  <app-home-search-box placeholder="KSV014 or a title, e.g. root (3+ characters)" [(query)]="query" (search)="onSearch()" />
+  <app-home-search-box placeholder="KSV014 or a title, e.g. root (3+ characters)" [resettable]="true" [(query)]="query" (search)="onSearch()" />
 </ng-template>
 
 <!-- a check of the list: in the collapsed widget (the id is a button) and in the list of the expanded one (the whole row is) -->

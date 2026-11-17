@@ -193,5 +193,5 @@
 
 <!-- the search box: the same in the collapsed widget (at the top) and in the box of the expanded one -->
 <ng-template #searchBox>
-  <app-home-search-box [placeholder]="searchPlaceholder()" [(query)]="w.query" (search)="w.onSearch()" />
+  <app-home-search-box [placeholder]="searchPlaceholder()" [resettable]="true" [(query)]="w.query" (search)="w.onSearch()" />
 </ng-template>
