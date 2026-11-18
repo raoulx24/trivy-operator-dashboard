@@ -32,6 +32,8 @@ import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags
 import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
 
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
+import { matchesFilter } from '../home-search-box/home-list-filter';
+import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -60,6 +62,7 @@ interface PackageRow {
   standalone: true,
   imports: [
     HomeWidgetFrameComponent,
+    HomeSearchBoxComponent,
     ButtonModule,
     ScrollerResizeDirective,
     NgTemplateOutlet,
@@ -134,6 +137,10 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
     localRefresh: this.localRefresh(),
   }));
 
+  // the text of the filter box (collapsed and expanded); a filter looks at all the rows, so while there is one they are asked for
+  protected readonly filterText = signal('');
+  protected readonly isFiltering = computed(() => this.filterText().trim().length > 0);
+
   private readonly collapsedData = rxResource({
     params: this.scope,
     stream: ({ params }) =>
@@ -147,7 +154,7 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
 
   // idle (and empty) while collapsed
   private readonly expandedData = rxResource({
-    params: () => (this.isExpanded() ? this.scope() : undefined),
+    params: () => (this.isExpanded() || this.isFiltering() ? this.scope() : undefined),
     stream: ({ params }) =>
       this.homeService.getHomeNewVulnerabilities({
         since: params.since,
@@ -159,13 +166,35 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
 
   // what is shown: the many rows when they are there, else the few
   private readonly shown = computed(() =>
-    this.isExpanded() && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
+    (this.isExpanded() || this.isFiltering()) && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
   );
 
-  protected readonly items = computed(() => this.shown().value()?.items ?? []);
+  protected readonly allItems = computed(() => this.shown().value()?.items ?? []);
+  // a started filter looks at all the rows: while they load there is nothing to show
+  protected readonly isSearching = computed(
+    () => this.isFiltering() && !this.expandedData.hasValue() && this.expandedData.isLoading(),
+  );
+  // the rows that match the filter (all of them without one)
+  protected readonly items = computed(() =>
+    this.isSearching() ? [] : this.allItems().filter((x) => matchesFilter(this.filterText(), x.vulnerabilityId, x.packageName)),
+  );
+  protected readonly noMatch = computed(
+    () => this.isFiltering() && !this.isSearching() && this.items().length === 0 && this.allItems().length > 0,
+  );
+  // the collapsed widget: the first rows
+  protected readonly collapsedItems = computed(() => this.items().slice(0, HomeNewVulnerabilitiesComponent.collapsedLimit));
+  // the server sends at most expandedLimit rows: a filter over them says so when there are more
+  protected readonly partialLabel = computed(() => {
+    const total = this.totals()?.activeVulnerabilities ?? 0;
+    return this.isFiltering() && this.expandedData.hasValue() && total > this.allItems().length
+      ? `The filter looks at the first ${this.allItems().length} of ${total}`
+      : '';
+  });
   protected readonly totals = computed(() => this.shown().value()?.totals);
   protected readonly more = computed(() =>
-    Math.max(0, (this.totals()?.activeVulnerabilities ?? 0) - this.items().length),
+    this.isFiltering()
+      ? Math.max(0, this.items().length - HomeNewVulnerabilitiesComponent.collapsedLimit)
+      : Math.max(0, (this.totals()?.activeVulnerabilities ?? 0) - this.items().length),
   );
 
   // the selected id, all of its data (only while expanded); the filters are those of the list
@@ -304,7 +333,7 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
       isAvailable: dto.isAvailable,
       unavailableReason: dto.unavailableReason,
       summary:
-        `${totals.vulnerabilityIds} ids, ${totals.activeVulnerabilities} rows (${dto.items.length} shown), ` +
+        `${totals.vulnerabilityIds} ids, ${totals.activeVulnerabilities} rows (${this.items().length} shown), ` +
         `${totals.images} images, ${totals.namespaces} ns` +
         (this.isExpanded() && this.expandedData.isLoading() ? ' (loading more...)' : ''),
     };

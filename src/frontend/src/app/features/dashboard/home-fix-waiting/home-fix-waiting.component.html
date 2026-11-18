@@ -11,12 +11,13 @@
   [fillGap]="!isExpanded()"
 >
   @if (!isExpanded()) {
-    @if (items().length === 0 && state().isAvailable) {
+    <div class="pt-2"><ng-container *ngTemplateOutlet="filterBox" /></div>
+    @if (allItems().length === 0 && state().isAvailable) {
       <ng-container *ngTemplateOutlet="empty" />
     }
 
     <div class="flex flex-col gap-4 pt-2">
-      @for (item of items(); track item.vulnerabilityId + '|' + item.packageKey) {
+      @for (item of collapsedGroups(); track item.vulnerabilityId) {
         <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: false }" />
       }
       @if (more() > 0) {
@@ -32,9 +33,10 @@
       [style.grid-template-columns]="(collapsedWidth() ?? 384) * 0.75 + 'px minmax(0, 1fr)'"
     >
       <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
-        <div class="text-xs tod-text-muted-color">{{ items().length }} of {{ totals()?.activeVulnerabilities ?? 0 }}</div>
+        <div class="text-xs tod-text-muted-color">{{ groups().length }} of {{ totals()?.vulnerabilityIds ?? 0 }} ids</div>
+        <ng-container *ngTemplateOutlet="filterBox" />
 
-        @if (items().length === 0 && state().isAvailable) {
+        @if (allItems().length === 0 && state().isAvailable) {
           <ng-container *ngTemplateOutlet="empty" />
         }
 
@@ -44,7 +46,7 @@
             appScrollerResize
             class="absolute inset-0"
             scrollHeight="100%"
-            [items]="items()"
+            [items]="groups()"
             [itemSize]="rowHeight"
             [style]="{ width: '100%', height: '100%' }"
           >
@@ -146,7 +148,7 @@
         } @else if (displayedId()) {
           <div class="text-sm tod-text-muted-color">{{ detailNote() ?? 'No fix waiting.' }}</div>
         } @else {
-          @if (items().length === 0 && state().isAvailable) {
+          @if (allItems().length === 0 && state().isAvailable) {
             <ng-container *ngTemplateOutlet="empty" />
           } @else {
             <div class="text-sm tod-text-muted-color">Select a vulnerability</div>
@@ -209,17 +211,28 @@
       <span class="text-xs line-clamp-3" [class.min-h-12]="inList" [attr.title]="item.title">{{ item.title }}</span>
     }
 
-    <span class="text-xs break-all" [attr.title]="item.packageKey">
-      {{ item.packageName }}
-      <span class="tod-text-muted-color">→ {{ item.fixedVersion }}</span>
-    </span>
+    @if (inList && item.rows.length > 1) {
+      <!-- the list rows have a fixed height: the packages in one line, the longest wait; the reach is in the detail -->
+      <span class="text-xs break-all line-clamp-2">
+        {{ item.rows.length }} packages:
+        <span class="tod-text-muted-color">{{ packageNames(item.rows) }}</span>
+      </span>
+      <span class="text-xs tod-text-muted-color">{{ waitingLabel(longestFixSince(item.rows)) }}</span>
+    } @else {
+      @for (row of item.rows; track row.packageKey) {
+        <span class="text-xs break-all" [attr.title]="row.packageKey">
+          {{ row.packageName }}
+          <span class="tod-text-muted-color">→ {{ row.fixedVersion }}</span>
+        </span>
 
-    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
-      <span class="tod-text-muted-color">{{ waitingLabel(item.fixSince) }}</span>
-      <span class="tod-text-muted-color">{{ item.images }} {{ item.images === 1 ? 'image' : 'images' }}</span>
-      <span class="tod-text-muted-color">{{ item.namespaces }} ns</span>
-      <span class="tod-text-muted-color">{{ item.workloads }} {{ item.workloads === 1 ? 'workload' : 'workloads' }}</span>
-    </span>
+        <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+          <span class="tod-text-muted-color">{{ waitingLabel(row.fixSince) }}</span>
+          <span class="tod-text-muted-color">{{ row.images }} {{ row.images === 1 ? 'image' : 'images' }}</span>
+          <span class="tod-text-muted-color">{{ row.namespaces }} ns</span>
+          <span class="tod-text-muted-color">{{ row.workloads }} {{ row.workloads === 1 ? 'workload' : 'workloads' }}</span>
+        </span>
+      }
+    }
   </div>
 </ng-template>
 
@@ -245,5 +258,20 @@
     <i class="pi pi-check-circle text-3xl tod-text-muted-color" aria-hidden="true"></i>
     <span class="text-sm font-medium">No fixes waiting</span>
     <span class="text-xs tod-text-muted-color">No vulnerability with a fix runs now in the selected severities and namespaces.</span>
+  </div>
+</ng-template>
+
+<!-- the filter box of the list (collapsed and expanded), with what it found -->
+<ng-template #filterBox>
+  <div class="flex flex-col gap-1">
+    <app-home-search-box placeholder="Filter by vulnerability id or package" [(query)]="filterText" />
+    @if (isSearching()) {
+      <span class="text-xs tod-text-muted-color px-1">Searching...</span>
+    } @else if (noMatch()) {
+      <span class="text-xs tod-text-muted-color px-1">No match for "{{ filterText().trim() }}"</span>
+    }
+    @if (partialLabel()) {
+      <span class="text-xs tod-text-muted-color px-1">{{ partialLabel() }}</span>
+    }
   </div>
 </ng-template>

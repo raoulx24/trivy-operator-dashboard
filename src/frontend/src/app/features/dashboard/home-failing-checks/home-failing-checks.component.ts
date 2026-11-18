@@ -25,6 +25,8 @@ import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 
+import { matchesFilter } from '../home-search-box/home-list-filter';
+import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -53,6 +55,7 @@ interface CheckKey {
   standalone: true,
   imports: [
     HomeWidgetFrameComponent,
+    HomeSearchBoxComponent,
     ScrollerResizeDirective,
     NgTemplateOutlet,
     ScrollerModule,
@@ -113,6 +116,10 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
     localRefresh: this.localRefresh(),
   }));
 
+  // the text of the filter box (collapsed and expanded); a filter looks at all the rows, so while there is one they are asked for
+  protected readonly filterText = signal('');
+  protected readonly isFiltering = computed(() => this.filterText().trim().length > 0);
+
   private readonly collapsedData = rxResource({
     params: this.scope,
     stream: ({ params }) =>
@@ -125,7 +132,7 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
 
   // idle (and empty) while collapsed
   private readonly expandedData = rxResource({
-    params: () => (this.isExpanded() ? this.scope() : undefined),
+    params: () => (this.isExpanded() || this.isFiltering() ? this.scope() : undefined),
     stream: ({ params }) =>
       this.homeService.getHomeFailingChecks({
         severities: params.severities,
@@ -136,12 +143,36 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
 
   // what is shown: the many rows when they are there, else the few
   private readonly shown = computed(() =>
-    this.isExpanded() && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
+    (this.isExpanded() || this.isFiltering()) && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
   );
 
-  protected readonly items = computed(() => this.shown().value()?.items ?? []);
+  protected readonly allItems = computed(() => this.shown().value()?.items ?? []);
+  // a started filter looks at all the rows: while they load there is nothing to show
+  protected readonly isSearching = computed(
+    () => this.isFiltering() && !this.expandedData.hasValue() && this.expandedData.isLoading(),
+  );
+  // the rows that match the filter (all of them without one)
+  protected readonly items = computed(() =>
+    this.isSearching() ? [] : this.allItems().filter((x) => matchesFilter(this.filterText(), x.checkId, x.family)),
+  );
+  protected readonly noMatch = computed(
+    () => this.isFiltering() && !this.isSearching() && this.items().length === 0 && this.allItems().length > 0,
+  );
+  // the collapsed widget: the first rows
+  protected readonly collapsedItems = computed(() => this.items().slice(0, HomeFailingChecksComponent.collapsedLimit));
+  // the server sends at most expandedLimit rows: a filter over them says so when there are more
+  protected readonly partialLabel = computed(() => {
+    const total = this.totalChecks();
+    return this.isFiltering() && this.expandedData.hasValue() && total > this.allItems().length
+      ? `The filter looks at the first ${this.allItems().length} of ${total}`
+      : '';
+  });
   protected readonly totalChecks = computed(() => this.shown().value()?.totalChecks ?? 0);
-  protected readonly more = computed(() => Math.max(0, this.totalChecks() - this.items().length));
+  protected readonly more = computed(() =>
+    this.isFiltering()
+      ? Math.max(0, this.items().length - HomeFailingChecksComponent.collapsedLimit)
+      : Math.max(0, (this.totalChecks()) - this.items().length),
+  );
 
   // the selected check, all of its data (only while expanded); the namespaces are those of the filter
   private readonly detailData = rxResource({
@@ -191,7 +222,7 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
       isAvailable: dto.isAvailable,
       unavailableReason: dto.unavailableReason,
       summary:
-        `${dto.items.length} of ${dto.totalChecks} checks` +
+        `${this.items().length} of ${dto.totalChecks} checks` +
         (this.isExpanded() && this.expandedData.isLoading() ? ' (loading more...)' : ''),
     };
   });

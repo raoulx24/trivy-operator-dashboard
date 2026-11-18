@@ -9,6 +9,10 @@
   (refreshRequested)="refreshWidget()"
   [fillGap]="false"
 >
+  <div class="pt-2">
+    <app-home-search-box placeholder="not working, go away!" [(query)]="filterText" />
+  </div>
+
   <div class="flex flex-col gap-4 pt-2">
     @for (item of items(); track item.digest) {
       <div class="flex flex-col gap-1.5 px-1 text-sm">

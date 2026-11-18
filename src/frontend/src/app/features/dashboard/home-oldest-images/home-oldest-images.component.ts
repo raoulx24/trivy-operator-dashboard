@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TagModule } from 'primeng/tag';
 
@@ -6,6 +6,7 @@ import { HomeService } from '@api/services/home.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
 
+import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -16,7 +17,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-oldest-images',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, SeverityCssStyleByIdPipe, SeverityNameByIdPipe, TagModule],
+  imports: [HomeWidgetFrameComponent, HomeSearchBoxComponent, SeverityCssStyleByIdPipe, SeverityNameByIdPipe, TagModule],
   templateUrl: './home-oldest-images.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // a grid cell: wide content must wrap, not widen the cell
@@ -27,6 +28,9 @@ export class HomeOldestImagesComponent extends HomeWidgetBase {
   private static readonly limit = 5;
 
   private readonly homeService = inject(HomeService);
+
+  // the text of the filter box: it does nothing yet (the list is only the oldest few, and the box says so)
+  protected readonly filterText = signal('');
 
   hint = input<string>('');
   severities = input.required<number[]>();

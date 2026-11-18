@@ -32,6 +32,8 @@ import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags
 import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
 
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
+import { matchesFilter } from '../home-search-box/home-list-filter';
+import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -48,6 +50,15 @@ interface PackageRow {
   images: number;
 }
 
+// the rows (id, package) of one vulnerability id, shown as one entry
+interface IdGroup {
+  vulnerabilityId: string;
+  title?: string | null;
+  severityId: number;
+  isKnownExploited: boolean;
+  rows: HomeActiveVulnerabilityDto[];
+}
+
 // Fix waiting time: the fixable active (vulnerability id, package) rows, the longest known fix first
 // - the filters of the page (severities, namespaces) come as inputs; the window does not apply (it is the state now); a change of them, or of refresh, reloads it
 // - collapsed: the first rows (the server sorts them by reach, and is asked for just these); a click on a row selects its
@@ -60,6 +71,7 @@ interface PackageRow {
   standalone: true,
   imports: [
     HomeWidgetFrameComponent,
+    HomeSearchBoxComponent,
     ButtonModule,
     ScrollerResizeDirective,
     NgTemplateOutlet,
@@ -131,6 +143,10 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
     localRefresh: this.localRefresh(),
   }));
 
+  // the text of the filter box (collapsed and expanded); a filter looks at all the rows, so while there is one they are asked for
+  protected readonly filterText = signal('');
+  protected readonly isFiltering = computed(() => this.filterText().trim().length > 0);
+
   private readonly collapsedData = rxResource({
     params: this.scope,
     stream: ({ params }) =>
@@ -143,7 +159,7 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
 
   // idle (and empty) while collapsed
   private readonly expandedData = rxResource({
-    params: () => (this.isExpanded() ? this.scope() : undefined),
+    params: () => (this.isExpanded() || this.isFiltering() ? this.scope() : undefined),
     stream: ({ params }) =>
       this.homeService.getHomeFixWaiting({
         severities: params.severities,
@@ -154,13 +170,58 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
 
   // what is shown: the many rows when they are there, else the few
   private readonly shown = computed(() =>
-    this.isExpanded() && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
+    (this.isExpanded() || this.isFiltering()) && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
   );
 
-  protected readonly items = computed(() => this.shown().value()?.items ?? []);
+  protected readonly allItems = computed(() => this.shown().value()?.items ?? []);
+  // a started filter looks at all the rows: while they load there is nothing to show
+  protected readonly isSearching = computed(
+    () => this.isFiltering() && !this.expandedData.hasValue() && this.expandedData.isLoading(),
+  );
+  // the rows that match the filter (all of them without one)
+  protected readonly items = computed(() =>
+    this.isSearching() ? [] : this.allItems().filter((x) => matchesFilter(this.filterText(), x.vulnerabilityId, x.packageName)),
+  );
+  protected readonly noMatch = computed(
+    () => this.isFiltering() && !this.isSearching() && this.items().length === 0 && this.allItems().length > 0,
+  );
+  // the collapsed widget: the first rows
+  // the server sends at most expandedLimit rows: a filter over them says so when there are more
+  protected readonly partialLabel = computed(() => {
+    const total = this.totals()?.activeVulnerabilities ?? 0;
+    return this.isFiltering() && this.expandedData.hasValue() && total > this.allItems().length
+      ? `The filter looks at the first ${this.allItems().length} of ${total}`
+      : '';
+  });
+  // the rows of one vulnerability id are one entry (the server sorts by waiting time: the order of first appearance is kept)
+  protected readonly groups = computed<IdGroup[]>(() => {
+    const byId = new Map<string, IdGroup>();
+    for (const row of this.items()) {
+      const key = row.vulnerabilityId.toLowerCase();
+      const group = byId.get(key);
+      if (group) {
+        group.rows.push(row);
+        group.severityId = Math.min(group.severityId, row.severityId);
+        group.isKnownExploited ||= row.isKnownExploited;
+      } else {
+        byId.set(key, {
+          vulnerabilityId: row.vulnerabilityId,
+          title: row.title,
+          severityId: row.severityId,
+          isKnownExploited: row.isKnownExploited,
+          rows: [row],
+        });
+      }
+    }
+    return [...byId.values()];
+  });
+  // the collapsed widget: the first ids
+  protected readonly collapsedGroups = computed(() => this.groups().slice(0, HomeFixWaitingComponent.collapsedLimit));
   protected readonly totals = computed(() => this.shown().value()?.totals);
   protected readonly more = computed(() =>
-    Math.max(0, (this.totals()?.activeVulnerabilities ?? 0) - this.items().length),
+    this.isFiltering()
+      ? Math.max(0, this.groups().length - HomeFixWaitingComponent.collapsedLimit)
+      : Math.max(0, (this.totals()?.activeVulnerabilities ?? 0) - this.items().length),
   );
 
   // the selected id, all of its data (only while expanded); the filters are those of the list
@@ -298,7 +359,7 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
       isAvailable: dto.isAvailable,
       unavailableReason: dto.unavailableReason,
       summary:
-        `${totals.vulnerabilityIds} ids, ${totals.activeVulnerabilities} rows (${dto.items.length} shown), ` +
+        `${totals.vulnerabilityIds} ids, ${totals.activeVulnerabilities} rows (${this.items().length} shown), ` +
         `${totals.images} images, ${totals.namespaces} ns` +
         (this.isExpanded() && this.expandedData.isLoading() ? ' (loading more...)' : ''),
     };
@@ -359,7 +420,7 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
   }
 
   // a click on a row (of the collapsed widget, or of the list of the expanded one)
-  protected select(item: HomeActiveVulnerabilityDto): void {
+  protected select(item: { vulnerabilityId: string }): void {
     this.selectedId.set(item.vulnerabilityId);
     if (this.canExpand() && !this.isExpanded()) {
       this.toggleExpand();
@@ -414,6 +475,18 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
         .transform(vulnerabilityId, this.cveEnrichmentState.byId(), false)
         .find((x) => x.source === source)?.label ?? ''
     );
+  }
+
+  protected packageNames(rows: HomeActiveVulnerabilityDto[]): string {
+    return [...new Set(rows.map((x) => x.packageName))].join(', ');
+  }
+
+  // the longest wait of the rows of a group (the oldest fix date), or undefined without a date
+  protected longestFixSince(rows: HomeActiveVulnerabilityDto[]): string | undefined {
+    return rows
+      .map((x) => x.fixSince)
+      .filter((x): x is string => !!x)
+      .sort()[0];
   }
 
   // "fix known 17 days (since 2026-11-01)": the fix is known since a date, a lower bound of the waiting time
