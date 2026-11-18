@@ -42,6 +42,22 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeService.GetNewVulnerabilities(ToFilter(since, severities, namespaces, limit), ctx));
 
+    // one id (exact match) of the new ones with everything: its new packages, all images and namespaces; the limit does not
+    // apply
+    [HttpGet("new-vulnerabilities/detailed", Name = "GetHomeNewVulnerabilityDetailed")]
+    [ProducesResponseType(typeof(HomeNewVulnerabilityDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetNewVulnerabilityDetailed(
+        [FromQuery] string? vulnerabilityId,
+        [FromQuery] DateTime? since,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetNewVulnerabilityDetailed(
+            vulnerabilityId ?? string.Empty,
+            ToFilter(since, severities, namespaces, null),
+            ctx));
+
     [HttpGet("new-fixes", Name = "GetHomeNewFixes")]
     [ProducesResponseType(typeof(HomeNewFixesDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
@@ -53,6 +69,22 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeService.GetNewFixes(ToFilter(since, severities, namespaces, limit), ctx));
 
+    // one id (exact match) with new fixes, with everything: its packages whose fix is new, all images and namespaces; the
+    // limit does not apply
+    [HttpGet("new-fixes/detailed", Name = "GetHomeNewFixDetailed")]
+    [ProducesResponseType(typeof(HomeNewFixDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetNewFixDetailed(
+        [FromQuery] string? vulnerabilityId,
+        [FromQuery] DateTime? since,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetNewFixDetailed(
+            vulnerabilityId ?? string.Empty,
+            ToFilter(since, severities, namespaces, null),
+            ctx));
+
     [HttpGet("known-exploited", Name = "GetHomeKnownExploited")]
     [ProducesResponseType(typeof(HomeKnownExploitedDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
@@ -62,6 +94,21 @@ public class HomeController(
         [FromQuery] int? limit,
         CancellationToken ctx) =>
         Ok(await homeService.GetKnownExploited(ToFilter(since, null, namespaces, limit), ctx));
+
+    // one id (exact match) of the known exploited ones with everything: KEV / EUVD data, packages, all images and
+    // namespaces; the limit does not apply
+    [HttpGet("known-exploited/detailed", Name = "GetHomeKnownExploitedDetailed")]
+    [ProducesResponseType(typeof(HomeKnownExploitedDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetKnownExploitedDetailed(
+        [FromQuery] string? vulnerabilityId,
+        [FromQuery] DateTime? since,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetKnownExploitedDetailed(
+            vulnerabilityId ?? string.Empty,
+            ToFilter(since, null, namespaces, null),
+            ctx));
 
     // days: the range ending today (UTC), at most 366; default: the history retention
     [HttpGet("history-drift", Name = "GetHomeHistoryDrift")]
@@ -139,6 +186,21 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeService.GetFixWaiting(ToFilter(null, severities, namespaces, limit), ctx));
 
+    // one id (exact match) with fixes waiting, with everything: all its packages with a fix, all images and namespaces; the
+    // limit does not apply
+    [HttpGet("fix-waiting/detailed", Name = "GetHomeFixWaitingDetailed")]
+    [ProducesResponseType(typeof(HomeFixWaitingDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetFixWaitingDetailed(
+        [FromQuery] string? vulnerabilityId,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetFixWaitingDetailed(
+            vulnerabilityId ?? string.Empty,
+            ToFilter(null, severities, namespaces, null),
+            ctx));
+
     [HttpGet("failing-checks", Name = "GetHomeFailingChecks")]
     [ProducesResponseType(typeof(HomeFailingChecksDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
@@ -148,6 +210,22 @@ public class HomeController(
         [FromQuery] int? limit,
         CancellationToken ctx) =>
         Ok(await homeService.GetFailingChecks(ToFilter(null, severities, namespaces, limit), ctx));
+
+    // one check (family and id, exact match) with everything: description, remediation, one row per failing resource;
+    // the severities and the limit do not apply (a check has one severity)
+    [HttpGet("failing-checks/detailed", Name = "GetHomeFailingCheckDetailed")]
+    [ProducesResponseType(typeof(HomeFailingCheckDetailDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetFailingCheckDetailed(
+        [FromQuery] string? family,
+        [FromQuery] string? checkId,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetFailingCheckDetailed(
+            family ?? string.Empty,
+            checkId ?? string.Empty,
+            ToFilter(null, null, namespaces, null),
+            ctx));
 
     [HttpGet("oldest-images", Name = "GetHomeOldestImages")]
     [ProducesResponseType(typeof(HomeOldestImagesDto), StatusCodes.Status200OK, "application/json")]

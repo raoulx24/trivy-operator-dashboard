@@ -129,7 +129,7 @@ public partial class HomeSearchService(
         ActiveVulnerability first = group.First();
         HomeReach reach = scope.GetReach(group.SelectMany(x => x.ImageKeys));
 
-        ImageRelations relations = BuildImageRelations(reach, scope, table);
+        HomeImageRelations relations = HomeImageRelations.Build(reach, scope, table);
 
         HomeWhereIsVulnerabilityDetailItemDto item = new(
             VulnerabilityId: group.Key.Value,
@@ -144,7 +144,7 @@ public partial class HomeSearchService(
                     .Select(row => new HomeWhereIsVulnerabilityPackageDto(
                         PackageKey: row.Key.PackageKey.Value,
                         PackageName: row.PackageName.Value,
-                        InstalledVersions: InstalledVersionsInScope(row, scope, table),
+                        InstalledVersions: HomeImageRelations.InstalledVersionsInScope(row, scope, table),
                         FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
                         SeverityId: row.Severity.Rank,
                         Images: scope.GetReach(row).ImageKeys.Count,
@@ -168,10 +168,6 @@ public partial class HomeSearchService(
         return new HomeWhereIsVulnerabilityDetailDto(true, null, id, null, item);
     }
 
-    // name -> its index in the list (the names are distinct)
-    private static Dictionary<string, int> ToIndexes(IReadOnlyList<string> names) =>
-        names.Select((name, index) => (name, index)).ToDictionary(x => x.name, x => x.index);
-
     // the rows in scope whose id is accepted, by id
     private static IEnumerable<IGrouping<VulnerabilityId, ActiveVulnerability>> VulnerabilityGroups(
         ActiveVulnerabilityTable table,
@@ -180,17 +176,6 @@ public partial class HomeSearchService(
         table.Rows
             .Where(x => acceptsId(x.Key.VulnerabilityId.Value) && scope.Contains(x))
             .GroupBy(x => x.Key.VulnerabilityId);
-
-    private static IReadOnlyList<string> InstalledVersionsInScope(
-        ActiveVulnerability row,
-        HomeScope scope,
-        ActiveVulnerabilityTable table) =>
-    [
-        .. row.ImageKeysByInstalledVersion
-            .Where(x => x.Value.Any(key => scope.Contains(table.Images[key])))
-            .Select(x => x.Key)
-            .Order(StringComparer.Ordinal),
-    ];
 
     // ------------------------------------------------------------------------
     // package
@@ -292,7 +277,7 @@ public partial class HomeSearchService(
         }
 
         HomeReach reach = scope.GetReach(match.ImageKeys);
-        ImageRelations relations = BuildImageRelations(reach, scope, table);
+        HomeImageRelations relations = HomeImageRelations.Build(reach, scope, table);
 
         HomeWhereIsPackageVulnerabilityDto[] vulnerabilities =
         [
@@ -477,40 +462,6 @@ public partial class HomeSearchService(
         }
     }
 
-    // the namespaces and the images of a reach as the lists of a detailed item: the images by name (the images of one name,
-    // with other digests, are one line), and per image the namespaces it runs in, as indexes in the namespaces
-    private static ImageRelations BuildImageRelations(HomeReach reach, HomeScope scope, ActiveVulnerabilityTable table)
-    {
-        IReadOnlyList<string> namespaceNames = ToNamespaceNames(reach.Namespaces, int.MaxValue);
-        IReadOnlyList<string> imageNames = ToImageNames(reach.ImageKeys, table, int.MaxValue);
-        Dictionary<string, int> namespaceIndexes = ToIndexes(namespaceNames);
-        Dictionary<string, int> imageIndexes = ToIndexes(imageNames);
-
-        SortedSet<int>[] namespacesOfImage = [.. imageNames.Select(_ => new SortedSet<int>()),];
-        foreach (string imageKey in reach.ImageKeys)
-        {
-            SortedSet<int> namespacesOfThis = namespacesOfImage[imageIndexes[ToImageName(imageKey, table)]];
-
-            foreach (NamespaceName namespaceName in scope.GetReach(new[] { imageKey, }).Namespaces)
-            {
-                namespacesOfThis.Add(namespaceIndexes[namespaceName.Value]);
-            }
-        }
-
-        return new ImageRelations(
-            namespaceNames,
-            imageNames,
-            imageIndexes,
-            [.. namespacesOfImage.Select(x => (IReadOnlyList<int>)x.ToArray()),]);
-    }
-
-    private sealed record ImageRelations(
-        IReadOnlyList<string> NamespaceNames,
-        IReadOnlyList<string> ImageNames,
-        // image name -> its index in ImageNames
-        IReadOnlyDictionary<string, int> ImageIndexes,
-        IReadOnlyList<IReadOnlyList<int>> ImageNamespaceIndexes);
-
     // "pkg:..." = purl prefix, matched on the package key (purl without version) and, after an "@", on the version;
     // anything else = name substring; all case-insensitive
     private sealed record PackageMatcher(string? KeyPrefix, string? VersionPrefix, string? NameSubstring)
@@ -612,7 +563,7 @@ public partial class HomeSearchService(
         }
 
         HomeReach reach = scope.GetReach(packages.Values.SelectMany(x => x.ImageKeys));
-        ImageRelations relations = BuildImageRelations(reach, scope, table);
+        HomeImageRelations relations = HomeImageRelations.Build(reach, scope, table);
 
         HomeWhereIsLicensePackageDto[] versions =
         [

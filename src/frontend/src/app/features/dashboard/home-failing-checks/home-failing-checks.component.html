@@ -1,0 +1,161 @@
+<app-home-widget-frame
+  heading="Failing checks"
+  [help]="help"
+  [hint]="hint()"
+  [state]="state()"
+  [canExpand]="canExpand()"
+  [expanded]="isExpanded()"
+  (expandToggle)="toggleExpand()"
+  [refreshable]="true"
+  (refreshRequested)="refreshWidget()"
+  [fillGap]="!isExpanded()"
+>
+  @if (!isExpanded()) {
+    @if (items().length === 0 && state().isAvailable) {
+      <div class="text-sm tod-text-muted-color p-2">No failing check in these severities and namespaces.</div>
+    }
+
+    <div class="flex flex-col gap-4 pt-2">
+      @for (item of items(); track item.family + item.checkId) {
+        <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: false }" />
+      }
+      @if (more() > 0) {
+        <span class="text-xs tod-text-muted-color px-1">+{{ more() }} more</span>
+      }
+    </div>
+  } @else {
+    <!-- expanded, a fixed height: on the left, in a box, the checks (the width of the collapsed widget); on the right the
+         selected check: its header and, on what is left, the table of its failing resources -->
+    <div
+      class="grid gap-3 pt-2 flex-1"
+      [style.min-height]="expandedHeight"
+      [style.grid-template-columns]="(collapsedWidth() ?? 384) * 0.75 + 'px minmax(0, 1fr)'"
+    >
+      <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
+        <div class="text-xs tod-text-muted-color">{{ items().length }} of {{ totalChecks() }}</div>
+
+        @if (items().length === 0 && state().isAvailable) {
+          <div class="text-sm tod-text-muted-color p-2">No failing check in these severities and namespaces.</div>
+        }
+
+        <!-- the rows have all the same height, as the scroller needs -->
+        <div class="relative flex-1 min-h-0">
+          <p-scroller
+            appScrollerResize
+            class="absolute inset-0"
+            scrollHeight="100%"
+            [items]="items()"
+            [itemSize]="rowHeight"
+            [style]="{ width: '100%', height: '100%' }"
+          >
+            <ng-template #item let-item>
+              <div
+                class="px-2 py-2 cursor-pointer overflow-hidden border-b border-[var(--p-content-border-color)]"
+                [style.height.px]="rowHeight"
+                [class.tod-selected-item]="isSelected(item)"
+                (click)="select(item)"
+              >
+                <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: true }" />
+              </div>
+            </ng-template>
+          </p-scroller>
+        </div>
+      </div>
+
+      <div class="grid grid-rows-[auto_minmax(0,1fr)] gap-3 min-h-0 min-w-0">
+        @if (detail(); as d) {
+          <app-trivy-box>
+            <span boxTitle>{{ d.checkId }}</span>
+            <div class="flex flex-col gap-1.5 text-sm">
+              <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <p-tag
+                  class="text-xs"
+                  [rounded]="true"
+                  [style]="d.severityId | severityCssStyleById: 1"
+                  [value]="d.severityId | severityNameById"
+                />
+                <span class="text-xs tod-text-muted-color">{{ d.family }} · {{ d.category }}</span>
+                <span class="text-xs tod-text-muted-color">
+                  {{ d.resources }} {{ d.resources === 1 ? 'resource' : 'resources' }} · {{ d.namespaces }} ns
+                  @if (d.hasClusterScopedResources) {
+                    · cluster scoped
+                  }
+                </span>
+              </span>
+              <span class="font-medium">{{ d.title }}</span>
+              <span class="text-xs line-clamp-3" [attr.title]="d.description">{{ d.description }}</span>
+              <span class="text-xs line-clamp-3" [attr.title]="d.remediation">
+                <strong>Remediation:</strong> {{ d.remediation }}
+              </span>
+            </div>
+          </app-trivy-box>
+
+          <!-- the table needs a definite height, so it is laid out absolutely inside its box -->
+          <div class="relative min-h-0 min-w-0">
+            <div class="absolute inset-0">
+              <app-trivy-box class="h-full">
+                <span boxTitle>Resources ({{ resourceRows().length }})</span>
+                <div class="relative h-full">
+                  <div class="absolute inset-0">
+                    <app-trivy-table
+                      extraClasses="tod-trivy-table-fill"
+                      stateKey="Home Failing Checks Resources"
+                      [dataDtos]="resourceRows()"
+                      [trivyTableColumns]="resourceColumns"
+                    />
+                  </div>
+                </div>
+              </app-trivy-box>
+            </div>
+          </div>
+        } @else if (detailError()) {
+          <div class="text-sm home-widget-error">Error: {{ detailError() }}</div>
+        } @else if (isDetailLoading()) {
+          <div class="text-sm tod-text-muted-color">Loading...</div>
+        } @else if (displayedId()) {
+          <div class="text-sm tod-text-muted-color">{{ detailNote() ?? 'This check does not fail now.' }}</div>
+        } @else {
+          <div class="text-sm tod-text-muted-color">Select a check</div>
+        }
+      </div>
+    </div>
+  }
+</app-home-widget-frame>
+
+<!-- a check of the list: in the collapsed widget (the id is a button) and in the list of the expanded one (the whole row is) -->
+<ng-template #rowBody let-item let-inList="inList">
+  <div class="flex flex-col gap-1.5 px-1 text-sm">
+    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+      @if (inList) {
+        <span class="font-medium break-all">{{ item.checkId }}</span>
+      } @else {
+        <button
+          type="button"
+          class="font-medium break-all text-left cursor-pointer"
+          [attr.aria-label]="'Show where ' + item.checkId + ' fails'"
+          (click)="select(item)"
+        >
+          {{ item.checkId }}
+        </button>
+      }
+      <p-tag
+        class="text-xs"
+        [rounded]="true"
+        [style]="item.severityId | severityCssStyleById: 1"
+        [value]="item.severityId | severityNameById"
+      />
+      <span class="text-xs tod-text-muted-color">{{ item.family }}</span>
+    </span>
+
+    <!-- in the list the rows have a fixed height, so the room of two lines is always taken -->
+    <span class="text-xs line-clamp-2" [class.min-h-8]="inList" [attr.title]="item.title">{{ item.title }}</span>
+
+    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+      <span class="tod-text-muted-color">{{ item.resources }} {{ item.resources === 1 ? 'resource' : 'resources' }}</span>
+      <span class="tod-text-muted-color">{{ item.namespaces }} ns</span>
+      @if (item.hasClusterScopedResources) {
+        <span class="tod-text-muted-color">cluster scoped</span>
+      }
+    </span>
+  </div>
+</ng-template>

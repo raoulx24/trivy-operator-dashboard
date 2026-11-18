@@ -25,29 +25,25 @@
   </div>
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <app-home-widget-placeholder
-      heading="New active vulnerabilities"
+    <app-home-new-vulnerabilities
       [hint]="changesHint()"
-      description="(vulnerability id, package) first seen in the window: totals (ids, rows, images, namespaces) and the top rows by reach, with KEV / EPSS markers; rows that existed before the fix tracking started are never new"
-      source="GET api/home/new-vulnerabilities → HomeNewVulnerabilitiesDto"
-      [state]="newVulnerabilities()"
-      (refresh)="reloadNewVulnerabilities()"
+      [since]="since()"
+      [severities]="severityIds()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
     />
-    <app-home-widget-placeholder
-      heading="Fixes now available"
+    <app-home-new-fixes
       [hint]="changesHint()"
-      description="(vulnerability id, package) whose fix appeared in the window (not the ones that came with their fix): fixed version, images, namespaces"
-      source="GET api/home/new-fixes → HomeNewFixesDto"
-      [state]="newFixes()"
-      (refresh)="reloadNewFixes()"
+      [since]="since()"
+      [severities]="severityIds()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
     />
-    <app-home-widget-placeholder
-      heading="Known exploited"
+    <app-home-known-exploited
       [hint]="knownExploitedHint()"
-      description="KEV / EUVD vulnerabilities running now, one per id; the ones exploited in the window marked as new; ransomware flag, fix, reach"
-      source="GET api/home/known-exploited → HomeKnownExploitedDto"
-      [state]="knownExploited()"
-      (refresh)="reloadKnownExploited()"
+      [since]="since()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
     />
   </div>
 
@@ -77,29 +73,23 @@
   </div>
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <app-home-widget-placeholder
-      heading="Fix waiting time"
+    <app-home-fix-waiting
       [hint]="stateHint()"
-      description="fixable (vulnerability id, package) sorted by how long the fix is known (a lower bound), with reach"
-      source="GET api/home/fix-waiting → HomeFixWaitingDto"
-      [state]="fixWaiting()"
-      (refresh)="reloadFixWaiting()"
+      [severities]="severityIds()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
     />
-    <app-home-widget-placeholder
-      heading="Failing checks"
+    <app-home-failing-checks
       [hint]="stateHint()"
-      description="failing config audit / RBAC / infra checks grouped by check id: title, severity, resources, namespaces"
-      source="GET api/home/failing-checks → HomeFailingChecksDto"
-      [state]="failingChecks()"
-      (refresh)="reloadFailingChecks()"
+      [severities]="severityIds()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
     />
-    <app-home-widget-placeholder
-      heading="Oldest running images"
+    <app-home-oldest-images
       [hint]="oldestImagesHint()"
-      description="running digests by the moment they were first seen by the history: repo:tag, workloads, namespaces, vulnerability ids"
-      source="GET api/home/oldest-images → HomeOldestImagesDto"
-      [state]="oldestImages()"
-      (refresh)="reloadOldestImages()"
+      [severities]="severityIds()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
     />
   </div>
 

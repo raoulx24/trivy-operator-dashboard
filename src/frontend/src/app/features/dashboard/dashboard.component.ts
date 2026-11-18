@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, W
 import { Observable } from 'rxjs';
 
 import { HomeService } from '@api/services/home.service';
-import { HomeTotalsDto } from '@api/models/home-totals-dto';
 import { MainAppInitService } from '@core/services/main-app-init.service';
 import { AccessTrackingService } from '@features/history-reports/access-tracking.service';
 import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
@@ -15,9 +14,15 @@ import {
   homeWindowOptions,
 } from './home-filter-bar/home-filter-bar.types';
 import { HomeBaseOsComponent } from './home-base-os/home-base-os.component';
+import { HomeFailingChecksComponent } from './home-failing-checks/home-failing-checks.component';
+import { HomeFixWaitingComponent } from './home-fix-waiting/home-fix-waiting.component';
 import { HomeHistoryDriftComponent } from './home-history-drift/home-history-drift.component';
+import { HomeKnownExploitedComponent } from './home-known-exploited/home-known-exploited.component';
 import { HomeMotionService } from './home-motion/home-motion.service';
 import { HomeNewImagesComponent } from './home-new-images/home-new-images.component';
+import { HomeOldestImagesComponent } from './home-oldest-images/home-oldest-images.component';
+import { HomeNewFixesComponent } from './home-new-fixes/home-new-fixes.component';
+import { HomeNewVulnerabilitiesComponent } from './home-new-vulnerabilities/home-new-vulnerabilities.component';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
 import { HomeWhereIsLicenseComponent } from './home-where-is-license/home-where-is-license.component';
 import { HomeWhereIsCheckComponent } from './home-where-is-check/home-where-is-check.component';
@@ -44,8 +49,14 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomePackageHotspotsComponent,
     HomeWidgetPlaceholderComponent,
     HomeBaseOsComponent,
+    HomeFailingChecksComponent,
+    HomeFixWaitingComponent,
     HomeHistoryDriftComponent,
+    HomeKnownExploitedComponent,
     HomeNewImagesComponent,
+    HomeNewFixesComponent,
+    HomeNewVulnerabilitiesComponent,
+    HomeOldestImagesComponent,
     HomeWhereIsCheckComponent,
     HomeWhereIsLicenseComponent,
     HomeWhereIsPackageComponent,
@@ -117,13 +128,7 @@ export class DashboardComponent {
   );
 
   protected readonly dataHealth = signal<HomeWidgetState>({});
-  protected readonly newVulnerabilities = signal<HomeWidgetState>({});
-  protected readonly newFixes = signal<HomeWidgetState>({});
-  protected readonly knownExploited = signal<HomeWidgetState>({});
   protected readonly todayUtc = new Date().toISOString().substring(0, 10);
-  protected readonly fixWaiting = signal<HomeWidgetState>({});
-  protected readonly failingChecks = signal<HomeWidgetState>({});
-  protected readonly oldestImages = signal<HomeWidgetState>({});
   protected readonly reachEpss = signal<HomeWidgetState>({});
 
   constructor() {
@@ -158,12 +163,6 @@ export class DashboardComponent {
 
   private loadData(): void {
     this.reloadDataHealth();
-    this.reloadNewVulnerabilities();
-    this.reloadNewFixes();
-    this.reloadKnownExploited();
-    this.reloadFixWaiting();
-    this.reloadFailingChecks();
-    this.reloadOldestImages();
     this.reloadReachEpss();
   }
 
@@ -181,64 +180,6 @@ export class DashboardComponent {
         `${x.watchersOk}/${x.watchersTotal} watchers ok, ${x.reports.length} report kinds, ` +
         `${x.sources.filter((s) => s.isEnabled).length} sources enabled, ` +
         `history since ${this.toDay(x.historyStartedAt)}, fix tracking since ${this.toDay(x.fixTrackingStartedAt)}`,
-    }));
-  }
-
-  protected reloadNewVulnerabilities(): void {
-    this.load(
-      this.newVulnerabilities,
-      this.homeService.getHomeNewVulnerabilities({ since: this.since(), ...this.scopeParams() }),
-      (x) => ({
-        isAvailable: x.isAvailable,
-        unavailableReason: x.unavailableReason,
-        summary: `${x.items.length} items; ${this.toTotals(x.totals)}`,
-      }),
-    );
-  }
-
-  protected reloadNewFixes(): void {
-    this.load(this.newFixes, this.homeService.getHomeNewFixes({ since: this.since(), ...this.scopeParams() }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary: `${x.items.length} items; ${this.toTotals(x.totals)}`,
-    }));
-  }
-
-  protected reloadKnownExploited(): void {
-    const since = this.since();
-
-    this.load(
-      this.knownExploited,
-      this.homeService.getHomeKnownExploited({ since, namespaces: this.namespacesParam() }),
-      (x) => ({
-        isAvailable: x.isAvailable,
-        unavailableReason: x.unavailableReason,
-        summary: `${x.items.length} items (${x.newSinceCount} new since ${this.toDay(since)}); ${this.toTotals(x.totals)}`,
-      }),
-    );
-  }
-
-  protected reloadFixWaiting(): void {
-    this.load(this.fixWaiting, this.homeService.getHomeFixWaiting({ ...this.scopeParams() }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary: `${x.items.length} items; ${this.toTotals(x.totals)}`,
-    }));
-  }
-
-  protected reloadFailingChecks(): void {
-    this.load(this.failingChecks, this.homeService.getHomeFailingChecks({ ...this.scopeParams() }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary: `${x.items.length} of ${x.totalChecks} checks`,
-    }));
-  }
-
-  protected reloadOldestImages(): void {
-    this.load(this.oldestImages, this.homeService.getHomeOldestImages({ ...this.scopeParams() }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary: `${x.items.length} images; history since ${this.toDay(x.historyStartedAt)}`,
     }));
   }
 
@@ -338,13 +279,6 @@ export class DashboardComponent {
     return severityIds
       .map((id) => homeSeverityOptions.find((o) => o.value === id)?.label.toLowerCase() ?? `${id}`)
       .join('/');
-  }
-
-  private toTotals(totals: HomeTotalsDto): string {
-    return (
-      `${totals.vulnerabilityIds} ids, ${totals.activeVulnerabilities} (id, package), ` +
-      `${totals.images} images, ${totals.namespaces} namespaces, ${totals.workloads} workloads`
-    );
   }
 
   private toDay(value?: string | null): string {

@@ -15,10 +15,31 @@ public interface IHomeService : IQueryService
 
     Task<HomeNewVulnerabilitiesDto> GetNewVulnerabilities(HomeFilter filter, CancellationToken ctx = default);
 
+    // one id (exact match) of the new ones with everything: its new packages, all the images and namespaces; the limit does
+    // not apply
+    Task<HomeNewVulnerabilityDetailDto> GetNewVulnerabilityDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default);
+
     Task<HomeNewFixesDto> GetNewFixes(HomeFilter filter, CancellationToken ctx = default);
+
+    // one id (exact match) with new fixes, with everything: its packages whose fix is new, all the images and namespaces;
+    // the limit does not apply
+    Task<HomeNewFixDetailDto> GetNewFixDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default);
 
     // the severities are not used: being exploited matters whatever the severity
     Task<HomeKnownExploitedDto> GetKnownExploited(HomeFilter filter, CancellationToken ctx = default);
+
+    // one id (exact match) of the known exploited ones with everything: KEV / EUVD data, packages, all the images and
+    // namespaces; the limit does not apply
+    Task<HomeKnownExploitedDetailDto> GetKnownExploitedDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default);
 
     // the queries about the current state do not use the window (Since)
     Task<HomeBaseOsDto> GetBaseOs(HomeFilter filter, CancellationToken ctx = default);
@@ -28,7 +49,22 @@ public interface IHomeService : IQueryService
 
     Task<HomeFixWaitingDto> GetFixWaiting(HomeFilter filter, CancellationToken ctx = default);
 
+    // one id (exact match) with fixes waiting, with everything: all its packages with a fix, all the images and
+    // namespaces; the limit does not apply
+    Task<HomeFixWaitingDetailDto> GetFixWaitingDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default);
+
     Task<HomeFailingChecksDto> GetFailingChecks(HomeFilter filter, CancellationToken ctx = default);
+
+    // one check (family and id, exact match) with everything: description, remediation, one row per failing resource;
+    // the limit does not apply
+    Task<HomeFailingCheckDetailDto> GetFailingCheckDetailed(
+        string family,
+        string checkId,
+        HomeFilter filter,
+        CancellationToken ctx = default);
 
     Task<HomeOldestImagesDto> GetOldestImages(HomeFilter filter, CancellationToken ctx = default);
 

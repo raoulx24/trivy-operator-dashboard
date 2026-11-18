@@ -1,0 +1,52 @@
+<app-home-widget-frame
+  heading="Oldest running images"
+  [help]="help"
+  [hint]="hint()"
+  [state]="state()"
+  [canExpand]="false"
+  [expanded]="false"
+  [refreshable]="true"
+  (refreshRequested)="refreshWidget()"
+  [fillGap]="false"
+>
+  <div class="flex flex-col gap-4 pt-2">
+    @for (item of items(); track item.digest) {
+      <div class="flex flex-col gap-1.5 px-1 text-sm">
+        <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span class="font-medium break-all" [attr.title]="item.registry + '/' + imageName(item) + '@' + item.digest">{{ imageName(item) }}</span>
+          @if (item.highestSeverityId !== undefined && item.highestSeverityId !== null) {
+            <p-tag
+              class="text-xs"
+              [rounded]="true"
+              [style]="item.highestSeverityId | severityCssStyleById: 1"
+              [value]="item.highestSeverityId | severityNameById"
+              [attr.title]="'The highest severity of its vulnerability ids'"
+            />
+          }
+        </span>
+
+        <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+          <span [attr.title]="'First seen by the history: ' + item.firstSeenAt.substring(0, 10) + ' (UTC)'">
+            {{ ageDays(item.firstSeenAt) }} days
+          </span>
+          @if (item.osFamily) {
+            <span class="tod-text-muted-color">{{ item.osFamily }} {{ item.osName }}</span>
+            @if (item.isOsEndOfLife) {
+              <span class="font-medium" title="The base OS is end of life">EOL</span>
+            }
+          }
+        </span>
+
+        <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+          <span class="tod-text-muted-color">{{ item.vulnerabilityIds }} {{ item.vulnerabilityIds === 1 ? 'id' : 'ids' }}</span>
+          <span class="tod-text-muted-color">{{ item.fixableVulnerabilityIds }} fixable</span>
+          @if (item.knownExploitedVulnerabilityIds > 0) {
+            <span class="tod-text-muted-color">{{ item.knownExploitedVulnerabilityIds }} exploited</span>
+          }
+          <span class="tod-text-muted-color">{{ item.workloads }} {{ item.workloads === 1 ? 'workload' : 'workloads' }}</span>
+          <span class="tod-text-muted-color" [attr.title]="item.namespaceNames.join(', ')">{{ item.namespaces }} ns</span>
+        </span>
+      </div>
+    }
+  </div>
+</app-home-widget-frame>

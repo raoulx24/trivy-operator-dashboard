@@ -1080,6 +1080,47 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/new-vulnerabilities/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeNewVulnerabilityDetailed
+      parameters:
+        - name: vulnerabilityId
+          in: query
+          schema:
+            type: string
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeNewVulnerabilityDetailDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/new-fixes:
     get:
       tags:
@@ -1122,6 +1163,47 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/new-fixes/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeNewFixDetailed
+      parameters:
+        - name: vulnerabilityId
+          in: query
+          schema:
+            type: string
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeNewFixDetailDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/known-exploited:
     get:
       tags:
@@ -1151,6 +1233,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HomeKnownExploitedDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/known-exploited/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeKnownExploitedDetailed
+      parameters:
+        - name: vulnerabilityId
+          in: query
+          schema:
+            type: string
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeKnownExploitedDetailDto'
         '500':
           description: Internal Server Error
           content:
@@ -1390,6 +1506,42 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/fix-waiting/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeFixWaitingDetailed
+      parameters:
+        - name: vulnerabilityId
+          in: query
+          schema:
+            type: string
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeFixWaitingDetailDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/failing-checks:
     get:
       tags:
@@ -1421,6 +1573,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HomeFailingChecksDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/failing-checks/detailed:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeFailingCheckDetailed
+      parameters:
+        - name: family
+          in: query
+          schema:
+            type: string
+        - name: checkId
+          in: query
+          schema:
+            type: string
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeFailingCheckDetailDto'
         '500':
           description: Internal Server Error
           content:
@@ -3957,6 +4142,9 @@ components:
           type: string
         packageName:
           type: string
+        title:
+          type: string
+          nullable: true
         severityId:
           type: integer
           format: int32
@@ -4154,6 +4342,55 @@ components:
           type: string
           format: date-time
       additionalProperties: false
+    HomeFailingCheckDetailDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        family:
+          type: string
+        checkId:
+          type: string
+        note:
+          type: string
+          nullable: true
+        item:
+          $ref: '#/components/schemas/HomeFailingCheckDetailItemDto'
+      additionalProperties: false
+    HomeFailingCheckDetailItemDto:
+      type: object
+      properties:
+        family:
+          type: string
+        checkId:
+          type: string
+        title:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        category:
+          type: string
+        description:
+          type: string
+        remediation:
+          type: string
+        resources:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        hasClusterScopedResources:
+          type: boolean
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeWhereIsCheckResourceDto'
+      additionalProperties: false
     HomeFailingCheckDto:
       type: object
       properties:
@@ -4162,6 +4399,8 @@ components:
         checkId:
           type: string
         title:
+          type: string
+        category:
           type: string
         severityId:
           type: integer
@@ -4191,6 +4430,72 @@ components:
           items:
             $ref: '#/components/schemas/HomeFailingCheckDto'
       additionalProperties: false
+    HomeFixWaitingDetailDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        vulnerabilityId:
+          type: string
+        note:
+          type: string
+          nullable: true
+        item:
+          $ref: '#/components/schemas/HomeFixWaitingDetailItemDto'
+      additionalProperties: false
+    HomeFixWaitingDetailItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        isKnownExploited:
+          type: boolean
+        kevDateAdded:
+          type: string
+          format: date
+          nullable: true
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeFixWaitingPackageDto'
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        imageNames:
+          type: array
+          items:
+            type: string
+        imageNamespaceIndexes:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
+      additionalProperties: false
     HomeFixWaitingDto:
       type: object
       properties:
@@ -4209,6 +4514,47 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HomeActiveVulnerabilityDto'
+      additionalProperties: false
+    HomeFixWaitingPackageDto:
+      type: object
+      properties:
+        packageKey:
+          type: string
+        packageName:
+          type: string
+        installedVersions:
+          type: array
+          items:
+            type: string
+        fixedVersion:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        published:
+          type: string
+          format: date-time
+          nullable: true
+        firstSeenAt:
+          type: string
+          format: date-time
+          nullable: true
+        fixSince:
+          type: string
+          format: date-time
+          nullable: true
+        fixAppearedAt:
+          type: string
+          format: date-time
+          nullable: true
+        images:
+          type: integer
+          format: int32
+        imageIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
       additionalProperties: false
     HomeHistoryDriftDayDto:
       type: object
@@ -4322,6 +4668,96 @@ components:
           items:
             type: string
       additionalProperties: false
+    HomeKnownExploitedDetailDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        vulnerabilityId:
+          type: string
+        since:
+          type: string
+          format: date-time
+        note:
+          type: string
+          nullable: true
+        item:
+          $ref: '#/components/schemas/HomeKnownExploitedDetailItemDto'
+      additionalProperties: false
+    HomeKnownExploitedDetailItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        exploitedSince:
+          type: string
+          format: date-time
+          nullable: true
+        isNewSince:
+          type: boolean
+        kevDateAdded:
+          type: string
+          format: date
+          nullable: true
+        kevDueDate:
+          type: string
+          format: date
+          nullable: true
+        kevKnownRansomwareCampaignUse:
+          type: boolean
+          nullable: true
+        kevRequiredAction:
+          type: string
+          nullable: true
+        euvdId:
+          type: string
+          nullable: true
+        euvdExploitedSince:
+          type: string
+          format: date-time
+          nullable: true
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeKnownExploitedPackageDto'
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        imageNames:
+          type: array
+          items:
+            type: string
+        imageNamespaceIndexes:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
+      additionalProperties: false
     HomeKnownExploitedDto:
       type: object
       properties:
@@ -4348,13 +4784,12 @@ components:
       properties:
         vulnerabilityId:
           type: string
+        title:
+          type: string
+          nullable: true
         severityId:
           type: integer
           format: int32
-        packageNames:
-          type: array
-          items:
-            type: string
         kevDateAdded:
           type: string
           format: date
@@ -4372,8 +4807,92 @@ components:
           nullable: true
         isNewSince:
           type: boolean
-        hasFix:
+        packages:
+          type: integer
+          format: int32
+        fixablePackages:
+          type: integer
+          format: int32
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomeKnownExploitedPackageDto:
+      type: object
+      properties:
+        packageKey:
+          type: string
+        packageName:
+          type: string
+        installedVersions:
+          type: array
+          items:
+            type: string
+        fixedVersion:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        images:
+          type: integer
+          format: int32
+        imageIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
+      additionalProperties: false
+    HomeNewFixDetailDto:
+      type: object
+      properties:
+        isAvailable:
           type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        vulnerabilityId:
+          type: string
+        since:
+          type: string
+          format: date-time
+        note:
+          type: string
+          nullable: true
+        item:
+          $ref: '#/components/schemas/HomeNewFixDetailItemDto'
+      additionalProperties: false
+    HomeNewFixDetailItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        isKnownExploited:
+          type: boolean
+        kevDateAdded:
+          type: string
+          format: date
+          nullable: true
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeNewFixPackageDto'
         images:
           type: integer
           format: int32
@@ -4391,6 +4910,49 @@ components:
           type: array
           items:
             type: string
+        imageNamespaceIndexes:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
+      additionalProperties: false
+    HomeNewFixPackageDto:
+      type: object
+      properties:
+        packageKey:
+          type: string
+        packageName:
+          type: string
+        installedVersions:
+          type: array
+          items:
+            type: string
+        fixedVersion:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        published:
+          type: string
+          format: date-time
+          nullable: true
+        firstSeenAt:
+          type: string
+          format: date-time
+          nullable: true
+        fixAppearedAt:
+          type: string
+          format: date-time
+        images:
+          type: integer
+          format: int32
+        imageIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
       additionalProperties: false
     HomeNewFixesDto:
       type: object
@@ -4561,6 +5123,116 @@ components:
           items:
             $ref: '#/components/schemas/HomeActiveVulnerabilityDto'
       additionalProperties: false
+    HomeNewVulnerabilityDetailDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        vulnerabilityId:
+          type: string
+        since:
+          type: string
+          format: date-time
+        note:
+          type: string
+          nullable: true
+        item:
+          $ref: '#/components/schemas/HomeNewVulnerabilityDetailItemDto'
+      additionalProperties: false
+    HomeNewVulnerabilityDetailItemDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        isKnownExploited:
+          type: boolean
+        kevDateAdded:
+          type: string
+          format: date
+          nullable: true
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeNewVulnerabilityPackageDto'
+        images:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        imageNames:
+          type: array
+          items:
+            type: string
+        imageNamespaceIndexes:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
+      additionalProperties: false
+    HomeNewVulnerabilityPackageDto:
+      type: object
+      properties:
+        packageKey:
+          type: string
+        packageName:
+          type: string
+        installedVersions:
+          type: array
+          items:
+            type: string
+        fixedVersion:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        published:
+          type: string
+          format: date-time
+          nullable: true
+        firstSeenAt:
+          type: string
+          format: date-time
+        fixSince:
+          type: string
+          format: date-time
+          nullable: true
+        fixAppearedAt:
+          type: string
+          format: date-time
+          nullable: true
+        images:
+          type: integer
+          format: int32
+        imageIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
+      additionalProperties: false
     HomeOldestImageDto:
       type: object
       properties:
@@ -4585,9 +5257,28 @@ components:
           type: array
           items:
             type: string
+        osFamily:
+          type: string
+          nullable: true
+        osName:
+          type: string
+          nullable: true
+        isOsEndOfLife:
+          type: boolean
+          nullable: true
         vulnerabilityIds:
           type: integer
           format: int32
+        fixableVulnerabilityIds:
+          type: integer
+          format: int32
+        knownExploitedVulnerabilityIds:
+          type: integer
+          format: int32
+        highestSeverityId:
+          type: integer
+          format: int32
+          nullable: true
       additionalProperties: false
     HomeOldestImagesDto:
       type: object

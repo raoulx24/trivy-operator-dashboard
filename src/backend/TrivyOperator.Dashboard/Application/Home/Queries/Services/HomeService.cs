@@ -173,13 +173,7 @@ public class HomeService(
         HomeScope scope = new(table, filter.Namespaces);
         HashSet<int> severities = ToSeverities(filter.SeverityIds);
 
-        List<ActiveVulnerability> rows =
-        [
-            .. table.Rows.Where(x =>
-                severities.Contains(x.Severity.Rank) &&
-                x.FirstAt is { } firstAt && firstAt.Value >= filter.Since &&
-                scope.Contains(x)),
-        ];
+        List<ActiveVulnerability> rows = [.. table.Rows.Where(x => IsNew(x, filter.Since, severities, scope)),];
 
         return new HomeNewVulnerabilitiesDto(
             true,
@@ -188,6 +182,95 @@ public class HomeService(
             table.FixTrackingStartedAt?.Value,
             ToTotals(rows, scope),
             ToDtos(OrderByReach(rows, scope), scope, table, filter.Limit));
+    }
+
+    // one id, everything: the rows of the id that are new (the same rule as the list), their images and namespaces
+    public async Task<HomeNewVulnerabilityDetailDto> GetNewVulnerabilityDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string id = vulnerabilityId.Trim();
+
+        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+            : !vulnerabilityReportsHistoryService.IsEnabled ? NoHistory
+            : null;
+
+        if (reason is not null)
+        {
+            return new HomeNewVulnerabilityDetailDto(false, reason, id, filter.Since, null, null);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+        HashSet<int> severities = ToSeverities(filter.SeverityIds);
+
+        List<ActiveVulnerability> rows =
+        [
+            .. table.Rows.Where(x =>
+                string.Equals(x.Key.VulnerabilityId.Value, id, StringComparison.OrdinalIgnoreCase) &&
+                IsNew(x, filter.Since, severities, scope)),
+        ];
+
+        if (rows.Count == 0)
+        {
+            return new HomeNewVulnerabilityDetailDto(
+                true,
+                null,
+                id,
+                filter.Since,
+                "Not new in this window, severities and namespaces.",
+                null);
+        }
+
+        ActiveVulnerability first = rows[0];
+        HomeReach reach = scope.GetReach(rows.SelectMany(x => x.ImageKeys));
+        HomeImageRelations relations = HomeImageRelations.Build(reach, scope, table);
+
+        HomeNewVulnerabilityDetailItemDto item = new(
+            VulnerabilityId: first.Key.VulnerabilityId.Value,
+            Title: first.Title,
+            SeverityId: rows.Min(x => x.Severity.Rank),
+            IsKnownExploited: first.IsKnownExploited,
+            KevDateAdded: first.KevDateAdded,
+            EpssPercentile: first.EpssPercentile,
+            Packages:
+            [
+                .. rows
+                    .Select(row =>
+                    {
+                        HomeReach rowReach = scope.GetReach(row);
+
+                        return new HomeNewVulnerabilityPackageDto(
+                            PackageKey: row.Key.PackageKey.Value,
+                            PackageName: row.PackageName.Value,
+                            InstalledVersions: HomeImageRelations.InstalledVersionsInScope(row, scope, table),
+                            FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
+                            SeverityId: row.Severity.Rank,
+                            Published: row.Published?.Value,
+                            FirstSeenAt: row.FirstAt!.Value.Value,
+                            FixSince: row.FixSince?.Value,
+                            FixAppearedAt: row.FixAppearedAt?.Value,
+                            Images: rowReach.ImageKeys.Count,
+                            ImageIndexes:
+                            [
+                                .. rowReach.ImageKeys
+                                    .Select(key => relations.ImageIndexes[ToImageName(key, table)])
+                                    .Distinct()
+                                    .Order(),
+                            ]);
+                    })
+                    .OrderBy(x => x.SeverityId)
+                    .ThenByDescending(x => x.Images),
+            ],
+            Images: reach.ImageKeys.Count,
+            Namespaces: reach.Namespaces.Count,
+            Workloads: reach.Workloads.Count,
+            NamespaceNames: relations.NamespaceNames,
+            ImageNames: relations.ImageNames,
+            ImageNamespaceIndexes: relations.ImageNamespaceIndexes);
+
+        return new HomeNewVulnerabilityDetailDto(true, null, id, filter.Since, null, item);
     }
 
     public async Task<HomeNewFixesDto> GetNewFixes(HomeFilter filter, CancellationToken ctx = default)
@@ -205,13 +288,7 @@ public class HomeService(
         HomeScope scope = new(table, filter.Namespaces);
         HashSet<int> severities = ToSeverities(filter.SeverityIds);
 
-        List<ActiveVulnerability> rows =
-        [
-            .. table.Rows.Where(x =>
-                severities.Contains(x.Severity.Rank) && x.HasFix &&
-                x.FixAppearedAt is { } fixAppearedAt && fixAppearedAt.Value >= filter.Since &&
-                scope.Contains(x)),
-        ];
+        List<ActiveVulnerability> rows = [.. table.Rows.Where(x => IsNewFix(x, filter.Since, severities, scope)),];
 
         return new HomeNewFixesDto(
             true,
@@ -220,6 +297,94 @@ public class HomeService(
             table.FixTrackingStartedAt?.Value,
             ToTotals(rows, scope),
             ToDtos(OrderByReach(rows, scope), scope, table, filter.Limit));
+    }
+
+    // one id, everything: the rows of the id whose fix is new (the same rule as the list), their images and namespaces
+    public async Task<HomeNewFixDetailDto> GetNewFixDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string id = vulnerabilityId.Trim();
+
+        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+            : !vulnerabilityReportsHistoryService.IsEnabled ? NoHistory
+            : null;
+
+        if (reason is not null)
+        {
+            return new HomeNewFixDetailDto(false, reason, id, filter.Since, null, null);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+        HashSet<int> severities = ToSeverities(filter.SeverityIds);
+
+        List<ActiveVulnerability> rows =
+        [
+            .. table.Rows.Where(x =>
+                string.Equals(x.Key.VulnerabilityId.Value, id, StringComparison.OrdinalIgnoreCase) &&
+                IsNewFix(x, filter.Since, severities, scope)),
+        ];
+
+        if (rows.Count == 0)
+        {
+            return new HomeNewFixDetailDto(
+                true,
+                null,
+                id,
+                filter.Since,
+                "No new fix in this window, severities and namespaces.",
+                null);
+        }
+
+        ActiveVulnerability first = rows[0];
+        HomeReach reach = scope.GetReach(rows.SelectMany(x => x.ImageKeys));
+        HomeImageRelations relations = HomeImageRelations.Build(reach, scope, table);
+
+        HomeNewFixDetailItemDto item = new(
+            VulnerabilityId: first.Key.VulnerabilityId.Value,
+            Title: first.Title,
+            SeverityId: rows.Min(x => x.Severity.Rank),
+            IsKnownExploited: first.IsKnownExploited,
+            KevDateAdded: first.KevDateAdded,
+            EpssPercentile: first.EpssPercentile,
+            Packages:
+            [
+                .. rows
+                    .Select(row =>
+                    {
+                        HomeReach rowReach = scope.GetReach(row);
+
+                        return new HomeNewFixPackageDto(
+                            PackageKey: row.Key.PackageKey.Value,
+                            PackageName: row.PackageName.Value,
+                            InstalledVersions: HomeImageRelations.InstalledVersionsInScope(row, scope, table),
+                            FixedVersion: row.FixedVersion!.Value.Value,
+                            SeverityId: row.Severity.Rank,
+                            Published: row.Published?.Value,
+                            FirstSeenAt: row.FirstAt?.Value,
+                            FixAppearedAt: row.FixAppearedAt!.Value.Value,
+                            Images: rowReach.ImageKeys.Count,
+                            ImageIndexes:
+                            [
+                                .. rowReach.ImageKeys
+                                    .Select(key => relations.ImageIndexes[ToImageName(key, table)])
+                                    .Distinct()
+                                    .Order(),
+                            ]);
+                    })
+                    .OrderBy(x => x.SeverityId)
+                    .ThenByDescending(x => x.Images),
+            ],
+            Images: reach.ImageKeys.Count,
+            Namespaces: reach.Namespaces.Count,
+            Workloads: reach.Workloads.Count,
+            NamespaceNames: relations.NamespaceNames,
+            ImageNames: relations.ImageNames,
+            ImageNamespaceIndexes: relations.ImageNamespaceIndexes);
+
+        return new HomeNewFixDetailDto(true, null, id, filter.Since, null, item);
     }
 
     public async Task<HomeKnownExploitedDto> GetKnownExploited(HomeFilter filter, CancellationToken ctx = default)
@@ -251,23 +416,23 @@ public class HomeService(
 
                     return new HomeKnownExploitedItemDto(
                         VulnerabilityId: group.Key.Value,
+                        Title: first.Title,
                         SeverityId: group.Min(x => x.Severity.Rank),
-                        PackageNames: [.. group.Select(x => x.PackageName.Value).Distinct().Order(StringComparer.Ordinal),],
                         KevDateAdded: first.KevDateAdded,
                         KevKnownRansomwareCampaignUse: first.Enrichment?.Kev.KnownRansomwareCampaignUse,
                         EuvdExploitedSince: first.EuvdExploitedSince,
                         EpssPercentile: first.EpssPercentile,
                         IsNewSince: exploitedSince is not null && exploitedSince.Value >= filter.Since,
-                        HasFix: group.Any(x => x.HasFix),
+                        Packages: group.Count(),
+                        FixablePackages: group.Count(x => x.HasFix),
                         Images: reach.ImageKeys.Count,
                         Namespaces: reach.Namespaces.Count,
-                        Workloads: reach.Workloads.Count,
-                        NamespaceNames: ToNamespaceNames(reach.Namespaces),
-                        ImageNames: ToImageNames(reach.ImageKeys, table));
+                        Workloads: reach.Workloads.Count);
                 })
                 .OrderByDescending(x => x.IsNewSince)
                 .ThenByDescending(x => x.Images)
-                .ThenBy(x => x.SeverityId),
+                .ThenBy(x => x.SeverityId)
+                .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal),
         ];
 
         return new HomeKnownExploitedDto(
@@ -277,6 +442,101 @@ public class HomeService(
             items.Count(x => x.IsNewSince),
             ToTotals(rows, scope),
             [.. items.Take(filter.Limit),]);
+    }
+
+    // one known exploited id (exact, case-insensitive), everything: its KEV / EUVD data, packages, images and namespaces
+    public async Task<HomeKnownExploitedDetailDto> GetKnownExploitedDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string id = vulnerabilityId.Trim();
+
+        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+            : !cveEnrichmentService.IsEnabled ? NoCveEnrichment
+            : null;
+
+        if (reason is not null)
+        {
+            return new HomeKnownExploitedDetailDto(false, reason, id, filter.Since, null, null);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+
+        List<ActiveVulnerability> rows =
+        [
+            .. table.Rows.Where(x =>
+                x.IsKnownExploited &&
+                string.Equals(x.Key.VulnerabilityId.Value, id, StringComparison.OrdinalIgnoreCase) &&
+                scope.Contains(x)),
+        ];
+
+        if (rows.Count == 0)
+        {
+            return new HomeKnownExploitedDetailDto(
+                true,
+                null,
+                id,
+                filter.Since,
+                "Not known exploited and running now (in these namespaces).",
+                null);
+        }
+
+        ActiveVulnerability first = rows[0];
+        KevResultDto? kev = first.Enrichment?.Kev is { Status: "Ok", } ok ? ok : null;
+        EuvdResultDto? euvd = first.Enrichment?.Euvd is { Status: "Ok", } okEuvd ? okEuvd : null;
+        DateTime? exploitedSince = first.KnownExploitedSince;
+
+        HomeReach reach = scope.GetReach(rows.SelectMany(x => x.ImageKeys));
+        HomeImageRelations relations = HomeImageRelations.Build(reach, scope, table);
+
+        HomeKnownExploitedDetailItemDto item = new(
+            VulnerabilityId: first.Key.VulnerabilityId.Value,
+            Title: first.Title,
+            SeverityId: rows.Min(x => x.Severity.Rank),
+            ExploitedSince: exploitedSince,
+            IsNewSince: exploitedSince is not null && exploitedSince.Value >= filter.Since,
+            KevDateAdded: kev?.DateAdded,
+            KevDueDate: kev?.DueDate,
+            KevKnownRansomwareCampaignUse: kev?.KnownRansomwareCampaignUse,
+            KevRequiredAction: kev?.RequiredAction,
+            EuvdId: euvd?.EuvdId,
+            EuvdExploitedSince: euvd?.ExploitedSince,
+            EpssPercentile: first.EpssPercentile,
+            Packages:
+            [
+                .. rows
+                    .Select(row =>
+                    {
+                        HomeReach rowReach = scope.GetReach(row);
+
+                        return new HomeKnownExploitedPackageDto(
+                            PackageKey: row.Key.PackageKey.Value,
+                            PackageName: row.PackageName.Value,
+                            InstalledVersions: HomeImageRelations.InstalledVersionsInScope(row, scope, table),
+                            FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
+                            SeverityId: row.Severity.Rank,
+                            Images: rowReach.ImageKeys.Count,
+                            ImageIndexes:
+                            [
+                                .. rowReach.ImageKeys
+                                    .Select(key => relations.ImageIndexes[ToImageName(key, table)])
+                                    .Distinct()
+                                    .Order(),
+                            ]);
+                    })
+                    .OrderBy(x => x.SeverityId)
+                    .ThenByDescending(x => x.Images),
+            ],
+            Images: reach.ImageKeys.Count,
+            Namespaces: reach.Namespaces.Count,
+            Workloads: reach.Workloads.Count,
+            NamespaceNames: relations.NamespaceNames,
+            ImageNames: relations.ImageNames,
+            ImageNamespaceIndexes: relations.ImageNamespaceIndexes);
+
+        return new HomeKnownExploitedDetailDto(true, null, id, filter.Since, null, item);
     }
 
     // ------------------------------------------------------------------------
@@ -427,6 +687,92 @@ public class HomeService(
             ToDtos(ordered, scope, table, filter.Limit));
     }
 
+    // one id, everything: the rows of the id with a fix (the same rule as the list), their images and namespaces
+    public async Task<HomeFixWaitingDetailDto> GetFixWaitingDetailed(
+        string vulnerabilityId,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string id = vulnerabilityId.Trim();
+
+        if (!sources.HasVulnerabilityReports)
+        {
+            return new HomeFixWaitingDetailDto(false, NoVulnerabilityReports, id, null, null);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+        HashSet<int> severities = ToSeverities(filter.SeverityIds);
+
+        List<ActiveVulnerability> rows =
+        [
+            .. table.Rows.Where(x =>
+                string.Equals(x.Key.VulnerabilityId.Value, id, StringComparison.OrdinalIgnoreCase) &&
+                severities.Contains(x.Severity.Rank) && x.HasFix && scope.Contains(x)),
+        ];
+
+        if (rows.Count == 0)
+        {
+            return new HomeFixWaitingDetailDto(
+                true,
+                null,
+                id,
+                "No fix waiting in these severities and namespaces.",
+                null);
+        }
+
+        ActiveVulnerability first = rows[0];
+        HomeReach reach = scope.GetReach(rows.SelectMany(x => x.ImageKeys));
+        HomeImageRelations relations = HomeImageRelations.Build(reach, scope, table);
+
+        HomeFixWaitingDetailItemDto item = new(
+            VulnerabilityId: first.Key.VulnerabilityId.Value,
+            Title: first.Title,
+            SeverityId: rows.Min(x => x.Severity.Rank),
+            IsKnownExploited: first.IsKnownExploited,
+            KevDateAdded: first.KevDateAdded,
+            EpssPercentile: first.EpssPercentile,
+            Packages:
+            [
+                .. rows
+                    .Select(row =>
+                    {
+                        HomeReach rowReach = scope.GetReach(row);
+
+                        return new HomeFixWaitingPackageDto(
+                            PackageKey: row.Key.PackageKey.Value,
+                            PackageName: row.PackageName.Value,
+                            InstalledVersions: HomeImageRelations.InstalledVersionsInScope(row, scope, table),
+                            FixedVersion: row.FixedVersion!.Value.Value,
+                            SeverityId: row.Severity.Rank,
+                            Published: row.Published?.Value,
+                            FirstSeenAt: row.FirstAt?.Value,
+                            FixSince: row.FixSince?.Value,
+                            FixAppearedAt: row.FixAppearedAt?.Value,
+                            Images: rowReach.ImageKeys.Count,
+                            ImageIndexes:
+                            [
+                                .. rowReach.ImageKeys
+                                    .Select(key => relations.ImageIndexes[ToImageName(key, table)])
+                                    .Distinct()
+                                    .Order(),
+                            ]);
+                    })
+                    // the longest waiting first; without history by reach only
+                    .OrderBy(x => x.FixSince is null)
+                    .ThenBy(x => x.FixSince)
+                    .ThenByDescending(x => x.Images),
+            ],
+            Images: reach.ImageKeys.Count,
+            Namespaces: reach.Namespaces.Count,
+            Workloads: reach.Workloads.Count,
+            NamespaceNames: relations.NamespaceNames,
+            ImageNames: relations.ImageNames,
+            ImageNamespaceIndexes: relations.ImageNamespaceIndexes);
+
+        return new HomeFixWaitingDetailDto(true, null, id, null, item);
+    }
+
     public async Task<HomeFailingChecksDto> GetFailingChecks(HomeFilter filter, CancellationToken ctx = default)
     {
         if (!sources.HasSecurityAssessmentReports)
@@ -453,6 +799,7 @@ public class HomeService(
                         Family: group.Key.Family,
                         CheckId: group.Key.CheckId.Value,
                         Title: check.Title.Value,
+                        Category: check.Category.Value,
                         SeverityId: check.Severity.Rank,
                         Resources: group.Select(x => x.Report.Uid).Distinct().Count(),
                         Namespaces: group
@@ -468,6 +815,84 @@ public class HomeService(
         ];
 
         return new HomeFailingChecksDto(true, null, items.Count, [.. items.Take(filter.Limit),]);
+    }
+
+    // one check (family and id, exact), the reports in the scope that fail it, one row per failing resource
+    public async Task<HomeFailingCheckDetailDto> GetFailingCheckDetailed(
+        string family,
+        string checkId,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string familyValue = family.Trim();
+        string id = checkId.Trim();
+
+        if (!sources.HasSecurityAssessmentReports)
+        {
+            return new HomeFailingCheckDetailDto(false, NoSecurityAssessments, familyValue, id, null, null);
+        }
+
+        HomeScope scope = new(EmptyTable, filter.Namespaces);
+
+        List<(HomeAssessmentReport Report, Check Check)> group =
+        [
+            .. (await assessmentReportsLoader.Load(ctx))
+                .Where(report => string.Equals(report.Family, familyValue, StringComparison.Ordinal) &&
+                                 scope.Contains(report.NamespaceName, report.IsClusterScoped))
+                .SelectMany(report => report.Checks.Select(check => (Report: report, Check: check)))
+                .Where(x => string.Equals(x.Check.CheckId.Value, id, StringComparison.Ordinal)),
+        ];
+
+        if (group.Count == 0)
+        {
+            return new HomeFailingCheckDetailDto(
+                true,
+                null,
+                familyValue,
+                id,
+                "This check does not fail now in these namespaces.",
+                null);
+        }
+
+        Check first = group[0].Check;
+        HomeAssessmentReport[] reports = [.. group.Select(x => x.Report).DistinctBy(x => x.Uid),];
+
+        HomeFailingCheckDetailItemDto item = new(
+            Family: familyValue,
+            CheckId: id,
+            Title: first.Title.Value,
+            SeverityId: first.Severity.Rank,
+            Category: first.Category.Value,
+            Description: first.Description.Value,
+            Remediation: first.Remediation.Value,
+            Resources: reports.Length,
+            Namespaces: reports.Where(x => !x.IsClusterScoped).Select(x => x.NamespaceName).Distinct().Count(),
+            HasClusterScopedResources: reports.Any(x => x.IsClusterScoped),
+            Rows:
+            [
+                .. reports
+                    .Select(ToCheckResource)
+                    .OrderBy(x => x.NamespaceName is null)
+                    .ThenBy(x => x.NamespaceName, StringComparer.Ordinal)
+                    .ThenBy(x => x.ResourceKind, StringComparer.Ordinal)
+                    .ThenBy(x => x.ResourceName, StringComparer.Ordinal),
+            ]);
+
+        return new HomeFailingCheckDetailDto(true, null, familyValue, id, null, item);
+    }
+
+    // the assessed resource: the owner of the report when there is one, else the report
+    private static HomeWhereIsCheckResourceDto ToCheckResource(HomeAssessmentReport report)
+    {
+        OwnerReference? owner = report.Metadata.OwnerReferences.Count > 0
+            ? report.Metadata.OwnerReferences[0]
+            : (OwnerReference?)null;
+
+        return new HomeWhereIsCheckResourceDto(
+            ReportKind: report.Kind,
+            NamespaceName: report.IsClusterScoped ? null : report.NamespaceName.Value,
+            ResourceKind: owner?.Kind.Value ?? report.Kind,
+            ResourceName: owner?.Name.Value ?? report.Metadata.Name.Value);
     }
 
     public async Task<HomeOldestImagesDto> GetOldestImages(HomeFilter filter, CancellationToken ctx = default)
@@ -496,6 +921,13 @@ public class HomeService(
                 .Select(image =>
                 {
                     HomeReach reach = scope.GetReach([image.Key,]);
+                    List<ActiveVulnerability> imageRows =
+                    [
+                        .. image.Keys
+                            .Select(key => rows.GetValueOrDefault(key))
+                            .OfType<ActiveVulnerability>()
+                            .Where(row => severities.Contains(row.Severity.Rank)),
+                    ];
 
                     return new HomeOldestImageDto(
                         Digest: image.Digest!.Value.Value,
@@ -506,12 +938,21 @@ public class HomeService(
                         Workloads: reach.Workloads.Count,
                         Namespaces: reach.Namespaces.Count,
                         NamespaceNames: ToNamespaceNames(reach.Namespaces),
-                        VulnerabilityIds: image.Keys
-                            .Where(key => rows.TryGetValue(key, out ActiveVulnerability? row) &&
-                                          severities.Contains(row.Severity.Rank))
-                            .Select(key => key.VulnerabilityId)
+                        OsFamily: image.Os.Family.IsValid ? image.Os.Family.Value : null,
+                        OsName: image.Os.Name.IsValid ? image.Os.Name.Value : null,
+                        IsOsEndOfLife: image.Os.IsEndOfLife,
+                        VulnerabilityIds: imageRows.Select(row => row.Key.VulnerabilityId).Distinct().Count(),
+                        FixableVulnerabilityIds: imageRows
+                            .Where(row => row.HasFix)
+                            .Select(row => row.Key.VulnerabilityId)
                             .Distinct()
-                            .Count());
+                            .Count(),
+                        KnownExploitedVulnerabilityIds: imageRows
+                            .Where(row => row.IsKnownExploited)
+                            .Select(row => row.Key.VulnerabilityId)
+                            .Distinct()
+                            .Count(),
+                        HighestSeverityId: imageRows.Count > 0 ? imageRows.Min(row => row.Severity.Rank) : null);
                 }),
         ];
 
@@ -609,6 +1050,18 @@ public class HomeService(
     private static HashSet<int> ToSeverities(IReadOnlyCollection<int>? severityIds) =>
         severityIds is { Count: > 0, } ? [.. severityIds,] : [.. DefaultSeverityIds,];
 
+    // new: first seen since the window start (never for a row that existed before the history started recording)
+    private static bool IsNew(ActiveVulnerability row, DateTime since, HashSet<int> severities, HomeScope scope) =>
+        severities.Contains(row.Severity.Rank) &&
+        row.FirstAt is { } firstAt && firstAt.Value >= since &&
+        scope.Contains(row);
+
+    // new fix: the fix appeared since the window start (not for a row that came with its fix)
+    private static bool IsNewFix(ActiveVulnerability row, DateTime since, HashSet<int> severities, HomeScope scope) =>
+        severities.Contains(row.Severity.Rank) && row.HasFix &&
+        row.FixAppearedAt is { } fixAppearedAt && fixAppearedAt.Value >= since &&
+        scope.Contains(row);
+
     private static IEnumerable<ActiveVulnerability> OrderByReach(IEnumerable<ActiveVulnerability> rows, HomeScope scope) =>
         rows
             .Select(x => (Row: x, Images: scope.GetReach(x).ImageKeys.Count))
@@ -641,6 +1094,7 @@ public class HomeService(
             VulnerabilityId: row.Key.VulnerabilityId.Value,
             PackageKey: row.Key.PackageKey.Value,
             PackageName: row.PackageName.Value,
+            Title: row.Title,
             SeverityId: row.Severity.Rank,
             FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
             Published: row.Published?.Value,
