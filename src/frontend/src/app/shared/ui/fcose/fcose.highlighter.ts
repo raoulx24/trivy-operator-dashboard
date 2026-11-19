@@ -54,6 +54,15 @@ export class FcoseHighlighter {
     this.unhighlightHoveredNode(node);
   }
 
+  /** Drops any hover state (e.g. when the mouse moved to a toolbar button and the graph keeps stale hover classes). */
+  clearHover() {
+    const node = this.highlightedHoverNode;
+    this.hoveredNode = undefined;
+    if (node) {
+      this.unhighlightHoveredNode(node);
+    }
+  }
+
   highlightHoveredNode(node: NodeSingular) {
     if (this.highlightedHoverNode == node || node.isParent()) {
       return;

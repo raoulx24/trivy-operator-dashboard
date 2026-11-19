@@ -277,11 +277,12 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     });
   }
 
-  /** Zooms to the highlighted elements: selected node(s) + neighbours, else the nodes matching the name filter. */
+  /** Zooms to the nodes highlighted by name; if there are none, to the selected node(s) + neighbours. Hover is ignored. */
   onZoomHighlighted() {
-    let eles = this.cy.nodes('.selectedCommon, .selected');
+    this.highlighter?.clearHover();
+    let eles = this.cy.nodes('.filtered-highlighted');
     if (eles.empty()) {
-      eles = this.cy.nodes('.filtered-highlighted, .filtered-semihighlighted');
+      eles = this.cy.nodes('.selectedCommon, .selected');
     }
     if (eles.empty()) {
       return;
