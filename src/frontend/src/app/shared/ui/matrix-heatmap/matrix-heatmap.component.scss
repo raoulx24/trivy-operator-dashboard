@@ -65,6 +65,10 @@
   &.level-4 { fill: var(--tod-heatmap-text-4); }
 }
 
+.cell-group.selected .value {
+  font-weight: 600;
+}
+
 // two-tone: the ring on the cell edge, with a thin opposite line just inside it
 .ring {
   fill: none;

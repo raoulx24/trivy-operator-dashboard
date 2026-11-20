@@ -9,6 +9,82 @@
   [refreshable]="true"
   (refreshRequested)="refreshWidget()"
 >
+  <!-- first: the overview of the days, in a box like the runway of the Base OS widget, and (while expanded) the box of the
+       selection, which takes the rest of the width
+       the gap above the band is the one between the boxes (1rem), and both boxes start there: the title of the Selected box
+       (it sticks out of its top border) hangs into that gap -->
+  <div class="flex items-stretch gap-4">
+    <app-trivy-box [class]="showBoxes() || isLoadingBoxes() ? 'max-w-[55%]' : 'flex-1'">
+      @if (isLoadingDays()) {
+        <!-- about the size of the heatmap with its legend, so the box does not collapse while the days are asked -->
+        <p-skeleton height="9rem" />
+      } @else {
+        <app-activity-heatmap
+          [data]="chart().data"
+          [from]="chart().from"
+          [to]="today()"
+          [emphasis1Days]="visitDays()"
+          [emphasis2Days]="chart().flaggedDays"
+          valueLabel="added"
+          [valueHint]="valueHint()"
+          emphasis1Label="visits"
+          emphasis1Hint="Days you opened the home page (teal corner)."
+          emphasis2Label="exploited"
+          emphasis2Hint="Days when a known exploited (KEV / EUVD) vulnerability was added to a running image (orange corner)."
+          selectedLabel="selected"
+          selectedHint="The day that filters the boxes. Click it again to clear."
+          [selectableDays]="selectableDays()"
+          [selectedDay]="pivot.selection()?.day ?? null"
+          (daySelected)="onHeatmapDay($event)"
+        />
+      }
+    </app-trivy-box>
+
+    @if (isLoadingBoxes()) {
+      <app-home-pivot-selected-skeleton />
+    }
+
+    @if (showBoxes()) {
+      <app-trivy-box class="flex-1 min-w-[24rem]">
+        <span boxTitle>Selected</span>
+
+        @let image = selected()?.image;
+        @let pair = selected()?.pair;
+        <!-- always the same fields, so the box never changes its size: a side that is not selected shows n/a (a pick in a
+             select chooses one side), with no icons and no severity; each field is its muted name with the value under it;
+             two columns, the second one wider, as it has the title -->
+        <div class="grid grid-cols-[minmax(14rem,2fr)_minmax(0,3fr)] items-start gap-x-8 text-sm">
+          <div class="flex flex-col gap-2">
+            <app-home-pivot-image-fields [value]="image" />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <!-- the vulnerability and the first added day share a row, half each -->
+            <div class="grid grid-cols-2 gap-x-2">
+              <app-home-pivot-vulnerability-field [pair]="pair" />
+              <div class="flex flex-col gap-0.5 pl-4">
+                <span class="text-xs tod-text-muted-color">First added</span>
+                @if (pair?.firstAddedAt; as firstAdded) {
+                  <span class="inline-flex items-baseline gap-1.5">
+                    {{ firstAdded.substring(0, 10) }}
+                    <span class="text-xs tod-text-muted-color">{{ pivot.age(firstAdded.substring(0, 10)) }}</span>
+                  </span>
+                } @else {
+                  <span class="tod-text-muted-color">n/a</span>
+                }
+              </div>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs tod-text-muted-color">Title</span>
+              <!-- three rows are reserved, so a long title does not move the box and a short one does not shrink it -->
+              <span class="min-h-[3.75rem] line-clamp-3 break-words" [class.tod-text-muted-color]="!pair">{{ pair ? (pair.title ?? 'n/a') : 'n/a' }}</span>
+            </div>
+          </div>
+        </div>
+      </app-trivy-box>
+    }
+  </div>
+
   <!-- expanded and the rows are not here yet: the skeleton of the two rows, with the size of the real boxes -->
   @if (isLoadingBoxes()) {
     <app-home-pivot-skeleton />
@@ -34,9 +110,9 @@
           <app-trivy-box class="block mt-2">
             <!-- the title of a selected box is a tag; the elements of a title are separate, so the box puts a gap between them -->
             @if (pivot.selection()?.digest === box.digest) {
-              <p-tag boxTitle class="text-xs" severity="secondary" [rounded]="true" [value]="box.name" />
+              <p-tag boxTitle class="text-xs cursor-pointer" severity="secondary" (click)="selectImageBox(box.digest)" [rounded]="true" [value]="box.name" />
             } @else {
-              <span boxTitle>{{ box.name }}</span>
+              <span boxTitle class="cursor-pointer" (click)="selectImageBox(box.digest)">{{ box.name }}</span>
             }
 
             <!-- a size, not a maximum: every box has the same dimensions, empty or with a long list -->
@@ -112,9 +188,9 @@
         <ng-template let-box>
           <app-trivy-box class="block mt-2">
             @if (pivot.selection()?.pairKey === box.key) {
-              <p-tag boxTitle class="text-xs" severity="secondary" [rounded]="true" [value]="box.vulnerabilityId" />
+              <p-tag boxTitle class="text-xs cursor-pointer" severity="secondary" (click)="selectPairBox(box.key)" [rounded]="true" [value]="box.vulnerabilityId" />
             } @else {
-              <span boxTitle>{{ box.vulnerabilityId }}</span>
+              <span boxTitle class="cursor-pointer" (click)="selectPairBox(box.key)">{{ box.vulnerabilityId }}</span>
             }
             <p-tag
               boxTitle
@@ -168,82 +244,6 @@
       </app-virtual-scroller>
     </section>
   }
-
-  <!-- last: the overview of the days, in a box like the runway of the Base OS widget, and (while expanded) the box of the
-       selection, which takes the rest of the width
-       the gap above the band is the one between the boxes (1rem), and both boxes start there: the title of the Selected box
-       (it sticks out of its top border) hangs into that gap -->
-  <div class="flex items-stretch gap-4">
-    <app-trivy-box [class]="showBoxes() || isLoadingBoxes() ? 'max-w-[55%]' : 'flex-1'">
-      @if (isLoadingDays()) {
-        <!-- about the size of the heatmap with its legend, so the box does not collapse while the days are asked -->
-        <p-skeleton height="9rem" />
-      } @else {
-        <app-activity-heatmap
-          [data]="chart().data"
-          [from]="chart().from"
-          [to]="today()"
-          [emphasis1Days]="visitDays()"
-          [emphasis2Days]="chart().flaggedDays"
-          valueLabel="added"
-          [valueHint]="valueHint()"
-          emphasis1Label="visits"
-          emphasis1Hint="Days you opened the home page (teal corner)."
-          emphasis2Label="exploited"
-          emphasis2Hint="Days when a known exploited (KEV / EUVD) vulnerability was added to a running image (orange corner)."
-          selectedLabel="selected"
-          selectedHint="The day that filters the boxes. Click it again to clear."
-          [selectableDays]="selectableDays()"
-          [selectedDay]="pivot.selection()?.day ?? null"
-          (daySelected)="onHeatmapDay($event)"
-        />
-      }
-    </app-trivy-box>
-
-    @if (isLoadingBoxes()) {
-      <app-home-pivot-selected-skeleton />
-    }
-
-    @if (showBoxes()) {
-      <app-trivy-box class="flex-1 min-w-[24rem]">
-        <span boxTitle>Selected</span>
-
-        @let image = selected()?.image;
-        @let pair = selected()?.pair;
-        <!-- always the same fields, so the box never changes its size: a side that is not selected shows n/a (a pick in a
-             select chooses one side), with no icons and no severity; each field is its muted name with the value under it;
-             two columns, the second one wider, as it has the title -->
-        <div class="grid grid-cols-[minmax(14rem,2fr)_minmax(0,3fr)] items-start gap-x-8 text-sm">
-          <div class="flex flex-col gap-2">
-            <app-home-pivot-image-fields [value]="image" />
-          </div>
-
-          <div class="flex flex-col gap-2">
-            <!-- the vulnerability and the first added day share a row, half each -->
-            <div class="grid grid-cols-2 gap-x-2">
-              <app-home-pivot-vulnerability-field [pair]="pair" />
-              <div class="flex flex-col gap-0.5 pl-4">
-                <span class="text-xs tod-text-muted-color">First added</span>
-                @if (pair?.firstAddedAt; as firstAdded) {
-                  <span class="inline-flex items-baseline gap-1.5">
-                    {{ firstAdded.substring(0, 10) }}
-                    <span class="text-xs tod-text-muted-color">{{ pivot.age(firstAdded.substring(0, 10)) }}</span>
-                  </span>
-                } @else {
-                  <span class="tod-text-muted-color">n/a</span>
-                }
-              </div>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs tod-text-muted-color">Title</span>
-              <!-- three rows are reserved, so a long title does not move the box and a short one does not shrink it -->
-              <span class="min-h-[3.75rem] line-clamp-3 break-words" [class.tod-text-muted-color]="!pair">{{ pair ? (pair.title ?? 'n/a') : 'n/a' }}</span>
-            </div>
-          </div>
-        </div>
-      </app-trivy-box>
-    }
-  </div>
 
   <!-- the controls of the expanded widget, in the bottom row of the frame: the images and the pairs to pick from -->
   @if (showBoxes()) {

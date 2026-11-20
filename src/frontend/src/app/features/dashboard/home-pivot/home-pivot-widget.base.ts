@@ -118,6 +118,20 @@ export abstract class HomePivotWidgetBase<
     }
   }
 
+  // a click on the title of an image box: selects the image alone (the pair side stays); on the selected one, clears it
+  protected selectImageBox(digest: string): void {
+    const isSelected = this.pivot.selection()?.digest === digest;
+    this.pivot.pickImage(isSelected ? null : digest);
+    if (!isSelected) this.scrollToImageBox(digest);
+  }
+
+  // a click on the title of a pair box: the same for the pair
+  protected selectPairBox(pairKey: string): void {
+    const isSelected = this.pivot.selection()?.pairKey === pairKey;
+    this.pivot.pickPair(isSelected ? null : pairKey);
+    if (!isSelected) this.scrollToPairBox(pairKey);
+  }
+
   // a click on a day of the heatmap: filters by it; on a collapsed widget it expands it first (the selection is set
   // before, and it lives as long as the widget is expanded), so the boxes come already filtered
   protected onHeatmapDay(day: string): void {
