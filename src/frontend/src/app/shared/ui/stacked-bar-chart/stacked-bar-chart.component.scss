@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.stacked-bar-chart {
+  display: block;
+  cursor: default;
+}
+
+// transparent unless highlighted, but always there: it is the hit area
+.slot {
+  fill: transparent;
+
+  &.highlighted {
+    fill: var(--tod-stacked-bar-track);
+  }
+}
+
+.column.clickable {
+  cursor: pointer;
+}
+
+.bar {
+  transition: filter 180ms ease-in-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.column.has-value:hover .bar {
+  filter: brightness(1.2) saturate(1.1);
+}
+
+// no value: a dash on the baseline
+.dash {
+  fill: var(--tod-stacked-bar-empty);
+}
+
+.tip-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}

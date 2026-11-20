@@ -1649,6 +1649,36 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/exposed-secrets:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeExposedSecrets
+      parameters:
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeExposedSecretsDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/package-hotspots:
     get:
       tags:
@@ -4341,6 +4371,76 @@ components:
         generatedAt:
           type: string
           format: date-time
+      additionalProperties: false
+    HomeExposedSecretImageDto:
+      type: object
+      properties:
+        digest:
+          type: string
+        registry:
+          type: string
+        repository:
+          type: string
+        tag:
+          type: string
+        secretCount:
+          type: integer
+          format: int32
+        severityId:
+          type: integer
+          format: int32
+        workloads:
+          type: integer
+          format: int32
+        namespaces:
+          type: integer
+          format: int32
+        namespaceNames:
+          type: array
+          items:
+            type: string
+        byType:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeExposedSecretTypeCountDto'
+      additionalProperties: false
+    HomeExposedSecretTypeCountDto:
+      type: object
+      properties:
+        type:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        count:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomeExposedSecretsDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        imagesScanned:
+          type: integer
+          format: int32
+        lastScanAt:
+          type: string
+          format: date-time
+          nullable: true
+        totalSecrets:
+          type: integer
+          format: int32
+        totalImages:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeExposedSecretImageDto'
       additionalProperties: false
     HomeFailingCheckDetailDto:
       type: object

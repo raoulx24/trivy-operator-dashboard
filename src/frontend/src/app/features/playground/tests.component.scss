@@ -1,0 +1,48 @@
+.tests {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+// the box is as big as its component needs
+.box {
+  margin: 0;
+  padding: 0.75rem 1rem 1rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--tod-app-border-radius-md);
+  background: var(--p-content-background);
+  max-width: 100%;
+
+  legend {
+    padding: 0 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--p-text-muted-color);
+  }
+}
+
+// the components that follow the width of their host
+.box-wide {
+  width: 32rem;
+}
+
+.variant {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  & + & {
+    margin-top: 1rem;
+  }
+}
+
+.variant-title {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.rings {
+  display: flex;
+  gap: 1rem;
+}

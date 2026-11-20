@@ -740,6 +740,11 @@ mat-icon.text-xs {
   border-radius: var(--tod-app-border-radius-md);
 }
 
+// the big icon of the empty (happy day) state of a home widget
+.pi.tod-home-empty-icon {
+  font-size: 2rem;
+}
+
 .tod-content-border-left {
   border: 1px solid var(--p-content-border-color);
   border-top-left-radius: var(--tod-app-border-radius-md);

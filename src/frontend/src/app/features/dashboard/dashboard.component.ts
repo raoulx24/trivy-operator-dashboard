@@ -14,6 +14,7 @@ import {
   homeWindowOptions,
 } from './home-filter-bar/home-filter-bar.types';
 import { HomeBaseOsComponent } from './home-base-os/home-base-os.component';
+import { HomeExposedSecretsComponent } from './home-exposed-secrets/home-exposed-secrets.component';
 import { HomeFailingChecksComponent } from './home-failing-checks/home-failing-checks.component';
 import { HomeFixWaitingComponent } from './home-fix-waiting/home-fix-waiting.component';
 import { HomeHistoryDriftComponent } from './home-history-drift/home-history-drift.component';
@@ -49,6 +50,7 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomePackageHotspotsComponent,
     HomeWidgetPlaceholderComponent,
     HomeBaseOsComponent,
+    HomeExposedSecretsComponent,
     HomeFailingChecksComponent,
     HomeFixWaitingComponent,
     HomeHistoryDriftComponent,
@@ -114,6 +116,7 @@ export class DashboardComponent {
   );
   protected readonly stateHint = computed(() => `now · ${this.severitiesLabel()}${this.namespacesLabel()}`);
   protected readonly baseOsHint = computed(() => `now${this.namespacesLabel()}`);
+  protected readonly exposedSecretsHint = computed(() => `running images${this.namespacesLabel()}`);
   protected readonly historyDriftHint = computed(
     () => `per UTC day, history retention · ${this.severitiesLabel()}${this.namespacesLabel()}`,
   );

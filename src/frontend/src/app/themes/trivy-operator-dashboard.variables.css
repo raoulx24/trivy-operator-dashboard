@@ -88,11 +88,47 @@
   --tod-heatmap-level-2: var(--p-blue-300);
   --tod-heatmap-level-3: var(--p-blue-400);
   --tod-heatmap-level-4: var(--p-blue-600);
+  /* the value written on a cell of each level (matrix heatmap) */
+  --tod-heatmap-text-1: var(--p-surface-900);
+  --tod-heatmap-text-2: var(--p-surface-900);
+  --tod-heatmap-text-3: var(--p-surface-900);
+  --tod-heatmap-text-4: var(--p-surface-0);
   --tod-heatmap-ring: var(--p-text-color);
   --tod-heatmap-ring-inner: var(--p-surface-0);
   --tod-heatmap-corner: var(--p-orange-500);
   --tod-heatmap-visit: var(--p-teal-500);
   --tod-heatmap-marker-outline: var(--p-surface-0);
+
+  /* lane strip: the outline of the cells in the highlighted range, and the background of the cells without a value */
+  --tod-lane-strip-highlight: color-mix(in srgb, var(--p-primary-color) 55%, transparent);
+  --tod-lane-strip-empty: color-mix(in srgb, var(--p-text-color) 7%, transparent);
+
+  /* stacked bar chart: the track behind the highlighted columns, and the dash of a column without a value */
+  --tod-stacked-bar-track: color-mix(in srgb, var(--p-text-color) 9%, transparent);
+  --tod-stacked-bar-empty: color-mix(in srgb, var(--p-text-color) 25%, transparent);
+
+  /* meter group: the part of the meter that is not filled */
+  --tod-meter-group-track: color-mix(in srgb, var(--p-text-color) 12%, transparent);
+  /* the value written in a segment: the segments are usually light colors, so the text is dark in both modes */
+  --tod-meter-group-text: var(--p-surface-800);
+
+  /* ring gauge: the part of the ring that is not filled */
+  --tod-ring-gauge-track: color-mix(in srgb, var(--p-text-color) 12%, transparent);
+
+  /* span timeline: the track behind a bar, the hovered and the selected row, and the default colors of the markers */
+  --tod-span-timeline-track: color-mix(in srgb, var(--p-text-color) 9%, transparent);
+  --tod-span-timeline-row-hover: color-mix(in srgb, var(--p-text-color) 5%, transparent);
+
+  /* scatter select: the axes, and the freehand region (fill and line follow the primary color of the mode) */
+  --tod-scatter-axis: color-mix(in srgb, var(--p-text-color) 35%, transparent);
+  --tod-scatter-region-fill: color-mix(in srgb, var(--p-primary-color) 16%, transparent);
+  --tod-scatter-region-stroke: var(--p-primary-color);
+  --tod-span-timeline-selected: color-mix(in srgb, var(--p-primary-color) 12%, transparent);
+  --tod-span-timeline-selected-border: color-mix(in srgb, var(--p-primary-color) 55%, transparent);
+  --tod-span-timeline-dot: var(--p-surface-700);
+  --tod-span-timeline-diamond: var(--p-red-400);
+  --tod-span-timeline-tick: var(--p-teal-500);
+  --tod-span-timeline-marker-outline: color-mix(in srgb, var(--p-surface-0) 60%, transparent);
 
   /* network fill: the faint nodes and links in the space a shorter home widget gets from its row */
   --tod-network-line-color: color-mix(in srgb, var(--p-primary-color) 22%, transparent);
@@ -136,6 +172,10 @@
   --tod-heatmap-level-2: var(--p-blue-600);
   --tod-heatmap-level-3: var(--p-blue-400);
   --tod-heatmap-level-4: var(--p-blue-200);
+  --tod-heatmap-text-1: var(--p-surface-0);
+  --tod-heatmap-text-2: var(--p-surface-0);
+  --tod-heatmap-text-3: var(--p-surface-900);
+  --tod-heatmap-text-4: var(--p-surface-900);
   --tod-heatmap-ring-inner: var(--p-surface-950);
   --tod-heatmap-corner: var(--p-orange-400);
   --tod-heatmap-visit: var(--p-teal-400);

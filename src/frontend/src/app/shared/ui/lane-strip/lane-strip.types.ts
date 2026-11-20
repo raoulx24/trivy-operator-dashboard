@@ -1,0 +1,46 @@
+export interface LaneStripLane {
+  // the text on the left
+  caption: string;
+  // one value per column (same order as the columns of the control); 0 or missing = empty cell
+  values: number[];
+  // the text on the right; the sum of the values when not given
+  total?: string | number;
+}
+
+export interface LaneStripCellClick {
+  laneIndex: number;
+  columnIndex: number;
+  lane: LaneStripLane;
+  column: string;
+  value: number;
+}
+
+export interface LaneStripCell {
+  columnIndex: number;
+  value: number;
+  // the fill: the lane color with an intensity that follows value / max of the lane; null for an empty cell
+  background: string | null;
+  highlighted: boolean;
+  selected: boolean;
+}
+
+export interface LaneStripRow {
+  lane: LaneStripLane;
+  total: string | number;
+  cells: LaneStripCell[];
+}
+
+// the context of the popover of a cell
+export interface LaneStripTipContext {
+  column: string;
+  caption: string;
+  value: number;
+  laneIndex: number;
+  columnIndex: number;
+}
+
+// a selected cell: the lane and the column (indexes)
+export interface LaneStripSelection {
+  laneIndex: number;
+  columnIndex: number;
+}

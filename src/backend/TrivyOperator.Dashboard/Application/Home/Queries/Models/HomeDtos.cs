@@ -397,6 +397,36 @@ public sealed record HomeOldestImagesDto(
     DateTime? HistoryStartedAt,
     IReadOnlyList<HomeOldestImageDto> Items);
 
+// secrets of one type (the title of the rule that matched, e.g. "AWS Access Key ID") with the severity of the rule
+public sealed record HomeExposedSecretTypeCountDto(string Type, int SeverityId, int Count);
+
+// one running image (one digest) with exposed secrets; the secret values and files are never sent, only counts
+// ByType: most severe first, then most secrets, then by name
+public sealed record HomeExposedSecretImageDto(
+    string Digest,
+    string Registry,
+    string Repository,
+    string Tag,
+    int SecretCount,
+    // the highest severity of its secrets
+    int SeverityId,
+    int Workloads,
+    int Namespaces,
+    IReadOnlyList<string> NamespaceNames,
+    IReadOnlyList<HomeExposedSecretTypeCountDto> ByType);
+
+// running images with exposed secrets, the worst first
+// ImagesScanned / LastScanAt: what the exposed secret reports cover (to tell "no secrets" from "no data"), in the
+// namespaces asked; TotalSecrets / TotalImages are not capped by the limit (Items is)
+public sealed record HomeExposedSecretsDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    int ImagesScanned,
+    DateTime? LastScanAt,
+    int TotalSecrets,
+    int TotalImages,
+    IReadOnlyList<HomeExposedSecretImageDto> Items);
+
 // active vulnerabilities grouped by package (PackageKey, i.e. purl without version)
 public sealed record HomePackageHotspotDto(
     string PackageKey,

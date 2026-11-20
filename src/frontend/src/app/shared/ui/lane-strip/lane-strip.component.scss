@@ -1,0 +1,96 @@
+:host {
+  display: block;
+  // a wide strip scrolls inside, it must not widen its grid cell
+  min-width: 0;
+}
+
+// the scroller has a py-2 around its content: the captions and totals start at the same offset, so the rows line up
+.lane-captions,
+.lane-totals {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lane-gap);
+  padding-block: 0.5rem;
+  cursor: default;
+}
+
+.lane-captions {
+  // the captions are never cut by the scroller (it only takes what is left)
+  white-space: nowrap;
+  padding-right: 1rem;
+}
+
+.lane-totals {
+  padding-left: 1rem;
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.lane-caption,
+.lane-total {
+  height: var(--lane-cell);
+  line-height: var(--lane-cell);
+}
+
+.lane-grid {
+  display: block;
+  // the scroller is a flex row: without this the svg shrinks to the available width, so nothing ever overflows
+  flex-shrink: 0;
+  cursor: default;
+  // a cell grows on hover: without this the svg clips it at its edge
+  overflow: visible;
+}
+
+// a cell with its ring: grows a little and brightens on hover (the gap between cells is larger than the growth, so
+// neighbours are not covered)
+.cell-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 180ms ease-in-out,
+    filter 180ms ease-in-out;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &.has-value:hover {
+    transform: scale(1.12);
+    filter: brightness(1.2) saturate(1.1);
+  }
+
+  // the selected cell is as big as a hovered one, and hovering it does not make it any bigger
+  &.selected {
+    transform: scale(1.12);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.lane-cell {
+  fill: var(--tod-lane-strip-empty);
+  stroke: transparent;
+  stroke-width: 1;
+
+  // the range to highlight: an outline, also on the empty cells
+  &.highlighted {
+    stroke: var(--tod-lane-strip-highlight);
+  }
+}
+
+// two-tone ring (as in the activity heatmap): the ring on the cell edge, with a thin opposite line just inside it
+.ring {
+  fill: none;
+  stroke: var(--tod-heatmap-ring);
+  pointer-events: none;
+}
+
+.ring-inner {
+  fill: none;
+  stroke: var(--tod-heatmap-ring-inner);
+  pointer-events: none;
+}

@@ -1,0 +1,34 @@
+<div
+  class="gauge"
+  [class.selected]="isSelected()"
+  role="button"
+  tabindex="0"
+  [attr.aria-pressed]="isSelected()"
+  [attr.aria-label]="data().label + ', ' + centerText()"
+  (click)="toggle()"
+  (keydown.enter)="toggle()"
+  (keydown.space)="toggle(); $event.preventDefault()"
+>
+  <svg viewBox="0 0 100 100" [attr.width]="size()" [attr.height]="size()" aria-hidden="true">
+    <g class="ring-body">
+      <circle class="track" cx="50" cy="50" [attr.r]="radius()" [attr.stroke-width]="strokeWidth()" />
+      @if (percent() > 0) {
+        <circle
+          class="arc"
+          cx="50"
+          cy="50"
+          [attr.r]="radius()"
+          [attr.stroke-width]="strokeWidth()"
+          [attr.stroke]="data().color"
+          pathLength="100"
+          [attr.stroke-dasharray]="percent() + ' 100'"
+          transform="rotate(-90 50 50)"
+        />
+      }
+      <text class="center tod-chart-label" x="50" y="50" text-anchor="middle" dominant-baseline="central">
+        {{ centerText() }}
+      </text>
+    </g>
+  </svg>
+  <span class="legend tod-chart-legend">{{ data().label }}</span>
+</div>

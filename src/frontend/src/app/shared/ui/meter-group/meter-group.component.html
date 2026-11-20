@@ -1,0 +1,49 @@
+@if (width() > 0) {
+  <svg class="meter" [attr.width]="width()" [attr.height]="barHeight()" role="meter">
+    <defs>
+      <!-- the fill is round at its end: all the way when the meter is full, at the last segment when it is not -->
+      <clipPath [attr.id]="clipId">
+        <rect x="0" y="0" [attr.width]="fillWidth()" [attr.height]="barHeight()" [attr.rx]="barHeight() / 2" />
+      </clipPath>
+    </defs>
+
+    <rect class="track" x="0" y="0" [attr.width]="width()" [attr.height]="barHeight()" [attr.rx]="barHeight() / 2" />
+
+    <g [attr.clip-path]="'url(#' + clipId + ')'">
+      @for (bar of bars(); track $index; let i = $index) {
+        <g
+          class="segment"
+          (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(bar, i))"
+          (mousemove)="popover.move($event)"
+          (mouseleave)="popover.hide()"
+        >
+          <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" [attr.height]="barHeight()" [attr.fill]="bar.segment.color" />
+          @if (bar.showValue) {
+            <text
+              class="segment-value tod-chart-label"
+              [attr.x]="bar.x + bar.width / 2"
+              [attr.y]="barHeight() / 2"
+              [attr.fill]="bar.segment.textColor ?? 'var(--tod-meter-group-text)'"
+              text-anchor="middle"
+              dominant-baseline="central"
+            >
+              {{ bar.segment.value }}
+            </text>
+          }
+        </g>
+      }
+    </g>
+  </svg>
+}
+
+<ng-template #defaultTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="flex items-center gap-2 font-bold">
+      <span class="tip-swatch" [style.background]="ctx.color"></span>{{ ctx.label }}
+    </div>
+    <div>
+      {{ ctx.value }}{{ ctx.max !== undefined ? ' of ' + ctx.max : '' }}{{ valueLabel() ? ' ' + valueLabel() : '' }}
+    </div>
+    <div class="tod-text-inverted-muted-color">{{ ctx.sharePercent.toFixed(ctx.sharePercent < 10 ? 1 : 0) }}%</div>
+  </div>
+</ng-template>

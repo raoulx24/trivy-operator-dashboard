@@ -1,0 +1,96 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// the colors are the --tod-heatmap-* variables of the theme file (light and dark), shared with the activity heatmap
+
+.matrix-heatmap {
+  display: block;
+  // the plain pointer everywhere, also over the texts (no text caret); they stay selectable
+  cursor: default;
+}
+
+.axis-label {
+  user-select: text;
+}
+
+.cell-group {
+  transition: filter 180ms ease-in-out;
+
+  &:hover {
+    filter: brightness(1.2) saturate(1.1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  &.selectable {
+    cursor: pointer;
+  }
+}
+
+.cell {
+  fill: var(--tod-heatmap-empty);
+  stroke: var(--tod-heatmap-border);
+  stroke-width: 1;
+
+  &.level-1 { fill: var(--tod-heatmap-level-1); }
+  &.level-2 { fill: var(--tod-heatmap-level-2); }
+  &.level-3 { fill: var(--tod-heatmap-level-3); }
+  &.level-4 { fill: var(--tod-heatmap-level-4); }
+}
+
+// the value on a cell: readable on the shade of its level
+.value {
+  fill: var(--tod-heatmap-text-1);
+  pointer-events: none;
+
+  &.level-2 { fill: var(--tod-heatmap-text-2); }
+  &.level-3 { fill: var(--tod-heatmap-text-3); }
+  &.level-4 { fill: var(--tod-heatmap-text-4); }
+}
+
+// two-tone: the ring on the cell edge, with a thin opposite line just inside it
+.ring {
+  fill: none;
+  stroke: var(--tod-heatmap-ring);
+  pointer-events: none;
+}
+
+.ring-inner {
+  fill: none;
+  stroke: var(--tod-heatmap-ring-inner);
+  pointer-events: none;
+}
+
+.legend {
+  cursor: default;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin-top: 0.7rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+// legend swatches are html
+.swatch {
+  display: inline-block;
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  background: var(--tod-heatmap-empty);
+  border: 1px solid var(--tod-heatmap-border);
+
+  &.level-1 { background: var(--tod-heatmap-level-1); }
+  &.level-2 { background: var(--tod-heatmap-level-2); }
+  &.level-3 { background: var(--tod-heatmap-level-3); }
+  &.level-4 { background: var(--tod-heatmap-level-4); }
+}

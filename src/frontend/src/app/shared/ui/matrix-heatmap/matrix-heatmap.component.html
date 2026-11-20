@@ -1,0 +1,96 @@
+@if (width() > 0 && cells().length > 0) {
+  <svg class="matrix-heatmap" [attr.width]="width()" [attr.height]="height()" role="img">
+    @if (showColumnLabels()) {
+      @for (label of columnLabels(); track $index) {
+        <text class="axis-label tod-chart-label tod-chart-label-muted" text-anchor="middle" [attr.x]="label.x" [attr.y]="labelBaseline">
+          {{ label.text }}
+        </text>
+      }
+    }
+    @if (showRowLabels()) {
+      @for (label of rowLabels(); track $index) {
+        <text class="axis-label tod-chart-label" x="0" [attr.y]="label.y" dominant-baseline="central">
+          {{ label.text }}
+        </text>
+      }
+    }
+    @for (cell of cells(); track cell.rowIndex + '-' + cell.columnIndex) {
+      <g
+        class="cell-group"
+        [class.selectable]="cell.selectable"
+        [class.selected]="cell.selected"
+        (click)="onCellClick(cell)"
+        (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, cell)"
+        (mousemove)="popover.move($event)"
+        (mouseleave)="popover.hide()"
+      >
+        <rect
+          class="cell level-{{ cell.level }}"
+          [style.fill]="cell.color"
+          [attr.x]="cell.x"
+          [attr.y]="cell.y"
+          [attr.width]="cellWidth()"
+          [attr.height]="cellHeight()"
+          [attr.rx]="cellRadius"
+        />
+        @if (showValues() && cell.value > 0) {
+          <text
+            class="value tod-chart-label level-{{ cell.level }}"
+            text-anchor="middle"
+            dominant-baseline="central"
+            [attr.x]="cell.x + cellWidth() / 2"
+            [attr.y]="cell.y + cellHeight() / 2"
+          >
+            {{ cell.value }}
+          </text>
+        }
+        @if (cell.selected) {
+          <rect
+            class="ring"
+            [attr.x]="cell.x + 1"
+            [attr.y]="cell.y + 1"
+            [attr.width]="cellWidth() - 2"
+            [attr.height]="cellHeight() - 2"
+            [attr.rx]="cellRadius - 1"
+            stroke-width="2"
+          />
+          <rect
+            class="ring-inner"
+            [attr.x]="cell.x + 2.5"
+            [attr.y]="cell.y + 2.5"
+            [attr.width]="cellWidth() - 5"
+            [attr.height]="cellHeight() - 5"
+            [attr.rx]="cellRadius - 2.5"
+            stroke-width="1"
+          />
+        }
+      </g>
+    }
+  </svg>
+}
+
+@if (showLegend() && cells().length > 0) {
+  <div class="legend tod-chart-legend tod-text-muted-color">
+    <span
+      class="legend-item"
+      (mouseenter)="popover.show(valueHint(), $any($event.currentTarget))"
+      (mouseleave)="popover.hide()"
+    >
+      <span>{{ valueLabel() ? valueLabel() + ':' : 'less' }}</span>
+      <span class="swatch level-0"></span>
+      @for (level of legendLevels(); track level) {
+        <span class="swatch level-{{ level }}"></span>
+      }
+      @if (!valueLabel()) {
+        <span>more</span>
+      }
+    </span>
+  </div>
+}
+
+<ng-template #defaultTip let-cell>
+  <div class="tod-text-contrast-color">
+    <div class="font-bold">{{ cell.rowLabel }} · {{ cell.columnLabel }}</div>
+    <div>{{ cell.value }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
+  </div>
+</ng-template>

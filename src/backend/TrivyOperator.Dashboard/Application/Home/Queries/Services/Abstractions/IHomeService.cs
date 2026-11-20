@@ -68,6 +68,9 @@ public interface IHomeService : IQueryService
 
     Task<HomeOldestImagesDto> GetOldestImages(HomeFilter filter, CancellationToken ctx = default);
 
+    // running images with exposed secrets (the severities are not used: an exposed secret matters whatever the severity)
+    Task<HomeExposedSecretsDto> GetExposedSecrets(HomeFilter filter, CancellationToken ctx = default);
+
     Task<HomePackageHotspotsDto> GetPackageHotspots(HomeFilter filter, CancellationToken ctx = default);
 
     Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, CancellationToken ctx = default);

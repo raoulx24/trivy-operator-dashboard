@@ -27,6 +27,10 @@ public sealed class HomeReportSources
     public IResourceProvider<InfraAssessmentReport, Uid>? InfraAssessmentReports { get; init; }
     public IResourceProvider<ClusterInfraAssessmentReport, Uid>? ClusterInfraAssessmentReports { get; init; }
 
+    public IResourceProvider<ExposedSecretReport, Digest>? ExposedSecretReports { get; init; }
+
+    public bool HasExposedSecretReports => ExposedSecretReports is not null;
+
     public bool HasVulnerabilityReports => VulnerabilityReports is not null || ClusterVulnerabilityReports is not null;
 
     public bool HasSbom => ImagePurls is not null && PurlDetails is not null;

@@ -1,0 +1,134 @@
+@if (bars().length > 0) {
+  <svg class="timeline" [attr.width]="viewWidth()" [attr.height]="height()" role="img" aria-label="Timeline">
+    @if (referenceX() !== null) {
+      <line class="reference" [attr.x1]="referenceX()" [attr.x2]="referenceX()" y1="14" [attr.y2]="rowsBottom()" />
+    }
+    <text class="axis-label tod-chart-label tod-chart-label-muted" [attr.x]="nowX()" y="7" text-anchor="middle" dominant-baseline="central">
+      {{ nowLabel() }}
+    </text>
+    @for (tick of tickViews(); track tick.x) {
+      <text class="axis-label tod-chart-label tod-chart-label-muted" [attr.x]="tick.x" y="7" text-anchor="middle" dominant-baseline="central">
+        {{ tick.label }}
+      </text>
+    }
+
+    @for (bar of bars(); track bar.row.id) {
+      <g
+        class="row"
+        [class.selected]="bar.row.id === selectedId()"
+        [class.selectable]="selectable()"
+        [attr.transform]="'translate(0,' + bar.y + ')'"
+        [attr.tabindex]="selectable() ? 0 : null"
+        [attr.role]="selectable() ? 'button' : null"
+        [attr.aria-pressed]="selectable() ? bar.row.id === selectedId() : null"
+        [attr.aria-label]="bar.row.label"
+        (keydown.enter)="onKey($event, bar.row)"
+        (keydown.space)="onKey($event, bar.row)"
+      >
+        <rect class="row-bg" x="0.5" y="0.5" [attr.width]="viewWidth() - 1" [attr.height]="rowHeight - 1" rx="6" />
+        <text class="row-label tod-chart-label" x="8" [attr.y]="rowHeight / 2" dominant-baseline="central">{{ bar.row.label }}</text>
+        <rect class="track" [attr.x]="barsLeft()" [attr.y]="(rowHeight - barHeight) / 2" [attr.width]="barsWidth()" [attr.height]="barHeight" rx="6" />
+        <rect
+          class="bar"
+          [attr.x]="bar.x"
+          [attr.y]="(rowHeight - barHeight) / 2"
+          [attr.width]="bar.width"
+          [attr.height]="barHeight"
+          [style.fill]="bar.color"
+          rx="6"
+        />
+        @if (bar.row.valueLabel) {
+          <text class="row-value tod-chart-label" [attr.x]="valueX()" [attr.y]="rowHeight / 2" text-anchor="end" dominant-baseline="central">
+            {{ bar.row.valueLabel }}
+          </text>
+        }
+        <!-- the whole row reacts: the popover of the row and the selection; the markers are drawn after it, so they win -->
+        <rect
+          class="row-hit"
+          x="0"
+          y="0"
+          [attr.width]="viewWidth()"
+          [attr.height]="rowHeight"
+          (click)="select(bar.row)"
+          (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(bar))"
+          (mousemove)="popover.move($event)"
+          (mouseleave)="popover.hide()"
+        />
+        @for (marker of bar.markers; track $index) {
+          <g
+            class="marker kind-{{ marker.kind }}"
+            [style.--span-marker-color]="marker.color"
+            [attr.transform]="'translate(' + marker.x + ',' + rowHeight / 2 + ')'"
+            (click)="select(bar.row)"
+            (mouseenter)="popover.show(marker.tip, $event)"
+            (mousemove)="popover.move($event)"
+            (mouseleave)="popover.hide()"
+          >
+            <!-- a bigger invisible target: the shapes are small -->
+            <circle class="marker-hit" r="8" />
+            @switch (marker.kind) {
+              @case ('dot') {
+                <circle class="shape" r="3.5" />
+              }
+              @case ('diamond') {
+                <path class="shape" d="M0,-6 L6,0 L0,6 L-6,0 Z" />
+              }
+              @case ('tick') {
+                <line class="shape" y1="-9" y2="9" />
+              }
+            }
+          </g>
+        }
+      </g>
+    }
+  </svg>
+
+  @if (legend().length > 0) {
+    <div class="legend tod-chart-legend tod-text-muted-color">
+      @for (item of legend(); track $index) {
+        <span
+          class="legend-item"
+          (mouseenter)="item.description && popover.show(legendTip, $event, item)"
+          (mousemove)="popover.move($event)"
+          (mouseleave)="popover.hide()"
+        >
+          @if (item.kind === 'bar') {
+            <span class="swatch" [style.background]="item.color ?? colors()[0] ?? 'var(--p-primary-color)'"></span>
+          } @else {
+            <svg class="glyph marker kind-{{ item.kind }}" width="12" height="14" viewBox="-6 -7 12 14">
+              @switch (item.kind) {
+                @case ('dot') {
+                  <circle class="shape" r="3.5" />
+                }
+                @case ('diamond') {
+                  <path class="shape" d="M0,-5.5 L5.5,0 L0,5.5 L-5.5,0 Z" />
+                }
+                @case ('tick') {
+                  <line class="shape" y1="-7" y2="7" />
+                }
+              }
+            </svg>
+          }
+          {{ item.label }}
+        </span>
+      }
+    </div>
+  }
+}
+
+<ng-template #legendTip let-item>
+  <div class="tod-text-contrast-color">
+    <div class="font-bold">{{ item.label }}</div>
+    <div>{{ item.description }}</div>
+  </div>
+</ng-template>
+
+<ng-template #defaultTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="font-bold">{{ ctx.row.label }}</div>
+    <div>{{ ctx.range }}</div>
+    @for (line of ctx.row.details ?? []; track $index) {
+      <div class="tod-text-inverted-muted-color">{{ line }}</div>
+    }
+  </div>
+</ng-template>

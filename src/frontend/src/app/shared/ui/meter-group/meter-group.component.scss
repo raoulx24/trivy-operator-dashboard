@@ -1,0 +1,37 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.meter {
+  display: block;
+  cursor: default;
+}
+
+// the track is what is not filled (always there, only visible when the segments do not add up to the whole)
+.track {
+  fill: var(--tod-meter-group-track);
+}
+
+.segment {
+  transition: filter 180ms ease-in-out;
+
+  &:hover {
+    filter: brightness(1.12) saturate(1.1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.segment-value {
+  pointer-events: none;
+}
+
+.tip-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}

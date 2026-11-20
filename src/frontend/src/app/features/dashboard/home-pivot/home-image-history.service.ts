@@ -16,6 +16,11 @@ export class HomeImageHistoryService {
     this.openPage('vulnerability-reports', digest);
   }
 
+  // the exposed secrets report of the image
+  openExposedSecrets(digest: string): void {
+    this.openPage('exposed-secret-reports', digest);
+  }
+
   private openPage(page: string, digest: string): void {
     const url = this.router.serializeUrl(this.router.createUrlTree(['/open-trivy-rep'], { queryParams: { page, digest } }));
     window.open(url, '_blank');

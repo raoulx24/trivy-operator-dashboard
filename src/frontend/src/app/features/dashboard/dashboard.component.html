@@ -109,4 +109,12 @@
       (refresh)="reloadReachEpss()"
     />
   </div>
+
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <app-home-exposed-secrets
+      [hint]="exposedSecretsHint()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
+    />
+  </div>
 </div>

@@ -72,6 +72,9 @@ public class HomeNullService : QueryNullService, IHomeService
     public Task<HomeOldestImagesDto> GetOldestImages(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeOldestImagesDto(false, Reason, null, []));
 
+    public Task<HomeExposedSecretsDto> GetExposedSecrets(HomeFilter filter, CancellationToken ctx = default) =>
+        Task.FromResult(new HomeExposedSecretsDto(false, Reason, 0, null, 0, 0, []));
+
     public Task<HomePackageHotspotsDto> GetPackageHotspots(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomePackageHotspotsDto(false, Reason, []));
 

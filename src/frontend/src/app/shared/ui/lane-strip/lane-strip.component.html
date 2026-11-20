@@ -1,0 +1,71 @@
+<div class="lane-strip flex items-start" [style.--lane-cell]="cellSize() + 'px'" [style.--lane-gap]="cellGap() + 'px'">
+  <div class="lane-captions tod-text-muted-color">
+    @for (row of rows(); track $index) {
+      <div class="lane-caption" [title]="row.lane.caption">{{ row.lane.caption }}</div>
+    }
+  </div>
+
+  <app-scroller class="block min-w-0 flex-1" startAt="end">
+    <svg class="lane-grid" [attr.width]="width()" [attr.height]="height()" role="img">
+      @for (row of rows(); track $index; let laneIndex = $index) {
+        @for (cell of row.cells; track cell.columnIndex) {
+          <g
+            class="cell-group"
+            [class.has-value]="cell.value > 0"
+            [class.clickable]="clickable() && cell.value > 0"
+            [class.selected]="cell.selected"
+            (click)="onCellClick(row, laneIndex, cell)"
+            (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(row, laneIndex, cell))"
+            (mousemove)="popover.move($event)"
+            (mouseleave)="popover.hide()"
+          >
+            <rect
+              class="lane-cell"
+              [class.highlighted]="cell.highlighted"
+              [style.fill]="cell.background"
+              [attr.x]="cell.columnIndex * step() + 0.5"
+              [attr.y]="laneIndex * step() + 0.5"
+              [attr.width]="cellSize() - 1"
+              [attr.height]="cellSize() - 1"
+              rx="4"
+            />
+            @if (cell.selected) {
+              <rect
+                class="ring"
+                [attr.x]="cell.columnIndex * step() + 1.5"
+                [attr.y]="laneIndex * step() + 1.5"
+                [attr.width]="cellSize() - 3"
+                [attr.height]="cellSize() - 3"
+                rx="3"
+                stroke-width="2"
+              />
+              <rect
+                class="ring-inner"
+                [attr.x]="cell.columnIndex * step() + 3"
+                [attr.y]="laneIndex * step() + 3"
+                [attr.width]="cellSize() - 6"
+                [attr.height]="cellSize() - 6"
+                rx="1.5"
+                stroke-width="1"
+              />
+            }
+          </g>
+        }
+      }
+    </svg>
+  </app-scroller>
+
+  <div class="lane-totals">
+    @for (row of rows(); track $index) {
+      <div class="lane-total">{{ row.total }}</div>
+    }
+  </div>
+</div>
+
+<ng-template #defaultTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="font-bold">{{ ctx.column }}</div>
+    <div>{{ ctx.value }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
+    <div class="tod-text-inverted-muted-color">{{ ctx.caption }}</div>
+  </div>
+</ng-template>

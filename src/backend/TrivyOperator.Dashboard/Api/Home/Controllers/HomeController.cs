@@ -237,6 +237,16 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeService.GetOldestImages(ToFilter(null, severities, namespaces, limit), ctx));
 
+    // the severities do not apply: an exposed secret matters whatever the severity; the limit is the number of images
+    [HttpGet("exposed-secrets", Name = "GetHomeExposedSecrets")]
+    [ProducesResponseType(typeof(HomeExposedSecretsDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetExposedSecrets(
+        [FromQuery] string[]? namespaces,
+        [FromQuery] int? limit,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetExposedSecrets(ToFilter(null, null, namespaces, limit), ctx));
+
     [HttpGet("package-hotspots", Name = "GetHomePackageHotspots")]
     [ProducesResponseType(typeof(HomePackageHotspotsDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]

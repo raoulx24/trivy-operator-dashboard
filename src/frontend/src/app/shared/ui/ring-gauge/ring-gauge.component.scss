@@ -1,0 +1,71 @@
+:host {
+  display: inline-block;
+}
+
+// not "ring": that is a Tailwind utility (box-shadow) that would draw a border
+.gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  outline: none;
+
+  // the keyboard focus is on the ring, not on the box around it with the legend
+  &:focus-visible .ring-body {
+    outline: 2px solid var(--p-primary-color);
+    outline-offset: 2px;
+    border-radius: 50%;
+  }
+}
+
+svg {
+  display: block;
+  // the growth of the selection goes over the box of the svg
+  overflow: visible;
+}
+
+.ring-body {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 180ms ease-in-out,
+    filter 180ms ease-in-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.track {
+  fill: none;
+  stroke: var(--tod-ring-gauge-track);
+}
+
+.arc {
+  fill: none;
+}
+
+.center {
+  pointer-events: none;
+  font-size: 1.5rem;
+}
+
+.legend {
+  text-align: center;
+}
+
+// hovered: the same as selected, a little less
+.gauge:hover .ring-body {
+  transform: scale(1.1);
+  filter: brightness(1.12) saturate(1.1);
+}
+
+.gauge.selected .ring-body {
+  transform: scale(1.2);
+  filter: brightness(1.12) saturate(1.1);
+}
+
+.gauge.selected .legend {
+  font-weight: 600;
+}

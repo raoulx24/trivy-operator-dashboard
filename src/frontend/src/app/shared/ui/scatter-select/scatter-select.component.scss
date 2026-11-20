@@ -1,0 +1,75 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.scatter-select {
+  display: block;
+  cursor: default;
+  // a drag must not scroll or select on touch
+  touch-action: none;
+  user-select: none;
+
+  &.selectable .plot-area {
+    cursor: crosshair;
+  }
+}
+
+.plot-area {
+  fill: transparent;
+}
+
+.axis {
+  stroke: var(--tod-scatter-axis);
+  stroke-width: 1;
+}
+
+.point {
+  fill: var(--p-primary-color);
+  transition:
+    fill-opacity 180ms ease-in-out,
+    filter 180ms ease-in-out;
+
+  &:hover {
+    filter: brightness(1.2) saturate(1.1);
+  }
+
+  &.dimmed {
+    fill-opacity: 0.18;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// no hover (nor popover) while a region is drawn
+.drawing .point {
+  pointer-events: none;
+}
+
+.region {
+  fill: var(--tod-scatter-region-fill);
+  stroke: var(--tod-scatter-region-stroke);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+
+  &.draft {
+    stroke-dasharray: 4 3;
+  }
+}
+
+.legend {
+  cursor: default;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}

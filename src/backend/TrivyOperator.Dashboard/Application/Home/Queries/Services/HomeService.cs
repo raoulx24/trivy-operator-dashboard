@@ -38,6 +38,7 @@ public class HomeService(
     private const string NoHistory = "Vulnerability reports history is not enabled";
     private const string NoCveEnrichment = "CVE enrichment is not enabled";
     private const string NoEndOfLife = "End of life is not enabled";
+    private const string NoExposedSecrets = "Exposed secret reports are not enabled";
     private const string NoSecurityAssessments = "No security assessment reports (config audit, RBAC, infra) are enabled";
 
     private static readonly int[] DefaultSeverityIds = [Severities.Critical.Rank, Severities.High.Rank,];
@@ -957,6 +958,75 @@ public class HomeService(
         ];
 
         return new HomeOldestImagesDto(true, null, table.HistoryStartedAt?.Value, items);
+    }
+
+    // running images with exposed secrets (reports of the namespaces asked); the secret values are never read into the dto
+    public async Task<HomeExposedSecretsDto> GetExposedSecrets(HomeFilter filter, CancellationToken ctx = default)
+    {
+        if (sources.ExposedSecretReports is null)
+        {
+            return new HomeExposedSecretsDto(false, NoExposedSecrets, 0, null, 0, 0, []);
+        }
+
+        HashSet<NamespaceName>? namespaceNames = filter.Namespaces is { Count: > 0, }
+            ? [.. filter.Namespaces.Select(x => new NamespaceName(x)),]
+            : null;
+
+        // the reach of a report counts only the occurrences inside the namespaces asked
+        List<(ExposedSecretReport Report, List<ReportImageOccurrence> Occurrences)> scoped =
+        [
+            .. (await sources.ExposedSecretReports.GetResources(ctx))
+                .Select(report => (
+                    Report: report,
+                    Occurrences: report.Occurrences
+                        .Where(x => namespaceNames is null || namespaceNames.Contains(x.Metadata.NamespaceName))
+                        .ToList()))
+                .Where(x => x.Occurrences.Count > 0),
+        ];
+
+        List<HomeExposedSecretImageDto> images =
+        [
+            .. scoped
+                .Where(x => x.Report.Secrets.Count > 0)
+                .Select(x =>
+                {
+                    ReportImageOccurrence first = x.Occurrences[0];
+                    HashSet<NamespaceName> reachedNamespaces = [.. x.Occurrences.Select(o => o.Metadata.NamespaceName),];
+
+                    return new HomeExposedSecretImageDto(
+                        Digest: x.Report.ImageDigest.Value,
+                        Registry: first.ImageMeta.Registry.Value,
+                        Repository: first.ImageMeta.Repo.Value,
+                        Tag: first.ImageMeta.Tag.Value,
+                        SecretCount: x.Report.Secrets.Count,
+                        SeverityId: x.Report.Secrets.Min(s => s.Rule.Severity.Rank),
+                        Workloads: x.Occurrences.Select(o => o.Metadata.Uid).Distinct().Count(),
+                        Namespaces: reachedNamespaces.Count,
+                        NamespaceNames: ToNamespaceNames(reachedNamespaces),
+                        ByType:
+                        [
+                            .. x.Report.Secrets
+                                .GroupBy(s => (Type: s.Rule.Title.Value, SeverityId: s.Rule.Severity.Rank))
+                                .Select(g => new HomeExposedSecretTypeCountDto(g.Key.Type, g.Key.SeverityId, g.Count()))
+                                .OrderBy(g => g.SeverityId)
+                                .ThenByDescending(g => g.Count)
+                                .ThenBy(g => g.Type, StringComparer.Ordinal),
+                        ]);
+                })
+                .OrderBy(x => x.SeverityId)
+                .ThenByDescending(x => x.SecretCount)
+                .ThenBy(x => x.Repository, StringComparer.Ordinal)
+                .ThenBy(x => x.Digest, StringComparer.Ordinal),
+        ];
+
+        return new HomeExposedSecretsDto(
+            true,
+            null,
+            scoped.Count,
+            scoped.Count == 0 ? null : scoped.Max(x => x.Report.LastSeenAt).Value,
+            images.Sum(x => x.SecretCount),
+            images.Count,
+            [.. images.Take(filter.Limit),]);
     }
 
     public async Task<HomePackageHotspotsDto> GetPackageHotspots(HomeFilter filter, CancellationToken ctx = default)

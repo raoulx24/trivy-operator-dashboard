@@ -1,8 +1,131 @@
-<p>It just works, man!</p>
+<div class="tests">
+  <!-- activity-heatmap -->
+  <fieldset class="box">
+    <legend>activity-heatmap</legend>
+    <div class="variant">
+      <span class="variant-title">3 rows</span>
+      <app-activity-heatmap
+        [data]="activityData"
+        [rows]="3"
+        [emphasis1Days]="activityEmphasis1"
+        [emphasis2Days]="activityEmphasis2"
+        emphasis1Label="Seen"
+        emphasis2Label="Failed"
+        valueLabel="scans"
+        [selectedDay]="activitySelectedDay()"
+        (daySelected)="activitySelectedDay.set($event)"
+      />
+    </div>
+    <div class="variant">
+      <span class="variant-title">4 rows</span>
+      <app-activity-heatmap [data]="activityData" [rows]="4" [showLegend]="false" valueLabel="scans" />
+    </div>
+  </fieldset>
 
-<div class="flex items-center gap-2">
-  <input class="w-64" pInputText placeholder="CVE-YYYY-NNNN" [(ngModel)]="cveIdInput" (keydown.enter)="openCveDetailsDialog()" />
-  <p-button icon="pi pi-info-circle" label="CVE details" [disabled]="!cveIdInput.trim()" (onClick)="openCveDetailsDialog()" />
+  <!-- eol-runway -->
+  <fieldset class="box">
+    <legend>eol-runway</legend>
+    <app-eol-runway [items]="eolItems" [today]="today" />
+  </fieldset>
+
+  <!-- lane-strip -->
+  <fieldset class="box">
+    <legend>lane-strip</legend>
+    <app-lane-strip
+      [columns]="laneColumns"
+      [lanes]="lanes"
+      [colors]="laneColors"
+      [highlightFrom]="10"
+      [(selected)]="laneSelected"
+      valueLabel="vulns"
+    />
+  </fieldset>
+
+  <!-- matrix-heatmap -->
+  <fieldset class="box box-wide">
+    <legend>matrix-heatmap</legend>
+    <div class="variant">
+      <span class="variant-title">values and legend, selectable</span>
+      <app-matrix-heatmap
+        [rows]="matrixRows"
+        [columns]="matrixColumns"
+        [values]="matrixValues"
+        [showLegend]="true"
+        [selectable]="true"
+        valueLabel="vulns"
+      />
+    </div>
+    <div class="variant">
+      <span class="variant-title">compact, shades only</span>
+      <app-matrix-heatmap
+        [rows]="matrixRows"
+        [columns]="matrixColumns"
+        [values]="matrixValues"
+        [showValues]="false"
+        [showRowLabels]="false"
+        [cellHeight]="20"
+        [cellGap]="2"
+        valueLabel="vulns"
+      />
+    </div>
+  </fieldset>
+
+  <!-- meter-group -->
+  <fieldset class="box box-wide">
+    <legend>meter-group</legend>
+    <div class="variant">
+      <span class="variant-title">a mix (no max), thin</span>
+      <app-meter-group [segments]="meterMix" valueLabel="vulns" />
+    </div>
+    <div class="variant">
+      <span class="variant-title">a mix, with values</span>
+      <app-meter-group [segments]="meterMix" [showValues]="true" valueLabel="vulns" />
+    </div>
+    <div class="variant">
+      <span class="variant-title">a percent (max = 100), with values</span>
+      <app-meter-group [segments]="meterPercent" [max]="100" [showValues]="true" valueLabel="%" />
+    </div>
+  </fieldset>
+
+  <!-- ring-gauge -->
+  <fieldset class="box">
+    <legend>ring-gauge</legend>
+    <div class="rings">
+      @for (ring of rings; track ring.id) {
+        <app-ring-gauge [data]="ring" [(selected)]="ringSelected" />
+      }
+    </div>
+  </fieldset>
+
+  <!-- scatter-select -->
+  <fieldset class="box box-wide">
+    <legend>scatter-select</legend>
+    <div class="variant">
+      <span class="variant-title">linear axes</span>
+      <app-scatter-select [points]="scatterPoints" [xAxis]="scatterXLinear" [yAxis]="scatterY" [legend]="scatterLegend" />
+    </div>
+    <div class="variant">
+      <span class="variant-title">log x axis</span>
+      <app-scatter-select [points]="scatterPoints" [xAxis]="scatterXLog" [yAxis]="scatterY" [legend]="scatterLegend" />
+    </div>
+  </fieldset>
+
+  <!-- span-timeline -->
+  <fieldset class="box box-wide">
+    <legend>span-timeline</legend>
+    <div class="variant">
+      <span class="variant-title">linear scale</span>
+      <app-span-timeline [rows]="spanRows" [legend]="spanLegend" [colors]="spanColors" />
+    </div>
+    <div class="variant">
+      <span class="variant-title">log scale</span>
+      <app-span-timeline [rows]="spanRows" scale="log" [colors]="spanColors" />
+    </div>
+  </fieldset>
+
+  <!-- stacked-bar-chart -->
+  <fieldset class="box box-wide">
+    <legend>stacked-bar-chart</legend>
+    <app-stacked-bar-chart [columns]="stackedColumns" [series]="stackedSeries" [highlightFrom]="10" [clickable]="true" valueLabel="vulns" />
+  </fieldset>
 </div>
-
-<app-cve-details-dialog [(isVisible)]="isCveDetailsDialogVisible" [cveId]="cveDetailsCveId()" />

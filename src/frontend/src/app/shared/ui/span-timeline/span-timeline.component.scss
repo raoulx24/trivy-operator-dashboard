@@ -1,0 +1,151 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.timeline {
+  display: block;
+  // the plain pointer everywhere, also over the texts (no text caret); they stay selectable
+  cursor: default;
+
+  text {
+    user-select: text;
+  }
+}
+
+.row-bg {
+  fill: transparent;
+  stroke: transparent;
+  pointer-events: none;
+  transition: fill 150ms ease-in-out;
+}
+
+.row.selectable {
+  .row-hit {
+    cursor: pointer;
+  }
+
+  &:hover .row-bg {
+    fill: var(--tod-span-timeline-row-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    .row-bg {
+      stroke: var(--tod-span-timeline-selected-border);
+    }
+  }
+}
+
+.row.selected .row-bg {
+  fill: var(--tod-span-timeline-selected);
+  stroke: var(--tod-span-timeline-selected-border);
+}
+
+.row-hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.track {
+  fill: var(--tod-span-timeline-track);
+  pointer-events: none;
+}
+
+// hover: the bar grows in thickness only (its length is a time, so it never scales) and gets brighter
+.bar {
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 200ms ease-in-out,
+    filter 200ms ease-in-out;
+}
+
+.row:hover .bar {
+  transform: scaleY(1.15);
+  filter: brightness(1.1);
+}
+
+.row-value,
+.row-label {
+  pointer-events: none;
+}
+
+.row-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.reference {
+  stroke: var(--p-text-muted-color);
+  stroke-width: 0.75;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+// the markers: the color comes from --span-marker-color (set per marker) or from the kind
+.marker {
+  cursor: pointer;
+
+  .marker-hit {
+    fill: transparent;
+    pointer-events: all;
+  }
+
+  .shape {
+    pointer-events: none;
+  }
+
+  &.kind-dot .shape {
+    fill: var(--span-marker-color, var(--tod-span-timeline-dot));
+    stroke: var(--tod-span-timeline-marker-outline);
+    stroke-width: 1;
+  }
+
+  &.kind-diamond .shape {
+    fill: var(--span-marker-color, var(--tod-span-timeline-diamond));
+    stroke: var(--tod-span-timeline-marker-outline);
+    stroke-width: 1;
+  }
+
+  &.kind-tick .shape {
+    stroke: var(--span-marker-color, var(--tod-span-timeline-tick));
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .row-bg {
+    transition: none;
+  }
+}
+
+.legend {
+  // plain pointer over the legend texts too (no text caret); they stay selectable
+  cursor: default;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.glyph {
+  display: block;
+}

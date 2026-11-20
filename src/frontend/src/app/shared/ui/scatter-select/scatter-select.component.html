@@ -1,0 +1,100 @@
+@if (width() > 0) {
+  <svg
+    class="scatter-select"
+    [class.selectable]="selectable()"
+    [class.drawing]="drawing()"
+    [attr.width]="width()"
+    [attr.height]="height()"
+    role="img"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp()"
+    (pointercancel)="onPointerCancel()"
+  >
+    <!-- transparent: the area where a drag starts -->
+    <rect
+      class="plot-area"
+      [attr.x]="plot().left"
+      [attr.y]="plot().top"
+      [attr.width]="plot().right - plot().left"
+      [attr.height]="plot().bottom - plot().top"
+    />
+
+    <line class="axis" [attr.x1]="plot().left" [attr.y1]="plot().bottom" [attr.x2]="plot().right" [attr.y2]="plot().bottom" />
+    <line class="axis" [attr.x1]="plot().left" [attr.y1]="plot().top" [attr.x2]="plot().left" [attr.y2]="plot().bottom" />
+
+    @if (showTicks()) {
+      @for (tick of xTicks(); track tick.value) {
+        <line class="axis" [attr.x1]="tick.at" [attr.x2]="tick.at" [attr.y1]="plot().bottom" [attr.y2]="plot().bottom + 4" />
+        <text class="tod-chart-label tod-chart-label-muted" text-anchor="middle" [attr.x]="tick.at" [attr.y]="plot().bottom + 17">
+          {{ tick.text }}
+        </text>
+      }
+      @for (tick of yTicks(); track tick.value) {
+        <line class="axis" [attr.x1]="plot().left - 4" [attr.x2]="plot().left" [attr.y1]="tick.at" [attr.y2]="tick.at" />
+        <text
+          class="tod-chart-label tod-chart-label-muted"
+          text-anchor="end"
+          dominant-baseline="central"
+          [attr.x]="plot().left - 8"
+          [attr.y]="tick.at"
+        >
+          {{ tick.text }}
+        </text>
+      }
+    }
+
+    @if (yAxis().label) {
+      <text class="tod-chart-label tod-chart-label-muted" x="0" y="12">{{ yAxis().label }}</text>
+    }
+    @if (xAxis().label) {
+      <text class="tod-chart-label tod-chart-label-muted" text-anchor="end" [attr.x]="plot().right" [attr.y]="height() - 4">
+        {{ xAxis().label }}
+      </text>
+    }
+
+    @for (path of regionPaths(); track $index) {
+      <path class="region" [attr.d]="path" />
+    }
+
+    @for (view of views(); track view.index) {
+      <path
+        class="point"
+        [class.dimmed]="view.dimmed"
+        [attr.d]="view.path"
+        [style.fill]="view.color"
+        [style.fill-opacity]="view.selected ? 1 : view.dimmed ? null : pointOpacity()"
+        (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(view))"
+        (mousemove)="popover.move($event)"
+        (mouseleave)="popover.hide()"
+      />
+    }
+
+    @if (draftPath(); as path) {
+      <path class="region draft" [attr.d]="path" />
+    }
+  </svg>
+}
+
+@if (legend().length > 0) {
+  <div class="legend tod-chart-legend tod-text-muted-color">
+    @for (item of legend(); track $index) {
+      <span class="legend-item" (mouseenter)="popover.show(item.hint ?? '', $any($event.currentTarget))" (mouseleave)="popover.hide()">
+        <svg width="14" height="14" aria-hidden="true">
+          <path class="point" [attr.d]="legendPath(item.shape)" [style.fill]="item.color" />
+        </svg>
+        <span>{{ item.label }}</span>
+      </span>
+    }
+  </div>
+}
+
+<ng-template #defaultTip let-ctx>
+  <div class="tod-text-contrast-color">
+    @if (ctx.view.point.label) {
+      <div class="font-bold">{{ ctx.view.point.label }}</div>
+    }
+    <div>{{ ctx.xLabel }}: {{ ctx.xText }}</div>
+    <div>{{ ctx.yLabel }}: {{ ctx.yText }}</div>
+  </div>
+</ng-template>
