@@ -20,6 +20,11 @@
   transition: fill 150ms ease-in-out;
 }
 
+.row {
+  // the browser focus ring (the black border a click leaves on the focused row) is replaced by our own below
+  outline: none;
+}
+
 .row.selectable {
   .row-hit {
     cursor: pointer;
@@ -29,9 +34,8 @@
     fill: var(--tod-span-timeline-row-hover);
   }
 
+  // only for the keyboard: a mouse click focuses the row too, but it must not draw anything
   &:focus-visible {
-    outline: none;
-
     .row-bg {
       stroke: var(--tod-span-timeline-selected-border);
     }

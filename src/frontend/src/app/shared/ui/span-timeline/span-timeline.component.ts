@@ -35,6 +35,8 @@ const MIN_AXIS_WIDTH = 60;
 // the room after the right end of the axis (the "today" label is centered on it)
 const RIGHT_PAD = 20;
 const VALUE_GAP = 12;
+// the room between the text at either end of a row and the edge of the row (the selection outline)
+const EDGE_PAD = 8;
 const MAX_MARKERS = 3;
 // ticks closer than this to each other (or to the right end) are dropped
 const MIN_TICK_GAP = 52;
@@ -105,12 +107,11 @@ export class SpanTimelineComponent {
 
   protected readonly barsLeft = computed(() => this.labelWidth());
   protected readonly barsWidth = computed(() => {
-    const right = RIGHT_PAD + (this.hasValues() ? this.valueWidth() + VALUE_GAP : 0);
+    const right = RIGHT_PAD + (this.hasValues() ? this.valueWidth() + VALUE_GAP + EDGE_PAD : 0);
     return Math.max(MIN_AXIS_WIDTH, this.viewWidth() - this.labelWidth() - right);
   });
-  protected readonly valueX = computed(
-    () => this.barsLeft() + this.barsWidth() + RIGHT_PAD + VALUE_GAP + this.valueWidth(),
-  );
+  // the value ends EDGE_PAD before the right edge, as the label starts EDGE_PAD after the left one
+  protected readonly valueX = computed(() => this.viewWidth() - EDGE_PAD);
   protected readonly nowX = computed(() => this.barsLeft() + this.barsWidth());
 
   private readonly domainMax = computed(() => {

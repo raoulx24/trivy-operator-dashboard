@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 
 import { WeekdayNamePipe } from '../../pipes/weekday-name.pipe';
+import { cornerMarkerPath } from '../corner-marker/corner-marker-path';
 import { PopoverService } from '../popover/popover.service';
 import { ScrollerComponent } from '../scroller/scroller.component';
 
@@ -29,8 +30,6 @@ const LABEL_BASELINE = 14;
 const LEVELS = 4;
 // the legend swatches (px), as in the scss
 const LEGEND_SWATCH = 17;
-// the corner markers: the side of the triangle, as a share of the cell
-const MARKER_SIZE = 0.44;
 // only when the browser has no Intl week info
 const SUNDAY_REGIONS = new Set(['US', 'CA', 'MX', 'BR', 'JP', 'IL', 'IN', 'PH', 'ZA', 'AU']);
 
@@ -192,57 +191,18 @@ export class ActivityHeatmapComponent {
 
   // the corner marker: a right triangle in the top-right of the cell, its three corners rounded
   protected cornerPath(cell: ActivityHeatmapCell): string {
-    return this.roundedCorner(cell.x, cell.y, this.cellSize(), 'top-right');
+    return cornerMarkerPath(cell.x, cell.y, this.cellSize(), 'top-right');
   }
 
   // the marker of emphasis1: the same triangle in the opposite corner (bottom-left)
   protected visitPath(cell: ActivityHeatmapCell): string {
-    return this.roundedCorner(cell.x, cell.y, this.cellSize(), 'bottom-left');
+    return cornerMarkerPath(cell.x, cell.y, this.cellSize(), 'bottom-left');
   }
 
   // the same marker for the legend swatch (a square of LEGEND_SWATCH px)
-  protected readonly legendCornerPath = this.roundedCorner(0, 0, LEGEND_SWATCH, 'top-right');
-  protected readonly legendVisitPath = this.roundedCorner(0, 0, LEGEND_SWATCH, 'bottom-left');
+  protected readonly legendCornerPath = cornerMarkerPath(0, 0, LEGEND_SWATCH, 'top-right');
+  protected readonly legendVisitPath = cornerMarkerPath(0, 0, LEGEND_SWATCH, 'bottom-left');
   protected readonly legendSwatchSize = LEGEND_SWATCH;
-
-  // a marker for the square at (x, y) of `size`: a right triangle in one of two opposite corners
-  private roundedCorner(x: number, y: number, size: number, corner: 'top-right' | 'bottom-left'): string {
-    // 20% smaller than the 55% it had
-    const s = Math.round(size * MARKER_SIZE);
-    const right = x + size - 1;
-    const top = y + 1;
-    const left = x + 1;
-    const bottom = y + size - 1;
-    const points: [number, number][] =
-      corner === 'top-right'
-        ? [
-            [right - s, top],
-            [right, top],
-            [right, top + s],
-          ]
-        : [
-            [left + s, bottom],
-            [left, bottom],
-            [left, bottom - s],
-          ];
-    // how far from each corner the rounding starts along the edges (a quadratic curve with the corner as control)
-    const trim = s * 0.28;
-
-    return points
-      .map((v, i) => {
-        const from = this.towards(v, points[(i + 2) % 3], trim);
-        const to = this.towards(v, points[(i + 1) % 3], trim);
-        return `${i === 0 ? 'M' : 'L'}${from[0]},${from[1]} Q${v[0]},${v[1]} ${to[0]},${to[1]}`;
-      })
-      .join(' ')
-      .concat(' Z');
-  }
-
-  // the point `distance` away from `from`, on the way to `to`
-  private towards(from: [number, number], to: [number, number], distance: number): [number, number] {
-    const length = Math.hypot(to[0] - from[0], to[1] - from[1]);
-    return [from[0] + ((to[0] - from[0]) / length) * distance, from[1] + ((to[1] - from[1]) / length) * distance];
-  }
 
   private range(data: ActivityHeatmapDayDto[]): [number, number] | undefined {
     const days = data.map((d) => d.day).sort();

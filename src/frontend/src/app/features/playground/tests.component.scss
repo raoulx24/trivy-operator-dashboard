@@ -27,6 +27,13 @@
   width: 32rem;
 }
 
+// a box narrower than its component: the component scrolls inside (the activity heatmap)
+.box-narrow {
+  width: 24rem;
+  // a fieldset is as wide as its content at least, which is what the scroller is there to avoid
+  min-width: 0;
+}
+
 .variant {
   display: flex;
   flex-direction: column;

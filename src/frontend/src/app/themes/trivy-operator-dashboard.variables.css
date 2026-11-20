@@ -99,8 +99,7 @@
   --tod-heatmap-visit: var(--p-teal-500);
   --tod-heatmap-marker-outline: var(--p-surface-0);
 
-  /* lane strip: the outline of the cells in the highlighted range, and the background of the cells without a value */
-  --tod-lane-strip-highlight: color-mix(in srgb, var(--p-primary-color) 55%, transparent);
+  /* lane strip: the background of the cells without a value */
   --tod-lane-strip-empty: color-mix(in srgb, var(--p-text-color) 7%, transparent);
 
   /* stacked bar chart: the track behind the highlighted columns, and the dash of a column without a value */

@@ -8,6 +8,7 @@ import {
   computed,
   inject,
   input,
+  model,
   output,
   signal,
 } from '@angular/core';
@@ -59,7 +60,7 @@ export class MatrixHeatmapComponent {
 
   // px
   cellHeight = input<number>(36);
-  cellGap = input<number>(4);
+  cellGap = input<number>(6);
   rowLabelWidth = input<number>(56);
 
   showColumnLabels = input<boolean>(true);
@@ -70,10 +71,11 @@ export class MatrixHeatmapComponent {
   // the popover of the legend (on hover); none for an empty text
   valueHint = input<string>('');
 
-  // the cells with a value can be clicked (cellSelected)
+  // the cells with a value can be clicked (selects them, cellSelected)
   selectable = input<boolean>(false);
-  // the cell marked as selected, by the owner (a click only says which cell: cellSelected)
-  selectedCell = input<MatrixHeatmapCellRef | null>(null);
+  // the selected cell, two-way: a click on a cell with a value selects it, a click on the selected one unselects it
+  // (the owner can also set it); null = none
+  selectedCell = model<MatrixHeatmapCellRef | null>(null);
   // replaces the default popover; its context is a MatrixHeatmapTipContext
   tooltipTemplate = input<TemplateRef<{ $implicit: MatrixHeatmapTipContext }> | undefined>(undefined);
 
@@ -185,6 +187,8 @@ export class MatrixHeatmapComponent {
 
   protected onCellClick(cell: MatrixHeatmapCell): void {
     if (!cell.selectable) return;
+    // a click on the selected cell unselects it
+    this.selectedCell.set(cell.selected ? null : { rowIndex: cell.rowIndex, columnIndex: cell.columnIndex });
     this.cellSelected.emit({
       rowIndex: cell.rowIndex,
       columnIndex: cell.columnIndex,

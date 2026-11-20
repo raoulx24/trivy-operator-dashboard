@@ -17,6 +17,7 @@
     @for (cell of cells(); track cell.rowIndex + '-' + cell.columnIndex) {
       <g
         class="cell-group"
+        [class.has-value]="cell.value > 0"
         [class.selectable]="cell.selectable"
         [class.selected]="cell.selected"
         (click)="onCellClick(cell)"

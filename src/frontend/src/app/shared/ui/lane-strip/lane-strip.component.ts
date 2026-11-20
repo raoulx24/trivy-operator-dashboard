@@ -10,6 +10,7 @@ import {
   output,
 } from '@angular/core';
 
+import { cornerMarkerPath } from '../corner-marker/corner-marker-path';
 import { PopoverService } from '../popover/popover.service';
 import { ScrollerComponent } from '../scroller/scroller.component';
 
@@ -21,7 +22,8 @@ const MIN_INTENSITY = 35;
 // lanes of squares on one shared horizontal axis: a caption on the left and a total on the right stay put, the squares
 // scroll between them (app-scroller, at the end by default)
 // - everything comes from the inputs: columns (their labels), lanes (caption, values, optional total), colors (one per
-//   lane, taken in turn when there are fewer), highlightFrom (first highlighted column: outlined cells)
+//   lane, taken in turn when there are fewer), and per lane the columns to mark with a
+//   triangle (emphasis1, emphasis2)
 // - the intensity of a cell follows its value against the largest value of its lane; zero is an empty cell
 // - the control does not know what the lanes or the columns mean
 @Component({
@@ -38,10 +40,8 @@ export class LaneStripComponent {
   lanes = input<LaneStripLane[]>([]);
   // css colors, one per lane (the first for the first lane...); used in turn when there are fewer than lanes
   colors = input<string[]>([]);
-  // the first column of the highlighted range (to the end); null = no highlight
-  highlightFrom = input<number | null>(null);
 
-  // the selected cell, two-way: a click on a cell with a value selects it (the owner can also set it); null = none
+  // the selected cell, two-way: a click on a cell with a value selects it, a click on the selected one unselects it (the owner can also set it); null = none
   selected = model<LaneStripSelection | null>(null);
 
   cellSize = input<number>(24);
@@ -49,6 +49,9 @@ export class LaneStripComponent {
 
   // the cells with a value can be clicked (cellClicked)
   clickable = input<boolean>(true);
+  // the texts of the two markers in the popover (shown on the cells that have them)
+  emphasis1Label = input<string>('');
+  emphasis2Label = input<string>('');
   // the text of the tooltip after the value, e.g. "vulns"
   valueLabel = input<string>('');
   // replaces the default popover (the column, "value label", the lane caption); its context is a LaneStripTipContext
@@ -77,13 +80,16 @@ export class LaneStripComponent {
 
   protected readonly rows = computed<LaneStripRow[]>(() => {
     const colors = this.colors();
-    const from = this.highlightFrom();
+    const size = this.cellSize();
+    const step = this.step();
     const selected = this.selected();
     const count = this.columns().length;
 
     return this.lanes().map((lane, laneIndex) => {
       const color = colors.length > 0 ? colors[laneIndex % colors.length] : 'currentColor';
       const max = Math.max(0, ...lane.values);
+      const emphasis1 = new Set(lane.emphasis1 ?? []);
+      const emphasis2 = new Set(lane.emphasis2 ?? []);
 
       const cells: LaneStripCell[] = Array.from({ length: count }, (_, columnIndex) => {
         const value = lane.values[columnIndex] ?? 0;
@@ -92,7 +98,12 @@ export class LaneStripComponent {
           columnIndex,
           value,
           background: value > 0 ? `color-mix(in srgb, ${color} ${intensity.toFixed(1)}%, transparent)` : null,
-          highlighted: from !== null && columnIndex >= from,
+          emphasis1Path: emphasis1.has(columnIndex)
+            ? cornerMarkerPath(columnIndex * step, laneIndex * step, size, 'bottom-left')
+            : null,
+          emphasis2Path: emphasis2.has(columnIndex)
+            ? cornerMarkerPath(columnIndex * step, laneIndex * step, size, 'top-right')
+            : null,
           selected: selected?.laneIndex === laneIndex && selected.columnIndex === columnIndex,
         };
       });
@@ -103,7 +114,8 @@ export class LaneStripComponent {
 
   protected onCellClick(row: LaneStripRow, laneIndex: number, cell: LaneStripCell): void {
     if (!this.clickable() || cell.value <= 0) return;
-    this.selected.set({ laneIndex, columnIndex: cell.columnIndex });
+    // a click on the selected cell unselects it
+    this.selected.set(cell.selected ? null : { laneIndex, columnIndex: cell.columnIndex });
     this.cellClicked.emit({
       laneIndex,
       columnIndex: cell.columnIndex,
@@ -118,6 +130,8 @@ export class LaneStripComponent {
       column: this.columns()[cell.columnIndex],
       caption: row.lane.caption,
       value: cell.value,
+      emphasis1: cell.emphasis1Path !== null,
+      emphasis2: cell.emphasis2Path !== null,
       laneIndex,
       columnIndex: cell.columnIndex,
     };

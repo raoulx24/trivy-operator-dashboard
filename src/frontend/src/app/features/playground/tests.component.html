@@ -1,6 +1,6 @@
 <div class="tests">
   <!-- activity-heatmap -->
-  <fieldset class="box">
+  <fieldset class="box box-narrow">
     <legend>activity-heatmap</legend>
     <div class="variant">
       <span class="variant-title">3 rows</span>
@@ -35,7 +35,8 @@
       [columns]="laneColumns"
       [lanes]="lanes"
       [colors]="laneColors"
-      [highlightFrom]="10"
+      emphasis1Label="new since last visit"
+      emphasis2Label="known exploited"
       [(selected)]="laneSelected"
       valueLabel="vulns"
     />

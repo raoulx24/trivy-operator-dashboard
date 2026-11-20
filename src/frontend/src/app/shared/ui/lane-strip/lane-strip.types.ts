@@ -5,6 +5,10 @@ export interface LaneStripLane {
   values: number[];
   // the text on the right; the sum of the values when not given
   total?: string | number;
+  // the columns (indexes) marked with a triangle: emphasis1 in the bottom-left corner, emphasis2 in the top-right one
+  // (independent of the value; the control does not know what they mean)
+  emphasis1?: number[];
+  emphasis2?: number[];
 }
 
 export interface LaneStripCellClick {
@@ -20,7 +24,9 @@ export interface LaneStripCell {
   value: number;
   // the fill: the lane color with an intensity that follows value / max of the lane; null for an empty cell
   background: string | null;
-  highlighted: boolean;
+  // the path of the triangle in the bottom-left (emphasis1) / top-right (emphasis2) corner; null = none
+  emphasis1Path: string | null;
+  emphasis2Path: string | null;
   selected: boolean;
 }
 
@@ -35,6 +41,8 @@ export interface LaneStripTipContext {
   column: string;
   caption: string;
   value: number;
+  emphasis1: boolean;
+  emphasis2: boolean;
   laneIndex: number;
   columnIndex: number;
 }

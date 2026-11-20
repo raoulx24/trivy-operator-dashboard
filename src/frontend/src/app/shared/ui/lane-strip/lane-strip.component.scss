@@ -73,13 +73,8 @@
 
 .lane-cell {
   fill: var(--tod-lane-strip-empty);
-  stroke: transparent;
+  stroke: var(--tod-heatmap-border);
   stroke-width: 1;
-
-  // the range to highlight: an outline, also on the empty cells
-  &.highlighted {
-    stroke: var(--tod-lane-strip-highlight);
-  }
 }
 
 // two-tone ring (as in the activity heatmap): the ring on the cell edge, with a thin opposite line just inside it
@@ -92,5 +87,22 @@
 .ring-inner {
   fill: none;
   stroke: var(--tod-heatmap-ring-inner);
+  pointer-events: none;
+}
+
+// the corner markers (as in the activity heatmap): the outline separates them from the color behind
+.corner {
+  fill: var(--tod-heatmap-corner);
+  stroke: var(--tod-heatmap-marker-outline);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.visit {
+  fill: var(--tod-heatmap-visit);
+  stroke: var(--tod-heatmap-marker-outline);
+  stroke-width: 1;
+  stroke-linejoin: round;
   pointer-events: none;
 }

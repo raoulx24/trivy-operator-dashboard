@@ -82,7 +82,8 @@ export class TestsComponent {
     { label: 'Alpine 3.17', eolFrom: isoDay(25), images: 5 },
     { label: 'Debian 11', eolFrom: isoDay(300), eoasFrom: isoDay(120), images: 21 },
     { label: 'Ubuntu 22.04', eolFrom: isoDay(500), eoasFrom: isoDay(200), images: 34 },
-    { label: 'Alpine 3.20', eolFrom: isoDay(700), images: 8 },
+    // beyond the window of the runway (3 years after today by default), so its bar overflows
+    { label: 'Alpine 3.20', eolFrom: '2032-06-30', images: 8 },
   ];
 
   // lane-strip
@@ -94,6 +95,9 @@ export class TestsComponent {
     return ['Critical', 'High', 'Medium'].map((caption, lane) => ({
       caption,
       values: this.laneColumns.map(() => (random() < 0.35 ? 0 : Math.ceil(random() * (12 - lane * 3)))),
+      // the last visit was 4 days ago; the exploited ones are a few scattered days
+      emphasis1: [10, 11, 12, 13],
+      emphasis2: lane === 0 ? [3, 11] : lane === 1 ? [6] : [],
     }));
   })();
   protected readonly laneSelected = signal<LaneStripSelection | null>(null);

@@ -9,25 +9,38 @@
   display: block;
   // the plain pointer everywhere, also over the texts (no text caret); they stay selectable
   cursor: default;
+  // a cell grows on hover: without this the svg clips it at its edge
+  overflow: visible;
 }
 
 .axis-label {
   user-select: text;
 }
 
+// a cell with its ring: grows a little and brightens on hover (only the cells with a value)
 .cell-group {
-  transition: filter 180ms ease-in-out;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 180ms ease-in-out,
+    filter 180ms ease-in-out;
 
-  &:hover {
+  &.selectable {
+    cursor: pointer;
+  }
+
+  &.has-value:hover {
+    transform: scale(1.06);
     filter: brightness(1.2) saturate(1.1);
+  }
+
+  // the selected cell is as big as a hovered one, and hovering it does not make it any bigger
+  &.selected {
+    transform: scale(1.06);
   }
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
-  }
-
-  &.selectable {
-    cursor: pointer;
   }
 }
 
