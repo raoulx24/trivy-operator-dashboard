@@ -1,0 +1,105 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// the colors are the --tod-layered-graph-* variables of the theme file (light and dark); the ring is the one of the
+// heatmaps (--tod-heatmap-ring, --tod-heatmap-ring-inner)
+
+.layered-graph {
+  display: block;
+  // the plain pointer everywhere, also over the texts (no text caret); they stay selectable
+  cursor: default;
+  // a node grows on hover: without this the svg clips it at its edge
+  overflow: visible;
+}
+
+.axis-label {
+  user-select: text;
+}
+
+.edge {
+  fill: none;
+  stroke: var(--tod-layered-graph-edge);
+  stroke-width: 1.5;
+  pointer-events: none;
+  transition: stroke 180ms ease-in-out;
+
+  &.faded {
+    stroke: var(--tod-layered-graph-edge-faded);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// a node with its ring: grows a little and brightens on hover
+.node-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 180ms ease-in-out,
+    filter 180ms ease-in-out,
+    opacity 180ms ease-in-out;
+
+  &.selectable {
+    cursor: pointer;
+  }
+
+  &:hover {
+    transform: scale(1.06);
+    filter: brightness(1.2) saturate(1.1);
+  }
+
+  // the selected node is as big as a hovered one, and hovering it does not make it any bigger
+  &.selected {
+    transform: scale(1.06);
+  }
+
+  &.faded {
+    opacity: var(--tod-layered-graph-faded-opacity);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.node {
+  fill: var(--tod-layered-graph-node);
+  stroke: var(--tod-heatmap-border);
+  stroke-width: 1;
+
+  // the "+n more" node: empty and dashed, it is not a node of the data
+  .more & {
+    fill: var(--tod-heatmap-empty);
+    stroke-dasharray: 3 3;
+  }
+}
+
+.node-text {
+  fill: var(--tod-layered-graph-node-text);
+  pointer-events: none;
+
+  .more & {
+    fill: var(--p-text-muted-color);
+  }
+}
+
+.node-value {
+  opacity: 0.75;
+}
+
+// two-tone: the ring on the node edge, with a thin opposite line just inside it
+.ring {
+  fill: none;
+  stroke: var(--tod-heatmap-ring);
+  pointer-events: none;
+}
+
+.ring-inner {
+  fill: none;
+  stroke: var(--tod-heatmap-ring-inner);
+  pointer-events: none;
+}

@@ -1,0 +1,98 @@
+@if (width() > 0 && hasNodes()) {
+  <svg class="layered-graph" [attr.width]="width()" [attr.height]="height()" role="img">
+    @if (showColumnLabels()) {
+      @for (label of columnLabels(); track $index) {
+        <text class="axis-label tod-chart-label tod-chart-label-muted" text-anchor="middle" [attr.x]="label.x" [attr.y]="labelBaseline">
+          {{ label.text }}
+        </text>
+      }
+    }
+    @for (edge of edgeViews(); track edge.key) {
+      <path class="edge" [class.faded]="!edge.active" [attr.d]="edge.path" />
+    }
+    @for (node of nodeViews(); track node.id) {
+      <g
+        class="node-group"
+        [class.more]="node.more"
+        [class.selectable]="node.selectable"
+        [class.selected]="node.selected"
+        [class.faded]="!node.active"
+        (click)="onNodeClick(node)"
+        (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, node)"
+        (mousemove)="popover.move($event)"
+        (mouseleave)="popover.hide()"
+      >
+        <rect
+          class="node"
+          [style.fill]="node.color"
+          [attr.x]="node.x"
+          [attr.y]="node.y"
+          [attr.width]="nodeWidth()"
+          [attr.height]="nodeHeight()"
+          [attr.rx]="nodeRadius"
+        />
+        <text
+          class="node-text tod-chart-label"
+          dominant-baseline="central"
+          [style.fill]="node.textColor"
+          [attr.x]="node.x + nodePadding"
+          [attr.y]="node.y + nodeHeight() / 2"
+        >
+          {{ node.text }}
+        </text>
+        @if (node.valueText) {
+          <text
+            class="node-text node-value tod-chart-label"
+            text-anchor="end"
+            dominant-baseline="central"
+            [style.fill]="node.textColor"
+            [attr.x]="node.x + nodeWidth() - nodePadding"
+            [attr.y]="node.y + nodeHeight() / 2"
+          >
+            {{ node.valueText }}
+          </text>
+        }
+        @if (node.selected) {
+          <rect
+            class="ring"
+            [attr.x]="node.x + 1"
+            [attr.y]="node.y + 1"
+            [attr.width]="nodeWidth() - 2"
+            [attr.height]="nodeHeight() - 2"
+            [attr.rx]="nodeRadius - 1"
+            stroke-width="2"
+          />
+          <rect
+            class="ring-inner"
+            [attr.x]="node.x + 2.5"
+            [attr.y]="node.y + 2.5"
+            [attr.width]="nodeWidth() - 5"
+            [attr.height]="nodeHeight() - 5"
+            [attr.rx]="nodeRadius - 2.5"
+            stroke-width="1"
+          />
+        }
+      </g>
+    }
+  </svg>
+}
+
+<ng-template #defaultTip let-node>
+  <div class="tod-text-contrast-color">
+    @if (node.more) {
+      <div class="font-bold">{{ node.columnLabel }} · {{ node.label }}</div>
+      @for (label of node.hiddenLabels.slice(0, hiddenLabelsInTip); track $index) {
+        <div>{{ label }}</div>
+      }
+      @if (node.hiddenLabels.length > hiddenLabelsInTip) {
+        <div>…</div>
+      }
+    } @else {
+      <div class="font-bold">{{ node.label }}</div>
+      <div>{{ node.columnLabel }}</div>
+      @if (node.valueText) {
+        <div>{{ node.valueText }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
+      }
+    }
+  </div>
+</ng-template>

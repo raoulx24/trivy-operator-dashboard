@@ -6,6 +6,8 @@ import { EolRunwayComponent } from '@shared/ui/eol-runway/eol-runway.component';
 import { EolRunwayItem } from '@shared/ui/eol-runway/eol-runway.types';
 import { LaneStripComponent } from '@shared/ui/lane-strip/lane-strip.component';
 import { LaneStripLane, LaneStripSelection } from '@shared/ui/lane-strip/lane-strip.types';
+import { LayeredGraphComponent } from '@shared/ui/layered-graph/layered-graph.component';
+import { LayeredGraphColumn, LayeredGraphEdge, LayeredGraphNode } from '@shared/ui/layered-graph/layered-graph.types';
 import { MatrixHeatmapComponent } from '@shared/ui/matrix-heatmap/matrix-heatmap.component';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
@@ -49,6 +51,7 @@ function shortDay(offsetDays: number): string {
     ActivityHeatmapComponent,
     EolRunwayComponent,
     LaneStripComponent,
+    LayeredGraphComponent,
     MatrixHeatmapComponent,
     MeterGroupComponent,
     RingGaugeComponent,
@@ -101,6 +104,42 @@ export class TestsComponent {
     }));
   })();
   protected readonly laneSelected = signal<LaneStripSelection | null>(null);
+
+  // layered-graph: package -> image -> namespace (the value of a namespace is its workloads)
+  protected readonly graphColumns: LayeredGraphColumn[] = [
+    { label: 'Package', color: '#c8643c', textColor: '#fff' },
+    { label: 'Image', color: '#5b4fc9', textColor: '#fff' },
+    { label: 'Namespace', color: '#2f8f6b', textColor: '#fff' },
+  ];
+  protected readonly graphNodes: LayeredGraphNode[] = [
+    { id: 'p1', column: 0, label: 'xz-utils 5.6.0' },
+    { id: 'p2', column: 0, label: 'openssl 3.0.2' },
+    { id: 'i1', column: 1, label: 'api:2.0.3', weight: 9 },
+    { id: 'i2', column: 1, label: 'worker:0.9', weight: 7 },
+    { id: 'i3', column: 1, label: 'gw:1.1', weight: 5 },
+    { id: 'i4', column: 1, label: 'billing:4.2.0', weight: 3 },
+    { id: 'i5', column: 1, label: 'reports:1.8', weight: 2 },
+    { id: 'i6', column: 1, label: 'legacy-batch:0.3', weight: 1 },
+    { id: 'n1', column: 2, label: 'payments', value: 3, weight: 5 },
+    { id: 'n2', column: 2, label: 'ingest', value: 2, weight: 4 },
+    { id: 'n3', column: 2, label: 'billing-prod', value: 4, weight: 3 },
+    { id: 'n4', column: 2, label: 'analytics', value: 1, weight: 2 },
+    { id: 'n5', column: 2, label: 'a-namespace-with-a-long-name', value: 6, weight: 1 },
+  ];
+  protected readonly graphEdges: LayeredGraphEdge[] = [
+    // the two packages share some images (i3, i4, i5)
+    ...['i1', 'i2', 'i3', 'i4', 'i5'].map((to) => ({ from: 'p1', to })),
+    ...['i3', 'i4', 'i5', 'i6'].map((to) => ({ from: 'p2', to })),
+    { from: 'i1', to: 'n1' },
+    { from: 'i3', to: 'n1' },
+    { from: 'i2', to: 'n2' },
+    { from: 'i3', to: 'n2' },
+    { from: 'i4', to: 'n3' },
+    { from: 'i5', to: 'n4' },
+    { from: 'i6', to: 'n4' },
+    { from: 'i6', to: 'n5' },
+  ];
+  protected readonly graphSelected = signal<string | null>('i3');
 
   // matrix-heatmap
   protected readonly matrixRows = ['Critical', 'High', 'Medium', 'Low'];

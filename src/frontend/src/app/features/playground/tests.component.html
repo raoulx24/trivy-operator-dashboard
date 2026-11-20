@@ -42,6 +42,34 @@
     />
   </fieldset>
 
+  <!-- layered-graph -->
+  <fieldset class="box box-wide">
+    <legend>layered-graph</legend>
+    <div class="variant">
+      <span class="variant-title">selectable, all nodes</span>
+      <app-layered-graph
+        [columns]="graphColumns"
+        [nodes]="graphNodes"
+        [edges]="graphEdges"
+        [selectable]="true"
+        [(selectedNode)]="graphSelected"
+        valueLabel="workloads"
+      />
+    </div>
+    <div class="variant">
+      <span class="variant-title">capped at 3 per column, theme colors, not selectable</span>
+      <app-layered-graph
+        [columns]="[{ label: 'Package' }, { label: 'Image' }, { label: 'Namespace' }]"
+        [nodes]="graphNodes"
+        [edges]="graphEdges"
+        [maxNodesPerColumn]="3"
+        [nodeHeight]="24"
+        [nodeGap]="6"
+        valueLabel="workloads"
+      />
+    </div>
+  </fieldset>
+
   <!-- matrix-heatmap -->
   <fieldset class="box box-wide">
     <legend>matrix-heatmap</legend>

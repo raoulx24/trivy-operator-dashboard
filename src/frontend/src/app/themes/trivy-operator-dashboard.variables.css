@@ -99,6 +99,14 @@
   --tod-heatmap-visit: var(--p-teal-500);
   --tod-heatmap-marker-outline: var(--p-surface-0);
 
+  /* layered graph: the node (when the owner gives no color) and its text, the edges, and how far the nodes that are not
+     on a path through the selected one fade; the border and the ring are the heatmap ones */
+  --tod-layered-graph-node: var(--p-blue-200);
+  --tod-layered-graph-node-text: var(--p-surface-900);
+  --tod-layered-graph-edge: color-mix(in srgb, var(--p-text-color) 45%, transparent);
+  --tod-layered-graph-edge-faded: color-mix(in srgb, var(--p-text-color) 10%, transparent);
+  --tod-layered-graph-faded-opacity: 0.3;
+
   /* lane strip: the background of the cells without a value */
   --tod-lane-strip-empty: color-mix(in srgb, var(--p-text-color) 7%, transparent);
 
@@ -179,6 +187,9 @@
   --tod-heatmap-corner: var(--p-orange-400);
   --tod-heatmap-visit: var(--p-teal-400);
   --tod-heatmap-marker-outline: var(--p-surface-950);
+
+  --tod-layered-graph-node: var(--p-blue-800);
+  --tod-layered-graph-node-text: var(--p-surface-0);
 
   --tod-network-line-color: color-mix(in srgb, var(--p-primary-color) 18%, transparent);
   --tod-network-node-color: color-mix(in srgb, var(--p-primary-color) 30%, transparent);
