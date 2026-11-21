@@ -11,9 +11,10 @@ import {
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ButtonModule } from 'primeng/button';
+import { forkJoin, map } from 'rxjs';
 import { ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
@@ -24,10 +25,21 @@ import { MainAppInitService } from '@core/services/main-app-init.service';
 import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
+import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
+import { StackedBarChartComponent } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.component';
+import { StackedBarClick, StackedBarColumn, StackedBarSeries } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.types';
+import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
+import { LayeredGraphComponent } from '@shared/ui/layered-graph/layered-graph.component';
+import {
+  LayeredGraphColumn,
+  LayeredGraphEdge,
+  LayeredGraphNode,
+} from '@shared/ui/layered-graph/layered-graph.types';
 import { ScrollerResizeDirective } from '@shared/ui/scroller-resize/scroller-resize.directive';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
-import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
-import { SelectedDtosEvent, TrivyTableColumn, VulnerabilityTagSource } from '@shared/ui/trivy-table/trivy-table.types';
+import { VulnerabilityTagSource } from '@shared/ui/trivy-table/trivy-table.types';
+import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
 import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags.pipe';
 import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
 
@@ -36,26 +48,36 @@ import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { dayRange, firstDayIndex, severityColor, severityName, severityTextColor, windowDaysLabel } from '../home-collapsed/home-collapsed';
+import {
+  HomeListSort,
+  HomeListSortKey,
+  nextSort,
+  sortIconOf,
+  sortLabelOf,
+  sortRows,
+  sortTitleOf,
+} from '../home-list-sort/home-list-sort';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import {
+  HomeVulnerabilityTableRow,
+  homeVulnerabilityColumns,
+  toHomeVulnerabilityTableRows,
+} from '../home-vulnerability-rows/home-vulnerability-rows';
 
-interface PackageRow {
-  // the place of the package in the packages of the detail
-  index: number;
-  packageName: string;
-  installed: string;
-  fixedVersion: string;
-  severityId: number;
-  firstSeen: string;
-  fixSince: string;
-  images: number;
-}
+// what the selected box shows: a package, an image or a namespace
+type SelectedInfo =
+  | { kind: 'package'; name: string; severityId: number; installed: string; fixedVersion: string; fixSince: string }
+  | { kind: 'image'; name: string; packages: number; namespaces: number }
+  | { kind: 'namespace'; name: string; images: number };
 
 // New active vulnerabilities: the (vulnerability id, package) rows first seen in the window of the page
 // - the filters of the page (window, severities, namespaces) come as inputs; a change of them, or of refresh, reloads it
 // - collapsed: the first rows (the server sorts them by reach, and is asked for just these); a click on a row selects its
 //   id and expands the widget (where it can expand)
 // - expanded: on the left, in a box, all the rows (a list that scrolls); on the right one id at a time, all of its data
-//   (asked from the detailed endpoint): its new packages, and the namespaces and images they run in
+//   (asked from the detailed endpoint): the data of the selected node in a brief box (a package, an image or a namespace), and under it a layered graph
+//   (packages, images, namespaces) of where they run; a click on a node selects it, and what is not on a path through it fades
 // - the expanded widget is at least expandedHeight tall and grows with its row of the page, what does not fit scrolls inside
 @Component({
   selector: 'app-home-new-vulnerabilities',
@@ -63,13 +85,16 @@ interface PackageRow {
   imports: [
     HomeWidgetFrameComponent,
     HomeSearchBoxComponent,
-    ButtonModule,
     ScrollerResizeDirective,
     NgTemplateOutlet,
     ScrollerModule,
     TagModule,
     TrivyBoxComponent,
-    TrivyTableComponent,
+    LayeredGraphComponent,
+    PillButtonComponent,
+    MeterGroupComponent,
+    StackedBarChartComponent,
+    TrivyTableDialogComponent,
     HomeExploitTagComponent,
     VulnerabilityScoreTagComponent,
     SeverityCssStyleByIdPipe,
@@ -81,39 +106,32 @@ interface PackageRow {
   host: { class: 'block min-w-0' },
 })
 export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
-  private static readonly collapsedLimit = 5;
+  // the collapsed widget reads the rows too, as many as the server gives (it shows the mix of what they say, not the rows)
+  private static readonly collapsedFetchLimit = 500;
   // the server allows 500
   private static readonly expandedLimit = 500;
+  // more images than this: the images of the graph are in two columns
+  private static readonly graphImagesTwoColumnsOver = 30;
 
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help = `
     <p class="mb-2">The <strong>active vulnerabilities first seen in the window</strong> (since the last visit, or the history window), in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar. A row is a vulnerability id with one package.</p>
     <p class="mb-2"><strong>Collapsed</strong>: the 5 rows that reach the most images. A click on a row expands the widget on its id.</p>
-    <p class="mb-2"><strong>Expanded</strong>: on the left every row (up to 500; a click selects its id), on the right the namespaces and the images where the selected id runs, and its new packages with the installed and the fixed version and when they were first seen.</p>
+    <p class="mb-2"><strong>Expanded</strong>: on the left every row (up to 500; a click selects its id), on the right the namespaces and the images where the selected id runs, and its new packages as a graph (packages, images, namespaces). A click on a node of the graph selects it and shows its data.</p>
     <p class="mb-2"><strong>CVSS</strong> opens the CVE details, <strong>EPSS</strong> the exploit prediction score and <strong>KEV / EUVD</strong> the known exploited data (when the CVE is in one of them).</p>
     <p class="mb-0 tod-text-muted-color">A row that existed before the history started recording is never new: its age is unknown. Needs the vulnerability reports history.</p>
   `;
 
-  // the height of a row of the list (a scroller needs the same for all): the id, three lines of title, the package, the tags
-  protected readonly rowHeight = 150;
-  // the height of the expanded widget body (it needs a fixed one: the lists and the table scroll in it)
-  protected readonly expandedHeight = '40rem';
+  // the height of a row of the list (a scroller needs the same for all): the id, three lines of title, the tags
+  protected readonly rowHeight = 130;
+  // the height of the expanded widget body (it needs a fixed one: the list and the graph scroll in it)
+  protected readonly expandedHeight = '50rem';
 
   private readonly homeService = inject(HomeService);
   private readonly mainAppInitService = inject(MainAppInitService);
   private readonly cveEnrichmentState = inject(CveEnrichmentStateService);
   // the tags of the vulnerability id cell of the tables: here the labels of its EPSS and exploited ones
   private readonly vulnerabilityTags = new VulnerabilityTagsPipe();
-
-  protected readonly packageColumns: TrivyTableColumn[] = [
-    { field: 'packageName', header: 'Package', isFilterable: false, isSortable: true, style: 'width: 20%', renderType: 'standard' },
-    { field: 'installed', header: 'Installed', isFilterable: false, isSortable: true, style: 'width: 18%', renderType: 'standard' },
-    { field: 'fixedVersion', header: 'Fixed', isFilterable: false, isSortable: true, style: 'width: 18%', renderType: 'standard' },
-    { field: 'severityId', header: 'Severity', isFilterable: false, isSortable: true, style: 'width: 8rem', renderType: 'severityBadge' },
-    { field: 'firstSeen', header: 'First seen', isFilterable: false, isSortable: true, style: 'width: 9rem', renderType: 'standard' },
-    { field: 'fixSince', header: 'Fix since', isFilterable: false, isSortable: true, style: 'width: 9rem', renderType: 'standard' },
-    { field: 'images', header: 'Images', isFilterable: false, isSortable: true, style: 'width: 6rem; text-align: right', renderType: 'standard' },
-  ];
 
   hint = input<string>('');
   // the start of the window (ISO, UTC)
@@ -148,7 +166,7 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
         since: params.since,
         severities: params.severities,
         namespaces: params.namespaces,
-        limit: HomeNewVulnerabilitiesComponent.collapsedLimit,
+        limit: HomeNewVulnerabilitiesComponent.collapsedFetchLimit,
       }),
   });
 
@@ -174,15 +192,55 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
   protected readonly isSearching = computed(
     () => this.isFiltering() && !this.expandedData.hasValue() && this.expandedData.isLoading(),
   );
-  // the rows that match the filter (all of them without one)
-  protected readonly items = computed(() =>
-    this.isSearching() ? [] : this.allItems().filter((x) => matchesFilter(this.filterText(), x.vulnerabilityId, x.packageName)),
-  );
-  protected readonly noMatch = computed(
+  // the list without the sort: one entry per vulnerability id (its first row, the server sorts by reach) among the rows that
+  // match the filter (all of them without one); the packages of an id are in its detail
+  private readonly baseItems = computed(() => {
+    if (this.isSearching()) {
+      return [];
+    }
+
+    const seen = new Set<string>();
+    return this.allItems().filter((x) => {
+      const id = x.vulnerabilityId.toLowerCase();
+      if (seen.has(id) || !matchesFilter(this.filterText(), x.vulnerabilityId, x.packageName)) {
+        return false;
+      }
+      seen.add(id);
+      return true;
+    });
+  });
+
+  // what an id is, over all of its rows: its highest severity, and its latest moment (a row of it first seen, or whose fix
+  // appeared, the last)
+  private readonly sortFacts = computed(() => {
+    const worst = new Map<string, number>();
+    const latest = new Map<string, string>();
+    for (const x of this.allItems()) {
+      const id = x.vulnerabilityId.toLowerCase();
+      worst.set(id, Math.min(worst.get(id) ?? x.severityId, x.severityId));
+      const moment = x.firstSeenAt;
+      if (moment && moment > (latest.get(id) ?? '')) {
+        latest.set(id, moment);
+      }
+    }
+
+    return { worst, latest };
+  });
+
+  // the sort of the list (null: by reach, the order of the server)
+  protected readonly sort = signal<HomeListSort | null>(null);
+
+  protected readonly items = computed(() => {
+    const facts = this.sortFacts();
+
+    return sortRows(this.baseItems(), this.sort(), {
+      moment: (x) => facts.latest.get(x.vulnerabilityId.toLowerCase()),
+      severity: (x) => facts.worst.get(x.vulnerabilityId.toLowerCase()) ?? x.severityId,
+      name: (x) => x.vulnerabilityId,
+    });
+  });  protected readonly noMatch = computed(
     () => this.isFiltering() && !this.isSearching() && this.items().length === 0 && this.allItems().length > 0,
   );
-  // the collapsed widget: the first rows
-  protected readonly collapsedItems = computed(() => this.items().slice(0, HomeNewVulnerabilitiesComponent.collapsedLimit));
   // the server sends at most expandedLimit rows: a filter over them says so when there are more
   protected readonly partialLabel = computed(() => {
     const total = this.totals()?.activeVulnerabilities ?? 0;
@@ -191,11 +249,7 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
       : '';
   });
   protected readonly totals = computed(() => this.shown().value()?.totals);
-  protected readonly more = computed(() =>
-    this.isFiltering()
-      ? Math.max(0, this.items().length - HomeNewVulnerabilitiesComponent.collapsedLimit)
-      : Math.max(0, (this.totals()?.activeVulnerabilities ?? 0) - this.items().length),
-  );
+
 
   // the selected id, all of its data (only while expanded); the filters are those of the list
   private readonly detailData = rxResource({
@@ -223,99 +277,168 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
   protected readonly isDetailLoading = computed(() => this.detailData.isLoading());
   protected readonly detailError = computed(() => (this.detailData.error() as Error | undefined)?.message);
 
-  // the packages of the table
-  protected readonly packageRows = computed<PackageRow[]>(() =>
-    (this.detail()?.packages ?? []).map((p, index) => ({
-      index,
-      packageName: p.packageName,
-      installed: p.installedVersions.join(', '),
-      fixedVersion: p.fixedVersion ?? 'no fix',
-      severityId: p.severityId,
-      firstSeen: this.toDay(p.firstSeenAt),
-      fixSince: this.toDay(p.fixSince),
-      images: p.images,
-    })),
+  // "Show all": the dialog with every row (vulnerability id, package, image), flat; the rows are asked only while it is
+  // open, and released when it closes (the resource is idle, and empty, without params)
+  protected readonly showAllDialog = signal(false);
+
+  private readonly allRowsData = rxResource({
+    params: () => (this.showAllDialog() ? this.scope() : undefined),
+    stream: ({ params }) =>
+      this.homeService.getHomeNewVulnerabilitiesDenormalized({
+        since: params.since,
+        severities: params.severities,
+        namespaces: params.namespaces,
+      }),
+  });
+
+  protected readonly allRows = computed<HomeVulnerabilityTableRow[]>(() =>
+    toHomeVulnerabilityTableRows(this.allRowsData.value()?.items),
   );
+  protected readonly allRowsColumns = homeVulnerabilityColumns('new');
 
-  // ---- the filter: the lists of the detail filter each other
-  // one selection per list (an index in the list; the package is the selected row of the table). Each list is filtered only
-  // by the selections of the other two, never by its own: so what is faded is what cannot go with them, and it cannot be
-  // selected (that would be an empty combination). A selection that was allowed stays so when another is made.
-  protected readonly selectedNamespace = signal<number | null>(null);
-  protected readonly selectedImage = signal<number | null>(null);
-  protected readonly packageSelection = signal<SelectedDtosEvent<PackageRow>>({ selectedDtos: [], source: 'programmatic' });
-  private readonly selectedPackage = computed(() => this.packageSelection().selectedDtos[0]?.index ?? null);
+  // ---- the collapsed widget: the headline, the new ids per day over the whole history range as bars stacked by severity
+  // (the days of the window are highlighted), and the severity mix of the new ids as one meter
+  private readonly todayUtc = new Date().toISOString().substring(0, 10);
+  protected readonly windowDays = computed(() => windowDaysLabel(this.since()));
 
-  protected readonly isFiltered = computed(
-    () => this.selectedNamespace() !== null || this.selectedImage() !== null || this.selectedPackage() !== null,
-  );
-
-  // the relations of the detail as sets: the namespaces of each image, the images of each package
-  private readonly relations = computed(() => {
-    const d = this.detail();
-    return d
-      ? {
-          namespacesOfImage: d.imageNamespaceIndexes.map((x) => new Set(x)),
-          imagesOfPackage: d.packages.map((x) => new Set(x.imageIndexes)),
-        }
-      : undefined;
+  // the severities of the bars: the ones of the filter, the worst at the bottom
+  private readonly stripSeverities = computed(() => {
+    const ids = [...new Set(this.severities())].sort((a, b) => a - b);
+    return ids.length > 0 ? ids : [0, 1];
   });
 
-  protected readonly allowedNamespaces = computed<ReadonlySet<number>>(() => {
-    const d = this.detail();
-    const r = this.relations();
-    const image = this.selectedImage();
-    const pack = this.selectedPackage();
-    const allowed = new Set<number>();
+  // one request per severity: the summary has no severity split
+  private readonly summaryData = rxResource({
+    params: () => ({
+      severityIds: this.stripSeverities(),
+      namespaces: this.namespaces().length > 0 ? this.namespaces() : undefined,
+      refresh: this.refresh(),
+      localRefresh: this.localRefresh(),
+    }),
+    stream: ({ params }) =>
+      forkJoin(
+        params.severityIds.map((id) =>
+          this.homeService
+            .getHomeNewVulnerabilitiesSummary({ severities: [id], namespaces: params.namespaces })
+            .pipe(map((dto) => ({ id, dto }))),
+        ),
+      ),
+  });
 
-    for (let n = 0; d && r && n < d.namespaceNames.length; n++) {
-      const inImage = image === null || !!r.namespacesOfImage[image]?.has(n);
-      const inPackage =
-        pack === null || [...(r.imagesOfPackage[pack] ?? [])].some((i) => r.namespacesOfImage[i]?.has(n));
-      if (inImage && inPackage) {
-        allowed.add(n);
-      }
+  protected readonly strip = computed(() => {
+    const parts = this.summaryData.value() ?? [];
+    const days = dayRange(parts.map((x) => x.dto.from).sort()[0], this.todayUtc);
+    const byDay = parts.map((x) => new Map(x.dto.days.map((d) => [d.day, d.vulnerabilityIds])));
+    const series: StackedBarSeries[] = parts.map((x) => ({ name: severityName(x.id), color: severityColor(x.id) }));
+    const columns: StackedBarColumn[] = days.map((day) => ({ label: day, values: byDay.map((m) => m.get(day) ?? 0) }));
+
+    return { columns, series, highlightFrom: firstDayIndex(days, this.since()) };
+  });
+
+  // the severity of an id is the highest of its rows; the meter is of the ids of the rows the server gave
+  protected readonly mix = computed<MeterGroupSegment[]>(() => {
+    const worst = new Map<string, number>();
+    for (const x of this.collapsedData.value()?.items ?? []) {
+      const id = x.vulnerabilityId.toLowerCase();
+      worst.set(id, Math.min(worst.get(id) ?? x.severityId, x.severityId));
     }
-    return allowed;
+
+    const counts = new Map<number, number>();
+    worst.forEach((severityId) => counts.set(severityId, (counts.get(severityId) ?? 0) + 1));
+
+    return [...counts.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([severityId, value]) => ({
+        label: severityName(severityId),
+        value,
+        color: severityColor(severityId),
+        textColor: severityTextColor(severityId),
+      }));
   });
 
-  protected readonly allowedImages = computed<ReadonlySet<number>>(() => {
-    const d = this.detail();
-    const r = this.relations();
-    const namespace = this.selectedNamespace();
-    const pack = this.selectedPackage();
-    const allowed = new Set<number>();
+  // ---- from the bars of the collapsed widget, and from "On a glance": expand and select the first id that matches (in the
+  // order of the list), once the rows of the expanded widget are there
+  private readonly pendingPick = signal<{ match: (x: HomeActiveVulnerabilityDto) => boolean } | undefined>(undefined);
 
-    for (let i = 0; d && r && i < d.imageNames.length; i++) {
-      const inNamespace = namespace === null || !!r.namespacesOfImage[i]?.has(namespace);
-      const inPackage = pack === null || !!r.imagesOfPackage[pack]?.has(i);
-      if (inNamespace && inPackage) {
-        allowed.add(i);
-      }
+  // a UTC day ("yyyy-MM-dd"): the first id first seen that day
+  openDay(date: string): void {
+    this.pick({ match: (x) => (x.firstSeenAt?.substring(0, 10)) === date });
+  }
+
+  protected onBarClicked(event: StackedBarClick): void {
+    this.openDay(event.column.label);
+  }
+  private pick(pick: { match: (x: HomeActiveVulnerabilityDto) => boolean }): void {
+    if (!this.canExpand()) {
+      return;
     }
-    return allowed;
-  });
 
-  protected readonly allowedPackages = computed<ReadonlySet<number>>(() => {
+    this.pendingPick.set(pick);
+    this.expand();
+  }
+
+  // a click on a sort pill: its natural direction, then the reverse, then off
+  protected toggleSort(key: HomeListSortKey): void {
+    this.sort.update((current) => nextSort(current, key));
+  }
+
+  protected sortIcon(key: HomeListSortKey): string | undefined {
+    return sortIconOf(this.sort(), key);
+  }
+
+  protected sortTitle(key: HomeListSortKey): string {
+    return sortTitleOf(this.sort(), key);
+  }
+
+  protected readonly sortLabel = computed(() => sortLabelOf(this.sort()));
+
+  // ---- the selection: one node of the graph (null = none)
+  protected readonly selectedNode = signal<string | null>(null);
+  protected readonly isFiltered = computed(() => this.selectedNode() !== null);
+
+  // the data of the selected node, brief: a package (name, severity, installed and fixed version, fix since), an image (its name, packages and namespaces), a namespace
+  // (its images)
+  protected readonly selectedInfo = computed<SelectedInfo | null>(() => {
     const d = this.detail();
-    const r = this.relations();
-    const namespace = this.selectedNamespace();
-    const image = this.selectedImage();
-    const allowed = new Set<number>();
-
-    for (let p = 0; d && r && p < d.packages.length; p++) {
-      const images = r.imagesOfPackage[p] ?? new Set<number>();
-      const inImage = image === null || images.has(image);
-      const inNamespace = namespace === null || [...images].some((i) => r.namespacesOfImage[i]?.has(namespace));
-      if (inImage && inNamespace) {
-        allowed.add(p);
-      }
+    const id = this.selectedNode();
+    if (!d || id === null) {
+      return null;
     }
-    return allowed;
-  });
 
-  // the rows of the table that do not go with the selections are faded, and cannot be selected (dimmedRowsSelectable)
-  protected readonly packageRowDimmer = (row: PackageRow): boolean => !this.allowedPackages().has(row.index);
+    const index = Number(id.substring(2));
+    if (id.startsWith('p:')) {
+      const p = d.packages[index];
+      return p
+        ? {
+            kind: 'package',
+            name: p.packageName,
+            severityId: p.severityId,
+            installed: p.installedVersions.join(', ') || '-',
+            fixedVersion: p.fixedVersion ?? 'no fix',
+            fixSince: this.toDay(p.fixSince),
+          }
+        : null;
+    }
+    if (id.startsWith('i:')) {
+      const name = d.imageNames[index];
+      return name === undefined
+        ? null
+        : {
+            kind: 'image',
+            name,
+            packages: d.packages.filter((p) => p.imageIndexes.includes(index)).length,
+            namespaces: d.imageNamespaceIndexes[index]?.length ?? 0,
+          };
+    }
+    if (id.startsWith('n:')) {
+      const name = d.namespaceNames[index];
+      return name === undefined
+        ? null
+        : { kind: 'namespace', name, images: d.imageNamespaceIndexes.filter((x) => x.includes(index)).length };
+    }
+
+    return null;
+  });
 
   protected readonly state = computed<HomeWidgetState>(() => {
     const resource = this.shown();
@@ -357,17 +480,49 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
       destroyRef.onDestroy(() => observer.disconnect());
     });
 
+    // the room of the graph: the box it is in (it appears with the detail)
+    const graphObserver = new ResizeObserver((entries) => {
+      const height = Math.floor(entries[0]?.contentRect.height ?? 0);
+      this.graphHeight.set(height > 0 ? height : null);
+    });
+    effect(() => {
+      const element = this.graphHost()?.nativeElement;
+      graphObserver.disconnect();
+      if (element) {
+        graphObserver.observe(element);
+      } else {
+        this.graphHeight.set(null);
+      }
+    });
+    destroyRef.onDestroy(() => graphObserver.disconnect());
+
     // expanded without a choice (the expand button), or the selected id is not in the rows any more (the filters changed):
     // the first id of the list (only judged on the many rows, the few are a part of them)
     effect(() => {
       const first = this.items()[0];
       const id = this.selectedId();
-      if (!this.isExpanded() || !first) {
+      if (!this.isExpanded() || !first || this.pendingPick()) {
         return;
       }
       if (!id || (this.expandedData.hasValue() && !this.items().some((x) => x.vulnerabilityId === id))) {
         this.selectedId.set(first.vulnerabilityId);
       }
+    });
+
+    // a pick is made when the rows are there: no match leaves the default choice (the first id)
+    effect(() => {
+      const pick = this.pendingPick();
+      if (!pick || !this.isExpanded() || !this.expandedData.hasValue()) {
+        return;
+      }
+
+      const row = this.allItems().find((x) => pick.match(x));
+      untracked(() => {
+        this.pendingPick.set(undefined);
+        if (row) {
+          this.selectedId.set(row.vulnerabilityId);
+        }
+      });
     });
 
     // other data (another id, or the same one loaded again): the indexes of the selections are of the old lists
@@ -401,35 +556,65 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
     }
   }
 
-  // "2 of 5" while a selection filters, else "5"
-  protected countLabel(allowed: number, total: number): string {
-    return this.isFiltered() ? `${allowed} of ${total}` : `${total}`;
-  }
+  // ---- the graph: packages -> images -> namespaces, in warm colors (the theme variables); one node is selected at a time
+  // (the id of a node is its kind and its index in the detail: 'p:2', 'i:0', 'n:1'), and its data is in the selected box.
+  // The images are the many and the long names: their column is wider, and from graphImagesTwoColumnsOver images on it has
+  // two sub-columns
+  protected readonly graphColumns = computed<LayeredGraphColumn[]>(() => {
+    const twoColumns = (this.detail()?.imageNames.length ?? 0) > HomeNewVulnerabilitiesComponent.graphImagesTwoColumnsOver;
 
-  // a click on a namespace or an image: selects it, or clears it when it is the selected one; a faded one is disabled
-  protected toggleNamespace(index: number): void {
-    if (this.allowedNamespaces().has(index)) {
-      this.selectedNamespace.update((x) => (x === index ? null : index));
-    }
-  }
+    return [
+      { label: 'Packages', color: 'var(--tod-layered-graph-package)', textColor: 'var(--tod-layered-graph-package-text)' },
+      {
+        label: 'Images',
+        color: 'var(--tod-layered-graph-image)',
+        textColor: 'var(--tod-layered-graph-image-text)',
+        width: twoColumns ? 210 : 280,
+        subColumns: twoColumns ? 2 : 1,
+      },
+      { label: 'Namespaces', color: 'var(--tod-layered-graph-namespace)', textColor: 'var(--tod-layered-graph-namespace-text)' },
+    ];
+  });
 
-  protected toggleImage(index: number): void {
-    if (this.allowedImages().has(index)) {
-      this.selectedImage.update((x) => (x === index ? null : index));
+  protected readonly graphData = computed<{ nodes: LayeredGraphNode[]; edges: LayeredGraphEdge[] }>(() => {
+    const d = this.detail();
+    if (!d) {
+      return { nodes: [], edges: [] };
     }
-  }
 
-  // a click on a row of the packages table (the table does not take it on a faded row)
-  protected onPackageSelection(event: SelectedDtosEvent<PackageRow>): void {
-    if (event.source === 'user') {
-      this.packageSelection.set(event);
-    }
+    const nodes: LayeredGraphNode[] = [];
+    const edges: LayeredGraphEdge[] = [];
+    // the value of an image is its namespaces, that of a namespace its images
+    const imagesOfNamespace = new Array<number>(d.namespaceNames.length).fill(0);
+    d.imageNamespaceIndexes.forEach((list) => list.forEach((n) => (imagesOfNamespace[n] = (imagesOfNamespace[n] ?? 0) + 1)));
+
+    d.packages.forEach((p, i) => {
+      nodes.push({ id: `p:${i}`, column: 0, label: p.packageName, value: p.images, weight: p.images });
+      p.imageIndexes.forEach((image) => edges.push({ from: `p:${i}`, to: `i:${image}` }));
+    });
+    d.imageNames.forEach((name, i) => {
+      const namespaces = d.imageNamespaceIndexes[i] ?? [];
+      nodes.push({ id: `i:${i}`, column: 1, label: name, value: namespaces.length, weight: namespaces.length });
+      namespaces.forEach((n) => edges.push({ from: `i:${i}`, to: `n:${n}` }));
+    });
+    d.namespaceNames.forEach((name, n) => {
+      nodes.push({ id: `n:${n}`, column: 2, label: name, value: imagesOfNamespace[n], weight: imagesOfNamespace[n] });
+    });
+
+    return { nodes, edges };
+  });
+
+  // the height of the box of the graph, which scrolls inside it
+  private readonly graphHost = viewChild<ElementRef<HTMLElement>>('graphHost');
+  protected readonly graphHeight = signal<number | null>(null);
+
+  // the node is selected (null = none); a click on the selected one clears it
+  protected onGraphSelect(id: string | null): void {
+    this.selectedNode.set(id);
   }
 
   protected clearFilters(): void {
-    this.selectedNamespace.set(null);
-    this.selectedImage.set(null);
-    this.packageSelection.set({ selectedDtos: [], source: 'programmatic' });
+    this.selectedNode.set(null);
   }
 
   // the details of a CVE (the dialog behind the CVSS tag of a vulnerability id): only for CVE ids, and only when the

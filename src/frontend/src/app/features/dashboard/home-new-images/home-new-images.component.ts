@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, output } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -6,6 +6,7 @@ import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 
+import { HomeNewImagesDto } from '@api/models/home-new-images-dto';
 import { HomeNewImagesGroupDto } from '@api/models/home-new-images-group-dto';
 import { HomeService } from '@api/services/home.service';
 import { DarkModeService } from '@core/services/dark-mode.service';
@@ -30,7 +31,7 @@ import { HomePivotVulnerabilityFieldComponent } from '../home-pivot/home-pivot-v
 import { HomePivotWidgetBase } from '../home-pivot/home-pivot-widget.base';
 import { DayGroup, NamespacesFooter, PivotEntry, groupByDay, pairKey } from '../home-pivot/home-pivot.types';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
-import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import { HomeDaysResult, HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // one new image (digest): the pairs it has now; the image arrived on one day, so its rows are not grouped by day
 interface ImageBox extends NamespacesFooter {
@@ -161,6 +162,14 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
     stream: ({ params }) =>
       this.homeService.getHomeNewImages({ severities: params.severities, namespaces: params.namespaces }),
   });
+
+  // the days, for the widget "Since your last visit" (one call of this endpoint per page): emitted from an effect, as
+  // the inputs are not set yet when a parent could read them
+  readonly daysChanged = output<HomeDaysResult<HomeNewImagesDto>>();
+  private readonly daysResult = computed<HomeDaysResult<HomeNewImagesDto>>(() => ({
+    dto: this.daysData.value(),
+    error: this.daysData.error() ? ((this.daysData.error() as Error)?.message ?? 'request failed') : undefined,
+  }));
 
   // idle (and empty) while collapsed
   private readonly rowsData = rxResource({
@@ -383,6 +392,8 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
 
   constructor() {
     super();
+
+    effect(() => this.daysChanged.emit(this.daysResult()));
 
     // the CVE dialogs (KEV/EUVD tag, details) read the enrichment of the app state, as the vulnerability id cell does
     inject(CveEnrichmentStateService).ensureLoaded();

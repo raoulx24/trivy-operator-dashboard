@@ -102,8 +102,16 @@ export class TestsComponent {
   // lane-strip
   protected readonly laneColumns = Array.from({ length: LANE_DAYS }, (_, i) => isoDay(i - (LANE_DAYS - 1)));
   protected readonly laneColors = SEVERITY_COLORS.slice(0, 3);
-  protected readonly lanes: LaneStripLane[] = (() => {
-    const random = seeded(11);
+  private laneSeed = 11;
+  protected readonly lanes = signal<LaneStripLane[]>(this.buildLanes(this.laneSeed));
+
+  // new data for the lane strip (it lights the cells on again)
+  protected reloadLanes(): void {
+    this.lanes.set(this.buildLanes(++this.laneSeed));
+  }
+
+  private buildLanes(seed: number): LaneStripLane[] {
+    const random = seeded(seed);
 
     return ['Critical', 'High', 'Medium'].map((caption, lane) => ({
       caption,
@@ -112,13 +120,19 @@ export class TestsComponent {
       emphasis1: [LANE_DAYS - 4, LANE_DAYS - 3, LANE_DAYS - 2, LANE_DAYS - 1],
       emphasis2: lane === 0 ? [LANE_DAYS - 40, LANE_DAYS - 3] : lane === 1 ? [LANE_DAYS - 25] : [],
     }));
-  })();
+  }
   protected readonly laneSelected = signal<LaneStripSelection | null>(null);
 
   // layered-graph: package -> image -> namespace (the value of a namespace is its workloads)
   protected readonly graphColumns: LayeredGraphColumn[] = [
     { label: 'Package', color: '#c8643c', textColor: '#fff' },
     { label: 'Image', color: '#5b4fc9', textColor: '#fff' },
+    { label: 'Namespace', color: '#2f8f6b', textColor: '#fff' },
+  ];
+  // the same, with a wider package column and the images in two sub-columns
+  protected readonly graphColumnsWide: LayeredGraphColumn[] = [
+    { label: 'Package', color: '#c8643c', textColor: '#fff', width: 130 },
+    { label: 'Image', color: '#5b4fc9', textColor: '#fff', subColumns: 2 },
     { label: 'Namespace', color: '#2f8f6b', textColor: '#fff' },
   ];
   protected readonly graphNodes: LayeredGraphNode[] = [

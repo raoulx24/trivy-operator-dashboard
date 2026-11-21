@@ -6,6 +6,29 @@
 // the colors are the --tod-layered-graph-* variables of the theme file (light and dark); the ring is the one of the
 // heatmaps (--tod-heatmap-ring, --tod-heatmap-ring-inner)
 
+// the scroller is app-scroller: vertical by default (it fills the box, which has the height), or horizontal
+.scroller-host {
+  display: block;
+
+  &.vertical {
+    height: 100%;
+  }
+}
+
+// the room for the nodes that grow on hover and the rings (the scroller clips); SCROLL_PADDING in the ts
+.content {
+  padding: 0 6px 6px;
+}
+
+// the captions stay on top when the nodes scroll under them
+.captions {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--p-content-background);
+}
+
 .layered-graph {
   display: block;
   // the plain pointer everywhere, also over the texts (no text caret); they stay selectable
@@ -23,11 +46,23 @@
   stroke: var(--tod-layered-graph-edge);
   stroke-width: 1.5;
   pointer-events: none;
-  transition: stroke 180ms ease-in-out;
+  // the d moves with the nodes where the browser can animate it; elsewhere the edges jump to the new place
+  transition:
+    stroke 180ms ease-in-out,
+    d 300ms ease-in-out;
 
   &.faded {
     stroke: var(--tod-layered-graph-edge-faded);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// where a node is: it slides when the selection moves it
+.node-slot {
+  transition: transform 300ms ease-in-out;
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;

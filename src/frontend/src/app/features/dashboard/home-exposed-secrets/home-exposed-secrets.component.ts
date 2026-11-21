@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
+import { ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
 import { HomeExposedSecretImageDto } from '@api/models/home-exposed-secret-image-dto';
 import { HomeService } from '@api/services/home.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
-import { SemaphoreStatusUtils } from '@shared/utils/semaphore-status.utils';
 
 import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
@@ -21,21 +21,22 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-exposed-secrets',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, ButtonModule, TagModule, SeverityCssStyleByIdPipe, SeverityNameByIdPipe],
+  imports: [HomeWidgetFrameComponent, ButtonModule, ScrollerModule, TagModule, SeverityCssStyleByIdPipe, SeverityNameByIdPipe],
   templateUrl: './home-exposed-secrets.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // a grid cell: wide content must wrap, not widen the cell
   host: { class: 'block min-w-0' },
 })
 export class HomeExposedSecretsComponent extends HomeWidgetBase {
-  // images listed (the server allows 500); the count above them is the real one
-  private static readonly limit = 5;
+  // images asked for (the server allows 500), scrolled in a viewport of maxVisibleImages; the count above them is the real one
+  private static readonly limit = 500;
+  private static readonly maxVisibleImages = 3;
+
+  // the height of an image row (the virtual scroller needs the same for all): the name line and the types line, one line each
+  protected readonly rowHeight = 68;
 
   private readonly homeService = inject(HomeService);
   private readonly imageHistoryService = inject(HomeImageHistoryService);
-
-  // the green of the semaphore (the same as the Green status elsewhere), for the icon of the happy day
-  protected readonly okColor = SemaphoreStatusUtils.getCssColorByName('Green');
 
   hint = input<string>('');
   namespaces = input.required<string[]>();
@@ -67,6 +68,10 @@ export class HomeExposedSecretsComponent extends HomeWidgetBase {
   protected readonly items = computed(() => this.dto()?.items ?? []);
   protected readonly totalSecrets = computed(() => this.dto()?.totalSecrets ?? 0);
   protected readonly totalImages = computed(() => this.dto()?.totalImages ?? 0);
+  // the viewport: the rows when there are few, else maxVisibleImages of them
+  protected readonly viewportHeight = computed(
+    () => Math.min(this.items().length, HomeExposedSecretsComponent.maxVisibleImages) * this.rowHeight,
+  );
   protected readonly hasSecrets = computed(() => this.totalSecrets() > 0);
   protected readonly hiddenImages = computed(() => Math.max(0, this.totalImages() - this.items().length));
   protected readonly scanned = computed(() => {
@@ -101,6 +106,11 @@ export class HomeExposedSecretsComponent extends HomeWidgetBase {
 
   protected openReport(item: HomeExposedSecretImageDto): void {
     this.imageHistoryService.openExposedSecrets(item.digest);
+  }
+
+  // all the types of an image, for the title of its (clipped) line
+  protected typesText(item: HomeExposedSecretImageDto): string {
+    return item.byType.map((x) => `${x.type}: ${x.count}`).join(', ');
   }
 
   protected namespacesText(item: HomeExposedSecretImageDto): string {

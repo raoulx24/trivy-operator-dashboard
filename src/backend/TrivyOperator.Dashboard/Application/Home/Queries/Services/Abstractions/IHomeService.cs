@@ -41,6 +41,14 @@ public interface IHomeService : IQueryService
         HomeFilter filter,
         CancellationToken ctx = default);
 
+    // the same data as the new vulnerabilities, flat: one row per (vulnerability id, package, image); not limited
+    Task<HomeVulnerabilityRowsDto> GetNewVulnerabilitiesDenormalized(HomeFilter filter, CancellationToken ctx = default);
+
+    // the same data as the new fixes, flat; not limited
+    Task<HomeVulnerabilityRowsDto> GetNewFixesDenormalized(HomeFilter filter, CancellationToken ctx = default);
+
+    // the same data as the known exploited ones, flat; not limited, the severities are not used
+    Task<HomeVulnerabilityRowsDto> GetKnownExploitedDenormalized(HomeFilter filter, CancellationToken ctx = default);
     // the queries about the current state do not use the window (Since)
     Task<HomeBaseOsDto> GetBaseOs(HomeFilter filter, CancellationToken ctx = default);
 

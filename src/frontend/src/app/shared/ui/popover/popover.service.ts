@@ -13,6 +13,11 @@ export interface PopoverOptions {
   width?: string;
   /** Maximum width (any CSS length). Default: 24rem. */
   maxWidth?: string;
+  /**
+   * Hover popovers only: ms to wait before showing, like a tooltip. Default: 0 (at once). The wait is skipped while
+   * another popover is open (moving from one element to the next), and hide() cancels it.
+   */
+  delay?: number;
 }
 
 export interface PopoverPoint {
@@ -46,8 +51,13 @@ export class PopoverService {
   private onKeydown?: (event: KeyboardEvent) => void;
   private onScroll?: () => void;
 
+  // a popover waiting for its delay
+  private pending?: { content: PopoverContent; at: PopoverPoint | HTMLElement; context?: unknown; options?: PopoverOptions };
+  private pendingTimer?: ReturnType<typeof setTimeout>;
+
   constructor() {
     inject(DestroyRef).onDestroy(() => {
+      this.cancelPending();
       this.dismissPinned();
       this.overlayRef?.dispose();
     });
@@ -55,7 +65,8 @@ export class PopoverService {
 
   /**
    * `at` is either a point (the popover follows the mouse via move()) or an element (the popover is anchored above it,
-   * flipping below when there is no room). Nothing is shown for an empty string.
+   * flipping below when there is no room). Nothing is shown for an empty string. With options.delay it shows after the
+   * delay, unless a popover is already open.
    */
   show(content: PopoverContent, at: PopoverPoint | HTMLElement, context?: unknown, options?: PopoverOptions): void {
     // a pinned popover is not replaced by hovering
@@ -67,6 +78,36 @@ export class PopoverService {
       return;
     }
 
+    // a new hover restarts the wait
+    this.cancelPending();
+
+    const delay = options?.delay ?? 0;
+    if (delay > 0 && !this.overlayRef?.hasAttached()) {
+      // the point is copied: an event is read later, when the wait is over
+      this.pending = {
+        content,
+        at: at instanceof HTMLElement ? at : { clientX: at.clientX, clientY: at.clientY },
+        context,
+        options,
+      };
+      this.pendingTimer = setTimeout(() => {
+        const pending = this.pending;
+        this.cancelPending();
+        if (pending && !this.pinnedRef) this.render(pending.content, pending.at, pending.context, pending.options);
+      }, delay);
+      return;
+    }
+
+    this.render(content, at, context, options);
+  }
+
+  private cancelPending(): void {
+    clearTimeout(this.pendingTimer);
+    this.pendingTimer = undefined;
+    this.pending = undefined;
+  }
+
+  private render(content: PopoverContent, at: PopoverPoint | HTMLElement, context?: unknown, options?: PopoverOptions): void {
     const anchored = at instanceof HTMLElement;
     // the strategy differs between the two modes, so the overlay is rebuilt when the mode changes
     if (this.overlayRef && this.anchoredMode !== anchored) {
@@ -118,6 +159,12 @@ export class PopoverService {
 
   /** Follow the mouse; no-op when nothing is shown. */
   move(at: PopoverPoint): void {
+    // a popover that waits shows up where the mouse is by then
+    if (this.pending && !(this.pending.at instanceof HTMLElement)) {
+      this.pending.at = { clientX: at.clientX, clientY: at.clientY };
+      return;
+    }
+
     // an anchored popover stays where it is
     if (!this.overlayRef?.hasAttached() || this.anchoredMode) return;
     this.positionStrategy!.setOrigin({ x: at.clientX, y: at.clientY });
@@ -125,6 +172,7 @@ export class PopoverService {
   }
 
   hide(): void {
+    this.cancelPending();
     if (this.overlayRef?.hasAttached()) {
       this.overlayRef.detach();
     }

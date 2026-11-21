@@ -81,8 +81,15 @@ export abstract class HomeWidgetBase {
     }
   }
 
-  protected refreshWidget(): void {
+  refreshWidget(): void {
     this.localRefresh.update((x) => x + 1);
+  }
+
+  // expands the widget (nothing when it is expanded already); for another widget, e.g. the one a click elsewhere opens
+  expand(): void {
+    if (!this.isExpanded()) {
+      this.toggleExpand();
+    }
   }
 
   protected toggleExpand(): void {

@@ -8,7 +8,23 @@
     (refresh)="onRefresh()"
   />
 
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <app-home-since-last-visit
+    [hint]="sinceLastVisitHint()"
+    [namespaces]="namespaces()"
+    [severities]="severityIds()"
+    [today]="todayUtc"
+    [visitDays]="visitDays"
+    [lastVisitDay]="lastVisitDay"
+    [drift]="driftDays()"
+    [images]="newImagesDays()"
+    [refresh]="refreshCounter()"
+    (laneClicked)="onSinceLastVisitClick($event)"
+    (sourcesRefreshRequested)="onSinceLastVisitRefresh()"
+  />
+
   <app-home-widget-placeholder
+    class="block min-w-0"
     heading="Data health"
     hint="not filtered"
     description="watchers ok / with issues, per report kind the count and the oldest / newest scan, the last fetch of KEV / EPSS / EUVD / EOL, the start of the history and of the fix tracking (could become status chips in the filter bar)"
@@ -16,6 +32,7 @@
     [state]="dataHealth()"
       (refresh)="reloadDataHealth()"
   />
+  </div>
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
     <app-home-where-is-vulnerability [hint]="searchHint()" [namespaces]="namespaces()" />
@@ -24,8 +41,9 @@
     <app-home-where-is-license [hint]="searchHint()" [namespaces]="namespaces()" />
   </div>
 
-  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
     <app-home-new-vulnerabilities
+      #newVulnerabilities
       [hint]="changesHint()"
       [since]="since()"
       [severities]="severityIds()"
@@ -33,6 +51,7 @@
       [refresh]="refreshCounter()"
     />
     <app-home-new-fixes
+      #newFixes
       [hint]="changesHint()"
       [since]="since()"
       [severities]="severityIds()"
@@ -40,8 +59,14 @@
       [refresh]="refreshCounter()"
     />
     <app-home-known-exploited
+      #knownExploited
       [hint]="knownExploitedHint()"
       [since]="since()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
+    />
+    <app-home-exposed-secrets
+      [hint]="exposedSecretsHint()"
       [namespaces]="namespaces()"
       [refresh]="refreshCounter()"
     />
@@ -49,6 +74,8 @@
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <app-home-history-drift
+      (daysChanged)="driftDays.set($event)"
+      #historyDrift
       [hint]="historyDriftHint()"
       [namespaces]="namespaces()"
       [severities]="severityIds()"
@@ -57,6 +84,8 @@
       [refresh]="refreshCounter()"
     />
     <app-home-new-images
+      (daysChanged)="newImagesDays.set($event)"
+      #newImages
       [hint]="newImagesHint()"
       [namespaces]="namespaces()"
       [severities]="severityIds()"
@@ -110,11 +139,4 @@
     />
   </div>
 
-  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <app-home-exposed-secrets
-      [hint]="exposedSecretsHint()"
-      [namespaces]="namespaces()"
-      [refresh]="refreshCounter()"
-    />
-  </div>
 </div>

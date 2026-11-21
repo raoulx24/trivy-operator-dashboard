@@ -271,6 +271,39 @@ public sealed record HomeKnownExploitedDetailDto(
     string? Note,
     HomeKnownExploitedDetailItemDto? Item);
 
+// the "Show all" table of the new vulnerabilities, the new fixes and the known exploited: one row per (vulnerability id,
+// package, image), denormalized (what the widgets show of the id and of the package next to the image)
+// the image is as the table of the images knows it (one digest); NamespaceNames: where it runs (empty for a cluster scoped
+// image); InstalledVersions: the versions of the package in this image; the dates and the known exploited data are null when
+// the widget does not have them or they are unknown
+public sealed record HomeVulnerabilityRowDto(
+    string VulnerabilityId,
+    string? Title,
+    int SeverityId,
+    bool IsKnownExploited,
+    double? EpssPercentile,
+    string PackageName,
+    IReadOnlyList<string> InstalledVersions,
+    string? FixedVersion,
+    DateTime? FirstSeenAt,
+    DateTime? FixSince,
+    DateTime? FixAppearedAt,
+    // known exploited since (KEV addition or EUVD exploitation moment)
+    DateTime? ExploitedSince,
+    DateOnly? KevDateAdded,
+    string ImageRegistry,
+    // repo:tag
+    string ImageName,
+    // empty for a cluster scoped image
+    string ImageDigest,
+    IReadOnlyList<string> NamespaceNames);
+
+public sealed record HomeVulnerabilityRowsDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    DateTime Since,
+    // by severity, vulnerability id, package and image; not capped
+    IReadOnlyList<HomeVulnerabilityRowDto> Items);
 // one image (one digest) running on an OS cycle; the digest is empty for a cluster scoped image
 public sealed record HomeBaseOsImageDto(
     string ImageNameAndTag,

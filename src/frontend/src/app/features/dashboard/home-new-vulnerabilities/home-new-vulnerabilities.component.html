@@ -11,30 +11,42 @@
   [fillGap]="!isExpanded()"
 >
   @if (!isExpanded()) {
-    <div class="pt-2"><ng-container *ngTemplateOutlet="filterBox" /></div>
     @if (allItems().length === 0 && state().isAvailable) {
       <ng-container *ngTemplateOutlet="emptyState" />
+    } @else if (totals(); as t) {
+      <div class="flex flex-col gap-3 pt-2">
+        <div class="flex items-baseline gap-2">
+          <span class="text-3xl font-semibold">{{ t.vulnerabilityIds }}</span>
+          <span class="tod-text-muted-color">ids on {{ t.images }} {{ t.images === 1 ? 'image' : 'images' }}, {{ windowDays() }}</span>
+        </div>
+        <app-stacked-bar-chart
+          [columns]="strip().columns"
+          [series]="strip().series"
+          [highlightFrom]="strip().highlightFrom"
+          [clickable]="true"
+          valueLabel="ids"
+          (columnClicked)="onBarClicked($event)"
+        />
+        <app-meter-group [segments]="mix()" [max]="t.vulnerabilityIds" valueLabel="ids" />
+        <span class="text-xs tod-text-muted-color">Bars: new ids per day, stacked by severity. Below: severity mix of the {{ t.vulnerabilityIds }}.</span>
+      </div>
     }
-
-    <div class="flex flex-col gap-4 pt-2">
-      @for (item of collapsedItems(); track item.vulnerabilityId + '|' + item.packageKey) {
-        <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: false }" />
-      }
-      @if (more() > 0) {
-        <span class="text-xs tod-text-muted-color px-1">+{{ more() }} more</span>
-      }
-    </div>
   } @else {
     <!-- expanded, a fixed height: on the left, in a box, all the rows (the width of the collapsed widget); on the right the
          selected id: on the height, in two halves, the namespaces with the images, and the packages -->
     <div
       class="grid gap-3 pt-2 flex-1"
       [style.min-height]="expandedHeight"
-      [style.grid-template-columns]="(collapsedWidth() ?? 384) * 0.75 + 'px minmax(0, 1fr)'"
+      [style.grid-template-columns]="(collapsedWidth() ?? 384) * 0.525 + 'px minmax(0, 1fr)'"
     >
       <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
-        <div class="text-xs tod-text-muted-color">{{ items().length }} of {{ totals()?.activeVulnerabilities ?? 0 }}</div>
+        <div class="text-xs tod-text-muted-color">{{ items().length }} of {{ totals()?.vulnerabilityIds ?? 0 }} ids Â· {{ sortLabel() }}</div>
         <ng-container *ngTemplateOutlet="filterBox" />
+        <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort the list">
+          <app-pill-button label="Moment" [toggle]="true" [active]="sort()?.key === 'moment'" [icon]="sortIcon('moment')" [title]="sortTitle('moment')" (pressed)="toggleSort('moment')" />
+          <app-pill-button label="Severity" [toggle]="true" [active]="sort()?.key === 'severity'" [icon]="sortIcon('severity')" [title]="sortTitle('severity')" (pressed)="toggleSort('severity')" />
+          <app-pill-button label="Name" [toggle]="true" [active]="sort()?.key === 'name'" [icon]="sortIcon('name')" [title]="sortTitle('name')" (pressed)="toggleSort('name')" />
+        </div>
 
         @if (allItems().length === 0 && state().isAvailable) {
           <ng-container *ngTemplateOutlet="emptyState" />
@@ -64,79 +76,91 @@
         </div>
       </div>
 
-      <!-- the rows of this column: half of the height each (otherwise they would be as tall as their content, and the lists
-           and the table, laid out absolutely, have none) -->
-      <div class="grid grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-3 min-h-0 min-w-0">
+      <!-- the rows of this column: the selected box as tall as its content, the graph gets the rest
+           (the graph, laid out absolutely, has no height of its own otherwise) -->
+      <div class="grid grid-rows-[auto_minmax(0,1fr)] gap-3 min-h-0 min-w-0">
         @if (detail(); as d) {
-          <div class="grid grid-cols-2 gap-3 min-h-0">
-            <div class="relative min-h-0 min-w-0">
-              <div class="absolute inset-0">
-                <app-trivy-box class="h-full">
-                  <span boxTitle>Namespaces ({{ countLabel(allowedNamespaces().size, d.namespaceNames.length) }})</span>
-                  <div class="relative h-full">
-                    <div class="absolute inset-0 overflow-auto flex flex-col text-sm">
-                      @for (name of d.namespaceNames; track name; let i = $index) {
-                        <button
-                          type="button"
-                          class="text-left break-all rounded px-1 cursor-pointer disabled:opacity-50 disabled:cursor-default"
-                          [class.tod-selected-item]="selectedNamespace() === i"
-                          [disabled]="!allowedNamespaces().has(i)"
-                          [attr.aria-pressed]="selectedNamespace() === i"
-                          (click)="toggleNamespace(i)"
-                        >
-                          {{ name }}
-                        </button>
-                      }
-                    </div>
+          <!-- the selected node of the graph, brief: a package, an image or a namespace -->
+          <app-trivy-box>
+            <span boxTitle>Selected</span>
+            @switch (selectedInfo()?.kind) {
+              @case ('package') {
+                @let s = $any(selectedInfo());
+                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                  <div class="flex flex-col gap-0.5 min-w-0">
+                    <span class="text-xs tod-text-muted-color">Package</span>
+                    <span class="break-all">{{ s.name }}</span>
                   </div>
-                </app-trivy-box>
-              </div>
-            </div>
-
-            <div class="relative min-h-0 min-w-0">
-              <div class="absolute inset-0">
-                <app-trivy-box class="h-full">
-                  <span boxTitle>Images ({{ countLabel(allowedImages().size, d.imageNames.length) }})</span>
-                  <div class="relative h-full">
-                    <div class="absolute inset-0 overflow-auto flex flex-col text-sm">
-                      @for (name of d.imageNames; track name; let i = $index) {
-                        <button
-                          type="button"
-                          class="text-left break-all rounded px-1 cursor-pointer disabled:opacity-50 disabled:cursor-default"
-                          [class.tod-selected-item]="selectedImage() === i"
-                          [disabled]="!allowedImages().has(i)"
-                          [attr.aria-pressed]="selectedImage() === i"
-                          (click)="toggleImage(i)"
-                        >
-                          {{ name }}
-                        </button>
-                      }
-                    </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs tod-text-muted-color">Severity</span>
+                    <span><p-tag class="text-xs" [rounded]="true" [style]="s.severityId | severityCssStyleById: 1" [value]="s.severityId | severityNameById" /></span>
                   </div>
-                </app-trivy-box>
-              </div>
-            </div>
-          </div>
+                  <div class="flex flex-col gap-0.5 min-w-0">
+                    <span class="text-xs tod-text-muted-color">Installed</span>
+                    <span class="break-all">{{ s.installed }}</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5 min-w-0">
+                    <span class="text-xs tod-text-muted-color">Fixed</span>
+                    <span class="break-all">{{ s.fixedVersion }}</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs tod-text-muted-color">Fix since</span>
+                    <span>{{ s.fixSince }}</span>
+                  </div>
+                </div>
+              }
+              @case ('image') {
+                @let s = $any(selectedInfo());
+                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                  <div class="flex flex-col gap-0.5 min-w-0">
+                    <span class="text-xs tod-text-muted-color">Image</span>
+                    <span class="break-all">{{ s.name }}</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs tod-text-muted-color">Packages</span>
+                    <span>{{ s.packages }}</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs tod-text-muted-color">Namespaces</span>
+                    <span>{{ s.namespaces }}</span>
+                  </div>
+                </div>
+              }
+              @case ('namespace') {
+                @let s = $any(selectedInfo());
+                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                  <div class="flex flex-col gap-0.5 min-w-0">
+                    <span class="text-xs tod-text-muted-color">Namespace</span>
+                    <span class="break-all">{{ s.name }}</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs tod-text-muted-color">Images</span>
+                    <span>{{ s.images }}</span>
+                  </div>
+                </div>
+              }
+              @default {
+                <span class="text-sm tod-text-muted-color">Select a package, an image or a namespace in the graph</span>
+              }
+            }
+          </app-trivy-box>
 
-          <!-- the packages: the table needs a definite height, so it is laid out absolutely inside its box -->
+          <!-- the rest of the height: where the packages run, as a graph (packages, images, namespaces) -->
           <div class="relative min-h-0 min-w-0">
             <div class="absolute inset-0">
               <app-trivy-box class="h-full">
-                <span boxTitle>Packages ({{ countLabel(allowedPackages().size, d.packages.length) }})</span>
-                <div class="relative h-full">
-                  <div class="absolute inset-0">
-                    <app-trivy-table
-                      extraClasses="tod-trivy-table-fill"
-                      stateKey="Home New Vulnerabilities Packages"
-                      selectionMode="single"
-                      [dataDtos]="packageRows()"
-                      [trivyTableColumns]="packageColumns"
-                      [rowDimmer]="packageRowDimmer"
-                      [dimmedRowsSelectable]="false"
-                      [selectedData]="packageSelection()"
-                      (selectedDataChange)="onPackageSelection($event)"
-                    />
-                  </div>
+                <span boxTitle>Where it runs ({{ d.packages.length }} {{ d.packages.length === 1 ? 'package' : 'packages' }}, {{ d.images }} {{ d.images === 1 ? 'image' : 'images' }}, {{ d.namespaces }} ns)</span>
+                <div #graphHost class="relative h-full">
+                  <app-layered-graph
+                    class="absolute inset-0"
+                    [columns]="graphColumns()"
+                    [nodes]="graphData().nodes"
+                    [edges]="graphData().edges"
+                    [selectable]="true"
+                    [maxHeight]="graphHeight()"
+                    [selectedNode]="selectedNode()"
+                    (selectedNodeChange)="onGraphSelect($event)"
+                  />
                 </div>
               </app-trivy-box>
             </div>
@@ -161,22 +185,25 @@
   <!-- the controls of the expanded widget, in the bottom row of the frame: the selections in the lists filter each other -->
   @if (isExpanded()) {
     <div frameActions class="flex items-center gap-2">
-      <p-button
-        class="inline-flex"
-        label="Clear filters"
-        icon="pi pi-filter-slash"
-        size="small"
-        severity="secondary"
-        [text]="true"
-        [raised]="true"
-        [disabled]="!isFiltered()"
-        (onClick)="clearFilters()"
-      />
-      <span class="text-xs tod-text-muted-color">A click on a namespace, an image or a package fades what does not go with it</span>
+      <app-pill-button label="Clear filters" icon="pi-filter-slash" [disabled]="!isFiltered()" (pressed)="clearFilters()" />
+
+      <app-pill-button label="Show all" icon="pi-list" (pressed)="showAllDialog.set(true)" />
+
+      <span class="text-xs tod-text-muted-color">A click on a package, an image or a namespace of the graph fades what does not go with it</span>
     </div>
   }
 </app-home-widget-frame>
 
+@if (showAllDialog()) {
+  <app-trivy-table-dialog
+    stateKey="Home New Vulnerabilities All"
+    title="New active vulnerabilities: all rows"
+    width="90rem"
+    [columns]="allRowsColumns"
+    [dataDtos]="allRows()"
+    [(isVisible)]="showAllDialog"
+  />
+}
 <!-- a row of the list: in the collapsed widget (the id is a button) and in the list of the expanded one (the whole row is) -->
 <ng-template #rowBody let-item let-inList="inList">
   <div class="flex flex-col gap-1.5 px-1 text-sm">
@@ -210,11 +237,6 @@
     @if (item.title || inList) {
       <span class="text-xs line-clamp-3" [class.min-h-12]="inList" [attr.title]="item.title">{{ item.title }}</span>
     }
-
-    <span class="text-xs break-all" [attr.title]="item.packageKey">
-      {{ item.packageName }}
-      <span class="tod-text-muted-color">→ {{ item.fixedVersion ?? 'no fix' }}</span>
-    </span>
 
     <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
       <span class="tod-text-muted-color">first seen {{ toDay(item.firstSeenAt) }}</span>

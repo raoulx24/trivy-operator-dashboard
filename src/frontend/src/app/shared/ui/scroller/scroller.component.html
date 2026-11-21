@@ -1,27 +1,48 @@
-<div class="relative flex w-full items-center">
-  @if (showLeftButton()) {
+<div
+  class="relative flex w-full"
+  [class.items-center]="!vertical()"
+  [class.h-full]="vertical()"
+  [class.justify-center]="vertical()"
+>
+  @if (showStartButton()) {
     <button
       animate.enter="tod-scroll-btn-enter"
       animate.leave="tod-scroll-btn-leave"
-      class="absolute left-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full tod-box-shadow"
-      (click)="scrollLeft()"
+      class="absolute tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full tod-box-shadow"
+      [class.left-0]="!vertical()"
+      [class.top-0]="vertical()"
+      (click)="scrollBackward()"
     >
-      <i class="pi pi-chevron-left text-sm"></i>
+      <i class="pi text-sm" [class.pi-chevron-left]="!vertical()" [class.pi-chevron-up]="vertical()"></i>
     </button>
   }
 
-  <div #scrollContainer class="flex overflow-x-auto tod-scrollbar-hide space-x-4 py-2">
+  <div
+    #scrollContainer
+    class="flex tod-scrollbar-hide"
+    [class.overflow-x-auto]="!vertical()"
+    [class.space-x-4]="!vertical()"
+    [class.py-2]="!vertical()"
+    [class.overflow-y-auto]="vertical()"
+    [class.flex-col]="vertical()"
+    [class.space-y-4]="vertical()"
+    [class.px-2]="vertical()"
+    [class.h-full]="vertical()"
+    [class.min-h-0]="vertical()"
+  >
     <ng-content></ng-content>
   </div>
 
-  @if (showRightButton()) {
+  @if (showEndButton()) {
     <button
       animate.enter="tod-scroll-btn-enter"
       animate.leave="tod-scroll-btn-leave"
-      class="absolute right-0 tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full tod-box-shadow"
-      (click)="scrollRight()"
+      class="absolute tod-scroll-btn hover:tod-scroll-btn py-1 px-4 rounded-full tod-box-shadow"
+      [class.right-0]="!vertical()"
+      [class.bottom-0]="vertical()"
+      (click)="scrollForward()"
     >
-      <i class="pi pi-chevron-right text-sm"></i>
+      <i class="pi text-sm" [class.pi-chevron-right]="!vertical()" [class.pi-chevron-down]="vertical()"></i>
     </button>
   }
 </div>

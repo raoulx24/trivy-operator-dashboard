@@ -61,6 +61,8 @@
   /* the clickable tags (.tod-score-tag): raised like the other tags at rest, lifted more on hover (pressed: no shadow) */
   --tod-score-tag-shadow: var(--tod-tag-box-shadow);
   --tod-score-tag-hover-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
+  /* the pill buttons (.tod-pill-button, the look of .tod-score-tag): the tint of the active one */
+  --tod-pill-button-active-background: color-mix(in srgb, currentColor 22%, transparent);
 
   /* nav menu: entry of the active page */
   --tod-menu-item-active-bg: color-mix(in srgb, var(--p-primary-color) 40%, transparent);
@@ -106,9 +108,21 @@
   --tod-layered-graph-edge: color-mix(in srgb, var(--p-text-color) 45%, transparent);
   --tod-layered-graph-edge-faded: color-mix(in srgb, var(--p-text-color) 10%, transparent);
   --tod-layered-graph-faded-opacity: 0.3;
+  /* layered graph in the home widgets: one warm color per category (packages, images, namespaces) and its text */
+  --tod-layered-graph-package: var(--p-red-600);
+  --tod-layered-graph-package-text: var(--p-surface-0);
+  --tod-layered-graph-image: var(--p-orange-500);
+  --tod-layered-graph-image-text: var(--p-surface-900);
+  --tod-layered-graph-namespace: var(--p-amber-400);
+  --tod-layered-graph-namespace-text: var(--p-surface-900);
 
   /* lane strip: the background of the cells without a value */
   --tod-lane-strip-empty: color-mix(in srgb, var(--p-text-color) 7%, transparent);
+  /* lane strip: the lightness (oklch) of the cells by level, those of the heatmap levels (blue 200/300/400/600): more is darker in light mode */
+  --tod-lane-strip-level-1: 0.88;
+  --tod-lane-strip-level-2: 0.81;
+  --tod-lane-strip-level-3: 0.71;
+  --tod-lane-strip-level-4: 0.55;
 
   /* stacked bar chart: the track behind the highlighted columns, and the dash of a column without a value */
   --tod-stacked-bar-track: color-mix(in srgb, var(--p-text-color) 9%, transparent);
@@ -171,6 +185,7 @@
   /* no white ring here: the clickable tags have their own border */
   --tod-score-tag-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
   --tod-score-tag-hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+  --tod-pill-button-active-background: color-mix(in srgb, currentColor 30%, transparent);
 
   --tod-radar-stroke-color: var(--p-red-400);
   --tod-radar-vertex-outline-color: var(--p-surface-950);
@@ -179,6 +194,11 @@
   --tod-heatmap-level-2: var(--p-blue-600);
   --tod-heatmap-level-3: var(--p-blue-400);
   --tod-heatmap-level-4: var(--p-blue-200);
+  /* lane strip: the heatmap levels in dark mode (blue 800/600/400/200): more is lighter */
+  --tod-lane-strip-level-1: 0.42;
+  --tod-lane-strip-level-2: 0.55;
+  --tod-lane-strip-level-3: 0.71;
+  --tod-lane-strip-level-4: 0.88;
   --tod-heatmap-text-1: var(--p-surface-0);
   --tod-heatmap-text-2: var(--p-surface-0);
   --tod-heatmap-text-3: var(--p-surface-900);
@@ -190,6 +210,12 @@
 
   --tod-layered-graph-node: var(--p-blue-800);
   --tod-layered-graph-node-text: var(--p-surface-0);
+  --tod-layered-graph-package: var(--p-red-800);
+  --tod-layered-graph-package-text: var(--p-surface-0);
+  --tod-layered-graph-image: var(--p-orange-700);
+  --tod-layered-graph-image-text: var(--p-surface-0);
+  --tod-layered-graph-namespace: var(--p-amber-600);
+  --tod-layered-graph-namespace-text: var(--p-surface-0);
 
   --tod-network-line-color: color-mix(in srgb, var(--p-primary-color) 18%, transparent);
   --tod-network-node-color: color-mix(in srgb, var(--p-primary-color) 30%, transparent);

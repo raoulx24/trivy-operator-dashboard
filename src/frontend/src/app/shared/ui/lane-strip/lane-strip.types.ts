@@ -28,9 +28,13 @@ export interface LaneStripCell {
   emphasis1Path: string | null;
   emphasis2Path: string | null;
   selected: boolean;
+  // with animate: when the cell lights on, in ms from the start (null = no animation: empty cell, or animate off)
+  litDelay: number | null;
 }
 
 export interface LaneStripRow {
+  // the identity of the lane while its values are the same (a lane with another key is drawn, and animated, anew)
+  key: string;
   lane: LaneStripLane;
   total: string | number;
   cells: LaneStripCell[];

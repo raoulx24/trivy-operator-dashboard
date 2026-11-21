@@ -5,6 +5,11 @@ export interface LayeredGraphColumn {
   color?: string | null;
   // the text on the nodes of the column (meter-group style: the owner picks one that reads on the color)
   textColor?: string | null;
+  // the width (px) of each node of the column; without it, the nodes of the columns that have none share the room
+  // (up to maxNodeWidth)
+  width?: number | null;
+  // the nodes of the column fill this many sub-columns, row by row (default 1): a column with many nodes is lower
+  subColumns?: number;
 }
 
 export interface LayeredGraphNode {
@@ -52,6 +57,7 @@ export interface LayeredGraphNodeView extends LayeredGraphClick {
   // px, in the svg
   x: number;
   y: number;
+  width: number;
 }
 
 export interface LayeredGraphEdgeView {
@@ -63,7 +69,7 @@ export interface LayeredGraphEdgeView {
 
 export interface LayeredGraphColumnLabel {
   text: string;
-  // px: the center of the node column
+  // px: the center of the column (all its sub-columns)
   x: number;
 }
 

@@ -1,4 +1,4 @@
-<div class="lane-strip flex items-start" [style.--lane-cell]="cellSize() + 'px'" [style.--lane-gap]="cellGap() + 'px'">
+<div class="lane-strip flex items-start" [style.--lane-cell]="cellSize() + 'px'" [style.--lane-gap]="cellGap() + 'px'" [style.--lit-fade]="fade() + 'ms'">
   <div class="lane-captions tod-text-muted-color">
     @for (row of rows(); track $index) {
       <div class="lane-caption" [title]="row.lane.caption">{{ row.lane.caption }}</div>
@@ -7,10 +7,13 @@
 
   <app-scroller class="block min-w-0 flex-1" startAt="end">
     <svg class="lane-grid" [attr.width]="width()" [attr.height]="height()" role="img">
-      @for (row of rows(); track $index; let laneIndex = $index) {
+      <!-- a lane with new values is re-created, so that its animation runs again when the data is received -->
+      @for (row of rows(); track row.key; let laneIndex = $index) {
         @for (cell of row.cells; track cell.columnIndex) {
           <g
             class="cell-group"
+            [class.lit]="cell.litDelay !== null"
+            [style.--lit-delay]="cell.litDelay !== null ? cell.litDelay + 'ms' : null"
             [class.has-value]="cell.value > 0"
             [class.clickable]="clickable() && cell.value > 0"
             [class.selected]="cell.selected"

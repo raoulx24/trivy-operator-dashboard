@@ -4,9 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
-import { SelectButtonModule } from 'primeng/selectbutton';
 
+import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { SeverityUtils } from '@shared/utils/severity.utils';
+
+import { severityTextColor } from '../home-collapsed/home-collapsed';
 
 import { HomeWindowMode, homeSeverityOptions, homeWindowOptions } from './home-filter-bar.types';
 
@@ -14,7 +16,7 @@ import { HomeWindowMode, homeSeverityOptions, homeWindowOptions } from './home-f
 @Component({
   selector: 'app-home-filter-bar',
   standalone: true,
-  imports: [FormsModule, ButtonModule, MultiSelectModule, SelectModule, SelectButtonModule],
+  imports: [FormsModule, ButtonModule, MultiSelectModule, SelectModule, PillButtonComponent],
   templateUrl: './home-filter-bar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -34,7 +36,16 @@ export class HomeFilterBarComponent {
   protected readonly severityOptions = homeSeverityOptions.map((option) => ({
     ...option,
     color: SeverityUtils.getCssColor(option.value),
+    textColor: severityTextColor(option.value),
   }));
+
+  // a click on a severity pill: in or out of the selection (the last one stays, see onSeverityIdsChange)
+  protected toggleSeverity(severityId: number) {
+    const current = this.severityIds();
+    this.onSeverityIdsChange(
+      current.includes(severityId) ? current.filter((x) => x !== severityId) : [...current, severityId],
+    );
+  }
 
   // at least one severity stays selected (none would mean "default" to the backend, which would be confusing)
   protected onSeverityIdsChange(value: number[] | null) {

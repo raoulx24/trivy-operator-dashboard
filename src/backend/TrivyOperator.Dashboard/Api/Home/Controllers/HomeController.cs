@@ -42,6 +42,43 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeService.GetNewVulnerabilities(ToFilter(since, severities, namespaces, limit), ctx));
 
+    // the new vulnerabilities per UTC day (all of them, not limited), days: the range ending today (UTC), at most 366;
+    // default: the history retention
+    [HttpGet("new-vulnerabilities/summary", Name = "GetHomeNewVulnerabilitiesSummary")]
+    [ProducesResponseType(typeof(HomeNewVulnerabilitiesSummaryDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetNewVulnerabilitiesSummary(
+        [FromQuery] int? days,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeTimelineService.GetNewVulnerabilitiesSummary(
+            days,
+            ToFilter(null, severities, namespaces, null),
+            ctx));
+
+    // the known exploited ids per UTC day they became known exploited (as the "new" of the known exploited widget); the
+    // severities do not apply
+    [HttpGet("known-exploited/summary", Name = "GetHomeKnownExploitedSummary")]
+    [ProducesResponseType(typeof(HomeKnownExploitedSummaryDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetKnownExploitedSummary(
+        [FromQuery] int? days,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeTimelineService.GetKnownExploitedSummary(days, ToFilter(null, null, namespaces, null), ctx));
+
+    // the new fixes per UTC day (all of them, not limited), days as for the new vulnerabilities summary
+    [HttpGet("new-fixes/summary", Name = "GetHomeNewFixesSummary")]
+    [ProducesResponseType(typeof(HomeNewFixesSummaryDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetNewFixesSummary(
+        [FromQuery] int? days,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeTimelineService.GetNewFixesSummary(days, ToFilter(null, severities, namespaces, null), ctx));
+
     // one id (exact match) of the new ones with everything: its new packages, all images and namespaces; the limit does not
     // apply
     [HttpGet("new-vulnerabilities/detailed", Name = "GetHomeNewVulnerabilityDetailed")]
@@ -110,6 +147,37 @@ public class HomeController(
             ToFilter(since, null, namespaces, null),
             ctx));
 
+    // the same data as new-vulnerabilities, flat: one row per (vulnerability id, package, image); the limit does not apply
+    [HttpGet("new-vulnerabilities/denormalized", Name = "GetHomeNewVulnerabilitiesDenormalized")]
+    [ProducesResponseType(typeof(HomeVulnerabilityRowsDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetNewVulnerabilitiesDenormalized(
+        [FromQuery] DateTime? since,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetNewVulnerabilitiesDenormalized(ToFilter(since, severities, namespaces, null), ctx));
+
+    // the same data as new-fixes, flat; the limit does not apply
+    [HttpGet("new-fixes/denormalized", Name = "GetHomeNewFixesDenormalized")]
+    [ProducesResponseType(typeof(HomeVulnerabilityRowsDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetNewFixesDenormalized(
+        [FromQuery] DateTime? since,
+        [FromQuery] int[]? severities,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetNewFixesDenormalized(ToFilter(since, severities, namespaces, null), ctx));
+
+    // the same data as known-exploited, flat; the limit and the severities do not apply
+    [HttpGet("known-exploited/denormalized", Name = "GetHomeKnownExploitedDenormalized")]
+    [ProducesResponseType(typeof(HomeVulnerabilityRowsDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetKnownExploitedDenormalized(
+        [FromQuery] DateTime? since,
+        [FromQuery] string[]? namespaces,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetKnownExploitedDenormalized(ToFilter(since, null, namespaces, null), ctx));
     // days: the range ending today (UTC), at most 366; default: the history retention
     [HttpGet("history-drift", Name = "GetHomeHistoryDrift")]
     [ProducesResponseType(typeof(HomeHistoryDriftDto), StatusCodes.Status200OK, "application/json")]

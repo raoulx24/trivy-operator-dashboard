@@ -44,6 +44,18 @@ public class HomeNullService : QueryNullService, IHomeService
         CancellationToken ctx = default) =>
         Task.FromResult(new HomeKnownExploitedDetailDto(false, Reason, vulnerabilityId, filter.Since, null, null));
 
+    public Task<HomeVulnerabilityRowsDto> GetNewVulnerabilitiesDenormalized(
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeVulnerabilityRowsDto(false, Reason, filter.Since, []));
+
+    public Task<HomeVulnerabilityRowsDto> GetNewFixesDenormalized(HomeFilter filter, CancellationToken ctx = default) =>
+        Task.FromResult(new HomeVulnerabilityRowsDto(false, Reason, filter.Since, []));
+
+    public Task<HomeVulnerabilityRowsDto> GetKnownExploitedDenormalized(
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeVulnerabilityRowsDto(false, Reason, filter.Since, []));
     public Task<HomeBaseOsDto> GetBaseOs(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeBaseOsDto(false, Reason, []));
 

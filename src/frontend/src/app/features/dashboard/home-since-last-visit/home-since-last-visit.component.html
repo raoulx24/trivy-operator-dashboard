@@ -1,0 +1,27 @@
+<app-home-widget-frame
+  heading="On a glance"
+  [help]="help"
+  [hint]="lastVisitLabel() + (hint() ? ' · ' + hint() : '')"
+  [state]="state()"
+  [refreshable]="true"
+  (refreshRequested)="onRefresh()"
+>
+  <app-trivy-box>
+    <app-lane-strip
+      [columns]="columns()"
+      [lanes]="lanes()"
+      [colors]="colors"
+      [animate]="true"
+      [animationDuration]="600"
+      emphasis1Label="visit"
+      emphasis2Label="known exploited"
+      [(selected)]="selected"
+      (cellClicked)="onCell($event)"
+    />
+  </app-trivy-box>
+
+  <p class="text-xs tod-text-muted-color m-0">
+    Each square is one UTC day (the whole history range). The teal corner is a day you opened the home page, the orange one a day with
+    a known exploited vulnerability. Click a square to open that lane's widget on that day.
+  </p>
+</app-home-widget-frame>

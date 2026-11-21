@@ -136,3 +136,36 @@ public sealed record HomeNewImagesDenormalizedDto(
     // first seen first, the most recent last
     IReadOnlyList<HomeNewImagesDenormalizedItemDto> Items,
     IReadOnlyList<HomeNewImagesGroupDto> Groups);
+
+// --- summaries of the changes widgets (new vulnerabilities, new fixes), per UTC day: the counts of the rows that the
+// list endpoints return (limited), but of all of them, for the strip "since your last visit"
+// - ActiveVulnerabilities: the rows (vulnerability id, package) as the list counts them (Totals.ActiveVulnerabilities);
+//   VulnerabilityIds: the distinct ids among them
+// - the severities and namespaces filters apply; the range is the days ending today (UTC), not a Since
+public sealed record HomeDaySummaryDto(
+    DateOnly Day,
+    int ActiveVulnerabilities,
+    int VulnerabilityIds);
+
+// the active vulnerabilities first seen per day (FirstAt: a row that existed before the history started is never new)
+public sealed record HomeNewVulnerabilitiesSummaryDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    DateOnly From,
+    IReadOnlyList<HomeDaySummaryDto> Days);
+
+// the active vulnerabilities whose fix appeared, per day (FixAppearedAt; the ones that came with their fix are not here)
+public sealed record HomeNewFixesSummaryDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    DateOnly From,
+    IReadOnlyList<HomeDaySummaryDto> Days);
+
+// the known exploited (KEV / EUVD) vulnerabilities per day they became known exploited (KnownExploitedSince: the earliest
+// of the KEV addition and the EUVD exploitation moment, the one the known exploited widget calls new), among the active
+// ones in the scope; the severities do not apply (as in the widget), ActiveVulnerabilities are the rows of the ids
+public sealed record HomeKnownExploitedSummaryDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    DateOnly From,
+    IReadOnlyList<HomeDaySummaryDto> Days);

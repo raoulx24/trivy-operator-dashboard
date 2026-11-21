@@ -22,6 +22,21 @@ public class HomeTimelineNullService : QueryNullService, IHomeTimelineService
     public Task<HomeNewImagesDto> GetNewImages(int? days, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeNewImagesDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), null, []));
 
+    public Task<HomeNewVulnerabilitiesSummaryDto> GetNewVulnerabilitiesSummary(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeNewVulnerabilitiesSummaryDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), []));
+
+    public Task<HomeNewFixesSummaryDto> GetNewFixesSummary(int? days, HomeFilter filter, CancellationToken ctx = default) =>
+        Task.FromResult(new HomeNewFixesSummaryDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), []));
+
+    public Task<HomeKnownExploitedSummaryDto> GetKnownExploitedSummary(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeKnownExploitedSummaryDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), []));
+
     public Task<HomeNewImagesDenormalizedDto> GetNewImagesDenormalized(
         int? days,
         HomeFilter filter,

@@ -1,81 +1,100 @@
+<!-- a vertical scroller fills its parent, so the box has the height (none: it follows the drawing) -->
+<div [style.height.px]="viewportHeight()">
+<app-scroller class="scroller-host" [class.vertical]="scroll() === 'vertical'" [direction]="scroll()">
+<div #content class="content">
 @if (width() > 0 && hasNodes()) {
-  <svg class="layered-graph" [attr.width]="width()" [attr.height]="height()" role="img">
-    @if (showColumnLabels()) {
+  @if (showColumnLabels()) {
+    <!-- the captions: their own svg, so they stay on top while the nodes scroll under them -->
+    <svg class="captions" [attr.width]="contentWidth()" [attr.height]="labelHeight" aria-hidden="true">
       @for (label of columnLabels(); track $index) {
         <text class="axis-label tod-chart-label tod-chart-label-muted" text-anchor="middle" [attr.x]="label.x" [attr.y]="labelBaseline">
           {{ label.text }}
         </text>
       }
-    }
+    </svg>
+  }
+  <svg class="layered-graph" [attr.width]="contentWidth()" [attr.height]="height()" role="img">
     @for (edge of edgeViews(); track edge.key) {
-      <path class="edge" [class.faded]="!edge.active" [attr.d]="edge.path" />
+      <!-- the d of the style moves smoothly where the browser can (the attribute is the fallback) -->
+      <path
+        class="edge"
+        [class.faded]="!edge.active"
+        [attr.d]="edge.path"
+        [attr.style]="'d: path(&quot;' + edge.path + '&quot;)'"
+      />
     }
     @for (node of nodeViews(); track node.id) {
-      <g
-        class="node-group"
-        [class.more]="node.more"
-        [class.selectable]="node.selectable"
-        [class.selected]="node.selected"
-        [class.faded]="!node.active"
-        (click)="onNodeClick(node)"
-        (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, node)"
-        (mousemove)="popover.move($event)"
-        (mouseleave)="popover.hide()"
-      >
-        <rect
-          class="node"
-          [style.fill]="node.color"
-          [attr.x]="node.x"
-          [attr.y]="node.y"
-          [attr.width]="nodeWidth()"
-          [attr.height]="nodeHeight()"
-          [attr.rx]="nodeRadius"
-        />
-        <text
-          class="node-text tod-chart-label"
-          dominant-baseline="central"
-          [style.fill]="node.textColor"
-          [attr.x]="node.x + nodePadding"
-          [attr.y]="node.y + nodeHeight() / 2"
+      <!-- the slot is where the node is (it slides when the node moves); the node is drawn at its origin -->
+      <g class="node-slot" [style.transform]="'translate(' + node.x + 'px, ' + node.y + 'px)'">
+        <g
+          class="node-group"
+          [class.more]="node.more"
+          [class.selectable]="node.selectable"
+          [class.selected]="node.selected"
+          [class.faded]="!node.active"
+          (click)="onNodeClick(node)"
+          (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, node, tipOptions())"
+          (mousemove)="popover.move($event)"
+          (mouseleave)="popover.hide()"
         >
-          {{ node.text }}
-        </text>
-        @if (node.valueText) {
+          <rect
+            class="node"
+            [style.fill]="node.color"
+            x="0"
+            y="0"
+            [attr.width]="node.width"
+            [attr.height]="nodeHeight()"
+            [attr.rx]="nodeRadius"
+          />
           <text
-            class="node-text node-value tod-chart-label"
-            text-anchor="end"
+            class="node-text tod-chart-label"
             dominant-baseline="central"
             [style.fill]="node.textColor"
-            [attr.x]="node.x + nodeWidth() - nodePadding"
-            [attr.y]="node.y + nodeHeight() / 2"
+            [attr.x]="nodePadding"
+            [attr.y]="nodeHeight() / 2"
           >
-            {{ node.valueText }}
+            {{ node.text }}
           </text>
-        }
-        @if (node.selected) {
-          <rect
-            class="ring"
-            [attr.x]="node.x + 1"
-            [attr.y]="node.y + 1"
-            [attr.width]="nodeWidth() - 2"
-            [attr.height]="nodeHeight() - 2"
-            [attr.rx]="nodeRadius - 1"
-            stroke-width="2"
-          />
-          <rect
-            class="ring-inner"
-            [attr.x]="node.x + 2.5"
-            [attr.y]="node.y + 2.5"
-            [attr.width]="nodeWidth() - 5"
-            [attr.height]="nodeHeight() - 5"
-            [attr.rx]="nodeRadius - 2.5"
-            stroke-width="1"
-          />
-        }
+          @if (node.valueText) {
+            <text
+              class="node-text node-value tod-chart-label"
+              text-anchor="end"
+              dominant-baseline="central"
+              [style.fill]="node.textColor"
+              [attr.x]="node.width - nodePadding"
+              [attr.y]="nodeHeight() / 2"
+            >
+              {{ node.valueText }}
+            </text>
+          }
+          @if (node.selected) {
+            <rect
+              class="ring"
+              x="1"
+              y="1"
+              [attr.width]="node.width - 2"
+              [attr.height]="nodeHeight() - 2"
+              [attr.rx]="nodeRadius - 1"
+              stroke-width="2"
+            />
+            <rect
+              class="ring-inner"
+              x="2.5"
+              y="2.5"
+              [attr.width]="node.width - 5"
+              [attr.height]="nodeHeight() - 5"
+              [attr.rx]="nodeRadius - 2.5"
+              stroke-width="1"
+            />
+          }
+        </g>
       </g>
     }
   </svg>
 }
+</div>
+</app-scroller>
+</div>
 
 <ng-template #defaultTip let-node>
   <div class="tod-text-contrast-color">

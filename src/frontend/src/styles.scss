@@ -517,7 +517,8 @@ p-tag.border-primary-color {
 // a tag that opens something (CVSS / EPSS / KEV/EUVD dialogs, the Trivy page): outlined, in the color of the text around
 // it (currentColor), so it reads as clickable the same way on a plain, hovered or selected row, in light and dark mode;
 // the filled tags (severity, ...) are labels only. Small enough for a 39px table row (id + one line of tags).
-.tod-score-tag {
+.tod-score-tag,
+.tod-pill-button {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -558,13 +559,20 @@ p-tag.border-primary-color {
     outline-offset: 1px;
   }
 
+  // on (a toggle pill): a stronger tint and a solid border; the hover is a lighter tint, and the lift stays
+  &.tod-pill-button-active {
+    border-color: currentColor;
+    background: var(--tod-pill-button-active-background);
+  }
+
   // here and not as a Tailwind class on the icon - text-[0.55rem] there did not apply
   .pi {
     font-size: 0.55rem;
   }
 
   // a tag with nothing behind it (e.g. no Trivy page): dimmed, dashed, no hover effect
-  &.tod-score-tag-disabled {
+  &.tod-score-tag-disabled,
+  &.tod-pill-button-disabled {
     border-style: dashed;
     box-shadow: none;
     cursor: not-allowed;

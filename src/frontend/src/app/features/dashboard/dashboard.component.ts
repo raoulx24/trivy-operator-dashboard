@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild, WritableSignal } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { HomeHistoryDriftDto } from '@api/models/home-history-drift-dto';
+import { HomeNewImagesDto } from '@api/models/home-new-images-dto';
 import { HomeService } from '@api/services/home.service';
 import { MainAppInitService } from '@core/services/main-app-init.service';
 import { AccessTrackingService } from '@features/history-reports/access-tracking.service';
@@ -25,6 +27,7 @@ import { HomeOldestImagesComponent } from './home-oldest-images/home-oldest-imag
 import { HomeNewFixesComponent } from './home-new-fixes/home-new-fixes.component';
 import { HomeNewVulnerabilitiesComponent } from './home-new-vulnerabilities/home-new-vulnerabilities.component';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
+import { HomeSinceLastVisitComponent, SinceLastVisitClick } from './home-since-last-visit/home-since-last-visit.component';
 import { HomeWhereIsLicenseComponent } from './home-where-is-license/home-where-is-license.component';
 import { HomeWhereIsCheckComponent } from './home-where-is-check/home-where-is-check.component';
 import { HomeWhereIsPackageComponent } from './home-where-is-package/home-where-is-package.component';
@@ -32,7 +35,7 @@ import { HomeWhereIsVulnerabilityComponent } from './home-where-is-vulnerability
 import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
 import { HomeWidgetGroupDirective } from './home-widget-group/home-widget-group.directive';
 import { HomeWidgetPlaceholderComponent } from './home-widget-placeholder/home-widget-placeholder.component';
-import { HomeWidgetState } from './home-widget-placeholder/home-widget-placeholder.types';
+import { HomeDaysResult, HomeWidgetState } from './home-widget-placeholder/home-widget-placeholder.types';
 
 // the home page: a filter bar and a fixed layout of widgets, each one fed by its own api/home endpoint (each loads and
 // fails alone); for now every widget is a placeholder that shows what it will display and a summary of what it got
@@ -59,6 +62,7 @@ import { HomeWidgetState } from './home-widget-placeholder/home-widget-placehold
     HomeNewFixesComponent,
     HomeNewVulnerabilitiesComponent,
     HomeOldestImagesComponent,
+    HomeSinceLastVisitComponent,
     HomeWhereIsCheckComponent,
     HomeWhereIsLicenseComponent,
     HomeWhereIsPackageComponent,
@@ -129,6 +133,48 @@ export class DashboardComponent {
   protected readonly oldestImagesHint = computed(
     () => `based on history · ${this.severitiesLabel()}${this.namespacesLabel()}`,
   );
+
+  protected readonly sinceLastVisitHint = computed(
+    () => `history range, per UTC day · ${this.severitiesLabel()}${this.namespacesLabel()}`,
+  );
+  // the previous visit day ("yyyy-MM-dd"), for the strip of the last visit
+  protected readonly lastVisitDay: string | undefined = this.lastVisitUtc?.substring(0, 10);
+
+  private readonly newVulnerabilitiesWidget = viewChild<HomeNewVulnerabilitiesComponent>('newVulnerabilities');
+  private readonly newFixesWidget = viewChild<HomeNewFixesComponent>('newFixes');
+  private readonly knownExploitedWidget = viewChild<HomeKnownExploitedComponent>('knownExploited');
+  // the days of the two widgets, for the strip (see daysChanged of the widgets)
+  protected readonly driftDays = signal<HomeDaysResult<HomeHistoryDriftDto> | undefined>(undefined);
+  protected readonly newImagesDays = signal<HomeDaysResult<HomeNewImagesDto> | undefined>(undefined);
+  private readonly historyDriftWidget = viewChild<HomeHistoryDriftComponent>('historyDrift');
+  private readonly newImagesWidget = viewChild<HomeNewImagesComponent>('newImages');
+
+  // the refresh of the strip: the two widgets whose days it shows reload too
+  protected onSinceLastVisitRefresh(): void {
+    this.historyDriftWidget()?.refreshWidget();
+    this.newImagesWidget()?.refreshWidget();
+  }
+
+  // a square of the strip: the widget of its lane opens on that day (the changes widgets select the first id of the day)
+  protected onSinceLastVisitClick(event: SinceLastVisitClick): void {
+    switch (event.lane) {
+      case 'vulnerabilities':
+        this.newVulnerabilitiesWidget()?.openDay(event.day);
+        break;
+      case 'fixes':
+        this.newFixesWidget()?.openDay(event.day);
+        break;
+      case 'exploited':
+        this.knownExploitedWidget()?.openDay(event.day);
+        break;
+      case 'drift':
+        this.historyDriftWidget()?.openDay(event.day);
+        break;
+      case 'images':
+        this.newImagesWidget()?.openDay(event.day);
+        break;
+    }
+  }
 
   protected readonly dataHealth = signal<HomeWidgetState>({});
   protected readonly todayUtc = new Date().toISOString().substring(0, 10);

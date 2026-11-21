@@ -8,3 +8,10 @@ export interface HomeWidgetState {
   // shown instead of "Loading..." when nothing was asked yet (searches)
   idleText?: string;
 }
+
+// the answer of an endpoint a widget loads (or its error), for another widget that uses the same data
+export interface HomeDaysResult<T> {
+  // undefined while loading
+  dto: T | undefined;
+  error: string | undefined;
+}

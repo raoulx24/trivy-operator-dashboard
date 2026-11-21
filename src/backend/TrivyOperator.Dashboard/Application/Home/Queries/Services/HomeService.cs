@@ -540,6 +540,134 @@ public class HomeService(
         return new HomeKnownExploitedDetailDto(true, null, id, filter.Since, null, item);
     }
 
+    // the rows of the new vulnerabilities, flat: one per (vulnerability id, package, image)
+    public async Task<HomeVulnerabilityRowsDto> GetNewVulnerabilitiesDenormalized(
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+            : !vulnerabilityReportsHistoryService.IsEnabled ? NoHistory
+            : null;
+
+        if (reason is not null)
+        {
+            return new HomeVulnerabilityRowsDto(false, reason, filter.Since, []);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+        HashSet<int> severities = ToSeverities(filter.SeverityIds);
+
+        return new HomeVulnerabilityRowsDto(
+            true,
+            null,
+            filter.Since,
+            ToVulnerabilityRows(table.Rows.Where(x => IsNew(x, filter.Since, severities, scope)), scope, table));
+    }
+
+    // the rows of the new fixes, flat
+    public async Task<HomeVulnerabilityRowsDto> GetNewFixesDenormalized(
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+            : !vulnerabilityReportsHistoryService.IsEnabled ? NoHistory
+            : null;
+
+        if (reason is not null)
+        {
+            return new HomeVulnerabilityRowsDto(false, reason, filter.Since, []);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+        HashSet<int> severities = ToSeverities(filter.SeverityIds);
+
+        return new HomeVulnerabilityRowsDto(
+            true,
+            null,
+            filter.Since,
+            ToVulnerabilityRows(table.Rows.Where(x => IsNewFix(x, filter.Since, severities, scope)), scope, table));
+    }
+
+    // the rows of the known exploited ones, flat (no severity filter, as the list)
+    public async Task<HomeVulnerabilityRowsDto> GetKnownExploitedDenormalized(
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+            : !cveEnrichmentService.IsEnabled ? NoCveEnrichment
+            : null;
+
+        if (reason is not null)
+        {
+            return new HomeVulnerabilityRowsDto(false, reason, filter.Since, []);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+
+        return new HomeVulnerabilityRowsDto(
+            true,
+            null,
+            filter.Since,
+            ToVulnerabilityRows(table.Rows.Where(x => x.IsKnownExploited && scope.Contains(x)), scope, table));
+    }
+
+    // one row per (vulnerability id, package) row and image in scope, with the versions of the package in that image and
+    // the namespaces the image runs in
+    private static IReadOnlyList<HomeVulnerabilityRowDto> ToVulnerabilityRows(
+        IEnumerable<ActiveVulnerability> rows,
+        HomeScope scope,
+        ActiveVulnerabilityTable table)
+    {
+        List<HomeVulnerabilityRowDto> result = [];
+
+        foreach (ActiveVulnerability row in rows)
+        {
+            foreach (string imageKey in scope.GetReach(row).ImageKeys)
+            {
+                if (!table.Images.TryGetValue(imageKey, out ActiveImage? image))
+                {
+                    continue;
+                }
+
+                result.Add(new HomeVulnerabilityRowDto(
+                    VulnerabilityId: row.Key.VulnerabilityId.Value,
+                    Title: row.Title,
+                    SeverityId: row.Severity.Rank,
+                    IsKnownExploited: row.IsKnownExploited,
+                    EpssPercentile: row.EpssPercentile,
+                    PackageName: row.PackageName.Value,
+                    InstalledVersions:
+                    [
+                        .. row.ImageKeysByInstalledVersion
+                            .Where(x => x.Value.Any(key => string.Equals(key, imageKey, StringComparison.Ordinal)))
+                            .Select(x => x.Key)
+                            .Order(StringComparer.Ordinal),
+                    ],
+                    FixedVersion: row.HasFix ? row.FixedVersion!.Value.Value : null,
+                    FirstSeenAt: row.FirstAt?.Value,
+                    FixSince: row.FixSince?.Value,
+                    FixAppearedAt: row.FixAppearedAt?.Value,
+                    ExploitedSince: row.KnownExploitedSince,
+                    KevDateAdded: row.KevDateAdded,
+                    ImageRegistry: image.ImageMeta.Registry.Value,
+                    ImageName: $"{image.ImageMeta.Repo.Value}:{image.ImageMeta.Tag.Value}",
+                    ImageDigest: image.Digest?.Value ?? string.Empty,
+                    NamespaceNames: ToNamespaceNames(scope.GetReach(new[] { imageKey, }).Namespaces, int.MaxValue)));
+            }
+        }
+
+        return
+        [
+            .. result
+                .OrderBy(x => x.SeverityId)
+                .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal)
+                .ThenBy(x => x.PackageName, StringComparer.Ordinal)
+                .ThenBy(x => x.ImageName, StringComparer.Ordinal),
+        ];
+    }
     // ------------------------------------------------------------------------
     // Current state
     // ------------------------------------------------------------------------

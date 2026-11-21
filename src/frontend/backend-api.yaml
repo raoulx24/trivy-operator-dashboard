@@ -1080,6 +1080,110 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/new-vulnerabilities/summary:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeNewVulnerabilitiesSummary
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeNewVulnerabilitiesSummaryDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/known-exploited/summary:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeKnownExploitedSummary
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeKnownExploitedSummaryDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/new-fixes/summary:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeNewFixesSummary
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeNewFixesSummaryDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/new-vulnerabilities/detailed:
     get:
       tags:
@@ -1267,6 +1371,110 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HomeKnownExploitedDetailDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/new-vulnerabilities/denormalized:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeNewVulnerabilitiesDenormalized
+      parameters:
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeVulnerabilityRowsDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/new-fixes/denormalized:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeNewFixesDenormalized
+      parameters:
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: severities
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeVulnerabilityRowsDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/known-exploited/denormalized:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeKnownExploitedDenormalized
+      parameters:
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: namespaces
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeVulnerabilityRowsDto'
         '500':
           description: Internal Server Error
           content:
@@ -4372,6 +4580,19 @@ components:
           type: string
           format: date-time
       additionalProperties: false
+    HomeDaySummaryDto:
+      type: object
+      properties:
+        day:
+          type: string
+          format: date
+        activeVulnerabilities:
+          type: integer
+          format: int32
+        vulnerabilityIds:
+          type: integer
+          format: int32
+      additionalProperties: false
     HomeExposedSecretImageDto:
       type: object
       properties:
@@ -4949,6 +5170,22 @@ components:
             type: integer
             format: int32
       additionalProperties: false
+    HomeKnownExploitedSummaryDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        from:
+          type: string
+          format: date
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeDaySummaryDto'
+      additionalProperties: false
     HomeNewFixDetailDto:
       type: object
       properties:
@@ -5075,6 +5312,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HomeActiveVulnerabilityDto'
+      additionalProperties: false
+    HomeNewFixesSummaryDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        from:
+          type: string
+          format: date
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeDaySummaryDto'
       additionalProperties: false
     HomeNewImagesDayDto:
       type: object
@@ -5222,6 +5475,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HomeActiveVulnerabilityDto'
+      additionalProperties: false
+    HomeNewVulnerabilitiesSummaryDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        from:
+          type: string
+          format: date
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeDaySummaryDto'
       additionalProperties: false
     HomeNewVulnerabilityDetailDto:
       type: object
@@ -5532,6 +5801,79 @@ components:
         workloads:
           type: integer
           format: int32
+      additionalProperties: false
+    HomeVulnerabilityRowDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        title:
+          type: string
+          nullable: true
+        severityId:
+          type: integer
+          format: int32
+        isKnownExploited:
+          type: boolean
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
+        packageName:
+          type: string
+        installedVersions:
+          type: array
+          items:
+            type: string
+        fixedVersion:
+          type: string
+          nullable: true
+        firstSeenAt:
+          type: string
+          format: date-time
+          nullable: true
+        fixSince:
+          type: string
+          format: date-time
+          nullable: true
+        fixAppearedAt:
+          type: string
+          format: date-time
+          nullable: true
+        exploitedSince:
+          type: string
+          format: date-time
+          nullable: true
+        kevDateAdded:
+          type: string
+          format: date
+          nullable: true
+        imageRegistry:
+          type: string
+        imageName:
+          type: string
+        imageDigest:
+          type: string
+        namespaceNames:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+    HomeVulnerabilityRowsDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        since:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeVulnerabilityRowDto'
       additionalProperties: false
     HomeWatcherIssueDto:
       type: object

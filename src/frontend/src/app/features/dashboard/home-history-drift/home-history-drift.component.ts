@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, output } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -6,6 +6,7 @@ import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 
+import { HomeHistoryDriftDto } from '@api/models/home-history-drift-dto';
 import { HomeHistoryDriftGroupDto } from '@api/models/home-history-drift-group-dto';
 import { HomeService } from '@api/services/home.service';
 import { DarkModeService } from '@core/services/dark-mode.service';
@@ -19,7 +20,7 @@ import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 import { VirtualScrollerComponent } from '@shared/ui/virtual-scroller/virtual-scroller.component';
 
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
-import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import { HomeDaysResult, HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
 import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
 import { HomeNamespacesFooterComponent } from '../home-pivot/home-namespaces-footer.component';
@@ -160,6 +161,14 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
     stream: ({ params }) =>
       this.homeService.getHomeHistoryDrift({ severities: params.severities, namespaces: params.namespaces }),
   });
+
+  // the days, for the widget "Since your last visit" (one call of this endpoint per page): emitted from an effect, as
+  // the inputs are not set yet when a parent could read them
+  readonly daysChanged = output<HomeDaysResult<HomeHistoryDriftDto>>();
+  private readonly daysResult = computed<HomeDaysResult<HomeHistoryDriftDto>>(() => ({
+    dto: this.daysData.value(),
+    error: this.daysData.error() ? ((this.daysData.error() as Error)?.message ?? 'request failed') : undefined,
+  }));
 
   // idle (and empty) while collapsed
   private readonly rowsData = rxResource({
@@ -411,6 +420,8 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
 
   constructor() {
     super();
+
+    effect(() => this.daysChanged.emit(this.daysResult()));
 
     // the CVE dialogs (KEV/EUVD tag, details) read the enrichment of the app state, as the vulnerability id cell does
     inject(CveEnrichmentStateService).ensureLoaded();

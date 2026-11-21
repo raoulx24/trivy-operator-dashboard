@@ -16,15 +16,22 @@ import { ScrollerComponent } from '../scroller/scroller.component';
 
 import { LaneStripCell, LaneStripCellClick, LaneStripLane, LaneStripRow, LaneStripSelection, LaneStripTipContext } from './lane-strip.types';
 
-// the weakest fill of a non-empty cell (percent of the lane color), the strongest being 100
-const MIN_INTENSITY = 35;
+// the steps of lightness of a non-empty cell: as the activity heatmap (quantiles of the values of the lane), but in the
+// color of the lane (--tod-lane-strip-level-N: the lightness of the heatmap level N, light and dark mode)
+const LEVELS = 4;
+// the longest a cell takes to light on (ms)
+const MAX_FADE = 300;
 
 // lanes of squares on one shared horizontal axis: a caption on the left and a total on the right stay put, the squares
 // scroll between them (app-scroller, at the end by default)
 // - everything comes from the inputs: columns (their labels), lanes (caption, values, optional total), colors (one per
 //   lane, taken in turn when there are fewer), and per lane the columns to mark with a
 //   triangle (emphasis1, emphasis2)
-// - the intensity of a cell follows its value against the largest value of its lane; zero is an empty cell
+// - the lightness of a cell is the level of its value among the values of its lane (quantiles, as in the activity
+//   heatmap); zero is an empty cell
+// - animate: when the data of a lane arrives (new values) its cells with a value light on one by one, in a random order of
+//   place, all within animationDuration (ms) in total; a lane with the same values does not play again; the empty cells
+//   are always there
 // - the control does not know what the lanes or the columns mean
 @Component({
   selector: 'app-lane-strip',
@@ -43,6 +50,10 @@ export class LaneStripComponent {
 
   // the selected cell, two-way: a click on a cell with a value selects it, a click on the selected one unselects it (the owner can also set it); null = none
   selected = model<LaneStripSelection | null>(null);
+
+  // the cells light on when the data (lanes) is received; the whole animation takes animationDuration ms
+  animate = input<boolean>(false);
+  animationDuration = input<number>(600);
 
   cellSize = input<number>(24);
   cellGap = input<number>(4);
@@ -78,26 +89,64 @@ export class LaneStripComponent {
     return count === 0 ? 0 : count * this.step() - this.cellGap();
   });
 
+  // how long one cell takes to light on (the last one starts at animationDuration minus this, so everything is done
+  // within animationDuration)
+  protected readonly fade = computed(() => Math.min(MAX_FADE, Math.max(0, this.animationDuration())));
+
+  // when each cell of a lane lights on, per lane and kept while the lane is unchanged: a changed delay would restart the
+  // animation of a cell that has already lit on (only the lanes that received new values play)
+  private delayCache = new Map<string, (number | null)[]>();
+
+  // [column] in ms (null: not animated): a random order over the cells with a value or a marker, evenly spread over the
+  // time left after the fade of the last one
+  private delaysOf(lane: LaneStripLane, count: number): (number | null)[] {
+    const delays = new Array<number | null>(count).fill(null);
+    const marked = new Set([...(lane.emphasis1 ?? []), ...(lane.emphasis2 ?? [])]);
+    const columns: number[] = [];
+    for (let column = 0; column < count; column++) {
+      if ((lane.values[column] ?? 0) > 0 || marked.has(column)) columns.push(column);
+    }
+
+    // Fisher-Yates
+    for (let i = columns.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [columns[i], columns[j]] = [columns[j], columns[i]];
+    }
+
+    const spread = Math.max(0, this.animationDuration() - this.fade());
+    columns.forEach((column, i) => {
+      delays[column] = columns.length > 1 ? (i / (columns.length - 1)) * spread : 0;
+    });
+    return delays;
+  }
+
   protected readonly rows = computed<LaneStripRow[]>(() => {
     const colors = this.colors();
     const size = this.cellSize();
     const step = this.step();
     const selected = this.selected();
     const count = this.columns().length;
+    const animate = this.animate();
+    const previousDelays = this.delayCache;
+    const delayCache = new Map<string, (number | null)[]>();
 
-    return this.lanes().map((lane, laneIndex) => {
+    const rows = this.lanes().map((lane, laneIndex) => {
       const color = colors.length > 0 ? colors[laneIndex % colors.length] : 'currentColor';
-      const max = Math.max(0, ...lane.values);
+      const thresholds = this.thresholdsOf(lane.values);
+      // a lane is the same lane while its values are (the animation plays again only for the lanes that changed)
+      const key = `${laneIndex}|${lane.caption}|${count}|${lane.values.join(',')}`;
+      const delayKey = `${key}|${this.animationDuration()}`;
+      const delays = animate ? (previousDelays.get(delayKey) ?? this.delaysOf(lane, count)) : [];
+      if (animate) delayCache.set(delayKey, delays);
       const emphasis1 = new Set(lane.emphasis1 ?? []);
       const emphasis2 = new Set(lane.emphasis2 ?? []);
 
       const cells: LaneStripCell[] = Array.from({ length: count }, (_, columnIndex) => {
         const value = lane.values[columnIndex] ?? 0;
-        const intensity = max > 0 ? MIN_INTENSITY + (100 - MIN_INTENSITY) * (value / max) : 0;
         return {
           columnIndex,
           value,
-          background: value > 0 ? `color-mix(in srgb, ${color} ${intensity.toFixed(1)}%, transparent)` : null,
+          background: value > 0 ? `oklch(from ${color} var(--tod-lane-strip-level-${1 + thresholds.filter((t) => value > t).length}) c h)` : null,
           emphasis1Path: emphasis1.has(columnIndex)
             ? cornerMarkerPath(columnIndex * step, laneIndex * step, size, 'bottom-left')
             : null,
@@ -105,12 +154,30 @@ export class LaneStripComponent {
             ? cornerMarkerPath(columnIndex * step, laneIndex * step, size, 'top-right')
             : null,
           selected: selected?.laneIndex === laneIndex && selected.columnIndex === columnIndex,
+          litDelay: delays[columnIndex] ?? null,
         };
       });
 
-      return { lane, total: lane.total ?? lane.values.reduce((sum, v) => sum + v, 0), cells };
+      return { key, lane, total: lane.total ?? lane.values.reduce((sum, v) => sum + v, 0), cells };
     });
+
+    // only the delays of the lanes still there are kept
+    this.delayCache = delayCache;
+    return rows;
   });
+
+  // the upper bounds of the quantile steps, distinct (fewer steps when the values have few distinct ones); as the heatmap
+  private thresholdsOf(laneValues: number[]): number[] {
+    const values = laneValues.filter((v) => v > 0).sort((a, b) => a - b);
+    const result: number[] = [];
+    if (values.length === 0) return result;
+
+    for (let k = 1; k < LEVELS; k++) {
+      const t = values[Math.max(0, Math.ceil((k / LEVELS) * values.length) - 1)];
+      if (t < values[values.length - 1] && !result.includes(t)) result.push(t);
+    }
+    return result;
+  }
 
   protected onCellClick(row: LaneStripRow, laneIndex: number, cell: LaneStripCell): void {
     if (!this.clickable() || cell.value <= 0) return;

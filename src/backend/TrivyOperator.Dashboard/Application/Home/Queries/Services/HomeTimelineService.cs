@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.CveEnrichment.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.History.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Home.Models;
@@ -22,6 +23,7 @@ public class HomeTimelineService(
     ActiveVulnerabilityTableBuilder tableBuilder,
     IVulnerabilityReportsHistoryStore vulnerabilityReportsHistoryStore,
     IVulnerabilityReportsHistoryService vulnerabilityReportsHistoryService,
+    ICveEnrichmentService cveEnrichmentService,
     IOptions<RetentionOptions> retentionOptions
 ) : QueryService, IHomeTimelineService
 {
@@ -406,6 +408,117 @@ public class HomeTimelineService(
     // ------------------------------------------------------------------------
     // helpers
     // ------------------------------------------------------------------------
+
+    // ------------------------------------------------------------------------
+    // summaries of the changes widgets: the rows of the new vulnerabilities / new fixes lists, counted per day
+    // ------------------------------------------------------------------------
+
+    // the same rule as the list of new vulnerabilities (the first seen of the row), by the UTC day
+    public async Task<HomeNewVulnerabilitiesSummaryDto> GetNewVulnerabilitiesSummary(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        (string? reason, DateOnly from, IReadOnlyList<HomeDaySummaryDto> daySummaries) = await SummarizeRows(
+            days,
+            filter,
+            row => row.FirstAt?.Value,
+            ctx);
+
+        return new HomeNewVulnerabilitiesSummaryDto(reason is null, reason, from, daySummaries);
+    }
+
+    // the same rule as the list of new fixes (the fix appeared, not for a row that came with its fix), by the UTC day
+    public async Task<HomeNewFixesSummaryDto> GetNewFixesSummary(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        (string? reason, DateOnly from, IReadOnlyList<HomeDaySummaryDto> daySummaries) = await SummarizeRows(
+            days,
+            filter,
+            row => row.HasFix ? row.FixAppearedAt?.Value : null,
+            ctx);
+
+        return new HomeNewFixesSummaryDto(reason is null, reason, from, daySummaries);
+    }
+
+    private async Task<(string? Reason, DateOnly From, IReadOnlyList<HomeDaySummaryDto> Days)> SummarizeRows(
+        int? days,
+        HomeFilter filter,
+        Func<ActiveVulnerability, DateTime?> getMoment,
+        CancellationToken ctx)
+    {
+        DateOnly from = FromDays(days ?? retentionOptions.Value.KeepDays);
+        string? reason = GetUnavailableReason();
+
+        if (reason is not null)
+        {
+            return (reason, from, []);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+        HashSet<int> severities = ToSeverities(filter.SeverityIds);
+
+        Dictionary<DateOnly, List<ActiveVulnerability>> byDay = table.Rows
+            .Where(row => severities.Contains(row.Severity.Rank) && scope.Contains(row))
+            .Select(row => (Row: row, Moment: getMoment(row)))
+            .Where(x => x.Moment is not null && DateOnly.FromDateTime(x.Moment.Value) >= from)
+            .GroupBy(x => DateOnly.FromDateTime(x.Moment!.Value))
+            .ToDictionary(x => x.Key, x => x.Select(y => y.Row).ToList());
+
+        return (
+            null,
+            from,
+            [
+                .. EachDay(from).Select(day =>
+                {
+                    List<ActiveVulnerability> rows = byDay.GetValueOrDefault(day) ?? [];
+                    return new HomeDaySummaryDto(day, rows.Count, rows.Select(x => x.Key.VulnerabilityId).Distinct().Count());
+                }),
+            ]);
+    }
+
+    // the ids that became known exploited per day (the moment of the widget's "new"), as in the known exploited list
+    public async Task<HomeKnownExploitedSummaryDto> GetKnownExploitedSummary(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        DateOnly from = FromDays(days ?? retentionOptions.Value.KeepDays);
+        string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
+            : !cveEnrichmentService.IsEnabled ? "CVE enrichment is not enabled"
+            : null;
+
+        if (reason is not null)
+        {
+            return new HomeKnownExploitedSummaryDto(false, reason, from, []);
+        }
+
+        ActiveVulnerabilityTable table = await GetTable(ctx);
+        HomeScope scope = new(table, filter.Namespaces);
+
+        // no severity filter: being exploited matters whatever the severity
+        Dictionary<DateOnly, List<ActiveVulnerability>> byDay = table.Rows
+            .Where(row => row.IsKnownExploited && scope.Contains(row))
+            .Select(row => (Row: row, Since: row.KnownExploitedSince))
+            .Where(x => x.Since is not null && DateOnly.FromDateTime(x.Since.Value) >= from)
+            .GroupBy(x => DateOnly.FromDateTime(x.Since!.Value))
+            .ToDictionary(x => x.Key, x => x.Select(y => y.Row).ToList());
+
+        return new HomeKnownExploitedSummaryDto(
+            true,
+            null,
+            from,
+            [
+                .. EachDay(from).Select(day =>
+                {
+                    List<ActiveVulnerability> rows = byDay.GetValueOrDefault(day) ?? [];
+                    return new HomeDaySummaryDto(day, rows.Count, rows.Select(x => x.Key.VulnerabilityId).Distinct().Count());
+                }),
+            ]);
+    }
 
     private string? GetUnavailableReason() =>
         !sources.HasVulnerabilityReports ? NoVulnerabilityReports

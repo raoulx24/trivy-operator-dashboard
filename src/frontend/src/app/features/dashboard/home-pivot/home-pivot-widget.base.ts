@@ -132,6 +132,11 @@ export abstract class HomePivotWidgetBase<
     if (!isSelected) this.scrollToPairBox(pairKey);
   }
 
+  // for another widget (a click elsewhere on a day): the same as a click on that day of the heatmap
+  openDay(day: string): void {
+    this.onHeatmapDay(day);
+  }
+
   // a click on a day of the heatmap: filters by it; on a collapsed widget it expands it first (the selection is set
   // before, and it lives as long as the widget is expanded), so the boxes come already filtered
   protected onHeatmapDay(day: string): void {

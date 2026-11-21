@@ -36,13 +36,16 @@
     <legend>lane-strip</legend>
     <app-lane-strip
       [columns]="laneColumns"
-      [lanes]="lanes"
+      [lanes]="lanes()"
+      [animate]="true"
+      [animationDuration]="600"
       [colors]="laneColors"
       emphasis1Label="new since last visit"
       emphasis2Label="known exploited"
       [(selected)]="laneSelected"
       valueLabel="vulns"
     />
+    <button type="button" (click)="reloadLanes()">reload data</button>
     <app-network-fill class="fill" [seed]="fillSeed('lane-strip')" />
   </fieldset>
 
@@ -50,12 +53,37 @@
   <fieldset class="box">
     <legend>layered-graph</legend>
     <div class="variant">
-      <span class="variant-title">selectable, all nodes</span>
+      <span class="variant-title">selectable, all nodes, scrolls vertically over 180 px (captions stay on top)</span>
       <app-layered-graph
         [columns]="graphColumns"
         [nodes]="graphNodes"
         [edges]="graphEdges"
         [selectable]="true"
+        [maxHeight]="180"
+        [(selectedNode)]="graphSelected"
+        valueLabel="workloads"
+      />
+    </div>
+    <div class="variant">
+      <span class="variant-title">package column 130 px wide, images in 2 sub-columns</span>
+      <app-layered-graph
+        [columns]="graphColumnsWide"
+        [nodes]="graphNodes"
+        [edges]="graphEdges"
+        [selectable]="true"
+        [(selectedNode)]="graphSelected"
+        valueLabel="workloads"
+      />
+    </div>
+    <div class="variant">
+      <span class="variant-title">scrolls horizontally (columns of at least 150 px)</span>
+      <app-layered-graph
+        [columns]="graphColumns"
+        [nodes]="graphNodes"
+        [edges]="graphEdges"
+        [selectable]="true"
+        scroll="horizontal"
+        [minNodeWidth]="150"
         [(selectedNode)]="graphSelected"
         valueLabel="workloads"
       />
