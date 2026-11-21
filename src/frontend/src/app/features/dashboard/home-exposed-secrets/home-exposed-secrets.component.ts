@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
-import { ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
 import { HomeExposedSecretImageDto } from '@api/models/home-exposed-secret-image-dto';
 import { HomeService } from '@api/services/home.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { ScrollerComponent } from '@shared/ui/scroller/scroller.component';
 
 import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
@@ -21,7 +21,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-exposed-secrets',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, ButtonModule, ScrollerModule, TagModule, SeverityCssStyleByIdPipe, SeverityNameByIdPipe],
+  imports: [HomeWidgetFrameComponent, ButtonModule, ScrollerComponent, TagModule, SeverityCssStyleByIdPipe, SeverityNameByIdPipe],
   templateUrl: './home-exposed-secrets.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // a grid cell: wide content must wrap, not widen the cell
@@ -30,10 +30,12 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 export class HomeExposedSecretsComponent extends HomeWidgetBase {
   // images asked for (the server allows 500), scrolled in a viewport of maxVisibleImages; the count above them is the real one
   private static readonly limit = 500;
-  private static readonly maxVisibleImages = 3;
+  private static readonly maxVisibleImages = 2;
 
-  // the height of an image row (the virtual scroller needs the same for all): the name line and the types line, one line each
-  protected readonly rowHeight = 68;
+  // the height of an image row (the same for all, so the viewport is known): the name line and the types line, one line each;
+  // the scroller puts a gap between the rows (space-y-4)
+  protected readonly rowHeight = 64;
+  private static readonly rowGap = 16;
 
   private readonly homeService = inject(HomeService);
   private readonly imageHistoryService = inject(HomeImageHistoryService);
@@ -69,9 +71,9 @@ export class HomeExposedSecretsComponent extends HomeWidgetBase {
   protected readonly totalSecrets = computed(() => this.dto()?.totalSecrets ?? 0);
   protected readonly totalImages = computed(() => this.dto()?.totalImages ?? 0);
   // the viewport: the rows when there are few, else maxVisibleImages of them
-  protected readonly viewportHeight = computed(
-    () => Math.min(this.items().length, HomeExposedSecretsComponent.maxVisibleImages) * this.rowHeight,
-  );
+  protected readonly viewportHeight = computed(() => this.rowsHeight(Math.min(this.items().length, HomeExposedSecretsComponent.maxVisibleImages)));
+  // all the rows: the most the box takes when the widget has room to spare
+  protected readonly contentHeight = computed(() => this.rowsHeight(this.items().length));
   protected readonly hasSecrets = computed(() => this.totalSecrets() > 0);
   protected readonly hiddenImages = computed(() => Math.max(0, this.totalImages() - this.items().length));
   protected readonly scanned = computed(() => {
@@ -106,6 +108,10 @@ export class HomeExposedSecretsComponent extends HomeWidgetBase {
 
   protected openReport(item: HomeExposedSecretImageDto): void {
     this.imageHistoryService.openExposedSecrets(item.digest);
+  }
+
+  private rowsHeight(rows: number): number {
+    return rows * this.rowHeight + Math.max(0, rows - 1) * HomeExposedSecretsComponent.rowGap;
   }
 
   // all the types of an image, for the title of its (clipped) line

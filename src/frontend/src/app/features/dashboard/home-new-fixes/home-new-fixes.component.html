@@ -18,6 +18,9 @@
         <div class="flex items-baseline gap-2">
           <span class="text-3xl font-semibold">{{ t.vulnerabilityIds }}</span>
           <span class="tod-text-muted-color">ids now fixable on {{ t.images }} {{ t.images === 1 ? 'image' : 'images' }}, {{ windowDays() }}</span>
+          @if (earlierIds() > 0) {
+            <span class="text-xs tod-text-muted-color" title="New fix ids on the days before the window (an id on several days counts on each)">· {{ earlierIds() }} more before</span>
+          }
         </div>
         <app-stacked-bar-chart
           [columns]="strip().columns"
@@ -34,7 +37,7 @@
             </button>
           }
         </div>
-        <span class="text-xs tod-text-muted-color">Bars: new fixes per day. Chips: the packages that fix the most ids, the ones to bump.</span>
+        <span class="text-xs tod-text-muted-color">Bars: new fixes per day, the highlighted days are the window. Chips: the packages that fix the most ids, the ones to bump.</span>
       </div>
     }
   } @else {

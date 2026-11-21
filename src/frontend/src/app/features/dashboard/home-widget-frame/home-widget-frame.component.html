@@ -74,6 +74,20 @@
         [attr.title]="expanded() ? 'Collapse' : 'Expand'"
         (onClick)="expandToggle.emit()"
       />
+    } @else if (!expanded()) {
+      <!-- a widget that cannot expand: the row keeps the height the button gives the others, so the status line is at the
+           same height in every widget of a row -->
+      <span class="ml-auto inline-flex invisible" aria-hidden="true" inert>
+        <p-button
+          icon="pi pi-arrow-up-right-and-arrow-down-left-from-center"
+          size="small"
+          severity="secondary"
+          [text]="true"
+          [raised]="true"
+          [rounded]="true"
+          tabindex="-1"
+        />
+      </span>
     }
   </div>
 </div>

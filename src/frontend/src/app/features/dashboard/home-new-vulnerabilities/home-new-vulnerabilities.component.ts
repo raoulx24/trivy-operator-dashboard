@@ -325,6 +325,27 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
       ),
   });
 
+  // all the severities of the filter in one call: the ids per day (distinct per day), for what came before the window
+  private readonly summaryAll = rxResource({
+    params: () => ({
+      severities: this.severities(),
+      namespaces: this.namespaces().length > 0 ? this.namespaces() : undefined,
+      refresh: this.refresh(),
+      localRefresh: this.localRefresh(),
+    }),
+    stream: ({ params }) =>
+      this.homeService.getHomeNewVulnerabilitiesSummary({ severities: params.severities, namespaces: params.namespaces }),
+  });
+
+  // the new ids of the days before the window (an id new on several days counts on each of them)
+  protected readonly earlierIds = computed(() => {
+    const sinceDay = this.since().substring(0, 10);
+
+    return (this.summaryAll.value()?.days ?? [])
+      .filter((x) => x.day < sinceDay)
+      .reduce((sum, x) => sum + x.vulnerabilityIds, 0);
+  });
+
   protected readonly strip = computed(() => {
     const parts = this.summaryData.value() ?? [];
     const days = dayRange(parts.map((x) => x.dto.from).sort()[0], this.todayUtc);

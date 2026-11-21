@@ -18,6 +18,9 @@
         <div class="flex items-baseline gap-2">
           <span class="text-3xl font-semibold">{{ t.vulnerabilityIds }}</span>
           <span class="tod-text-muted-color">ids on {{ t.images }} {{ t.images === 1 ? 'image' : 'images' }}, {{ windowDays() }}</span>
+          @if (earlierIds() > 0) {
+            <span class="text-xs tod-text-muted-color" title="New ids on the days before the window (an id new on several days counts on each)">· {{ earlierIds() }} more before</span>
+          }
         </div>
         <app-stacked-bar-chart
           [columns]="strip().columns"
@@ -28,7 +31,7 @@
           (columnClicked)="onBarClicked($event)"
         />
         <app-meter-group [segments]="mix()" [max]="t.vulnerabilityIds" valueLabel="ids" />
-        <span class="text-xs tod-text-muted-color">Bars: new ids per day, stacked by severity. Below: severity mix of the {{ t.vulnerabilityIds }}.</span>
+        <span class="text-xs tod-text-muted-color">Bars: new ids per day, stacked by severity. Below: severity mix of the {{ t.vulnerabilityIds }}, the ones of the highlighted days (the window).</span>
       </div>
     }
   } @else {

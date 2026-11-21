@@ -306,6 +306,15 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
       this.homeService.getHomeNewFixesSummary({ severities: params.severities, namespaces: params.namespaces }),
   });
 
+  // the new fix ids of the days before the window (an id on several days counts on each of them)
+  protected readonly earlierIds = computed(() => {
+    const sinceDay = this.since().substring(0, 10);
+
+    return (this.summaryData.value()?.days ?? [])
+      .filter((x) => x.day < sinceDay)
+      .reduce((sum, x) => sum + x.vulnerabilityIds, 0);
+  });
+
   protected readonly stripSeries: StackedBarSeries[] = [{ name: 'New fixes', color: 'var(--p-green-500)' }];
 
   protected readonly strip = computed(() => {
