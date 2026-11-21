@@ -4,7 +4,8 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 // raised at rest. One look for the small actions and toggles of the home page.
 // - label, and optionally a dot (dotColor: any css color) before it and an icon (a pi class, e.g. 'pi-arrow-down') after it
 // - toggle: a button that is on or off (active, aria-pressed); without it a plain action
-// - activeColor (and activeTextColor): the fill while it is on, e.g. a severity color (the dot is then hidden, it would not show)
+// - activeColor (and activeTextColor): the fill while it is on, e.g. a severity color (the dot stays, with a ring, so it
+//   still shows on a fill of its own color)
 // - the click and the Enter and Space keys stop here, so they do not (de)select the row or list item the pill is in
 @Component({
   selector: 'app-pill-button',
@@ -27,8 +28,12 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
       (keydown.enter)="$event.stopPropagation()"
       (keydown.space)="$event.stopPropagation()"
     >
-      @if (dotColor() && !filledColor()) {
-        <span class="tod-state-dot" [style.background]="dotColor()"></span>
+      @if (dotColor()) {
+        <span
+          class="tod-state-dot"
+          [class.tod-pill-button-dot-on-fill]="!!filledColor()"
+          [style.background]="dotColor()"
+        ></span>
       }
       <span>{{ label() }}</span>
       @if (icon()) {

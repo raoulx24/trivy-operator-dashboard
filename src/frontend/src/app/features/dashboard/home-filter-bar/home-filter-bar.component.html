@@ -1,9 +1,17 @@
-<div class="tod-content-border tod-content-background flex flex-wrap items-center gap-4 p-3">
-  <div class="flex items-center gap-2">
+<!-- three groups (a muted caption and its control, separated by a thin rule), the refresh at the right; the controls are
+     pills (.tod-home-filter-bar, .tod-home-filter-group, .tod-home-filter-select in styles.scss). The overlays go to the
+     body: inside the pill they would be clipped and stacked under the widgets (the pill is lifted with a transform) -->
+<div class="tod-home-filter-bar tod-content-border tod-content-background flex flex-wrap items-center gap-4 p-3">
+  <div class="tod-home-filter-group">
+    <span class="text-xs tod-text-muted-color">Changes</span>
     <p-select
+      class="tod-home-filter-select"
       size="small"
+      appendTo="body"
+      panelStyleClass="tod-home-filter-panel"
       optionLabel="label"
       optionValue="value"
+      ariaLabel="Window of the changes"
       [options]="windowOptions"
       [ngModel]="windowMode()"
       (ngModelChange)="windowMode.set($event)"
@@ -14,40 +22,54 @@
   </div>
 
   <!-- the severities: a toggle pill each, filled with the color of its severity while it is on (at least one stays on) -->
-  <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Severities">
-    @for (option of severityOptions; track option.value) {
-      <app-pill-button
-        [label]="option.label"
-        [toggle]="true"
-        [active]="severityIds().includes(option.value)"
-        [dotColor]="option.color"
-        [activeColor]="option.color"
-        [activeTextColor]="option.textColor"
-        (pressed)="toggleSeverity(option.value)"
-      />
-    }
+  <div class="tod-home-filter-group flex-wrap" role="group" aria-label="Severities">
+    <span class="text-xs tod-text-muted-color">Severities</span>
+    <div class="flex flex-wrap items-center gap-1.5">
+      @for (option of severityOptions; track option.value) {
+        <app-pill-button
+          [label]="option.label"
+          [title]="'Show ' + option.label.toLowerCase() + ' (click to toggle)'"
+          [toggle]="true"
+          [active]="severityIds().includes(option.value)"
+          [dotColor]="option.color"
+          [activeColor]="option.color"
+          [activeTextColor]="option.textColor"
+          (pressed)="toggleSeverity(option.value)"
+        />
+      }
+    </div>
   </div>
 
-  <p-multiselect
-    size="small"
-    placeholder="All namespaces"
-    display="chip"
-    class="min-w-60"
-    [filter]="true"
-    [showClear]="true"
-    [maxSelectedLabels]="3"
-    [options]="namespaceOptions()"
-    [ngModel]="namespaces()"
-    (ngModelChange)="namespaces.set($event ?? [])"
-  />
+  <div class="tod-home-filter-group">
+    <span class="text-xs tod-text-muted-color">Namespaces</span>
+    <p-multiselect
+      class="tod-home-filter-select min-w-48"
+      size="small"
+      appendTo="body"
+      panelStyleClass="tod-home-filter-panel"
+      placeholder="All namespaces"
+      display="comma"
+      selectedItemsLabel="{0} namespaces"
+      ariaLabel="Namespaces"
+      [filter]="true"
+      [showClear]="true"
+      [maxSelectedLabels]="2"
+      [options]="namespaceOptions()"
+      [ngModel]="namespaces()"
+      (ngModelChange)="namespaces.set($event ?? [])"
+    />
+  </div>
 
   <p-button
+    class="tod-button-compact inline-flex self-center ml-auto"
     icon="pi pi-refresh"
-    label="Refresh"
     size="small"
-    class="ml-auto"
+    severity="secondary"
+    ariaLabel="Refresh"
+    title="Refresh"
     [text]="true"
     [raised]="true"
+    [rounded]="true"
     (onClick)="refresh.emit()"
   />
 </div>

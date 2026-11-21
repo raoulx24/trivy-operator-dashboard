@@ -586,6 +586,131 @@ p-tag.border-primary-color {
   }
 }
 
+// the home filter bar: its controls speak the language of the pills of the widgets (.tod-pill-button), one step larger
+// (they are the main controls of the page); the severity pills and the selects have the same height
+.tod-home-filter-bar .tod-pill-button {
+  height: 1.75rem;
+  padding: 0 0.75rem;
+  font-size: 0.8rem;
+}
+
+// the dot of a pill filled with its own color (e.g. a severity): a ring, so it still shows on the fill
+.tod-pill-button .tod-state-dot.tod-pill-button-dot-on-fill {
+  border-color: var(--tod-pill-button-dot-border-color);
+}
+
+// a group of the home filter bar (a muted caption, then its control), separated from the next one by a thin rule, so
+// it is clear which pills belong together and what they do
+.tod-home-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  & + & {
+    padding-left: 1rem;
+    border-left: 1px solid var(--p-content-border-color);
+  }
+}
+
+// a select / multiselect of the home filter bar as a pill: rounded, outlined, raised, lifted on hover; lightly filled, as
+// it always holds a value (colors: --tod-home-filter-select-* in the theme)
+p-select.tod-home-filter-select,
+p-multiselect.tod-home-filter-select {
+  align-items: center;
+  height: 1.75rem;
+  border: 1px solid var(--tod-home-filter-select-border-color);
+  border-radius: 9999px;
+  background: var(--tod-home-filter-select-background);
+  color: inherit;
+  box-shadow: var(--tod-score-tag-shadow);
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s,
+    border-color 0.15s;
+
+  &:not(.p-disabled):hover,
+  &.p-focus {
+    border-color: var(--tod-home-filter-select-hover-border-color);
+  }
+
+  &:not(.p-disabled):hover {
+    box-shadow: var(--tod-score-tag-hover-shadow);
+    transform: translateY(-1px);
+  }
+
+  // focused (by click or keyboard): the border one pixel thicker, drawn by a shadow, so the edge stays where the overlay
+  // aligns (an outline with an offset would stand outside it; and :focus-visible matches the inner input on a click too)
+  &.p-focus,
+  &.p-focus:not(.p-disabled):hover {
+    box-shadow:
+      0 0 0 1px var(--tod-home-filter-select-hover-border-color),
+      var(--tod-score-tag-shadow);
+  }
+
+  // the placeholder ("All namespaces") is a real value here, so it is not greyed
+  .p-select-label,
+  .p-multiselect-label,
+  .p-select-label.p-placeholder,
+  .p-multiselect-label.p-placeholder {
+    padding: 0 0.25rem 0 0.75rem;
+    color: inherit;
+    font-size: 0.8rem;
+    line-height: 1;
+  }
+
+  .p-select-dropdown,
+  .p-multiselect-dropdown {
+    width: 1.75rem;
+    color: inherit;
+  }
+
+  .p-select-dropdown-icon,
+  .p-multiselect-dropdown-icon,
+  .p-multiselect-clear-icon {
+    width: 0.7rem;
+    height: 0.7rem;
+    color: inherit;
+  }
+}
+
+// the overlay of a select of the home filter bar (panelStyleClass, it is appended to the body): the size of the pill
+// that opened it, not the one of a form field
+.tod-home-filter-panel {
+  margin-top: 0.375rem;
+  border-radius: var(--tod-app-border-radius-lg);
+  overflow: hidden;
+  font-size: 0.8rem;
+
+  .p-select-header,
+  .p-multiselect-header {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .p-select-filter,
+  .p-multiselect-filter {
+    padding-block: 0.25rem;
+    font-size: 0.8rem;
+  }
+
+  .p-select-option,
+  .p-multiselect-option {
+    padding: 0.35rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .p-checkbox,
+  .p-checkbox-box {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .p-checkbox-icon {
+    width: 0.6rem;
+    height: 0.6rem;
+  }
+}
+
 // a selectable table row does not show its own hover while the pointer is on one of its tags, so it is clear that the
 // click goes to the tag, not to the row
 .p-datatable-hoverable .p-datatable-tbody > tr:not(.p-datatable-row-selected):has(.tod-score-tag:hover) {

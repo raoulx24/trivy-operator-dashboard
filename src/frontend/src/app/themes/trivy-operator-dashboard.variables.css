@@ -63,6 +63,12 @@
   --tod-score-tag-hover-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
   /* the pill buttons (.tod-pill-button, the look of .tod-score-tag): the tint of the active one */
   --tod-pill-button-active-background: color-mix(in srgb, currentColor 22%, transparent);
+  /* the ring of the dot of a pill filled with its own color (e.g. a severity), so the dot still shows */
+  --tod-pill-button-dot-border-color: var(--tod-text-primary-color);
+  /* the selects of the home filter bar (.tod-home-filter-select), pills that always hold a value */
+  --tod-home-filter-select-background: var(--p-surface-100);
+  --tod-home-filter-select-border-color: color-mix(in srgb, var(--p-surface-900) 50%, transparent);
+  --tod-home-filter-select-hover-border-color: var(--p-surface-700);
 
   /* nav menu: entry of the active page */
   --tod-menu-item-active-bg: color-mix(in srgb, var(--p-primary-color) 40%, transparent);
@@ -186,6 +192,10 @@
   --tod-score-tag-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
   --tod-score-tag-hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
   --tod-pill-button-active-background: color-mix(in srgb, currentColor 30%, transparent);
+  --tod-pill-button-dot-border-color: var(--tod-text-primary-color);
+  --tod-home-filter-select-background: var(--p-surface-800);
+  --tod-home-filter-select-border-color: color-mix(in srgb, var(--p-surface-100) 60%, transparent);
+  --tod-home-filter-select-hover-border-color: var(--p-surface-200);
 
   --tod-radar-stroke-color: var(--p-red-400);
   --tod-radar-vertex-outline-color: var(--p-surface-950);
