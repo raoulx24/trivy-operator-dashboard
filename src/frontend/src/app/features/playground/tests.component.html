@@ -1,6 +1,6 @@
 <div class="tests">
   <!-- activity-heatmap -->
-  <fieldset class="box box-narrow">
+  <fieldset class="box">
     <legend>activity-heatmap</legend>
     <div class="variant">
       <span class="variant-title">3 rows</span>
@@ -12,6 +12,7 @@
         emphasis1Label="Seen"
         emphasis2Label="Failed"
         valueLabel="scans"
+        [selectableDays]="activitySelectableDays"
         [selectedDay]="activitySelectedDay()"
         (daySelected)="activitySelectedDay.set($event)"
       />
@@ -20,12 +21,14 @@
       <span class="variant-title">4 rows</span>
       <app-activity-heatmap [data]="activityData" [rows]="4" [showLegend]="false" valueLabel="scans" />
     </div>
+    <app-network-fill class="fill" [seed]="fillSeed('activity-heatmap')" />
   </fieldset>
 
   <!-- eol-runway -->
   <fieldset class="box">
     <legend>eol-runway</legend>
     <app-eol-runway [items]="eolItems" [today]="today" />
+    <app-network-fill class="fill" [seed]="fillSeed('eol-runway')" />
   </fieldset>
 
   <!-- lane-strip -->
@@ -40,10 +43,11 @@
       [(selected)]="laneSelected"
       valueLabel="vulns"
     />
+    <app-network-fill class="fill" [seed]="fillSeed('lane-strip')" />
   </fieldset>
 
   <!-- layered-graph -->
-  <fieldset class="box box-wide">
+  <fieldset class="box">
     <legend>layered-graph</legend>
     <div class="variant">
       <span class="variant-title">selectable, all nodes</span>
@@ -68,10 +72,11 @@
         valueLabel="workloads"
       />
     </div>
+    <app-network-fill class="fill" [seed]="fillSeed('layered-graph')" />
   </fieldset>
 
   <!-- matrix-heatmap -->
-  <fieldset class="box box-wide">
+  <fieldset class="box">
     <legend>matrix-heatmap</legend>
     <div class="variant">
       <span class="variant-title">values and legend, selectable</span>
@@ -97,10 +102,11 @@
         valueLabel="vulns"
       />
     </div>
+    <app-network-fill class="fill" [seed]="fillSeed('matrix-heatmap')" />
   </fieldset>
 
   <!-- meter-group -->
-  <fieldset class="box box-wide">
+  <fieldset class="box">
     <legend>meter-group</legend>
     <div class="variant">
       <span class="variant-title">a mix (no max), thin</span>
@@ -114,6 +120,7 @@
       <span class="variant-title">a percent (max = 100), with values</span>
       <app-meter-group [segments]="meterPercent" [max]="100" [showValues]="true" valueLabel="%" />
     </div>
+    <app-network-fill class="fill" [seed]="fillSeed('meter-group')" />
   </fieldset>
 
   <!-- ring-gauge -->
@@ -124,37 +131,33 @@
         <app-ring-gauge [data]="ring" [(selected)]="ringSelected" />
       }
     </div>
+    <app-network-fill class="fill" [seed]="fillSeed('ring-gauge')" />
   </fieldset>
 
   <!-- scatter-select -->
-  <fieldset class="box box-wide">
+  <fieldset class="box">
     <legend>scatter-select</legend>
-    <div class="variant">
-      <span class="variant-title">linear axes</span>
-      <app-scatter-select [points]="scatterPoints" [xAxis]="scatterXLinear" [yAxis]="scatterY" [legend]="scatterLegend" />
-    </div>
     <div class="variant">
       <span class="variant-title">log x axis</span>
       <app-scatter-select [points]="scatterPoints" [xAxis]="scatterXLog" [yAxis]="scatterY" [legend]="scatterLegend" />
     </div>
+    <app-network-fill class="fill" [seed]="fillSeed('scatter-select')" />
   </fieldset>
 
   <!-- span-timeline -->
-  <fieldset class="box box-wide">
+  <fieldset class="box">
     <legend>span-timeline</legend>
-    <div class="variant">
-      <span class="variant-title">linear scale</span>
-      <app-span-timeline [rows]="spanRows" [legend]="spanLegend" [colors]="spanColors" />
-    </div>
     <div class="variant">
       <span class="variant-title">log scale</span>
       <app-span-timeline [rows]="spanRows" scale="log" [colors]="spanColors" />
     </div>
+    <app-network-fill class="fill" [seed]="fillSeed('span-timeline')" />
   </fieldset>
 
   <!-- stacked-bar-chart -->
-  <fieldset class="box box-wide">
+  <fieldset class="box">
     <legend>stacked-bar-chart</legend>
     <app-stacked-bar-chart [columns]="stackedColumns" [series]="stackedSeries" [highlightFrom]="10" [clickable]="true" valueLabel="vulns" />
+    <app-network-fill class="fill" [seed]="fillSeed('stacked-bar-chart')" />
   </fieldset>
 </div>

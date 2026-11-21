@@ -9,6 +9,7 @@ import { LaneStripLane, LaneStripSelection } from '@shared/ui/lane-strip/lane-st
 import { LayeredGraphComponent } from '@shared/ui/layered-graph/layered-graph.component';
 import { LayeredGraphColumn, LayeredGraphEdge, LayeredGraphNode } from '@shared/ui/layered-graph/layered-graph.types';
 import { MatrixHeatmapComponent } from '@shared/ui/matrix-heatmap/matrix-heatmap.component';
+import { NetworkFillComponent } from '@shared/ui/network-fill/network-fill.component';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
 import { RingGaugeComponent } from '@shared/ui/ring-gauge/ring-gauge.component';
@@ -19,6 +20,9 @@ import { SpanTimelineComponent } from '@shared/ui/span-timeline/span-timeline.co
 import { SpanTimelineLegendItem, SpanTimelineRow } from '@shared/ui/span-timeline/span-timeline.types';
 import { StackedBarChartComponent } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.component';
 import { StackedBarColumn, StackedBarSeries } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.types';
+
+// enough days for the lane strip to scroll in its box
+const LANE_DAYS = 60;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -54,6 +58,7 @@ function shortDay(offsetDays: number): string {
     LayeredGraphComponent,
     MatrixHeatmapComponent,
     MeterGroupComponent,
+    NetworkFillComponent,
     RingGaugeComponent,
     ScatterSelectComponent,
     SpanTimelineComponent,
@@ -64,6 +69,9 @@ function shortDay(offsetDays: number): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TestsComponent {
+  // the seed of the network fill of each box
+  protected readonly fillSeed = (name: string) => `playground ${name}`;
+
   // activity-heatmap
   protected readonly activityData: ActivityHeatmapDayDto[] = (() => {
     const random = seeded(7);
@@ -73,6 +81,8 @@ export class TestsComponent {
       value: random() < 0.3 ? 0 : Math.ceil(random() * 12),
     }));
   })();
+  // the days with a value can be clicked
+  protected readonly activitySelectableDays = this.activityData.filter((d) => d.value > 0).map((d) => d.day);
   protected readonly activityEmphasis1 = [isoDay(-3), isoDay(-20), isoDay(-45)];
   protected readonly activityEmphasis2 = [isoDay(-1), isoDay(-60)];
   protected readonly activitySelectedDay = signal<string | null>(isoDay(-20));
@@ -90,7 +100,7 @@ export class TestsComponent {
   ];
 
   // lane-strip
-  protected readonly laneColumns = Array.from({ length: 14 }, (_, i) => isoDay(i - 13));
+  protected readonly laneColumns = Array.from({ length: LANE_DAYS }, (_, i) => isoDay(i - (LANE_DAYS - 1)));
   protected readonly laneColors = SEVERITY_COLORS.slice(0, 3);
   protected readonly lanes: LaneStripLane[] = (() => {
     const random = seeded(11);
@@ -99,8 +109,8 @@ export class TestsComponent {
       caption,
       values: this.laneColumns.map(() => (random() < 0.35 ? 0 : Math.ceil(random() * (12 - lane * 3)))),
       // the last visit was 4 days ago; the exploited ones are a few scattered days
-      emphasis1: [10, 11, 12, 13],
-      emphasis2: lane === 0 ? [3, 11] : lane === 1 ? [6] : [],
+      emphasis1: [LANE_DAYS - 4, LANE_DAYS - 3, LANE_DAYS - 2, LANE_DAYS - 1],
+      emphasis2: lane === 0 ? [LANE_DAYS - 40, LANE_DAYS - 3] : lane === 1 ? [LANE_DAYS - 25] : [],
     }));
   })();
   protected readonly laneSelected = signal<LaneStripSelection | null>(null);
@@ -198,7 +208,6 @@ export class TestsComponent {
     { label: 'Frontend', color: '#e67e22', shape: 'diamond' },
     { label: 'Infra', color: '#3b82c4', shape: 'square' },
   ];
-  protected readonly scatterXLinear: ScatterAxis = { label: 'Age (days)', min: 0 };
   protected readonly scatterXLog: ScatterAxis = { label: 'Age (days, log)', scale: 'log' };
   protected readonly scatterY: ScatterAxis = { label: 'CVSS', min: 0, max: 10 };
 

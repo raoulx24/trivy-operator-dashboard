@@ -1,18 +1,26 @@
 .tests {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  --box-width: 34rem;
+
+  // the boxes of a row are as tall as the tallest of them
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--box-width));
+  align-items: stretch;
   gap: 1.5rem;
 }
 
-// the box is as big as its component needs
+// every box has the same size; what the component does not use is filled with a network
 .box {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  // a fieldset is as wide as its content at least; the components scroll or fit instead
+  min-width: 0;
+  overflow: hidden;
   margin: 0;
   padding: 0.75rem 1rem 1rem;
   border: 1px solid var(--p-content-border-color);
   border-radius: var(--tod-app-border-radius-md);
   background: var(--p-content-background);
-  max-width: 100%;
 
   legend {
     padding: 0 0.5rem;
@@ -20,18 +28,6 @@
     font-size: 0.875rem;
     color: var(--p-text-muted-color);
   }
-}
-
-// the components that follow the width of their host
-.box-wide {
-  width: 32rem;
-}
-
-// a box narrower than its component: the component scrolls inside (the activity heatmap)
-.box-narrow {
-  width: 24rem;
-  // a fieldset is as wide as its content at least, which is what the scroller is there to avoid
-  min-width: 0;
 }
 
 .variant {
@@ -52,4 +48,11 @@
 .rings {
   display: flex;
   gap: 1rem;
+}
+
+.fill {
+  flex: 1;
+  // the network shows at least a strip, also in the tallest box of the row
+  min-height: 3rem;
+  margin-top: 1rem;
 }

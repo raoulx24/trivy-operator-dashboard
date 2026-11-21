@@ -93,7 +93,7 @@
           (mouseleave)="popover.hide()"
         >
           @if (item.kind === 'bar') {
-            <span class="swatch" [style.background]="item.color ?? colors()[0] ?? 'var(--p-primary-color)'"></span>
+            <span class="swatch" [style.background]="item.color ?? (colors().length > 0 ? colors()[0] : 'var(--p-primary-color)')"></span>
           } @else {
             <svg class="glyph marker kind-{{ item.kind }}" width="12" height="14" viewBox="-6 -7 12 14">
               @switch (item.kind) {
