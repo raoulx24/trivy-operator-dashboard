@@ -38,6 +38,7 @@ public class HomeService(
     private const string NoHistory = "Vulnerability reports history is not enabled";
     private const string NoCveEnrichment = "CVE enrichment is not enabled";
     private const string NoEndOfLife = "End of life is not enabled";
+    private const string NoCompliance = "Cluster compliance reports are not enabled";
     private const string NoExposedSecrets = "Exposed secret reports are not enabled";
     private const string NoSecurityAssessments = "No security assessment reports (config audit, RBAC, infra) are enabled";
 
@@ -913,10 +914,20 @@ public class HomeService(
         HomeScope scope = new(EmptyTable, filter.Namespaces);
         HashSet<int> severities = ToSeverities(filter.SeverityIds);
 
-        List<HomeFailingCheckDto> items =
+        List<HomeAssessmentReport> reports =
         [
             .. (await assessmentReportsLoader.Load(ctx))
-                .Where(report => scope.Contains(report.NamespaceName, report.IsClusterScoped))
+                .Where(report => scope.Contains(report.NamespaceName, report.IsClusterScoped)),
+        ];
+
+        // the resources evaluated by a check are estimated by kind: the reports in the scope by family and kind bin
+        Dictionary<(string Family, string Bin), int> evaluated = reports
+            .GroupBy(report => (report.Family, KindBin(report)))
+            .ToDictionary(group => group.Key, group => group.Select(x => x.Uid).Distinct().Count());
+
+        List<HomeFailingCheckDto> items =
+        [
+            .. reports
                 .SelectMany(report => report.Checks.Select(check => (Report: report, Check: check)))
                 .Where(x => severities.Contains(x.Check.Severity.Rank))
                 .GroupBy(x => (x.Report.Family, x.Check.CheckId))
@@ -931,6 +942,10 @@ public class HomeService(
                         Category: check.Category.Value,
                         SeverityId: check.Severity.Rank,
                         Resources: group.Select(x => x.Report.Uid).Distinct().Count(),
+                        Evaluated: group
+                            .Select(x => KindBin(x.Report))
+                            .Distinct()
+                            .Sum(bin => evaluated[(group.Key.Family, bin)]),
                         Namespaces: group
                             .Where(x => !x.Report.IsClusterScoped)
                             .Select(x => x.Report.NamespaceName)
@@ -963,11 +978,16 @@ public class HomeService(
 
         HomeScope scope = new(EmptyTable, filter.Namespaces);
 
-        List<(HomeAssessmentReport Report, Check Check)> group =
+        List<HomeAssessmentReport> familyReports =
         [
             .. (await assessmentReportsLoader.Load(ctx))
                 .Where(report => string.Equals(report.Family, familyValue, StringComparison.Ordinal) &&
-                                 scope.Contains(report.NamespaceName, report.IsClusterScoped))
+                                 scope.Contains(report.NamespaceName, report.IsClusterScoped)),
+        ];
+
+        List<(HomeAssessmentReport Report, Check Check)> group =
+        [
+            .. familyReports
                 .SelectMany(report => report.Checks.Select(check => (Report: report, Check: check)))
                 .Where(x => string.Equals(x.Check.CheckId.Value, id, StringComparison.Ordinal)),
         ];
@@ -986,6 +1006,14 @@ public class HomeService(
         Check first = group[0].Check;
         HomeAssessmentReport[] reports = [.. group.Select(x => x.Report).DistinctBy(x => x.Uid),];
 
+        // the evaluated resources: the reports of the family in the kind bins of the failing ones
+        HashSet<string> bins = [.. reports.Select(KindBin),];
+        HomeAssessmentReport[] evaluatedReports =
+            [.. familyReports.Where(x => bins.Contains(KindBin(x))).DistinctBy(x => x.Uid),];
+        Dictionary<string, int> evaluatedByNamespace = evaluatedReports
+            .GroupBy(NamespaceKey)
+            .ToDictionary(x => x.Key, x => x.Count());
+
         HomeFailingCheckDetailItemDto item = new(
             Family: familyValue,
             CheckId: id,
@@ -995,8 +1023,21 @@ public class HomeService(
             Description: first.Description.Value,
             Remediation: first.Remediation.Value,
             Resources: reports.Length,
+            Evaluated: evaluatedReports.Length,
             Namespaces: reports.Where(x => !x.IsClusterScoped).Select(x => x.NamespaceName).Distinct().Count(),
             HasClusterScopedResources: reports.Any(x => x.IsClusterScoped),
+            ByNamespace:
+            [
+                .. reports
+                    .GroupBy(NamespaceKey)
+                    .Select(x => new HomeFailingCheckNamespaceDto(
+                        NamespaceName: x.Key.Length == 0 ? null : x.Key,
+                        Resources: x.Count(),
+                        Evaluated: evaluatedByNamespace.GetValueOrDefault(x.Key)))
+                    .OrderBy(x => x.NamespaceName is null)
+                    .ThenByDescending(x => x.Resources)
+                    .ThenBy(x => x.NamespaceName, StringComparer.Ordinal),
+            ],
             Rows:
             [
                 .. reports
@@ -1023,6 +1064,31 @@ public class HomeService(
             ResourceKind: owner?.Kind.Value ?? report.Kind,
             ResourceName: owner?.Name.Value ?? report.Metadata.Name.Value);
     }
+
+    // the kinds that run pods: trivy reports the one that owns them (a ReplicaSet for a Deployment, a Job for a CronJob,
+    // a Pod alone), so a check that fails in one of them is evaluated in all of them
+    private static readonly HashSet<string> WorkloadKinds = new(StringComparer.Ordinal)
+    {
+        "Pod", "ReplicaSet", "ReplicationController", "Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob",
+    };
+
+    // the bin of the kind of the assessed resource (the owner of the report, else the report): the resources a check
+    // evaluates are those of the bins it fails in
+    private static string KindBin(HomeAssessmentReport report)
+    {
+        string kind = report.Metadata.OwnerReferences.Count > 0
+            ? report.Metadata.OwnerReferences[0].Kind.Value
+            : report.Kind;
+
+        return WorkloadKinds.Contains(kind) ? "Workload"
+            : kind is "Role" or "ClusterRole" ? "Role"
+            : kind is "RoleBinding" or "ClusterRoleBinding" ? "RoleBinding"
+            : kind;
+    }
+
+    // the namespace of a report, "" for a cluster scoped one
+    private static string NamespaceKey(HomeAssessmentReport report) =>
+        report.IsClusterScoped ? string.Empty : report.NamespaceName.Value;
 
     public async Task<HomeOldestImagesDto> GetOldestImages(HomeFilter filter, CancellationToken ctx = default)
     {
@@ -1155,6 +1221,83 @@ public class HomeService(
             images.Sum(x => x.SecretCount),
             images.Count,
             [.. images.Take(filter.Limit),]);
+    }
+
+    // ------------------------------------------------------------------------
+    // Compliance
+    // ------------------------------------------------------------------------
+
+    public async Task<HomeComplianceDto> GetCompliance(CancellationToken ctx = default)
+    {
+        if (sources.ClusterComplianceReports is null)
+        {
+            return new HomeComplianceDto(false, NoCompliance, []);
+        }
+
+        return new HomeComplianceDto(
+            true,
+            null,
+            [
+                .. (await sources.ClusterComplianceReports.GetResources(ctx))
+                    .Select(report =>
+                    {
+                        int total = report.Summary.PassCount + report.Summary.FailCount;
+
+                        return new HomeComplianceReportDto(
+                            Uid: report.Metadata.Uid.Value,
+                            Name: report.Metadata.Name.Value,
+                            Title: report.ComplianceMetadata.Title.Value,
+                            Version: report.ComplianceMetadata.Version.Value,
+                            PassCount: report.Summary.PassCount,
+                            FailCount: report.Summary.FailCount,
+                            PassPercent: total == 0 ? null : report.Summary.PassCount * 100.0 / total,
+                            LastScanAt: report.LastSeenAt.Value);
+                    })
+                    .OrderBy(x => x.Name, StringComparer.Ordinal)
+                    .ThenBy(x => x.Uid, StringComparer.Ordinal),
+            ]);
+    }
+
+    public async Task<HomeComplianceWorstControlsDto> GetComplianceWorstControls(
+        string reportUid,
+        HomeFilter filter,
+        CancellationToken ctx = default)
+    {
+        if (sources.ClusterComplianceReports is null)
+        {
+            return new HomeComplianceWorstControlsDto(false, NoCompliance, reportUid, string.Empty, string.Empty, 0, []);
+        }
+
+        ClusterComplianceReport? report = (await sources.ClusterComplianceReports.GetResources(ctx))
+            .FirstOrDefault(x => string.Equals(x.Metadata.Uid.Value, reportUid, StringComparison.Ordinal));
+
+        if (report is null)
+        {
+            return new HomeComplianceWorstControlsDto(false, "Compliance report not found", reportUid, string.Empty, string.Empty, 0, []);
+        }
+
+        List<HomeComplianceControlDto> failing =
+        [
+            .. report.ControlChecks
+                .Where(x => x.TotalFail.Value > 0)
+                .Select(x => new HomeComplianceControlDto(
+                    ControlId: x.Control.Id.Value,
+                    Name: x.Control.ControlName.Value,
+                    SeverityId: x.Control.Severity.Rank,
+                    TotalFail: x.TotalFail.Value))
+                .OrderByDescending(x => x.TotalFail)
+                .ThenBy(x => x.SeverityId)
+                .ThenBy(x => x.ControlId, StringComparer.Ordinal),
+        ];
+
+        return new HomeComplianceWorstControlsDto(
+            true,
+            null,
+            reportUid,
+            report.ComplianceMetadata.Title.Value,
+            report.ComplianceMetadata.Version.Value,
+            failing.Count,
+            [.. failing.Take(filter.Limit),]);
     }
 
     public async Task<HomePackageHotspotsDto> GetPackageHotspots(HomeFilter filter, CancellationToken ctx = default)

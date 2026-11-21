@@ -4,20 +4,23 @@ import {
   DestroyRef,
   ElementRef,
   TemplateRef,
-  afterNextRender,
   computed,
+  effect,
   inject,
   input,
   model,
   signal,
+  viewChild,
 } from '@angular/core';
 
 import { PopoverService } from '../popover/popover.service';
+import { ScrollerComponent } from '../scroller/scroller.component';
 
 import {
   SpanTimelineBar,
   SpanTimelineLegendItem,
   SpanTimelineMarkerKind,
+  SpanTimelineOrigin,
   SpanTimelineRow,
   SpanTimelineScale,
   SpanTimelineTick,
@@ -46,12 +49,17 @@ const LOG_TICKS = [1, 3, 7, 14, 30, 60, 90, 180, 365, 730, 1095, 1825, 3650];
 // bars of time on one shared horizontal axis: one row per item, the oldest end at the left, now at the right
 // - everything comes from the inputs: rows (label, start, end, color, value text, markers), ticks, legend, colors, scale
 // - values are ages (distance back from now) in a unit of the caller; the scale is linear or log (log1p, so 0 = now works)
+// - origin left turns the axis around (0 at the left, the bars grow to the right), for values that are not ages
+// - a faint row (a value to take with care) has a faint bar on a track with a dashed outline
 // - a row can have up to 3 markers (dot, diamond, tick); they are drawn on top of the bar and have their own popover
 // - selection: a click (or Enter / Space) on a row selects it, again deselects; selectedId is the two way signal
+// - the axis is drawn apart, on top; the rows are in a vertical app-scroller, as tall as they are up to maxHeight (px, the
+//   axis included; null = no limit)
 // - the control does not know what the rows or the markers mean
 @Component({
   selector: 'app-span-timeline',
   standalone: true,
+  imports: [ScrollerComponent],
   templateUrl: './span-timeline.component.html',
   styleUrl: './span-timeline.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,6 +67,10 @@ const LOG_TICKS = [1, 3, 7, 14, 30, 60, 90, 180, 365, 730, 1095, 1825, 3650];
 export class SpanTimelineComponent {
   rows = input<SpanTimelineRow[]>([]);
   scale = input<SpanTimelineScale>('linear');
+  // where 0 (now) is; left: the bars grow from the left end (nowLabel is drawn there)
+  origin = input<SpanTimelineOrigin>('right');
+  // false: no axis (no ticks, no now label), only the rows
+  showAxis = input<boolean>(true);
   // the age at the left end of the axis; default: the oldest start of the rows
   max = input<number | null>(null);
   // the labels of the axis; default: automatic (nice steps for linear, 1 3 7 14 30... for log)
@@ -78,29 +90,38 @@ export class SpanTimelineComponent {
   // replaces the default popover of a row
   tooltipTemplate = input<TemplateRef<SpanTimelineTipContext> | undefined>(undefined);
 
+  // px, the axis included: taller rows scroll; null = all the rows are shown
+  maxHeight = input<number | null>(null);
+
   selectable = input<boolean>(true);
   // the id of the selected row, null = none (two way: the click changes it)
   selectedId = model<string | null>(null);
 
   protected readonly barHeight = BAR_HEIGHT;
   protected readonly rowHeight = ROW_HEIGHT;
+  protected readonly axisHeight = TOP_HEIGHT;
   protected readonly viewWidth = signal(DEFAULT_WIDTH);
   protected readonly popover = inject(PopoverService);
 
+  private readonly axisBox = viewChild<ElementRef<HTMLElement>>('axisBox');
+
   constructor() {
-    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const destroyRef = inject(DestroyRef);
     // never leave the popover behind when the control goes away while hovered
     destroyRef.onDestroy(() => this.popover.hide());
 
-    afterNextRender(() => {
-      const observer = new ResizeObserver(() => {
-        const width = Math.floor(host.clientWidth);
-        if (width > 0) this.viewWidth.set(width);
-      });
-      observer.observe(host);
-      destroyRef.onDestroy(() => observer.disconnect());
+    // the drawings are as wide as the box of the axis without its padding (the one of the scroller of the rows); the box
+    // appears with the rows
+    const observer = new ResizeObserver((entries) => {
+      const width = Math.floor(entries[0]?.contentRect.width ?? 0);
+      if (width > 0) this.viewWidth.set(width);
     });
+    effect(() => {
+      const element = this.axisBox()?.nativeElement;
+      observer.disconnect();
+      if (element) observer.observe(element);
+    });
+    destroyRef.onDestroy(() => observer.disconnect());
   }
 
   protected readonly hasValues = computed(() => this.rows().some((r) => !!r.valueLabel));
@@ -112,7 +133,9 @@ export class SpanTimelineComponent {
   });
   // the value ends EDGE_PAD before the right edge, as the label starts EDGE_PAD after the left one
   protected readonly valueX = computed(() => this.viewWidth() - EDGE_PAD);
-  protected readonly nowX = computed(() => this.barsLeft() + this.barsWidth());
+  protected readonly nowX = computed(() =>
+    this.origin() === 'left' ? this.barsLeft() : this.barsLeft() + this.barsWidth(),
+  );
 
   private readonly domainMax = computed(() => {
     const given = this.max();
@@ -131,12 +154,13 @@ export class SpanTimelineComponent {
       const start = Math.max(end, row.start);
       const xStart = this.x(start);
       const xEnd = this.x(end);
-      const width = Math.max(MIN_BAR_WIDTH, xEnd - xStart);
-      const left = Math.min(xStart, this.nowX() - width);
+      const width = Math.max(MIN_BAR_WIDTH, Math.abs(xEnd - xStart));
+      // a bar never goes past the now end
+      const left = this.origin() === 'left' ? Math.min(xStart, xEnd) : Math.min(xStart, this.nowX() - width);
 
       return {
         row,
-        y: TOP_HEIGHT + i * ROW_HEIGHT,
+        y: i * ROW_HEIGHT,
         x: left,
         width,
         color: row.color ?? (palette.length > 0 ? palette[i % palette.length] : 'var(--p-primary-color)'),
@@ -151,8 +175,13 @@ export class SpanTimelineComponent {
     });
   });
 
-  protected readonly rowsBottom = computed(() => TOP_HEIGHT + this.rows().length * ROW_HEIGHT);
-  protected readonly height = computed(() => this.rowsBottom() + 4);
+  protected readonly rowsBottom = computed(() => this.rows().length * ROW_HEIGHT);
+  // the height of the scroller of the rows: all of them, or what maxHeight leaves after the axis (one row at least)
+  protected readonly rowsViewHeight = computed(() => {
+    const max = this.maxHeight();
+    const axis = this.showAxis() ? TOP_HEIGHT : 0;
+    return max === null ? this.rowsBottom() : Math.min(this.rowsBottom(), Math.max(ROW_HEIGHT, max - axis));
+  });
 
   protected readonly referenceX = computed(() => {
     const at = this.referenceAt();
@@ -166,25 +195,26 @@ export class SpanTimelineComponent {
     const views = ticks
       .filter((t) => t.value > 0 && t.value <= this.domainMax())
       .map((t) => ({ x: this.x(t.value), label: t.label ?? format(t.value) }))
-      .sort((a, b) => b.x - a.x);
+      .sort((a, b) => Math.abs(a.x - this.nowX()) - Math.abs(b.x - this.nowX()));
 
-    // from the right: drop what would overlap the "now" label or the previous one
+    // from the now end: drop what would overlap the "now" label or the previous one
     const kept: SpanTimelineTickView[] = [];
     let last = this.nowX();
     for (const view of views) {
-      if (last - view.x < MIN_TICK_GAP) continue;
+      if (Math.abs(last - view.x) < MIN_TICK_GAP) continue;
       kept.push(view);
       last = view.x;
     }
     return kept;
   });
 
-  // age -> x (px): 0 at the right end of the axis, the domain max at the left; values beyond are clamped
+  // age -> x (px): 0 at the now end of the axis (right, or left with origin left), the domain max at the other one;
+  // values beyond are clamped
   private x(age: number): number {
     const max = this.domainMax();
     const v = Math.min(Math.max(age, 0), max);
     const ratio = this.scale() === 'log' ? Math.log1p(v) / Math.log1p(max) : v / max;
-    return this.barsLeft() + (1 - ratio) * this.barsWidth();
+    return this.barsLeft() + (this.origin() === 'left' ? ratio : 1 - ratio) * this.barsWidth();
   }
 
   private autoTicks(): SpanTimelineTick[] {

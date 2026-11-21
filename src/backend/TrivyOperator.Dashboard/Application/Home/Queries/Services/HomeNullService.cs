@@ -92,4 +92,13 @@ public class HomeNullService : QueryNullService, IHomeService
 
     public Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeReachEpssDto(false, Reason, []));
+
+    public Task<HomeComplianceDto> GetCompliance(CancellationToken ctx = default) =>
+        Task.FromResult(new HomeComplianceDto(false, Reason, []));
+
+    public Task<HomeComplianceWorstControlsDto> GetComplianceWorstControls(
+        string reportUid,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(new HomeComplianceWorstControlsDto(false, Reason, reportUid, string.Empty, string.Empty, 0, []));
 }

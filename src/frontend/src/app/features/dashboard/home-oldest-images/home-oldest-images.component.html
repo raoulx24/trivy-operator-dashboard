@@ -1,56 +1,204 @@
 <app-home-widget-frame
   heading="Oldest running images"
+  [canExpand]="canExpand()"
+  [expanded]="isExpanded()"
+  [fillGap]="!isExpanded()"
   [help]="help"
   [hint]="hint()"
-  [state]="state()"
-  [canExpand]="false"
-  [expanded]="false"
   [refreshable]="true"
+  [state]="state()"
+  (expandToggle)="toggleExpand()"
   (refreshRequested)="refreshWidget()"
-  [fillGap]="false"
 >
-  <div class="pt-2">
-    <app-home-search-box placeholder="not working, go away!" [(query)]="filterText" />
-  </div>
-
-  <div class="flex flex-col gap-4 pt-2">
-    @for (item of items(); track item.digest) {
-      <div class="flex flex-col gap-1.5 px-1 text-sm">
-        <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span class="font-medium break-all" [attr.title]="item.registry + '/' + imageName(item) + '@' + item.digest">{{ imageName(item) }}</span>
-          @if (item.highestSeverityId !== undefined && item.highestSeverityId !== null) {
-            <p-tag
-              class="text-xs"
-              [rounded]="true"
-              [style]="item.highestSeverityId | severityCssStyleById: 1"
-              [value]="item.highestSeverityId | severityNameById"
-              [attr.title]="'The highest severity of its vulnerability ids'"
-            />
-          }
-        </span>
-
-        <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
-          <span [attr.title]="'First seen by the history: ' + item.firstSeenAt.substring(0, 10) + ' (UTC)'">
-            {{ ageDays(item.firstSeenAt) }} days
+  @if (!isExpanded()) {
+    @if (imageCount() === 0 && state().isAvailable) {
+      <ng-container *ngTemplateOutlet="empty" />
+    } @else if (imageCount() > 0) {
+      <div class="flex flex-col gap-3 pt-2">
+        <!-- the headline: the oldest age, and the images older than oldDays -->
+        <div class="flex flex-wrap items-baseline gap-x-2">
+          <span class="text-3xl font-semibold">{{ daysLabel(oldestDays()) }}</span>
+          <span class="tod-text-muted-color">
+            oldest; {{ oldCount() }} {{ oldCount() === 1 ? 'image' : 'images' }} over {{ oldDays }}d
           </span>
-          @if (item.osFamily) {
-            <span class="tod-text-muted-color">{{ item.osFamily }} {{ item.osName }}</span>
-            @if (item.isOsEndOfLife) {
-              <span class="font-medium" title="The base OS is end of life">EOL</span>
-            }
-          }
-        </span>
+        </div>
 
-        <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
-          <span class="tod-text-muted-color">{{ item.vulnerabilityIds }} {{ item.vulnerabilityIds === 1 ? 'id' : 'ids' }}</span>
-          <span class="tod-text-muted-color">{{ item.fixableVulnerabilityIds }} fixable</span>
-          @if (item.knownExploitedVulnerabilityIds > 0) {
-            <span class="tod-text-muted-color">{{ item.knownExploitedVulnerabilityIds }} exploited</span>
-          }
-          <span class="tod-text-muted-color">{{ item.workloads }} {{ item.workloads === 1 ? 'workload' : 'workloads' }}</span>
-          <span class="tod-text-muted-color" [attr.title]="item.namespaceNames.join(', ')">{{ item.namespaces }} ns</span>
-        </span>
+        <!-- the oldest images; a click on one expands the widget on it -->
+        <app-span-timeline
+          [labelWidth]="170"
+          [max]="timelineMax()"
+          [referenceAt]="referenceAt()"
+          [rows]="collapsedRows()"
+          [selectable]="canExpand()"
+          [selectedId]="null"
+          [ticks]="timelineTicks()"
+          [valueWidth]="48"
+          (selectedIdChange)="openImage($event)"
+        />
+
+        @if (partialLabel()) {
+          <span class="text-xs tod-text-muted-color">{{ partialLabel() }}</span>
+        }
       </div>
     }
-  </div>
+  } @else {
+    <!-- expanded, between expandedMinHeight and expandedMaxHeight, else as tall as its row of the page: on the left the
+         filter box and the timeline of all the images (it takes the rest of the height and scrolls in it), on the right the
+         selected image and its namespaces -->
+    <div
+      class="grid grid-cols-[minmax(0,1fr)_20rem] gap-3 pt-2 flex-1"
+      [style.max-height]="expandedMaxHeight"
+      [style.min-height]="expandedMinHeight"
+    >
+      <div class="flex flex-col gap-2 min-w-0 min-h-0">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs tod-text-muted-color">
+            {{ shown().length }} {{ shown().length === 1 ? 'image' : 'images' }} · first seen → today
+          </span>
+          @if (partialLabel()) {
+            <span class="text-xs tod-text-muted-color">{{ partialLabel() }}</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <app-home-search-box placeholder="Filter by image, OS or namespace" [(query)]="filterText" />
+          @if (noMatch()) {
+            <span class="text-xs tod-text-muted-color px-1">No match for "{{ filterText().trim() }}"</span>
+          }
+        </div>
+
+        @if (imageCount() === 0 && state().isAvailable) {
+          <ng-container *ngTemplateOutlet="empty" />
+        }
+
+        <!-- the rest of the height; the timeline is laid out absolutely, so its rows do not make the box taller -->
+        <div class="tod-content-border relative flex-1 min-h-0 overflow-hidden">
+          <div #timelineHost class="absolute inset-0 py-2">
+            <app-span-timeline
+              [labelWidth]="labelWidth"
+              [max]="timelineMax()"
+              [maxHeight]="timelineHeight()"
+              [referenceAt]="referenceAt()"
+              [rows]="timelineRows()"
+              [ticks]="timelineTicks()"
+              [valueWidth]="56"
+              [(selectedId)]="selectedKey"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3 min-h-0 min-w-0">
+        <app-trivy-box class="shrink-0">
+          <span boxTitle>Selected</span>
+          @if (selected(); as s) {
+            <div class="flex flex-col gap-2 text-sm">
+              <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span class="font-semibold break-all">{{ s.name }}</span>
+                @if (s.item.highestSeverityId !== undefined && s.item.highestSeverityId !== null) {
+                  <p-tag
+                    title="The highest severity of its vulnerability ids"
+                    class="text-xs"
+                    [rounded]="true"
+                    [style]="s.item.highestSeverityId | severityCssStyleById: 1"
+                    [value]="s.item.highestSeverityId | severityNameById"
+                  />
+                }
+              </span>
+              <span class="text-xs tod-text-muted-color break-all" [attr.title]="s.item.digest">
+                {{ s.item.registry }} · {{ shortDigest(s.item.digest) }}
+              </span>
+              <span>
+                running {{ s.days }}d
+                <span class="tod-text-muted-color">(first seen {{ s.item.firstSeenAt.substring(0, 10) }})</span>
+              </span>
+              @if (s.item.osFamily) {
+                <span>
+                  {{ s.item.osFamily }} {{ s.item.osName }}
+                  @if (s.item.isOsEndOfLife) {
+                    <span title="The base OS is end of life" class="font-medium">· EOL</span>
+                  }
+                </span>
+              }
+              <span>
+                {{ s.item.vulnerabilityIds }} {{ s.item.vulnerabilityIds === 1 ? 'id' : 'ids' }} ·
+                {{ s.item.fixableVulnerabilityIds }} fixable · {{ s.item.knownExploitedVulnerabilityIds }} exploited
+              </span>
+              <span>
+                {{ s.item.workloads }} {{ s.item.workloads === 1 ? 'workload' : 'workloads' }} ·
+                {{ s.item.namespaces }} ns
+              </span>
+            </div>
+          } @else {
+            <span class="text-sm tod-text-muted-color">Click a bar</span>
+          }
+        </app-trivy-box>
+
+        <!-- the namespaces of the selected image: the rest of the height, the list scrolls in its box -->
+        @if (selected()) {
+          <div class="relative flex-1 min-h-0">
+            <div class="absolute inset-0">
+              <app-trivy-box class="h-full">
+                <span boxTitle>Namespaces for selected ({{ selectedNamespaces().length }})</span>
+                <div class="relative h-full">
+                  <div class="absolute inset-0 overflow-auto flex flex-col gap-0.5 text-sm">
+                    @for (name of selectedNamespaces(); track name) {
+                      <span class="break-all px-1">{{ name }}</span>
+                    }
+                  </div>
+                </div>
+              </app-trivy-box>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- the controls of the expanded widget, in the bottom row of the frame -->
+  @if (isExpanded()) {
+    <div frameActions class="flex flex-wrap items-center gap-2">
+      <div aria-label="Sort the bars" role="group" class="flex items-center gap-1.5">
+        <span class="text-xs tod-text-muted-color">Sort</span>
+        <app-pill-button
+          label="Age"
+          title="The oldest first"
+          [active]="sortBy() === 'age'"
+          [toggle]="true"
+          (pressed)="sortBy.set('age')"
+        />
+        <app-pill-button
+          label="Severity"
+          title="The highest severity first"
+          [active]="sortBy() === 'severity'"
+          [toggle]="true"
+          (pressed)="sortBy.set('severity')"
+        />
+        <app-pill-button
+          label="Ids"
+          title="The most vulnerability ids first"
+          [active]="sortBy() === 'ids'"
+          [toggle]="true"
+          (pressed)="sortBy.set('ids')"
+        />
+        <app-pill-button
+          label="Reach"
+          title="The most workloads first"
+          [active]="sortBy() === 'reach'"
+          [toggle]="true"
+          (pressed)="sortBy.set('reach')"
+        />
+      </div>
+      <span class="text-xs tod-text-muted-color">The color of a bar is the highest severity of the image</span>
+    </div>
+  }
 </app-home-widget-frame>
+
+<!-- nothing to show: no running image (in the selected namespaces) -->
+<ng-template #empty>
+  <div class="flex flex-col items-center justify-center gap-1 py-6 px-2 text-center">
+    <i aria-hidden="true" class="pi pi-check-circle text-3xl tod-text-muted-color"></i>
+    <span class="text-sm font-medium">No running images</span>
+    <span class="text-xs tod-text-muted-color">No image the history saw runs now in the selected namespaces.</span>
+  </div>
+</ng-template>

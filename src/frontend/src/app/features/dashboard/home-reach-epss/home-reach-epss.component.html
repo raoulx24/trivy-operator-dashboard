@@ -1,0 +1,52 @@
+<app-home-widget-frame
+  heading="Reach vs EPSS"
+  [hint]="hint()"
+  [state]="state()"
+  [canExpand]="canExpand()"
+  [expanded]="isExpanded()"
+  (expandToggle)="toggleExpand()"
+  [refreshable]="true"
+  (refreshRequested)="refreshWidget()"
+  [fillGap]="false"
+>
+  <div class="flex-1 min-h-0" [class.grid]="isExpanded()" [class.grid-cols-[minmax(0,1fr)_20rem]]="isExpanded()" [class.gap-3]="isExpanded()">
+    <div class="min-w-0">
+      <app-scatter-select
+        [points]="points()"
+        [xAxis]="xAxis"
+        [yAxis]="yAxis"
+        [legend]="legend"
+        [height]="isExpanded() ? 420 : 220"
+        (selectionChanged)="onSelection($event)"
+      />
+    </div>
+
+    @if (isExpanded()) {
+      <div class="flex flex-col gap-1 min-h-0 max-h-[420px] overflow-auto text-sm">
+        <span class="font-semibold">Selected · {{ selected().length }} ids</span>
+        @for (item of selected(); track item.vulnerabilityId) {
+          <div class="flex items-center gap-2">
+            <span class="inline-block size-2 shrink-0 rounded-full" [style.background]="severityColor(item.severityId)"></span>
+            <span class="flex-1 min-w-0 truncate" [title]="item.vulnerabilityId">{{ item.vulnerabilityId }}</span>
+            @if (item.isKnownExploited) {
+              <p-tag class="text-xs" severity="danger" [rounded]="true" value="KEV" />
+            }
+            <span class="tabular-nums tod-text-muted-color">{{ item.images }} img · {{ item.epssPercentile * 100 | number: '1.0-0' }}%</span>
+          </div>
+        } @empty {
+          <span class="text-xs tod-text-muted-color">Drag on the plot to select ids (shift adds a region, a click clears).</span>
+        }
+      </div>
+    }
+  </div>
+
+  @if (!isExpanded()) {
+    <span class="text-xs tod-text-muted-color">
+      @if (selected().length > 0) {
+        {{ selected().length }} ids selected. Expand to list them.
+      } @else {
+        Top right: likely to be exploited and widespread. Drag to select. Log scale on images.
+      }
+    </span>
+  }
+</app-home-widget-frame>

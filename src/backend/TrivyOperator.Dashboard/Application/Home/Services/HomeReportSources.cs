@@ -29,6 +29,8 @@ public sealed class HomeReportSources
 
     public IResourceProvider<ExposedSecretReport, Digest>? ExposedSecretReports { get; init; }
 
+    public IResourceProvider<ClusterComplianceReport, Uid>? ClusterComplianceReports { get; init; }
+
     public bool HasExposedSecretReports => ExposedSecretReports is not null;
 
     public bool HasVulnerabilityReports => VulnerabilityReports is not null || ClusterVulnerabilityReports is not null;

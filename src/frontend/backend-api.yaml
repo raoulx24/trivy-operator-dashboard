@@ -1961,6 +1961,52 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/home/compliance:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeCompliance
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeComplianceDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/home/compliance/worst-controls:
+    get:
+      tags:
+        - Home
+      operationId: GetHomeComplianceWorstControls
+      parameters:
+        - name: reportUid
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeComplianceWorstControlsDto'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/home/where-is/vulnerability:
     get:
       tags:
@@ -4545,6 +4591,80 @@ components:
           items:
             type: string
       additionalProperties: false
+    HomeComplianceControlDto:
+      type: object
+      properties:
+        controlId:
+          type: string
+        name:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        totalFail:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomeComplianceDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeComplianceReportDto'
+      additionalProperties: false
+    HomeComplianceReportDto:
+      type: object
+      properties:
+        uid:
+          type: string
+        name:
+          type: string
+        title:
+          type: string
+        version:
+          type: string
+        passCount:
+          type: integer
+          format: int32
+        failCount:
+          type: integer
+          format: int32
+        passPercent:
+          type: number
+          format: double
+          nullable: true
+        lastScanAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+    HomeComplianceWorstControlsDto:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        reportUid:
+          type: string
+        title:
+          type: string
+        version:
+          type: string
+        totalFailingControls:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeComplianceControlDto'
+      additionalProperties: false
     HomeDataHealthDto:
       type: object
       properties:
@@ -4702,11 +4822,18 @@ components:
         resources:
           type: integer
           format: int32
+        evaluated:
+          type: integer
+          format: int32
         namespaces:
           type: integer
           format: int32
         hasClusterScopedResources:
           type: boolean
+        byNamespace:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeFailingCheckNamespaceDto'
         rows:
           type: array
           items:
@@ -4729,11 +4856,27 @@ components:
         resources:
           type: integer
           format: int32
+        evaluated:
+          type: integer
+          format: int32
         namespaces:
           type: integer
           format: int32
         hasClusterScopedResources:
           type: boolean
+      additionalProperties: false
+    HomeFailingCheckNamespaceDto:
+      type: object
+      properties:
+        namespaceName:
+          type: string
+          nullable: true
+        resources:
+          type: integer
+          format: int32
+        evaluated:
+          type: integer
+          format: int32
       additionalProperties: false
     HomeFailingChecksDto:
       type: object

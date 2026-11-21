@@ -335,6 +335,26 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeService.GetReachEpss(ToFilter(null, severities, namespaces, limit), ctx));
 
+    // the cluster compliance reports with the controls passing, no filters
+    [HttpGet("compliance", Name = "GetHomeCompliance")]
+    [ProducesResponseType(typeof(HomeComplianceDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetCompliance(CancellationToken ctx) =>
+        Ok(await homeService.GetCompliance(ctx));
+
+    // the worst failing controls of one report (reportUid), the most failing first; the limit caps them (default 5)
+    [HttpGet("compliance/worst-controls", Name = "GetHomeComplianceWorstControls")]
+    [ProducesResponseType(typeof(HomeComplianceWorstControlsDto), StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> GetComplianceWorstControls(
+        [FromQuery] string? reportUid,
+        [FromQuery] int? limit,
+        CancellationToken ctx) =>
+        Ok(await homeService.GetComplianceWorstControls(
+            reportUid ?? string.Empty,
+            ToFilter(null, null, null, limit ?? 5),
+            ctx));
+
     // "where is" searches: query = what is searched (see HomeSearchDtos for the matching rules)
 
     [HttpGet("where-is/vulnerability", Name = "GetHomeWhereIsVulnerability")]

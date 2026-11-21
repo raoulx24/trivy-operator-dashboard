@@ -57,6 +57,7 @@ namespace TrivyOperator.Dashboard.Api.Home.Serializations;
 [JsonSerializable(typeof(HomeFailingCheckDto))]
 [JsonSerializable(typeof(HomeFailingChecksDto))]
 [JsonSerializable(typeof(HomeFailingCheckDetailItemDto))]
+[JsonSerializable(typeof(HomeFailingCheckNamespaceDto))]
 [JsonSerializable(typeof(HomeFailingCheckDetailDto))]
 [JsonSerializable(typeof(HomeOldestImageDto))]
 [JsonSerializable(typeof(HomeOldestImagesDto))]
@@ -71,6 +72,10 @@ namespace TrivyOperator.Dashboard.Api.Home.Serializations;
 [JsonSerializable(typeof(HomeReportFreshnessDto))]
 [JsonSerializable(typeof(HomeSourceStatusDto))]
 [JsonSerializable(typeof(HomeDataHealthDto))]
+[JsonSerializable(typeof(HomeComplianceReportDto))]
+[JsonSerializable(typeof(HomeComplianceDto))]
+[JsonSerializable(typeof(HomeComplianceControlDto))]
+[JsonSerializable(typeof(HomeComplianceWorstControlsDto))]
 
 [JsonSerializable(typeof(HomeWhereIsVulnerabilityPackageDto))]
 [JsonSerializable(typeof(HomeWhereIsVulnerabilitySeverityDto))]

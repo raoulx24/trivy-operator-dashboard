@@ -4,32 +4,32 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  afterNextRender,
   computed,
   effect,
   inject,
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ButtonModule } from 'primeng/button';
-import { ScrollerModule } from 'primeng/scroller';
-import { TagModule } from 'primeng/tag';
 
 import { HomeActiveVulnerabilityDto } from '@api/models/home-active-vulnerability-dto';
-import { HomeFixWaitingDetailDto } from '@api/models/home-fix-waiting-detail-dto';
 import { HomeService } from '@api/services/home.service';
 import { MainAppInitService } from '@core/services/main-app-init.service';
 import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
-import { ScrollerResizeDirective } from '@shared/ui/scroller-resize/scroller-resize.directive';
+import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
+import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
+import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
+import { SpanTimelineComponent } from '@shared/ui/span-timeline/span-timeline.component';
+import { SpanTimelineRow, SpanTimelineTick } from '@shared/ui/span-timeline/span-timeline.types';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
-import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
-import { SelectedDtosEvent, TrivyTableColumn, VulnerabilityTagSource } from '@shared/ui/trivy-table/trivy-table.types';
+import { VulnerabilityTagSource } from '@shared/ui/trivy-table/trivy-table.types';
 import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags.pipe';
 import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
+import { TagModule } from 'primeng/tag';
 
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
 import { matchesFilter } from '../home-search-box/home-list-filter';
@@ -38,47 +38,89 @@ import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
-interface PackageRow {
-  // the place of the package in the packages of the detail
-  index: number;
-  packageName: string;
-  installed: string;
-  fixedVersion: string;
-  severityId: number;
-  firstSeen: string;
-  fixSince: string;
-  images: number;
-}
+type GroupBy = 'id' | 'package' | 'image';
+type SortBy = 'wait' | 'reach';
 
-// the rows (id, package) of one vulnerability id, shown as one entry
-interface IdGroup {
-  vulnerabilityId: string;
-  title?: string | null;
-  severityId: number;
-  isKnownExploited: boolean;
+// one entry of the list: an id, a package or an image, with the rows (id, package) it is made of
+interface WaitGroup {
+  // unique among the entries, the id of the timeline row: 'id:cve-2024-1', 'package:openssl', 'image:nginx:1.25'
+  key: string;
+  name: string;
+  // the longest wait of its rows in whole days (from the oldest fix date), null when no row has a date
+  days: number | null;
+  oldestFixSince: string | undefined;
+  ids: Set<string>;
+  packages: Set<string>;
+  images: Set<string>;
+  namespaces: Set<string>;
   rows: HomeActiveVulnerabilityDto[];
 }
 
-// Fix waiting time: the fixable active (vulnerability id, package) rows, the longest known fix first
-// - the filters of the page (severities, namespaces) come as inputs; the window does not apply (it is the state now); a change of them, or of refresh, reloads it
-// - collapsed: the first rows (the server sorts them by reach, and is asked for just these); a click on a row selects its
-//   id and expands the widget (where it can expand)
-// - expanded: on the left, in a box, all the rows (a list that scrolls); on the right one id at a time, all of its data
-//   (asked from the detailed endpoint): its packages with a fix, and the namespaces and images they run in
-// - the expanded widget is at least expandedHeight tall and grows with its row of the page, what does not fit scrolls inside
+// the waiting buckets of the meter and the colors of the bars, in days: [from, to)
+interface WaitBucket {
+  label: string;
+  from: number;
+  to: number;
+  color: string;
+  textColor: string;
+}
+
+const BUCKETS: WaitBucket[] = [
+  {
+    label: '< 7d',
+    from: 0,
+    to: 7,
+    color: 'var(--tod-fix-waiting-age-1)',
+    textColor: 'var(--tod-fix-waiting-age-text-1)',
+  },
+  {
+    label: '7–30d',
+    from: 7,
+    to: 30,
+    color: 'var(--tod-fix-waiting-age-2)',
+    textColor: 'var(--tod-fix-waiting-age-text-2)',
+  },
+  {
+    label: '30–90d',
+    from: 30,
+    to: 90,
+    color: 'var(--tod-fix-waiting-age-3)',
+    textColor: 'var(--tod-fix-waiting-age-text-3)',
+  },
+  {
+    label: '≥ 90d',
+    from: 90,
+    to: Infinity,
+    color: 'var(--tod-fix-waiting-age-4)',
+    textColor: 'var(--tod-fix-waiting-age-text-4)',
+  },
+];
+
+// the room of a character of a row label of the timeline (px, a rough size), to cut a label that does not fit
+const LABEL_CHAR_WIDTH = 7;
+const LABEL_PADDING = 16;
+
+// Fix waiting time: the fixable active (vulnerability id, package) rows that run now, by how long their fix is known
+// - the filters of the page (severities, namespaces) come as inputs; the window does not apply (it is the state now); a change
+//   of them, or of refresh, reloads it
+// - one request, the rows (up to the server limit) as the server sorts them (the longest known fix first); everything else is
+//   computed here
+// - collapsed: the longest wait and the ids, a meter of the ids by waiting bucket, and the first ids as bars (a click on one
+//   expands the widget, with that id selected)
+// - expanded: all the entries as bars on a timeline (fix known since -> today), grouped by id, package or image and sorted by
+//   wait or reach; the popover of a bar has its details
 @Component({
   selector: 'app-home-fix-waiting',
   standalone: true,
   imports: [
     HomeWidgetFrameComponent,
     HomeSearchBoxComponent,
-    ButtonModule,
-    ScrollerResizeDirective,
     NgTemplateOutlet,
-    ScrollerModule,
+    MeterGroupComponent,
+    PillButtonComponent,
+    SpanTimelineComponent,
     TagModule,
     TrivyBoxComponent,
-    TrivyTableComponent,
     HomeExploitTagComponent,
     VulnerabilityScoreTagComponent,
     SeverityCssStyleByIdPipe,
@@ -90,23 +132,26 @@ interface IdGroup {
   host: { class: 'block min-w-0' },
 })
 export class HomeFixWaitingComponent extends HomeWidgetBase {
-  private static readonly collapsedLimit = 5;
-  // the server allows 500
-  private static readonly expandedLimit = 500;
+  // the server allows 500; the collapsed widget needs all the rows too (the meter and the longest wait are of all of them)
+  private static readonly fetchLimit = 500;
+  private static readonly collapsedLimit = 3;
 
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help = `
-    <p class="mb-2">The <strong>active vulnerabilities that have a fix</strong> and run now, in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar. A row is a vulnerability id with one package.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the 5 rows whose fix is known the longest. A click on a row expands the widget on its id.</p>
-    <p class="mb-2"><strong>Expanded</strong>: on the left every row (up to 500; a click selects its id), on the right the namespaces and the images where the selected id runs, and its packages with a fix, with the installed and the fixed version, since when the fix is known and when the row was first seen.</p>
-    <p class="mb-2"><strong>CVSS</strong> opens the CVE details, <strong>EPSS</strong> the exploit prediction score and <strong>KEV / EUVD</strong> the known exploited data (when the CVE is in one of them).</p>
-    <p class="mb-0 tod-text-muted-color"><strong>Fix known since</strong> is a lower bound of the waiting time: a row without history has no date and goes last.</p>
+    <p class="mb-2">The <strong>active vulnerabilities that have a fix</strong> and run now, in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar, by <strong>how long the fix is known</strong>.</p>
+    <p class="mb-2"><strong>Collapsed</strong>: the longest wait, the ids in waiting buckets (an id is in the bucket of its longest waiting package; the empty part of the meter is the ids without a date), and the 3 ids that wait the longest. A click on one expands the widget.</p>
+    <p class="mb-2"><strong>Expanded</strong>: every id (up to 500 rows) as a bar from the day its fix is known to today, on a log scale. <strong>Group</strong> by id, package or image (the bar is the longest wait in the group) and <strong>sort</strong> by wait or by reach (images). The popover of a bar has its packages, images and namespaces.</p>
+    <p class="mb-0 tod-text-muted-color"><strong>Fix known since</strong> is a lower bound of the waiting time (hence the ≥): a row without history has no date and goes last.</p>
   `;
 
-  // the height of a row of the list (a scroller needs the same for all): the id, three lines of title, the package, the tags
-  protected readonly rowHeight = 150;
-  // the height of the expanded widget body (it needs a fixed one: the lists and the table scroll in it)
-  protected readonly expandedHeight = '40rem';
+  // the expanded widget body is at least this tall, and grows with its row of the page; the timeline takes the rest of
+  // the height (timelineHeight, measured) and its rows scroll in it
+  protected readonly expandedMinHeight = 'min(30rem, 70vh)';
+  protected readonly expandedMaxHeight = '70vh';
+  private readonly timelineHost = viewChild<ElementRef<HTMLElement>>('timelineHost');
+  protected readonly timelineHeight = signal<number | null>(null);
+  protected readonly buckets = BUCKETS;
+  protected readonly timelineTicks: SpanTimelineTick[] = [7, 30, 90, 180, 365, 730].map((value) => ({ value }));
 
   private readonly homeService = inject(HomeService);
   private readonly mainAppInitService = inject(MainAppInitService);
@@ -114,28 +159,13 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
   // the tags of the vulnerability id cell of the tables: here the labels of its EPSS and exploited ones
   private readonly vulnerabilityTags = new VulnerabilityTagsPipe();
 
-  protected readonly packageColumns: TrivyTableColumn[] = [
-    { field: 'packageName', header: 'Package', isFilterable: false, isSortable: true, style: 'width: 20%', renderType: 'standard' },
-    { field: 'installed', header: 'Installed', isFilterable: false, isSortable: true, style: 'width: 18%', renderType: 'standard' },
-    { field: 'fixedVersion', header: 'Fixed', isFilterable: false, isSortable: true, style: 'width: 18%', renderType: 'standard' },
-    { field: 'severityId', header: 'Severity', isFilterable: false, isSortable: true, style: 'width: 8rem', renderType: 'severityBadge' },
-    { field: 'firstSeen', header: 'First seen', isFilterable: false, isSortable: true, style: 'width: 9rem', renderType: 'standard' },
-    { field: 'fixSince', header: 'Fix known since', isFilterable: false, isSortable: true, style: 'width: 10rem', renderType: 'standard' },
-    { field: 'images', header: 'Images', isFilterable: false, isSortable: true, style: 'width: 6rem; text-align: right', renderType: 'standard' },
-  ];
-
   hint = input<string>('');
   severities = input.required<number[]>();
   namespaces = input.required<string[]>();
   // changes (e.g. a counter) to reload with unchanged filters
   refresh = input<number>(0);
 
-  protected readonly selectedId = signal<string | undefined>(undefined);
-
-  // the width of the widget as it is collapsed, which is the width of the box of the list (measured while it is collapsed)
-  protected readonly collapsedWidth = signal<number | undefined>(undefined);
-
-  // a new object on any change, so the resources reload; empty namespaces are not sent (the backend default applies)
+  // a new object on any change, so the resource reloads; empty namespaces are not sent (the backend default applies)
   private readonly scope = computed(() => ({
     severities: this.severities(),
     namespaces: this.namespaces().length > 0 ? this.namespaces() : undefined,
@@ -143,93 +173,94 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
     localRefresh: this.localRefresh(),
   }));
 
-  // the text of the filter box (collapsed and expanded); a filter looks at all the rows, so while there is one they are asked for
-  protected readonly filterText = signal('');
-  protected readonly isFiltering = computed(() => this.filterText().trim().length > 0);
-
-  private readonly collapsedData = rxResource({
+  private readonly data = rxResource({
     params: this.scope,
     stream: ({ params }) =>
       this.homeService.getHomeFixWaiting({
         severities: params.severities,
         namespaces: params.namespaces,
-        limit: HomeFixWaitingComponent.collapsedLimit,
+        limit: HomeFixWaitingComponent.fetchLimit,
       }),
   });
 
-  // idle (and empty) while collapsed
-  private readonly expandedData = rxResource({
-    params: () => (this.isExpanded() || this.isFiltering() ? this.scope() : undefined),
-    stream: ({ params }) =>
-      this.homeService.getHomeFixWaiting({
-        severities: params.severities,
-        namespaces: params.namespaces,
-        limit: HomeFixWaitingComponent.expandedLimit,
-      }),
-  });
+  private readonly todayMs = Date.now();
 
-  // what is shown: the many rows when they are there, else the few
-  private readonly shown = computed(() =>
-    (this.isExpanded() || this.isFiltering()) && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
-  );
-
-  protected readonly allItems = computed(() => this.shown().value()?.items ?? []);
-  // a started filter looks at all the rows: while they load there is nothing to show
-  protected readonly isSearching = computed(
-    () => this.isFiltering() && !this.expandedData.hasValue() && this.expandedData.isLoading(),
-  );
-  // the rows that match the filter (all of them without one)
-  protected readonly items = computed(() =>
-    this.isSearching() ? [] : this.allItems().filter((x) => matchesFilter(this.filterText(), x.vulnerabilityId, x.packageName)),
-  );
-  protected readonly noMatch = computed(
-    () => this.isFiltering() && !this.isSearching() && this.items().length === 0 && this.allItems().length > 0,
-  );
-  // the collapsed widget: the first rows
-  // the server sends at most expandedLimit rows: a filter over them says so when there are more
+  protected readonly allItems = computed(() => this.data.value()?.items ?? []);
+  protected readonly totals = computed(() => this.data.value()?.totals);
+  // the server sends at most fetchLimit rows: what is computed here is of those
   protected readonly partialLabel = computed(() => {
     const total = this.totals()?.activeVulnerabilities ?? 0;
-    return this.isFiltering() && this.expandedData.hasValue() && total > this.allItems().length
-      ? `The filter looks at the first ${this.allItems().length} of ${total}`
-      : '';
+    const shown = this.allItems().length;
+    return total > shown ? `Computed on the first ${shown} of ${total} rows` : '';
   });
-  // the rows of one vulnerability id are one entry (the server sorts by waiting time: the order of first appearance is kept)
-  protected readonly groups = computed<IdGroup[]>(() => {
-    const byId = new Map<string, IdGroup>();
-    for (const row of this.items()) {
-      const key = row.vulnerabilityId.toLowerCase();
-      const group = byId.get(key);
-      if (group) {
-        group.rows.push(row);
-        group.severityId = Math.min(group.severityId, row.severityId);
-        group.isKnownExploited ||= row.isKnownExploited;
-      } else {
-        byId.set(key, {
-          vulnerabilityId: row.vulnerabilityId,
-          title: row.title,
-          severityId: row.severityId,
-          isKnownExploited: row.isKnownExploited,
-          rows: [row],
-        });
-      }
-    }
-    return [...byId.values()];
-  });
-  // the collapsed widget: the first ids
-  protected readonly collapsedGroups = computed(() => this.groups().slice(0, HomeFixWaitingComponent.collapsedLimit));
-  protected readonly totals = computed(() => this.shown().value()?.totals);
-  protected readonly more = computed(() =>
-    this.isFiltering()
-      ? Math.max(0, this.groups().length - HomeFixWaitingComponent.collapsedLimit)
-      : Math.max(0, (this.totals()?.activeVulnerabilities ?? 0) - this.items().length),
+
+  // ---- the collapsed widget: the ids (all the rows), the longest wait first
+  private readonly idGroups = computed(() => this.sortGroups(this.toGroups(this.allItems(), 'id'), 'wait'));
+  protected readonly idCount = computed(() => this.idGroups().length);
+  protected readonly topGroups = computed(() => this.idGroups().slice(0, HomeFixWaitingComponent.collapsedLimit));
+  protected readonly longestDays = computed(() => this.idGroups()[0]?.days ?? null);
+  protected readonly undatedIds = computed(() => this.idGroups().filter((x) => x.days === null).length);
+
+  // the ids by bucket; the meter is of all the ids, so the ids without a date are its empty part
+  protected readonly mix = computed<MeterGroupSegment[]>(() =>
+    BUCKETS.map((b) => ({
+      label: `fix known ${b.label}`,
+      value: this.idGroups().filter((x) => x.days !== null && x.days >= b.from && x.days < b.to).length,
+      color: b.color,
+      textColor: b.textColor,
+    })),
   );
 
-  // the selected id, all of its data (only while expanded); the filters are those of the list
+  // ---- the expanded widget: the filter box, the grouping and the sort
+  protected readonly filterText = signal('');
+  protected readonly groupBy = signal<GroupBy>('id');
+  protected readonly sortBy = signal<SortBy>('wait');
+  // the selected row of the timeline (its key); set from a click on an id of the collapsed widget
+  protected readonly selectedKey = signal<string | null>(null);
+
+  private readonly items = computed(() =>
+    this.allItems().filter((x) => matchesFilter(this.filterText(), x.vulnerabilityId, x.packageName)),
+  );
+  protected readonly noMatch = computed(
+    () => this.filterText().trim().length > 0 && this.items().length === 0 && this.allItems().length > 0,
+  );
+
+  protected readonly groups = computed(() =>
+    this.sortGroups(this.toGroups(this.items(), this.groupBy()), this.sortBy()),
+  );
+
+  // the labels are cut to the room the grouping gives them (an image name is long: its end, the tag, is kept)
+  protected readonly labelWidth = computed(() => ({ id: 220, package: 180, image: 280 })[this.groupBy()]);
+
+  protected readonly timelineRows = computed<SpanTimelineRow[]>(() => {
+    const maxChars = Math.floor((this.labelWidth() - LABEL_PADDING) / LABEL_CHAR_WIDTH);
+    return this.groups().map((g) => ({
+      id: g.key,
+      label: this.cut(this.rowLabel(g), maxChars, this.groupBy() === 'image'),
+      start: g.days ?? 0,
+      // without a date there is no bar to draw (a bar at "today" would read as a wait of 0 days)
+      color: g.days === null ? 'transparent' : this.bucketOf(g.days).color,
+      valueLabel: this.daysLabel(g.days),
+      details: this.details(g),
+    }));
+  });
+
+  // ---- the selected box: the selected entry; for an id also its detail (the installed versions and the workloads)
+  protected readonly selectedGroup = computed(() => this.groups().find((g) => g.key === this.selectedKey()));
+  protected readonly selectedKind = computed<GroupBy | undefined>(
+    () => this.selectedGroup()?.key.split(':')[0] as GroupBy | undefined,
+  );
+
+  // a string, so a new list (a filter typed) does not ask for the same id again
+  private readonly selectedDetailId = computed(() => {
+    const group = this.selectedGroup();
+    return this.isExpanded() && group?.key.startsWith('id:') ? group.name : undefined;
+  });
+
   private readonly detailData = rxResource({
     params: () => {
-      const scope = this.scope();
-      const id = this.selectedId();
-      return this.isExpanded() && id ? { ...scope, id } : undefined;
+      const id = this.selectedDetailId();
+      return id ? { ...this.scope(), id } : undefined;
     },
     stream: ({ params }) =>
       this.homeService.getHomeFixWaitingDetailed({
@@ -239,117 +270,40 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
       }),
   });
 
-  // what is on screen: the last data that arrived for the selected id; it stays while the next one loads, so a change of id
-  // does not tear the layout down
-  private readonly loaded = signal<HomeFixWaitingDetailDto | undefined>(undefined);
-  protected readonly detail = computed(() => this.loaded()?.item ?? undefined);
-  protected readonly detailNote = computed(() => this.loaded()?.note);
-  // the id of the header: the one on screen, not the one that is loading
-  protected readonly displayedId = computed(() => this.detail()?.vulnerabilityId ?? this.selectedId());
-  protected readonly isDetailLoading = computed(() => this.detailData.isLoading());
-  protected readonly detailError = computed(() => (this.detailData.error() as Error | undefined)?.message);
-
-  // the packages of the table
-  protected readonly packageRows = computed<PackageRow[]>(() =>
-    (this.detail()?.packages ?? []).map((p, index) => ({
-      index,
-      packageName: p.packageName,
-      installed: p.installedVersions.join(', '),
-      fixedVersion: p.fixedVersion,
-      severityId: p.severityId,
-      firstSeen: this.toDay(p.firstSeenAt),
-      fixSince: this.toDay(p.fixSince),
-      images: p.images,
-    })),
-  );
-
-  // ---- the filter: the lists of the detail filter each other
-  // one selection per list (an index in the list; the package is the selected row of the table). Each list is filtered only
-  // by the selections of the other two, never by its own: so what is faded is what cannot go with them, and it cannot be
-  // selected (that would be an empty combination). A selection that was allowed stays so when another is made.
-  protected readonly selectedNamespace = signal<number | null>(null);
-  protected readonly selectedImage = signal<number | null>(null);
-  protected readonly packageSelection = signal<SelectedDtosEvent<PackageRow>>({ selectedDtos: [], source: 'programmatic' });
-  private readonly selectedPackage = computed(() => this.packageSelection().selectedDtos[0]?.index ?? null);
-
-  protected readonly isFiltered = computed(
-    () => this.selectedNamespace() !== null || this.selectedImage() !== null || this.selectedPackage() !== null,
-  );
-
-  // the relations of the detail as sets: the namespaces of each image, the images of each package
-  private readonly relations = computed(() => {
-    const d = this.detail();
-    return d
-      ? {
-          namespacesOfImage: d.imageNamespaceIndexes.map((x) => new Set(x)),
-          imagesOfPackage: d.packages.map((x) => new Set(x.imageIndexes)),
-        }
-      : undefined;
+  // the detail of the selected id, once it is the one that arrived (until then the box shows what the rows say)
+  protected readonly selectedDetail = computed(() => {
+    const item = this.detailData.value()?.item;
+    const group = this.selectedGroup();
+    return item && group && item.vulnerabilityId.toLowerCase() === group.name.toLowerCase() ? item : undefined;
   });
 
-  protected readonly allowedNamespaces = computed<ReadonlySet<number>>(() => {
-    const d = this.detail();
-    const r = this.relations();
-    const image = this.selectedImage();
-    const pack = this.selectedPackage();
-    const allowed = new Set<number>();
+  // the images and the namespaces of the selected entry, sorted (those of its rows: the same as the detail of an id)
+  protected readonly selectedImages = computed(() => [...(this.selectedGroup()?.images ?? [])].sort());
+  protected readonly selectedNamespaces = computed(() => [...(this.selectedGroup()?.namespaces ?? [])].sort());
 
-    for (let n = 0; d && r && n < d.namespaceNames.length; n++) {
-      const inImage = image === null || !!r.namespacesOfImage[image]?.has(n);
-      const inPackage =
-        pack === null || [...(r.imagesOfPackage[pack] ?? [])].some((i) => r.namespacesOfImage[i]?.has(n));
-      if (inImage && inPackage) {
-        allowed.add(n);
-      }
+  // the packages of the selected entry: "glibc 2.35-0ubuntu3.6 → 3.7" (the installed versions only from the detail)
+  protected readonly selectedFixes = computed(() => {
+    const detail = this.selectedDetail();
+    if (detail) {
+      return detail.packages.map((p) => ({
+        name: p.packageName,
+        installed: p.installedVersions.join(', '),
+        fixed: p.fixedVersion,
+      }));
     }
-    return allowed;
+    const rows = this.selectedGroup()?.rows ?? [];
+    const seen = new Set<string>();
+    return rows
+      .filter((x) => !seen.has(x.packageKey) && !!seen.add(x.packageKey))
+      .map((x) => ({ name: x.packageName, installed: '', fixed: x.fixedVersion ?? '?' }));
   });
-
-  protected readonly allowedImages = computed<ReadonlySet<number>>(() => {
-    const d = this.detail();
-    const r = this.relations();
-    const namespace = this.selectedNamespace();
-    const pack = this.selectedPackage();
-    const allowed = new Set<number>();
-
-    for (let i = 0; d && r && i < d.imageNames.length; i++) {
-      const inNamespace = namespace === null || !!r.namespacesOfImage[i]?.has(namespace);
-      const inPackage = pack === null || !!r.imagesOfPackage[pack]?.has(i);
-      if (inNamespace && inPackage) {
-        allowed.add(i);
-      }
-    }
-    return allowed;
-  });
-
-  protected readonly allowedPackages = computed<ReadonlySet<number>>(() => {
-    const d = this.detail();
-    const r = this.relations();
-    const namespace = this.selectedNamespace();
-    const image = this.selectedImage();
-    const allowed = new Set<number>();
-
-    for (let p = 0; d && r && p < d.packages.length; p++) {
-      const images = r.imagesOfPackage[p] ?? new Set<number>();
-      const inImage = image === null || images.has(image);
-      const inNamespace = namespace === null || [...images].some((i) => r.namespacesOfImage[i]?.has(namespace));
-      if (inImage && inNamespace) {
-        allowed.add(p);
-      }
-    }
-    return allowed;
-  });
-
-  // the rows of the table that do not go with the selections are faded, and cannot be selected (dimmedRowsSelectable)
-  protected readonly packageRowDimmer = (row: PackageRow): boolean => !this.allowedPackages().has(row.index);
 
   protected readonly state = computed<HomeWidgetState>(() => {
-    const resource = this.shown();
-    if (resource.error()) {
-      return { error: (resource.error() as Error)?.message ?? 'request failed' };
+    if (this.data.error()) {
+      return { error: (this.data.error() as Error)?.message ?? 'request failed' };
     }
 
-    const dto = resource.value();
+    const dto = this.data.value();
     if (!dto) {
       return {};
     }
@@ -359,9 +313,8 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
       isAvailable: dto.isAvailable,
       unavailableReason: dto.unavailableReason,
       summary:
-        `${totals.vulnerabilityIds} ids, ${totals.activeVulnerabilities} rows (${this.items().length} shown), ` +
-        `${totals.images} images, ${totals.namespaces} ns` +
-        (this.isExpanded() && this.expandedData.isLoading() ? ' (loading more...)' : ''),
+        `${totals.vulnerabilityIds} ids, ${totals.activeVulnerabilities} rows (${this.allItems().length} read), ` +
+        `${totals.images} images, ${totals.namespaces} ns`,
     };
   });
 
@@ -370,92 +323,59 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
 
     this.cveEnrichmentState.ensureLoaded();
 
-    // the width of the collapsed widget (what is measured while it is expanded is not kept)
-    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    // the room of the timeline: its box without the padding (the box appears with the expanded widget)
     const destroyRef = inject(DestroyRef);
-    afterNextRender(() => {
-      const observer = new ResizeObserver(() => {
-        if (!this.isExpanded() && host.offsetWidth > 0) {
-          this.collapsedWidth.set(host.offsetWidth);
-        }
-      });
-      observer.observe(host);
-      destroyRef.onDestroy(() => observer.disconnect());
+    const observer = new ResizeObserver((entries) => {
+      const height = Math.floor(entries[0]?.contentRect.height ?? 0);
+      this.timelineHeight.set(height > 0 ? height : null);
     });
-
-    // expanded without a choice (the expand button), or the selected id is not in the rows any more (the filters changed):
-    // the first id of the list (only judged on the many rows, the few are a part of them)
     effect(() => {
-      const first = this.items()[0];
-      const id = this.selectedId();
-      if (!this.isExpanded() || !first) {
-        return;
-      }
-      if (!id || (this.expandedData.hasValue() && !this.items().some((x) => x.vulnerabilityId === id))) {
-        this.selectedId.set(first.vulnerabilityId);
+      const element = this.timelineHost()?.nativeElement;
+      observer.disconnect();
+      if (element) {
+        observer.observe(element);
+      } else {
+        this.timelineHeight.set(null);
       }
     });
+    destroyRef.onDestroy(() => observer.disconnect());
 
-    // other data (another id, or the same one loaded again): the indexes of the selections are of the old lists
+    // expanded with nothing selected (the expand button): the first entry
     effect(() => {
-      this.detail();
-      untracked(() => this.clearFilters());
-    });
-
-    // the data of the selected id arrived (or failed): it goes on screen
-    effect(() => {
-      const dto = this.detailData.value();
-      const id = this.selectedId();
-      if (this.detailData.isLoading() || !id) {
-        return;
+      if (this.isExpanded()) {
+        untracked(() => {
+          if (!this.selectedKey()) {
+            this.selectedKey.set(this.groups()[0]?.key ?? null);
+          }
+        });
       }
-
-      if (this.detailData.error()) {
-        this.loaded.set(undefined);
-      } else if (dto?.vulnerabilityId.toLowerCase() === id.toLowerCase()) {
-        this.loaded.set(dto);
-      }
-      // else the resource did not take the new id yet
     });
   }
 
-  // a click on a row (of the collapsed widget, or of the list of the expanded one)
-  protected select(item: { vulnerabilityId: string }): void {
-    this.selectedId.set(item.vulnerabilityId);
+  // another grouping: its first entry is selected (the keys of the old one are not in it)
+  protected setGroupBy(by: GroupBy): void {
+    if (by !== this.groupBy()) {
+      this.groupBy.set(by);
+      this.selectedKey.set(this.groups()[0]?.key ?? null);
+    }
+  }
+
+  // a click on an id of the collapsed widget: the timeline of the ids, with that one selected
+  protected select(group: WaitGroup): void {
+    this.groupBy.set('id');
+    this.selectedKey.set(group.key);
     if (this.canExpand() && !this.isExpanded()) {
       this.toggleExpand();
     }
   }
 
-  // "2 of 5" while a selection filters, else "5"
-  protected countLabel(allowed: number, total: number): string {
-    return this.isFiltered() ? `${allowed} of ${total}` : `${total}`;
+  // the highest severity of the rows of an entry
+  protected worstSeverity(g: WaitGroup): number {
+    return Math.min(...g.rows.map((x) => x.severityId));
   }
 
-  // a click on a namespace or an image: selects it, or clears it when it is the selected one; a faded one is disabled
-  protected toggleNamespace(index: number): void {
-    if (this.allowedNamespaces().has(index)) {
-      this.selectedNamespace.update((x) => (x === index ? null : index));
-    }
-  }
-
-  protected toggleImage(index: number): void {
-    if (this.allowedImages().has(index)) {
-      this.selectedImage.update((x) => (x === index ? null : index));
-    }
-  }
-
-  // a click on a row of the packages table (the table does not take it on a faded row)
-  protected onPackageSelection(event: SelectedDtosEvent<PackageRow>): void {
-    if (event.source === 'user') {
-      this.packageSelection.set(event);
-    }
-  }
-
-  protected clearFilters(): void {
-    this.selectedNamespace.set(null);
-    this.selectedImage.set(null);
-    this.packageSelection.set({ selectedDtos: [], source: 'programmatic' });
+  protected isKnownExploited(g: WaitGroup): boolean {
+    return g.rows.some((x) => x.isKnownExploited) || !!this.tagLabel(g.name, 'exploited');
   }
 
   // the details of a CVE (the dialog behind the CVSS tag of a vulnerability id): only for CVE ids, and only when the
@@ -467,8 +387,7 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
     );
   }
 
-  // the label of the tag of the tables for the id (the same pipe), or '': 'EPSS 46%'; 'KEV', 'EUVD' or 'KEV/EUVD' for the
-  // known exploited catalogs listing the CVE
+  // the label of the tag of the tables for the id (the same pipe), or '': 'EPSS 46%'; 'KEV', 'EUVD' or 'KEV/EUVD'
   protected tagLabel(vulnerabilityId: string, source: VulnerabilityTagSource): string {
     return (
       this.vulnerabilityTags
@@ -477,29 +396,111 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
     );
   }
 
-  protected packageNames(rows: HomeActiveVulnerabilityDto[]): string {
-    return [...new Set(rows.map((x) => x.packageName))].join(', ');
+  // "≥ 94d", "no date"
+  protected daysLabel(days: number | null): string {
+    return days === null ? 'no date' : `≥ ${days}d`;
   }
 
-  // the longest wait of the rows of a group (the oldest fix date), or undefined without a date
-  protected longestFixSince(rows: HomeActiveVulnerabilityDto[]): string | undefined {
-    return rows
-      .map((x) => x.fixSince)
-      .filter((x): x is string => !!x)
-      .sort()[0];
+  // the share of the bar of a collapsed row (linear, the longest is the whole track)
+  protected barPercent(days: number | null): number {
+    const longest = this.longestDays();
+    return days === null || !longest ? 0 : Math.max(2, (days / longest) * 100);
   }
 
-  // "fix known 17 days (since 2026-11-01)": the fix is known since a date, a lower bound of the waiting time
-  protected waitingLabel(fixSince: string | null | undefined): string {
-    if (!fixSince) {
-      return 'fix known: no date';
+  protected bucketColor(days: number | null): string {
+    return days === null ? 'transparent' : this.bucketOf(days).color;
+  }
+
+  // "CVE-2024-2961 · glibc", "CVE-2024-2961 · glibc +2", "openssl · 9 ids", "nginx:1.25 · 3 ids"
+  protected rowLabel(g: WaitGroup): string {
+    if (g.key.startsWith('id:')) {
+      const packages = [...g.packages];
+      return `${g.name} · ${packages[0] ?? ''}${packages.length > 1 ? ` +${packages.length - 1}` : ''}`;
     }
-    const days = Math.max(0, Math.floor((Date.now() - new Date(fixSince).getTime()) / 86_400_000));
-    return `fix known ${days} ${days === 1 ? 'day' : 'days'} (since ${this.toDay(fixSince)})`;
+    return `${g.name} · ${g.ids.size} ${g.ids.size === 1 ? 'id' : 'ids'}`;
   }
 
-  // the UTC day of a date, or '-'
-  protected toDay(value: string | null | undefined): string {
-    return value ? value.substring(0, 10) : '-';
+  private toGroups(rows: HomeActiveVulnerabilityDto[], by: GroupBy): WaitGroup[] {
+    const byKey = new Map<string, WaitGroup>();
+    for (const row of rows) {
+      const names = by === 'id' ? [row.vulnerabilityId] : by === 'package' ? [row.packageName] : row.imageNames;
+      for (const name of names) {
+        const key = `${by}:${name.toLowerCase()}`;
+        let group = byKey.get(key);
+        if (!group) {
+          group = {
+            key,
+            name,
+            days: null,
+            oldestFixSince: undefined,
+            ids: new Set(),
+            packages: new Set(),
+            images: new Set(),
+            namespaces: new Set(),
+            rows: [],
+          };
+          byKey.set(key, group);
+        }
+
+        group.rows.push(row);
+        group.ids.add(row.vulnerabilityId);
+        group.packages.add(row.packageName);
+        row.imageNames.forEach((x) => group.images.add(x));
+        row.namespaceNames.forEach((x) => group.namespaces.add(x));
+        if (row.fixSince && (!group.oldestFixSince || row.fixSince < group.oldestFixSince)) {
+          group.oldestFixSince = row.fixSince;
+        }
+      }
+    }
+
+    const groups = [...byKey.values()];
+    groups.forEach((g) => (g.days = this.daysSince(g.oldestFixSince)));
+    return groups;
+  }
+
+  // wait: the longest first, the ones without a date last, then by reach; reach: the most images first, then by wait
+  private sortGroups(groups: WaitGroup[], by: SortBy): WaitGroup[] {
+    const wait = (a: WaitGroup, b: WaitGroup) => (b.days ?? -1) - (a.days ?? -1);
+    const reach = (a: WaitGroup, b: WaitGroup) => b.images.size - a.images.size;
+    return [...groups].sort((a, b) => (by === 'wait' ? wait(a, b) || reach(a, b) : reach(a, b) || wait(a, b)));
+  }
+
+  // the lines of the popover of a bar
+  private details(g: WaitGroup): string[] {
+    const lines: string[] = [];
+    if (g.key.startsWith('id:')) {
+      // a package with the version that fixes it (the same package can be in several rows: one line each)
+      const fixes = [...new Set(g.rows.map((x) => `${x.packageName} → ${x.fixedVersion ?? '?'}`))];
+      lines.push(...fixes.slice(0, 5));
+      if (fixes.length > 5) {
+        lines.push(`+${fixes.length - 5} more packages`);
+      }
+    } else {
+      lines.push(
+        `${g.ids.size} ${g.ids.size === 1 ? 'id' : 'ids'}, ${g.packages.size} ${g.packages.size === 1 ? 'package' : 'packages'}`,
+      );
+    }
+    if (g.key.startsWith('image:')) {
+      lines.push(g.name);
+    }
+    lines.push(`${g.images.size} ${g.images.size === 1 ? 'image' : 'images'} · ${g.namespaces.size} ns`);
+    lines.push(g.oldestFixSince ? `fix known since ${g.oldestFixSince.substring(0, 10)}` : 'fix known: no date');
+    return lines;
+  }
+
+  private bucketOf(days: number): WaitBucket {
+    return BUCKETS.find((b) => days >= b.from && days < b.to) ?? BUCKETS[BUCKETS.length - 1];
+  }
+
+  private daysSince(value: string | undefined): number | null {
+    return value ? Math.max(0, Math.floor((this.todayMs - new Date(value).getTime()) / 86_400_000)) : null;
+  }
+
+  // a label that does not fit: its start ("…" at the end), or its end (for an image, whose tag is at the end)
+  private cut(text: string, maxChars: number, keepEnd: boolean): string {
+    if (text.length <= maxChars) {
+      return text;
+    }
+    return keepEnd ? `…${text.slice(text.length - maxChars + 1)}` : `${text.slice(0, maxChars - 1)}…`;
   }
 }

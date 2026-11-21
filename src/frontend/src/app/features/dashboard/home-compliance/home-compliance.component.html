@@ -1,0 +1,64 @@
+<app-home-widget-frame
+  heading="Compliance"
+  [help]="help"
+  [hint]="selectedReport() ? selectedLabel() + ' selected' : hint()"
+  [state]="state()"
+  [canExpand]="false"
+  [expanded]="false"
+  [refreshable]="true"
+  (refreshRequested)="refreshWidget()"
+>
+  @if (dto()?.isAvailable) {
+    @if (gauges().length === 0) {
+      <div class="flex flex-col items-center gap-1 py-4 text-center">
+        <span class="font-semibold">No compliance report with controls</span>
+        <span class="text-xs tod-text-muted-color">{{ dto()?.items?.length ?? 0 }} reports</span>
+      </div>
+    } @else {
+      <div class="flex flex-wrap justify-around gap-x-4 gap-y-2 pt-1">
+        @for (gauge of gauges(); track gauge.id) {
+          <app-ring-gauge [data]="gauge" [size]="76" [(selected)]="selected" />
+        }
+      </div>
+
+      @if (!selectedReport()) {
+        <p class="m-0 text-xs tod-text-muted-color">Centre: % of controls passing. Click a ring to see its worst failing controls.</p>
+      } @else {
+        <div class="flex flex-col gap-1 p-2 text-sm rounded border border-[var(--p-content-border-color)]">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs tod-text-muted-color truncate">Worst failing controls · {{ selectedLabel() }}</span>
+            <p-button
+              class="tod-button-compact inline-flex shrink-0"
+              size="small"
+              severity="secondary"
+              icon="pi pi-external-link"
+              [text]="true"
+              [rounded]="true"
+              ariaLabel="Open the compliance reports"
+              [attr.title]="'Open the compliance reports'"
+              (onClick)="openReports()"
+            />
+          </div>
+
+          @if (!worstDto()) {
+            <span class="text-xs tod-text-muted-color">Loading...</span>
+          } @else if (controls().length === 0) {
+            <span class="text-xs tod-text-muted-color">No failing controls</span>
+          } @else {
+            @for (control of controls(); track control.controlId) {
+              <div class="flex items-center gap-2">
+                <span class="w-8 shrink-0 text-xs tod-text-muted-color">{{ control.controlId }}</span>
+                <span class="size-2 rounded-full shrink-0" [style.background]="severityColor(control.severityId)"></span>
+                <span class="min-w-0 flex-1 truncate" [attr.title]="control.name">{{ control.name }}</span>
+                <span class="shrink-0 whitespace-nowrap">{{ control.totalFail }} failing</span>
+              </div>
+            }
+            @if (hiddenControls() > 0) {
+              <span class="text-xs tod-text-muted-color">+{{ hiddenControls() }} more failing {{ hiddenControls() === 1 ? 'control' : 'controls' }}</span>
+            }
+          }
+        </div>
+      }
+    }
+  }
+</app-home-widget-frame>

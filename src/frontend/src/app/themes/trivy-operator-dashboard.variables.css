@@ -146,6 +146,23 @@
   --tod-span-timeline-track: color-mix(in srgb, var(--p-text-color) 9%, transparent);
   --tod-span-timeline-row-hover: color-mix(in srgb, var(--p-text-color) 5%, transparent);
 
+  /* fix waiting time: the waiting buckets (< 7d, 7-30d, 30-90d, >= 90d), calm to warm, and the value written on them */
+  --tod-fix-waiting-age-1: var(--p-teal-300);
+  --tod-fix-waiting-age-2: var(--p-yellow-300);
+  --tod-fix-waiting-age-3: var(--p-amber-400);
+  --tod-fix-waiting-age-4: var(--p-orange-500);
+  --tod-fix-waiting-age-text-1: var(--p-surface-900);
+  --tod-fix-waiting-age-text-2: var(--p-surface-900);
+  --tod-fix-waiting-age-text-3: var(--p-surface-900);
+  --tod-fix-waiting-age-text-4: var(--p-surface-900);
+
+  /* oldest running images: the bar of an image without a vulnerability id (of the selected severities) */
+  --tod-oldest-images-no-ids: var(--p-surface-400);
+
+  /* package hotspots: the ids with a fix, and the ids without one yet */
+  --tod-package-hotspots-fixable: var(--p-teal-400);
+  --tod-package-hotspots-no-fix: var(--p-surface-400);
+
   /* scatter select: the axes, and the freehand region (fill and line follow the primary color of the mode) */
   --tod-scatter-axis: color-mix(in srgb, var(--p-text-color) 35%, transparent);
   --tod-scatter-region-fill: color-mix(in srgb, var(--p-primary-color) 16%, transparent);
@@ -204,6 +221,15 @@
   --tod-heatmap-level-2: var(--p-blue-600);
   --tod-heatmap-level-3: var(--p-blue-400);
   --tod-heatmap-level-4: var(--p-blue-200);
+  /* fix waiting time: the waiting buckets, a little lighter on the dark background (the text stays dark) */
+  --tod-fix-waiting-age-1: var(--p-teal-200);
+  --tod-fix-waiting-age-2: var(--p-yellow-200);
+  --tod-fix-waiting-age-3: var(--p-amber-300);
+  --tod-fix-waiting-age-4: var(--p-orange-300);
+
+  /* oldest running images: the bar of an image without a vulnerability id, lighter on the dark background */
+  --tod-oldest-images-no-ids: var(--p-surface-500);
+
   /* lane strip: the heatmap levels in dark mode (blue 800/600/400/200): more is lighter */
   --tod-lane-strip-level-1: 0.42;
   --tod-lane-strip-level-2: 0.55;

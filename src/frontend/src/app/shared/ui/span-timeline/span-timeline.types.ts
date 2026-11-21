@@ -1,5 +1,9 @@
 export type SpanTimelineScale = 'linear' | 'log';
 
+// where the value 0 (now) is: at the right end (ages, the default) or at the left end (bars that grow to the right,
+// e.g. a share)
+export type SpanTimelineOrigin = 'right' | 'left';
+
 export type SpanTimelineMarkerKind = 'dot' | 'diamond' | 'tick';
 
 // a mark on a row (at most 3 are drawn per row); `at` is an age, in the same unit as the start and end of the rows
@@ -28,6 +32,8 @@ export interface SpanTimelineRow {
   valueLabel?: string;
   // extra lines of the popover of the row
   details?: string[];
+  // a value to take with care (e.g. computed on few items): the bar is faint and its track has a dashed outline
+  faint?: boolean;
   markers?: SpanTimelineMarker[];
 }
 

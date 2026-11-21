@@ -55,6 +55,17 @@
 .track {
   fill: var(--tod-span-timeline-track);
   pointer-events: none;
+
+  // a faint row: the track has a dashed outline
+  &.faint {
+    stroke: var(--p-text-muted-color);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+}
+
+.bar.faint {
+  opacity: 0.45;
 }
 
 // hover: the bar grows in thickness only (its length is a time, so it never scales) and gets brighter

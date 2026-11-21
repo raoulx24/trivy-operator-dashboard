@@ -55,6 +55,7 @@ public static class HomeServiceRegistrationExtensions
             InfraAssessmentReports = sp.GetService<IResourceProvider<InfraAssessmentReport, Uid>>(),
             ClusterInfraAssessmentReports = sp.GetService<IResourceProvider<ClusterInfraAssessmentReport, Uid>>(),
             ExposedSecretReports = sp.GetService<IResourceProvider<ExposedSecretReport, Digest>>(),
+            ClusterComplianceReports = sp.GetService<IResourceProvider<ClusterComplianceReport, Uid>>(),
         });
 
         services.AddSingleton<ActiveVulnerabilityTableCache>();

@@ -1,277 +1,279 @@
 <app-home-widget-frame
   heading="Fix waiting time"
-  [help]="help"
-  [hint]="hint()"
-  [state]="state()"
   [canExpand]="canExpand()"
   [expanded]="isExpanded()"
-  (expandToggle)="toggleExpand()"
-  [refreshable]="true"
-  (refreshRequested)="refreshWidget()"
   [fillGap]="!isExpanded()"
+  [help]="help"
+  [hint]="hint()"
+  [refreshable]="true"
+  [state]="state()"
+  (expandToggle)="toggleExpand()"
+  (refreshRequested)="refreshWidget()"
 >
   @if (!isExpanded()) {
-    <div class="pt-2"><ng-container *ngTemplateOutlet="filterBox" /></div>
     @if (allItems().length === 0 && state().isAvailable) {
       <ng-container *ngTemplateOutlet="empty" />
-    }
+    } @else if (totals(); as t) {
+      <div class="flex flex-col gap-3 pt-2">
+        <!-- the headline: the longest wait, and the ids that wait -->
+        <div class="flex flex-wrap items-baseline gap-x-2">
+          <span class="text-3xl font-semibold">{{ daysLabel(longestDays()) }}</span>
+          <span class="tod-text-muted-color"
+            >longest; {{ t.vulnerabilityIds }} {{ t.vulnerabilityIds === 1 ? 'id' : 'ids' }} waiting</span
+          >
+          @if (undatedIds() > 0) {
+            <span
+              title="Ids whose rows have no fix date (no history): left out of the buckets"
+              class="text-xs tod-text-muted-color"
+              >· {{ undatedIds() }} without date</span
+            >
+          }
+        </div>
 
-    <div class="flex flex-col gap-4 pt-2">
-      @for (item of collapsedGroups(); track item.vulnerabilityId) {
-        <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: false }" />
-      }
-      @if (more() > 0) {
-        <span class="text-xs tod-text-muted-color px-1">+{{ more() }} more</span>
-      }
-    </div>
+        <!-- the ids by waiting bucket -->
+        <div class="flex flex-col gap-1">
+          <app-meter-group valueLabel="ids" [max]="idCount()" [segments]="mix()" [showValues]="true" />
+          <div class="flex justify-between text-xs tod-text-muted-color">
+            @for (b of buckets; track b.label) {
+              <span>{{ b.label }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- the ids that wait the longest; a click expands the widget on the id -->
+        <div class="flex flex-col gap-2">
+          @for (g of topGroups(); track g.key) {
+            <button
+              type="button"
+              class="flex flex-col gap-1 text-left text-sm cursor-pointer"
+              [attr.aria-label]="'Show ' + g.name + ' on the timeline'"
+              (click)="select(g)"
+            >
+              <span class="flex items-baseline justify-between gap-2">
+                <span class="break-all">{{ rowLabel(g) }}</span>
+                <span class="shrink-0 tabular-nums">{{ daysLabel(g.days) }}</span>
+              </span>
+              <span class="tod-fix-waiting-track">
+                <span
+                  class="tod-fix-waiting-bar"
+                  [style.background]="bucketColor(g.days)"
+                  [style.width.%]="barPercent(g.days)"
+                ></span>
+              </span>
+            </button>
+          }
+        </div>
+
+        @if (partialLabel()) {
+          <span class="text-xs tod-text-muted-color">{{ partialLabel() }}</span>
+        }
+      </div>
+    }
   } @else {
-    <!-- expanded, a fixed height: on the left, in a box, all the rows (the width of the collapsed widget); on the right the
-         selected id: on the height, in two halves, the namespaces with the images, and the packages -->
+    <!-- expanded, between expandedMinHeight and expandedMaxHeight, else as tall as its row of the page: on the left the
+         filter box and the timeline of all the entries (it takes the rest of the height and scrolls in it), on the right the
+         selected entry and its images, namespaces and packages -->
     <div
-      class="grid gap-3 pt-2 flex-1"
-      [style.min-height]="expandedHeight"
-      [style.grid-template-columns]="(collapsedWidth() ?? 384) * 0.75 + 'px minmax(0, 1fr)'"
+      class="grid grid-cols-[minmax(0,1fr)_20rem] gap-3 pt-2 flex-1"
+      [style.max-height]="expandedMaxHeight"
+      [style.min-height]="expandedMinHeight"
     >
-      <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
-        <div class="text-xs tod-text-muted-color">{{ groups().length }} of {{ totals()?.vulnerabilityIds ?? 0 }} ids</div>
-        <ng-container *ngTemplateOutlet="filterBox" />
+      <div class="flex flex-col gap-2 min-w-0 min-h-0">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs tod-text-muted-color">
+            {{ groups().length }} {{ groupBy() === 'id' ? 'ids' : groupBy() === 'package' ? 'packages' : 'images' }} ·
+            fix known since → today
+          </span>
+          @if (partialLabel()) {
+            <span class="text-xs tod-text-muted-color">{{ partialLabel() }}</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <app-home-search-box placeholder="Filter by vulnerability id or package" [(query)]="filterText" />
+          @if (noMatch()) {
+            <span class="text-xs tod-text-muted-color px-1">No match for "{{ filterText().trim() }}"</span>
+          }
+        </div>
 
         @if (allItems().length === 0 && state().isAvailable) {
           <ng-container *ngTemplateOutlet="empty" />
         }
 
-        <!-- the rows have all the same height, as the scroller needs -->
-        <div class="relative flex-1 min-h-0">
-          <p-scroller
-            appScrollerResize
-            class="absolute inset-0"
-            scrollHeight="100%"
-            [items]="groups()"
-            [itemSize]="rowHeight"
-            [style]="{ width: '100%', height: '100%' }"
-          >
-            <ng-template #item let-item>
-              <div
-                class="px-2 py-2 cursor-pointer overflow-hidden border-b border-[var(--p-content-border-color)]"
-                [style.height.px]="rowHeight"
-                [class.tod-selected-item]="item.vulnerabilityId === selectedId()"
-                (click)="select(item)"
-              >
-                <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: true }" />
-              </div>
-            </ng-template>
-          </p-scroller>
+        <!-- the rest of the height; the timeline is laid out absolutely, so its rows do not make the box taller -->
+        <div class="tod-content-border relative flex-1 min-h-0 overflow-hidden">
+          <div #timelineHost class="absolute inset-0 py-2">
+            <app-span-timeline
+              scale="log"
+              [labelWidth]="labelWidth()"
+              [maxHeight]="timelineHeight()"
+              [rows]="timelineRows()"
+              [ticks]="timelineTicks"
+              [valueWidth]="56"
+              [(selectedId)]="selectedKey"
+            />
+          </div>
         </div>
       </div>
 
-      <!-- the rows of this column: half of the height each (otherwise they would be as tall as their content, and the lists
-           and the table, laid out absolutely, have none) -->
-      <div class="grid grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-3 min-h-0 min-w-0">
-        @if (detail(); as d) {
-          <div class="grid grid-cols-2 gap-3 min-h-0">
-            <div class="relative min-h-0 min-w-0">
-              <div class="absolute inset-0">
-                <app-trivy-box class="h-full">
-                  <span boxTitle>Namespaces ({{ countLabel(allowedNamespaces().size, d.namespaceNames.length) }})</span>
-                  <div class="relative h-full">
-                    <div class="absolute inset-0 overflow-auto flex flex-col text-sm">
-                      @for (name of d.namespaceNames; track name; let i = $index) {
-                        <button
-                          type="button"
-                          class="text-left break-all rounded px-1 cursor-pointer disabled:opacity-50 disabled:cursor-default"
-                          [class.tod-selected-item]="selectedNamespace() === i"
-                          [disabled]="!allowedNamespaces().has(i)"
-                          [attr.aria-pressed]="selectedNamespace() === i"
-                          (click)="toggleNamespace(i)"
-                        >
-                          {{ name }}
-                        </button>
-                      }
-                    </div>
-                  </div>
-                </app-trivy-box>
-              </div>
-            </div>
-
-            <div class="relative min-h-0 min-w-0">
-              <div class="absolute inset-0">
-                <app-trivy-box class="h-full">
-                  <span boxTitle>Images ({{ countLabel(allowedImages().size, d.imageNames.length) }})</span>
-                  <div class="relative h-full">
-                    <div class="absolute inset-0 overflow-auto flex flex-col text-sm">
-                      @for (name of d.imageNames; track name; let i = $index) {
-                        <button
-                          type="button"
-                          class="text-left break-all rounded px-1 cursor-pointer disabled:opacity-50 disabled:cursor-default"
-                          [class.tod-selected-item]="selectedImage() === i"
-                          [disabled]="!allowedImages().has(i)"
-                          [attr.aria-pressed]="selectedImage() === i"
-                          (click)="toggleImage(i)"
-                        >
-                          {{ name }}
-                        </button>
-                      }
-                    </div>
-                  </div>
-                </app-trivy-box>
-              </div>
-            </div>
-          </div>
-
-          <!-- the packages: the table needs a definite height, so it is laid out absolutely inside its box -->
-          <div class="relative min-h-0 min-w-0">
-            <div class="absolute inset-0">
-              <app-trivy-box class="h-full">
-                <span boxTitle>Packages ({{ countLabel(allowedPackages().size, d.packages.length) }})</span>
-                <div class="relative h-full">
-                  <div class="absolute inset-0">
-                    <app-trivy-table
-                      extraClasses="tod-trivy-table-fill"
-                      stateKey="Home Fix Waiting Packages"
-                      selectionMode="single"
-                      [dataDtos]="packageRows()"
-                      [trivyTableColumns]="packageColumns"
-                      [rowDimmer]="packageRowDimmer"
-                      [dimmedRowsSelectable]="false"
-                      [selectedData]="packageSelection()"
-                      (selectedDataChange)="onPackageSelection($event)"
+      <div class="flex flex-col gap-3 min-h-0 min-w-0">
+        <app-trivy-box class="shrink-0">
+          <span boxTitle>Selected</span>
+          @if (selectedGroup(); as g) {
+            <div class="flex flex-col gap-2 text-sm">
+              @switch (selectedKind()) {
+                @case ('id') {
+                  <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span class="font-semibold break-all">{{ g.name }}</span>
+                    <p-tag
+                      class="text-xs"
+                      [rounded]="true"
+                      [style]="worstSeverity(g) | severityCssStyleById: 1"
+                      [value]="worstSeverity(g) | severityNameById"
                     />
-                  </div>
-                </div>
-              </app-trivy-box>
+                    @if (hasCveDetails(g.name)) {
+                      <app-vulnerability-score-tag label="CVSS" source="cveDetails" [vulnerabilityId]="g.name" />
+                    }
+                    @let epss = tagLabel(g.name, 'epss');
+                    @if (epss) {
+                      <app-vulnerability-score-tag source="epss" [label]="epss" [vulnerabilityId]="g.name" />
+                    }
+                    @if (isKnownExploited(g)) {
+                      <app-home-exploit-tag [vulnerabilityId]="g.name" />
+                    }
+                  </span>
+                  @if (g.rows[0]?.title; as title) {
+                    <span class="text-xs tod-text-muted-color line-clamp-3" [attr.title]="title">{{ title }}</span>
+                  }
+                }
+                @case ('package') {
+                  <span class="font-semibold break-all">{{ g.name }}</span>
+                  <span>fixes {{ g.ids.size }} {{ g.ids.size === 1 ? 'id' : 'ids' }}</span>
+                }
+                @default {
+                  <span class="font-semibold break-all">{{ g.name }}</span>
+                  <span
+                    >{{ g.ids.size }} {{ g.ids.size === 1 ? 'id' : 'ids' }} in {{ g.packages.size }}
+                    {{ g.packages.size === 1 ? 'package' : 'packages' }}</span
+                  >
+                }
+              }
+
+              <span
+                >fix known {{ daysLabel(g.days) }}
+                @if (g.oldestFixSince) {
+                  <span class="tod-text-muted-color"> (since {{ g.oldestFixSince.substring(0, 10) }})</span>
+                }
+              </span>
+              <span>
+                {{ g.images.size }} {{ g.images.size === 1 ? 'image' : 'images' }} · {{ g.namespaces.size }} ns
+                @if (selectedDetail(); as d) {
+                  · {{ d.workloads }} {{ d.workloads === 1 ? 'workload' : 'workloads' }}
+                }
+              </span>
             </div>
-          </div>
-        } @else if (detailError()) {
-          <div class="text-sm home-widget-error">Error: {{ detailError() }}</div>
-        } @else if (isDetailLoading()) {
-          <div class="text-sm tod-text-muted-color">Loading...</div>
-        } @else if (displayedId()) {
-          <div class="text-sm tod-text-muted-color">{{ detailNote() ?? 'No fix waiting.' }}</div>
-        } @else {
-          @if (allItems().length === 0 && state().isAvailable) {
-            <ng-container *ngTemplateOutlet="empty" />
           } @else {
-            <div class="text-sm tod-text-muted-color">Select a vulnerability</div>
+            <span class="text-sm tod-text-muted-color">Click a bar</span>
           }
+        </app-trivy-box>
+
+        <!-- what the selected entry is made of: the rest of the height in three, each list scrolls in its box -->
+        @if (selectedGroup()) {
+          <ng-container
+            *ngTemplateOutlet="listBox; context: { title: 'Images for selected', items: selectedImages(), plain: true }"
+          />
+          <ng-container
+            *ngTemplateOutlet="
+              listBox;
+              context: { title: 'Namespaces for selected', items: selectedNamespaces(), plain: true }
+            "
+          />
+          <ng-container
+            *ngTemplateOutlet="
+              listBox;
+              context: { title: 'Packages for selected', items: selectedFixes(), plain: false }
+            "
+          />
         }
       </div>
     </div>
   }
 
-  <!-- the controls of the expanded widget, in the bottom row of the frame: the selections in the lists filter each other -->
+  <!-- the controls of the expanded widget, in the bottom row of the frame -->
   @if (isExpanded()) {
-    <div frameActions class="flex items-center gap-2">
-      <p-button
-        class="inline-flex"
-        label="Clear filters"
-        icon="pi pi-filter-slash"
-        size="small"
-        severity="secondary"
-        [text]="true"
-        [raised]="true"
-        [disabled]="!isFiltered()"
-        (onClick)="clearFilters()"
-      />
-      <span class="text-xs tod-text-muted-color">A click on a namespace, an image or a package fades what does not go with it</span>
+    <div frameActions class="flex flex-wrap items-center gap-2">
+      <div aria-label="Group the bars" role="group" class="flex items-center gap-1.5">
+        <span class="text-xs tod-text-muted-color">Group</span>
+        <app-pill-button label="Id" [active]="groupBy() === 'id'" [toggle]="true" (pressed)="setGroupBy('id')" />
+        <app-pill-button
+          label="Package"
+          [active]="groupBy() === 'package'"
+          [toggle]="true"
+          (pressed)="setGroupBy('package')"
+        />
+        <app-pill-button
+          label="Image"
+          [active]="groupBy() === 'image'"
+          [toggle]="true"
+          (pressed)="setGroupBy('image')"
+        />
+      </div>
+      <div aria-label="Sort the bars" role="group" class="flex items-center gap-1.5">
+        <span class="text-xs tod-text-muted-color">Sort</span>
+        <app-pill-button
+          label="Wait"
+          title="The longest wait first"
+          [active]="sortBy() === 'wait'"
+          [toggle]="true"
+          (pressed)="sortBy.set('wait')"
+        />
+        <app-pill-button
+          label="Reach"
+          title="The most images first"
+          [active]="sortBy() === 'reach'"
+          [toggle]="true"
+          (pressed)="sortBy.set('reach')"
+        />
+      </div>
+      <span class="text-xs tod-text-muted-color"
+        >A bar of a group is its longest wait; its popover has the details</span
+      >
     </div>
   }
 </app-home-widget-frame>
 
-<!-- a row of the list: in the collapsed widget (the id is a button) and in the list of the expanded one (the whole row is) -->
-<ng-template #rowBody let-item let-inList="inList">
-  <div class="flex flex-col gap-1.5 px-1 text-sm">
-    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-      @if (inList) {
-        <span class="font-medium break-all">{{ item.vulnerabilityId }}</span>
-      } @else {
-        <button
-          type="button"
-          class="font-medium break-all text-left cursor-pointer"
-          [attr.aria-label]="'Show where ' + item.vulnerabilityId + ' runs'"
-          (click)="select(item)"
-        >
-          {{ item.vulnerabilityId }}
-        </button>
-      }
-      <p-tag
-        class="text-xs"
-        [rounded]="true"
-        [style]="item.severityId | severityCssStyleById: 1"
-        [value]="item.severityId | severityNameById"
-      />
-      @if (hasCveDetails(item.vulnerabilityId)) {
-        <app-vulnerability-score-tag label="CVSS" source="cveDetails" [vulnerabilityId]="item.vulnerabilityId" />
-      }
-      <ng-container *ngTemplateOutlet="epssTag; context: { $implicit: item.vulnerabilityId }" />
-      <ng-container *ngTemplateOutlet="exploitedTag; context: { $implicit: item.vulnerabilityId, known: item.isKnownExploited }" />
-    </span>
-
-    <!-- in the list the rows have a fixed height, so the room of three lines is always taken -->
-    @if (item.title || inList) {
-      <span class="text-xs line-clamp-3" [class.min-h-12]="inList" [attr.title]="item.title">{{ item.title }}</span>
-    }
-
-    @if (inList && item.rows.length > 1) {
-      <!-- the list rows have a fixed height: the packages in one line, the longest wait; the reach is in the detail -->
-      <span class="text-xs break-all line-clamp-2">
-        {{ item.rows.length }} packages:
-        <span class="tod-text-muted-color">{{ packageNames(item.rows) }}</span>
-      </span>
-      <span class="text-xs tod-text-muted-color">{{ waitingLabel(longestFixSince(item.rows)) }}</span>
-    } @else {
-      @for (row of item.rows; track row.packageKey) {
-        <span class="text-xs break-all" [attr.title]="row.packageKey">
-          {{ row.packageName }}
-          <span class="tod-text-muted-color">→ {{ row.fixedVersion }}</span>
-        </span>
-
-        <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
-          <span class="tod-text-muted-color">{{ waitingLabel(row.fixSince) }}</span>
-          <span class="tod-text-muted-color">{{ row.images }} {{ row.images === 1 ? 'image' : 'images' }}</span>
-          <span class="tod-text-muted-color">{{ row.namespaces }} ns</span>
-          <span class="tod-text-muted-color">{{ row.workloads }} {{ row.workloads === 1 ? 'workload' : 'workloads' }}</span>
-        </span>
-      }
-    }
+<!-- a list of the selected entry in a box that takes its share of the height (the list, laid out absolutely, scrolls in
+     it): names (plain), or packages with the installed and the fixed version -->
+<ng-template #listBox let-items="items" let-plain="plain" let-title="title">
+  <div class="relative flex-1 min-h-0">
+    <div class="absolute inset-0">
+      <app-trivy-box class="h-full">
+        <span boxTitle>{{ title }} ({{ items.length }})</span>
+        <div class="relative h-full">
+          <div class="absolute inset-0 overflow-auto flex flex-col gap-0.5 text-sm">
+            @for (item of items; track $index) {
+              @if (plain) {
+                <span class="break-all px-1">{{ item }}</span>
+              } @else {
+                <span class="break-all px-1">
+                  {{ item.name }} {{ item.installed }} <span class="tod-text-muted-color">→ {{ item.fixed }}</span>
+                </span>
+              }
+            }
+          </div>
+        </div>
+      </app-trivy-box>
+    </div>
   </div>
 </ng-template>
 
-<!-- the known exploited tag: KEV / EUVD / KEV/EUVD, as in the history widgets, that opens the dialog of KEV / EUVD; shown when the
-     CVE enrichment lists the id in one of them, or the report flags it -->
-<ng-template #exploitedTag let-id let-known="known">
-  @if (known || tagLabel(id, 'exploited')) {
-    <app-home-exploit-tag [vulnerabilityId]="id" />
-  }
-</ng-template>
-
-<!-- the EPSS tag, as in the tables (EPSS and the score, when the enrichment has one for the CVE), that opens its dialog -->
-<ng-template #epssTag let-id>
-  @let epss = tagLabel(id, 'epss');
-  @if (epss) {
-    <app-vulnerability-score-tag source="epss" [label]="epss" [vulnerabilityId]="id" />
-  }
-</ng-template>
-
-<!-- nothing to show: no fix appeared in the window (with the severities and namespaces of the filter) -->
+<!-- nothing to show: no fixable vulnerability runs now (with the severities and namespaces of the filter) -->
 <ng-template #empty>
   <div class="flex flex-col items-center justify-center gap-1 py-6 px-2 text-center">
-    <i class="pi pi-check-circle text-3xl tod-text-muted-color" aria-hidden="true"></i>
+    <i aria-hidden="true" class="pi pi-check-circle text-3xl tod-text-muted-color"></i>
     <span class="text-sm font-medium">No fixes waiting</span>
-    <span class="text-xs tod-text-muted-color">No vulnerability with a fix runs now in the selected severities and namespaces.</span>
-  </div>
-</ng-template>
-
-<!-- the filter box of the list (collapsed and expanded), with what it found -->
-<ng-template #filterBox>
-  <div class="flex flex-col gap-1">
-    <app-home-search-box placeholder="Filter by vulnerability id or package" [(query)]="filterText" />
-    @if (isSearching()) {
-      <span class="text-xs tod-text-muted-color px-1">Searching...</span>
-    } @else if (noMatch()) {
-      <span class="text-xs tod-text-muted-color px-1">No match for "{{ filterText().trim() }}"</span>
-    }
-    @if (partialLabel()) {
-      <span class="text-xs tod-text-muted-color px-1">{{ partialLabel() }}</span>
-    }
+    <span class="text-xs tod-text-muted-color"
+      >No vulnerability with a fix runs now in the selected severities and namespaces.</span
+    >
   </div>
 </ng-template>

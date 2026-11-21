@@ -10,31 +10,34 @@
   [fillGap]="false"
 >
   <div class="flex-1 overflow-auto" [class.max-h-[70vh]]="isExpanded()">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="text-left text-xs tod-text-muted-color">
-          <th class="font-normal">Package</th>
-          <th class="font-normal text-right pl-2">Ids</th>
-          <th class="font-normal text-right pl-2">Fixable</th>
-          <th class="font-normal text-right pl-2">Images</th>
+    <div class="flex flex-col gap-2 pt-1">
+      @for (row of rows(); track row.item.packageKey) {
+        <!-- the package, the meter (the length is the ids, of the most hit package), the images at the right -->
+        <div
+          class="grid items-center gap-x-3 text-sm"
+          [class.grid-cols-[8rem_minmax(0,1fr)_3rem]]="!isExpanded()"
+          [class.grid-cols-[12rem_minmax(0,1fr)_4rem_5rem]]="isExpanded()"
+        >
+          <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
+          <app-meter-group valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
+          <span class="text-right tabular-nums" title="Images with this package">{{ row.item.images }}</span>
           @if (isExpanded()) {
-            <th class="font-normal text-right pl-2">Namespaces</th>
+            <span class="text-right tabular-nums tod-text-muted-color" title="Namespaces with this package">
+              {{ row.item.namespaces }} ns
+            </span>
           }
-        </tr>
-      </thead>
-      <tbody>
-        @for (item of items(); track item.packageKey) {
-          <tr>
-            <td class="max-w-0 w-full truncate" [title]="item.packageKey">{{ item.packageName }}</td>
-            <td class="text-right pl-2">{{ item.vulnerabilityIds }}</td>
-            <td class="text-right pl-2">{{ item.fixableVulnerabilityIds }}</td>
-            <td class="text-right pl-2">{{ item.images }}</td>
-            @if (isExpanded()) {
-              <td class="text-right pl-2">{{ item.namespaces }}</td>
-            }
-          </tr>
-        }
-      </tbody>
-    </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-x-4 text-xs tod-text-muted-color">
+    <span class="inline-flex items-center gap-1">
+      <span class="inline-block size-2 rounded-full tod-package-hotspots-fixable"></span>fixable ids
+    </span>
+    <span class="inline-flex items-center gap-1">
+      <span class="inline-block size-2 rounded-full tod-package-hotspots-no-fix"></span>no fix yet
+    </span>
+    <span>right: images</span>
   </div>
 </app-home-widget-frame>

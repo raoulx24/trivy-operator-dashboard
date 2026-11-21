@@ -57,6 +57,9 @@ export class MatrixHeatmapComponent {
   values = input<(number | null | undefined)[][]>([]);
   // colors[row][column]: any css color; null or undefined = the shade of the value
   colors = input<(string | null | undefined)[][] | undefined>(undefined);
+  // textColors[row][column]: the css color of the value on a cell (for cells with an own color); null or undefined = the
+  // one of the shade
+  textColors = input<(string | null | undefined)[][] | undefined>(undefined);
 
   // px
   cellHeight = input<number>(36);
@@ -145,6 +148,7 @@ export class MatrixHeatmapComponent {
     const columns = this.columns();
     const values = this.values();
     const colors = this.colors();
+    const textColors = this.textColors();
     const selected = this.selectedCell();
     const selectable = this.selectable();
     const cellWidth = this.cellWidth();
@@ -162,6 +166,7 @@ export class MatrixHeatmapComponent {
           value,
           level: this.levelOf(value),
           color: value > 0 ? (colors?.[rowIndex]?.[columnIndex] ?? null) : null,
+          textColor: value > 0 ? (textColors?.[rowIndex]?.[columnIndex] ?? null) : null,
           selectable: selectable && value > 0,
           selected: selected?.rowIndex === rowIndex && selected?.columnIndex === columnIndex,
           x: this.left() + columnIndex * stepX,

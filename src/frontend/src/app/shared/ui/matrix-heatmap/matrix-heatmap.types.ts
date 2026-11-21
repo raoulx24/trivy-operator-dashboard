@@ -15,6 +15,8 @@ export interface MatrixHeatmapCell extends MatrixHeatmapClick {
   level: number;
   // the own css color of the cell (replaces the quantile shade), if the owner gave one
   color: string | null;
+  // the own css color of the value text, if the owner gave one
+  textColor: string | null;
   selectable: boolean;
   selected: boolean;
   // px, in the svg

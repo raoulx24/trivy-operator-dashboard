@@ -82,4 +82,13 @@ public interface IHomeService : IQueryService
     Task<HomePackageHotspotsDto> GetPackageHotspots(HomeFilter filter, CancellationToken ctx = default);
 
     Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, CancellationToken ctx = default);
+
+    // the cluster compliance reports with their pass percent (not filtered: the reports are about the cluster)
+    Task<HomeComplianceDto> GetCompliance(CancellationToken ctx = default);
+
+    // the worst failing controls of one report (exact uid), capped by the limit of the filter
+    Task<HomeComplianceWorstControlsDto> GetComplianceWorstControls(
+        string reportUid,
+        HomeFilter filter,
+        CancellationToken ctx = default);
 }

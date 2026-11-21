@@ -122,20 +122,19 @@
     />
   </div>
 
-  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <app-home-compliance hint="cluster, not filtered" [refresh]="refreshCounter()" />
     <app-home-package-hotspots
       [hint]="stateHint()"
       [severities]="severityIds()"
       [namespaces]="namespaces()"
       [refresh]="refreshCounter()"
     />
-    <app-home-widget-placeholder
-      heading="Reach vs EPSS"
+    <app-home-reach-epss
       [hint]="stateHint()"
-      description="per vulnerability id: images (x) against the EPSS percentile (y), known exploited marked"
-      source="GET api/home/reach-epss → HomeReachEpssDto"
-      [state]="reachEpss()"
-      (refresh)="reloadReachEpss()"
+      [severities]="severityIds()"
+      [namespaces]="namespaces()"
+      [refresh]="refreshCounter()"
     />
   </div>
 

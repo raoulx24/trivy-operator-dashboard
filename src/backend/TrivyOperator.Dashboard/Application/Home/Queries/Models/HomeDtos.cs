@@ -358,6 +358,9 @@ public sealed record HomeBaseOsImagesDto(
     IReadOnlyList<HomeBaseOsImageRowDto> Items);
 
 // failing checks grouped by check id; Resources = distinct reports (one per resource)
+// Evaluated = the reports of the same family (in the scope) whose resource kind is in a bin of a failing one: trivy keeps
+// only the failing checks, so the resources a check evaluated are told by their kind; all the workload kinds (Pod,
+// ReplicaSet, Job...) are one bin, Role and ClusterRole one, RoleBinding and ClusterRoleBinding one, any other kind its own
 public sealed record HomeFailingCheckDto(
     // ConfigAudit, RbacAssessment, InfraAssessment
     string Family,
@@ -366,6 +369,7 @@ public sealed record HomeFailingCheckDto(
     string Category,
     int SeverityId,
     int Resources,
+    int Evaluated,
     int Namespaces,
     bool HasClusterScopedResources);
 
@@ -386,10 +390,17 @@ public sealed record HomeFailingCheckDetailItemDto(
     string Description,
     string Remediation,
     int Resources,
+    int Evaluated,
     int Namespaces,
     bool HasClusterScopedResources,
+    // the namespaces with a failing resource, the most failing first (the cluster scoped ones, null, last)
+    IReadOnlyList<HomeFailingCheckNamespaceDto> ByNamespace,
     // by namespace (cluster scoped ones last), resource kind, resource name
     IReadOnlyList<HomeWhereIsCheckResourceDto> Rows);
+
+// the failing and the evaluated resources of a check in one namespace (null = the cluster scoped ones); Evaluated as in
+// HomeFailingCheckDto, within the namespace
+public sealed record HomeFailingCheckNamespaceDto(string? NamespaceName, int Resources, int Evaluated);
 
 // Item is null when the check (exact) does not fail now (in the namespaces asked)
 public sealed record HomeFailingCheckDetailDto(
@@ -520,3 +531,41 @@ public sealed record HomeDataHealthDto(
     DateTime? HistoryStartedAt,
     DateTime? FixTrackingStartedAt,
     DateTime GeneratedAt);
+// compliance: one row per cluster compliance report (CIS, NSA, PSS...)
+// PassCount / FailCount: the controls that pass / fail, as the report summary counts them; PassPercent = pass / (pass +
+// fail) * 100, null when the report has no controls
+public sealed record HomeComplianceReportDto(
+    string Uid,
+    // the resource name, e.g. nsa
+    string Name,
+    string Title,
+    string Version,
+    int PassCount,
+    int FailCount,
+    double? PassPercent,
+    DateTime LastScanAt);
+
+// the reports sorted by name
+public sealed record HomeComplianceDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    IReadOnlyList<HomeComplianceReportDto> Items);
+
+// a control that fails, TotalFail = the failing checks of the control as the report counts them
+public sealed record HomeComplianceControlDto(
+    string ControlId,
+    string Name,
+    int SeverityId,
+    int TotalFail);
+
+// the worst failing controls of one report: the most failing checks first, then the most severe, then by control id;
+// only controls with failing checks; Items is capped by the limit, TotalFailingControls is not
+// IsAvailable is false when the report (ReportUid) is not found
+public sealed record HomeComplianceWorstControlsDto(
+    bool IsAvailable,
+    string? UnavailableReason,
+    string ReportUid,
+    string Title,
+    string Version,
+    int TotalFailingControls,
+    IReadOnlyList<HomeComplianceControlDto> Items);

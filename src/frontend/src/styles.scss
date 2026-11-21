@@ -873,6 +873,22 @@ mat-icon.text-xs {
   border-radius: var(--tod-app-border-radius-md);
 }
 
+// fix waiting time (home, collapsed): the bar of a row grows from the right (today) to the left, on a track
+.tod-fix-waiting-track {
+  display: flex;
+  justify-content: flex-end;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--tod-span-timeline-track);
+  overflow: hidden;
+}
+
+.tod-fix-waiting-bar {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+
 // the big icon of the empty (happy day) state of a home widget
 .pi.tod-home-empty-icon {
   font-size: 2rem;
@@ -1265,4 +1281,13 @@ ul.p-panelmenu-submenu {
 .trivy-table.tod-trivy-table-fill {
   height: 100%;
   min-height: 0;
+}
+
+/* package hotspots: the dots of the legend, the colors of the meter segments */
+.tod-package-hotspots-fixable {
+  background: var(--tod-package-hotspots-fixable);
+}
+
+.tod-package-hotspots-no-fix {
+  background: var(--tod-package-hotspots-no-fix);
 }

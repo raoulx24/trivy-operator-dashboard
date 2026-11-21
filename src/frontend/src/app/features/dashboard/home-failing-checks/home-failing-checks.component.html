@@ -1,178 +1,231 @@
 <app-home-widget-frame
   heading="Failing checks"
-  [help]="help"
-  [hint]="hint()"
-  [state]="state()"
   [canExpand]="canExpand()"
   [expanded]="isExpanded()"
-  (expandToggle)="toggleExpand()"
-  [refreshable]="true"
-  (refreshRequested)="refreshWidget()"
   [fillGap]="!isExpanded()"
+  [help]="help"
+  [hint]="hint()"
+  [refreshable]="true"
+  [state]="state()"
+  (expandToggle)="toggleExpand()"
+  (refreshRequested)="refreshWidget()"
 >
   @if (!isExpanded()) {
-    <div class="pt-2"><ng-container *ngTemplateOutlet="filterBox" /></div>
     @if (allItems().length === 0 && state().isAvailable) {
-      <div class="text-sm tod-text-muted-color p-2">No failing check in these severities and namespaces.</div>
-    }
+      <ng-container *ngTemplateOutlet="empty" />
+    } @else if (allItems().length > 0) {
+      <div class="flex flex-col gap-3 pt-2">
+        <!-- the headline: the distinct failing checks -->
+        <div class="flex flex-wrap items-baseline gap-x-2">
+          <span class="text-3xl font-semibold">{{ totalChecks() }}</span>
+          <span class="tod-text-muted-color">distinct {{ totalChecks() === 1 ? 'check' : 'checks' }} failing</span>
+        </div>
 
-    <div class="flex flex-col gap-4 pt-2">
-      @for (item of collapsedItems(); track item.family + item.checkId) {
-        <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: false }" />
-      }
-      @if (more() > 0) {
-        <span class="text-xs tod-text-muted-color px-1">+{{ more() }} more</span>
-      }
-    </div>
-  } @else {
-    <!-- expanded, a fixed height: on the left, in a box, the checks (the width of the collapsed widget); on the right the
-         selected check: its header and, on what is left, the table of its failing resources -->
-    <div
-      class="grid gap-3 pt-2 flex-1"
-      [style.min-height]="expandedHeight"
-      [style.grid-template-columns]="(collapsedWidth() ?? 384) * 0.75 + 'px minmax(0, 1fr)'"
-    >
-      <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
-        <div class="text-xs tod-text-muted-color">{{ items().length }} of {{ totalChecks() }}</div>
-        <ng-container *ngTemplateOutlet="filterBox" />
+        <!-- the distinct checks by family and severity; a click on a cell expands the widget filtered by it -->
+        <app-matrix-heatmap
+          valueLabel="checks"
+          [cellHeight]="30"
+          [colors]="gridColors()"
+          [columns]="gridColumns()"
+          [rowLabelWidth]="48"
+          [rows]="gridRows"
+          [selectable]="true"
+          [selectedCell]="gridCell()"
+          [textColors]="gridTextColors()"
+          [values]="gridValues()"
+          (cellSelected)="onGridCell($event)"
+        />
 
-        @if (allItems().length === 0 && state().isAvailable) {
-          <div class="text-sm tod-text-muted-color p-2">No failing check in these severities and namespaces.</div>
+        @if (widespreadRows().length > 0) {
+          <div class="flex flex-col gap-1">
+            <span class="text-sm">Most widespread</span>
+            <app-span-timeline
+              origin="left"
+              [labelWidth]="96"
+              [max]="100"
+              [rows]="widespreadRows()"
+              [showAxis]="false"
+              [valueWidth]="48"
+              (selectedIdChange)="onWidespread($event)"
+            />
+          </div>
         }
 
-        <!-- the rows have all the same height, as the scroller needs -->
-        <div class="relative flex-1 min-h-0">
-          <p-scroller
-            appScrollerResize
-            class="absolute inset-0"
-            scrollHeight="100%"
-            [items]="items()"
-            [itemSize]="rowHeight"
-            [style]="{ width: '100%', height: '100%' }"
-          >
-            <ng-template #item let-item>
-              <div
-                class="px-2 py-2 cursor-pointer overflow-hidden border-b border-[var(--p-content-border-color)]"
-                [style.height.px]="rowHeight"
-                [class.tod-selected-item]="isSelected(item)"
-                (click)="select(item)"
-              >
-                <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: item, inList: true }" />
-              </div>
-            </ng-template>
-          </p-scroller>
+        <span class="text-xs tod-text-muted-color"
+          >Grid: distinct checks by family and severity, so it doesn't grow with cluster size. Bars: failing out of
+          evaluated resources.</span
+        >
+        @if (partialLabel()) {
+          <span class="text-xs tod-text-muted-color">{{ partialLabel() }}</span>
+        }
+      </div>
+    }
+  } @else {
+    <!-- expanded, between expandedMinHeight and expandedMaxHeight, else as tall as its row of the page: on the left the
+         filter box and the bars of all the checks (they take the rest of the height and scroll in it), on the right the
+         selected check and its failing resources by namespace -->
+    <div
+      class="grid grid-cols-[minmax(0,1fr)_22rem] gap-3 pt-2 flex-1"
+      [style.max-height]="expandedMaxHeight"
+      [style.min-height]="expandedMinHeight"
+    >
+      <div class="flex flex-col gap-2 min-w-0 min-h-0">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs tod-text-muted-color">
+            {{ items().length }} {{ items().length === 1 ? 'check' : 'checks' }}
+            @if (gridFilterLabel()) {
+              ({{ gridFilterLabel() }})
+            }
+            · sorted by {{ sortBy() === 'severity' ? 'severity, then share' : 'share, then severity' }} · failing /
+            evaluated
+          </span>
+          @if (partialLabel()) {
+            <span class="text-xs tod-text-muted-color">{{ partialLabel() }}</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <app-home-search-box placeholder="Filter by check id, family or title" [(query)]="filterText" />
+          @if (noMatch()) {
+            <span class="text-xs tod-text-muted-color px-1">No match for "{{ filterText().trim() }}"</span>
+          }
+        </div>
+
+        @if (allItems().length === 0 && state().isAvailable) {
+          <ng-container *ngTemplateOutlet="empty" />
+        }
+
+        <!-- the rest of the height; the timeline is laid out absolutely, so its rows do not make the box taller -->
+        <div class="tod-content-border relative flex-1 min-h-0 overflow-hidden">
+          <div #timelineHost class="absolute inset-0 py-2">
+            <app-span-timeline
+              nowLabel="0%"
+              origin="left"
+              [labelWidth]="labelWidth"
+              [max]="100"
+              [maxHeight]="timelineHeight()"
+              [rows]="timelineRows()"
+              [tickFormat]="shareFormat"
+              [ticks]="shareTicks"
+              [valueWidth]="96"
+              [(selectedId)]="selectedKey"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-rows-[auto_minmax(0,1fr)] gap-3 min-h-0 min-w-0">
-        @if (detail(); as d) {
-          <app-trivy-box>
-            <span boxTitle>{{ d.checkId }}</span>
-            <div class="flex flex-col gap-1.5 text-sm">
-              <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+      <!-- the selected check: laid out absolutely, so a long list of resources scrolls in the box -->
+      <div class="tod-content-border relative min-h-0 min-w-0">
+        <div class="absolute inset-0 overflow-auto p-3">
+          @if (detail(); as d) {
+            <div class="flex flex-col gap-3 text-sm">
+              <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span class="font-semibold break-all">{{ d.checkId }}</span>
                 <p-tag
                   class="text-xs"
                   [rounded]="true"
                   [style]="d.severityId | severityCssStyleById: 1"
                   [value]="d.severityId | severityNameById"
                 />
-                <span class="text-xs tod-text-muted-color">{{ d.family }} · {{ d.category }}</span>
-                <span class="text-xs tod-text-muted-color">
-                  {{ d.resources }} {{ d.resources === 1 ? 'resource' : 'resources' }} · {{ d.namespaces }} ns
-                  @if (d.hasClusterScopedResources) {
-                    · cluster scoped
+                <span class="text-xs tod-text-muted-color">{{ familyLabel(d.family) }} · {{ d.category }}</span>
+              </span>
+              <div class="flex flex-col gap-1">
+                <span class="font-medium">{{ d.title }}</span>
+                <span
+                  >{{ d.resources }} of {{ d.evaluated }} resources ({{ percent(d.resources, d.evaluated) }}%)
+                  @if (d.evaluated < fewEvaluated) {
+                    <span class="text-xs tod-text-muted-color">· few evaluated</span>
                   }
                 </span>
-              </span>
-              <span class="font-medium">{{ d.title }}</span>
-              <span class="text-xs line-clamp-3" [attr.title]="d.description">{{ d.description }}</span>
-              <span class="text-xs line-clamp-3" [attr.title]="d.remediation">
-                <strong>Remediation:</strong> {{ d.remediation }}
-              </span>
-            </div>
-          </app-trivy-box>
+                <span class="text-xs tod-text-muted-color line-clamp-3" [attr.title]="d.description">{{
+                  d.description
+                }}</span>
+              </div>
 
-          <!-- the table needs a definite height, so it is laid out absolutely inside its box -->
-          <div class="relative min-h-0 min-w-0">
-            <div class="absolute inset-0">
-              <app-trivy-box class="h-full">
-                <span boxTitle>Resources ({{ resourceRows().length }})</span>
-                <div class="relative h-full">
-                  <div class="absolute inset-0">
-                    <app-trivy-table
-                      extraClasses="tod-trivy-table-fill"
-                      stateKey="Home Failing Checks Resources"
-                      [dataDtos]="resourceRows()"
-                      [trivyTableColumns]="resourceColumns"
-                    />
+              <div class="tod-content-border flex flex-col gap-1 p-2">
+                <span class="text-xs tod-text-muted-color">Remediation</span>
+                <span class="break-words">{{ d.remediation }}</span>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <span class="text-xs tod-text-muted-color">Failing resources, by namespace</span>
+                @for (g of namespaceGroups(); track g.key) {
+                  <div class="flex flex-col gap-0.5">
+                    <span class="flex items-baseline justify-between gap-2">
+                      <span class="font-semibold break-all">{{ g.name }}</span>
+                      <span class="shrink-0 text-xs tod-text-muted-color tabular-nums"
+                        >{{ g.resources }} of {{ g.evaluated }}</span
+                      >
+                    </span>
+                    @for (name of shownNames(g); track $index) {
+                      <span class="break-all pl-3">{{ name }}</span>
+                    }
+                    @if (shownNames(g).length < g.names.length) {
+                      <button
+                        type="button"
+                        class="text-left pl-3 cursor-pointer tod-text-muted-color"
+                        [attr.aria-label]="'Show all the failing resources of ' + g.name"
+                        (click)="openNamespace(g.key)"
+                      >
+                        +{{ g.names.length - shownNames(g).length }} more
+                      </button>
+                    }
                   </div>
-                </div>
-              </app-trivy-box>
+                }
+                <span class="text-xs tod-text-muted-color"
+                  >"x of y" stays inside its namespace: a grouping, not a ranking.</span
+                >
+              </div>
             </div>
-          </div>
-        } @else if (detailError()) {
-          <div class="text-sm home-widget-error">Error: {{ detailError() }}</div>
-        } @else if (isDetailLoading()) {
-          <div class="text-sm tod-text-muted-color">Loading...</div>
-        } @else if (displayedId()) {
-          <div class="text-sm tod-text-muted-color">{{ detailNote() ?? 'This check does not fail now.' }}</div>
-        } @else {
-          <div class="text-sm tod-text-muted-color">Select a check</div>
-        }
+          } @else if (detailError()) {
+            <div class="text-sm home-widget-error">Error: {{ detailError() }}</div>
+          } @else if (isDetailLoading()) {
+            <div class="text-sm tod-text-muted-color">Loading...</div>
+          } @else if (selectedItem()) {
+            <div class="text-sm tod-text-muted-color">{{ detailNote() ?? 'This check does not fail now.' }}</div>
+          } @else {
+            <div class="text-sm tod-text-muted-color">Click a bar</div>
+          }
+        </div>
       </div>
+    </div>
+  }
+
+  <!-- the controls of the expanded widget, in the bottom row of the frame -->
+  @if (isExpanded()) {
+    <div frameActions class="flex flex-wrap items-center gap-2">
+      <div aria-label="Sort the bars" role="group" class="flex items-center gap-1.5">
+        <span class="text-xs tod-text-muted-color">Sort</span>
+        <app-pill-button
+          label="Severity"
+          title="The most severe first, then the largest share"
+          [active]="sortBy() === 'severity'"
+          [toggle]="true"
+          (pressed)="sortBy.set('severity')"
+        />
+        <app-pill-button
+          label="Share"
+          title="The largest share of failing resources first"
+          [active]="sortBy() === 'share'"
+          [toggle]="true"
+          (pressed)="sortBy.set('share')"
+        />
+      </div>
+      @if (gridFilterLabel() || filterText().trim()) {
+        <app-pill-button label="Show all" title="Clear the grid cell and the text filter" (pressed)="showAll()" />
+      }
+      <span class="text-xs tod-text-muted-color"
+        >Faint bar with a dashed outline: fewer than {{ fewEvaluated }} evaluated, so the share is shaky.</span
+      >
     </div>
   }
 </app-home-widget-frame>
 
-<!-- a check of the list: in the collapsed widget (the id is a button) and in the list of the expanded one (the whole row is) -->
-<ng-template #rowBody let-item let-inList="inList">
-  <div class="flex flex-col gap-1.5 px-1 text-sm">
-    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-      @if (inList) {
-        <span class="font-medium break-all">{{ item.checkId }}</span>
-      } @else {
-        <button
-          type="button"
-          class="font-medium break-all text-left cursor-pointer"
-          [attr.aria-label]="'Show where ' + item.checkId + ' fails'"
-          (click)="select(item)"
-        >
-          {{ item.checkId }}
-        </button>
-      }
-      <p-tag
-        class="text-xs"
-        [rounded]="true"
-        [style]="item.severityId | severityCssStyleById: 1"
-        [value]="item.severityId | severityNameById"
-      />
-      <span class="text-xs tod-text-muted-color">{{ item.family }}</span>
-    </span>
-
-    <!-- in the list the rows have a fixed height, so the room of two lines is always taken -->
-    <span class="text-xs line-clamp-2" [class.min-h-8]="inList" [attr.title]="item.title">{{ item.title }}</span>
-
-    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
-      <span class="tod-text-muted-color">{{ item.resources }} {{ item.resources === 1 ? 'resource' : 'resources' }}</span>
-      <span class="tod-text-muted-color">{{ item.namespaces }} ns</span>
-      @if (item.hasClusterScopedResources) {
-        <span class="tod-text-muted-color">cluster scoped</span>
-      }
-    </span>
-  </div>
-</ng-template>
-
-<!-- the filter box of the list (collapsed and expanded), with what it found -->
-<ng-template #filterBox>
-  <div class="flex flex-col gap-1">
-    <app-home-search-box placeholder="Filter by check id or family" [(query)]="filterText" />
-    @if (isSearching()) {
-      <span class="text-xs tod-text-muted-color px-1">Searching...</span>
-    } @else if (noMatch()) {
-      <span class="text-xs tod-text-muted-color px-1">No match for "{{ filterText().trim() }}"</span>
-    }
-    @if (partialLabel()) {
-      <span class="text-xs tod-text-muted-color px-1">{{ partialLabel() }}</span>
-    }
+<!-- nothing to show: no check fails now (with the severities and namespaces of the filter) -->
+<ng-template #empty>
+  <div class="flex flex-col items-center justify-center gap-1 py-6 px-2 text-center">
+    <i aria-hidden="true" class="pi pi-check-circle text-3xl tod-text-muted-color"></i>
+    <span class="text-sm font-medium">No failing checks</span>
+    <span class="text-xs tod-text-muted-color">No check fails now in the selected severities and namespaces.</span>
   </div>
 </ng-template>

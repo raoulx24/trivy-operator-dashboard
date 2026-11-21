@@ -4,15 +4,15 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  afterNextRender,
   computed,
   effect,
   inject,
   input,
   signal,
+  untracked,
+  viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
 import { HomeFailingCheckDetailDto } from '@api/models/home-failing-check-detail-dto';
@@ -20,10 +20,12 @@ import { HomeFailingCheckDto } from '@api/models/home-failing-check-dto';
 import { HomeService } from '@api/services/home.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
-import { ScrollerResizeDirective } from '@shared/ui/scroller-resize/scroller-resize.directive';
-import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
-import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
-import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
+import { MatrixHeatmapComponent } from '@shared/ui/matrix-heatmap/matrix-heatmap.component';
+import { MatrixHeatmapCellRef, MatrixHeatmapClick } from '@shared/ui/matrix-heatmap/matrix-heatmap.types';
+import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
+import { SpanTimelineComponent } from '@shared/ui/span-timeline/span-timeline.component';
+import { SpanTimelineRow, SpanTimelineTick } from '@shared/ui/span-timeline/span-timeline.types';
+import { SeverityUtils } from '@shared/utils/severity.utils';
 
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
@@ -31,37 +33,80 @@ import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
-// a failing resource of the selected check: namespace and resource denormalized (one row each)
-interface ResourceRow {
-  namespaceName: string;
-  resourceKind: string;
-  resourceName: string;
-  reportKind: string;
+type SortBy = 'severity' | 'share';
+
+// a family of checks: its name in the backend and its short name (the rows of the grid)
+interface Family {
+  key: string;
+  label: string;
 }
 
-interface CheckKey {
-  family: string;
-  checkId: string;
+const FAMILIES: Family[] = [
+  { key: 'ConfigAudit', label: 'config' },
+  { key: 'RbacAssessment', label: 'rbac' },
+  { key: 'InfraAssessment', label: 'infra' },
+];
+
+// fewer evaluated resources than this: the share is shaky (a faint bar)
+const FEW_EVALUATED = 5;
+
+// the short kinds of the failing resources of the detail ("deploy/api")
+const KIND_SHORT: Record<string, string> = {
+  Deployment: 'deploy',
+  ReplicaSet: 'rs',
+  ReplicationController: 'rc',
+  StatefulSet: 'sts',
+  DaemonSet: 'ds',
+  CronJob: 'cj',
+  Job: 'job',
+  Pod: 'pod',
+  Service: 'svc',
+  ConfigMap: 'cm',
+  Ingress: 'ing',
+  NetworkPolicy: 'netpol',
+  ClusterRole: 'clusterrole',
+  ClusterRoleBinding: 'clusterrolebinding',
+  Role: 'role',
+  RoleBinding: 'rolebinding',
+};
+
+// the resources of a namespace shown before "+n more"
+const NAMESPACE_RESOURCES = 3;
+
+// the room of a character of a row label of the timeline (px, a rough size), to cut a label that does not fit
+const LABEL_CHAR_WIDTH = 7;
+const LABEL_PADDING = 16;
+
+// a namespace of the selected check: its failing resources out of the evaluated ones, and the resources
+interface NamespaceGroup {
+  // '' for the cluster scoped ones
+  key: string;
+  name: string;
+  resources: number;
+  evaluated: number;
+  names: string[];
 }
 
 // Failing checks: the failing config audit / RBAC / infra checks, grouped by check id
 // - it loads by itself (a change of a filter, or of refresh, reloads it); only the severities and the namespaces apply
-// - collapsed: the first checks with their counts (the server sorts them by severity, then reach, and is asked for just
-//   these); a click on a check selects it and expands the widget (where it can expand)
-// - expanded: on the left all the checks (a list that scrolls), on the right one check at a time (asked from the
-//   detailed endpoint): its data and a table with one row per failing resource
+// - one request, all the checks (up to the server limit); the grid, the share and the sort are computed here
+// - a check fails in some resources out of the evaluated ones; trivy keeps only the failing checks, so "evaluated" is
+//   the resources of the same family whose kind is one a failing resource has (the server says so)
+// - collapsed: the distinct failing checks, a grid of them by family and severity, and the most widespread ones; a click
+//   on a cell expands the widget filtered by it, a click on a check expands it with that check selected
+// - expanded: all the checks as bars (failing / evaluated) on the left, the selected check on the right: its remediation
+//   and its failing resources by namespace
 @Component({
   selector: 'app-home-failing-checks',
   standalone: true,
   imports: [
     HomeWidgetFrameComponent,
     HomeSearchBoxComponent,
-    ScrollerResizeDirective,
     NgTemplateOutlet,
-    ScrollerModule,
+    MatrixHeatmapComponent,
+    PillButtonComponent,
+    SpanTimelineComponent,
     TagModule,
-    TrivyBoxComponent,
-    TrivyTableComponent,
     SeverityCssStyleByIdPipe,
     SeverityNameByIdPipe,
   ],
@@ -71,42 +116,37 @@ interface CheckKey {
   host: { class: 'block min-w-0' },
 })
 export class HomeFailingChecksComponent extends HomeWidgetBase {
-  private static readonly collapsedLimit = 5;
-  // the server allows 500
-  private static readonly expandedLimit = 500;
+  // the server allows 500; the collapsed widget needs all the rows too (the grid is of all of them)
+  private static readonly fetchLimit = 500;
+  private static readonly widespreadLimit = 3;
 
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help = `
     <p class="mb-2">The <strong>security assessment checks</strong> (config audit, RBAC, infra) that fail now, grouped by check id, in the selected <strong>severities</strong> and <strong>namespaces</strong>.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the 5 most severe checks (then the ones failing in most resources), with the number of resources and namespaces. A click on a check expands the widget on it.</p>
-    <p class="mb-2"><strong>Expanded</strong>: on the left every check (up to 500; a click selects one), on the right its description and remediation, and one row per failing <strong>resource</strong>: namespace, resource kind and name, and the report type. The columns can be filtered and sorted.</p>
-    <p class="mb-0 tod-text-muted-color">Resources are counted once per report; the resource is the owner of the report (e.g. the Deployment) when there is one. Trivy reports a check per resource, not per container. With a namespaces filter the cluster scoped resources are out.</p>
+    <p class="mb-2"><strong>Failing / evaluated</strong>: the resources (one per report) that fail the check, out of the resources of the same family whose kind is one the check fails in. All the workload kinds (Pod, ReplicaSet, Deployment, StatefulSet, DaemonSet, Job, CronJob) count as one kind, as do Role and ClusterRole, and RoleBinding and ClusterRoleBinding. Trivy keeps only the failing checks, so this is an estimate: a kind in which every resource passes is not counted.</p>
+    <p class="mb-2"><strong>Collapsed</strong>: the distinct failing checks by family and severity (it does not grow with the cluster; a click on a cell expands the widget filtered by it), and the 3 checks failing in the largest share of their resources (at least ${FEW_EVALUATED} evaluated).</p>
+    <p class="mb-2"><strong>Expanded</strong>: every check (up to 500) as a bar of failing / evaluated, sorted by severity then share, or by share. A click selects one: its remediation and its failing resources by namespace ("x of y" is within the namespace).</p>
+    <p class="mb-0 tod-text-muted-color">A faint bar with a dashed outline has fewer than ${FEW_EVALUATED} evaluated resources: its share is shaky. With a namespaces filter the cluster scoped resources are out.</p>
   `;
 
-  // the height of a row of the list (a scroller needs the same for all): the id, two lines of title, the counts
-  protected readonly rowHeight = 110;
-  // the height of the expanded widget body (it needs a fixed one: the list and the table scroll in it)
-  protected readonly expandedHeight = '40rem';
+  // the expanded widget body is at least this tall, and grows with its row of the page; the timeline takes the rest of
+  // the height (timelineHeight, measured) and its rows scroll in it
+  protected readonly expandedMinHeight = 'min(30rem, 70vh)';
+  protected readonly expandedMaxHeight = '70vh';
+  private readonly timelineHost = viewChild<ElementRef<HTMLElement>>('timelineHost');
+  protected readonly timelineHeight = signal<number | null>(null);
+  protected readonly shareTicks: SpanTimelineTick[] = [25, 50, 75, 100].map((value) => ({ value }));
+  protected readonly shareFormat = (value: number) => `${value}%`;
+  protected readonly fewEvaluated = FEW_EVALUATED;
+  protected readonly families = FAMILIES;
 
   private readonly homeService = inject(HomeService);
-
-  protected readonly resourceColumns: TrivyTableColumn[] = [
-    { field: 'namespaceName', header: 'Namespace', isFilterable: true, isSortable: true, style: 'width: 22%', renderType: 'standard' },
-    { field: 'resourceKind', header: 'Resource type', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 18%', renderType: 'standard' },
-    { field: 'resourceName', header: 'Resource', isFilterable: true, isSortable: true, style: 'width: 38%', renderType: 'standard' },
-    { field: 'reportKind', header: 'Report', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 22%', renderType: 'standard' },
-  ];
 
   hint = input<string>('');
   severities = input.required<number[]>();
   namespaces = input.required<string[]>();
   // changes (e.g. a counter) to reload with unchanged filters
   refresh = input<number>(0);
-
-  protected readonly selected = signal<CheckKey | undefined>(undefined);
-
-  // the width of the widget as it is collapsed, which is the width of the box of the list (measured while it is collapsed)
-  protected readonly collapsedWidth = signal<number | undefined>(undefined);
 
   // a new object on any change, so the resources reload; empty namespaces are not sent (the backend default applies)
   private readonly scope = computed(() => ({
@@ -116,69 +156,118 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
     localRefresh: this.localRefresh(),
   }));
 
-  // the text of the filter box (collapsed and expanded); a filter looks at all the rows, so while there is one they are asked for
-  protected readonly filterText = signal('');
-  protected readonly isFiltering = computed(() => this.filterText().trim().length > 0);
-
-  private readonly collapsedData = rxResource({
+  private readonly data = rxResource({
     params: this.scope,
     stream: ({ params }) =>
       this.homeService.getHomeFailingChecks({
         severities: params.severities,
         namespaces: params.namespaces,
-        limit: HomeFailingChecksComponent.collapsedLimit,
+        limit: HomeFailingChecksComponent.fetchLimit,
       }),
   });
 
-  // idle (and empty) while collapsed
-  private readonly expandedData = rxResource({
-    params: () => (this.isExpanded() || this.isFiltering() ? this.scope() : undefined),
-    stream: ({ params }) =>
-      this.homeService.getHomeFailingChecks({
-        severities: params.severities,
-        namespaces: params.namespaces,
-        limit: HomeFailingChecksComponent.expandedLimit,
-      }),
-  });
-
-  // what is shown: the many rows when they are there, else the few
-  private readonly shown = computed(() =>
-    (this.isExpanded() || this.isFiltering()) && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
-  );
-
-  protected readonly allItems = computed(() => this.shown().value()?.items ?? []);
-  // a started filter looks at all the rows: while they load there is nothing to show
-  protected readonly isSearching = computed(
-    () => this.isFiltering() && !this.expandedData.hasValue() && this.expandedData.isLoading(),
-  );
-  // the rows that match the filter (all of them without one)
-  protected readonly items = computed(() =>
-    this.isSearching() ? [] : this.allItems().filter((x) => matchesFilter(this.filterText(), x.checkId, x.family)),
-  );
-  protected readonly noMatch = computed(
-    () => this.isFiltering() && !this.isSearching() && this.items().length === 0 && this.allItems().length > 0,
-  );
-  // the collapsed widget: the first rows
-  protected readonly collapsedItems = computed(() => this.items().slice(0, HomeFailingChecksComponent.collapsedLimit));
-  // the server sends at most expandedLimit rows: a filter over them says so when there are more
+  protected readonly allItems = computed(() => this.data.value()?.items ?? []);
+  protected readonly totalChecks = computed(() => this.data.value()?.totalChecks ?? 0);
+  // the server sends at most fetchLimit rows: what is computed here is of those
   protected readonly partialLabel = computed(() => {
-    const total = this.totalChecks();
-    return this.isFiltering() && this.expandedData.hasValue() && total > this.allItems().length
-      ? `The filter looks at the first ${this.allItems().length} of ${total}`
+    const shown = this.allItems().length;
+    return this.totalChecks() > shown ? `Computed on the first ${shown} of ${this.totalChecks()} checks` : '';
+  });
+
+  // ---- the grid: distinct checks by family (rows) and severity (columns, those of the filter)
+  protected readonly gridSeverities = computed(() => [...this.severities()].sort((a, b) => a - b));
+  protected readonly gridColumns = computed(() =>
+    this.gridSeverities().map((id) => SeverityUtils.getName(id).toLowerCase()),
+  );
+  protected readonly gridRows = FAMILIES.map((f) => f.label);
+  protected readonly gridValues = computed(() =>
+    FAMILIES.map((f) =>
+      this.gridSeverities().map(
+        (id) => this.allItems().filter((x) => x.family === f.key && x.severityId === id).length,
+      ),
+    ),
+  );
+  // the cells in the color of their severity, lighter, with the text color of the page (readable in both modes)
+  protected readonly gridColors = computed(() =>
+    FAMILIES.map(() =>
+      this.gridSeverities().map((id) => `color-mix(in srgb, ${SeverityUtils.getCssColor(id)} 45%, transparent)`),
+    ),
+  );
+  protected readonly gridTextColors = computed(() =>
+    FAMILIES.map(() => this.gridSeverities().map(() => 'var(--p-text-color)')),
+  );
+
+  // the cell of the grid the list is filtered by (family and severity); null = all
+  protected readonly gridFilter = signal<{ family: string; severityId: number } | null>(null);
+  protected readonly gridCell = computed<MatrixHeatmapCellRef | null>(() => {
+    const filter = this.gridFilter();
+    if (!filter) {
+      return null;
+    }
+    const rowIndex = FAMILIES.findIndex((f) => f.key === filter.family);
+    const columnIndex = this.gridSeverities().indexOf(filter.severityId);
+    return rowIndex < 0 || columnIndex < 0 ? null : { rowIndex, columnIndex };
+  });
+  protected readonly gridFilterLabel = computed(() => {
+    const filter = this.gridFilter();
+    return filter
+      ? `${this.familyLabel(filter.family)} · ${SeverityUtils.getName(filter.severityId).toLowerCase()}`
       : '';
   });
-  protected readonly totalChecks = computed(() => this.shown().value()?.totalChecks ?? 0);
-  protected readonly more = computed(() =>
-    this.isFiltering()
-      ? Math.max(0, this.items().length - HomeFailingChecksComponent.collapsedLimit)
-      : Math.max(0, (this.totalChecks()) - this.items().length),
+
+  // ---- the most widespread checks (collapsed): the largest share, among the ones with enough evaluated resources
+  protected readonly widespreadRows = computed<SpanTimelineRow[]>(() =>
+    [...this.allItems()]
+      .filter((x) => x.evaluated >= FEW_EVALUATED)
+      .sort((a, b) => this.share(b) - this.share(a) || b.resources - a.resources)
+      .slice(0, HomeFailingChecksComponent.widespreadLimit)
+      .map((x) => this.toRow(x, x.checkId, `${x.resources}/${x.evaluated}`)),
   );
 
-  // the selected check, all of its data (only while expanded); the namespaces are those of the filter
+  // ---- the expanded list: the filter box, the grid filter and the sort
+  protected readonly filterText = signal('');
+  protected readonly sortBy = signal<SortBy>('severity');
+  // the key of the selected check (family|checkId)
+  protected readonly selectedKey = signal<string | null>(null);
+
+  protected readonly items = computed(() => {
+    const filter = this.gridFilter();
+    const rows = this.allItems().filter(
+      (x) =>
+        (!filter || (x.family === filter.family && x.severityId === filter.severityId)) &&
+        matchesFilter(this.filterText(), x.checkId, x.family, x.title),
+    );
+    const severity = (a: HomeFailingCheckDto, b: HomeFailingCheckDto) => a.severityId - b.severityId;
+    const share = (a: HomeFailingCheckDto, b: HomeFailingCheckDto) =>
+      this.share(b) - this.share(a) || b.resources - a.resources;
+    return rows.sort((a, b) =>
+      this.sortBy() === 'severity' ? severity(a, b) || share(a, b) : share(a, b) || severity(a, b),
+    );
+  });
+  protected readonly noMatch = computed(
+    () => this.filterText().trim().length > 0 && this.items().length === 0 && this.allItems().length > 0,
+  );
+
+  // the label: the id and the title, cut to the room of the label
+  protected readonly labelWidth = 300;
+  protected readonly timelineRows = computed<SpanTimelineRow[]>(() => {
+    const maxChars = Math.floor((this.labelWidth - LABEL_PADDING) / LABEL_CHAR_WIDTH);
+    return this.items().map((x) =>
+      this.toRow(
+        x,
+        this.cut(`${x.checkId}  ${x.title}`, maxChars),
+        `${x.resources}/${x.evaluated} · ${x.namespaces} ns`,
+      ),
+    );
+  });
+
+  // ---- the selected check: its row of the list, and all its data from the detailed endpoint
+  protected readonly selectedItem = computed(() => this.allItems().find((x) => this.keyOf(x) === this.selectedKey()));
+
   private readonly detailData = rxResource({
     params: () => {
-      const key = this.selected();
-      return this.isExpanded() && key ? { ...key, ...this.scope() } : undefined;
+      const item = this.selectedItem();
+      return this.isExpanded() && item ? { family: item.family, checkId: item.checkId, ...this.scope() } : undefined;
     },
     stream: ({ params }) =>
       this.homeService.getHomeFailingCheckDetailed({
@@ -193,27 +282,42 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
   private readonly loaded = signal<HomeFailingCheckDetailDto | undefined>(undefined);
   protected readonly detail = computed(() => this.loaded()?.item ?? undefined);
   protected readonly detailNote = computed(() => this.loaded()?.note);
-  protected readonly displayedId = computed(() => this.detail()?.checkId ?? this.selected()?.checkId);
   protected readonly isDetailLoading = computed(() => this.detailData.isLoading());
   protected readonly detailError = computed(() => (this.detailData.error() as Error | undefined)?.message);
 
-  // the table: namespaced resources by namespace; a cluster scoped one has no namespace
-  protected readonly resourceRows = computed<ResourceRow[]>(() =>
-    (this.detail()?.rows ?? []).map((x) => ({
-      namespaceName: x.namespaceName ?? '(cluster scoped)',
-      resourceKind: x.resourceKind,
-      resourceName: x.resourceName,
-      reportKind: x.reportKind,
-    })),
-  );
+  // the namespaces whose resources are all shown (the others show the first NAMESPACE_RESOURCES and "+n more")
+  protected readonly openNamespaces = signal<ReadonlySet<string>>(new Set());
+
+  protected readonly namespaceGroups = computed<NamespaceGroup[]>(() => {
+    const detail = this.detail();
+    if (!detail) {
+      return [];
+    }
+    const names = new Map<string, string[]>();
+    for (const row of detail.rows) {
+      const key = row.namespaceName ?? '';
+      const list = names.get(key) ?? [];
+      list.push(`${KIND_SHORT[row.resourceKind] ?? row.resourceKind.toLowerCase()}/${row.resourceName}`);
+      names.set(key, list);
+    }
+    return detail.byNamespace.map((ns) => {
+      const key = ns.namespaceName ?? '';
+      return {
+        key,
+        name: ns.namespaceName ?? '(cluster scoped)',
+        resources: ns.resources,
+        evaluated: ns.evaluated,
+        names: names.get(key) ?? [],
+      };
+    });
+  });
 
   protected readonly state = computed<HomeWidgetState>(() => {
-    const resource = this.shown();
-    if (resource.error()) {
-      return { error: (resource.error() as Error)?.message ?? 'request failed' };
+    if (this.data.error()) {
+      return { error: (this.data.error() as Error)?.message ?? 'request failed' };
     }
 
-    const dto = resource.value();
+    const dto = this.data.value();
     if (!dto) {
       return {};
     }
@@ -221,63 +325,142 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
     return {
       isAvailable: dto.isAvailable,
       unavailableReason: dto.unavailableReason,
-      summary:
-        `${this.items().length} of ${dto.totalChecks} checks` +
-        (this.isExpanded() && this.expandedData.isLoading() ? ' (loading more...)' : ''),
+      summary: `${dto.totalChecks} distinct checks failing`,
     };
   });
 
   constructor() {
     super();
 
-    // the width of the collapsed widget (what is measured while it is expanded is not kept)
-    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    // the room of the timeline: its box without the padding (the box appears with the expanded widget)
     const destroyRef = inject(DestroyRef);
-    afterNextRender(() => {
-      const observer = new ResizeObserver(() => {
-        if (!this.isExpanded() && host.offsetWidth > 0) {
-          this.collapsedWidth.set(host.offsetWidth);
-        }
-      });
-      observer.observe(host);
-      destroyRef.onDestroy(() => observer.disconnect());
+    const observer = new ResizeObserver((entries) => {
+      const height = Math.floor(entries[0]?.contentRect.height ?? 0);
+      this.timelineHeight.set(height > 0 ? height : null);
     });
+    effect(() => {
+      const element = this.timelineHost()?.nativeElement;
+      observer.disconnect();
+      if (element) {
+        observer.observe(element);
+      } else {
+        this.timelineHeight.set(null);
+      }
+    });
+    destroyRef.onDestroy(() => observer.disconnect());
 
-    // expanded without a choice (the expand button): the first check of the list
+    // expanded with nothing selected (the expand button, a grid cell): the first check of the list
     effect(() => {
       const first = this.items()[0];
-      if (this.isExpanded() && !this.selected() && first) {
-        this.selected.set({ family: first.family, checkId: first.checkId });
+      if (this.isExpanded() && first) {
+        untracked(() => {
+          const selected = this.selectedKey();
+          if (!selected || !this.items().some((x) => this.keyOf(x) === selected)) {
+            this.selectedKey.set(this.keyOf(first));
+          }
+        });
       }
     });
 
     // the data of the selected check arrived (or failed): it goes on screen
     effect(() => {
       const dto = this.detailData.value();
-      const key = this.selected();
-      if (this.detailData.isLoading() || !key) {
+      const item = this.selectedItem();
+      if (this.detailData.isLoading() || !item) {
         return;
       }
 
       if (this.detailData.error()) {
         this.loaded.set(undefined);
-      } else if (dto?.checkId === key.checkId && dto.family === key.family) {
+      } else if (dto?.checkId === item.checkId && dto.family === item.family) {
         this.loaded.set(dto);
+        this.openNamespaces.set(new Set());
       }
       // else the resource did not take the new check yet
     });
   }
 
-  // a click on a check (of the collapsed widget, or of the list of the expanded one)
-  protected select(item: HomeFailingCheckDto): void {
-    this.selected.set({ family: item.family, checkId: item.checkId });
-    if (this.canExpand() && !this.isExpanded()) {
-      this.toggleExpand();
+  // a click on a cell of the grid (collapsed): the list filtered by it; again on the same cell: all
+  protected onGridCell(click: MatrixHeatmapClick): void {
+    const family = FAMILIES[click.rowIndex]?.key;
+    const severityId = this.gridSeverities()[click.columnIndex];
+    const current = this.gridFilter();
+    if (current && current.family === family && current.severityId === severityId) {
+      this.gridFilter.set(null);
+      return;
+    }
+    this.gridFilter.set({ family, severityId });
+    this.expandIfPossible();
+  }
+
+  // a click on a widespread check (collapsed): the whole list, with that check selected
+  protected onWidespread(key: string | null): void {
+    if (!key) {
+      return;
+    }
+    this.gridFilter.set(null);
+    this.filterText.set('');
+    this.selectedKey.set(key);
+    this.expandIfPossible();
+  }
+
+  protected showAll(): void {
+    this.gridFilter.set(null);
+    this.filterText.set('');
+  }
+
+  protected openNamespace(key: string): void {
+    this.openNamespaces.update((set) => new Set([...set, key]));
+  }
+
+  protected shownNames(group: NamespaceGroup): string[] {
+    return this.openNamespaces().has(group.key) ? group.names : group.names.slice(0, NAMESPACE_RESOURCES);
+  }
+
+  // the failing resources in percent of the evaluated ones (rounded)
+  protected percent(resources: number, evaluated: number): number {
+    return evaluated > 0 ? Math.round((resources / evaluated) * 100) : 0;
+  }
+
+  protected familyLabel(family: string): string {
+    return FAMILIES.find((f) => f.key === family)?.label ?? family;
+  }
+
+  // expands the widget where it can expand (the group is wide enough)
+  private expandIfPossible(): void {
+    if (this.canExpand()) {
+      this.expand();
     }
   }
 
-  protected isSelected(item: HomeFailingCheckDto): boolean {
-    const key = this.selected();
-    return key?.family === item.family && key.checkId === item.checkId;
+  private toRow(x: HomeFailingCheckDto, label: string, valueLabel: string): SpanTimelineRow {
+    const share = this.share(x);
+    return {
+      id: this.keyOf(x),
+      label,
+      start: share * 100,
+      color: SeverityUtils.getCssColor(x.severityId),
+      valueLabel,
+      faint: x.evaluated < FEW_EVALUATED,
+      details: [
+        x.title,
+        `${this.familyLabel(x.family)} · ${SeverityUtils.getName(x.severityId).toLowerCase()}`,
+        `${x.resources} of ${x.evaluated} evaluated resources fail (${this.percent(x.resources, x.evaluated)}%)`,
+        `${x.namespaces} ns${x.hasClusterScopedResources ? ' · cluster scoped' : ''}`,
+        ...(x.evaluated < FEW_EVALUATED ? [`fewer than ${FEW_EVALUATED} evaluated: the share is shaky`] : []),
+      ],
+    };
+  }
+
+  private share(x: HomeFailingCheckDto): number {
+    return x.evaluated > 0 ? Math.min(1, x.resources / x.evaluated) : 0;
+  }
+
+  private keyOf(x: HomeFailingCheckDto): string {
+    return `${x.family}|${x.checkId}`;
+  }
+
+  private cut(text: string, maxChars: number): string {
+    return text.length <= maxChars ? text : `${text.slice(0, maxChars - 1)}…`;
   }
 }

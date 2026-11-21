@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 
+import { HomePackageHotspotDto } from '@api/models/home-package-hotspot-dto';
 import { HomeService } from '@api/services/home.service';
+import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
+import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
 
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
@@ -13,7 +16,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-package-hotspots',
   standalone: true,
-  imports: [HomeWidgetFrameComponent],
+  imports: [HomeWidgetFrameComponent, MeterGroupComponent],
   templateUrl: './home-package-hotspots.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // a grid cell: wide content must scroll inside, not widen the cell
@@ -84,6 +87,23 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
   );
 
   protected readonly items = computed(() => this.shown().value()?.items ?? []);
+
+  // the most ids of a package: the meters share this scale, so a longer one is a worse package
+  protected readonly maxIds = computed(() => Math.max(1, ...this.items().map((x) => x.vulnerabilityIds)));
+
+  protected readonly rows = computed<{ item: HomePackageHotspotDto; segments: MeterGroupSegment[] }[]>(() =>
+    this.items().map((item) => ({
+      item,
+      segments: [
+        { label: 'fixable ids', value: item.fixableVulnerabilityIds, color: 'var(--tod-package-hotspots-fixable)' },
+        {
+          label: 'no fix yet',
+          value: Math.max(0, item.vulnerabilityIds - item.fixableVulnerabilityIds),
+          color: 'var(--tod-package-hotspots-no-fix)',
+        },
+      ],
+    })),
+  );
 
   protected readonly state = computed<HomeWidgetState>(() => {
     const resource = this.shown();

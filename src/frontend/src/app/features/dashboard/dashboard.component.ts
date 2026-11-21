@@ -17,6 +17,7 @@ import {
 } from './home-filter-bar/home-filter-bar.types';
 import { HomeBaseOsComponent } from './home-base-os/home-base-os.component';
 import { HomeExposedSecretsComponent } from './home-exposed-secrets/home-exposed-secrets.component';
+import { HomeComplianceComponent } from './home-compliance/home-compliance.component';
 import { HomeFailingChecksComponent } from './home-failing-checks/home-failing-checks.component';
 import { HomeFixWaitingComponent } from './home-fix-waiting/home-fix-waiting.component';
 import { HomeHistoryDriftComponent } from './home-history-drift/home-history-drift.component';
@@ -26,6 +27,7 @@ import { HomeNewImagesComponent } from './home-new-images/home-new-images.compon
 import { HomeOldestImagesComponent } from './home-oldest-images/home-oldest-images.component';
 import { HomeNewFixesComponent } from './home-new-fixes/home-new-fixes.component';
 import { HomeNewVulnerabilitiesComponent } from './home-new-vulnerabilities/home-new-vulnerabilities.component';
+import { HomeReachEpssComponent } from './home-reach-epss/home-reach-epss.component';
 import { HomePackageHotspotsComponent } from './home-package-hotspots/home-package-hotspots.component';
 import { HomeSinceLastVisitComponent, SinceLastVisitClick } from './home-since-last-visit/home-since-last-visit.component';
 import { HomeWhereIsLicenseComponent } from './home-where-is-license/home-where-is-license.component';
@@ -51,9 +53,11 @@ import { HomeDaysResult, HomeWidgetState } from './home-widget-placeholder/home-
     HomeFilterBarComponent,
     HomeWidgetGroupDirective,
     HomePackageHotspotsComponent,
+    HomeReachEpssComponent,
     HomeWidgetPlaceholderComponent,
     HomeBaseOsComponent,
     HomeExposedSecretsComponent,
+    HomeComplianceComponent,
     HomeFailingChecksComponent,
     HomeFixWaitingComponent,
     HomeHistoryDriftComponent,
@@ -178,7 +182,6 @@ export class DashboardComponent {
 
   protected readonly dataHealth = signal<HomeWidgetState>({});
   protected readonly todayUtc = new Date().toISOString().substring(0, 10);
-  protected readonly reachEpss = signal<HomeWidgetState>({});
 
   constructor() {
     this.homeService.getHomeNamespaces().subscribe({
@@ -205,21 +208,8 @@ export class DashboardComponent {
     this.refreshCounter.update((x) => x + 1);
   }
 
-  private namespacesParam(): string[] | undefined {
-    const namespaces = this.namespaces();
-    return namespaces.length > 0 ? namespaces : undefined;
-  }
-
   private loadData(): void {
     this.reloadDataHealth();
-    this.reloadReachEpss();
-  }
-
-  // the loaders of the placeholder widgets: all of them at a change of the filters, and one at the refresh button of its
-  // widget (each reads the filters as they are)
-  // empty arrays are not sent (the backend defaults apply)
-  private scopeParams(): { severities: number[]; namespaces: string[] | undefined } {
-    return { severities: this.severityIds(), namespaces: this.namespacesParam() };
   }
 
   protected reloadDataHealth(): void {
@@ -229,14 +219,6 @@ export class DashboardComponent {
         `${x.watchersOk}/${x.watchersTotal} watchers ok, ${x.reports.length} report kinds, ` +
         `${x.sources.filter((s) => s.isEnabled).length} sources enabled, ` +
         `history since ${this.toDay(x.historyStartedAt)}, fix tracking since ${this.toDay(x.fixTrackingStartedAt)}`,
-    }));
-  }
-
-  protected reloadReachEpss(): void {
-    this.load(this.reachEpss, this.homeService.getHomeReachEpss({ ...this.scopeParams() }), (x) => ({
-      isAvailable: x.isAvailable,
-      unavailableReason: x.unavailableReason,
-      summary: `${x.items.length} vulnerability ids`,
     }));
   }
 
