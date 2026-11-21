@@ -16,16 +16,15 @@ import { ScrollerComponent } from '../scroller/scroller.component';
 
 import { LaneStripCell, LaneStripCellClick, LaneStripLane, LaneStripRow, LaneStripSelection, LaneStripTipContext } from './lane-strip.types';
 
-// the steps of lightness of a non-empty cell: as the activity heatmap (quantiles of the values of the lane), but in the
-// color of the lane (--tod-lane-strip-level-N: the lightness of the heatmap level N, light and dark mode)
+// the steps of color of a non-empty cell: the levels of the activity heatmap (quantiles of the values of the lane, the
+// --tod-heatmap-level-N colors)
 const LEVELS = 4;
 // the longest a cell takes to light on (ms)
 const MAX_FADE = 300;
 
 // lanes of squares on one shared horizontal axis: a caption on the left and a total on the right stay put, the squares
 // scroll between them (app-scroller, at the end by default)
-// - everything comes from the inputs: columns (their labels), lanes (caption, values, optional total), colors (one per
-//   lane, taken in turn when there are fewer), and per lane the columns to mark with a
+// - everything comes from the inputs: columns (their labels), lanes (caption, values, optional total), and per lane the columns to mark with a
 //   triangle (emphasis1, emphasis2)
 // - the lightness of a cell is the level of its value among the values of its lane (quantiles, as in the activity
 //   heatmap); zero is an empty cell
@@ -45,8 +44,6 @@ export class LaneStripComponent {
   // the label of each column (the tooltip title), e.g. the day
   columns = input<string[]>([]);
   lanes = input<LaneStripLane[]>([]);
-  // css colors, one per lane (the first for the first lane...); used in turn when there are fewer than lanes
-  colors = input<string[]>([]);
 
   // the selected cell, two-way: a click on a cell with a value selects it, a click on the selected one unselects it (the owner can also set it); null = none
   selected = model<LaneStripSelection | null>(null);
@@ -121,7 +118,6 @@ export class LaneStripComponent {
   }
 
   protected readonly rows = computed<LaneStripRow[]>(() => {
-    const colors = this.colors();
     const size = this.cellSize();
     const step = this.step();
     const selected = this.selected();
@@ -131,7 +127,6 @@ export class LaneStripComponent {
     const delayCache = new Map<string, (number | null)[]>();
 
     const rows = this.lanes().map((lane, laneIndex) => {
-      const color = colors.length > 0 ? colors[laneIndex % colors.length] : 'currentColor';
       const thresholds = this.thresholdsOf(lane.values);
       // a lane is the same lane while its values are (the animation plays again only for the lanes that changed)
       const key = `${laneIndex}|${lane.caption}|${count}|${lane.values.join(',')}`;
@@ -146,7 +141,7 @@ export class LaneStripComponent {
         return {
           columnIndex,
           value,
-          background: value > 0 ? `oklch(from ${color} var(--tod-lane-strip-level-${1 + thresholds.filter((t) => value > t).length}) c h)` : null,
+          background: value > 0 ? `var(--tod-heatmap-level-${1 + thresholds.filter((t) => value > t).length})` : null,
           emphasis1Path: emphasis1.has(columnIndex)
             ? cornerMarkerPath(columnIndex * step, laneIndex * step, size, 'bottom-left')
             : null,

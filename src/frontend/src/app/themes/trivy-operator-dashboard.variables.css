@@ -124,11 +124,6 @@
 
   /* lane strip: the background of the cells without a value */
   --tod-lane-strip-empty: color-mix(in srgb, var(--p-text-color) 7%, transparent);
-  /* lane strip: the lightness (oklch) of the cells by level, those of the heatmap levels (blue 200/300/400/600): more is darker in light mode */
-  --tod-lane-strip-level-1: 0.88;
-  --tod-lane-strip-level-2: 0.81;
-  --tod-lane-strip-level-3: 0.71;
-  --tod-lane-strip-level-4: 0.55;
 
   /* stacked bar chart: the track behind the highlighted columns, and the dash of a column without a value */
   --tod-stacked-bar-track: color-mix(in srgb, var(--p-text-color) 9%, transparent);
@@ -159,6 +154,11 @@
   /* oldest running images: the bar of an image without a vulnerability id (of the selected severities) */
   --tod-oldest-images-no-ids: var(--p-surface-400);
 
+  /* step select: the thin line, the part where nothing can be selected, and the thick line with the dot at the value (neutral) */
+  --tod-step-select-track: color-mix(in srgb, var(--p-text-color) 30%, transparent);
+  --tod-step-select-blocked: color-mix(in srgb, var(--p-text-color) 30%, transparent);
+  --tod-step-select-fill: var(--p-text-muted-color);
+
   /* package hotspots: the ids with a fix, and the ids without one yet */
   --tod-package-hotspots-fixable: var(--p-teal-400);
   --tod-package-hotspots-no-fix: var(--p-surface-400);
@@ -167,6 +167,8 @@
   --tod-scatter-axis: color-mix(in srgb, var(--p-text-color) 35%, transparent);
   --tod-scatter-region-fill: color-mix(in srgb, var(--p-primary-color) 16%, transparent);
   --tod-scatter-region-stroke: var(--p-primary-color);
+  /* scatter select: the border of the picked point (contrast with the points: text color of the mode) */
+  --tod-scatter-picked-stroke: var(--p-text-color);
   --tod-span-timeline-selected: color-mix(in srgb, var(--p-primary-color) 12%, transparent);
   --tod-span-timeline-selected-border: color-mix(in srgb, var(--p-primary-color) 55%, transparent);
   --tod-span-timeline-dot: var(--p-surface-700);
@@ -230,11 +232,6 @@
   /* oldest running images: the bar of an image without a vulnerability id, lighter on the dark background */
   --tod-oldest-images-no-ids: var(--p-surface-500);
 
-  /* lane strip: the heatmap levels in dark mode (blue 800/600/400/200): more is lighter */
-  --tod-lane-strip-level-1: 0.42;
-  --tod-lane-strip-level-2: 0.55;
-  --tod-lane-strip-level-3: 0.71;
-  --tod-lane-strip-level-4: 0.88;
   --tod-heatmap-text-1: var(--p-surface-0);
   --tod-heatmap-text-2: var(--p-surface-0);
   --tod-heatmap-text-3: var(--p-surface-900);

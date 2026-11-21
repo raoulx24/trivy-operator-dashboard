@@ -90,7 +90,7 @@ public class HomeNullService : QueryNullService, IHomeService
     public Task<HomePackageHotspotsDto> GetPackageHotspots(HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomePackageHotspotsDto(false, Reason, []));
 
-    public Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, CancellationToken ctx = default) =>
+    public Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, double? minEpss = null, CancellationToken ctx = default) =>
         Task.FromResult(new HomeReachEpssDto(false, Reason, []));
 
     public Task<HomeComplianceDto> GetCompliance(CancellationToken ctx = default) =>

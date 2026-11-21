@@ -1,36 +1,130 @@
 <app-home-widget-frame
   heading="Package hotspots"
   [hint]="hint()"
+  [help]="help"
   [state]="state()"
   [canExpand]="canExpand()"
   [expanded]="isExpanded()"
   (expandToggle)="toggleExpand()"
   [refreshable]="true"
   (refreshRequested)="refreshWidget()"
-  [fillGap]="false"
+  [fillGap]="!isExpanded()"
 >
-  <div class="flex-1 overflow-auto" [class.max-h-[70vh]]="isExpanded()">
+  @if (!isExpanded()) {
+    <!-- the rows, and the legend right under them -->
     <div class="flex flex-col gap-2 pt-1">
       @for (row of rows(); track row.item.packageKey) {
-        <!-- the package, the meter (the length is the ids, of the most hit package), the images at the right -->
-        <div
-          class="grid items-center gap-x-3 text-sm"
-          [class.grid-cols-[8rem_minmax(0,1fr)_3rem]]="!isExpanded()"
-          [class.grid-cols-[12rem_minmax(0,1fr)_4rem_5rem]]="isExpanded()"
+        <button
+          type="button"
+          class="tod-home-pick-row grid grid-cols-[8rem_minmax(0,1fr)_3rem] items-center gap-x-3 text-sm text-left"
+          [attr.aria-label]="'Expand on ' + row.item.packageName"
+          (click)="select(row.item)"
         >
           <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
           <app-meter-group valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
           <span class="text-right tabular-nums" title="Images with this package">{{ row.item.images }}</span>
-          @if (isExpanded()) {
-            <span class="text-right tabular-nums tod-text-muted-color" title="Namespaces with this package">
-              {{ row.item.namespaces }} ns
-            </span>
+        </button>
+      }
+      <ng-container *ngTemplateOutlet="legend; context: { withImages: true }" />
+    </div>
+  } @else {
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-3 pt-1 max-h-[70vh] min-h-[24rem]">
+      <!-- the packages -->
+      <div class="flex flex-col gap-2 min-h-0">
+        <div class="grid grid-cols-[10rem_minmax(0,1fr)_3rem_3rem] gap-x-3 px-1 text-xs tod-text-muted-color">
+          <span>Package</span>
+          <span>Vulnerability ids</span>
+          <span class="text-right" title="Images with this package">Images</span>
+          <span class="text-right" title="Namespaces with this package">Ns</span>
+        </div>
+        <div class="flex flex-col gap-1 overflow-auto min-h-0 flex-1">
+          @for (row of rows(); track row.item.packageKey) {
+            <button
+              type="button"
+              class="tod-home-pick-row grid grid-cols-[10rem_minmax(0,1fr)_3rem_3rem] items-center gap-x-3 text-sm text-left"
+              [class.selected]="row.item.packageKey === selected()?.packageKey"
+              (click)="select(row.item)"
+            >
+              <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
+              <app-meter-group valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
+              <span class="text-right tabular-nums">{{ row.item.images }}</span>
+              <span class="text-right tabular-nums tod-text-muted-color">{{ row.item.namespaces }}</span>
+            </button>
           }
         </div>
-      }
-    </div>
-  </div>
+        <ng-container *ngTemplateOutlet="legend; context: { withImages: false }" />
+      </div>
 
+      <!-- the selected package -->
+      <div class="tod-content-border flex flex-col gap-3 p-3 min-h-0 overflow-auto text-sm">
+        @if (selected(); as s) {
+          <div class="flex flex-col gap-1">
+            <span class="font-semibold break-all">{{ s.packageName }}</span>
+            <span class="text-xs tod-text-muted-color break-all">{{ s.packageKey }}</span>
+            <span class="text-xs">
+              {{ s.vulnerabilityIds }} ids, {{ s.fixableVulnerabilityIds }} with a fix · {{ s.images }} images ·
+              {{ s.namespaces }} namespaces
+            </span>
+          </div>
+
+          @if (detailError(); as error) {
+            <span class="home-widget-error">Error: {{ error }}</span>
+          } @else if (detail(); as d) {
+            <div class="flex flex-col gap-1">
+              <span class="font-semibold">Versions · {{ d.versions.length }}</span>
+              @for (v of d.versions; track v.version) {
+                <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3.5rem] items-center gap-x-3">
+                  <span class="truncate font-mono text-xs" [title]="v.version">{{ v.version }}</span>
+                  <app-meter-group valueLabel="images" [max]="maxVersionImages()" [segments]="v.segments" />
+                  <span class="text-right tabular-nums text-xs">{{ v.images }} img</span>
+                </div>
+              } @empty {
+                <span class="text-xs tod-text-muted-color">No running version found.</span>
+              }
+              <span class="text-xs tod-text-muted-color">
+                The color is the highest severity of the version. Fewer versions mean fewer places to patch.
+              </span>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <span class="font-semibold">Ids · {{ d.ids.length }}</span>
+              @for (id of d.ids; track id.vulnerabilityId) {
+                <div class="flex items-center gap-2">
+                  <span
+                    class="inline-block size-2 shrink-0 rounded-full"
+                    [style.background]="severityColor(id.severityId)"
+                  ></span>
+                  <span class="min-w-0 truncate" [title]="id.vulnerabilityId">{{ id.vulnerabilityId }}</span>
+                  @if (id.isKnownExploited) {
+                    <p-tag class="text-xs" severity="danger" [rounded]="true" value="KEV" />
+                  }
+                  <span
+                    class="flex-1 min-w-0 truncate text-right text-xs tod-text-muted-color"
+                    [title]="id.fixedVersions.join(', ')"
+                  >
+                    {{ id.fixedVersions.length > 0 ? 'fix ' + id.fixedVersions.join(', ') : 'no fix yet' }}
+                  </span>
+                  <span class="tabular-nums text-xs">{{ id.images }} img</span>
+                </div>
+              }
+              @if (d.versionsWithoutIds > 0) {
+                <span class="text-xs tod-text-muted-color">
+                  The ids of the {{ d.versionsWithoutIds }} least widespread versions are not listed.
+                </span>
+              }
+            </div>
+          } @else if (detailLoading()) {
+            <span class="tod-text-muted-color">Loading...</span>
+          }
+        } @else {
+          <span class="tod-text-muted-color">No package.</span>
+        }
+      </div>
+    </div>
+  }
+</app-home-widget-frame>
+
+<ng-template #legend let-withImages="withImages">
   <div class="flex flex-wrap gap-x-4 text-xs tod-text-muted-color">
     <span class="inline-flex items-center gap-1">
       <span class="inline-block size-2 rounded-full tod-package-hotspots-fixable"></span>fixable ids
@@ -38,6 +132,8 @@
     <span class="inline-flex items-center gap-1">
       <span class="inline-block size-2 rounded-full tod-package-hotspots-no-fix"></span>no fix yet
     </span>
-    <span>right: images</span>
+    @if (withImages) {
+      <span>right: images</span>
+    }
   </div>
-</app-home-widget-frame>
+</ng-template>

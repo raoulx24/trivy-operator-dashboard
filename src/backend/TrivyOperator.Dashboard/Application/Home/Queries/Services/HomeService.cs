@@ -1337,7 +1337,7 @@ public class HomeService(
             ]);
     }
 
-    public async Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, CancellationToken ctx = default)
+    public async Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, double? minEpss = null, CancellationToken ctx = default)
     {
         string? reason = !sources.HasVulnerabilityReports ? NoVulnerabilityReports
             : !cveEnrichmentService.IsEnabled ? NoCveEnrichment
@@ -1357,7 +1357,7 @@ public class HomeService(
             null,
             [
                 .. table.Rows
-                    .Where(x => severities.Contains(x.Severity.Rank) && x.EpssPercentile is not null && scope.Contains(x))
+                    .Where(x => severities.Contains(x.Severity.Rank) && x.EpssPercentile is not null && x.EpssPercentile >= (minEpss ?? 0) && scope.Contains(x))
                     .GroupBy(x => x.Key.VulnerabilityId)
                     .Select(group =>
                     {

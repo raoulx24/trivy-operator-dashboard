@@ -25,7 +25,9 @@
   }
 }
 
+// semibold: it wins over the 400 of .tod-chart-label (the component selector is the more specific)
 .segment-value {
+  font-weight: 600;
   pointer-events: none;
 }
 

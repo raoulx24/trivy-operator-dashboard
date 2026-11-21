@@ -1,4 +1,4 @@
-export type ScatterShape = 'circle' | 'diamond' | 'square' | 'triangle';
+export type ScatterShape = 'circle' | 'diamond' | 'square' | 'triangle' | 'cross';
 
 // one point; T is whatever the owner wants back about it (the selection returns it as it is)
 export interface ScatterPoint<T = unknown> {
@@ -9,6 +9,8 @@ export interface ScatterPoint<T = unknown> {
   color?: string;
   // none = circle
   shape?: ScatterShape;
+  // a small dot in the middle of the point, with this color (any css color); none = no dot
+  centerColor?: string;
   // the title of the popover
   label?: string;
   data?: T;
@@ -63,6 +65,7 @@ export interface ScatterPointView<T = unknown> {
   py: number;
   path: string;
   color: string | null;
+  centerColor: string | null;
   selected: boolean;
   // there is a selection and the point is not in it
   dimmed: boolean;

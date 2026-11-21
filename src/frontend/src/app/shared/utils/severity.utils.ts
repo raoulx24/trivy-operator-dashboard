@@ -34,6 +34,14 @@ export class SeverityUtils {
     return documentStyle.getPropertyValue(color);
   }
 
+  // two shades lighter than getCssColor (e.g. red-300 for red-500): for a mark inside a mark of that color
+  public static getCssColorLight(severityId: number): string {
+    const documentStyle = getComputedStyle(document.documentElement);
+    const color: string = '--p-' + this.getColor(severityId) + '-' + (this.colorIntensity - 100);
+
+    return documentStyle.getPropertyValue(color);
+  }
+
   public static getCssColorHover(severityId: number): string {
     const documentStyle = getComputedStyle(document.documentElement);
     const color: string = '--p-' + this.getColor(severityId) + '-' + this.colorIntensity;

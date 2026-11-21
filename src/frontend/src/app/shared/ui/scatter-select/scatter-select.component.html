@@ -26,14 +26,14 @@
     @if (showTicks()) {
       @for (tick of xTicks(); track tick.value) {
         <line class="axis" [attr.x1]="tick.at" [attr.x2]="tick.at" [attr.y1]="plot().bottom" [attr.y2]="plot().bottom + 4" />
-        <text class="tod-chart-label tod-chart-label-muted" text-anchor="middle" [attr.x]="tick.at" [attr.y]="plot().bottom + 17">
+        <text class="tod-chart-label" text-anchor="middle" [attr.x]="tick.at" [attr.y]="plot().bottom + 17">
           {{ tick.text }}
         </text>
       }
       @for (tick of yTicks(); track tick.value) {
         <line class="axis" [attr.x1]="plot().left - 4" [attr.x2]="plot().left" [attr.y1]="tick.at" [attr.y2]="tick.at" />
         <text
-          class="tod-chart-label tod-chart-label-muted"
+          class="tod-chart-label"
           text-anchor="end"
           dominant-baseline="central"
           [attr.x]="plot().left - 8"
@@ -45,10 +45,10 @@
     }
 
     @if (yAxis().label) {
-      <text class="tod-chart-label tod-chart-label-muted" x="0" y="12">{{ yAxis().label }}</text>
+      <text class="tod-chart-label" x="0" y="12">{{ yAxis().label }}</text>
     }
     @if (xAxis().label) {
-      <text class="tod-chart-label tod-chart-label-muted" text-anchor="end" [attr.x]="plot().right" [attr.y]="height() - 4">
+      <text class="tod-chart-label" text-anchor="end" [attr.x]="plot().right" [attr.y]="height() - 4">
         {{ xAxis().label }}
       </text>
     }
@@ -60,6 +60,7 @@
     @for (view of views(); track view.index) {
       <path
         class="point"
+        [attr.data-index]="view.index"
         [class.dimmed]="view.dimmed"
         [attr.d]="view.path"
         [style.fill]="view.color"
@@ -68,6 +69,22 @@
         (mousemove)="popover.move($event)"
         (mouseleave)="popover.hide()"
       />
+      @if (view.centerColor) {
+        <!-- the dot in the middle: it follows the point (dimmed with it) and lets the pointer through -->
+        <circle
+          class="point-center"
+          [attr.cx]="view.px"
+          [attr.cy]="view.py"
+          [attr.r]="centerRadius()"
+          [style.fill]="view.centerColor"
+          [style.opacity]="view.dimmed ? 0.18 : 1"
+        />
+      }
+    }
+
+    <!-- the picked point: a contrast border, on top of the others -->
+    @if (pickedPath(); as pickedD) {
+      <path class="point-picked" [attr.d]="pickedD" />
     }
 
     @if (draftPath(); as path) {

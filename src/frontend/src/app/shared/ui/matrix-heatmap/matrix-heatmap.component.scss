@@ -58,15 +58,12 @@
 // the value on a cell: readable on the shade of its level
 .value {
   fill: var(--tod-heatmap-text-1);
+  font-weight: 600;
   pointer-events: none;
 
   &.level-2 { fill: var(--tod-heatmap-text-2); }
   &.level-3 { fill: var(--tod-heatmap-text-3); }
   &.level-4 { fill: var(--tod-heatmap-text-4); }
-}
-
-.cell-group.selected .value {
-  font-weight: 600;
 }
 
 // two-tone: the ring on the cell edge, with a thin opposite line just inside it

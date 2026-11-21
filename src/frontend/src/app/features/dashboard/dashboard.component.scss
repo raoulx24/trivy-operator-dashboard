@@ -5,16 +5,17 @@
 // a group with an expanded widget (HomeWidgetGroupDirective, from lg up): the widget in the left column across all the
 // rows, the others stacked in the right one, in their order
 .home-group.home-group-open {
-  grid-template-columns: 7fr 3fr;
+  // the same 4 columns as a row of four widgets: the expanded one spans three (75%), so its edge aligns with the third
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-rows: repeat(var(--home-group-rows), auto);
 
   > .home-widget-expanded {
-    grid-column: 1;
+    grid-column: 1 / span 3;
     grid-row: 1 / span var(--home-group-rows);
   }
 
   > :not(.home-widget-expanded) {
-    grid-column: 2;
+    grid-column: 4;
     grid-row: auto;
   }
 }

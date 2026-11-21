@@ -73,3 +73,24 @@
   align-items: center;
   gap: 0.35rem;
 }
+
+.point {
+  cursor: pointer;
+}
+
+// the border of the picked point: it must not take the pointer from the point below it
+.point-picked {
+  fill: none;
+  stroke: var(--tod-scatter-picked-stroke);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.legend .point {
+  cursor: default;
+}
+
+.point-center {
+  pointer-events: none;
+}

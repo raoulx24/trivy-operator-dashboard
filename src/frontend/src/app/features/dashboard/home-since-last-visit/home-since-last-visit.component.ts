@@ -21,12 +21,12 @@ export interface SinceLastVisitClick {
   day: string;
 }
 
-const LANES: { key: SinceLastVisitLane; caption: string; color: string }[] = [
-  { key: 'vulnerabilities', caption: 'New vulns', color: 'var(--p-orange-500)' },
-  { key: 'fixes', caption: 'New fixes', color: 'var(--p-green-500)' },
-  { key: 'exploited', caption: 'Newly exploited', color: 'var(--p-red-500)' },
-  { key: 'drift', caption: 'Drift', color: 'var(--p-purple-500)' },
-  { key: 'images', caption: 'New images', color: 'var(--p-blue-500)' },
+const LANES: { key: SinceLastVisitLane; caption: string }[] = [
+  { key: 'vulnerabilities', caption: 'New vulns' },
+  { key: 'fixes', caption: 'New fixes' },
+  { key: 'exploited', caption: 'Newly exploited' },
+  { key: 'drift', caption: 'Drift' },
+  { key: 'images', caption: 'New images' },
 ];
 
 // Since your last visit: one strip for the "new" kinds of the home page (always collapsed): a lane per kind, a square
@@ -74,7 +74,6 @@ export class HomeSinceLastVisitComponent extends HomeWidgetBase {
   sourcesRefreshRequested = output<void>();
 
   protected readonly selected = signal<LaneStripSelection | null>(null);
-  protected readonly colors = LANES.map((x) => x.color);
 
   // every day of the history range: from the first day any of the endpoints starts at, to today
   protected readonly columns = computed(() => {

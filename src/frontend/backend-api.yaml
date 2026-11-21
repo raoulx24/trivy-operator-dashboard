@@ -1948,6 +1948,11 @@ paths:
           schema:
             type: integer
             format: int32
+        - name: minEpss
+          in: query
+          schema:
+            type: number
+            format: double
       responses:
         '200':
           description: OK

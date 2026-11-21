@@ -332,8 +332,9 @@ public class HomeController(
         [FromQuery] int[]? severities,
         [FromQuery] string[]? namespaces,
         [FromQuery] int? limit,
+        [FromQuery] double? minEpss,
         CancellationToken ctx) =>
-        Ok(await homeService.GetReachEpss(ToFilter(null, severities, namespaces, limit), ctx));
+        Ok(await homeService.GetReachEpss(ToFilter(null, severities, namespaces, limit), minEpss is null ? null : Math.Clamp(minEpss.Value, 0, 1), ctx));
 
     // the cluster compliance reports with the controls passing, no filters
     [HttpGet("compliance", Name = "GetHomeCompliance")]

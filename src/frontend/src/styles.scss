@@ -1291,3 +1291,20 @@ ul.p-panelmenu-submenu {
 .tod-package-hotspots-no-fix {
   background: var(--tod-package-hotspots-no-fix);
 }
+
+/* home: a clickable row of a list (package hotspots), and the selected one */
+.tod-home-pick-row {
+  width: 100%;
+  padding: 2px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--tod-span-timeline-row-hover);
+  }
+
+  &.selected {
+    background: var(--tod-span-timeline-selected);
+    outline: 1px solid var(--tod-span-timeline-selected-border);
+  }
+}

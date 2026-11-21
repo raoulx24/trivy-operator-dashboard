@@ -1,46 +1,46 @@
 <app-home-widget-frame
   heading="Reach vs EPSS"
   [hint]="hint()"
+  [help]="help"
   [state]="state()"
   [canExpand]="canExpand()"
   [expanded]="isExpanded()"
   (expandToggle)="toggleExpand()"
   [refreshable]="true"
   (refreshRequested)="refreshWidget()"
-  [fillGap]="false"
+  [fillGap]="!isExpanded()"
 >
-  <div class="flex-1 min-h-0" [class.grid]="isExpanded()" [class.grid-cols-[minmax(0,1fr)_20rem]]="isExpanded()" [class.gap-3]="isExpanded()">
-    <div class="min-w-0">
-      <app-scatter-select
-        [points]="points()"
-        [xAxis]="xAxis"
-        [yAxis]="yAxis"
-        [legend]="legend"
-        [height]="isExpanded() ? 420 : 220"
-        (selectionChanged)="onSelection($event)"
-      />
-    </div>
-
-    @if (isExpanded()) {
-      <div class="flex flex-col gap-1 min-h-0 max-h-[420px] overflow-auto text-sm">
-        <span class="font-semibold">Selected · {{ selected().length }} ids</span>
-        @for (item of selected(); track item.vulnerabilityId) {
-          <div class="flex items-center gap-2">
-            <span class="inline-block size-2 shrink-0 rounded-full" [style.background]="severityColor(item.severityId)"></span>
-            <span class="flex-1 min-w-0 truncate" [title]="item.vulnerabilityId">{{ item.vulnerabilityId }}</span>
-            @if (item.isKnownExploited) {
-              <p-tag class="text-xs" severity="danger" [rounded]="true" value="KEV" />
-            }
-            <span class="tabular-nums tod-text-muted-color">{{ item.images }} img · {{ item.epssPercentile * 100 | number: '1.0-0' }}%</span>
-          </div>
-        } @empty {
-          <span class="text-xs tod-text-muted-color">Drag on the plot to select ids (shift adds a region, a click clears).</span>
-        }
-      </div>
-    }
+  <!-- the share of the top EPSS percentiles to include: the label has a fixed width, so the line does not move with its text -->
+  <div class="flex items-start gap-3 text-xs tod-text-muted-color">
+    <span class="w-28 shrink-0 whitespace-nowrap tabular-nums pt-px">Include top {{ topShare() }}%</span>
+    <app-step-select
+      class="w-56"
+      ariaLabel="Share of the top EPSS percentiles to include"
+      [min]="0"
+      [max]="100"
+      [minSelectable]="20"
+      [maxSelectable]="100"
+      [step]="10"
+      [legendScale]="20"
+      [valueFormat]="percent"
+      [(selected)]="topShare"
+    />
   </div>
 
   @if (!isExpanded()) {
+    <app-scatter-select
+      [points]="points()"
+      [pickedIndex]="pickedIndex()"
+      (pickedIndexChange)="onPointPicked($event)"
+      [xAxis]="xAxis"
+      [yAxis]="yAxis"
+      [legend]="legend"
+      [pointRadius]="3"
+      [pointOpacity]="0.6"
+      [tooltipTemplate]="tip"
+      [height]="220"
+      (selectionChanged)="onSelection($event)"
+    />
     <span class="text-xs tod-text-muted-color">
       @if (selected().length > 0) {
         {{ selected().length }} ids selected. Expand to list them.
@@ -48,5 +48,111 @@
         Top right: likely to be exploited and widespread. Drag to select. Log scale on images.
       }
     </span>
+  } @else {
+    <div class="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-3 pt-1 max-h-[75vh] min-h-[28rem]">
+      <div class="min-w-0 flex flex-col gap-2">
+        <app-scatter-select
+          [points]="points()"
+          [pickedIndex]="pickedIndex()"
+          (pickedIndexChange)="onPointPicked($event)"
+          [xAxis]="xAxis"
+          [yAxis]="yAxis"
+          [legend]="legend"
+      [pointRadius]="3"
+      [pointOpacity]="0.6"
+      [tooltipTemplate]="tip"
+          [height]="440"
+          (selectionChanged)="onSelection($event)"
+        />
+        <span class="text-xs tod-text-muted-color">
+          Top right: likely to be exploited and widespread. Drag to select (shift adds a region, a click clears).
+        </span>
+      </div>
+
+      <div class="flex flex-col gap-3 min-h-0 text-sm">
+        <!-- the list: the selection, else the top -->
+        <div class="tod-content-border flex flex-col gap-2 p-3 min-h-0 flex-1">
+          <div class="flex items-baseline justify-between gap-2">
+            <span class="font-semibold">
+              {{ listIsSelection() ? 'Selected · ' + list().length + ' ids' : 'Top ' + list().length + ' by EPSS x images' }}
+            </span>
+            @if (knownExploitedCount() > 0) {
+              <span class="text-xs tod-text-muted-color">{{ knownExploitedCount() }} known exploited</span>
+            }
+          </div>
+          <div class="flex flex-col gap-0.5 overflow-auto min-h-0 flex-1">
+            @for (item of list(); track item.vulnerabilityId) {
+              <button
+                type="button"
+                class="tod-home-pick-row flex items-center gap-2 text-left"
+                [class.selected]="item.vulnerabilityId === active()?.vulnerabilityId"
+                (click)="pick(item)"
+              >
+                <span class="inline-block size-2 shrink-0 rounded-full" [style.background]="severityColor(item.severityId)"></span>
+                <span class="flex-1 min-w-0 truncate" [title]="item.vulnerabilityId">{{ item.vulnerabilityId }}</span>
+                @if (item.isKnownExploited) {
+                  <p-tag class="text-xs" severity="danger" [rounded]="true" value="KEV" />
+                }
+                <span class="tabular-nums text-xs tod-text-muted-color">
+                  {{ item.images }} img · {{ item.epssPercentile * 100 | number: '1.0-0' }}%
+                </span>
+              </button>
+            } @empty {
+              <span class="text-xs tod-text-muted-color">Nothing in the selected region.</span>
+            }
+          </div>
+        </div>
+
+        <!-- the detail of the clicked id -->
+        <div class="tod-content-border flex flex-col gap-2 p-3 overflow-auto max-h-[16rem]">
+          @if (active(); as a) {
+            <span class="font-semibold break-all">{{ a.vulnerabilityId }}</span>
+            @if (detailError(); as error) {
+              <span class="home-widget-error">Error: {{ error }}</span>
+            } @else if (detail(); as d) {
+              @if (d.title) {
+                <span class="text-xs">{{ d.title }}</span>
+              }
+              <span class="text-xs tod-text-muted-color">
+                {{ d.images }} images · {{ d.namespaces }} namespaces · {{ d.workloads }} workloads
+                @if (d.epssPercentile != null) {
+                  · EPSS {{ d.epssPercentile * 100 | number: '1.0-0' }}%
+                }
+                @if (d.isKnownExploited) {
+                  · KEV{{ d.kevDateAdded ? ' since ' + d.kevDateAdded.substring(0, 10) : '' }}
+                }
+              </span>
+              <div class="flex flex-col gap-0.5">
+                @for (p of d.packages; track p.packageKey) {
+                  <div class="flex items-center gap-2 text-xs">
+                    <span class="min-w-0 truncate" [title]="p.packageKey">{{ p.packageName }}</span>
+                    <span class="flex-1 min-w-0 truncate text-right tod-text-muted-color" [title]="p.installedVersions.join(', ')">
+                      {{ p.installedVersions.join(', ') }} → {{ p.fixedVersion ?? 'no fix yet' }}
+                    </span>
+                    <span class="tabular-nums">{{ p.images }} img</span>
+                  </div>
+                }
+              </div>
+            } @else if (detailLoading()) {
+              <span class="text-xs tod-text-muted-color">Loading...</span>
+            }
+          } @else {
+            <span class="text-xs tod-text-muted-color">No id.</span>
+          }
+        </div>
+      </div>
+    </div>
   }
 </app-home-widget-frame>
+
+<!-- the popover of a point: the real number of images (the plot moves the points sideways a little) -->
+<ng-template #tip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="flex items-center gap-2 font-bold">
+      <span class="inline-block size-2 rounded-full" [style.background]="severityColor(ctx.view.point.data.severityId)"></span>
+      {{ ctx.view.point.data.vulnerabilityId }}
+    </div>
+    <div>images: {{ ctx.view.point.data.images }} · namespaces: {{ ctx.view.point.data.namespaces }}</div>
+    <div>EPSS: {{ ctx.view.point.data.epssPercentile * 100 | number: '1.0-1' }}%{{ ctx.view.point.data.isKnownExploited ? ' · known exploited' : '' }}</div>
+  </div>
+</ng-template>

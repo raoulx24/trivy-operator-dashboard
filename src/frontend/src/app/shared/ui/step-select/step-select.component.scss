@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.step-select {
+  display: block;
+  cursor: pointer;
+  // the legend is a text under the line: it is not selected by a double click
+  user-select: none;
+
+  // no rectangle around the control when it is clicked or focused
+  outline: none;
+}
+
+.track {
+  stroke: var(--tod-step-select-track);
+  stroke-linecap: round;
+}
+
+// the part where nothing can be selected
+.blocked {
+  stroke: var(--tod-step-select-blocked);
+  stroke-dasharray: 2 3;
+}
+
+.fill {
+  stroke: var(--tod-step-select-fill);
+  stroke-linecap: round;
+}
+
+.dot {
+  fill: var(--tod-step-select-fill);
+}
+
+.tick {
+  stroke: var(--tod-step-select-track);
+}
+
+.legend {
+  font-size: 0.75rem;
+}
+
+.blocked-text {
+  opacity: 0.5;
+}

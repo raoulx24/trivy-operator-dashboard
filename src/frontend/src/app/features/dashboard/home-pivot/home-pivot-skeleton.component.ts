@@ -22,7 +22,7 @@ import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
             <app-trivy-box class="w-80 shrink-0 mt-2">
               <p-skeleton boxTitle width="9rem" height="1rem" />
 
-              <div class="flex h-64 flex-col gap-3 overflow-hidden">
+              <div class="flex h-[12.8rem] flex-col gap-3 overflow-hidden">
                 <p-skeleton width="45%" height="0.75rem" />
                 @for (line of lines; track line) {
                   <p-skeleton height="1.25rem" />

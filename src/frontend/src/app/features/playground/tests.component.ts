@@ -101,7 +101,6 @@ export class TestsComponent {
 
   // lane-strip
   protected readonly laneColumns = Array.from({ length: LANE_DAYS }, (_, i) => isoDay(i - (LANE_DAYS - 1)));
-  protected readonly laneColors = SEVERITY_COLORS.slice(0, 3);
   private laneSeed = 11;
   protected readonly lanes = signal<LaneStripLane[]>(this.buildLanes(this.laneSeed));
 

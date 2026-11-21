@@ -5,6 +5,7 @@
   [state]="state()"
   [canExpand]="false"
   [expanded]="false"
+  [fillGap]="false"
   [refreshable]="true"
   (refreshRequested)="refreshWidget()"
 >
@@ -22,10 +23,13 @@
       </div>
 
       @if (!selectedReport()) {
-        <p class="m-0 text-xs tod-text-muted-color">Centre: % of controls passing. Click a ring to see its worst failing controls.</p>
+        <div class="flex flex-col gap-2" [style.min-height.px]="panelHeight">
+          <p class="m-0 text-xs tod-text-muted-color">Centre: % of controls passing. Click a ring to see its worst failing controls.</p>
+          <app-network-fill class="flex-1" seed="Compliance" />
+        </div>
       } @else {
-        <div class="flex flex-col gap-1 p-2 text-sm rounded border border-[var(--p-content-border-color)]">
-          <div class="flex items-center justify-between gap-2">
+        <div class="flex flex-col gap-1 p-2 text-sm rounded border border-[var(--p-content-border-color)] box-border" [style.min-height.px]="panelHeight">
+          <div class="flex items-center justify-between gap-2 h-7">
             <span class="text-xs tod-text-muted-color truncate">Worst failing controls · {{ selectedLabel() }}</span>
             <p-button
               class="tod-button-compact inline-flex shrink-0"
@@ -46,7 +50,7 @@
             <span class="text-xs tod-text-muted-color">No failing controls</span>
           } @else {
             @for (control of controls(); track control.controlId) {
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 h-5">
                 <span class="w-8 shrink-0 text-xs tod-text-muted-color">{{ control.controlId }}</span>
                 <span class="size-2 rounded-full shrink-0" [style.background]="severityColor(control.severityId)"></span>
                 <span class="min-w-0 flex-1 truncate" [attr.title]="control.name">{{ control.name }}</span>
@@ -56,6 +60,7 @@
             @if (hiddenControls() > 0) {
               <span class="text-xs tod-text-muted-color">+{{ hiddenControls() }} more failing {{ hiddenControls() === 1 ? 'control' : 'controls' }}</span>
             }
+            <app-network-fill class="flex-1" seed="Compliance controls" />
           }
         </div>
       }

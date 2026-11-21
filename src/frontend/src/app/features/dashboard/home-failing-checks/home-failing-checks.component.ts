@@ -21,12 +21,15 @@ import { HomeService } from '@api/services/home.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
 import { MatrixHeatmapComponent } from '@shared/ui/matrix-heatmap/matrix-heatmap.component';
+import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
+import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
 import { MatrixHeatmapCellRef, MatrixHeatmapClick } from '@shared/ui/matrix-heatmap/matrix-heatmap.types';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { SpanTimelineComponent } from '@shared/ui/span-timeline/span-timeline.component';
 import { SpanTimelineRow, SpanTimelineTick } from '@shared/ui/span-timeline/span-timeline.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
+import { severityColor, severityName, severityTextColor } from '../home-collapsed/home-collapsed';
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
@@ -75,7 +78,10 @@ const NAMESPACE_RESOURCES = 3;
 
 // the room of a character of a row label of the timeline (px, a rough size), to cut a label that does not fit
 const LABEL_CHAR_WIDTH = 7;
-const LABEL_PADDING = 16;
+// the room around a label: its start (8px) and the gap before the bars
+const LABEL_PADDING = 28;
+// the widest label column of the collapsed bars (px); a longer id is cut (its popover has it whole)
+const WIDESPREAD_MAX_LABEL_WIDTH = 170;
 
 // a namespace of the selected check: its failing resources out of the evaluated ones, and the resources
 interface NamespaceGroup {
@@ -104,6 +110,7 @@ interface NamespaceGroup {
     HomeSearchBoxComponent,
     NgTemplateOutlet,
     MatrixHeatmapComponent,
+    MeterGroupComponent,
     PillButtonComponent,
     SpanTimelineComponent,
     TagModule,
@@ -174,6 +181,27 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
     return this.totalChecks() > shown ? `Computed on the first ${shown} of ${this.totalChecks()} checks` : '';
   });
 
+  // ---- the severity mix: the distinct checks by severity, in the colors of the severities (the meter is of all of them)
+  protected readonly severityMix = computed<MeterGroupSegment[]>(() =>
+    [...this.severities()]
+      .sort((a, b) => a - b)
+      .map((id) => ({
+        label: severityName(id),
+        value: this.allItems().filter((x) => x.severityId === id).length,
+        color: severityColor(id),
+        textColor: severityTextColor(id),
+      }))
+      .filter((x) => x.value > 0),
+  );
+
+  // the cells in the colors of the severities, as the meter above
+  protected readonly gridColors = computed(() =>
+    FAMILIES.map(() => this.gridSeverities().map((id) => severityColor(id))),
+  );
+  protected readonly gridTextColors = computed(() =>
+    FAMILIES.map(() => this.gridSeverities().map((id) => severityTextColor(id))),
+  );
+
   // ---- the grid: distinct checks by family (rows) and severity (columns, those of the filter)
   protected readonly gridSeverities = computed(() => [...this.severities()].sort((a, b) => a - b));
   protected readonly gridColumns = computed(() =>
@@ -186,15 +214,6 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
         (id) => this.allItems().filter((x) => x.family === f.key && x.severityId === id).length,
       ),
     ),
-  );
-  // the cells in the color of their severity, lighter, with the text color of the page (readable in both modes)
-  protected readonly gridColors = computed(() =>
-    FAMILIES.map(() =>
-      this.gridSeverities().map((id) => `color-mix(in srgb, ${SeverityUtils.getCssColor(id)} 45%, transparent)`),
-    ),
-  );
-  protected readonly gridTextColors = computed(() =>
-    FAMILIES.map(() => this.gridSeverities().map(() => 'var(--p-text-color)')),
   );
 
   // the cell of the grid the list is filtered by (family and severity); null = all
@@ -216,13 +235,25 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
   });
 
   // ---- the most widespread checks (collapsed): the largest share, among the ones with enough evaluated resources
-  protected readonly widespreadRows = computed<SpanTimelineRow[]>(() =>
+  private readonly widespreadChecks = computed(() =>
     [...this.allItems()]
       .filter((x) => x.evaluated >= FEW_EVALUATED)
       .sort((a, b) => this.share(b) - this.share(a) || b.resources - a.resources)
-      .slice(0, HomeFailingChecksComponent.widespreadLimit)
-      .map((x) => this.toRow(x, x.checkId, `${x.resources}/${x.evaluated}`)),
+      .slice(0, HomeFailingChecksComponent.widespreadLimit),
   );
+
+  // the label column fits the longest id (up to a limit, then the id is cut), so the ids are read whole
+  protected readonly widespreadLabelWidth = computed(() => {
+    const longest = Math.max(0, ...this.widespreadChecks().map((x) => x.checkId.length));
+    return Math.min(WIDESPREAD_MAX_LABEL_WIDTH, longest * LABEL_CHAR_WIDTH + LABEL_PADDING);
+  });
+
+  protected readonly widespreadRows = computed<SpanTimelineRow[]>(() => {
+    const maxChars = Math.floor((this.widespreadLabelWidth() - LABEL_PADDING) / LABEL_CHAR_WIDTH);
+    return this.widespreadChecks().map((x) =>
+      this.toRow(x, this.cut(x.checkId, maxChars), `${x.resources}/${x.evaluated}`),
+    );
+  });
 
   // ---- the expanded list: the filter box, the grid filter and the sort
   protected readonly filterText = signal('');
@@ -348,6 +379,20 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
       }
     });
     destroyRef.onDestroy(() => observer.disconnect());
+
+    // back to collapsed: the filters of the expanded list (a grid cell, the text) go, so no cell stays selected; it acts
+    // on the change from expanded to collapsed only, as a click on a cell sets its filter just before the widget expands
+    let wasExpanded = false;
+    effect(() => {
+      const expanded = this.isExpanded();
+      untracked(() => {
+        if (wasExpanded && !expanded) {
+          this.gridFilter.set(null);
+          this.filterText.set('');
+        }
+        wasExpanded = expanded;
+      });
+    });
 
     // expanded with nothing selected (the expand button, a grid cell): the first check of the list
     effect(() => {

@@ -81,7 +81,8 @@ public interface IHomeService : IQueryService
 
     Task<HomePackageHotspotsDto> GetPackageHotspots(HomeFilter filter, CancellationToken ctx = default);
 
-    Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, CancellationToken ctx = default);
+    // minEpss: only the ids whose EPSS percentile is at least this (0..1); none = all
+    Task<HomeReachEpssDto> GetReachEpss(HomeFilter filter, double? minEpss = null, CancellationToken ctx = default);
 
     // the cluster compliance reports with their pass percent (not filtered: the reports are about the cluster)
     Task<HomeComplianceDto> GetCompliance(CancellationToken ctx = default);

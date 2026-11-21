@@ -1,0 +1,44 @@
+@if (width() > 0) {
+  <svg
+    class="step-select"
+    role="slider"
+    tabindex="0"
+    [attr.width]="width()"
+    [attr.height]="height"
+    [attr.aria-label]="ariaLabel() || null"
+    [attr.aria-valuemin]="min()"
+    [attr.aria-valuemax]="max()"
+    [attr.aria-valuenow]="selected()"
+    (click)="onClick($event)"
+    (keydown)="onKeydown($event)"
+  >
+    <!-- the area of a click: the line and the legend -->
+    <rect x="0" y="0" [attr.width]="width()" [attr.height]="height" fill="transparent" />
+
+    <!-- the line; dashed where nothing can be selected -->
+    <line class="track" [attr.x1]="left" [attr.x2]="right()" [attr.y1]="lineY" [attr.y2]="lineY" [attr.stroke-width]="thin" />
+    @if (lowerX() > left) {
+      <line class="blocked" [attr.x1]="left" [attr.x2]="lowerX()" [attr.y1]="lineY" [attr.y2]="lineY" [attr.stroke-width]="thin" />
+    }
+    @if (upperX() < right()) {
+      <line class="blocked" [attr.x1]="upperX()" [attr.x2]="right()" [attr.y1]="lineY" [attr.y2]="lineY" [attr.stroke-width]="thin" />
+    }
+
+    <!-- from the start to the selected value -->
+    <line class="fill" [attr.x1]="left" [attr.x2]="dotX()" [attr.y1]="lineY" [attr.y2]="lineY" [attr.stroke-width]="thick" />
+    <circle class="dot" [attr.cx]="dotX()" [attr.cy]="lineY" [attr.r]="dotRadius" />
+
+    @for (tick of ticks(); track tick.value) {
+      <line class="tick" [attr.x1]="tick.x" [attr.x2]="tick.x" [attr.y1]="lineY + dotRadius + 2" [attr.y2]="lineY + dotRadius + 2 + tickHeight" />
+      <text
+        class="tod-chart-label tod-chart-label-muted legend"
+        [class.blocked-text]="!tick.selectable"
+        text-anchor="middle"
+        [attr.x]="tick.x"
+        [attr.y]="legendY"
+      >
+        {{ tick.text }}
+      </text>
+    }
+  </svg>
+}

@@ -8,6 +8,7 @@ import {
   computed,
   inject,
   input,
+  model,
   output,
   signal,
 } from '@angular/core';
@@ -36,6 +37,11 @@ const TARGET_TICKS = 4;
 // room around the data when the axis has no min / max (linear: share of the range; log: factor)
 const LINEAR_PAD = 0.05;
 const LOG_PAD = 1.25;
+// the cross reaches this much further than a circle of the same radius (the distance of its tips from the center)
+const CROSS_REACH = 2;
+// half the thickness of an arm of the cross, and the radius of the dot in the middle, as shares of the radius
+const CROSS_ARM = 0.75;
+const CENTER_DOT = 0.55;
 
 const compact = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 2 });
 
@@ -80,6 +86,10 @@ export class ScatterSelectComponent<T = unknown> {
 
   selectionChanged = output<ScatterSelection<T>>();
 
+  // the picked point (its index in points; null = none): a click on a point (without a drag) picks it, a click on
+  // the plot elsewhere clears it. It is drawn with a contrast border. The owner may set it (e.g. from a list)
+  pickedIndex = model<number | null>(null);
+
   protected readonly popover = inject(PopoverService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -89,6 +99,7 @@ export class ScatterSelectComponent<T = unknown> {
   // the region being drawn, px
   private readonly draft = signal<ScatterVertex[] | null>(null);
   private additive = false;
+  private downIndex: number | null = null;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -167,11 +178,28 @@ export class ScatterSelectComponent<T = unknown> {
         py,
         path: shapePath(point.shape ?? 'circle', px, py, r),
         color: point.color ?? null,
+        centerColor: point.centerColor ?? null,
         selected,
         dimmed: hasSelection && !selected,
       };
     });
   });
+
+  protected readonly pickedView = computed<ScatterPointView<T> | undefined>(() => {
+    const index = this.pickedIndex();
+    return index === null ? undefined : this.views().find((v) => v.index === index);
+  });
+
+  // the border of the picked point: its shape; around a cross, a ring (the outline of an x would look broken)
+  protected readonly pickedPath = computed<string | undefined>(() => {
+    const view = this.pickedView();
+    if (!view) return undefined;
+    return view.point.shape === 'cross'
+      ? shapePath('circle', view.px, view.py, this.pointRadius() * CROSS_REACH + 2)
+      : view.path;
+  });
+
+  protected readonly centerRadius = computed(() => this.pointRadius() * CENTER_DOT);
 
   private readonly selection = computed<ScatterSelection<T>>(() => {
     const selected = this.views().filter((v) => v.selected);
@@ -210,6 +238,9 @@ export class ScatterSelectComponent<T = unknown> {
 
     this.popover.hide();
     this.additive = event.shiftKey || event.ctrlKey || event.metaKey;
+    // the point under the pointer, if any: a click (no drag) will pick it
+    const index = (event.target as Element).getAttribute?.('data-index');
+    this.downIndex = index === null || index === undefined ? null : Number(index);
     (event.currentTarget as Element).setPointerCapture(event.pointerId);
     this.draft.set([p]);
   }
@@ -236,8 +267,13 @@ export class ScatterSelectComponent<T = unknown> {
       Math.max(...ys) - Math.min(...ys) >= MIN_DRAG;
 
     if (!drawn) {
-      // a click on the plot
-      if (!this.additive) this.clear();
+      // a click: on a point it picks it (the regions stay), elsewhere on the plot it clears the regions and the pick
+      if (this.downIndex !== null) {
+        this.pickedIndex.set(this.downIndex);
+      } else if (!this.additive) {
+        this.clear();
+        this.pickedIndex.set(null);
+      }
       return;
     }
 
@@ -323,10 +359,21 @@ function linearTicks(min: number, max: number): number[] {
   return result;
 }
 
-// the powers of ten inside the range; when it is narrower than that, its two ends
+// the powers of ten inside the range; when the range holds fewer than three of them, also their 2x and 5x (1, 2, 5, 10, 20);
+// when it is narrower than that, its two ends
 function logTicks(min: number, max: number): number[] {
   const result: number[] = [];
   for (let e = Math.ceil(Math.log10(min)); Math.pow(10, e) <= max; e++) result.push(Math.pow(10, e));
+  if (result.length >= 3) return result;
+
+  const fine: number[] = [];
+  for (let e = Math.floor(Math.log10(min)); Math.pow(10, e) <= max; e++) {
+    for (const m of [1, 2, 5]) {
+      const v = m * Math.pow(10, e);
+      if (v >= min && v <= max) fine.push(+v.toPrecision(12));
+    }
+  }
+  if (fine.length >= 2) return fine;
   return result.length >= 2 ? result : [min, max].map((v) => +v.toPrecision(2));
 }
 
@@ -339,6 +386,20 @@ function shapePath(shape: ScatterShape, cx: number, cy: number, r: number): stri
     case 'square': {
       const s = r * 0.9;
       return `M${cx - s} ${cy - s}h${2 * s}v${2 * s}h${-2 * s}Z`;
+    }
+    case 'cross': {
+      // an x: a plus turned 45 degrees; its tips are at CROSS_REACH x the radius
+      const l = r * CROSS_REACH;
+      const t = r * CROSS_ARM;
+      const plus: [number, number][] = [
+        [-t, -l], [t, -l], [t, -t], [l, -t], [l, t], [t, t], [t, l], [-t, l], [-t, t], [-l, t], [-l, -t], [-t, -t],
+      ];
+      const cos = Math.SQRT1_2;
+      return (
+        plus
+          .map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${(cx + (x - y) * cos).toFixed(2)} ${(cy + (x + y) * cos).toFixed(2)}`)
+          .join('') + 'Z'
+      );
     }
     case 'triangle': {
       const h = r * 1.3;

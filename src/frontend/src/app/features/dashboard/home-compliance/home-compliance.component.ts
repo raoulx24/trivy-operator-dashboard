@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 
 import { HomeComplianceReportDto } from '@api/models/home-compliance-report-dto';
 import { HomeService } from '@api/services/home.service';
+import { NetworkFillComponent } from '@shared/ui/network-fill/network-fill.component';
 import { RingGaugeComponent } from '@shared/ui/ring-gauge/ring-gauge.component';
 import { RingGaugeData } from '@shared/ui/ring-gauge/ring-gauge.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
@@ -22,13 +23,17 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-compliance',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, ButtonModule, RingGaugeComponent],
+  imports: [HomeWidgetFrameComponent, ButtonModule, NetworkFillComponent, RingGaugeComponent],
   templateUrl: './home-compliance.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-w-0' },
 })
 export class HomeComplianceComponent extends HomeWidgetBase {
   private static readonly maxControls = 5;
+
+  // the height the panel of the controls takes with all of them (the border, the padding of 8px, the header of 28px, five rows
+  // of 20px, the line of the rest, and the gaps of 4px), reserved also while it is closed, so the widget does not change its height
+  protected readonly panelHeight = 190;
 
   private readonly homeService = inject(HomeService);
   private readonly router = inject(Router);

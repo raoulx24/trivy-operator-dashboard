@@ -23,7 +23,7 @@
               class="segment-value tod-chart-label"
               [attr.x]="bar.x + bar.width / 2"
               [attr.y]="barHeight() / 2"
-              [attr.fill]="bar.segment.textColor ?? 'var(--tod-meter-group-text)'"
+              [style.fill]="bar.segment.textColor ?? 'var(--tod-meter-group-text)'"
               text-anchor="middle"
               dominant-baseline="central"
             >

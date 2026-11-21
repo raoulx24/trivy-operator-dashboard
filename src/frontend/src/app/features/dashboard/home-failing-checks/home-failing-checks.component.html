@@ -21,6 +21,9 @@
           <span class="tod-text-muted-color">distinct {{ totalChecks() === 1 ? 'check' : 'checks' }} failing</span>
         </div>
 
+        <!-- the distinct checks by severity -->
+        <app-meter-group valueLabel="checks" [max]="totalChecks()" [segments]="severityMix()" [showValues]="true" />
+
         <!-- the distinct checks by family and severity; a click on a cell expands the widget filtered by it -->
         <app-matrix-heatmap
           valueLabel="checks"
@@ -41,7 +44,7 @@
             <span class="text-sm">Most widespread</span>
             <app-span-timeline
               origin="left"
-              [labelWidth]="96"
+              [labelWidth]="widespreadLabelWidth()"
               [max]="100"
               [rows]="widespreadRows()"
               [showAxis]="false"
