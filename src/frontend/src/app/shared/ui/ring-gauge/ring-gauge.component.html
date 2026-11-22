@@ -13,21 +13,38 @@
     <g class="ring-body">
       <circle class="track" cx="50" cy="50" [attr.r]="radius()" [attr.stroke-width]="strokeWidth()" />
       @if (percent() > 0) {
-        <circle
-          class="arc"
-          cx="50"
-          cy="50"
-          [attr.r]="radius()"
-          [attr.stroke-width]="strokeWidth()"
-          [attr.stroke]="data().color"
-          pathLength="100"
-          [attr.stroke-dasharray]="percent() + ' 100'"
-          transform="rotate(-90 50 50)"
-        />
+        <!-- an arc with new data is re-created (a loop of one), so that its growth runs again when the data is received -->
+        @for (key of [arcKey()]; track key) {
+          <circle
+            class="arc"
+            cx="50"
+            cy="50"
+            [attr.r]="radius()"
+            [attr.stroke-width]="strokeWidth()"
+            [attr.stroke]="data().color"
+            pathLength="100"
+            [class.grows]="animate()"
+            [style.--arc-length]="percent()"
+            [style.--arc-from]="arcFrom() + 'deg'"
+            [style.--grow-time]="animationDuration() + 'ms'"
+            [style.--grow-delay]="animationDelay() + 'ms'"
+          />
+        }
       }
-      <text class="center tod-chart-label" x="50" y="50" text-anchor="middle" dominant-baseline="central">
-        {{ centerText() }}
-      </text>
+      @for (key of [arcKey()]; track key) {
+        <text
+          class="center tod-chart-label"
+          x="50"
+          y="50"
+          text-anchor="middle"
+          dominant-baseline="central"
+          [class.grows]="animate()"
+          [style.--grow-time]="animationDuration() + 'ms'"
+          [style.--grow-delay]="animationDelay() + 'ms'"
+        >
+          {{ centerText() }}
+        </text>
+      }
     </g>
   </svg>
   <span class="legend tod-chart-legend">{{ data().label }}</span>

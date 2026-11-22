@@ -35,6 +35,10 @@ export interface StackedBarBar {
   // only the layers with a value, in the order of the series
   layers: StackedBarLayer[];
   highlighted: boolean;
+  // the bar with the data it was made of: a bar with new data is a new element, so its growth runs again
+  key: string;
+  // ms after which the bar starts to grow (animate); null: not animated
+  growDelay: number | null;
 }
 
 // the context of the popover of a column

@@ -105,6 +105,46 @@
   stroke-width: 0.75;
 }
 
+// the growth (animate): the bar, its overdue part and its arrow are revealed from the left after --grow-delay, taking
+// --grow-time; before that they are not there (fill-mode backwards: after it nothing is left, so the hover growth of the
+// bar is not clipped); the icon and the count fade in with it
+@keyframes eol-grow {
+  from {
+    clip-path: inset(-4px 100% -4px 0) fill-box;
+  }
+  to {
+    clip-path: inset(-4px -4px -4px 0) fill-box;
+  }
+}
+
+@keyframes eol-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.row.grows {
+  .bar-group {
+    animation: eol-grow var(--grow-time) ease-out var(--grow-delay) backwards;
+  }
+
+  .state-icon,
+  .row-count {
+    animation: eol-fade var(--grow-time) ease-out var(--grow-delay) backwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar-group,
+    .state-icon,
+    .row-count {
+      animation: none;
+    }
+  }
+}
+
 .legend {
   // plain pointer over the legend texts too (no text caret); they stay selectable
   cursor: default;

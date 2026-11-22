@@ -30,15 +30,21 @@ const LABEL_BASELINE = 14;
 const LEVELS = 4;
 // the legend swatches (px), as in the scss
 const LEGEND_SWATCH = 17;
+// the longest a cell takes to light on (ms)
+const MAX_FADE = 300;
 // only when the browser has no Intl week info
 const SUNDAY_REGIONS = new Set(['US', 'CA', 'MX', 'BR', 'JP', 'IL', 'IN', 'PH', 'ZA', 'AU']);
 
 // a per-day heatmap, one block per week (first day of the week of the locale, Monday in EU), the days of a week running top down, then left right
 // - cells have a fixed size: if the blocks do not fit, they scroll horizontally (app-scroller, with its buttons)
 // - fill: quantile shading (blue) of the non-zero values; zero is empty
-// - emphasis1: a white triangle in the bottom-left corner; emphasis2: a triangle in the top-right corner (both independent of the fill)
+// - everything comes from data, one item per day: value, emphasis1 (a triangle in the bottom-left corner), emphasis2 (a
+//   triangle in the top-right corner; both independent of the fill) and selectable (the day can be clicked, daySelected;
+//   when no day sets it, nothing is clickable)
 // - the selected day (selectedDay) has a ring around the cell
-// - selectableDays (optional) makes the listed days clickable (daySelected)
+// - animate: when new data arrives the cells with a value or a marker light on one by one, in a random order of place, all
+//   within animationDuration (ms) in total; data with the same values, markers and range does not play again (a change of
+//   selectable or selectedDay does not); the empty cells are always there
 // - days are "yyyy-MM-dd" (UTC); the control does not know what the emphasis days mean
 @Component({
   selector: 'app-activity-heatmap',
@@ -50,8 +56,6 @@ const SUNDAY_REGIONS = new Set(['US', 'CA', 'MX', 'BR', 'JP', 'IL', 'IN', 'PH', 
 })
 export class ActivityHeatmapComponent {
   data = input<ActivityHeatmapDayDto[]>([]);
-  emphasis1Days = input<string[]>([]);
-  emphasis2Days = input<string[]>([]);
   // the range shown; by default the first and last day of data
   from = input<string | undefined>(undefined);
   to = input<string | undefined>(undefined);
@@ -75,8 +79,13 @@ export class ActivityHeatmapComponent {
   emphasis2Hint = input<string>('');
   selectedHint = input<string>('');
 
-  // the days that can be clicked ("yyyy-MM-dd"); without it the heatmap only shows (nothing is clickable)
-  selectableDays = input<string[] | undefined>(undefined);
+  // the cells light on when the data is received; the whole animation takes animationDuration ms
+  animate = input<boolean>(false);
+  animationDuration = input<number>(600);
+  // anything that changes when the owner receives data again: the animation plays again for the same data too (e.g. a
+  // refresh); without it only changed data plays
+  replay = input<unknown>(undefined);
+
   // the day marked as selected, by the owner (a click only says which day: daySelected)
   selectedDay = input<string | null>(null);
 
@@ -88,6 +97,10 @@ export class ActivityHeatmapComponent {
     // never leave the popover behind when the heatmap goes away while hovered
     inject(DestroyRef).onDestroy(() => this.popover.hide());
   }
+
+  // how long one cell takes to light on (the last one starts at animationDuration minus this, so everything is done
+  // within animationDuration)
+  protected readonly fade = computed(() => Math.min(MAX_FADE, Math.max(0, this.animationDuration())));
 
   // 1 at the base cell size; scales the radius, strokes and labels with the cells
   protected readonly labelBaseline = LABEL_BASELINE;
@@ -116,16 +129,38 @@ export class ActivityHeatmapComponent {
 
   protected readonly legendLevels = computed(() => this.levels.slice(0, this.usedLevels()));
 
+  // what the animation depends on: the values and markers of the days (not selectable) and the range; the delays are kept
+  // while it is unchanged, as a changed delay would restart the animation of a cell that has already lit on
+  private delayCache?: { key: string; id: number; delays: Map<string, number> };
+  private delayCacheId = 0;
+
+  // per day, in ms: a random order over the days with a value or a marker, evenly spread over the time left after the
+  // fade of the last one
+  private delaysOf(data: ActivityHeatmapDayDto[], key: string): { id: number; delays: Map<string, number> } {
+    if (this.delayCache?.key === key) return this.delayCache;
+
+    const days = data.filter((d) => d.value > 0 || d.emphasis1 || d.emphasis2).map((d) => d.day);
+    // Fisher-Yates
+    for (let i = days.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [days[i], days[j]] = [days[j], days[i]];
+    }
+
+    const spread = Math.max(0, this.animationDuration() - this.fade());
+    const delays = new Map(days.map((day, i) => [day, days.length > 1 ? (i / (days.length - 1)) * spread : 0]));
+    this.delayCache = { key, id: ++this.delayCacheId, delays };
+    return this.delayCache;
+  }
+
   protected readonly weeks = computed<ActivityHeatmapWeek[]>(() => {
     const data = this.data();
     const range = this.range(data);
     if (!range) return [];
 
-    const byDay = new Map(data.map((d) => [d.day, d.value]));
-    const emphasis1 = new Set(this.emphasis1Days());
-    const emphasis2 = new Set(this.emphasis2Days());
-    const selectableDays = this.selectableDays();
-    const selectable = selectableDays ? new Set(selectableDays) : undefined;
+    const byDay = new Map(data.map((d) => [d.day, d]));
+    const interactive = data.some((d) => d.selectable !== undefined);
+    const dataKey = `${range.join('-')}|${this.animationDuration()}|${String(this.replay())}|${data.map((d) => `${d.day}:${d.value}:${d.emphasis1 ? 1 : 0}${d.emphasis2 ? 1 : 0}`).join(',')}`;
+    const lit = this.animate() ? this.delaysOf(data, dataKey) : undefined;
     const selectedDay = this.selectedDay();
     const rows = this.rows();
     const step = this.cellSize() + this.cellGap();
@@ -145,24 +180,28 @@ export class ActivityHeatmapComponent {
         if (ms < fromMs || ms > toMs) continue;
 
         const day = this.toDay(ms);
-        const value = byDay.get(day) ?? 0;
-        const e1 = emphasis1.has(day);
-        const e2 = emphasis2.has(day);
+        const item = byDay.get(day);
+        const value = item?.value ?? 0;
+        const e1 = item?.emphasis1 ?? false;
+        const e2 = item?.emphasis2 ?? false;
+        const isSelectable = interactive && (item?.selectable ?? false);
         cells.push({
           day,
           value,
           level: this.levelOf(value),
           emphasis1: e1,
           emphasis2: e2,
-          selectable: selectable?.has(day) ?? false,
-          inactive: !!selectable && !selectable.has(day) && value > 0,
+          selectable: isSelectable,
+          inactive: interactive && !isSelectable && value > 0,
           selected: day === selectedDay,
+          litDelay: lit?.delays.get(day) ?? null,
           x: Math.floor(i / rows) * step,
           y: top + (i % rows) * step,
         });
       }
 
       weeks.push({
+        key: `${lit?.id ?? 0}|${weekStart}`,
         label: cells[0].day.slice(5),
         x: weeks.length * (weekWidth + this.weekGap()),
         cells,

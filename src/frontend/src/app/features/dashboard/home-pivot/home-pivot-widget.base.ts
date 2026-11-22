@@ -1,10 +1,13 @@
 import { Directive, Injector, Signal, afterNextRender, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 
+import { ActivityHeatmapDayDto } from '@shared/ui/activity-heatmap/activity-heatmap.types';
 import { VirtualScrollerComponent } from '@shared/ui/virtual-scroller/virtual-scroller.component';
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomePivotState } from './home-pivot-state';
+
+const EMPTY_CHART_DAYS = 90;
 
 // the part the pivot widgets (history drift, new images) share: the same data in two virtual rows of boxes, images and
 // pairs (vulnerability id, severity), with a selection that links them (see HomePivotState); the widget makes the boxes
@@ -45,9 +48,36 @@ export abstract class HomePivotWidgetBase<
 
   // the days the heatmap lets you click: while collapsed, every day with a value (a click expands the widget); while
   // expanded, the days that have rows; none while the rows are asked (nothing is dimmed), or where it cannot expand
-  protected readonly selectableDays = computed(() =>
+  private readonly selectableDays = computed(() =>
     this.showBoxes() ? this.pivot.heatmapDays() : !this.isExpanded() && this.canExpand() ? this.valueDays() : undefined,
   );
+
+  // the days of the widget (from the server): the value and the exploited marker; the base adds the visits and which days can be clicked
+  protected abstract readonly chart: Signal<{ from?: string; data: ActivityHeatmapDayDto[] }>;
+
+  // zeros for the last EMPTY_CHART_DAYS days: shown until the days are there, so the heatmap does not change its size on load
+  protected emptyChart(): { from?: string; data: ActivityHeatmapDayDto[] } {
+    const today = Date.parse(`${this.today()}T00:00:00Z`);
+    const data = Array.from({ length: EMPTY_CHART_DAYS }, (_, i) => ({
+      day: new Date(today - (EMPTY_CHART_DAYS - 1 - i) * 86_400_000).toISOString().slice(0, 10),
+      value: 0,
+    }));
+
+    return { from: data[0].day, data };
+  }
+
+  // what the heatmap gets: one item per day, with everything it shows
+  protected readonly heatmapData = computed<ActivityHeatmapDayDto[]>(() => {
+    const visits = new Set(this.visitDays());
+    const selectableDays = this.selectableDays();
+    const selectable = selectableDays ? new Set(selectableDays) : undefined;
+
+    return this.chart().data.map((d) => ({
+      ...d,
+      emphasis1: visits.has(d.day),
+      selectable: selectable?.has(d.day),
+    }));
+  });
 
   // two rows of boxes (virtual: only the boxes in view are rendered, so a box is scrolled to by its index)
   private readonly imagesRow = viewChild<VirtualScrollerComponent<I>>('imagesRow');

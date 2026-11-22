@@ -17,8 +17,8 @@
       </div>
     } @else {
       <div class="flex flex-wrap justify-around gap-x-4 gap-y-2 pt-1">
-        @for (gauge of gauges(); track gauge.id) {
-          <app-ring-gauge [data]="gauge" [size]="76" [(selected)]="selected" />
+        @for (gauge of gauges(); track gauge.id; let i = $index) {
+          <app-ring-gauge [data]="gauge" [size]="76" [animate]="true" [animationDelay]="i * 120" [(selected)]="selected" />
         }
       </div>
 

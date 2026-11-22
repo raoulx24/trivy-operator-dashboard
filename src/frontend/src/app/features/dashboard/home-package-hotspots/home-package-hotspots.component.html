@@ -13,6 +13,15 @@
   @if (!isExpanded()) {
     <!-- the rows, and the legend right under them -->
     <div class="flex flex-col gap-2 pt-1">
+      @if (top(); as t) {
+        <div class="flex items-baseline gap-2 pb-1 min-w-0">
+          <span class="text-3xl font-semibold">{{ t.vulnerabilityIds }}</span>
+          <span class="tod-text-muted-color truncate" [title]="t.packageKey"
+            >ids in the top package, <span class="tod-headline-num">{{ t.packageName }}</span> on
+            <span class="tod-headline-num">{{ t.images }}</span> {{ t.images === 1 ? 'image' : 'images' }}</span
+          >
+        </div>
+      }
       @for (row of rows(); track row.item.packageKey) {
         <button
           type="button"
@@ -21,7 +30,7 @@
           (click)="select(row.item)"
         >
           <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
-          <app-meter-group valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
+          <app-meter-group [animate]="true" valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
           <span class="text-right tabular-nums" title="Images with this package">{{ row.item.images }}</span>
         </button>
       }
@@ -46,7 +55,7 @@
               (click)="select(row.item)"
             >
               <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
-              <app-meter-group valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
+              <app-meter-group [animate]="true" valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
               <span class="text-right tabular-nums">{{ row.item.images }}</span>
               <span class="text-right tabular-nums tod-text-muted-color">{{ row.item.namespaces }}</span>
             </button>
@@ -75,7 +84,7 @@
               @for (v of d.versions; track v.version) {
                 <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3.5rem] items-center gap-x-3">
                   <span class="truncate font-mono text-xs" [title]="v.version">{{ v.version }}</span>
-                  <app-meter-group valueLabel="images" [max]="maxVersionImages()" [segments]="v.segments" />
+                  <app-meter-group [animate]="true" valueLabel="images" [max]="maxVersionImages()" [segments]="v.segments" />
                   <span class="text-right tabular-nums text-xs">{{ v.images }} img</span>
                 </div>
               } @empty {

@@ -11,9 +11,9 @@
   (refreshRequested)="refreshWidget()"
 >
   @if (!isExpanded()) {
-    @if (allItems().length === 0 && state().isAvailable) {
+    @if (isLoaded() && allItems().length === 0 && state().isAvailable) {
       <ng-container *ngTemplateOutlet="empty" />
-    } @else if (allItems().length > 0) {
+    } @else if (!isLoaded() || allItems().length > 0) {
       <div class="flex flex-col gap-3 pt-2">
         <!-- the headline: the distinct failing checks -->
         <div class="flex flex-wrap items-baseline gap-x-2">
@@ -22,20 +22,19 @@
         </div>
 
         <!-- the distinct checks by severity -->
-        <app-meter-group valueLabel="checks" [max]="totalChecks()" [segments]="severityMix()" [showValues]="true" />
+        <app-meter-group valueLabel="checks" [animate]="true" [replay]="answers()" [max]="totalChecks()" [segments]="severityMix()" [showValues]="true" />
 
         <!-- the distinct checks by family and severity; a click on a cell expands the widget filtered by it -->
         <app-matrix-heatmap
           valueLabel="checks"
           [cellHeight]="30"
-          [colors]="gridColors()"
           [columns]="gridColumns()"
           [rowLabelWidth]="48"
-          [rows]="gridRows"
+          [animate]="true"
+          [replay]="answers()"
+          [rows]="gridRows()"
           [selectable]="true"
           [selectedCell]="gridCell()"
-          [textColors]="gridTextColors()"
-          [values]="gridValues()"
           (cellSelected)="onGridCell($event)"
         />
 
@@ -44,6 +43,8 @@
             <span class="text-sm">Most widespread</span>
             <app-span-timeline
               origin="left"
+              [animate]="true"
+              [replay]="answers()"
               [labelWidth]="widespreadLabelWidth()"
               [max]="100"
               [rows]="widespreadRows()"

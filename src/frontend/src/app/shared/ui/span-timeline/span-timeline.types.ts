@@ -68,6 +68,10 @@ export interface SpanTimelineBar {
   color: string;
   range: string;
   markers: SpanTimelineMarkerView[];
+  // the bar with the data it was made of: a bar with new data is a new element, so its growth runs again
+  key: string;
+  // ms after which the bar starts to grow (animate); null: not animated
+  growDelay: number | null;
 }
 
 export interface SpanTimelineMarkerView {

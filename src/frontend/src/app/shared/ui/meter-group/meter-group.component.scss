@@ -31,6 +31,43 @@
   pointer-events: none;
 }
 
+// the growth (animate): the segment is revealed from its middle to both ends after --grow-delay, taking --grow-time; before
+// that it is not there (fill-mode backwards); its value fades in with it
+@keyframes meter-grow {
+  from {
+    clip-path: inset(0 50% 0 50%);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes meter-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.segment.grows {
+  .segment-fill {
+    animation: meter-grow var(--grow-time) ease-out var(--grow-delay) backwards;
+  }
+
+  .segment-value {
+    animation: meter-fade var(--grow-time) ease-out var(--grow-delay) backwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .segment-fill,
+    .segment-value {
+      animation: none;
+    }
+  }
+}
+
 .tip-swatch {
   width: 10px;
   height: 10px;

@@ -139,6 +139,45 @@
   }
 }
 
+// the growth (animate): the bar is revealed from its middle to both ends after --grow-delay, taking --grow-time; before that it is not
+// there (fill-mode backwards: after it nothing is left, so the hover growth of the bar is not clipped); the value and the
+// markers of the row fade in with it
+@keyframes span-grow {
+  from {
+    clip-path: inset(-4px 50% -4px 50%) fill-box;
+  }
+  to {
+    clip-path: inset(-4px) fill-box;
+  }
+}
+
+@keyframes span-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// on the rect itself, with its own box (fill-box) as the reference of the clip: a clip on a group of an svg got the wrong box
+.bar-group.grows .bar {
+  animation: span-grow var(--grow-time) ease-out var(--grow-delay) backwards;
+}
+
+.row-value.grows,
+.marker.grows {
+  animation: span-fade var(--grow-time) ease-out var(--grow-delay) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-group.grows .bar,
+  .row-value.grows,
+  .marker.grows {
+    animation: none;
+  }
+}
+
 .legend {
   // plain pointer over the legend texts too (no text caret); they stay selectable
   cursor: default;

@@ -36,10 +36,10 @@
       @if (isExpanded()) {
         <!-- a box like the OS ones, only with a body -->
         <app-trivy-box>
-          <app-eol-runway [items]="cycles()" [today]="today()" />
+          <app-eol-runway [items]="cycles()" [today]="today()" [animate]="true" />
         </app-trivy-box>
       } @else {
-        <app-eol-runway [items]="cycles()" [today]="today()" />
+        <app-eol-runway [items]="cycles()" [today]="today()" [animate]="true" />
       }
     </div>
 

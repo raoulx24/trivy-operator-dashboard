@@ -1,5 +1,9 @@
 @if (width() > 0) {
-  <svg class="stacked-bar-chart" [attr.width]="width()" [attr.height]="height()" role="img">
+  <svg
+    class="stacked-bar-chart"
+    [style.--grow-time]="grow() + 'ms'"
+    [style.--chart-height]="height() + 'px'"
+    [attr.width]="width()" [attr.height]="height()" role="img">
     @for (bar of bars(); track bar.index) {
       <g
         class="column"
@@ -21,11 +25,18 @@
           [attr.rx]="trackRadius"
         />
         @if (bar.total > 0) {
-          <g class="bar">
-            @for (layer of bar.layers; track layer.series.name) {
-              <path [attr.d]="layer.path" [attr.fill]="layer.series.color" />
-            }
-          </g>
+          <!-- a bar with new data is re-created (a loop of one), so that its growth runs again when the data is received -->
+          @for (key of [bar.key]; track key) {
+            <g
+              class="bar"
+              [class.grows]="bar.growDelay !== null"
+              [style.--grow-delay]="bar.growDelay !== null ? bar.growDelay + 'ms' : null"
+            >
+              @for (layer of bar.layers; track layer.series.name) {
+                <path [attr.d]="layer.path" [attr.fill]="layer.series.color" />
+              }
+            </g>
+          }
         } @else {
           <rect
             class="dash"

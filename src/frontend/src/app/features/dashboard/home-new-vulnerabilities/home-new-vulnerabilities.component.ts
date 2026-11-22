@@ -115,7 +115,7 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
 
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help = `
-    <p class="mb-2">The <strong>active vulnerabilities first seen in the window</strong> (since the last visit, or the history window), in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar. A row is a vulnerability id with one package.</p>
+    <p class="mb-2">The <strong>active vulnerabilities first seen in the window</strong> (since the previous visit, or the history window), in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar. A row is a vulnerability id with one package.</p>
     <p class="mb-2"><strong>Collapsed</strong>: the 5 rows that reach the most images. A click on a row expands the widget on its id.</p>
     <p class="mb-2"><strong>Expanded</strong>: on the left every row (up to 500; a click selects its id), on the right the namespaces and the images where the selected id runs, and its new packages as a graph (packages, images, namespaces). A click on a node of the graph selects it and shows its data.</p>
     <p class="mb-2"><strong>CVSS</strong> opens the CVE details, <strong>EPSS</strong> the exploit prediction score and <strong>KEV / EUVD</strong> the known exploited data (when the CVE is in one of them).</p>

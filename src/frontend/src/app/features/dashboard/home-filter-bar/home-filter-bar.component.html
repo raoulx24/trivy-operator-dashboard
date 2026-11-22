@@ -11,8 +11,9 @@
       panelStyleClass="tod-home-filter-panel"
       optionLabel="label"
       optionValue="value"
+      optionDisabled="disabled"
       ariaLabel="Window of the changes"
-      [options]="windowOptions"
+      [options]="windowOptions()"
       [ngModel]="windowMode()"
       (ngModelChange)="windowMode.set($event)"
     />

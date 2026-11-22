@@ -15,29 +15,23 @@
        (it sticks out of its top border) hangs into that gap -->
   <div class="flex items-stretch gap-4">
     <app-trivy-box [class]="showBoxes() || isLoadingBoxes() ? 'max-w-[55%]' : 'flex-1'">
-      @if (isLoadingDays()) {
-        <!-- about the size of the heatmap with its legend, so the box does not collapse while the days are asked -->
-        <p-skeleton height="9rem" />
-      } @else {
-        <app-activity-heatmap
-          [data]="chart().data"
-          [from]="chart().from"
-          [to]="today()"
-          [emphasis1Days]="visitDays()"
-          [emphasis2Days]="chart().flaggedDays"
-          valueLabel="images"
-          [valueHint]="valueHint()"
-          emphasis1Label="visits"
-          emphasis1Hint="Days you opened the home page (teal corner)."
-          emphasis2Label="exploited"
-          emphasis2Hint="Days when at least one of those images has a known exploited (KEV / EUVD) vulnerability now."
-          selectedLabel="selected"
-          selectedHint="The day that filters the boxes. Click it again to clear."
-          [selectableDays]="selectableDays()"
-          [selectedDay]="pivot.selection()?.day ?? null"
-          (daySelected)="onHeatmapDay($event)"
-        />
-      }
+      <app-activity-heatmap
+        [data]="heatmapData()"
+        [animate]="true"
+        [replay]="answers()"
+        [from]="chart().from"
+        [to]="today()"
+        valueLabel="images"
+        [valueHint]="valueHint()"
+        emphasis1Label="visits"
+        emphasis1Hint="Days you opened the home page (teal corner)."
+        emphasis2Label="exploited"
+        emphasis2Hint="Days when at least one of those images has a known exploited (KEV / EUVD) vulnerability now."
+        selectedLabel="selected"
+        selectedHint="The day that filters the boxes. Click it again to clear."
+        [selectedDay]="pivot.selection()?.day ?? null"
+        (daySelected)="onHeatmapDay($event)"
+      />
     </app-trivy-box>
 
     @if (isLoadingBoxes()) {

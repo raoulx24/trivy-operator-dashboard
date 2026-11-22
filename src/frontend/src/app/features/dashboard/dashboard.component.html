@@ -2,6 +2,7 @@
   <app-home-filter-bar
     [namespaceOptions]="namespaceOptions()"
     [sinceLabel]="sinceLabel()"
+    [hasPreviousVisit]="lastVisitUtc !== undefined"
     [(windowMode)]="windowMode"
     [(severityIds)]="severityIds"
     [(namespaces)]="namespaces"

@@ -2,6 +2,9 @@ export type ScatterShape = 'circle' | 'diamond' | 'square' | 'triangle' | 'cross
 
 // one point; T is whatever the owner wants back about it (the selection returns it as it is)
 export interface ScatterPoint<T = unknown> {
+  // the identity of the point across new data (e.g. an id): a point whose id was there stays (and moves if its position
+  // changed), a new id fades in and a missing one fades out; none = the index in the input
+  id?: string;
   // data coordinates
   x: number;
   y: number;
@@ -63,12 +66,17 @@ export interface ScatterPointView<T = unknown> {
   // px, in the svg
   px: number;
   py: number;
+  // the shape, around (0, 0): the element is moved to px, py (so it can glide when its position changes)
   path: string;
   color: string | null;
   centerColor: string | null;
   selected: boolean;
   // there is a selection and the point is not in it
   dimmed: boolean;
+  // the identity of the element: the id of the point, else its index
+  key: string;
+  // ms after which a new point fades in (animate); null: it was there before (or no animation)
+  litDelay: number | null;
 }
 
 export interface ScatterTick {

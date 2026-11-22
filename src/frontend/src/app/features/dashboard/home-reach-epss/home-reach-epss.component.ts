@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { StepSelectComponent } from '@shared/ui/step-select/step-select.component';
 import { TagModule } from 'primeng/tag';
@@ -113,7 +113,14 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
     { label: 'not known exploited', shape: 'circle', color: 'var(--p-text-muted-color)' },
   ];
 
-  private readonly items = computed(() => this.data.value()?.items ?? []);
+  // the answer on screen: the last one that arrived, kept while the next one is asked (the points are not taken away and
+  // brought back on a reload)
+  private readonly answer = linkedSignal<ReturnType<typeof this.data.value>, ReturnType<typeof this.data.value>>({
+    source: this.data.value,
+    computation: (value, previous) => value ?? previous?.value,
+  });
+
+  private readonly items = computed(() => this.answer()?.items ?? []);
 
   protected readonly points = computed<ScatterPoint<HomeReachEpssItemDto>[]>(() =>
     // the known exploited ids last: they are drawn on top of the others
@@ -128,6 +135,8 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
         shape: item.isKnownExploited ? 'cross' : 'circle',
         // a known exploited id: a lighter dot of its color in the middle of the cross
         centerColor: item.isKnownExploited ? SeverityUtils.getCssColorLight(item.severityId) : undefined,
+        // the identity across answers: a point that is still there stays (and moves), a new one fades in, a gone one fades out
+        id: item.vulnerabilityId,
         label: item.vulnerabilityId,
         data: item,
       })),

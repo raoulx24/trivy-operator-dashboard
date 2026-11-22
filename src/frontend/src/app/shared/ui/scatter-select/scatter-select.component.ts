@@ -42,6 +42,8 @@ const CROSS_REACH = 2;
 // half the thickness of an arm of the cross, and the radius of the dot in the middle, as shares of the radius
 const CROSS_ARM = 0.75;
 const CENTER_DOT = 0.55;
+// the longest a point takes to fade in (ms)
+const MAX_FADE = 300;
 
 const compact = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 2 });
 
@@ -58,6 +60,9 @@ interface Scale {
 //   replaces the previous one; shift / ctrl / cmd adds one. A click on the plot without a drag clears
 // - selectionChanged: the union of the regions (the points inside, their indexes, the polygons in data coordinates);
 //   empty after a clear
+// - animate: the points of the first data fade in from nothing one by one, in a random order, all within animationDuration
+//   (ms) in total. New data is merged by the id of the points (else their index): a point that was there stays, and glides
+//   to its new position if it moved; a new one fades in; one that is gone fades out. The axes are always there
 // - the width follows the host; the height is height
 @Component({
   selector: 'app-scatter-select',
@@ -79,6 +84,10 @@ export class ScatterSelectComponent<T = unknown> {
   // 0..1; crowded areas show darker. The points in the selection are always opaque
   pointOpacity = input<number>(0.75);
   showTicks = input<boolean>(true);
+
+  // the points fade in (new ones) and out (gone ones) when the data is received; the first data takes animationDuration ms
+  animate = input<boolean>(false);
+  animationDuration = input<number>(800);
 
   selectable = input<boolean>(true);
   // replaces the default popover; its context is a ScatterTipContext
@@ -114,6 +123,39 @@ export class ScatterSelectComponent<T = unknown> {
     });
   }
 
+  // how long one point takes to fade in (the last one starts at animationDuration minus this, so everything is done within
+  // animationDuration)
+  protected readonly fade = computed(() => Math.min(MAX_FADE, Math.max(0, this.animationDuration())));
+
+  // the merge of the new points with the ones before (see the header): when the points change, which keys are new (with the
+  // delay of their fade in, a random order spread over the time left after the fade of the last one) and which are gone
+  // (they are drawn, fading out, until the next change). It is memoized: a selection or a resize does not run it again
+  private previous = new Map<string, ScatterPoint<T>>();
+  private readonly merge = computed(() => {
+    const points = this.points();
+    const animate = this.animate();
+    const current = new Map<string, ScatterPoint<T>>(points.map((p, i) => [this.keyOf(p, i), p]));
+    const before = this.previous;
+    this.previous = current;
+    if (!animate) return { enter: new Map<string, number>(), leaving: [] as { key: string; point: ScatterPoint<T> }[] };
+
+    const entering = [...current.keys()].filter((key) => !before.has(key));
+    // Fisher-Yates
+    for (let i = entering.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [entering[i], entering[j]] = [entering[j], entering[i]];
+    }
+
+    const spread = Math.max(0, this.animationDuration() - this.fade());
+    const enter = new Map(entering.map((key, i) => [key, entering.length > 1 ? (i / (entering.length - 1)) * spread : 0]));
+    const leaving = [...before].filter(([key]) => !current.has(key)).map(([key, point]) => ({ key, point }));
+    return { enter, leaving };
+  });
+
+  private keyOf(point: ScatterPoint<T>, index: number): string {
+    return point.id ?? `#${index}`;
+  }
+
   protected readonly plot = computed(() => ({
     left: MARGIN.left,
     right: Math.max(MARGIN.left + 1, this.width() - MARGIN.right),
@@ -144,6 +186,32 @@ export class ScatterSelectComponent<T = unknown> {
   protected readonly xTicks = computed<ScatterTick[]>(() => this.ticksOf(this.xAxis(), this.xScale()));
   protected readonly yTicks = computed<ScatterTick[]>(() => this.ticksOf(this.yAxis(), this.yScale()));
 
+  // the same merge for the ticks of an axis (by value): a tick that was there slides to its new place when the scale changes, a
+  // new one fades in, a gone one fades out where it was (until the next change); none of it on the first ticks
+  private previousX = new Map<number, ScatterTick>();
+  private previousY = new Map<number, ScatterTick>();
+
+  private mergeTicks(current: ScatterTick[], previous: Map<number, ScatterTick>) {
+    const keys = new Set(current.map((t) => t.value));
+    const animate = this.animate() && previous.size > 0;
+    return {
+      entering: new Set(animate ? current.filter((t) => !previous.has(t.value)).map((t) => t.value) : []),
+      leaving: animate ? [...previous.values()].filter((t) => !keys.has(t.value)) : [],
+    };
+  }
+
+  protected readonly xTickMerge = computed(() => {
+    const merge = this.mergeTicks(this.xTicks(), this.previousX);
+    this.previousX = new Map(this.xTicks().map((t) => [t.value, t]));
+    return merge;
+  });
+
+  protected readonly yTickMerge = computed(() => {
+    const merge = this.mergeTicks(this.yTicks(), this.previousY);
+    this.previousY = new Map(this.yTicks().map((t) => [t.value, t]));
+    return merge;
+  });
+
   // the regions in px
   private readonly regionsPx = computed<ScatterVertex[][]>(() => {
     const x = this.xScale();
@@ -166,6 +234,7 @@ export class ScatterSelectComponent<T = unknown> {
     const r = this.pointRadius();
     const polygons = this.regionsPx();
     const hasSelection = polygons.length > 0;
+    const enter = this.merge().enter;
 
     return this.points().map((point, index) => {
       const px = x.toPx(point.x);
@@ -176,11 +245,13 @@ export class ScatterSelectComponent<T = unknown> {
         point,
         px,
         py,
-        path: shapePath(point.shape ?? 'circle', px, py, r),
+        path: shapePath(point.shape ?? 'circle', 0, 0, r),
         color: point.color ?? null,
         centerColor: point.centerColor ?? null,
         selected,
         dimmed: hasSelection && !selected,
+        key: this.keyOf(point, index),
+        litDelay: enter.get(this.keyOf(point, index)) ?? null,
       };
     });
   });
@@ -196,7 +267,22 @@ export class ScatterSelectComponent<T = unknown> {
     if (!view) return undefined;
     return view.point.shape === 'cross'
       ? shapePath('circle', view.px, view.py, this.pointRadius() * CROSS_REACH + 2)
-      : view.path;
+      : shapePath(view.point.shape ?? 'circle', view.px, view.py, this.pointRadius());
+  });
+
+  // the points that are gone, fading out where they were (until the next change of the points)
+  protected readonly leavingViews = computed(() => {
+    const x = this.xScale();
+    const y = this.yScale();
+    const r = this.pointRadius();
+
+    return this.merge().leaving.map(({ key, point }) => ({
+      key,
+      px: x.toPx(point.x),
+      py: y.toPx(point.y),
+      path: shapePath(point.shape ?? 'circle', 0, 0, r),
+      color: point.color ?? null,
+    }));
   });
 
   protected readonly centerRadius = computed(() => this.pointRadius() * CENTER_DOT);

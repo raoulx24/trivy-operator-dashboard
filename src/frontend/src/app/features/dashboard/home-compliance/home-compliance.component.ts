@@ -48,7 +48,7 @@ export class HomeComplianceComponent extends HomeWidgetBase {
   protected readonly help = `
     <p class="mb-2">One ring per <strong>cluster compliance report</strong> (CIS, NSA, PSS...): the <strong>percent of its controls that pass</strong>, i.e. pass / (pass + fail) as the summary of the report counts them. A report without controls has no ring.</p>
     <p class="mb-2"><strong>Click a ring</strong> to see the <strong>worst failing controls</strong> of that report: the ones with the most failing checks first, then the most severe; the five worst are shown, the rest is counted. The link opens the compliance reports.</p>
-    <p class="mb-0 tod-text-muted-color">Not filtered: the reports are about the cluster, not about the namespaces. There is no change since the last visit, because the compliance reports have no history yet.</p>
+    <p class="mb-0 tod-text-muted-color">Not filtered: the reports are about the cluster, not about the namespaces. There is no change since the previous visit, because the compliance reports have no history yet.</p>
   `;
 
   private readonly reports = rxResource({

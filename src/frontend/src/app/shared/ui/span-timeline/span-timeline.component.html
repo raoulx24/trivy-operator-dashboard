@@ -36,7 +36,7 @@
   <div [style.height.px]="rowsViewHeight()">
     <app-scroller direction="vertical" class="block h-full">
       <div>
-        <svg aria-label="Timeline" role="img" class="timeline" [attr.height]="rowsBottom()" [attr.width]="viewWidth()">
+        <svg aria-label="Timeline" role="img" class="timeline" [style.--grow-time]="grow() + 'ms'" [attr.height]="rowsBottom()" [attr.width]="viewWidth()">
           @if (referenceX() !== null) {
             <line y1="0" class="reference" [attr.x1]="referenceX()" [attr.x2]="referenceX()" [attr.y2]="rowsBottom()" />
           }
@@ -74,26 +74,37 @@
                 [attr.y]="(rowHeight - barHeight) / 2"
                 [class.faint]="bar.row.faint"
               />
-              <rect
-                rx="6"
-                class="bar"
-                [attr.height]="barHeight"
-                [attr.width]="bar.width"
-                [attr.x]="bar.x"
-                [attr.y]="(rowHeight - barHeight) / 2"
-                [class.faint]="bar.row.faint"
-                [style.fill]="bar.color"
-              />
-              @if (bar.row.valueLabel) {
-                <text
-                  dominant-baseline="central"
-                  text-anchor="end"
-                  class="row-value tod-chart-label"
-                  [attr.x]="valueX()"
-                  [attr.y]="rowHeight / 2"
+              <!-- a bar with new data is re-created (a loop of one), so that its growth runs again when the data is received -->
+              @for (key of [bar.key]; track key) {
+                <g
+                  class="bar-group"
+                  [class.grows]="bar.growDelay !== null"
+                  [style.--grow-delay]="bar.growDelay !== null ? bar.growDelay + 'ms' : null"
                 >
-                  {{ bar.row.valueLabel }}
-                </text>
+                  <rect
+                    rx="6"
+                    class="bar"
+                    [attr.height]="barHeight"
+                    [attr.width]="bar.width"
+                    [attr.x]="bar.x"
+                    [attr.y]="(rowHeight - barHeight) / 2"
+                    [class.faint]="bar.row.faint"
+                    [style.fill]="bar.color"
+                  />
+                </g>
+                @if (bar.row.valueLabel) {
+                  <text
+                    dominant-baseline="central"
+                    text-anchor="end"
+                    class="row-value tod-chart-label"
+                    [class.grows]="bar.growDelay !== null"
+                    [style.--grow-delay]="bar.growDelay !== null ? bar.growDelay + 'ms' : null"
+                    [attr.x]="valueX()"
+                    [attr.y]="rowHeight / 2"
+                  >
+                    {{ bar.row.valueLabel }}
+                  </text>
+                }
               }
               <!-- the whole row reacts: the popover of the row and the selection; the markers are drawn after it, so they win -->
               <rect
@@ -107,9 +118,12 @@
                 (mouseleave)="popover.hide()"
                 (mousemove)="popover.move($event)"
               />
+              @for (key of [bar.key]; track key) {
               @for (marker of bar.markers; track $index) {
                 <g
                   class="marker kind-{{ marker.kind }}"
+                  [class.grows]="bar.growDelay !== null"
+                  [style.--grow-delay]="bar.growDelay !== null ? bar.growDelay + 'ms' : null"
                   [attr.transform]="'translate(' + marker.x + ',' + rowHeight / 2 + ')'"
                   [style.--span-marker-color]="marker.color"
                   (click)="select(bar.row)"
@@ -131,6 +145,7 @@
                     }
                   }
                 </g>
+              }
               }
             </g>
           }

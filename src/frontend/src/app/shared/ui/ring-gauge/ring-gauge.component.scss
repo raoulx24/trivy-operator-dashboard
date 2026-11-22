@@ -42,8 +42,50 @@ svg {
   stroke: var(--tod-ring-gauge-track);
 }
 
+// the arc starts at the top and runs clockwise: the circle starts at 3 o'clock, so it is turned by -90 degrees around the
+// centre of the viewBox (the origin in user units)
 .arc {
   fill: none;
+  transform-origin: 50px 50px;
+  transform: rotate(-90deg);
+  stroke-dasharray: calc(var(--arc-length) * 1px) 100px;
+}
+
+// the growth (animate): the arc grows from its middle to both ends, so as it grows it turns from the middle of the final arc
+// (--arc-from) to the top; the centre text fades in with it. Before the delay it is not there (fill-mode backwards)
+@keyframes ring-grow {
+  from {
+    stroke-dasharray: 0px 100px;
+    transform: rotate(var(--arc-from));
+  }
+  to {
+    stroke-dasharray: calc(var(--arc-length) * 1px) 100px;
+    transform: rotate(-90deg);
+  }
+}
+
+@keyframes ring-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.arc.grows {
+  animation: ring-grow var(--grow-time) ease-out var(--grow-delay) backwards;
+}
+
+.center.grows {
+  animation: ring-fade var(--grow-time) ease-out var(--grow-delay) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arc.grows,
+  .center.grows {
+    animation: none;
+  }
 }
 
 .center {

@@ -9,6 +9,7 @@ import { LaneStripLane, LaneStripSelection } from '@shared/ui/lane-strip/lane-st
 import { LayeredGraphComponent } from '@shared/ui/layered-graph/layered-graph.component';
 import { LayeredGraphColumn, LayeredGraphEdge, LayeredGraphNode } from '@shared/ui/layered-graph/layered-graph.types';
 import { MatrixHeatmapComponent } from '@shared/ui/matrix-heatmap/matrix-heatmap.component';
+import { MatrixHeatmapRowDto } from '@shared/ui/matrix-heatmap/matrix-heatmap.types';
 import { NetworkFillComponent } from '@shared/ui/network-fill/network-fill.component';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
@@ -73,23 +74,40 @@ export class TestsComponent {
   protected readonly fillSeed = (name: string) => `playground ${name}`;
 
   // activity-heatmap
-  protected readonly activityData: ActivityHeatmapDayDto[] = (() => {
-    const random = seeded(7);
+  private activitySeed = 7;
+  protected readonly activityData = signal<ActivityHeatmapDayDto[]>(this.buildActivity(this.activitySeed));
 
-    return Array.from({ length: 150 }, (_, i) => ({
-      day: isoDay(i - 149),
-      value: random() < 0.3 ? 0 : Math.ceil(random() * 12),
-    }));
-  })();
-  // the days with a value can be clicked
-  protected readonly activitySelectableDays = this.activityData.filter((d) => d.value > 0).map((d) => d.day);
-  protected readonly activityEmphasis1 = [isoDay(-3), isoDay(-20), isoDay(-45)];
-  protected readonly activityEmphasis2 = [isoDay(-1), isoDay(-60)];
+  // new data for the heatmap (it lights the cells on again)
+  protected reloadActivity(): void {
+    this.activityData.set(this.buildActivity(++this.activitySeed));
+  }
+
+  private buildActivity(seed: number): ActivityHeatmapDayDto[] {
+    const random = seeded(seed);
+    const emphasis1 = [isoDay(-3), isoDay(-20), isoDay(-45)];
+    const emphasis2 = [isoDay(-1), isoDay(-60)];
+
+    return Array.from({ length: 150 }, (_, i) => {
+      const day = isoDay(i - 149);
+      const value = random() < 0.3 ? 0 : Math.ceil(random() * 12);
+      // the days with a value can be clicked
+      return { day, value, emphasis1: emphasis1.includes(day), emphasis2: emphasis2.includes(day), selectable: value > 0 };
+    });
+  }
   protected readonly activitySelectedDay = signal<string | null>(isoDay(-20));
 
   // eol-runway
   protected readonly today = isoDay(0);
-  protected readonly eolItems: EolRunwayItem[] = [
+  private eolImages = 0;
+  protected readonly eolItems = signal<EolRunwayItem[]>(this.buildEol());
+
+  // new data for the runway (the bars grow again)
+  protected reloadEol(): void {
+    this.eolItems.set(this.buildEol(++this.eolImages));
+  }
+
+  private buildEol(extra = 0): EolRunwayItem[] {
+    return [
     { label: 'Debian 10', eolFrom: isoDay(-400), eoasFrom: isoDay(-700), images: 3 },
     { label: 'Ubuntu 20.04', eolFrom: isoDay(-60), eoasFrom: isoDay(-300), images: 12 },
     { label: 'Alpine 3.17', eolFrom: isoDay(25), images: 5 },
@@ -97,7 +115,8 @@ export class TestsComponent {
     { label: 'Ubuntu 22.04', eolFrom: isoDay(500), eoasFrom: isoDay(200), images: 34 },
     // beyond the window of the runway (3 years after today by default), so its bar overflows
     { label: 'Alpine 3.20', eolFrom: '2032-06-30', images: 8 },
-  ];
+    ].map((x) => ({ ...x, images: x.images + extra }));
+  }
 
   // lane-strip
   protected readonly laneColumns = Array.from({ length: LANE_DAYS }, (_, i) => isoDay(i - (LANE_DAYS - 1)));
@@ -165,15 +184,23 @@ export class TestsComponent {
   protected readonly graphSelected = signal<string | null>('i3');
 
   // matrix-heatmap
-  protected readonly matrixRows = ['Critical', 'High', 'Medium', 'Low'];
   protected readonly matrixColumns = ['prod', 'stage', 'dev', 'infra', 'tools'];
-  protected readonly matrixValues: (number | null)[][] = (() => {
-    const random = seeded(23);
+  private matrixSeed = 23;
+  protected readonly matrixData = signal<MatrixHeatmapRowDto[]>(this.buildMatrix(this.matrixSeed));
 
-    return this.matrixRows.map((_, row) =>
-      this.matrixColumns.map(() => (random() < 0.15 ? null : Math.round(random() * (40 - row * 8)))),
-    );
-  })();
+  // new data for the matrix heatmap (it lights the cells on again)
+  protected reloadMatrix(): void {
+    this.matrixData.set(this.buildMatrix(++this.matrixSeed));
+  }
+
+  private buildMatrix(seed: number): MatrixHeatmapRowDto[] {
+    const random = seeded(seed);
+
+    return ['Critical', 'High', 'Medium', 'Low'].map((label, row) => ({
+      label,
+      cells: this.matrixColumns.map(() => ({ value: random() < 0.15 ? null : Math.round(random() * (40 - row * 8)) })),
+    }));
+  }
 
   // meter-group
   protected readonly meterMix: MeterGroupSegment[] = [
@@ -196,18 +223,45 @@ export class TestsComponent {
   protected readonly ringSelected = signal<string | undefined>('exposed');
 
   // scatter-select
-  protected readonly scatterPoints: ScatterPoint[] = (() => {
-    const random = seeded(31);
-    const groups = [
-      { color: '#c0392b', shape: 'circle' as const },
-      { color: '#e67e22', shape: 'diamond' as const },
-      { color: '#3b82c4', shape: 'square' as const },
-    ];
+  private readonly scatterGroups = [
+    { color: '#c0392b', shape: 'circle' as const },
+    { color: '#e67e22', shape: 'diamond' as const },
+    { color: '#3b82c4', shape: 'square' as const },
+  ];
+
+  private scatterSeed = 31;
+  protected readonly scatterPoints = signal<ScatterPoint[]>(this.buildScatter(this.scatterSeed));
+
+  // new data for the scatter: most points stay (some moved), some are gone, some are new (the merge by id)
+  protected reloadScatter(): void {
+    const random = seeded(++this.scatterSeed);
+    const groups = this.scatterGroups;
+
+    const kept = this.scatterPoints()
+      .filter(() => random() > 0.15)
+      .map((p) => (random() < 0.3 ? { ...p, x: Math.max(1, Math.round(p.x * (0.6 + random() * 0.8))) } : p));
+    const added = Array.from({ length: 12 }, (_, i) => {
+      const group = groups[i % groups.length];
+      return {
+        id: `new-${this.scatterSeed}-${i}`,
+        x: Math.round(1 + random() * random() * 900),
+        y: Math.round((2 + random() * 8) * 10) / 10,
+        color: group.color,
+        shape: group.shape,
+        label: `CVE-2026-${this.scatterSeed}${i}`,
+      };
+    });
+    this.scatterPoints.set([...kept, ...added]);
+  }
+
+  private buildScatter(seed: number): ScatterPoint[] {
+    const random = seeded(seed);
 
     return Array.from({ length: 90 }, (_, i) => {
-      const group = groups[i % groups.length];
+      const group = this.scatterGroups[i % this.scatterGroups.length];
 
       return {
+        id: `cve-${i}`,
         x: Math.round(1 + random() * random() * 900),
         y: Math.round((2 + random() * 8) * 10) / 10,
         color: group.color,
@@ -215,7 +269,7 @@ export class TestsComponent {
         label: `CVE-2025-${1000 + i}`,
       };
     });
-  })();
+  }
   protected readonly scatterLegend: ScatterLegendItem[] = [
     { label: 'Backend', color: '#c0392b', shape: 'circle' },
     { label: 'Frontend', color: '#e67e22', shape: 'diamond' },

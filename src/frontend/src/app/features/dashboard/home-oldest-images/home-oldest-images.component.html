@@ -19,12 +19,13 @@
         <div class="flex flex-wrap items-baseline gap-x-2">
           <span class="text-3xl font-semibold">{{ daysLabel(oldestDays()) }}</span>
           <span class="tod-text-muted-color">
-            oldest; {{ oldCount() }} {{ oldCount() === 1 ? 'image' : 'images' }} over {{ oldDays }}d
+            oldest; <span class="tod-headline-num">{{ oldCount() }}</span> {{ oldCount() === 1 ? 'image' : 'images' }} over {{ oldDays }}d
           </span>
         </div>
 
         <!-- the oldest images; a click on one expands the widget on it -->
         <app-span-timeline
+          [animate]="true"
           [labelWidth]="170"
           [max]="timelineMax()"
           [referenceAt]="referenceAt()"

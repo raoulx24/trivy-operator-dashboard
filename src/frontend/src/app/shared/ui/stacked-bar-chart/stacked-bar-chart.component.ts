@@ -27,12 +27,17 @@ const BAR_RADIUS = 3;
 const TRACK_RADIUS = 4;
 // the dash of a column without a value
 const DASH_HEIGHT = 2;
+// the longest a bar takes to grow (ms)
+const MAX_GROW = 500;
 
 // a column chart drawn in svg: one bar per column, each bar stacked by series (the first series at the bottom)
 // - everything comes from the inputs: columns (label + one value per series), series (name + color)
 // - the bars share one scale: the largest total is the full height; a column without a value is a dash on the baseline
 // - highlightFrom (optional) puts a track behind the columns from that index to the end
 // - the popover shows the label, the total and the layers of the column (heatmap-style: it follows the mouse)
+// - animate: when new data arrives the bars grow up from the baseline, one after the other in a random order of columns, all
+//   within animationDuration (ms) in total; the same data does not play again (a resize does not); the dashes of the
+//   columns without a value and the highlight are always there
 // - the control does not know what the columns or the series mean
 @Component({
   selector: 'app-stacked-bar-chart',
@@ -46,6 +51,13 @@ export class StackedBarChartComponent {
   series = input<StackedBarSeries[]>([]);
   // the first column of the highlighted range (to the end); null = no highlight
   highlightFrom = input<number | null>(null);
+
+  // the bars grow when the data is received; the whole animation takes animationDuration ms
+  animate = input<boolean>(false);
+  animationDuration = input<number>(900);
+  // anything that changes when the owner receives data again: the animation plays again for the same data too (e.g. a
+  // refresh); without it only changed data plays
+  replay = input<unknown>(undefined);
 
   // px
   height = input<number>(56);
@@ -82,6 +94,36 @@ export class StackedBarChartComponent {
     });
   }
 
+  // how long one bar takes to grow (the last one starts at animationDuration minus this, so everything is done within
+  // animationDuration)
+  protected readonly grow = computed(() => Math.min(MAX_GROW, Math.max(0, this.animationDuration())));
+
+  // what the growth depends on: the values and the colors (not the width); the delays are kept while it is unchanged, as a
+  // changed delay would restart the growth of a bar that has already grown
+  private delayCache?: { key: string; id: number; delays: Map<number, number> };
+  private delayCacheId = 0;
+
+  // per column, in ms: a random order of the columns with a value, evenly spread over the time left after the growth of the
+  // last one
+  private delaysOf(columns: StackedBarColumn[], series: StackedBarSeries[], key: string) {
+    if (this.delayCache?.key === key) return this.delayCache;
+
+    const order = columns
+      .map((column, i) => ({ i, total: series.reduce((sum, _, s) => sum + Math.max(0, column.values[s] ?? 0), 0) }))
+      .filter((x) => x.total > 0)
+      .map((x) => x.i);
+    // Fisher-Yates
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    const spread = Math.max(0, this.animationDuration() - this.grow());
+    const delays = new Map(order.map((column, i) => [column, order.length > 1 ? (i / (order.length - 1)) * spread : 0]));
+    this.delayCache = { key, id: ++this.delayCacheId, delays };
+    return this.delayCache;
+  }
+
   protected readonly bars = computed<StackedBarBar[]>(() => {
     const series = this.series();
     const columns = this.columns();
@@ -92,6 +134,13 @@ export class StackedBarChartComponent {
 
     const totals = columns.map((column) => series.reduce((sum, _, i) => sum + Math.max(0, column.values[i] ?? 0), 0));
     const max = Math.max(0, ...totals);
+    const dataKey = JSON.stringify([
+      this.animationDuration(),
+      this.replay(),
+      series.map((s) => s.color),
+      columns.map((c) => [c.label, c.values]),
+    ]);
+    const lit = this.animate() ? this.delaysOf(columns, series, dataKey) : undefined;
 
     return columns.map((column, index) => {
       const values = series
@@ -115,6 +164,8 @@ export class StackedBarChartComponent {
         width: slot,
         layers,
         highlighted: from !== null && index >= from,
+        key: `${lit?.id ?? 0}|${index}`,
+        growDelay: lit?.delays.get(index) ?? null,
       };
     });
   });

@@ -33,6 +33,26 @@
   filter: brightness(1.2) saturate(1.1);
 }
 
+// the growth (animate): the bar grows up from the baseline (scaled in height around the y of the baseline, in the units of the
+// svg) after --grow-delay, taking --grow-time; before that it is not there (fill-mode backwards)
+@keyframes stacked-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.bar.grows {
+  transform-origin: 0 var(--chart-height);
+  animation: stacked-grow var(--grow-time) ease-out var(--grow-delay) backwards;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 // no value: a dash on the baseline
 .dash {
   fill: var(--tod-stacked-bar-empty);

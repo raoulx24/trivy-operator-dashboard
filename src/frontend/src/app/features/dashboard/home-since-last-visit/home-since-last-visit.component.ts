@@ -206,7 +206,7 @@ export class HomeSinceLastVisitComponent extends HomeWidgetBase {
     }
     const days = Math.round((Date.parse(this.today()) - Date.parse(lastVisit)) / 86_400_000);
 
-    return `last visit ${days === 1 ? 'yesterday' : `${days} days ago`}`;
+    return `previous visit ${days === 1 ? 'yesterday' : `${days} days ago`}`;
   });
 
   protected onRefresh(): void {

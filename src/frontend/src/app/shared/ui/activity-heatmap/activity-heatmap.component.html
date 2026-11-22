@@ -1,7 +1,8 @@
 <app-scroller class="block" startAt="end">
   @if (weeks().length > 0) {
-    <svg class="heatmap" [attr.width]="width()" [attr.height]="height()" role="img">
-      @for (week of weeks(); track week.x) {
+    <svg class="heatmap" [style.--lit-fade]="fade() + 'ms'" [attr.width]="width()" [attr.height]="height()" role="img">
+      <!-- a week with new data is re-created, so that its animation runs again when the data is received -->
+      @for (week of weeks(); track week.key) {
         <g [attr.transform]="'translate(' + week.x + ',0)'">
           @if (showWeekLabels()) {
             <text class="week-label tod-chart-label" x="0" [attr.y]="labelBaseline">
@@ -14,6 +15,9 @@
               [class.selectable]="cell.selectable"
               [class.selected]="cell.selected"
               [class.inactive]="cell.inactive"
+              [class.lit]="cell.litDelay !== null"
+              [class.has-value]="cell.level > 0"
+              [style.--lit-delay]="cell.litDelay !== null ? cell.litDelay + 'ms' : null"
               (click)="onCellClick(cell)"
               (mouseenter)="popover.show(tip, $event, cell)"
               (mousemove)="popover.move($event)"

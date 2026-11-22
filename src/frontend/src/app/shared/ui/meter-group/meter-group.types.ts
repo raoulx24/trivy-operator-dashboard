@@ -16,6 +16,10 @@ export interface MeterGroupBar {
   sharePercent: number;
   // the value fits in the segment
   showValue: boolean;
+  // the segment with the data it was made of: a segment with new data is a new element, so its growth runs again
+  key: string;
+  // ms after which the segment starts to grow (animate); null: not animated
+  growDelay: number | null;
 }
 
 // the context of the popover of a segment

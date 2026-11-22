@@ -26,7 +26,9 @@
 
 .point {
   fill: var(--p-primary-color);
+  // the shapes are drawn around (0, 0) and moved by transform: a point whose position changed glides
   transition:
+    transform 400ms ease-in-out,
     fill-opacity 180ms ease-in-out,
     filter 180ms ease-in-out;
 
@@ -57,6 +59,81 @@
 
   &.draft {
     stroke-dasharray: 4 3;
+  }
+}
+
+// the animation of the data received (animate), as in the heatmaps: a new point fades in (opacity only: the fill-opacity of
+// the selection is another property) after its --fade-delay, taking --fade-time; before that it is not there (fill-mode
+// backwards: the dimmed centre dot keeps its own opacity afterwards). A point that is gone fades out and stays invisible
+@keyframes scatter-lit {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scatter-gone {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.point.lit,
+.point-center.lit {
+  animation: scatter-lit var(--fade-time) ease-out var(--fade-delay) backwards;
+}
+
+.point.leaving {
+  animation: scatter-gone var(--fade-time) ease-out forwards;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .point,
+  .point-center {
+    transition: none;
+  }
+
+  .point.lit,
+  .point-center.lit {
+    animation: none;
+  }
+
+  .point.leaving {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+// the ticks of the axes: moved by transform, so they slide when the scale changes; a new one fades in, a gone one fades out
+.tick {
+  transition: transform 400ms ease-in-out;
+
+  &.entering {
+    animation: scatter-lit var(--fade-time) ease-out backwards;
+  }
+
+  &.leaving-tick {
+    animation: scatter-gone var(--fade-time) ease-out forwards;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &.entering {
+      animation: none;
+    }
+
+    &.leaving-tick {
+      animation: none;
+      opacity: 0;
+    }
   }
 }
 
@@ -93,4 +170,5 @@
 
 .point-center {
   pointer-events: none;
+  transition: transform 400ms ease-in-out;
 }

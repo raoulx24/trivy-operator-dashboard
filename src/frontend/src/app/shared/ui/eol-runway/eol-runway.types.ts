@@ -21,6 +21,10 @@ export interface EolRunwayBar {
   overdueWidth: number;
   imagesLabel: string;
   tip: EolRunwayTip;
+  // the row with the data it was made of: a row with new data is a new element, so its growth runs again
+  key: string;
+  // ms after which the bar starts to grow (animate); null: not animated
+  growDelay: number | null;
 }
 
 // what the popover of a bar shows

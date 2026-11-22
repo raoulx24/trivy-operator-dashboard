@@ -5,6 +5,7 @@
     [class.drawing]="drawing()"
     [attr.width]="width()"
     [attr.height]="height()"
+    [style.--fade-time]="fade() + 'ms'"
     role="img"
     (pointerdown)="onPointerDown($event)"
     (pointermove)="onPointerMove($event)"
@@ -24,23 +25,30 @@
     <line class="axis" [attr.x1]="plot().left" [attr.y1]="plot().top" [attr.x2]="plot().left" [attr.y2]="plot().bottom" />
 
     @if (showTicks()) {
+      <!-- a tick is moved by transform: when the scale changes it slides (a new one fades in, a gone one fades out) -->
+      @for (tick of xTickMerge().leaving; track tick.value) {
+        <g class="tick leaving-tick" [style.transform]="'translate(' + tick.at + 'px,0)'">
+          <line class="axis" x1="0" x2="0" [attr.y1]="plot().bottom" [attr.y2]="plot().bottom + 4" />
+          <text class="tod-chart-label" text-anchor="middle" x="0" [attr.y]="plot().bottom + 17">{{ tick.text }}</text>
+        </g>
+      }
       @for (tick of xTicks(); track tick.value) {
-        <line class="axis" [attr.x1]="tick.at" [attr.x2]="tick.at" [attr.y1]="plot().bottom" [attr.y2]="plot().bottom + 4" />
-        <text class="tod-chart-label" text-anchor="middle" [attr.x]="tick.at" [attr.y]="plot().bottom + 17">
-          {{ tick.text }}
-        </text>
+        <g class="tick" [class.entering]="xTickMerge().entering.has(tick.value)" [style.transform]="'translate(' + tick.at + 'px,0)'">
+          <line class="axis" x1="0" x2="0" [attr.y1]="plot().bottom" [attr.y2]="plot().bottom + 4" />
+          <text class="tod-chart-label" text-anchor="middle" x="0" [attr.y]="plot().bottom + 17">{{ tick.text }}</text>
+        </g>
+      }
+      @for (tick of yTickMerge().leaving; track tick.value) {
+        <g class="tick leaving-tick" [style.transform]="'translate(0,' + tick.at + 'px)'">
+          <line class="axis" [attr.x1]="plot().left - 4" [attr.x2]="plot().left" y1="0" y2="0" />
+          <text class="tod-chart-label" text-anchor="end" dominant-baseline="central" [attr.x]="plot().left - 8" y="0">{{ tick.text }}</text>
+        </g>
       }
       @for (tick of yTicks(); track tick.value) {
-        <line class="axis" [attr.x1]="plot().left - 4" [attr.x2]="plot().left" [attr.y1]="tick.at" [attr.y2]="tick.at" />
-        <text
-          class="tod-chart-label"
-          text-anchor="end"
-          dominant-baseline="central"
-          [attr.x]="plot().left - 8"
-          [attr.y]="tick.at"
-        >
-          {{ tick.text }}
-        </text>
+        <g class="tick" [class.entering]="yTickMerge().entering.has(tick.value)" [style.transform]="'translate(0,' + tick.at + 'px)'">
+          <line class="axis" [attr.x1]="plot().left - 4" [attr.x2]="plot().left" y1="0" y2="0" />
+          <text class="tod-chart-label" text-anchor="end" dominant-baseline="central" [attr.x]="plot().left - 8" y="0">{{ tick.text }}</text>
+        </g>
       }
     }
 
@@ -57,9 +65,18 @@
       <path class="region" [attr.d]="path" />
     }
 
-    @for (view of views(); track view.index) {
+    <!-- the points that are gone: they fade out where they were -->
+    @for (gone of leavingViews(); track gone.key) {
+      <path class="point leaving" [attr.d]="gone.path" [style.fill]="gone.color" [style.transform]="'translate(' + gone.px + 'px,' + gone.py + 'px)'" />
+    }
+
+    <!-- a point is the same element while its id is: it moves when its position changes, a new one fades in -->
+    @for (view of views(); track view.key) {
       <path
         class="point"
+        [class.lit]="view.litDelay !== null"
+        [style.--fade-delay]="view.litDelay !== null ? view.litDelay + 'ms' : null"
+        [style.transform]="'translate(' + view.px + 'px,' + view.py + 'px)'"
         [attr.data-index]="view.index"
         [class.dimmed]="view.dimmed"
         [attr.d]="view.path"
@@ -73,8 +90,11 @@
         <!-- the dot in the middle: it follows the point (dimmed with it) and lets the pointer through -->
         <circle
           class="point-center"
-          [attr.cx]="view.px"
-          [attr.cy]="view.py"
+          [class.lit]="view.litDelay !== null"
+          [style.--fade-delay]="view.litDelay !== null ? view.litDelay + 'ms' : null"
+          cx="0"
+          cy="0"
+          [style.transform]="'translate(' + view.px + 'px,' + view.py + 'px)'"
           [attr.r]="centerRadius()"
           [style.fill]="view.centerColor"
           [style.opacity]="view.dimmed ? 0.18 : 1"

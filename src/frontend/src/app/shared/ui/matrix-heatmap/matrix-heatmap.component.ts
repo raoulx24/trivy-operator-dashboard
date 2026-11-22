@@ -18,6 +18,7 @@ import { PopoverService } from '../popover/popover.service';
 import {
   MatrixHeatmapCell,
   MatrixHeatmapCellRef,
+  MatrixHeatmapRowDto,
   MatrixHeatmapClick,
   MatrixHeatmapColumnLabel,
   MatrixHeatmapRowLabel,
@@ -33,11 +34,16 @@ const ROW_LABEL_GAP = 8;
 const CELL_RADIUS = 6;
 // the legend swatches (px), as in the scss
 const LEGEND_SWATCH = 17;
+// the longest a cell takes to light on (ms)
+const MAX_FADE = 300;
 
 // a matrix heatmap drawn in svg: one cell per (row, column), shaded like the activity heatmap (quantile steps of the
 // non-zero values; zero or missing is empty)
-// - everything comes from the inputs: rows and columns (the labels) and values ([row][column])
-// - colors (optional, same shape as values) gives a cell its own css color instead of the shade
+// - everything comes from the inputs: the column labels, and the rows: a label and one cell per column (value, optional own
+//   css color instead of the shade, optional text color)
+// - animate: when new data arrives the cells with a value light on one by one, in a random order of place, all within
+//   animationDuration (ms) in total; data with the same values and colors does not play again (a change of the selected
+//   cell does not); the empty cells are always there
 // - the cell width follows the width of the host; the height is cellHeight
 // - selectable makes the cells with a value clickable (cellSelected); the selected cell (selectedCell) has a ring
 // - the popover shows the labels and the value (heatmap-style: it follows the mouse)
@@ -50,16 +56,17 @@ const LEGEND_SWATCH = 17;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatrixHeatmapComponent {
-  // the labels of the rows (left) and of the columns (top)
-  rows = input<string[]>([]);
+  // the labels of the columns (top)
   columns = input<string[]>([]);
-  // values[row][column]; null, undefined or 0 = empty
-  values = input<(number | null | undefined)[][]>([]);
-  // colors[row][column]: any css color; null or undefined = the shade of the value
-  colors = input<(string | null | undefined)[][] | undefined>(undefined);
-  // textColors[row][column]: the css color of the value on a cell (for cells with an own color); null or undefined = the
-  // one of the shade
-  textColors = input<(string | null | undefined)[][] | undefined>(undefined);
+  // the rows (the label on the left, a cell per column)
+  rows = input<MatrixHeatmapRowDto[]>([]);
+
+  // the cells light on when the data is received; the whole animation takes animationDuration ms
+  animate = input<boolean>(false);
+  animationDuration = input<number>(600);
+  // anything that changes when the owner receives data again: the animation plays again for the same data too (e.g. a
+  // refresh); without it only changed data plays
+  replay = input<unknown>(undefined);
 
   // px
   cellHeight = input<number>(36);
@@ -88,6 +95,9 @@ export class MatrixHeatmapComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly width = signal(0);
+  // how long one cell takes to light on (the last one starts at animationDuration minus this, so everything is done
+  // within animationDuration)
+  protected readonly fade = computed(() => Math.min(MAX_FADE, Math.max(0, this.animationDuration())));
   protected readonly cellRadius = CELL_RADIUS;
   protected readonly labelBaseline = LABEL_BASELINE;
   protected readonly legendSwatchSize = LEGEND_SWATCH;
@@ -110,8 +120,8 @@ export class MatrixHeatmapComponent {
 
   // the upper bounds of the quantile steps, distinct (fewer steps when the values have few distinct ones)
   private readonly thresholds = computed<number[]>(() => {
-    const all = this.values()
-      .flat()
+    const all = this.rows()
+      .flatMap((row) => row.cells.map((c) => c.value))
       .filter((v): v is number => typeof v === 'number' && v > 0)
       .sort((a, b) => a - b);
 
@@ -143,32 +153,63 @@ export class MatrixHeatmapComponent {
     return this.top() + count * (this.cellHeight() + this.cellGap()) - this.cellGap();
   });
 
+  // what the animation depends on: the values and colors, and the labels; the delays are kept while it is unchanged, as a
+  // changed delay would restart the animation of a cell that has already lit on
+  private delayCache?: { key: string; id: number; delays: Map<string, number> };
+  private delayCacheId = 0;
+
+  // per cell ("row-column"), in ms: a random order over the cells with a value, evenly spread over the time left after
+  // the fade of the last one
+  private delaysOf(rows: MatrixHeatmapRowDto[], columns: string[], key: string) {
+    if (this.delayCache?.key === key) return this.delayCache;
+
+    const ids: string[] = [];
+    rows.forEach((row, r) => columns.forEach((_, c) => (row.cells[c]?.value ?? 0) > 0 && ids.push(`${r}-${c}`)));
+    // Fisher-Yates
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+
+    const spread = Math.max(0, this.animationDuration() - this.fade());
+    const delays = new Map(ids.map((id, i) => [id, ids.length > 1 ? (i / (ids.length - 1)) * spread : 0]));
+    this.delayCache = { key, id: ++this.delayCacheId, delays };
+    return this.delayCache;
+  }
+
   protected readonly cells = computed<MatrixHeatmapCell[]>(() => {
     const rows = this.rows();
     const columns = this.columns();
-    const values = this.values();
-    const colors = this.colors();
-    const textColors = this.textColors();
+    const dataKey = JSON.stringify([
+      this.animationDuration(),
+      this.replay(),
+      columns,
+      rows.map((r) => [r.label, r.cells.map((c) => [c.value ?? 0, c.color ?? null])]),
+    ]);
+    const lit = this.animate() ? this.delaysOf(rows, columns, dataKey) : undefined;
     const selected = this.selectedCell();
     const selectable = this.selectable();
     const cellWidth = this.cellWidth();
     const stepX = cellWidth + this.cellGap();
     const stepY = this.cellHeight() + this.cellGap();
 
-    return rows.flatMap((rowLabel, rowIndex) =>
+    return rows.flatMap((row, rowIndex) =>
       columns.map((columnLabel, columnIndex) => {
-        const value = values[rowIndex]?.[columnIndex] ?? 0;
+        const cell = row.cells[columnIndex];
+        const value = cell?.value ?? 0;
         return {
           rowIndex,
           columnIndex,
-          rowLabel,
+          rowLabel: row.label,
           columnLabel,
           value,
           level: this.levelOf(value),
-          color: value > 0 ? (colors?.[rowIndex]?.[columnIndex] ?? null) : null,
-          textColor: value > 0 ? (textColors?.[rowIndex]?.[columnIndex] ?? null) : null,
+          color: value > 0 ? (cell?.color ?? null) : null,
+          textColor: value > 0 ? (cell?.textColor ?? null) : null,
           selectable: selectable && value > 0,
           selected: selected?.rowIndex === rowIndex && selected?.columnIndex === columnIndex,
+          key: `${lit?.id ?? 0}|${rowIndex}-${columnIndex}`,
+          litDelay: lit?.delays.get(`${rowIndex}-${columnIndex}`) ?? null,
           x: this.left() + columnIndex * stepX,
           y: this.top() + rowIndex * stepY,
         };
@@ -184,8 +225,8 @@ export class MatrixHeatmapComponent {
   );
 
   protected readonly rowLabels = computed<MatrixHeatmapRowLabel[]>(() =>
-    this.rows().map((text, i) => ({
-      text,
+    this.rows().map((row, i) => ({
+      text: row.label,
       y: this.top() + i * (this.cellHeight() + this.cellGap()) + this.cellHeight() / 2,
     })),
   );

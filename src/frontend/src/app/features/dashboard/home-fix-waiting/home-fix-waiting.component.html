@@ -19,7 +19,7 @@
         <div class="flex flex-wrap items-baseline gap-x-2">
           <span class="text-3xl font-semibold">{{ daysLabel(longestDays()) }}</span>
           <span class="tod-text-muted-color"
-            >longest; {{ t.vulnerabilityIds }} {{ t.vulnerabilityIds === 1 ? 'id' : 'ids' }} waiting</span
+            >longest; <span class="tod-headline-num">{{ t.vulnerabilityIds }}</span> {{ t.vulnerabilityIds === 1 ? 'id' : 'ids' }} waiting</span
           >
           @if (undatedIds() > 0) {
             <span
@@ -32,7 +32,7 @@
 
         <!-- the ids by waiting bucket -->
         <div class="flex flex-col gap-1">
-          <app-meter-group valueLabel="ids" [max]="idCount()" [segments]="mix()" [showValues]="true" />
+          <app-meter-group valueLabel="ids" [animate]="true" [max]="idCount()" [segments]="mix()" [showValues]="true" />
           <div class="flex justify-between text-xs tod-text-muted-color">
             @for (b of buckets; track b.label) {
               <span>{{ b.label }}</span>
@@ -42,7 +42,7 @@
 
         <!-- the ids that wait the longest; a click expands the widget on the id -->
         <div class="flex flex-col gap-2">
-          @for (g of topGroups(); track g.key) {
+          @for (g of topGroups(); track g.key; let i = $index) {
             <button
               type="button"
               class="flex flex-col gap-1 text-left text-sm cursor-pointer"
@@ -57,6 +57,7 @@
                 <span
                   class="tod-fix-waiting-bar"
                   [style.background]="bucketColor(g.days)"
+                  [style.--tod-grow-delay]="i * 150 + 'ms'"
                   [style.width.%]="barPercent(g.days)"
                 ></span>
               </span>

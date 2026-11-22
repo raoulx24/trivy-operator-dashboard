@@ -142,6 +142,14 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
   // the most ids of a package: the meters share this scale, so a longer one is a worse package
   protected readonly maxIds = computed(() => Math.max(1, ...this.items().map((x) => x.vulnerabilityIds)));
 
+  // the package with the most vulnerability ids (of the rows shown): the headline of the collapsed widget
+  protected readonly top = computed<HomePackageHotspotDto | undefined>(() =>
+    this.items().reduce<HomePackageHotspotDto | undefined>(
+      (best, x) => (!best || x.vulnerabilityIds > best.vulnerabilityIds ? x : best),
+      undefined,
+    ),
+  );
+
   protected readonly rows = computed<HotspotRow[]>(() =>
     this.items().map((item) => ({
       item,

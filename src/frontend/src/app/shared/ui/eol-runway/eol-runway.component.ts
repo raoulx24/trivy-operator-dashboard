@@ -40,6 +40,8 @@ const ROW_HEIGHT = 24;
 const BAR_HEIGHT = 10;
 const AXIS_HEIGHT = 22;
 const MIN_BAR_WIDTH = 6;
+// the longest a bar takes to grow (ms)
+const MAX_GROW = 600;
 
 // the runway of OS cycles: one bar per cycle, from the left edge of the axis to its end of life, with today marked
 // - the axis shows monthsBefore months before today and yearsAfter years after; a later end is a bar to the axis end, then a dashed line and an arrow
@@ -47,6 +49,8 @@ const MIN_BAR_WIDTH = 6;
 // - colors: supported, only security fixes (end of active support passed), risky (end of life in less than riskDays
 //   days, whatever the support phase), end of life passed
 // - "today" is above the chart, the years below it, so they never overlap
+// - animate: the runway starts clear and when the data arrives the bars grow from the left, one after the other in a random
+//   order of rows, all within animationDuration (ms) in total; the same data does not play again (a resize does not)
 // - dates are "yyyy-MM-dd" (UTC); items are drawn sorted by end of life
 @Component({
   selector: 'app-eol-runway',
@@ -63,6 +67,8 @@ export class EolRunwayComponent {
   yearsAfter = input<number>(3);
   // an end of life in less than this many days is risky: it has its own color, whatever the support phase
   riskDays = input<number>(EOL_RISK_DAYS);
+  animate = input<boolean>(false);
+  animationDuration = input<number>(1000);
   protected readonly barHeight = BAR_HEIGHT;
   protected readonly rowHeight = ROW_HEIGHT;
   protected readonly top = TOP_HEIGHT;
@@ -72,6 +78,31 @@ export class EolRunwayComponent {
   protected readonly hatchId = `eol-runway-hatch-${nextHatchId++}`;
 
   protected readonly viewWidth = signal(DEFAULT_WIDTH);
+  // how long one bar takes to grow (the last one starts at animationDuration minus this, so everything is done within
+  // animationDuration)
+  protected readonly grow = computed(() => Math.min(MAX_GROW, Math.max(0, this.animationDuration())));
+
+  // what the growth depends on: the cycles (not the width); the delays are kept while it is unchanged, as a changed delay
+  // would restart the growth of a bar that has already grown
+  private delayCache?: { key: string; id: number; delays: Map<string, number> };
+  private delayCacheId = 0;
+
+  // per label, in ms: a random order of the rows, evenly spread over the time left after the growth of the last one
+  private delaysOf(labels: string[], key: string) {
+    if (this.delayCache?.key === key) return this.delayCache;
+
+    const order = [...labels];
+    // Fisher-Yates
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    const spread = Math.max(0, this.animationDuration() - this.grow());
+    const delays = new Map(order.map((label, i) => [label, order.length > 1 ? (i / (order.length - 1)) * spread : 0]));
+    this.delayCache = { key, id: ++this.delayCacheId, delays };
+    return this.delayCache;
+  }
 
   private readonly barsWidth = computed(() =>
     Math.max(MIN_AXIS_WIDTH, this.viewWidth() - LABEL_WIDTH - COUNT_WIDTH - ARROW_WIDTH),
@@ -114,8 +145,16 @@ export class EolRunwayComponent {
     const domain = this.domain();
     if (!domain) return [];
     const [start, end, today] = domain;
+    const items = this.items();
+    const dataKey = JSON.stringify([
+      this.animationDuration(),
+      this.riskDays(),
+      this.today(),
+      items.map((x) => [x.label, x.eolFrom, x.eoasFrom ?? null, x.images]),
+    ]);
+    const lit = this.animate() ? this.delaysOf(items.map((x) => x.label), dataKey) : undefined;
 
-    return this.items()
+    return items
       .map((item) => ({ item, eol: this.parse(item.eolFrom), eoas: this.parse(item.eoasFrom ?? undefined) }))
       .filter((x): x is { item: EolRunwayItem; eol: number; eoas: number | undefined } => x.eol !== undefined)
       .sort((a, b) => a.eol - b.eol)
@@ -132,6 +171,8 @@ export class EolRunwayComponent {
           overdueWidth: state === 'eol' ? Math.max(0, this.scale(today, start, end) - width) : 0,
           imagesLabel: `${item.images} img`,
           tip: this.tipOf(item, state, eol, eoas, today),
+          key: `${lit?.id ?? 0}|${item.label}`,
+          growDelay: lit?.delays.get(item.label) ?? null,
         };
       });
   });

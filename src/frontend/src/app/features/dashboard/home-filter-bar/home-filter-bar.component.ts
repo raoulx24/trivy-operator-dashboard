@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, model, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
@@ -28,10 +28,17 @@ export class HomeFilterBarComponent {
   namespaceOptions = input<string[]>([]);
   // the resolved start of the window, e.g. "2026-11-08 (UTC)"
   sinceLabel = input<string>('');
+  // without an earlier visit, "since previous visit" would be the history window, so it is disabled
+  hasPreviousVisit = input<boolean>(true);
 
   refresh = output<void>();
 
-  protected readonly windowOptions = homeWindowOptions;
+  protected readonly windowOptions = computed(() =>
+    homeWindowOptions.map((option) => ({
+      ...option,
+      disabled: option.value === 'lastVisit' && !this.hasPreviousVisit(),
+    })),
+  );
   // with the color of the severity, as everywhere else in the app
   protected readonly severityOptions = homeSeverityOptions.map((option) => ({
     ...option,

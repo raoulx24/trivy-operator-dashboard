@@ -8,6 +8,7 @@ import {
   effect,
   inject,
   input,
+  linkedSignal,
   signal,
   untracked,
   viewChild,
@@ -23,7 +24,7 @@ import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
 import { MatrixHeatmapComponent } from '@shared/ui/matrix-heatmap/matrix-heatmap.component';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
-import { MatrixHeatmapCellRef, MatrixHeatmapClick } from '@shared/ui/matrix-heatmap/matrix-heatmap.types';
+import { MatrixHeatmapCellRef, MatrixHeatmapClick, MatrixHeatmapRowDto } from '@shared/ui/matrix-heatmap/matrix-heatmap.types';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { SpanTimelineComponent } from '@shared/ui/span-timeline/span-timeline.component';
 import { SpanTimelineRow, SpanTimelineTick } from '@shared/ui/span-timeline/span-timeline.types';
@@ -173,8 +174,21 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
       }),
   });
 
-  protected readonly allItems = computed(() => this.data.value()?.items ?? []);
-  protected readonly totalChecks = computed(() => this.data.value()?.totalChecks ?? 0);
+  // the answer on screen: the last one that arrived, kept while the next one is asked (nothing goes blank on a reload);
+  // undefined until the first one, when the grid shows zeros
+  private readonly checks = linkedSignal<ReturnType<typeof this.data.value>, ReturnType<typeof this.data.value>>({
+    source: this.data.value,
+    computation: (value, previous) => value ?? previous?.value,
+  });
+  // counts the answers received: the animations play again for each one, also when it is the same data (a refresh)
+  protected readonly answers = linkedSignal<ReturnType<typeof this.data.value>, number>({
+    source: this.data.value,
+    computation: (value, previous) => (previous?.value ?? 0) + (value ? 1 : 0),
+  });
+  protected readonly isLoaded = computed(() => this.checks() !== undefined);
+
+  protected readonly allItems = computed(() => this.checks()?.items ?? []);
+  protected readonly totalChecks = computed(() => this.checks()?.totalChecks ?? 0);
   // the server sends at most fetchLimit rows: what is computed here is of those
   protected readonly partialLabel = computed(() => {
     const shown = this.allItems().length;
@@ -194,26 +208,21 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
       .filter((x) => x.value > 0),
   );
 
-  // the cells in the colors of the severities, as the meter above
-  protected readonly gridColors = computed(() =>
-    FAMILIES.map(() => this.gridSeverities().map((id) => severityColor(id))),
-  );
-  protected readonly gridTextColors = computed(() =>
-    FAMILIES.map(() => this.gridSeverities().map((id) => severityTextColor(id))),
-  );
-
   // ---- the grid: distinct checks by family (rows) and severity (columns, those of the filter)
   protected readonly gridSeverities = computed(() => [...this.severities()].sort((a, b) => a - b));
   protected readonly gridColumns = computed(() =>
     this.gridSeverities().map((id) => SeverityUtils.getName(id).toLowerCase()),
   );
-  protected readonly gridRows = FAMILIES.map((f) => f.label);
-  protected readonly gridValues = computed(() =>
-    FAMILIES.map((f) =>
-      this.gridSeverities().map(
-        (id) => this.allItems().filter((x) => x.family === f.key && x.severityId === id).length,
-      ),
-    ),
+  // the cells in the colors of the severities, as the meter above; zeros until the checks are there
+  protected readonly gridRows = computed<MatrixHeatmapRowDto[]>(() =>
+    FAMILIES.map((f) => ({
+      label: f.label,
+      cells: this.gridSeverities().map((id) => ({
+        value: this.allItems().filter((x) => x.family === f.key && x.severityId === id).length,
+        color: severityColor(id),
+        textColor: severityTextColor(id),
+      })),
+    })),
   );
 
   // the cell of the grid the list is filtered by (family and severity); null = all

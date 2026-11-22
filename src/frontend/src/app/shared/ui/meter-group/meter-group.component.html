@@ -1,5 +1,5 @@
 @if (width() > 0) {
-  <svg class="meter" [attr.width]="width()" [attr.height]="barHeight()" role="meter">
+  <svg class="meter" [style.--grow-time]="grow() + 'ms'" [attr.width]="width()" [attr.height]="barHeight()" role="meter">
     <defs>
       <!-- the fill is round at its end: all the way when the meter is full, at the last segment when it is not -->
       <clipPath [attr.id]="clipId">
@@ -10,14 +10,24 @@
     <rect class="track" x="0" y="0" [attr.width]="width()" [attr.height]="barHeight()" [attr.rx]="barHeight() / 2" />
 
     <g [attr.clip-path]="'url(#' + clipId + ')'">
-      @for (bar of bars(); track $index; let i = $index) {
+      <!-- a segment with new data is re-created, so that its growth runs again when the data is received -->
+      @for (bar of bars(); track bar.key; let i = $index) {
         <g
           class="segment"
+          [class.grows]="bar.growDelay !== null"
+          [style.--grow-delay]="bar.growDelay !== null ? bar.growDelay + 'ms' : null"
           (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(bar, i))"
           (mousemove)="popover.move($event)"
           (mouseleave)="popover.hide()"
         >
-          <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" [attr.height]="barHeight()" [attr.fill]="bar.segment.color" />
+          <rect
+            class="segment-fill"
+            y="0"
+            [attr.x]="bar.x"
+            [attr.width]="bar.width"
+            [attr.height]="barHeight()"
+            [attr.fill]="bar.segment.color"
+          />
           @if (bar.showValue) {
             <text
               class="segment-value tod-chart-label"

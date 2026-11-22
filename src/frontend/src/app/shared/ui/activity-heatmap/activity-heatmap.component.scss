@@ -98,6 +98,28 @@
   pointer-events: none;
 }
 
+// the animation of the data received (animate), as in the lane strip: a cell with a value (and its markers) lights on after
+// its --lit-delay, taking --lit-fade; before that it is not there (fill-mode both). The children are animated, not the
+// group, so the hover and selection transforms of the group stay as they are; only the opacity changes
+@keyframes heatmap-lit {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cell-group.lit.has-value .cell,
+.cell-group.lit .visit,
+.cell-group.lit .corner {
+  animation: heatmap-lit var(--lit-fade) ease-out var(--lit-delay) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 .legend {
   // plain pointer over the legend texts too (no text caret); they stay selectable
   cursor: default;

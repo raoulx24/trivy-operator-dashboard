@@ -1,5 +1,5 @@
 @if (width() > 0 && cells().length > 0) {
-  <svg role="img" class="matrix-heatmap" [attr.height]="height()" [attr.width]="width()">
+  <svg role="img" class="matrix-heatmap" [style.--lit-fade]="fade() + 'ms'" [attr.height]="height()" [attr.width]="width()">
     @if (showColumnLabels()) {
       @for (label of columnLabels(); track $index) {
         <text
@@ -19,10 +19,13 @@
         </text>
       }
     }
-    @for (cell of cells(); track cell.rowIndex + '-' + cell.columnIndex) {
+    <!-- a cell with new data is re-created, so that its animation runs again when the data is received -->
+    @for (cell of cells(); track cell.key) {
       <g
         class="cell-group"
         [class.has-value]="cell.value > 0"
+        [class.lit]="cell.litDelay !== null"
+        [style.--lit-delay]="cell.litDelay !== null ? cell.litDelay + 'ms' : null"
         [class.selectable]="cell.selectable"
         [class.selected]="cell.selected"
         (click)="onCellClick(cell)"

@@ -17,12 +17,13 @@
       <div class="flex flex-col gap-3 pt-2">
         <div class="flex items-baseline gap-2">
           <span class="text-3xl font-semibold">{{ t.vulnerabilityIds }}</span>
-          <span class="tod-text-muted-color">ids now fixable on {{ t.images }} {{ t.images === 1 ? 'image' : 'images' }}, {{ windowDays() }}</span>
+          <span class="tod-text-muted-color">ids now fixable on <span class="tod-headline-num">{{ t.images }}</span> {{ t.images === 1 ? 'image' : 'images' }}, {{ windowDays() }}</span>
           @if (earlierIds() > 0) {
             <span class="text-xs tod-text-muted-color" title="New fix ids on the days before the window (an id on several days counts on each)">· {{ earlierIds() }} more before</span>
           }
         </div>
         <app-stacked-bar-chart
+          [animate]="true"
           [columns]="strip().columns"
           [series]="stripSeries"
           [highlightFrom]="strip().highlightFrom"

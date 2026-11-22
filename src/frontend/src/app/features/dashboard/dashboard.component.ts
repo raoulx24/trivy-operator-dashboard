@@ -42,8 +42,9 @@ import { HomeDaysResult, HomeWidgetState } from './home-widget-placeholder/home-
 // the home page: a filter bar and a fixed layout of widgets, each one fed by its own api/home endpoint (each loads and
 // fails alone); for now every widget is a placeholder that shows what it will display and a summary of what it got
 // window ("since"), used only by the widgets about changes:
-// - last visit = the previous day the home page was opened (UTC days, see AccessTrackingService); without one (first
-//   visit, or only today), the history window
+// - previous visit = the previous day the home page was opened (UTC days, see AccessTrackingService), at most as far
+//   back as the history window; without one (first visit, or only today) the option is disabled, and the history
+//   window stands in
 // - history window = vrHistoryMaxAgeDays from the backend settings
 // the filters are kept in local storage (the window as a choice, not as a date)
 @Component({
@@ -90,7 +91,7 @@ export class DashboardComponent {
   // read once, as reading also records this visit
   private readonly trackedDays = this.accessTrackingService.trackAccess('home');
   // the previous visit day (not today)
-  private readonly lastVisitUtc: string | undefined = this.getLastVisit();
+  protected readonly lastVisitUtc: string | undefined = this.getLastVisit();
   // the days the home page was opened (UTC, today included), for the heatmaps
   protected readonly visitDays: string[] = this.trackedDays.map((x) => x.day);
 
@@ -252,8 +253,11 @@ export class DashboardComponent {
 
   private resolveSince(windowMode: HomeWindowMode): string {
     switch (windowMode) {
-      case 'lastVisit':
-        return this.lastVisitUtc ?? this.daysAgo(this.getHistoryMaxAgeDays());
+      case 'lastVisit': {
+        // the history window is the earliest start (the history keeps no older data), so an old visit is clamped to it
+        const historyStart = this.daysAgo(this.getHistoryMaxAgeDays());
+        return this.lastVisitUtc && this.lastVisitUtc > historyStart ? this.lastVisitUtc : historyStart;
+      }
       case '24h':
         return this.daysAgo(1);
       case '7d':
@@ -273,7 +277,11 @@ export class DashboardComponent {
 
   private loadWindowMode(): HomeWindowMode {
     const stored = LocalStorageUtils.getItem(DashboardComponent.windowModeKey);
-    return homeWindowOptions.some((x) => x.value === stored) ? (stored as HomeWindowMode) : 'lastVisit';
+    const mode: HomeWindowMode = homeWindowOptions.some((x) => x.value === stored)
+      ? (stored as HomeWindowMode)
+      : 'lastVisit';
+    // "since previous visit" is disabled without an earlier visit, so the history window stands in
+    return mode === 'lastVisit' && this.lastVisitUtc === undefined ? 'history' : mode;
   }
 
   private loadSeverityIds(): number[] {

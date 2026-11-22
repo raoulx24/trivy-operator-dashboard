@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, linkedSignal, output } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -180,13 +180,26 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
       }),
   });
 
-  protected readonly chart = computed(() => {
-    const dto = this.daysData.value();
+  // the days of the last answer, kept while the next one is asked (the heatmap does not go blank on a reload)
+  private readonly days = linkedSignal<ReturnType<typeof this.daysData.value>, ReturnType<typeof this.daysData.value>>({
+    source: this.daysData.value,
+    computation: (value, previous) => value ?? previous?.value,
+  });
+
+  // counts the answers received: the heatmap plays its animation again for each one, also for the same days (a refresh)
+  protected readonly answers = linkedSignal<ReturnType<typeof this.daysData.value>, number>({
+    source: this.daysData.value,
+    computation: (value, previous) => (previous?.value ?? 0) + (value ? 1 : 0),
+  });
+
+  // no days yet: an empty chart (zeros), so the heatmap has its size from the start
+  protected override readonly chart = computed(() => {
+    const dto = this.days();
+    if (!dto) return this.emptyChart();
 
     return {
-      from: dto?.from,
-      data: (dto?.days ?? []).map((d) => ({ day: d.day, value: d.added })),
-      flaggedDays: (dto?.days ?? []).filter((d) => d.addedKnownExploited > 0).map((d) => d.day),
+      from: dto.from,
+      data: (dto?.days ?? []).map((d) => ({ day: d.day, value: d.added, emphasis2: d.addedKnownExploited > 0 })),
     };
   });
 
@@ -214,7 +227,7 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
   });
 
   protected override readonly valueDays = computed(() =>
-    (this.daysData.value()?.days ?? []).filter((d) => d.added > 0).map((d) => d.day),
+    (this.days()?.days ?? []).filter((d) => d.added > 0).map((d) => d.day),
   );
 
   protected override readonly showBoxes = computed(
@@ -231,8 +244,6 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
       !this.rowsData.hasValue(),
   );
 
-  // the days (the heatmap) are not here: the heatmap box shows a skeleton of its own size, so it does not collapse
-  protected readonly isLoadingDays = computed(() => !this.daysData.hasValue() && !this.daysData.error());
 
   // the rows of the selects: one per item of the server
   private readonly entries = computed<PivotEntry[]>(() => {

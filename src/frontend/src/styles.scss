@@ -852,6 +852,14 @@ mat-icon.text-xs {
   color: var(--p-text-muted-color);
 }
 
+// a secondary number in a home widget headline ("6 ids on 7 images, 7 days"): semi-bold, sized between the big number
+// (text-3xl, 1.875rem) and the text (0.875 - 1rem)
+.tod-headline-num {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--tod-text-primary-color);
+}
+
 // section with a thin muted rule on its left edge, the content indented after it
 .tod-left-accent-border {
   border-left: 2px solid var(--p-text-muted-color);
@@ -887,6 +895,21 @@ mat-icon.text-xs {
   display: block;
   height: 100%;
   border-radius: 4px;
+  // grows from its middle to both ends when it is drawn (also when it is drawn again by a reload), the next bars after it
+  animation: tod-grow-from-middle 600ms ease-out var(--tod-grow-delay, 0ms) backwards;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes tod-grow-from-middle {
+  from {
+    clip-path: inset(0 50% 0 50%);
+  }
+  to {
+    clip-path: inset(0);
+  }
 }
 
 // the big icon of the empty (happy day) state of a home widget

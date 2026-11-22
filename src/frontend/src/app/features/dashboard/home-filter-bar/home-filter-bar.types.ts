@@ -7,7 +7,7 @@ export interface HomeOption<T> {
 }
 
 export const homeWindowOptions: HomeOption<HomeWindowMode>[] = [
-  { label: 'Since last visit', value: 'lastVisit' },
+  { label: 'Since previous visit', value: 'lastVisit' },
   { label: 'Last 24 hours', value: '24h' },
   { label: 'Last 7 days', value: '7d' },
   { label: 'History window', value: 'history' },

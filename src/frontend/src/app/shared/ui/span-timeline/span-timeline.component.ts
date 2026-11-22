@@ -41,6 +41,8 @@ const VALUE_GAP = 12;
 // the room between the text at either end of a row and the edge of the row (the selection outline)
 const EDGE_PAD = 8;
 const MAX_MARKERS = 3;
+// the longest a bar takes to grow (ms)
+const MAX_GROW = 600;
 // ticks closer than this to each other (or to the right end) are dropped
 const MIN_TICK_GAP = 52;
 // candidates of the automatic ticks of a log axis
@@ -55,6 +57,9 @@ const LOG_TICKS = [1, 3, 7, 14, 30, 60, 90, 180, 365, 730, 1095, 1825, 3650];
 // - selection: a click (or Enter / Space) on a row selects it, again deselects; selectedId is the two way signal
 // - the axis is drawn apart, on top; the rows are in a vertical app-scroller, as tall as they are up to maxHeight (px, the
 //   axis included; null = no limit)
+// - animate: when new data arrives the bars grow from the middle of each bar to both ends, one after the other in a random order of rows, all within
+//   animationDuration (ms) in total; the value and the markers of a row fade in with it; the same data does not play again
+//   (a resize or a selection does not); the tracks are always there
 // - the control does not know what the rows or the markers mean
 @Component({
   selector: 'app-span-timeline',
@@ -93,6 +98,13 @@ export class SpanTimelineComponent {
   // px, the axis included: taller rows scroll; null = all the rows are shown
   maxHeight = input<number | null>(null);
 
+  // the bars grow when the data (rows) is received; the whole animation takes animationDuration ms
+  animate = input<boolean>(false);
+  animationDuration = input<number>(1000);
+  // anything that changes when the owner receives data again: the animation plays again for the same data too (e.g. a
+  // refresh); without it only changed data plays
+  replay = input<unknown>(undefined);
+
   selectable = input<boolean>(true);
   // the id of the selected row, null = none (two way: the click changes it)
   selectedId = model<string | null>(null);
@@ -102,6 +114,32 @@ export class SpanTimelineComponent {
   protected readonly axisHeight = TOP_HEIGHT;
   protected readonly viewWidth = signal(DEFAULT_WIDTH);
   protected readonly popover = inject(PopoverService);
+
+  // how long one bar takes to grow (the last one starts at animationDuration minus this, so everything is done within
+  // animationDuration)
+  protected readonly grow = computed(() => Math.min(MAX_GROW, Math.max(0, this.animationDuration())));
+
+  // what the growth depends on: the rows (not the width or the selection); the delays are kept while it is unchanged, as a
+  // changed delay would restart the growth of a bar that has already grown
+  private delayCache?: { key: string; id: number; delays: Map<string, number> };
+  private delayCacheId = 0;
+
+  // per row id, in ms: a random order of the rows, evenly spread over the time left after the growth of the last one
+  private delaysOf(ids: string[], key: string) {
+    if (this.delayCache?.key === key) return this.delayCache;
+
+    const order = [...ids];
+    // Fisher-Yates
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    const spread = Math.max(0, this.animationDuration() - this.grow());
+    const delays = new Map(order.map((id, i) => [id, order.length > 1 ? (i / (order.length - 1)) * spread : 0]));
+    this.delayCache = { key, id: ++this.delayCacheId, delays };
+    return this.delayCache;
+  }
 
   private readonly axisBox = viewChild<ElementRef<HTMLElement>>('axisBox');
 
@@ -148,8 +186,16 @@ export class SpanTimelineComponent {
     const now = this.nowLabel();
     const palette = this.colors();
     const text = (age: number) => (age <= 0 ? now : format(age));
+    const rows = this.rows();
+    const dataKey = JSON.stringify([
+      this.animationDuration(),
+      this.replay(),
+      this.origin(),
+      rows.map((r) => [r.id, r.start, r.end ?? 0, r.valueLabel ?? null, (r.markers ?? []).map((m) => m.at)]),
+    ]);
+    const lit = this.animate() ? this.delaysOf(rows.map((r) => r.id), dataKey) : undefined;
 
-    return this.rows().map((row, i) => {
+    return rows.map((row, i) => {
       const end = Math.max(0, row.end ?? 0);
       const start = Math.max(end, row.start);
       const xStart = this.x(start);
@@ -165,6 +211,8 @@ export class SpanTimelineComponent {
         width,
         color: row.color ?? (palette.length > 0 ? palette[i % palette.length] : 'var(--p-primary-color)'),
         range: `${text(start)} → ${text(end)}`,
+        key: `${lit?.id ?? 0}|${row.id}`,
+        growDelay: lit?.delays.get(row.id) ?? null,
         markers: (row.markers ?? []).slice(0, MAX_MARKERS).map((m) => ({
           kind: m.kind ?? 'dot',
           x: this.x(m.at),
