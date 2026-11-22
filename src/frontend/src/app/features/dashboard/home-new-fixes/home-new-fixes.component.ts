@@ -14,7 +14,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ScrollerModule } from 'primeng/scroller';
+import { Scroller, ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
 import { HomeActiveVulnerabilityDto } from '@api/models/home-active-vulnerability-dto';
@@ -41,6 +41,12 @@ import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags
 import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
 
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
+import {
+  HomeSelectedNodesComponent,
+  SelectedImage,
+  SelectedNamespace,
+  SelectedPackage,
+} from '../home-pivot/home-selected-nodes.component';
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
@@ -62,11 +68,6 @@ import {
   toHomeVulnerabilityTableRows,
 } from '../home-vulnerability-rows/home-vulnerability-rows';
 
-// what the selected box shows: a package, an image or a namespace
-type SelectedInfo =
-  | { kind: 'package'; name: string; severityId: number; installed: string; fixedVersion: string; fixAppeared: string }
-  | { kind: 'image'; name: string; packages: number; namespaces: number }
-  | { kind: 'namespace'; name: string; images: number };
 
 // Fixes now available: the (vulnerability id, package) rows whose fix appeared in the window of the page
 // - the filters of the page (window, severities, namespaces) come as inputs; a change of them, or of refresh, reloads it
@@ -91,6 +92,7 @@ type SelectedInfo =
     StackedBarChartComponent,
     TrivyTableDialogComponent,
     HomeExploitTagComponent,
+    HomeSelectedNodesComponent,
     VulnerabilityScoreTagComponent,
     SeverityCssStyleByIdPipe,
     SeverityNameByIdPipe,
@@ -120,7 +122,7 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
   // the height of a row of the list (a scroller needs the same for all): the id, three lines of title, the tags
   protected readonly rowHeight = 130;
   // the height of the expanded widget body (it needs a fixed one: the list and the graph scroll in it)
-  protected readonly expandedHeight = '50rem';
+  protected readonly expandedHeight = '56rem';
 
   private readonly homeService = inject(HomeService);
   private readonly mainAppInitService = inject(MainAppInitService);
@@ -381,52 +383,58 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
 
   protected readonly sortLabel = computed(() => sortLabelOf(this.sort()));
 
-  // ---- the selection: one node of the graph (null = none)
-  protected readonly selectedNode = signal<string | null>(null);
-  protected readonly isFiltered = computed(() => this.selectedNode() !== null);
+  // ---- the selection: the nodes of the graph (multi select: at most one of each kind, each a peer of the next; none = empty)
+  protected readonly selectedNodes = signal<string[]>([]);
+  protected readonly isFiltered = computed(() => this.selectedNodes().length > 0);
 
-  // the data of the selected node, brief: a package, an image (its name, packages and namespaces), a namespace (its images)
-  protected readonly selectedInfo = computed<SelectedInfo | null>(() => {
-    const d = this.detail();
-    const id = this.selectedNode();
-    if (!d || id === null) {
-      return null;
-    }
+  // the index in the detail of the selected node of a kind ('p:', 'i:', 'n:'), or null
+  private selectedIndex(prefix: string): number | null {
+    const id = this.selectedNodes().find((x) => x.startsWith(prefix));
+    return id === undefined ? null : Number(id.substring(2));
+  }
 
-    const index = Number(id.substring(2));
-    if (id.startsWith('p:')) {
-      const p = d.packages[index];
-      return p
-        ? {
-            kind: 'package',
-            name: p.packageName,
-            severityId: p.severityId,
-            installed: p.installedVersions.join(', ') || '-',
-            fixedVersion: p.fixedVersion,
-            fixAppeared: this.toDay(p.fixAppearedAt),
-          }
-        : null;
-    }
-    if (id.startsWith('i:')) {
-      const name = d.imageNames[index];
-      return name === undefined
-        ? null
-        : {
-            kind: 'image',
-            name,
-            packages: d.packages.filter((p) => p.imageIndexes.includes(index)).length,
-            namespaces: d.imageNamespaceIndexes[index]?.length ?? 0,
-          };
-    }
-    if (id.startsWith('n:')) {
-      const name = d.namespaceNames[index];
-      return name === undefined
-        ? null
-        : { kind: 'namespace', name, images: d.imageNamespaceIndexes.filter((x) => x.includes(index)).length };
-    }
+  // the data of the selected nodes, brief: the package, the image (its packages and namespaces), the namespace (its images)
+  protected readonly selectedPackage = computed<SelectedPackage | null>(() => {
+    const index = this.selectedIndex('p:');
+    const p = index === null ? undefined : this.detail()?.packages[index];
 
-    return null;
+    return p
+      ? {
+          name: p.packageName,
+          severityId: p.severityId,
+          installed: p.installedVersions.join(', ') || '-',
+          fixedVersion: p.fixedVersion,
+          extra: this.toDay(p.fixAppearedAt),
+        }
+      : null;
   });
+
+  protected readonly selectedImage = computed<SelectedImage | null>(() => {
+    const d = this.detail();
+    const index = this.selectedIndex('i:');
+    const name = index === null ? undefined : d?.imageNames[index];
+
+    return d && index !== null && name !== undefined
+      ? {
+          name,
+          packages: d.packages.filter((p) => p.imageIndexes.includes(index)).length,
+          namespaces: d.imageNamespaceIndexes[index]?.length ?? 0,
+        }
+      : null;
+  });
+
+  protected readonly selectedNamespace = computed<SelectedNamespace | null>(() => {
+    const d = this.detail();
+    const index = this.selectedIndex('n:');
+    const name = index === null ? undefined : d?.namespaceNames[index];
+
+    return d && index !== null && name !== undefined
+      ? { name, images: d.imageNamespaceIndexes.filter((x) => x.includes(index)).length }
+      : null;
+  });
+
+  protected readonly selectedLabel = 'Fix appeared';
+
   protected readonly state = computed<HomeWidgetState>(() => {
     const resource = this.shown();
     if (resource.error()) {
@@ -512,6 +520,27 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
       });
     });
 
+    // expanded with an id selected: the list scrolls to it, once (when the rows of the expanded widget are there and the
+    // list is drawn); a collapse re-arms it
+    effect(() => {
+      const scroller = this.listScroller();
+      const id = this.selectedId();
+      const items = this.items();
+      if (!this.isExpanded()) {
+        this.scrolledToSelected = false;
+        return;
+      }
+
+      const index = id ? items.findIndex((x) => x.vulnerabilityId === id) : -1;
+      if (!scroller || index < 0 || !this.expandedData.hasValue() || this.scrolledToSelected) {
+        return;
+      }
+
+      this.scrolledToSelected = true;
+      // after the scroller measured its box
+      setTimeout(() => scroller.scrollToIndex(index, 'auto'), 50);
+    });
+
     // other data (another id, or the same one loaded again): the indexes of the selections are of the old lists
     effect(() => {
       this.detail();
@@ -543,7 +572,7 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
     }
   }
 
-  // ---- the graph: packages -> images -> namespaces, in warm colors (the theme variables); one node is selected at a time
+  // ---- the graph: packages -> images -> namespaces, in warm colors (the theme variables); several nodes can be selected
   // (the id of a node is its kind and its index in the detail: 'p:2', 'i:0', 'n:1'), and its data is in the selected box.
   // The images are the many and the long names: their column is wider, and from graphImagesTwoColumnsOver images on it has
   // two sub-columns
@@ -551,7 +580,8 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
     const twoColumns = (this.detail()?.imageNames.length ?? 0) > HomeNewFixesComponent.graphImagesTwoColumnsOver;
 
     return [
-      { label: 'Packages', color: 'var(--tod-layered-graph-package)', textColor: 'var(--tod-layered-graph-package-text)' },
+      // 20% longer than the default node (160px)
+      { label: 'Packages', color: 'var(--tod-layered-graph-package)', textColor: 'var(--tod-layered-graph-package-text)', width: 192 },
       {
         label: 'Images',
         color: 'var(--tod-layered-graph-image)',
@@ -591,18 +621,23 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
     return { nodes, edges };
   });
 
+  // the list of the ids: on expand it is scrolled to the selected one
+  private readonly listScroller = viewChild(Scroller);
+  private scrolledToSelected = false;
+
   // the height of the box of the graph, which scrolls inside it
   private readonly graphHost = viewChild<ElementRef<HTMLElement>>('graphHost');
   protected readonly graphHeight = signal<number | null>(null);
 
-  // the node is selected (null = none); a click on the selected one clears it
-  protected onGraphSelect(id: string | null): void {
-    this.selectedNode.set(id);
+  // the graph says the selected nodes (multi select; none = empty)
+  protected onGraphSelect(ids: string[]): void {
+    this.selectedNodes.set(ids);
   }
 
   protected clearFilters(): void {
-    this.selectedNode.set(null);
+    this.selectedNodes.set([]);
   }
+
   // the details of a CVE (the dialog behind the CVSS tag of a vulnerability id): only for CVE ids, and only when the
   // CVE details are enabled
   protected hasCveDetails(vulnerabilityId: string): boolean {

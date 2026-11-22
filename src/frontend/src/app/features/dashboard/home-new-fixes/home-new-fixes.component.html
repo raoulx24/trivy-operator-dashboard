@@ -90,69 +90,15 @@
            and the table, laid out absolutely, have none) -->
       <div class="grid grid-rows-[auto_minmax(0,1fr)] gap-3 min-h-0 min-w-0">
         @if (detail(); as d) {
-          <!-- the selected node of the graph, brief: a package, an image or a namespace -->
+          <!-- the selected nodes of the graph, brief: the package, the image and the namespace -->
           <app-trivy-box>
             <span boxTitle>Selected</span>
-            @switch (selectedInfo()?.kind) {
-              @case ('package') {
-                @let s = $any(selectedInfo());
-                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                  <div class="flex flex-col gap-0.5 min-w-0">
-                    <span class="text-xs tod-text-muted-color">Package</span>
-                    <span class="break-all">{{ s.name }}</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <span class="text-xs tod-text-muted-color">Severity</span>
-                    <span><p-tag class="text-xs" [rounded]="true" [style]="s.severityId | severityCssStyleById: 1" [value]="s.severityId | severityNameById" /></span>
-                  </div>
-                  <div class="flex flex-col gap-0.5 min-w-0">
-                    <span class="text-xs tod-text-muted-color">Installed</span>
-                    <span class="break-all">{{ s.installed }}</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5 min-w-0">
-                    <span class="text-xs tod-text-muted-color">Fixed</span>
-                    <span class="break-all">{{ s.fixedVersion }}</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <span class="text-xs tod-text-muted-color">Fix appeared</span>
-                    <span>{{ s.fixAppeared }}</span>
-                  </div>
-                </div>
-              }
-              @case ('image') {
-                @let s = $any(selectedInfo());
-                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                  <div class="flex flex-col gap-0.5 min-w-0">
-                    <span class="text-xs tod-text-muted-color">Image</span>
-                    <span class="break-all">{{ s.name }}</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <span class="text-xs tod-text-muted-color">Packages</span>
-                    <span>{{ s.packages }}</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <span class="text-xs tod-text-muted-color">Namespaces</span>
-                    <span>{{ s.namespaces }}</span>
-                  </div>
-                </div>
-              }
-              @case ('namespace') {
-                @let s = $any(selectedInfo());
-                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                  <div class="flex flex-col gap-0.5 min-w-0">
-                    <span class="text-xs tod-text-muted-color">Namespace</span>
-                    <span class="break-all">{{ s.name }}</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <span class="text-xs tod-text-muted-color">Images</span>
-                    <span>{{ s.images }}</span>
-                  </div>
-                </div>
-              }
-              @default {
-                <span class="text-sm tod-text-muted-color">Select a package, an image or a namespace in the graph</span>
-              }
-            }
+            <app-home-selected-nodes
+              [package]="selectedPackage()"
+              [image]="selectedImage()"
+              [namespace]="selectedNamespace()"
+              [extraLabel]="selectedLabel"
+            />
           </app-trivy-box>
 
           <!-- the rest of the height: where the packages run, as a graph (packages, images, namespaces) -->
@@ -160,16 +106,18 @@
             <div class="absolute inset-0">
               <app-trivy-box class="h-full">
                 <span boxTitle>Where it runs ({{ d.packages.length }} {{ d.packages.length === 1 ? 'package' : 'packages' }}, {{ d.images }} {{ d.images === 1 ? 'image' : 'images' }}, {{ d.namespaces }} ns)</span>
-                <div #graphHost class="relative h-full">
+                <!-- the graph is in the middle of the box (it can be lower than it) -->
+                <div #graphHost class="relative h-full flex flex-col justify-center">
                   <app-layered-graph
-                    class="absolute inset-0"
+                    class="block"
                     [columns]="graphColumns()"
                     [nodes]="graphData().nodes"
                     [edges]="graphData().edges"
                     [selectable]="true"
                     [maxHeight]="graphHeight()"
-                    [selectedNode]="selectedNode()"
-                    (selectedNodeChange)="onGraphSelect($event)"
+                    [multiSelect]="true"
+                    [selectedNodes]="selectedNodes()"
+                    (selectedNodesChange)="onGraphSelect($event)"
                   />
                 </div>
               </app-trivy-box>
@@ -199,7 +147,7 @@
 
       <app-pill-button label="Show all" icon="pi-list" (pressed)="showAllDialog.set(true)" />
 
-      <span class="text-xs tod-text-muted-color">A click on a package, an image or a namespace of the graph fades what does not go with it</span>
+      <span class="text-xs tod-text-muted-color">A click on a package, an image or a namespace of the graph fades what does not go with it; select a connected one on the next column to pick a pair</span>
     </div>
   }
 </app-home-widget-frame>

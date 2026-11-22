@@ -53,7 +53,8 @@
             <app-home-pivot-image-fields [value]="image" />
           </div>
 
-          <div class="flex flex-col gap-2">
+          <!-- a thin muted line, in the middle of the gap, between the image and the vulnerability -->
+          <div class="flex flex-col gap-2 border-l border-[var(--p-content-border-color)] pl-4 -ml-4">
             <!-- the vulnerability and the first added day share a row, half each -->
             <div class="grid grid-cols-2 gap-x-2">
               <app-home-pivot-vulnerability-field [pair]="pair" />
