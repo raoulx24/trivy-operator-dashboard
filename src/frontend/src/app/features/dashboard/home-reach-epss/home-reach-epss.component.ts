@@ -1,11 +1,22 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { StepSelectComponent } from '@shared/ui/step-select/step-select.component';
+import { ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
 import { HomeReachEpssItemDto } from '@api/models/home-reach-epss-item-dto';
 import { HomeService } from '@api/services/home.service';
+import { MainAppInitService } from '@core/services/main-app-init.service';
+import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
+import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
+import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
+import { ScrollerResizeDirective } from '@shared/ui/scroller-resize/scroller-resize.directive';
+import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
+import { VulnerabilityTagSource } from '@shared/ui/trivy-table/trivy-table.types';
+import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags.pipe';
+import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
 import { ScatterSelectComponent } from '@shared/ui/scatter-select/scatter-select.component';
 import {
   ScatterAxis,
@@ -15,6 +26,8 @@ import {
 } from '@shared/ui/scatter-select/scatter-select.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
+import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
+import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -43,7 +56,21 @@ function jitter(id: string): number {
 @Component({
   selector: 'app-home-reach-epss',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, ScatterSelectComponent, TagModule, DecimalPipe, StepSelectComponent],
+  imports: [
+    DecimalPipe,
+    HomeExploitTagComponent,
+    HomeWidgetFrameComponent,
+    PillButtonComponent,
+    ScatterSelectComponent,
+    ScrollerModule,
+    ScrollerResizeDirective,
+    SeverityCssStyleByIdPipe,
+    SeverityNameByIdPipe,
+    StepSelectComponent,
+    TagModule,
+    TrivyBoxComponent,
+    VulnerabilityScoreTagComponent,
+  ],
   templateUrl: './home-reach-epss.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // a grid cell: wide content must scroll inside, not widen the cell
@@ -54,6 +81,13 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
   private static readonly limit = 500;
 
   private readonly homeService = inject(HomeService);
+  private readonly mainAppInitService = inject(MainAppInitService);
+  private readonly cveEnrichmentState = inject(CveEnrichmentStateService);
+  // the tags of the vulnerability id cell of the tables: here the labels of its EPSS and exploited ones
+  private readonly vulnerabilityTags = new VulnerabilityTagsPipe();
+
+  // the height of a row of the list (the virtual scroller needs all the rows to have the same one)
+  protected readonly rowHeight = 64;
 
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help = `
@@ -63,6 +97,19 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
     <p class="mb-2">The <strong>Include top</strong> line (steps of 10%, from 20%) keeps only the ids in that top share of the EPSS percentiles: top 20% is the ids at the 80th percentile and above, top 100% is all of them (the server filters; the default is the top 20%).</p>
     <p class="mb-0 tod-text-muted-color">Only the ids with an EPSS score are on the plot. The percentile is the share of all scored ids with an equal or lower score.</p>
   `;
+
+  constructor() {
+    super();
+
+    this.cveEnrichmentState.ensureLoaded();
+
+    // a collapse ends a deselect: the next expand has the first id selected again
+    effect(() => {
+      if (!this.isExpanded()) {
+        untracked(() => this.deselected.set(false));
+      }
+    });
+  }
 
   hint = input<string>('');
   severities = input.required<number[]>();
@@ -97,12 +144,14 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
 
   // below 1 so the points of the ids with one image, spread sideways, stay on the plot
   protected readonly xAxis: ScatterAxis = { label: 'images (log)', scale: 'log', min: 0.7 };
-  protected readonly yAxis: ScatterAxis = {
+  // follows the share: the floor of the percentile (what the server returns) with 10% under it, clamped at 0; the top has
+  // 10% of room above 100% (its tick is not labelled: there is no percentile over 100%)
+  protected readonly yAxis = computed<ScatterAxis>(() => ({
     label: 'EPSS',
-    min: 0,
-    max: 1,
-    format: (value) => `${Math.round(value * 100)}%`,
-  };
+    min: Math.max(0, 1 - this.topShare() / 100 - 0.1),
+    max: 1.1,
+    format: (value) => (value > 1.001 ? '' : `${Math.round(value * 100)}%`),
+  }));
   protected readonly legend: ScatterLegendItem[] = [
     {
       label: 'known exploited',
@@ -163,29 +212,65 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
     return picked && !shown.includes(picked) ? [picked, ...shown] : shown;
   });
 
+  // the sort of the list (null: the most likely to be exploited and widespread first); the pills go natural direction ->
+  // reversed -> off; the rows have no moment
+  protected readonly sort = signal<HomeListSort | null>(null);
+  protected readonly sortedList = computed(() =>
+    sortRows(this.list(), this.sort(), {
+      moment: () => undefined,
+      severity: (x) => x.severityId,
+      name: (x) => x.vulnerabilityId,
+    }),
+  );
+
+  protected toggleSort(key: HomeListSortKey): void {
+    this.sort.update((current) => nextSort(current, key));
+  }
+
+  protected sortIcon(key: HomeListSortKey): string | undefined {
+    return sortIconOf(this.sort(), key);
+  }
+
+  protected sortTitle(key: HomeListSortKey): string {
+    return sortTitleOf(this.sort(), key);
+  }
+
   protected readonly knownExploitedCount = computed(() => this.list().filter((x) => x.isKnownExploited).length);
 
-  // the id of the detail: the one clicked if it is in the list, else the first
+  // the id of the detail: the one clicked if it is in the list, else the first; none after a deselect (a click on the
+  // selected row, or on the picked point again) until the next click, or the next expand
   protected readonly pickedId = signal<string | null>(null);
-  protected readonly active = computed<HomeReachEpssItemDto | undefined>(
-    () => this.list().find((x) => x.vulnerabilityId === this.pickedId()) ?? this.list()[0],
+  private readonly deselected = signal(false);
+  protected readonly active = computed<HomeReachEpssItemDto | undefined>(() =>
+    this.deselected()
+      ? undefined
+      : (this.list().find((x) => x.vulnerabilityId === this.pickedId()) ?? this.list()[0]),
   );
 
   protected pick(item: HomeReachEpssItemDto): void {
+    if (this.active()?.vulnerabilityId === item.vulnerabilityId) {
+      this.deselected.set(true);
+      return;
+    }
+
+    this.deselected.set(false);
     this.pickedId.set(item.vulnerabilityId);
   }
 
   // the point picked on the plot (null: cleared): the widget is expanded (when it is not) with that id selected in the list
   protected readonly pickedIndex = computed(() => {
     const index = this.points().findIndex((p) => p.data?.vulnerabilityId === this.pickedId());
-    return this.pickedId() === null || index < 0 ? null : index;
+    return this.pickedId() === null || this.deselected() || index < 0 ? null : index;
   });
 
   protected onPointPicked(index: number | null): void {
     const item = index === null ? undefined : this.points()[index]?.data;
     this.pickedId.set(item?.vulnerabilityId ?? null);
     if (item) {
+      this.deselected.set(false);
       this.expand();
+    } else if (this.isExpanded()) {
+      this.deselected.set(true);
     }
   }
 
@@ -210,6 +295,23 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
   });
   protected readonly detailLoading = computed(() => this.detailData.isLoading());
   protected readonly detailError = computed(() => (this.detailData.error() as Error | undefined)?.message);
+
+  // the details of a CVE (the dialog behind the CVSS tag): only for CVE ids, and only when the CVE details are enabled
+  protected hasCveDetails(vulnerabilityId: string): boolean {
+    return (
+      this.mainAppInitService.backendSettingsDto().isCveDetailsEnabled &&
+      vulnerabilityId.trim().toUpperCase().startsWith('CVE-')
+    );
+  }
+
+  // the label of the tag of the tables for the id (the same pipe), or '': 'EPSS 46%'; 'KEV', 'EUVD' or 'KEV/EUVD'
+  protected tagLabel(vulnerabilityId: string, source: VulnerabilityTagSource): string {
+    return (
+      this.vulnerabilityTags
+        .transform(vulnerabilityId, this.cveEnrichmentState.byId(), false)
+        .find((x) => x.source === source)?.label ?? ''
+    );
+  }
 
   protected severityColor(severityId: number): string {
     return SeverityUtils.getCssColor(severityId);

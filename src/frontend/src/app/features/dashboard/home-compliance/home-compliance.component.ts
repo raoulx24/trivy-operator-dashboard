@@ -6,6 +6,8 @@ import { ButtonModule } from 'primeng/button';
 import { HomeComplianceReportDto } from '@api/models/home-compliance-report-dto';
 import { HomeService } from '@api/services/home.service';
 import { NetworkFillComponent } from '@shared/ui/network-fill/network-fill.component';
+import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { RingGaugeComponent } from '@shared/ui/ring-gauge/ring-gauge.component';
 import { RingGaugeData } from '@shared/ui/ring-gauge/ring-gauge.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
@@ -23,7 +25,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-compliance',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, ButtonModule, NetworkFillComponent, RingGaugeComponent],
+  imports: [HomeWidgetFrameComponent, ButtonModule, NetworkFillComponent, RingGaugeComponent, TrivyBoxComponent, SeverityNameByIdPipe],
   templateUrl: './home-compliance.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-w-0' },

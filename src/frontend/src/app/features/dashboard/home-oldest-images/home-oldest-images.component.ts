@@ -157,7 +157,7 @@ export class HomeOldestImagesComponent extends HomeWidgetBase {
   protected readonly oldestDays = computed(() => this.byAge()[0]?.days ?? null);
   protected readonly oldCount = computed(() => this.allImages().filter((x) => x.days > OLD_DAYS).length);
   protected readonly collapsedRows = computed(() =>
-    this.toRows(this.byAge().slice(0, HomeOldestImagesComponent.collapsedLimit), 170),
+    this.toRows(this.byAge().slice(0, HomeOldestImagesComponent.collapsedLimit), 300),
   );
 
   // ---- the expanded widget: the filter box, the sort, the selection
@@ -182,7 +182,7 @@ export class HomeOldestImagesComponent extends HomeWidgetBase {
   );
   protected readonly shown = computed(() => this.sortImages(this.images(), this.sortBy()));
 
-  protected readonly labelWidth = 300;
+  protected readonly labelWidth = 450;
   protected readonly timelineRows = computed(() => this.toRows(this.shown(), this.labelWidth));
 
   protected readonly selected = computed(() => this.allImages().find((x) => x.key === this.selectedKey()));

@@ -32,6 +32,10 @@ import {
 const DEFAULT_WIDTH = 480;
 const TOP_HEIGHT = 22;
 const ROW_HEIGHT = 28;
+// label above the bar: a taller row, the label on its first line, the bar on the second
+const ROW_HEIGHT_ABOVE = 42;
+const LABEL_Y_ABOVE = 12;
+const BAR_Y_ABOVE = 22;
 const BAR_HEIGHT = 12;
 const MIN_BAR_WIDTH = 6;
 const MIN_AXIS_WIDTH = 60;
@@ -89,6 +93,9 @@ export class SpanTimelineComponent {
   legend = input<SpanTimelineLegendItem[]>([]);
   // css colors for the rows without their own, in turn; empty = the primary color
   colors = input<string[]>([]);
+  // left: the label is left of the bars (labelWidth is its room); above: the label is on a line of its own above each bar, with the
+  // value at the right end of that line (labelWidth is then not used by the drawing)
+  labelPosition = input<'left' | 'above'>('left');
   labelWidth = input<number>(160);
   // the room of the text on the right (used only when a row has a valueLabel)
   valueWidth = input<number>(48);
@@ -110,7 +117,11 @@ export class SpanTimelineComponent {
   selectedId = model<string | null>(null);
 
   protected readonly barHeight = BAR_HEIGHT;
-  protected readonly rowHeight = ROW_HEIGHT;
+  protected readonly rowHeight = computed(() => (this.labelPosition() === 'above' ? ROW_HEIGHT_ABOVE : ROW_HEIGHT));
+  protected readonly labelY = computed(() => (this.labelPosition() === 'above' ? LABEL_Y_ABOVE : ROW_HEIGHT / 2));
+  protected readonly barY = computed(() =>
+    this.labelPosition() === 'above' ? BAR_Y_ABOVE : (ROW_HEIGHT - BAR_HEIGHT) / 2,
+  );
   protected readonly axisHeight = TOP_HEIGHT;
   protected readonly viewWidth = signal(DEFAULT_WIDTH);
   protected readonly popover = inject(PopoverService);
@@ -164,10 +175,11 @@ export class SpanTimelineComponent {
 
   protected readonly hasValues = computed(() => this.rows().some((r) => !!r.valueLabel));
 
-  protected readonly barsLeft = computed(() => this.labelWidth());
+  protected readonly barsLeft = computed(() => (this.labelPosition() === 'above' ? EDGE_PAD : this.labelWidth()));
   protected readonly barsWidth = computed(() => {
-    const right = RIGHT_PAD + (this.hasValues() ? this.valueWidth() + VALUE_GAP + EDGE_PAD : 0);
-    return Math.max(MIN_AXIS_WIDTH, this.viewWidth() - this.labelWidth() - right);
+    const right =
+      RIGHT_PAD + (this.hasValues() && this.labelPosition() === 'left' ? this.valueWidth() + VALUE_GAP + EDGE_PAD : 0);
+    return Math.max(MIN_AXIS_WIDTH, this.viewWidth() - this.barsLeft() - right);
   });
   // the value ends EDGE_PAD before the right edge, as the label starts EDGE_PAD after the left one
   protected readonly valueX = computed(() => this.viewWidth() - EDGE_PAD);
@@ -206,7 +218,7 @@ export class SpanTimelineComponent {
 
       return {
         row,
-        y: i * ROW_HEIGHT,
+        y: i * this.rowHeight(),
         x: left,
         width,
         color: row.color ?? (palette.length > 0 ? palette[i % palette.length] : 'var(--p-primary-color)'),
@@ -223,12 +235,12 @@ export class SpanTimelineComponent {
     });
   });
 
-  protected readonly rowsBottom = computed(() => this.rows().length * ROW_HEIGHT);
+  protected readonly rowsBottom = computed(() => this.rows().length * this.rowHeight());
   // the height of the scroller of the rows: all of them, or what maxHeight leaves after the axis (one row at least)
   protected readonly rowsViewHeight = computed(() => {
     const max = this.maxHeight();
     const axis = this.showAxis() ? TOP_HEIGHT : 0;
-    return max === null ? this.rowsBottom() : Math.min(this.rowsBottom(), Math.max(ROW_HEIGHT, max - axis));
+    return max === null ? this.rowsBottom() : Math.min(this.rowsBottom(), Math.max(this.rowHeight(), max - axis));
   });
 
   protected readonly referenceX = computed(() => {

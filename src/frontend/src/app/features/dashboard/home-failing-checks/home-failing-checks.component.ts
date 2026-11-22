@@ -22,15 +22,13 @@ import { HomeService } from '@api/services/home.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
 import { MatrixHeatmapComponent } from '@shared/ui/matrix-heatmap/matrix-heatmap.component';
-import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
-import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
 import { MatrixHeatmapCellRef, MatrixHeatmapClick, MatrixHeatmapRowDto } from '@shared/ui/matrix-heatmap/matrix-heatmap.types';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { SpanTimelineComponent } from '@shared/ui/span-timeline/span-timeline.component';
 import { SpanTimelineRow, SpanTimelineTick } from '@shared/ui/span-timeline/span-timeline.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
-import { severityColor, severityName, severityTextColor } from '../home-collapsed/home-collapsed';
+import { severityColor, severityTextColor } from '../home-collapsed/home-collapsed';
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
@@ -111,7 +109,6 @@ interface NamespaceGroup {
     HomeSearchBoxComponent,
     NgTemplateOutlet,
     MatrixHeatmapComponent,
-    MeterGroupComponent,
     PillButtonComponent,
     SpanTimelineComponent,
     TagModule,
@@ -195,25 +192,12 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
     return this.totalChecks() > shown ? `Computed on the first ${shown} of ${this.totalChecks()} checks` : '';
   });
 
-  // ---- the severity mix: the distinct checks by severity, in the colors of the severities (the meter is of all of them)
-  protected readonly severityMix = computed<MeterGroupSegment[]>(() =>
-    [...this.severities()]
-      .sort((a, b) => a - b)
-      .map((id) => ({
-        label: severityName(id),
-        value: this.allItems().filter((x) => x.severityId === id).length,
-        color: severityColor(id),
-        textColor: severityTextColor(id),
-      }))
-      .filter((x) => x.value > 0),
-  );
-
   // ---- the grid: distinct checks by family (rows) and severity (columns, those of the filter)
   protected readonly gridSeverities = computed(() => [...this.severities()].sort((a, b) => a - b));
   protected readonly gridColumns = computed(() =>
     this.gridSeverities().map((id) => SeverityUtils.getName(id).toLowerCase()),
   );
-  // the cells in the colors of the severities, as the meter above; zeros until the checks are there
+  // the cells in the colors of the severities, zeros until the checks are there
   protected readonly gridRows = computed<MatrixHeatmapRowDto[]>(() =>
     FAMILIES.map((f) => ({
       label: f.label,
@@ -289,7 +273,7 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
   );
 
   // the label: the id and the title, cut to the room of the label
-  protected readonly labelWidth = 300;
+  protected readonly labelWidth = 450;
   protected readonly timelineRows = computed<SpanTimelineRow[]>(() => {
     const maxChars = Math.floor((this.labelWidth - LABEL_PADDING) / LABEL_CHAR_WIDTH);
     return this.items().map((x) =>

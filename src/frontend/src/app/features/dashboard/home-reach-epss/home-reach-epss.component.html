@@ -34,7 +34,7 @@
       [pickedIndex]="pickedIndex()"
       (pickedIndexChange)="onPointPicked($event)"
       [xAxis]="xAxis"
-      [yAxis]="yAxis"
+      [yAxis]="yAxis()"
       [legend]="legend"
       [pointRadius]="3"
       [pointOpacity]="0.6"
@@ -50,97 +50,142 @@
       }
     </span>
   } @else {
-    <div class="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-3 pt-1 max-h-[75vh] min-h-[28rem]">
-      <div class="min-w-0 flex flex-col gap-2">
-        <app-scatter-select
-          [animate]="true"
-          [points]="points()"
-          [pickedIndex]="pickedIndex()"
-          (pickedIndexChange)="onPointPicked($event)"
-          [xAxis]="xAxis"
-          [yAxis]="yAxis"
-          [legend]="legend"
-      [pointRadius]="3"
-      [pointOpacity]="0.6"
-      [tooltipTemplate]="tip"
-          [height]="440"
-          (selectionChanged)="onSelection($event)"
-        />
-        <span class="text-xs tod-text-muted-color">
-          Top right: likely to be exploited and widespread. Drag to select (shift adds a region, a click clears).
-        </span>
-      </div>
+    <!-- expanded: on the left the plot in a box, and under it the details of the clicked id in the rest of the height; on the
+         right (fixed width) only the list of the ids -->
+    <div class="grid grid-cols-[minmax(0,1fr)_500px] gap-3 pt-1 min-h-[46rem]">
+      <div class="min-w-0 min-h-0 flex flex-col gap-3">
+        <app-trivy-box class="shrink-0">
+          <span boxTitle>Reach vs EPSS</span>
+          <app-scatter-select
+            [animate]="true"
+            [points]="points()"
+            [pickedIndex]="pickedIndex()"
+            (pickedIndexChange)="onPointPicked($event)"
+            [xAxis]="xAxis"
+            [yAxis]="yAxis()"
+            [legend]="legend"
+            [pointRadius]="3"
+            [pointOpacity]="0.6"
+            [tooltipTemplate]="tip"
+            [height]="440"
+            (selectionChanged)="onSelection($event)"
+          />
+          <span boxFooter class="text-xs tod-text-muted-color">
+            Top right: likely to be exploited and widespread. Drag to select (shift adds a region, a click clears).
+          </span>
+        </app-trivy-box>
 
-      <div class="flex flex-col gap-3 min-h-0 text-sm">
-        <!-- the list: the selection, else the top -->
-        <div class="tod-content-border flex flex-col gap-2 p-3 min-h-0 flex-1">
-          <div class="flex items-baseline justify-between gap-2">
-            <span class="font-semibold">
-              {{ listIsSelection() ? 'Selected · ' + list().length + ' ids' : 'Top ' + list().length + ' by EPSS x images' }}
-            </span>
-            @if (knownExploitedCount() > 0) {
-              <span class="text-xs tod-text-muted-color">{{ knownExploitedCount() }} known exploited</span>
-            }
-          </div>
-          <div class="flex flex-col gap-0.5 overflow-auto min-h-0 flex-1">
-            @for (item of list(); track item.vulnerabilityId) {
-              <button
-                type="button"
-                class="tod-home-pick-row flex items-center gap-2 text-left"
-                [class.selected]="item.vulnerabilityId === active()?.vulnerabilityId"
-                (click)="pick(item)"
-              >
-                <span class="inline-block size-2 shrink-0 rounded-full" [style.background]="severityColor(item.severityId)"></span>
-                <span class="flex-1 min-w-0 truncate" [title]="item.vulnerabilityId">{{ item.vulnerabilityId }}</span>
-                @if (item.isKnownExploited) {
-                  <p-tag class="text-xs" severity="danger" [rounded]="true" value="KEV" />
-                }
-                <span class="tabular-nums text-xs tod-text-muted-color">
-                  {{ item.images }} img · {{ item.epssPercentile * 100 | number: '1.0-0' }}%
-                </span>
-              </button>
-            } @empty {
-              <span class="text-xs tod-text-muted-color">Nothing in the selected region.</span>
-            }
+        <!-- the detail of the clicked id: the rest of the height (laid out absolutely, it scrolls in it) -->
+        <div class="relative flex-1 min-h-0">
+          <div class="absolute inset-0">
+            <app-trivy-box class="h-full">
+              <span boxTitle>Details</span>
+              <div class="relative h-full">
+                <div class="absolute inset-0 overflow-auto flex flex-col gap-2 text-sm">
+                  @if (active(); as a) {
+                    <span class="font-semibold break-all">{{ a.vulnerabilityId }}</span>
+                    @if (detailError(); as error) {
+                      <span class="home-widget-error">Error: {{ error }}</span>
+                    } @else if (detail(); as d) {
+                      @if (d.title) {
+                        <span class="text-xs">{{ d.title }}</span>
+                      }
+                      <span class="text-xs tod-text-muted-color">
+                        {{ d.images }} images · {{ d.namespaces }} namespaces · {{ d.workloads }} workloads
+                        @if (d.epssPercentile != null) {
+                          · EPSS {{ d.epssPercentile * 100 | number: '1.0-0' }}%
+                        }
+                        @if (d.isKnownExploited) {
+                          · KEV{{ d.kevDateAdded ? ' since ' + d.kevDateAdded.substring(0, 10) : '' }}
+                        }
+                      </span>
+                      <div class="flex flex-col gap-0.5">
+                        @for (p of d.packages; track p.packageKey) {
+                          <div class="flex items-center gap-2 text-xs">
+                            <span class="min-w-0 truncate" [title]="p.packageKey">{{ p.packageName }}</span>
+                            <span class="flex-1 min-w-0 truncate text-right tod-text-muted-color" [title]="p.installedVersions.join(', ')">
+                              {{ p.installedVersions.join(', ') }} → {{ p.fixedVersion ?? 'no fix yet' }}
+                            </span>
+                            <span class="tabular-nums">{{ p.images }} img</span>
+                          </div>
+                        }
+                      </div>
+                    } @else if (detailLoading()) {
+                      <span class="text-xs tod-text-muted-color">Loading...</span>
+                    }
+                  } @else {
+                    <span class="text-xs tod-text-muted-color">No id.</span>
+                  }
+                </div>
+              </div>
+            </app-trivy-box>
           </div>
         </div>
+      </div>
 
-        <!-- the detail of the clicked id -->
-        <div class="tod-content-border flex flex-col gap-2 p-3 overflow-auto max-h-[16rem]">
-          @if (active(); as a) {
-            <span class="font-semibold break-all">{{ a.vulnerabilityId }}</span>
-            @if (detailError(); as error) {
-              <span class="home-widget-error">Error: {{ error }}</span>
-            } @else if (detail(); as d) {
-              @if (d.title) {
-                <span class="text-xs">{{ d.title }}</span>
-              }
-              <span class="text-xs tod-text-muted-color">
-                {{ d.images }} images · {{ d.namespaces }} namespaces · {{ d.workloads }} workloads
-                @if (d.epssPercentile != null) {
-                  · EPSS {{ d.epssPercentile * 100 | number: '1.0-0' }}%
-                }
-                @if (d.isKnownExploited) {
-                  · KEV{{ d.kevDateAdded ? ' since ' + d.kevDateAdded.substring(0, 10) : '' }}
-                }
-              </span>
-              <div class="flex flex-col gap-0.5">
-                @for (p of d.packages; track p.packageKey) {
-                  <div class="flex items-center gap-2 text-xs">
-                    <span class="min-w-0 truncate" [title]="p.packageKey">{{ p.packageName }}</span>
-                    <span class="flex-1 min-w-0 truncate text-right tod-text-muted-color" [title]="p.installedVersions.join(', ')">
-                      {{ p.installedVersions.join(', ') }} → {{ p.fixedVersion ?? 'no fix yet' }}
-                    </span>
-                    <span class="tabular-nums">{{ p.images }} img</span>
-                  </div>
-                }
-              </div>
-            } @else if (detailLoading()) {
-              <span class="text-xs tod-text-muted-color">Loading...</span>
+      <!-- the list: the selection, else the top; the rows have all the same height, as the scroller needs -->
+      <div class="relative min-h-0 text-sm">
+        <div class="absolute inset-0">
+          <app-trivy-box class="h-full">
+            <span boxTitle>{{
+              listIsSelection() ? 'Selected · ' + list().length + ' ids' : 'Top ' + list().length + ' by EPSS x images'
+            }}</span>
+            @if (knownExploitedCount() > 0) {
+              <span boxTitleEnd class="font-normal tod-text-muted-color">{{ knownExploitedCount() }} known exploited</span>
             }
-          } @else {
-            <span class="text-xs tod-text-muted-color">No id.</span>
-          }
+            <div boxHeader class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort the ids">
+              <app-pill-button label="Severity" [toggle]="true" [active]="sort()?.key === 'severity'" [icon]="sortIcon('severity')" [title]="sortTitle('severity')" (pressed)="toggleSort('severity')" />
+              <app-pill-button label="Name" [toggle]="true" [active]="sort()?.key === 'name'" [icon]="sortIcon('name')" [title]="sortTitle('name')" (pressed)="toggleSort('name')" />
+            </div>
+            <div class="relative h-full">
+              <p-scroller
+                appScrollerResize
+                class="absolute inset-0"
+                scrollHeight="100%"
+                [items]="sortedList()"
+                [itemSize]="rowHeight"
+                [style]="{ width: '100%', height: '100%' }"
+              >
+                <ng-template #item let-item let-options="options">
+                  <div
+                    class="flex flex-col gap-1.5 px-1 py-2 overflow-hidden cursor-pointer border-[var(--p-content-border-color)]"
+                    [class.border-b]="!options.last"
+                    [class.tod-selected-item]="item.vulnerabilityId === active()?.vulnerabilityId"
+                    [style.height.px]="rowHeight"
+                    (click)="pick(item)"
+                  >
+                    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <span class="font-medium break-all">{{ item.vulnerabilityId }}</span>
+                      <p-tag
+                        class="text-xs"
+                        [rounded]="true"
+                        [style]="item.severityId | severityCssStyleById: 1"
+                        [value]="item.severityId | severityNameById"
+                      />
+                      @if (hasCveDetails(item.vulnerabilityId)) {
+                        <app-vulnerability-score-tag label="CVSS" source="cveDetails" [vulnerabilityId]="item.vulnerabilityId" />
+                      }
+                      @let epss = tagLabel(item.vulnerabilityId, 'epss');
+                      @if (epss) {
+                        <app-vulnerability-score-tag source="epss" [label]="epss" [vulnerabilityId]="item.vulnerabilityId" />
+                      }
+                      @if (item.isKnownExploited || tagLabel(item.vulnerabilityId, 'exploited')) {
+                        <app-home-exploit-tag [vulnerabilityId]="item.vulnerabilityId" />
+                      }
+                    </span>
+                    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs tod-text-muted-color">
+                      <span>{{ item.images }} {{ item.images === 1 ? 'image' : 'images' }}</span>
+                      <span>{{ item.namespaces }} ns</span>
+                      <span>EPSS percentile {{ item.epssPercentile * 100 | number: '1.0-0' }}%</span>
+                    </span>
+                  </div>
+                </ng-template>
+              </p-scroller>
+              @if (sortedList().length === 0) {
+                <span class="absolute inset-0 text-xs tod-text-muted-color">Nothing in the selected region.</span>
+              }
+            </div>
+          </app-trivy-box>
         </div>
       </div>
     </div>

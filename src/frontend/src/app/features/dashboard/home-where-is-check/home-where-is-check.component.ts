@@ -253,6 +253,10 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
     };
   });
 
+  // the first check is selected on its own once per expand and per search: a deselect (a click on the selected row) leaves the
+  // empty state
+  private autoSelect = true;
+
   constructor() {
     super();
 
@@ -299,7 +303,16 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
     // expanded without a choice (the expand button, or a new search): the first check of the list
     effect(() => {
       const first = this.items()[0];
-      if (this.isExpanded() && !this.selected() && first) {
+      const key = this.selected();
+      if (!this.isExpanded()) {
+        this.autoSelect = true;
+        return;
+      }
+      if (key) {
+        this.autoSelect = false;
+      }
+      if (this.autoSelect && !key && first) {
+        this.autoSelect = false;
         this.selected.set({ family: first.family, checkId: first.checkId });
       }
     });
@@ -332,6 +345,8 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
     }
 
     const namespaces = this.namespaces();
+    // a new search selects its first check again
+    this.autoSelect = true;
     this.selected.set(undefined);
     this.loaded.set(undefined);
     this.request.set({ query, namespaces: namespaces.length > 0 ? namespaces : undefined });
@@ -350,8 +365,15 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
     }
   }
 
-  // a click on a check (of the collapsed widget, or of the list of the expanded one)
+  // a click on a check (of the collapsed widget, or of the list of the expanded one); on the selected row of the expanded
+  // list it deselects (the empty state)
   protected select(item: HomeWhereIsCheckItemDto): void {
+    if (this.isExpanded() && this.isSelected(item)) {
+      this.selected.set(undefined);
+      this.loaded.set(undefined);
+      return;
+    }
+
     this.selected.set({ family: item.family, checkId: item.checkId });
     if (this.canExpand() && !this.isExpanded()) {
       this.toggleExpand();

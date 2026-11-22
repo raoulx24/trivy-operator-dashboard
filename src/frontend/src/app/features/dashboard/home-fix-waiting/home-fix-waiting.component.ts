@@ -230,7 +230,7 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
   );
 
   // the labels are cut to the room the grouping gives them (an image name is long: its end, the tag, is kept)
-  protected readonly labelWidth = computed(() => ({ id: 220, package: 180, image: 280 })[this.groupBy()]);
+  protected readonly labelWidth = computed(() => ({ id: 520, package: 420, image: 660 })[this.groupBy()]);
 
   protected readonly timelineRows = computed<SpanTimelineRow[]>(() => {
     const maxChars = Math.floor((this.labelWidth() - LABEL_PADDING) / LABEL_CHAR_WIDTH);

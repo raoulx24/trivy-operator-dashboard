@@ -59,10 +59,10 @@
                 x="0.5"
                 y="0.5"
                 class="row-bg"
-                [attr.height]="rowHeight - 1"
+                [attr.height]="rowHeight() - 1"
                 [attr.width]="viewWidth() - 1"
               />
-              <text dominant-baseline="central" x="8" class="row-label tod-chart-label" [attr.y]="rowHeight / 2">
+              <text dominant-baseline="central" x="8" class="row-label tod-chart-label" [attr.y]="labelY()">
                 {{ bar.row.label }}
               </text>
               <rect
@@ -71,7 +71,7 @@
                 [attr.height]="barHeight"
                 [attr.width]="barsWidth()"
                 [attr.x]="barsLeft()"
-                [attr.y]="(rowHeight - barHeight) / 2"
+                [attr.y]="barY()"
                 [class.faint]="bar.row.faint"
               />
               <!-- a bar with new data is re-created (a loop of one), so that its growth runs again when the data is received -->
@@ -87,7 +87,7 @@
                     [attr.height]="barHeight"
                     [attr.width]="bar.width"
                     [attr.x]="bar.x"
-                    [attr.y]="(rowHeight - barHeight) / 2"
+                    [attr.y]="barY()"
                     [class.faint]="bar.row.faint"
                     [style.fill]="bar.color"
                   />
@@ -100,7 +100,7 @@
                     [class.grows]="bar.growDelay !== null"
                     [style.--grow-delay]="bar.growDelay !== null ? bar.growDelay + 'ms' : null"
                     [attr.x]="valueX()"
-                    [attr.y]="rowHeight / 2"
+                    [attr.y]="labelY()"
                   >
                     {{ bar.row.valueLabel }}
                   </text>
@@ -111,7 +111,7 @@
                 x="0"
                 y="0"
                 class="row-hit"
-                [attr.height]="rowHeight"
+                [attr.height]="rowHeight()"
                 [attr.width]="viewWidth()"
                 (click)="select(bar.row)"
                 (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(bar))"
@@ -124,7 +124,7 @@
                   class="marker kind-{{ marker.kind }}"
                   [class.grows]="bar.growDelay !== null"
                   [style.--grow-delay]="bar.growDelay !== null ? bar.growDelay + 'ms' : null"
-                  [attr.transform]="'translate(' + marker.x + ',' + rowHeight / 2 + ')'"
+                  [attr.transform]="'translate(' + marker.x + ',' + (barY() + barHeight / 2) + ')'"
                   [style.--span-marker-color]="marker.color"
                   (click)="select(bar.row)"
                   (mouseenter)="popover.show(marker.tip, $event)"

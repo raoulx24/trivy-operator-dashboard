@@ -491,6 +491,9 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
     };
   });
 
+  // the first id is selected on its own once per expand: a deselect (a click on the selected row) leaves the empty state
+  private autoSelect = true;
+
   constructor() {
     super();
 
@@ -530,10 +533,18 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
     effect(() => {
       const first = this.items()[0];
       const id = this.selectedId();
-      if (!this.isExpanded() || !first || this.pendingPick()) {
+      if (!this.isExpanded()) {
+        this.autoSelect = true;
         return;
       }
-      if (!id || (this.expandedData.hasValue() && !this.items().some((x) => x.vulnerabilityId === id))) {
+      if (id) {
+        this.autoSelect = false;
+      }
+      if (!first || this.pendingPick()) {
+        return;
+      }
+      if ((!id && this.autoSelect) || (id && this.expandedData.hasValue() && !this.items().some((x) => x.vulnerabilityId === id))) {
+        this.autoSelect = false;
         this.selectedId.set(first.vulnerabilityId);
       }
     });
@@ -605,8 +616,14 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
     });
   }
 
-  // a click on a row (of the collapsed widget, or of the list of the expanded one)
+  // a click on a row (of the collapsed widget, or of the list of the expanded one); on the selected row of the expanded list it deselects (the empty state)
   protected select(item: HomeActiveVulnerabilityDto): void {
+    if (this.isExpanded() && this.selectedId() === item.vulnerabilityId) {
+      this.selectedId.set(undefined);
+      this.loaded.set(undefined);
+      return;
+    }
+
     this.selectedId.set(item.vulnerabilityId);
     if (this.canExpand() && !this.isExpanded()) {
       this.toggleExpand();

@@ -28,10 +28,11 @@
           <app-network-fill class="flex-1" seed="Compliance" />
         </div>
       } @else {
-        <div class="flex flex-col gap-1 p-2 text-sm rounded border border-[var(--p-content-border-color)] box-border" [style.min-height.px]="panelHeight">
-          <div class="flex items-center justify-between gap-2 h-7">
-            <span class="text-xs tod-text-muted-color truncate">Worst failing controls · {{ selectedLabel() }}</span>
+        <div class="flex flex-col gap-2" [style.min-height.px]="panelHeight">
+          <app-trivy-box>
+            <span boxTitle class="truncate">Worst failing controls · {{ selectedLabel() }}</span>
             <p-button
+              boxTitleEnd
               class="tod-button-compact inline-flex shrink-0"
               size="small"
               severity="secondary"
@@ -42,24 +43,33 @@
               [attr.title]="'Open the compliance reports'"
               (onClick)="openReports()"
             />
-          </div>
+            <div class="flex flex-col gap-1 text-sm">
+              @if (!worstDto()) {
+                <span class="text-xs tod-text-muted-color">Loading...</span>
+              } @else if (controls().length === 0) {
+                <span class="text-xs tod-text-muted-color">No failing controls</span>
+              } @else {
+                @for (control of controls(); track control.controlId) {
+                  <div class="flex items-center gap-2 h-5">
+                    <span class="w-8 shrink-0 text-xs tod-text-muted-color">{{ control.controlId }}</span>
+                    <span
+                      class="size-2 rounded-full shrink-0"
+                      [style.background]="severityColor(control.severityId)"
+                      [attr.title]="control.severityId | severityNameById"
+                    ></span>
+                    <span class="min-w-0 flex-1 truncate" [attr.title]="control.name">{{ control.name }}</span>
+                    <span class="shrink-0 whitespace-nowrap">{{ control.totalFail }} failing</span>
+                  </div>
+                }
+                @if (hiddenControls() > 0) {
+                  <span class="text-xs tod-text-muted-color">+{{ hiddenControls() }} more failing {{ hiddenControls() === 1 ? 'control' : 'controls' }}</span>
+                }
+              }
+            </div>
+          </app-trivy-box>
 
-          @if (!worstDto()) {
-            <span class="text-xs tod-text-muted-color">Loading...</span>
-          } @else if (controls().length === 0) {
-            <span class="text-xs tod-text-muted-color">No failing controls</span>
-          } @else {
-            @for (control of controls(); track control.controlId) {
-              <div class="flex items-center gap-2 h-5">
-                <span class="w-8 shrink-0 text-xs tod-text-muted-color">{{ control.controlId }}</span>
-                <span class="size-2 rounded-full shrink-0" [style.background]="severityColor(control.severityId)"></span>
-                <span class="min-w-0 flex-1 truncate" [attr.title]="control.name">{{ control.name }}</span>
-                <span class="shrink-0 whitespace-nowrap">{{ control.totalFail }} failing</span>
-              </div>
-            }
-            @if (hiddenControls() > 0) {
-              <span class="text-xs tod-text-muted-color">+{{ hiddenControls() }} more failing {{ hiddenControls() === 1 ? 'control' : 'controls' }}</span>
-            }
+          <!-- takes the room the (short) details leave; the panel's min-height keeps the widget from jumping -->
+          @if (worstDto() && controls().length > 0) {
             <app-network-fill class="flex-1" seed="Compliance controls" />
           }
         </div>

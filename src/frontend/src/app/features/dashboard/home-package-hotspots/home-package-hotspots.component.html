@@ -25,22 +25,26 @@
       @for (row of rows(); track row.item.packageKey) {
         <button
           type="button"
-          class="tod-home-pick-row grid grid-cols-[8rem_minmax(0,1fr)_3rem] items-center gap-x-3 text-sm text-left"
+          class="tod-home-pick-row flex flex-col gap-1 text-sm text-left"
           [attr.aria-label]="'Expand on ' + row.item.packageName"
           (click)="select(row.item)"
         >
-          <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
+          <span class="flex items-baseline justify-between gap-2 min-w-0">
+            <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
+            <span class="shrink-0 tabular-nums" title="Images with this package"
+              >{{ row.item.images }} {{ row.item.images === 1 ? 'image' : 'images' }}</span
+            >
+          </span>
           <app-meter-group [animate]="true" valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
-          <span class="text-right tabular-nums" title="Images with this package">{{ row.item.images }}</span>
         </button>
       }
-      <ng-container *ngTemplateOutlet="legend; context: { withImages: true }" />
+      <ng-container *ngTemplateOutlet="legend; context: { withImages: false }" />
     </div>
   } @else {
-    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-3 pt-1 max-h-[70vh] min-h-[24rem]">
+    <div class="grid grid-cols-[minmax(0,1fr)_500px] gap-3 pt-1 max-h-[80vh] min-h-[28rem]">
       <!-- the packages -->
       <div class="flex flex-col gap-2 min-h-0">
-        <div class="grid grid-cols-[10rem_minmax(0,1fr)_3rem_3rem] gap-x-3 px-1 text-xs tod-text-muted-color">
+        <div class="grid grid-cols-[20rem_minmax(0,1fr)_3rem_3rem] gap-x-3 px-1 text-xs tod-text-muted-color">
           <span>Package</span>
           <span>Vulnerability ids</span>
           <span class="text-right" title="Images with this package">Images</span>
@@ -50,7 +54,7 @@
           @for (row of rows(); track row.item.packageKey) {
             <button
               type="button"
-              class="tod-home-pick-row grid grid-cols-[10rem_minmax(0,1fr)_3rem_3rem] items-center gap-x-3 text-sm text-left"
+              class="tod-home-pick-row grid grid-cols-[20rem_minmax(0,1fr)_3rem_3rem] items-center gap-x-3 text-sm text-left"
               [class.selected]="row.item.packageKey === selected()?.packageKey"
               (click)="select(row.item)"
             >
@@ -64,70 +68,120 @@
         <ng-container *ngTemplateOutlet="legend; context: { withImages: false }" />
       </div>
 
-      <!-- the selected package -->
-      <div class="tod-content-border flex flex-col gap-3 p-3 min-h-0 overflow-auto text-sm">
-        @if (selected(); as s) {
-          <div class="flex flex-col gap-1">
-            <span class="font-semibold break-all">{{ s.packageName }}</span>
-            <span class="text-xs tod-text-muted-color break-all">{{ s.packageKey }}</span>
-            <span class="text-xs">
-              {{ s.vulnerabilityIds }} ids, {{ s.fixableVulnerabilityIds }} with a fix · {{ s.images }} images ·
-              {{ s.namespaces }} namespaces
-            </span>
-          </div>
-
-          @if (detailError(); as error) {
-            <span class="home-widget-error">Error: {{ error }}</span>
-          } @else if (detail(); as d) {
-            <div class="flex flex-col gap-1">
-              <span class="font-semibold">Versions · {{ d.versions.length }}</span>
-              @for (v of d.versions; track v.version) {
-                <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3.5rem] items-center gap-x-3">
-                  <span class="truncate font-mono text-xs" [title]="v.version">{{ v.version }}</span>
-                  <app-meter-group [animate]="true" valueLabel="images" [max]="maxVersionImages()" [segments]="v.segments" />
-                  <span class="text-right tabular-nums text-xs">{{ v.images }} img</span>
-                </div>
-              } @empty {
-                <span class="text-xs tod-text-muted-color">No running version found.</span>
-              }
-              <span class="text-xs tod-text-muted-color">
-                The color is the highest severity of the version. Fewer versions mean fewer places to patch.
-              </span>
-            </div>
-
-            <div class="flex flex-col gap-1">
-              <span class="font-semibold">Ids · {{ d.ids.length }}</span>
-              @for (id of d.ids; track id.vulnerabilityId) {
-                <div class="flex items-center gap-2">
-                  <span
-                    class="inline-block size-2 shrink-0 rounded-full"
-                    [style.background]="severityColor(id.severityId)"
-                  ></span>
-                  <span class="min-w-0 truncate" [title]="id.vulnerabilityId">{{ id.vulnerabilityId }}</span>
-                  @if (id.isKnownExploited) {
-                    <p-tag class="text-xs" severity="danger" [rounded]="true" value="KEV" />
-                  }
-                  <span
-                    class="flex-1 min-w-0 truncate text-right text-xs tod-text-muted-color"
-                    [title]="id.fixedVersions.join(', ')"
-                  >
-                    {{ id.fixedVersions.length > 0 ? 'fix ' + id.fixedVersions.join(', ') : 'no fix yet' }}
-                  </span>
-                  <span class="tabular-nums text-xs">{{ id.images }} img</span>
-                </div>
-              }
-              @if (d.versionsWithoutIds > 0) {
-                <span class="text-xs tod-text-muted-color">
-                  The ids of the {{ d.versionsWithoutIds }} least widespread versions are not listed.
+      <!-- the selected package, in two boxes: the package details (summary and versions) as tall as they need, and its
+           vulnerabilities (ids) in the rest of the height (laid out absolutely, they scroll in it) -->
+      <div class="flex flex-col gap-3 min-h-0">
+        <app-trivy-box class="shrink-0">
+          <span boxTitle>Package details</span>
+          <div class="flex flex-col gap-3 text-sm">
+            @if (selected(); as s) {
+              <div class="flex flex-col gap-1">
+                <span class="font-semibold break-all">{{ s.packageName }}</span>
+                <span class="text-xs tod-text-muted-color break-all">{{ s.packageKey }}</span>
+                <span class="text-xs">
+                  {{ s.vulnerabilityIds }} ids, {{ s.fixableVulnerabilityIds }} with a fix · {{ s.images }} images ·
+                  {{ s.namespaces }} namespaces
                 </span>
+              </div>
+
+              @if (detailError(); as error) {
+                <span class="home-widget-error">Error: {{ error }}</span>
+              } @else if (detail(); as d) {
+                <div class="flex flex-col gap-1">
+                  <span class="font-semibold">Versions · {{ d.versions.length }}</span>
+                  @for (v of d.versions; track v.version) {
+                    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3.5rem] items-center gap-x-3">
+                      <span class="truncate font-mono text-xs" [title]="v.version">{{ v.version }}</span>
+                      <app-meter-group [animate]="true" valueLabel="images" [max]="maxVersionImages()" [segments]="v.segments" />
+                      <span class="text-right tabular-nums text-xs">{{ v.images }} img</span>
+                    </div>
+                  } @empty {
+                    <span class="text-xs tod-text-muted-color">No running version found.</span>
+                  }
+                  <span class="text-xs tod-text-muted-color">
+                    The color is the highest severity of the version. Fewer versions mean fewer places to patch.
+                  </span>
+                </div>
+              } @else if (detailLoading()) {
+                <span class="tod-text-muted-color">Loading...</span>
               }
-            </div>
-          } @else if (detailLoading()) {
-            <span class="tod-text-muted-color">Loading...</span>
-          }
-        } @else {
-          <span class="tod-text-muted-color">No package.</span>
-        }
+            } @else {
+              <span class="tod-text-muted-color">No package.</span>
+            }
+          </div>
+        </app-trivy-box>
+
+        <div class="relative flex-1 min-h-0">
+          <div class="absolute inset-0">
+            <app-trivy-box class="h-full">
+              <span boxTitle>Vulnerabilities{{ detail() ? ' (' + detail()!.ids.length + ')' : '' }}</span>
+              <div boxHeader class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort the vulnerabilities">
+                <app-pill-button label="Severity" [toggle]="true" [active]="sort()?.key === 'severity'" [icon]="sortIcon('severity')" [title]="sortTitle('severity')" (pressed)="toggleSort('severity')" />
+                <app-pill-button label="Name" [toggle]="true" [active]="sort()?.key === 'name'" [icon]="sortIcon('name')" [title]="sortTitle('name')" (pressed)="toggleSort('name')" />
+              </div>
+              <!-- the rows have all the same height, as the scroller needs -->
+              <div class="relative h-full">
+                <p-scroller
+                  appScrollerResize
+                  class="absolute inset-0"
+                  scrollHeight="100%"
+                  [items]="sortedIds()"
+                  [itemSize]="idRowHeight"
+                  [style]="{ width: '100%', height: '100%' }"
+                >
+                  <ng-template #item let-id let-options="options">
+                    <div
+                      class="flex flex-col gap-1.5 px-1 py-2 overflow-hidden text-sm border-[var(--p-content-border-color)]"
+                      [class.border-b]="!options.last"
+                      [style.height.px]="idRowHeight"
+                    >
+                      <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span class="font-medium break-all">{{ id.vulnerabilityId }}</span>
+                        <p-tag
+                          class="text-xs"
+                          [rounded]="true"
+                          [style]="id.severityId | severityCssStyleById: 1"
+                          [value]="id.severityId | severityNameById"
+                        />
+                        @if (hasCveDetails(id.vulnerabilityId)) {
+                          <app-vulnerability-score-tag label="CVSS" source="cveDetails" [vulnerabilityId]="id.vulnerabilityId" />
+                        }
+                        @let epss = tagLabel(id.vulnerabilityId, 'epss');
+                        @if (epss) {
+                          <app-vulnerability-score-tag source="epss" [label]="epss" [vulnerabilityId]="id.vulnerabilityId" />
+                        }
+                        @if (id.isKnownExploited || tagLabel(id.vulnerabilityId, 'exploited')) {
+                          <app-home-exploit-tag [vulnerabilityId]="id.vulnerabilityId" />
+                        }
+                      </span>
+
+                      <!-- the rows have a fixed height, so the room of three lines is always taken -->
+                      <span class="text-xs line-clamp-3 min-h-12" [attr.title]="id.title">{{ id.title }}</span>
+
+                      <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs tod-text-muted-color">
+                        <span [attr.title]="id.fixedVersions.join(', ')">
+                          {{ id.fixedVersions.length > 0 ? 'fix ' + id.fixedVersions.join(', ') : 'no fix yet' }}
+                        </span>
+                        <span>{{ id.images }} {{ id.images === 1 ? 'image' : 'images' }}</span>
+                      </span>
+                    </div>
+                  </ng-template>
+                </p-scroller>
+              </div>
+              @if (detail(); as d) {
+                @if (d.versionsWithoutIds > 0) {
+                  <span boxFooter class="text-xs tod-text-muted-color">
+                    The ids of the {{ d.versionsWithoutIds }} least widespread versions are not listed.
+                  </span>
+                }
+              } @else {
+                <span boxFooter class="text-xs tod-text-muted-color">{{
+                  detailLoading() ? 'Loading...' : 'Select a package.'
+                }}</span>
+              }
+            </app-trivy-box>
+          </div>
+        </div>
       </div>
     </div>
   }

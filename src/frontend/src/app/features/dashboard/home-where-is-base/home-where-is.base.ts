@@ -250,6 +250,10 @@ export abstract class HomeWhereIsBase<
     };
   });
 
+  // the first row is selected on its own once per expand and per search: a deselect (a click on the selected row) leaves the
+  // empty state
+  private autoSelect = true;
+
   constructor() {
     super();
 
@@ -269,7 +273,16 @@ export abstract class HomeWhereIsBase<
     // expanded without a choice (the expand button, or a new search): the first row of the list
     effect(() => {
       const first = this.items()[0];
-      if (this.isExpanded() && this.selected() === undefined && first !== undefined) {
+      const selected = this.selected();
+      if (!this.isExpanded()) {
+        this.autoSelect = true;
+        return;
+      }
+      if (selected !== undefined) {
+        this.autoSelect = false;
+      }
+      if (this.autoSelect && selected === undefined && first !== undefined) {
+        this.autoSelect = false;
         this.selected.set(first);
       }
     });
@@ -299,6 +312,8 @@ export abstract class HomeWhereIsBase<
 
   onSearch(): void {
     const query = this.query().trim();
+    // a new search selects its first row again
+    this.autoSelect = true;
     this.selected.set(undefined);
     this.loaded.set(undefined);
 
@@ -330,8 +345,15 @@ export abstract class HomeWhereIsBase<
     }
   }
 
-  // a click on a row (of the collapsed widget, or of the list of the expanded one)
+  // a click on a row (of the collapsed widget, or of the list of the expanded one); on the selected row of the expanded
+  // list it deselects (the empty state)
   select(item: TItem): void {
+    if (this.isExpanded() && this.isSelected(item)) {
+      this.selected.set(undefined);
+      this.loaded.set(undefined);
+      return;
+    }
+
     this.selected.set(item);
     if (this.canExpand() && !this.isExpanded()) {
       this.toggleExpand();

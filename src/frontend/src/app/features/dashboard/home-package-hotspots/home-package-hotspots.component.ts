@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 import { forkJoin, map, of, switchMap } from 'rxjs';
 
@@ -8,10 +9,22 @@ import { HomePackageHotspotDto } from '@api/models/home-package-hotspot-dto';
 import { HomeWhereIsPackageItemDto } from '@api/models/home-where-is-package-item-dto';
 import { HomeWhereIsPackageVulnerabilityDto } from '@api/models/home-where-is-package-vulnerability-dto';
 import { HomeService } from '@api/services/home.service';
+import { MainAppInitService } from '@core/services/main-app-init.service';
+import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
+import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
+import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { VulnerabilityTagSource } from '@shared/ui/trivy-table/trivy-table.types';
+import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags.pipe';
+import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
+import { ScrollerResizeDirective } from '@shared/ui/scroller-resize/scroller-resize.directive';
+import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
+import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
+import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
+import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -34,6 +47,7 @@ interface IdRow {
   vulnerabilityId: string;
   severityId: number;
   isKnownExploited: boolean;
+  title: string | null;
   // the fixed versions (empty: no fix yet)
   fixedVersions: string[];
   images: number;
@@ -55,7 +69,20 @@ interface PackageDetail {
 @Component({
   selector: 'app-home-package-hotspots',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, MeterGroupComponent, TagModule, NgTemplateOutlet],
+  imports: [
+    HomeExploitTagComponent,
+    HomeWidgetFrameComponent,
+    MeterGroupComponent,
+    NgTemplateOutlet,
+    PillButtonComponent,
+    ScrollerModule,
+    ScrollerResizeDirective,
+    SeverityCssStyleByIdPipe,
+    SeverityNameByIdPipe,
+    TagModule,
+    TrivyBoxComponent,
+    VulnerabilityScoreTagComponent,
+  ],
   templateUrl: './home-package-hotspots.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // a grid cell: wide content must scroll inside, not widen the cell
@@ -66,7 +93,14 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
   private static readonly collapsedLimit = 5;
   private static readonly expandedLimit = 100;
 
+  // the height of a row of the list of the vulnerabilities (the virtual scroller needs all the rows to have the same one)
+  protected readonly idRowHeight = 120;
+
   private readonly homeService = inject(HomeService);
+  private readonly mainAppInitService = inject(MainAppInitService);
+  private readonly cveEnrichmentState = inject(CveEnrichmentStateService);
+  // the tags of the vulnerability id cell of the tables: here the labels of its EPSS and exploited ones
+  private readonly vulnerabilityTags = new VulnerabilityTagsPipe();
 
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help = `
@@ -121,10 +155,13 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
   constructor() {
     super();
 
+    this.cveEnrichmentState.ensureLoaded();
+
     // the many rows arrived and are in the signal: after they are rendered the page may scroll to show the whole widget
     effect(() => {
       if (!this.isExpanded()) {
         this.revealed = false;
+        untracked(() => this.deselected.set(false));
       } else if (this.expandedData.hasValue() && !this.revealed) {
         this.revealed = true;
         this.revealAfterRender();
@@ -164,13 +201,25 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
     })),
   );
 
-  // the selected package: the one clicked if it is in the list, else the first
-  protected readonly selected = computed<HomePackageHotspotDto | undefined>(
-    () => this.items().find((x) => x.packageKey === this.selectedKey()) ?? this.items()[0],
+  // a click on the selected row of the expanded list deselects it (the empty state) until the next click, or the next expand
+  private readonly deselected = signal(false);
+
+  // the selected package: the one clicked if it is in the list, else the first; none after a deselect
+  protected readonly selected = computed<HomePackageHotspotDto | undefined>(() =>
+    this.deselected()
+      ? undefined
+      : (this.items().find((x) => x.packageKey === this.selectedKey()) ?? this.items()[0]),
   );
 
-  // a click on a row: the widget is expanded (when it is not) with that package selected
+  // a click on a row: the widget is expanded (when it is not) with that package selected; on the selected row of the
+  // expanded list it deselects
   protected select(item: HomePackageHotspotDto): void {
+    if (this.isExpanded() && this.selected()?.packageKey === item.packageKey) {
+      this.deselected.set(true);
+      return;
+    }
+
+    this.deselected.set(false);
     this.selectedKey.set(item.packageKey);
     this.expand();
   }
@@ -223,6 +272,29 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
   protected readonly detailLoading = computed(() => this.detailData.isLoading());
   protected readonly detailError = computed(() => (this.detailData.error() as Error | undefined)?.message);
 
+  // the sort of the list of the vulnerabilities (null: the worst first, then the most images); the pills go natural
+  // direction -> reversed -> off; the rows have no moment
+  protected readonly sort = signal<HomeListSort | null>(null);
+  protected readonly sortedIds = computed(() =>
+    sortRows(this.detail()?.ids ?? [], this.sort(), {
+      moment: () => undefined,
+      severity: (x) => x.severityId,
+      name: (x) => x.vulnerabilityId,
+    }),
+  );
+
+  protected toggleSort(key: HomeListSortKey): void {
+    this.sort.update((current) => nextSort(current, key));
+  }
+
+  protected sortIcon(key: HomeListSortKey): string | undefined {
+    return sortIconOf(this.sort(), key);
+  }
+
+  protected sortTitle(key: HomeListSortKey): string {
+    return sortTitleOf(this.sort(), key);
+  }
+
   protected readonly maxVersionImages = computed(() =>
     Math.max(1, ...(this.detail()?.versions ?? []).map((v) => v.images)),
   );
@@ -238,9 +310,11 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
         vulnerabilityId: v.vulnerabilityId,
         severityId: v.severityId,
         isKnownExploited: v.isKnownExploited,
+        title: v.title ?? null,
         fixedVersions: [],
         images: 0,
       };
+      row.title ??= v.title ?? null;
       row.images += v.imageIndexes.length;
       if (v.fixedVersion && !row.fixedVersions.includes(v.fixedVersion)) {
         row.fixedVersions.push(v.fixedVersion);
@@ -260,8 +334,21 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
     };
   }
 
-  protected severityColor(severityId: number): string {
-    return SeverityUtils.getCssColor(severityId);
+  // the details of a CVE (the dialog behind the CVSS tag): only for CVE ids, and only when the CVE details are enabled
+  protected hasCveDetails(vulnerabilityId: string): boolean {
+    return (
+      this.mainAppInitService.backendSettingsDto().isCveDetailsEnabled &&
+      vulnerabilityId.trim().toUpperCase().startsWith('CVE-')
+    );
+  }
+
+  // the label of the tag of the tables for the id (the same pipe), or '': 'EPSS 46%'; 'KEV', 'EUVD' or 'KEV/EUVD'
+  protected tagLabel(vulnerabilityId: string, source: VulnerabilityTagSource): string {
+    return (
+      this.vulnerabilityTags
+        .transform(vulnerabilityId, this.cveEnrichmentState.byId(), false)
+        .find((x) => x.source === source)?.label ?? ''
+    );
   }
 
   protected readonly state = computed<HomeWidgetState>(() => {
