@@ -1,9 +1,20 @@
 <body>
   <main class="container-fluid m-2">
     <!-- sticky: stays on top while the page scrolls; the shadow only shows once content has scrolled underneath -->
-    <div class="tod-sticky-nav" [class.tod-sticky-nav-scrolled]="isScrolled()">
+    <!-- a widget can ask to hide the bar (NavBarVisibilityService): it leaves the layout (collapsed) and slides out of
+         sight (hidden); scrolling up or the mouse at the top edge bring it back as an overlay -->
+    <div
+      #navHost
+      class="tod-sticky-nav"
+      [class.tod-sticky-nav-scrolled]="isScrolled()"
+      [class.tod-sticky-nav-collapsed]="navBar.hideRequested()"
+      [class.tod-sticky-nav-hidden]="navBar.hidden()"
+    >
       <app-nav-menu></app-nav-menu>
     </div>
+    @if (navBar.hidden()) {
+      <div class="tod-nav-hot-zone" (mouseenter)="navBar.setHovering(true)"></div>
+    }
     <div class="pt-2">
       <router-outlet></router-outlet>
     </div>

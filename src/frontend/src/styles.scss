@@ -1146,6 +1146,40 @@ mat-icon.text-xs {
   &.tod-sticky-nav-scrolled .p-menubar {
     box-shadow: 0 8px 24px -2px rgb(0 0 0 / 0.45);
   }
+
+  // hide requested (NavBarVisibilityService): the wrapper takes no space and the bar is its overlay, so showing it again
+  // (scroll up, mouse at the top) moves nothing
+  &.tod-sticky-nav-collapsed {
+    height: 0;
+
+    > * {
+      position: absolute;
+      inset: 0 0 auto 0;
+      transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+    }
+  }
+
+  &.tod-sticky-nav-hidden {
+    > * {
+      transform: translateY(calc(-100% - 1rem));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &::before {
+      opacity: 0;
+    }
+  }
+}
+
+// the strip at the top edge of the window that brings a hidden nav bar back when the mouse enters it
+.tod-nav-hot-zone {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 6px;
+  z-index: 99;
 }
 
 // Spacing and sizing

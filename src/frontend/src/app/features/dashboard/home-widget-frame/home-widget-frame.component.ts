@@ -1,7 +1,19 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+
+import { NavBarVisibilityService } from '@core/services/nav-bar-visibility.service';
 
 import { NetworkFillComponent } from '../../../shared/ui/network-fill/network-fill.component';
 
@@ -60,8 +72,21 @@ export class HomeWidgetFrameComponent {
   private readonly createdAt = new Date().toISOString();
   protected readonly fillSeed = computed(() => `${this.heading()} ${this.createdAt}`);
 
+  // the expanded widget hides the nav bar (more room); scrolling up or the mouse at the top edge bring it back
+  hideNavWhenExpanded = input(false);
+
   expandToggle = output<void>();
   refreshRequested = output<void>();
+
+  constructor() {
+    const navBar = inject(NavBarVisibilityService);
+    effect(() => {
+      if (this.expanded() && this.hideNavWhenExpanded()) navBar.hide(this);
+      else navBar.show(this);
+    });
+    // leaving the page with the widget expanded must not leave the bar hidden
+    inject(DestroyRef).onDestroy(() => navBar.show(this));
+  }
 
   // no answer yet (the status line says "Loading..."): the refresh icon spins
   protected readonly isLoading = computed(() => {

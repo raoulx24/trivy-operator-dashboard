@@ -6,6 +6,7 @@
   [state]="w.state()"
   [canExpand]="w.expandable()"
   [expanded]="w.isExpanded()"
+  [hideNavWhenExpanded]="true"
   (expandToggle)="w.toggle()"
   [refreshable]="true"
   (refreshRequested)="w.onRefresh()"
