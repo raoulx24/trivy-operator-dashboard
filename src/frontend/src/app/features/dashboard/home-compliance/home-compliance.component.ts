@@ -13,7 +13,7 @@ import { RingGaugeData } from '@shared/ui/ring-gauge/ring-gauge.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // Compliance: one ring per cluster compliance report (CIS, NSA, PSS...), the share of its controls that pass.
@@ -47,11 +47,17 @@ export class HomeComplianceComponent extends HomeWidgetBase {
   // the id of the selected ring = the uid of the report
   protected readonly selected = signal<string | undefined>(undefined);
 
-  protected readonly help = `
-    <p class="mb-2">One ring per <strong>cluster compliance report</strong> (CIS, NSA, PSS...): the <strong>percent of its controls that pass</strong>, i.e. pass / (pass + fail) as the summary of the report counts them. A report without controls has no ring.</p>
-    <p class="mb-2"><strong>Click a ring</strong> to see the <strong>worst failing controls</strong> of that report: the ones with the most failing checks first, then the most severe; the five worst are shown, the rest is counted. The link opens the compliance reports.</p>
-    <p class="mb-0 tod-text-muted-color">Not filtered: the reports are about the cluster, not about the namespaces. There is no change since the previous visit, because the compliance reports have no history yet.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `How well does the cluster pass its <strong>compliance reports</strong> (CIS, NSA, PSS...)? One ring per report shows where to start.`,
+    oddities: [
+      `The ring is the share of controls that pass: pass / (pass + fail). A report without controls has no ring.`,
+      `Not filtered: the reports are about the cluster, not about namespaces.`,
+      `There is no change since the last visit: the compliance reports have no history yet.`,
+    ],
+    tips: [
+      `<strong>Click a ring</strong> to see the five worst failing controls of that report.`,
+    ],
+  };
 
   private readonly reports = rxResource({
     params: () => ({ refresh: this.refresh(), localRefresh: this.localRefresh() }),

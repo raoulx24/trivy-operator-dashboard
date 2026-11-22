@@ -32,7 +32,7 @@ import { severityColor, severityTextColor } from '../home-collapsed/home-collaps
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 type SortBy = 'severity' | 'share';
@@ -126,13 +126,22 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
   private static readonly widespreadLimit = 3;
 
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">The <strong>security assessment checks</strong> (config audit, RBAC, infra) that fail now, grouped by check id, in the selected <strong>severities</strong> and <strong>namespaces</strong>.</p>
-    <p class="mb-2"><strong>Failing / evaluated</strong>: the resources (one per report) that fail the check, out of the resources of the same family whose kind is one the check fails in. All the workload kinds (Pod, ReplicaSet, Deployment, StatefulSet, DaemonSet, Job, CronJob) count as one kind, as do Role and ClusterRole, and RoleBinding and ClusterRoleBinding. Trivy keeps only the failing checks, so this is an estimate: a kind in which every resource passes is not counted.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the distinct failing checks by family and severity (it does not grow with the cluster; a click on a cell expands the widget filtered by it), and the 3 checks failing in the largest share of their resources (at least ${FEW_EVALUATED} evaluated).</p>
-    <p class="mb-2"><strong>Expanded</strong>: every check (up to 500) as a bar of failing / evaluated, sorted by severity then share, or by share. A click selects one: its remediation and its failing resources by namespace ("x of y" is within the namespace).</p>
-    <p class="mb-0 tod-text-muted-color">A faint bar with a dashed outline has fewer than ${FEW_EVALUATED} evaluated resources: its share is shaky. With a namespaces filter the cluster scoped resources are out.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which <strong>security checks</strong> (config audit, RBAC, infra) fail in the widest share of my cluster? So you fix the ones that hit the most resources.`,
+    oddities: [
+      `<strong>Failing / evaluated</strong> is an estimate: Trivy keeps only the failures, so a kind in which every resource passes is not counted.`,
+      `All workload kinds (Pod, Deployment, StatefulSet...) count as one kind, as do Role and ClusterRole.`,
+      `A faint bar with a dashed outline has fewer than ${FEW_EVALUATED} evaluated resources: its share is shaky.`,
+      `With a namespaces filter the cluster scoped resources are out.`,
+    ],
+    expanded: [
+      `Every check (up to 500) as a bar, sorted by severity then share, or by share.`,
+      `Click one for its remediation and its failing resources by namespace.`,
+    ],
+    tips: [
+      `Collapsed: click a cell of the family by severity grid to expand the widget already filtered.`,
+    ],
+  };
 
   // the expanded widget body is at least this tall, and grows with its row of the page; the timeline takes the rest of
   // the height (timelineHeight, measured) and its rows scroll in it

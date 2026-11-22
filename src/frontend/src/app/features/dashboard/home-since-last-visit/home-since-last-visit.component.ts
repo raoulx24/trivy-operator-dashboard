@@ -9,7 +9,7 @@ import { LaneStripCellClick, LaneStripLane, LaneStripSelection } from '@shared/u
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeDaysResult, HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // the lanes, in order; the widget the lane opens on its day is the one of the same key
@@ -45,12 +45,16 @@ const LANES: { key: SinceLastVisitLane; caption: string }[] = [
   host: { class: 'block min-w-0' },
 })
 export class HomeSinceLastVisitComponent extends HomeWidgetBase {
-  protected readonly help = `
-    <p>What is <strong>new</strong>, per <strong>UTC day</strong>, for the whole history range. The <strong>teal corner</strong> is a day you opened the home page, the <strong>orange corner</strong> a day with a known exploited (KEV / EUVD) vulnerability.</p>
-    <p class="mt-2"><strong>New vulns</strong>: active (vulnerability id, package) rows by the day they were first seen. <strong>New fixes</strong>: by the day the fix appeared.</p>
-    <p class="mt-2"><strong>Drift</strong>: pairs (vulnerability id, severity) added to images that were already running. <strong>New images</strong>: images first seen that day. <strong>Newly exploited</strong>: the known exploited (KEV / EUVD) vulnerability ids by the day they became known exploited, as the <em>new</em> of the Known exploited widget.</p>
-    <p class="mt-2"><strong>Click a square</strong> to open the widget of that lane on that day.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `What <strong>changed in my cluster</strong>, day by day? Spot the busy days and what came with them.`,
+    oddities: [
+      `One lane per kind, one square per <strong>UTC day</strong>: new vulnerabilities (by first seen), new fixes (by the day the fix appeared), drift, new images, newly exploited.`,
+      `The <strong>teal corner</strong> is a day you opened the home page, the <strong>orange corner</strong> a day with a known exploited (KEV / EUVD) vulnerability.`,
+    ],
+    tips: [
+      `<strong>Click a square</strong> to open the widget of that lane on that day.`,
+    ],
+  };
 
   private readonly homeService = inject(HomeService);
 

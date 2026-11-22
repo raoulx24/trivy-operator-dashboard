@@ -19,6 +19,7 @@ import { NodeFiltersDetail } from '../home-pivot/home-node-filters.component';
 import { HomeSelectedNodesComponent, SelectedImage, SelectedNamespace, SelectedPackage } from '../home-pivot/home-selected-nodes.component';
 import { HomeWhereIsBase } from '../home-where-is-base/home-where-is.base';
 import { HomeWhereIsShellComponent } from '../home-where-is-base/home-where-is-shell.component';
+import { HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 
 // Where is... package: a package (a name, or a purl prefix) and where each of its versions runs
 // - one row per package version, i.e. per purl with its version
@@ -50,14 +51,21 @@ export class HomeWhereIsPackageComponent extends HomeWhereIsBase<
   HomeWhereIsPackageDetailDto
 > {
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">Where a <strong>package</strong> runs now, one row per <strong>version</strong> (a purl with its version). Type a <strong>name</strong> (e.g. <em>openssl</em>, <em>libc</em>) or the <strong>beginning of a purl</strong> (<em>pkg:npm/axios</em>, with an <strong>@</strong> and the beginning of a version: <em>pkg:npm/axios@1.6</em>) and press <strong>Enter</strong> (at least 3 characters; case does not matter).</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the 5 purls that reach the most images. A click on a purl expands the widget on it.</p>
-    <p class="mb-2"><strong>Expanded</strong>: on the left every purl found (up to 500; a click selects one), on the right the namespaces and the images where the selected purl runs, its licenses and its vulnerabilities.</p>
-    <p class="mb-1"><strong>A row</strong></p>
-    <p class="mb-2">The <strong>severity</strong> is the highest of its vulnerabilities (none when it has no active ones). Then the counts: <strong>images</strong>, <strong>namespaces</strong>, <strong>workloads</strong> and <strong>vulnerabilities</strong> (distinct ids).</p>
-    <p class="mb-0 tod-text-muted-color">The packages come from the <strong>SBOM reports</strong>; without them only the vulnerable packages are found and there are no licenses. Only the <strong>namespaces filter</strong> applies; a change of it does not run the search again, the refresh button does.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Where does a <strong>package</strong> run, and in which versions? So you know what an update or a bad release touches.`,
+    oddities: [
+      `One row per version (a purl with its version). Type a name or the beginning of a purl, at least 3 characters, then <strong>Enter</strong>.`,
+      `The packages come from the <strong>SBOM reports</strong>; without them only the vulnerable packages are found, and there are no licenses.`,
+      `Only the <strong>namespaces filter</strong> applies. A change of it does not search again; the refresh button does.`,
+    ],
+    expanded: [
+      `Every purl found (up to 500) on the left; on the right the namespaces and images where it runs, its licenses and its vulnerabilities.`,
+    ],
+    tips: [
+      `Add a version to narrow down: <em>pkg:npm/axios@1.6</em>.`,
+      `Collapsed: click one of the 5 purls that reach the most images to expand on it.`,
+    ],
+  };
 
   // the height of a row of the list (a scroller needs the same for all): the name and version (two lines at most), the tags, the counts
   protected readonly rowHeight = 104;

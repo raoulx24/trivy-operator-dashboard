@@ -28,7 +28,7 @@ import { severityColor, severityName } from '../home-collapsed/home-collapsed';
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 type SortBy = 'age' | 'severity' | 'ids' | 'reach';
@@ -80,14 +80,22 @@ export class HomeOldestImagesComponent extends HomeWidgetBase {
   private static readonly fetchLimit = 500;
   private static readonly collapsedLimit = 5;
 
-  protected readonly help = `
-    <p class="mb-2">The <strong>running images</strong> that the history saw first, <strong>oldest first</strong>: a long time running usually means an image nobody rebuilt.</p>
-    <p class="mb-2">The age is counted from the moment the history first saw the <strong>digest</strong> (not from the build of the image), so it is never longer than the history. A bar goes from that moment to today; its color is the <strong>highest severity</strong> of the image (grey: no vulnerability id of the selected severities). The dashed line is at ${OLD_DAYS} days.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the oldest age, the images older than ${OLD_DAYS} days, and the 5 oldest images. A click on one expands the widget.</p>
-    <p class="mb-2"><strong>Expanded</strong>: every image (up to 500), <strong>sorted</strong> by age, severity, vulnerability ids or reach (workloads); on the right the selected image and its namespaces.</p>
-    <p class="mb-2">The vulnerability counts are <strong>distinct vulnerability ids</strong> of the selected severities, over the whole image: all of them, the ones with a fix for at least one package, and the known exploited ones.</p>
-    <p class="mb-0 tod-text-muted-color">The <strong>severities filter</strong> changes the counts; the <strong>namespaces filter</strong> changes which images count as running and their workloads and namespaces.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which <strong>running images are the oldest</strong>? An image that runs for a long time is usually one nobody rebuilt.`,
+    oddities: [
+      `The age counts from when the history first saw the <strong>digest</strong>, not from the build of the image, so it is never longer than the history.`,
+      `The bar color is the highest severity of the image (grey: none in the selected severities). The dashed line is at ${OLD_DAYS} days.`,
+      `The counts are distinct vulnerability ids of the selected severities, over the whole image.`,
+      `The severities filter changes the counts; the namespaces filter changes which images count as running.`,
+    ],
+    expanded: [
+      `Every image (up to 500), sorted by age, severity, vulnerability ids or reach (workloads).`,
+      `On the right the selected image and its namespaces.`,
+    ],
+    tips: [
+      `Collapsed: click one of the 5 oldest images to expand on it.`,
+    ],
+  };
 
   protected readonly oldDays = OLD_DAYS;
 

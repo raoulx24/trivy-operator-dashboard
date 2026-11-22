@@ -1,0 +1,191 @@
+<app-home-widget-frame
+  heading="Data health"
+  [canExpand]="canExpand()"
+  [expanded]="isExpanded()"
+  [fillGap]="!isExpanded()"
+  [help]="help"
+  [hint]="hint()"
+  [refreshable]="true"
+  [state]="state()"
+  (expandToggle)="toggleExpand()"
+  (refreshRequested)="refreshWidget()"
+>
+  @if (dto(); as d) {
+    <div class="flex flex-col gap-3 pt-1">
+      <!-- the headline: the watchers ring and the verdict at the left, where the history and the fix tracking begin at the right (collapsed and expanded) -->
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <app-ring-gauge [data]="watcherGauge()" [size]="76" [animate]="true" />
+        <div class="flex flex-col gap-0.5 min-w-0">
+          <span class="text-2xl font-semibold">
+            @if (attention() === 0) {
+              All good
+            } @else {
+              <span class="tod-headline-num">{{ attention() }}</span> to look at
+            }
+          </span>
+          <span class="text-xs tod-text-muted-color">
+            {{ d.watchersOk }} of {{ d.watchersTotal }} watchers green · {{ d.sources.length - offSources() }} of
+            {{ d.sources.length }} sources on
+          </span>
+        </div>
+        <!-- where the history and the fix tracking begin -->
+        <div class="flex flex-col gap-0.5 ml-auto text-right text-xs tod-text-muted-color">
+          <span>
+            History
+            @if (d.isVrHistoryEnabled) {
+              since <span class="tod-headline-num">{{ day(d.historyStartedAt) }}</span>
+              @if (historyDays() !== undefined) {
+                ({{ historyDays() }}d)
+              }
+            } @else {
+              is not enabled
+            }
+          </span>
+          <span>
+            Fix tracking since <span class="tod-headline-num">{{ day(d.fixTrackingStartedAt) }}</span>
+            @if (fixTrackingDays() !== undefined) {
+              ({{ fixTrackingDays() }}d)
+            }
+          </span>
+          <!-- a newer release than the running version (collapsed and expanded); the about page has the release notes -->
+          @if (versionInfo(); as v) {
+            @if (v.isNewer) {
+              <app-pill-button
+                class="self-end mt-1"
+                icon="pi-external-link"
+                title="Open the about page, with the release notes"
+                [label]="'New version ' + v.latest"
+                (pressed)="openAbout()"
+              />
+            }
+          }
+        </div>
+      </div>
+
+      @if (!isExpanded()) {
+        <!-- the sources, only a dot each -->
+        <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          @for (row of sources(); track row.source) {
+            <span class="flex items-center gap-1.5" [attr.title]="row.title">
+              <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
+              {{ row.source }}
+            </span>
+          }
+        </div>
+      }
+
+      @if (isExpanded()) {
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+          <!-- the reports: the count and the first / last scan, not judged -->
+          <app-trivy-box>
+            <span boxTitle>Reports</span>
+            <div class="flex flex-col gap-1 text-sm">
+              <div class="flex items-center gap-4 text-xs tod-text-muted-color">
+                <span class="min-w-0 flex-1">Kind</span>
+                <span class="w-12 shrink-0 text-right">Count</span>
+                <span class="w-36 shrink-0 text-right">First scan</span>
+                <span class="w-36 shrink-0 text-right">Last scan</span>
+              </div>
+              @for (row of reports(); track row.kind) {
+                <div class="flex items-center gap-4 h-5" [attr.title]="row.title">
+                  <span class="min-w-0 flex-1 truncate font-semibold">{{ row.kind }}</span>
+                  <span class="w-12 shrink-0 text-right">{{ row.count }}</span>
+                  <span class="w-36 shrink-0 text-right whitespace-nowrap tod-text-muted-color">{{ row.oldest }}</span>
+                  <span class="w-36 shrink-0 text-right whitespace-nowrap">{{ row.newest }}</span>
+                </div>
+              } @empty {
+                <span class="text-xs tod-text-muted-color">No report kind is enabled</span>
+              }
+            </div>
+          </app-trivy-box>
+
+          <!-- the sources: the last fetch -->
+          <app-trivy-box>
+            <span boxTitle>Sources</span>
+            <div class="flex flex-col gap-1 text-sm">
+              @for (row of sources(); track row.source) {
+                <div class="flex items-center gap-2 h-5" [attr.title]="row.title">
+                  <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
+                  <span class="font-medium">{{ row.source }}</span>
+                  <span class="ml-auto shrink-0 whitespace-nowrap text-xs tod-text-muted-color">{{ row.detail }}</span>
+                </div>
+              }
+            </div>
+          </app-trivy-box>
+
+          <!-- the other services: the version, the GitHub releases, the history cleanup -->
+          <app-trivy-box class="xl:col-span-2">
+            <span boxTitle>Services</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-3 text-sm">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs tod-text-muted-color">Version</span>
+                @if (versionInfo(); as v) {
+                  <span>
+                    {{ v.current }}
+                    @if (v.isNewer) {
+                      <span class="tod-text-muted-color">→ {{ v.latest }} available</span>
+                    } @else if (v.isExperimental) {
+                      <span class="tod-text-muted-color">(newer than the latest release {{ v.latest }})</span>
+                    } @else {
+                      <span class="tod-text-muted-color">· up to date</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="tod-text-muted-color">{{ releasesLoaded() ? 'n/a' : 'Loading...' }}</span>
+                }
+              </div>
+
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs tod-text-muted-color">GitHub releases</span>
+                @if (latestRelease(); as r) {
+                  <span [attr.title]="'Published ' + stamp(r.publishedAt)">
+                    {{ r.tagName }} · {{ day(r.publishedAt) }}
+                    <span class="tod-text-muted-color">({{ releaseCount() }} cached)</span>
+                  </span>
+                } @else {
+                  <span class="tod-text-muted-color" title="The check is off, or it did not reach GitHub">
+                    {{ releasesLoaded() ? 'none cached' : 'Loading...' }}
+                  </span>
+                }
+              </div>
+
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs tod-text-muted-color">History cleanup</span>
+                @if (d.isVrHistoryEnabled) {
+                  <span>keeps {{ retentionDays() }} days</span>
+                } @else {
+                  <span class="tod-text-muted-color">history is not enabled</span>
+                }
+              </div>
+            </div>
+          </app-trivy-box>
+
+          @if (issues().length > 0) {
+            <app-trivy-box class="xl:col-span-2">
+              <span boxTitle class="truncate">Watchers with issues</span>
+              <div class="flex flex-col gap-1 text-sm">
+                @for (issue of issues(); track $index) {
+                  <div class="flex flex-col" [attr.title]="issue.mitigationMessage">
+                    <span class="flex items-center gap-2 min-w-0">
+                      <span class="size-2 rounded-full shrink-0" [style.background]="color('bad')"></span>
+                      <span class="truncate">
+                        {{ issue.kubernetesObjectType }}{{ issue.namespaceName ? ' · ' + issue.namespaceName : '' }}
+                      </span>
+                      <span class="ml-auto shrink-0 text-xs tod-text-muted-color">{{ issue.status }}</span>
+                    </span>
+                    @if (issue.mitigationMessage) {
+                      <span class="pl-4 text-xs tod-text-muted-color">{{ issue.mitigationMessage }}</span>
+                    }
+                  </div>
+                }
+                @if (hiddenIssues() > 0) {
+                  <span class="text-xs tod-text-muted-color">+{{ hiddenIssues() }} more</span>
+                }
+              </div>
+            </app-trivy-box>
+          }
+        </div>
+      }
+    </div>
+  }
+</app-home-widget-frame>

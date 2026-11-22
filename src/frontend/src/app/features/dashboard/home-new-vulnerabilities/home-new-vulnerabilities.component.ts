@@ -54,7 +54,7 @@ import {
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { dayRange, firstDayIndex, severityColor, severityName, severityTextColor, windowDaysLabel } from '../home-collapsed/home-collapsed';
 import {
   HomeListSort,
@@ -118,13 +118,21 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
   private static readonly graphImagesTwoColumnsOver = 30;
 
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">The <strong>active vulnerabilities first seen in the window</strong> (since the previous visit, or the history window), in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar. A row is a vulnerability id with one package.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the 5 rows that reach the most images. A click on a row expands the widget on its id.</p>
-    <p class="mb-2"><strong>Expanded</strong>: on the left every row (up to 500; a click selects its id), on the right the namespaces and the images where the selected id runs, and its new packages as a graph (packages, images, namespaces). A click on a node of the graph selects it and shows its data.</p>
-    <p class="mb-2"><strong>CVSS</strong> opens the CVE details, <strong>EPSS</strong> the exploit prediction score and <strong>KEV / EUVD</strong> the known exploited data (when the CVE is in one of them).</p>
-    <p class="mb-0 tod-text-muted-color">A row that existed before the history started recording is never new: its age is unknown. Needs the vulnerability reports history.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which active vulnerabilities <strong>showed up</strong> in my cluster recently? So nothing new goes unnoticed.`,
+    oddities: [
+      `A row is a vulnerability id with one package. The window is since the previous visit, or the history window.`,
+      `A row that existed before the history started recording is never new: its age is unknown.`,
+      `Needs the vulnerability reports history.`,
+    ],
+    expanded: [
+      `Every row (up to 500) on the left; on the right the namespaces and images where the selected id runs, and its new packages as a graph; click a node for its data.`,
+    ],
+    tips: [
+      `Collapsed: the 5 rows that reach the most images; click one to expand on it.`,
+      `The CVSS, EPSS and KEV / EUVD tags open their details.`,
+    ],
+  };
 
   // the height of a row of the list (a scroller needs the same for all): the id, three lines of title, the tags
   protected readonly rowHeight = 130;

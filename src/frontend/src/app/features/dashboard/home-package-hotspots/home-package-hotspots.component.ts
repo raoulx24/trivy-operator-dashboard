@@ -26,7 +26,7 @@ import { SeverityUtils } from '@shared/utils/severity.utils';
 import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // the versions of a package whose vulnerability ids are read (the most widespread first)
@@ -103,13 +103,21 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
   private readonly vulnerabilityTags = new VulnerabilityTagsPipe();
 
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">The <strong>packages</strong> (without their version) with the most <strong>vulnerability ids</strong> among the active vulnerabilities of the running images, in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar.</p>
-    <p class="mb-2">The <strong>bar</strong> is the number of ids of the package, on one scale for all: <strong>teal</strong> are the ids that have a fix, <strong>grey</strong> the ids without one yet. At the right: the <strong>images</strong> (and, expanded, the <strong>namespaces</strong>) that have the package.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the 5 worst packages. A click on one expands the widget on it.</p>
-    <p class="mb-2"><strong>Expanded</strong>: up to 100 packages on the left (a click selects one). On the right the selected package: its <strong>versions</strong> and the images that run each (the version sprawl: one version fewer to run is one fewer to patch), and its <strong>vulnerability ids</strong> with the fix.</p>
-    <p class="mb-0 tod-text-muted-color">The ids of a package are read from its <strong>${MAX_VERSIONS_WITH_IDS} most widespread versions</strong> (the images of an id are summed over them).</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which <strong>packages</strong> bring the most vulnerabilities? Patching them pays off the most.`,
+    oddities: [
+      `Packages are counted without their version. The bar is the number of vulnerability ids, on one scale for all: <strong>teal</strong> have a fix, <strong>grey</strong> none yet.`,
+      `At the right: the images (expanded, also the namespaces) that have the package.`,
+      `The ids of a package are read from its ${MAX_VERSIONS_WITH_IDS} most widespread versions.`,
+    ],
+    expanded: [
+      `Up to 100 packages on the left; on the right the selected package: its versions with the images that run each, and its vulnerability ids with the fix.`,
+    ],
+    tips: [
+      `Version sprawl hurts: one version fewer to run is one fewer to patch.`,
+      `Collapsed: click one of the 5 worst packages to expand on it.`,
+    ],
+  };
 
   hint = input<string>('');
   severities = input.required<number[]>();

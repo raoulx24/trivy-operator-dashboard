@@ -13,6 +13,7 @@ import { SelectedDtosEvent, TrivyTableColumn } from '@shared/ui/trivy-table/triv
 import { NodeFiltersDetail } from '../home-pivot/home-node-filters.component';
 import { HomeWhereIsBase } from '../home-where-is-base/home-where-is.base';
 import { HomeWhereIsShellComponent } from '../home-where-is-base/home-where-is-shell.component';
+import { HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 
 interface PackageRow {
   // the place of the package version in the package versions of the detail
@@ -45,14 +46,21 @@ export class HomeWhereIsLicenseComponent extends HomeWhereIsBase<
   HomeWhereIsLicenseDetailDto
 > {
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">Where a <strong>license</strong> runs now. Type an <strong>SPDX id</strong> (e.g. <em>MIT</em>, <em>GPL-3.0</em>) or a <strong>part of a license name</strong> and press <strong>Enter</strong> (at least 2 characters; case does not matter). One row per license.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the 5 licenses that reach the most images. A click on a license expands the widget on it.</p>
-    <p class="mb-2"><strong>Expanded</strong>: on the left every license found (up to 500; a click selects one), on the right the namespaces and the images where the selected license runs, and the <strong>package versions</strong> that have it (a click on a namespace or an image shows only the packages that go with it).</p>
-    <p class="mb-1"><strong>A row</strong></p>
-    <p class="mb-2">The counts: <strong>packages</strong> (versions: a purl with its version), <strong>images</strong>, <strong>namespaces</strong> and <strong>workloads</strong>.</p>
-    <p class="mb-0 tod-text-muted-color">This needs the <strong>SBOM reports</strong> (the licenses come from them). Only the <strong>namespaces filter</strong> applies; a change of it does not run the search again, the refresh button does.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Where does a <strong>license</strong> run in my cluster? So you can find the images that bring in a license you cannot accept.`,
+    oddities: [
+      `An SPDX id (<em>MIT</em>, <em>GPL-3.0</em>) or a part of a name, at least 2 characters, then <strong>Enter</strong>. One row per license.`,
+      `Needs the <strong>SBOM reports</strong>: the licenses come from them.`,
+      `Only the <strong>namespaces filter</strong> applies. A change of it does not search again; the refresh button does.`,
+    ],
+    expanded: [
+      `Every license found (up to 500) on the left; on the right the namespaces and images where it runs, and the package versions that have it.`,
+    ],
+    tips: [
+      `In expanded, click a namespace or an image to see only the packages that go with it.`,
+      `Collapsed: click one of the 5 licenses that reach the most images to expand on it.`,
+    ],
+  };
 
   // the height of a row of the list (a scroller needs the same for all): the license (two lines at most), the counts
   protected readonly rowHeight = 76;

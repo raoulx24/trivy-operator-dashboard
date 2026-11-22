@@ -11,7 +11,7 @@ import { ScrollerComponent } from '@shared/ui/scroller/scroller.component';
 
 import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // Exposed secrets: the running images with secrets found in them (an access key in a file, a token...), the worst first.
@@ -45,11 +45,19 @@ export class HomeExposedSecretsComponent extends HomeWidgetBase {
   // changes (e.g. a counter) to reload with unchanged filters
   refresh = input<number>(0);
 
-  protected readonly help = `
-    <p class="mb-2">The <strong>running images</strong> with <strong>exposed secrets</strong> (keys, tokens, passwords found in their files), the worst severity first, then the ones with more secrets.</p>
-    <p class="mb-2">Each image shows its secrets counted <strong>by type</strong> (the rule that matched), each type a tag in the color of its <strong>severity</strong>. <strong>The values are never shown</strong> (the backend does not send them). The link opens the exposed secrets report of the image.</p>
-    <p class="mb-0 tod-text-muted-color">With no secrets the widget says how many images were scanned and when the last scan was. Only the <strong>namespaces filter</strong> applies: an exposed secret matters whatever its severity. Action: rotate the secret, then rebuild the image.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which <strong>running images contain secrets</strong> (keys, tokens, passwords found in their files)? These need action whatever their severity.`,
+    oddities: [
+      `The secret values are <strong>never shown</strong>, only the type of each one, colored by its severity.`,
+      `Worst severity first, then the images with more secrets.`,
+      `Only the <strong>namespaces filter</strong> applies, not the severities.`,
+      `With no secrets the widget says how many images were scanned and when.`,
+    ],
+    tips: [
+      `Rotate the secret first, then rebuild the image.`,
+      `The link opens the exposed secrets report of the image.`,
+    ],
+  };
 
   private readonly scope = computed(() => ({
     namespaces: this.namespaces().length > 0 ? this.namespaces() : undefined,

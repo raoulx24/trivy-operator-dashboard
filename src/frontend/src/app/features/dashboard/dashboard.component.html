@@ -10,7 +10,7 @@
     (refresh)="onRefresh()"
   />
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 gap-4">
   <app-home-since-last-visit
     [hint]="sinceLastVisitHint()"
     [namespaces]="namespaces()"
@@ -25,15 +25,7 @@
     (sourcesRefreshRequested)="onSinceLastVisitRefresh()"
   />
 
-  <app-home-widget-placeholder
-    class="block min-w-0"
-    heading="Data health"
-    hint="not filtered"
-    description="watchers ok / with issues, per report kind the count and the oldest / newest scan, the last fetch of KEV / EPSS / EUVD / EOL, the start of the history and of the fix tracking (could become status chips in the filter bar)"
-    source="GET api/home/data-health → HomeDataHealthDto"
-    [state]="dataHealth()"
-      (refresh)="reloadDataHealth()"
-  />
+  <app-home-data-health [refresh]="refreshCounter()" />
   </div>
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">

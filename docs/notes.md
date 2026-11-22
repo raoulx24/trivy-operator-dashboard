@@ -67,3 +67,27 @@ The radar in the expanded CVSS rows (`CvssExplanationService.radar`, drawn by `a
 The rule does not know what a value means. For example Scope Unchanged (the "nothing special" value) gets 0.5, the same as Attack Complexity High, while OpenCVE draws it around 0.3 (compared by eye on CVE-2026-11850, not measured). Idea, not done: give the 2-value metrics a custom value (for example Scope Unchanged 0.33, Changed 1), or take the numeric weights of the CVSS v3 specification (v4 has none, so it would still need a rule of its own).
 
 Also not done: the v3 axis labels use the short names ("Confidentiality"); NVD and OpenCVE call them "Confidentiality Impact", "Integrity Impact" and "Availability Impact".
+
+## Job status service for the Data health widget
+
+None of the timed / background hosted services keeps any state about its runs (last run, outcome, error); it all goes
+only to the log. Add a small in-memory service that the timed hosted services ping, and use it in the home Data health
+widget (`HomeDataHealthDto`, expanded view, "Services" box).
+
+- Each job reports in: name, interval, last run (start / end), outcome (ok / failed), last error message, items affected.
+- Jobs to hook (backend, `Application`):
+  - `VulnerabilityReportsHistoryRetentionTimedHostedService`: it swallows every error and only logs it, so a broken
+    cleanup is invisible today (the most useful one). Items: digests cleaned.
+  - `DetailsHousekeepingHostedService<,>` (one per report family, aggregate them) and
+    `FixedVersionHistoryHousekeepingHostedService`: both are off when `GraceInHours` is 0. Items: removed.
+  - `GitHubReleaseCacheTimedHostedService`: it does nothing when `ServerCheckForUpdates` is off. Last successful check
+    and last failure.
+- Not needed: KEV / EUVD / EPSS / EOL (already in `Sources`: newest fetch and errors; could add the catalog error message
+  and next retry time), the watcher state cache (the watchers ring), the event pipeline (starts once).
+- `HomeDataHealthDto` gets a `Jobs` list; the widget shows one row per job, an amber dot only for a failed last run (a
+  job that ran fine is not a problem; a job that did not run yet because its first tick is a full interval away is
+  "not run yet", not an error).
+- Backend change = DTO change: regenerate the frontend API (`npm run update-endpoints:local`, `npm run prebuild` in
+  `src/frontend`, backend running).
+- `SingleBucketTimedHostedService` / `MultiBucketTimedHostedService` (Alerts) look like random test-alert generators and
+  are not registered anywhere; check and remove if unused.

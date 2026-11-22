@@ -27,7 +27,7 @@ import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeDaysResult, HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
 import { HomePivotImageFieldsComponent } from '../home-pivot/home-pivot-image-fields.component';
@@ -140,14 +140,24 @@ interface DriftTableRow {
 })
 export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, PairBox> {
   // the help dialog of the frame (html, short: what is easy to get wrong is in bold)
-  protected readonly help = `
-    <p>The <strong>pairs</strong> (vulnerability id, severity) <strong>added</strong> to images that were <strong>already running</strong>, per UTC day, and still active now.</p>
-    <p class="mt-2"><strong>Not here:</strong> what a new image brings with its first scan (see <em>New images</em>).</p>
-    <p class="mt-2"><strong>Heatmap:</strong> pairs per day. A pair counts on <strong>every day</strong> it is added to some image, so the days do not sum to the distinct pairs. Only the history retention is complete.</p>
-    <p class="mt-2"><strong>Graph</strong> (expanded): the images above, the vulnerabilities (pairs) below, with a line for each pair added to an image. The number on a node is its <strong>lines</strong>: the pairs added to an image, the images a pair was added to.</p>
-    <p class="mt-2"><strong>Click a node</strong> to select it: only what is connected to it stays lit, and <strong>Selected</strong> shows the details. Then click a connected node on the other side to select an image and a pair together; click a selected node to unselect it. <strong>Click a day</strong> to filter by it; that clears the selection.</p>
-    <p class="mt-2"><strong>Filters</strong> (date, image, vulnerability) depend on each other: each offers only what fits the other two. <strong>Show all</strong> opens every row in a table.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Did <strong>images that were already running</strong> get new vulnerabilities, without anyone deploying anything? These are the ones that appear while you sleep.`,
+    oddities: [
+      `A pair is (vulnerability id, severity), counted per UTC day, and only while still active.`,
+      `A pair counts on <strong>every day</strong> it is added to some image, so the days do not sum to the distinct pairs.`,
+      `Not here: what a new image brings with its first scan (see <em>New images</em>).`,
+      `Only the history retention is complete.`,
+    ],
+    expanded: [
+      `A graph: the images above, the pairs below, a line for each pair added to an image. The number on a node is its lines.`,
+      `The filters (date, image, vulnerability) depend on each other: each offers only what fits the other two.`,
+      `<strong>Show all</strong> opens every row in a table.`,
+    ],
+    tips: [
+      `<strong>Click a node</strong> to light only what is connected to it; then click a node on the other side to pick an image and a pair together.`,
+      `<strong>Click a day</strong> of the heatmap to filter by it.`,
+    ],
+  };
 
   private readonly homeService = inject(HomeService);
   private readonly imageHistory = inject(HomeImageHistoryService);

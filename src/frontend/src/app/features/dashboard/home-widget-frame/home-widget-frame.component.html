@@ -106,7 +106,40 @@
     [style]="{ width: '30rem', maxWidth: '95vw', maxHeight: '80vh' }"
     [(visible)]="isHelpVisible"
   >
-    <div class="text-sm leading-relaxed" [innerHTML]="help()"></div>
+    @if (help(); as h) {
+      <div class="text-sm leading-relaxed flex flex-col gap-5">
+        <section class="flex flex-col gap-1.5">
+          <h3 class="tod-help-eyebrow">Answers</h3>
+          <p class="tod-help-question m-0" [innerHTML]="h.question"></p>
+        </section>
+        @if (h.oddities.length) {
+          <section class="flex flex-col gap-1.5">
+            <h3 class="tod-help-section-title"><i class="pi pi-info-circle"></i>Good to know</h3>
+            <ul class="tod-help-list">
+              @for (item of h.oddities; track item) {
+                <li [innerHTML]="item"></li>
+              }
+            </ul>
+          </section>
+        }
+        @if (h.expanded?.length) {
+          <section class="flex flex-col gap-1.5">
+            <h3 class="tod-help-section-title"><i class="pi pi-window-maximize"></i>When expanded</h3>
+            <ul class="tod-help-list">
+              @for (item of h.expanded; track item) {
+                <li [innerHTML]="item"></li>
+              }
+            </ul>
+          </section>
+        }
+        @for (tip of h.tips ?? []; track tip) {
+          <div class="tod-help-tip">
+            <i class="pi pi-lightbulb"></i>
+            <span [innerHTML]="tip"></span>
+          </div>
+        }
+      </div>
+    }
   </p-dialog>
 }
 

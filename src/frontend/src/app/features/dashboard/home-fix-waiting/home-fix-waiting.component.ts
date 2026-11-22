@@ -35,7 +35,7 @@ import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.componen
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 type GroupBy = 'id' | 'package' | 'image';
@@ -137,12 +137,22 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
   private static readonly collapsedLimit = 3;
 
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">The <strong>active vulnerabilities that have a fix</strong> and run now, in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar, by <strong>how long the fix is known</strong>.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the longest wait, the ids in waiting buckets (an id is in the bucket of its longest waiting package; the empty part of the meter is the ids without a date), and the 3 ids that wait the longest. A click on one expands the widget.</p>
-    <p class="mb-2"><strong>Expanded</strong>: every id (up to 500 rows) as a bar from the day its fix is known to today, on a log scale. <strong>Group</strong> by id, package or image (the bar is the longest wait in the group) and <strong>sort</strong> by wait or by reach (images). The popover of a bar has its packages, images and namespaces.</p>
-    <p class="mb-0 tod-text-muted-color"><strong>Fix known since</strong> is a lower bound of the waiting time (hence the ≥): a row without history has no date and goes last.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which <strong>vulnerabilities could I already fix</strong>, and for how long has the fix been waiting? The longest waits are the cheapest wins.`,
+    oddities: [
+      `<strong>Fix known since</strong> is a lower bound of the wait (hence the ≥). A row without history has no date and goes last.`,
+      `An id is in the bucket of its longest waiting package.`,
+      `Only active vulnerabilities with a fix, running now, in the severities and namespaces of the filter bar.`,
+    ],
+    expanded: [
+      `Every id (up to 500) as a bar from the day its fix is known to today, on a log scale.`,
+      `<strong>Group</strong> by id, package or image; <strong>sort</strong> by wait or by reach (images).`,
+      `The popover of a bar has its packages, images and namespaces.`,
+    ],
+    tips: [
+      `Collapsed: click one of the 3 longest waiting ids to expand on it.`,
+    ],
+  };
 
   // the expanded widget body is at least this tall, and grows with its row of the page; the timeline takes the rest of
   // the height (timelineHeight, measured) and its rows scroll in it

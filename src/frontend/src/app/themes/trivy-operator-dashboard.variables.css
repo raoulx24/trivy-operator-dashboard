@@ -158,6 +158,12 @@
   /* oldest running images: the bar of an image without a vulnerability id (of the selected severities) */
   --tod-oldest-images-no-ids: var(--p-surface-400);
 
+  /* data health: the dots and the ring (fresh / getting old / stale or failing / not enabled) */
+  --tod-data-health-ok: var(--p-green-500);
+  --tod-data-health-warn: var(--p-amber-500);
+  --tod-data-health-bad: var(--p-red-500);
+  --tod-data-health-off: var(--p-surface-400);
+
   /* step select: the thin line, the part where nothing can be selected, and the thick line with the dot at the value (neutral) */
   --tod-step-select-track: color-mix(in srgb, var(--p-text-color) 30%, transparent);
   --tod-step-select-blocked: color-mix(in srgb, var(--p-text-color) 30%, transparent);
@@ -188,10 +194,19 @@
   --tod-network-fade-y: 1rem;
 
   --p-popover-shadow: var(--tod-box-shadow);
+
+  /* widget help dialog */
+  --tod-help-accent: var(--p-primary-color);
+  --tod-help-tip-bg: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
+  --tod-help-tip-border: color-mix(in srgb, var(--p-primary-color) 30%, transparent);
+  --tod-help-bullet: var(--p-text-muted-color);
 }
 
 /* dark mode vars */
 :root.trivy-operator-dashboard-dark {
+  /* widget help dialog: the tip card a surface step up from the dialog */
+  --tod-help-tip-bg: var(--p-surface-800);
+  --tod-help-tip-border: var(--p-surface-700);
   --tod-text-primary-color: var(--p-surface-100);
   --tod-text-revert-primary-color: var(--p-surface-900);
   --tod-text-revert-muted-color: var(--p-surface-700);
@@ -235,6 +250,12 @@
   --tod-fix-waiting-age-2: var(--p-yellow-200);
   --tod-fix-waiting-age-3: var(--p-amber-300);
   --tod-fix-waiting-age-4: var(--p-orange-300);
+
+  /* data health: a little lighter on the dark background */
+  --tod-data-health-ok: var(--p-green-400);
+  --tod-data-health-warn: var(--p-amber-400);
+  --tod-data-health-bad: var(--p-red-400);
+  --tod-data-health-off: var(--p-surface-500);
 
   /* oldest running images: the bar of an image without a vulnerability id, lighter on the dark background */
   --tod-oldest-images-no-ids: var(--p-surface-500);

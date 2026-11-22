@@ -30,7 +30,7 @@ import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortLabelOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 import { ScrollerResizeDirective } from '../../../shared/ui/scroller-resize/scroller-resize.directive';
 
@@ -82,12 +82,21 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
   private static readonly expandedLimit = 500;
 
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">Where a <strong>security assessment check</strong> (config audit, RBAC, infra) fails now. Type an <strong>id or a part of the title</strong> (at least 3 characters, e.g. <em>KSV014</em>, <em>root</em>) and press <strong>Enter</strong>. <em>KSV014</em>, <em>KSV-0014</em> and <em>AVD-KSV-0014</em> are the same check; case does not matter.</p>
-    <p class="mb-2"><strong>Collapsed</strong>: the 5 most severe checks found (then the ones failing in most resources), with the number of resources and namespaces. A click on a check expands the widget on it.</p>
-    <p class="mb-2"><strong>Expanded</strong>: on the left every check found (up to 500; a click selects one), on the right its description and remediation, and one row per failing <strong>resource</strong>: namespace, resource kind and name, and the report type. The columns can be filtered and sorted.</p>
-    <p class="mb-0 tod-text-muted-color">Only the <strong>namespaces filter</strong> applies (cluster scoped resources are then out); a change of it does not run the search again, the refresh button does. The resource is the owner of the report (e.g. the Deployment) when there is one. Trivy reports a check per resource, not per container.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Where does a <strong>security check</strong> (config audit, RBAC, infra) fail in my cluster? Type an id or a part of the title.`,
+    oddities: [
+      `At least 3 characters, then <strong>Enter</strong>. <em>KSV014</em>, <em>KSV-0014</em> and <em>AVD-KSV-0014</em> are the same check; case does not matter.`,
+      `Only the <strong>namespaces filter</strong> applies (cluster scoped resources are then out). A change of it does not search again; the refresh button does.`,
+      `The resource is the owner of the report (e.g. the Deployment). Trivy reports per resource, not per container.`,
+    ],
+    expanded: [
+      `Every check found (up to 500) on the left; on the right its description, remediation and one row per failing resource (namespace, kind, name, report type); the columns can be filtered and sorted.`,
+    ],
+    tips: [
+      `Search by a word of the title, e.g. <em>root</em>.`,
+      `Collapsed: click one of the 5 most severe checks to expand on it.`,
+    ],
+  };
 
   // the height of a row of the list (a scroller needs the same for all): the id, two lines of title, the counts
   protected readonly rowHeight = 110;

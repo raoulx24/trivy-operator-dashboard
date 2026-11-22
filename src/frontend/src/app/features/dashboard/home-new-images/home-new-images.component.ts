@@ -27,7 +27,7 @@ import { HomePivotState } from '../home-pivot/home-pivot-state';
 import { HomePivotVulnerabilityFieldComponent } from '../home-pivot/home-pivot-vulnerability-field.component';
 import { HomePivotWidgetBase } from '../home-pivot/home-pivot-widget.base';
 import { DayGroup, NamespacesFooter, PivotEntry, groupByDay, pairKey } from '../home-pivot/home-pivot.types';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeDaysResult, HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // one new image (digest): the pairs it has now; the image arrived on one day, so its rows are not grouped by day
@@ -131,15 +131,21 @@ interface NewImagesTableRow {
 })
 export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBox> {
   // the help dialog of the frame (html, short: what is easy to get wrong is in bold)
-  protected readonly help = `
-    <p>The <strong>running images</strong> that the history saw for the first time in the range, with what they have <strong>now</strong>.</p>
-    <p class="mt-2"><strong>Current state:</strong> the vulnerabilities and severities are today's, not the ones the image arrived with.</p>
-    <p class="mt-2"><strong>Filters:</strong> a pair is (vulnerability id, severity). An image with no pair at the selected severities is <strong>not counted</strong>.</p>
-    <p class="mt-2"><strong>Heatmap:</strong> images per UTC day. While expanded, click a day to filter the graph.</p>
-    <p class="mt-2"><strong>Graph</strong> (expanded): the images above, the vulnerabilities (pairs) below, with a line for each pair an image has. The number on a node is its <strong>lines</strong>: the pairs of an image, the images of a pair.</p>
-    <p class="mt-2"><strong>Click a node</strong> to select it: only what is connected to it stays lit, and <strong>Selected</strong> shows the details. Then click a connected node on the other side to select an image and a pair together; click a selected node to unselect it.</p>
-    <p class="mt-2"><strong>First day of the history:</strong> the images already running then are first seen then, so that day can look inflated.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which <strong>images started running</strong> in the range, and what do they carry? So a new deployment does not bring in a surprise.`,
+    oddities: [
+      `The vulnerabilities shown are the ones of <strong>today</strong>, not the ones the image arrived with.`,
+      `A pair is (vulnerability id, severity). An image with no pair at the selected severities is <strong>not counted</strong>.`,
+      `The first day of the history looks inflated: the images already running then count as first seen then.`,
+    ],
+    expanded: [
+      `A graph: the images above, the pairs below, a line for each pair an image has. The number on a node is its lines.`,
+      `Click a day of the heatmap to filter the graph.`,
+    ],
+    tips: [
+      `<strong>Click a node</strong> to light only what is connected to it; then click a node on the other side to pick an image and a pair together.`,
+    ],
+  };
 
   private readonly homeService = inject(HomeService);
   private readonly imageHistory = inject(HomeImageHistoryService);

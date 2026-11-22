@@ -29,7 +29,7 @@ import { SeverityUtils } from '@shared/utils/severity.utils';
 import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // the ids listed when nothing is selected on the plot: the top by risk
@@ -90,13 +90,22 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
   protected readonly rowHeight = 64;
 
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">Every <strong>vulnerability id</strong> of the active vulnerabilities of the running images (in the <strong>severities</strong> and <strong>namespaces</strong> of the filter bar) as a point: the <strong>images</strong> that have it (to the right: more widespread, <strong>log scale</strong>) against its <strong>EPSS percentile</strong> (up: more likely to be exploited). The color is the <strong>severity</strong>; a <strong>cross</strong> is a <strong>known exploited</strong> id (KEV / EUVD).</p>
-    <p class="mb-2">The <strong>top right</strong> is where to look first: likely to be exploited and widespread. <strong>Drag</strong> on the plot to select a region (shift adds one, a click clears).</p>
-    <p class="mb-2"><strong>Expanded</strong>: on the right the selected ids (without a selection, the top ${TOP_COUNT} by EPSS times images). A <strong>click on a point</strong> (collapsed too) picks it: the widget expands with that id selected in the list, and the point gets a border. A click on an id of the list shows its title, when it was added to the KEV, its EPSS and the packages that have it, with the fix.</p>
-    <p class="mb-2">The <strong>Include top</strong> line (steps of 10%, from 20%) keeps only the ids in that top share of the EPSS percentiles: top 20% is the ids at the 80th percentile and above, top 100% is all of them (the server filters; the default is the top 20%).</p>
-    <p class="mb-0 tod-text-muted-color">Only the ids with an EPSS score are on the plot. The percentile is the share of all scored ids with an equal or lower score.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which vulnerabilities are both <strong>likely to be exploited</strong> and <strong>widespread</strong>? That is where to start.`,
+    oddities: [
+      `One point per vulnerability id: to the right, more images (log scale); up, a higher <strong>EPSS percentile</strong> (more likely to be exploited).`,
+      `The color is the severity; a <strong>cross</strong> is a known exploited id (KEV / EUVD).`,
+      `Only the ids with an EPSS score are on the plot.`,
+    ],
+    expanded: [
+      `On the right the selected ids (with no selection, the top ${TOP_COUNT} by EPSS times images). Click an id for its title, KEV addition, EPSS and the packages with the fix.`,
+      `<strong>Include top</strong> keeps only the ids in that top share of the EPSS percentiles (default: the top 20%).`,
+    ],
+    tips: [
+      `The <strong>top right</strong> is where to look first.`,
+      `<strong>Drag</strong> on the plot to select a region (shift adds one, a click clears); click a point to expand on it.`,
+    ],
+  };
 
   constructor() {
     super();

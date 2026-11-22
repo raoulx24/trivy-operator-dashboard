@@ -13,7 +13,7 @@ import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 import { ScrollerResizeDirective } from '../../../shared/ui/scroller-resize/scroller-resize.directive';
 import { HomeNodeFiltersComponent, NodeFiltersDetail } from '../home-pivot/home-node-filters.component';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWhereIsBase } from './home-where-is.base';
 
 // the layout of the "where is" widgets that search something and show where each result runs (package, license); the
@@ -52,7 +52,7 @@ export class HomeWhereIsShellComponent {
   widget = input.required<HomeWhereIsBase<any, any, any, any>>();
 
   heading = input.required<string>();
-  help = input<string>('');
+  help = input<HomeWidgetHelp | undefined>(undefined);
   searchPlaceholder = input.required<string>();
   // what to say when the search found nothing, and when there is nothing to show of the selected row
   emptyText = input.required<string>();

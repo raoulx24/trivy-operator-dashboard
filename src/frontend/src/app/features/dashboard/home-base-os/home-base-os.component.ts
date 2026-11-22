@@ -29,7 +29,7 @@ import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 
 import { HomeVtItemDirective } from '../home-motion/home-vt-item.directive';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
-import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
+import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // the states of a cycle, with the colors, labels and order of the runway (and its legend)
@@ -84,17 +84,19 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   protected readonly popover = inject(PopoverService);
 
   // the help dialog of the frame (html): short, the important parts in bold
-  protected readonly help = `
-    <p class="mb-2">Which <strong>operating systems</strong> your running images are built on, and how long each is <strong>supported</strong>. One row per OS cycle (e.g. Alpine 3.19 covers 3.19.0 and 3.19.1).</p>
-    <p class="mb-2"><strong>The bar</strong> runs to the end of life (EOL); the dashed line is today, an arrow means it ends beyond the axis. A <strong>hatched</strong> part is time already spent <strong>past EOL</strong>.</p>
-    <p class="mb-1"><strong>States</strong></p>
-    <p class="mb-2"><strong>EOL</strong>: the end of life has passed, no more fixes, not even security ones.<br>
-    <strong>Risky</strong>: EOL in less than ${EOL_RISK_DAYS} days.<br>
-    <strong>EOAS</strong>: active support ended, security fixes only.<br>
-    <strong>Supported</strong>: everything else.</p>
-    <p class="mb-2"><strong>Expanded</strong>: a box per cycle in the picked states (default: EOL and Risky), with its images and namespaces. <strong>Show all images</strong> lists every image per namespace with its OS and state; it <strong>ignores the namespaces filter</strong>.</p>
-    <p class="mb-0 tod-text-muted-color">Cycles without end of life data (pending, not applicable) are not on the runway. Needs vulnerability reports and end of life enabled.</p>
-  `;
+  protected readonly help: HomeWidgetHelp = {
+    question: `Which <strong>operating systems</strong> do my running images use, and how long will each still get fixes? So you can plan the upgrades before support ends.`,
+    oddities: [
+      `<strong>EOL</strong>: end of life passed, no more fixes at all. <strong>Risky</strong>: EOL in less than ${EOL_RISK_DAYS} days. <strong>EOAS</strong>: active support ended, security fixes only.`,
+      `The bar runs to the end of life; the dashed line is today. A <strong>hatched</strong> part is time already spent past EOL.`,
+      `One row per OS cycle (Alpine 3.19 covers 3.19.0 and 3.19.1). Cycles without end of life data are not shown.`,
+      `Needs the vulnerability reports and the end of life data enabled.`,
+    ],
+    expanded: [
+      `A box per cycle in the picked states (default: EOL and Risky), with its images and namespaces.`,
+      `<strong>Show all images</strong> lists every image with its OS and state, and <strong>ignores the namespaces filter</strong>.`,
+    ],
+  };
 
   protected readonly stateOptions = stateOptions;
   protected readonly selectedStates = signal<EolRunwayState[]>(['eol', 'risky']);

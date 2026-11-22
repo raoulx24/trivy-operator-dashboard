@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild, WritableSignal } from '@angular/core';
-import { Observable } from 'rxjs';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 
 import { HomeHistoryDriftDto } from '@api/models/home-history-drift-dto';
 import { HomeNewImagesDto } from '@api/models/home-new-images-dto';
@@ -18,6 +17,7 @@ import {
 import { HomeBaseOsComponent } from './home-base-os/home-base-os.component';
 import { HomeExposedSecretsComponent } from './home-exposed-secrets/home-exposed-secrets.component';
 import { HomeComplianceComponent } from './home-compliance/home-compliance.component';
+import { HomeDataHealthComponent } from './home-data-health/home-data-health.component';
 import { HomeFailingChecksComponent } from './home-failing-checks/home-failing-checks.component';
 import { HomeFixWaitingComponent } from './home-fix-waiting/home-fix-waiting.component';
 import { HomeHistoryDriftComponent } from './home-history-drift/home-history-drift.component';
@@ -36,8 +36,7 @@ import { HomeWhereIsPackageComponent } from './home-where-is-package/home-where-
 import { HomeWhereIsVulnerabilityComponent } from './home-where-is-vulnerability/home-where-is-vulnerability.component';
 import { HomeWidgetExpansionService } from './home-widget-group/home-widget-expansion.service';
 import { HomeWidgetGroupDirective } from './home-widget-group/home-widget-group.directive';
-import { HomeWidgetPlaceholderComponent } from './home-widget-placeholder/home-widget-placeholder.component';
-import { HomeDaysResult, HomeWidgetState } from './home-widget-placeholder/home-widget-placeholder.types';
+import { HomeDaysResult } from './home-widget-placeholder/home-widget-placeholder.types';
 
 // the home page: a filter bar and a fixed layout of widgets, each one fed by its own api/home endpoint (each loads and
 // fails alone); for now every widget is a placeholder that shows what it will display and a summary of what it got
@@ -55,7 +54,7 @@ import { HomeDaysResult, HomeWidgetState } from './home-widget-placeholder/home-
     HomeWidgetGroupDirective,
     HomePackageHotspotsComponent,
     HomeReachEpssComponent,
-    HomeWidgetPlaceholderComponent,
+    HomeDataHealthComponent,
     HomeBaseOsComponent,
     HomeExposedSecretsComponent,
     HomeComplianceComponent,
@@ -187,7 +186,6 @@ export class DashboardComponent {
     }
   }
 
-  protected readonly dataHealth = signal<HomeWidgetState>({});
   protected readonly todayUtc = new Date().toISOString().substring(0, 10);
 
   constructor() {
@@ -208,8 +206,6 @@ export class DashboardComponent {
       LocalStorageUtils.setItem(DashboardComponent.severityIdsKey, JSON.stringify(severityIds));
       LocalStorageUtils.setItem(DashboardComponent.namespacesKey, JSON.stringify(namespaces));
       LocalStorageUtils.setItem(DashboardComponent.activeImagesOnlyKey, String(activeImagesOnly));
-
-      this.loadData();
     });
   }
 
@@ -217,35 +213,6 @@ export class DashboardComponent {
     this.refreshCounter.update((x) => x + 1);
   }
 
-  private loadData(): void {
-    this.reloadDataHealth();
-  }
-
-  protected reloadDataHealth(): void {
-    this.load(this.dataHealth, this.homeService.getHomeDataHealth(), (x) => ({
-      isAvailable: true,
-      summary:
-        `${x.watchersOk}/${x.watchersTotal} watchers ok, ${x.reports.length} report kinds, ` +
-        `${x.sources.filter((s) => s.isEnabled).length} sources enabled, ` +
-        `history since ${this.toDay(x.historyStartedAt)}, fix tracking since ${this.toDay(x.fixTrackingStartedAt)}`,
-    }));
-  }
-
-  private load<T>(
-    target: WritableSignal<HomeWidgetState>,
-    source: Observable<T>,
-    toState: (dto: T) => HomeWidgetState,
-    onData?: (dto: T) => void,
-  ) {
-    target.set({});
-    source.subscribe({
-      next: (dto) => {
-        target.set(toState(dto));
-        onData?.(dto);
-      },
-      error: (err) => target.set({ error: err?.message ?? 'request failed' }),
-    });
-  }
 
   // ------------------------------------------------------------------------
   // window and stored filters
@@ -326,9 +293,5 @@ export class DashboardComponent {
     return severityIds
       .map((id) => homeSeverityOptions.find((o) => o.value === id)?.label.toLowerCase() ?? `${id}`)
       .join('/');
-  }
-
-  private toDay(value?: string | null): string {
-    return value ? value.substring(0, 10) : 'n/a';
   }
 }
