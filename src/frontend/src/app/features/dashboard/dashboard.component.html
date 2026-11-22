@@ -6,6 +6,7 @@
     [(windowMode)]="windowMode"
     [(severityIds)]="severityIds"
     [(namespaces)]="namespaces"
+    [(activeImagesOnly)]="activeImagesOnly"
     (refresh)="onRefresh()"
   />
 
@@ -80,6 +81,7 @@
       [hint]="historyDriftHint()"
       [namespaces]="namespaces()"
       [severities]="severityIds()"
+      [activeImagesOnly]="activeImagesOnly()"
       [today]="todayUtc"
       [visitDays]="visitDays"
       [refresh]="refreshCounter()"

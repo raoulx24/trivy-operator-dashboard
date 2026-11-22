@@ -181,7 +181,9 @@ public class HomeTimelineService(
             DateTime addedAt = snapshot.IndexEntry.FirstSeenAt.Value;
             string imageDigest = snapshot.IndexEntry.Key.Digest.Value;
 
-            if (DateOnly.FromDateTime(addedAt) < from || !runningImageKeys.Contains(imageDigest))
+            bool isRunning = runningImageKeys.Contains(imageDigest);
+
+            if (DateOnly.FromDateTime(addedAt) < from || (!isRunning && filter.ActiveImagesOnly))
             {
                 continue;
             }
@@ -191,6 +193,12 @@ public class HomeTimelineService(
             [
                 .. snapshot.IndexEntry.HistoryMetadata.NamespaceNames.Where(x => scope.Contains(x, false)),
             ];
+
+            // a stale image has no running workload: with a namespaces filter, only its history namespaces can place it
+            if (!isRunning && filter.Namespaces is { Count: > 0, } && namespaces.Length == 0)
+            {
+                continue;
+            }
 
             // a pair once per entry, with its occurrences (the history counts one per package, version and target)
             Dictionary<(VulnerabilityId Id, int SeverityId), int> pairs = [];

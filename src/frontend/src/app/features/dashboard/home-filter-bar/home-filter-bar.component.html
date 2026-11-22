@@ -61,6 +61,23 @@
     />
   </div>
 
+  <!-- the history: only the images running now, or the stale ones too (a pill as the selects, with the switch inside) -->
+  <div class="tod-home-filter-group">
+    <span class="text-xs tod-text-muted-color">History</span>
+    <label
+      class="tod-home-filter-switch"
+      title="On: the history of the images running now. Off: also the one of the stale images (no longer running)"
+    >
+      <p-toggleswitch
+        class="tod-home-filter-switch-control"
+        ariaLabel="Active images only"
+        [ngModel]="activeImagesOnly()"
+        (ngModelChange)="activeImagesOnly.set($event)"
+      />
+      <span>Active images only</span>
+    </label>
+  </div>
+
   <p-button
     class="tod-button-compact inline-flex self-center ml-auto"
     icon="pi pi-refresh"

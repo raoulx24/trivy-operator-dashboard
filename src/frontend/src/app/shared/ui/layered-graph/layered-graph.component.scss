@@ -126,6 +126,20 @@
   opacity: 0.75;
 }
 
+// the tag after the label: a darker shade of the node (inline when the node has a color), bordered in the text color
+.node-tag {
+  fill: color-mix(in srgb, var(--tod-layered-graph-node), black 15%);
+  stroke: var(--tod-layered-graph-node-text);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.node-tag-text {
+  font-size: 10px;
+  fill: var(--tod-layered-graph-node-text);
+  pointer-events: none;
+}
+
 // two-tone: the ring on the node edge, with a thin opposite line just inside it
 .ring {
   fill: none;

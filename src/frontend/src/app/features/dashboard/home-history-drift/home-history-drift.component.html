@@ -6,6 +6,7 @@
   [canExpand]="canExpand()"
   [expanded]="isExpanded()"
   (expandToggle)="toggleExpand()"
+  [fillGap]="!isExpanded()"
   [refreshable]="true"
   (refreshRequested)="refreshWidget()"
 >
@@ -85,158 +86,30 @@
   }
 
   @if (showBoxes()) {
-    <!-- row one: the images; each box has the days as groups: the day, then the lines without it -->
-    <section class="flex flex-col">
-      <div class="text-xs tod-text-muted-color">
-        Images: the pairs (vulnerability id, severity) added to each (count: its occurrences in the image that day);
-        {{ imageBoxes().length }} images
+    <!-- the graph: images -> vulnerabilities (of the selected day); a click selects like the selects do. It has its
+         natural height (the widget grows with it); only the width scrolls -->
+    <!-- a grid: its single row takes the height the frame has left, and the box (a stretched item) fills it; a graph that is
+         higher than that makes the row, and the widget, grow -->
+    <div class="grid flex-1">
+    <app-trivy-box class="block">
+      <span boxTitle>Graph ({{ imageBoxes().length }} images, {{ pairBoxes().length }} vulnerabilities)</span>
+      <!-- the graph is centered vertically in the box, which can be higher than it -->
+      <div class="flex h-full flex-col justify-center">
+      <app-layered-graph
+        [columns]="graphColumns"
+        [nodes]="graphData().nodes"
+        [edges]="graphData().edges"
+        orientation="rows"
+        [selectable]="true"
+        [maxNodesPerColumn]="100"
+        valueLabel="links"
+        [multiSelect]="true"
+        [selectedNodes]="selectedNodes()"
+        (selectedNodesChange)="onGraphSelect($event)"
+      />
       </div>
-      <!-- virtual: only the boxes in view are rendered; every box has the same width (the item width) and height -->
-      <app-virtual-scroller
-        #imagesRow
-        class="pt-3"
-        [items]="imageBoxes()"
-        [itemWidth]="20"
-        [trackBy]="trackImageBox"
-        (heightChange)="imagesRowHeight.set($event)"
-      >
-        <ng-template let-box>
-          <app-trivy-box class="block mt-2">
-            <!-- the title of a selected box is a tag; the elements of a title are separate, so the box puts a gap between them -->
-            @if (pivot.selection()?.digest === box.digest) {
-              <p-tag boxTitle class="text-xs cursor-pointer" severity="secondary" (click)="selectImageBox(box.digest)" [rounded]="true" [value]="box.name" />
-            } @else {
-              <span boxTitle class="cursor-pointer" (click)="selectImageBox(box.digest)">{{ box.name }}</span>
-            }
-
-            <!-- a size, not a maximum: every box has the same dimensions, empty or with a long list -->
-            <div class="h-[12.8rem] overflow-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-xs tod-text-muted-color">
-                    <th class="font-normal">Vulnerability</th>
-                    <th class="font-normal text-right pl-2">Count</th>
-                  </tr>
-                </thead>
-                @for (group of box.days; track group.day) {
-                  <tbody>
-                    <tr>
-                      <th colspan="2" class="text-left pt-2 pb-0.5 tod-content-border-bottom-light">
-                        <div class="flex items-baseline justify-between gap-2">
-                          <span class="text-sm font-semibold">{{ group.day }}</span>
-                          <span class="text-xs font-normal tod-text-muted-color">{{ pivot.age(group.day) }}</span>
-                        </div>
-                      </th>
-                    </tr>
-                    @for (row of group.rows; track row.key) {
-                      <tr
-                        class="cursor-pointer"
-                        [class.tod-selected-row]="pivot.isSelected(box.digest, row.pairKey)"
-                        tabindex="0"
-                        (click)="selectFromImage(box, row.pairKey)"
-                        (keydown.enter)="selectFromImage(box, row.pairKey)"
-                      >
-                        <td class="break-all">
-                          <span class="inline-flex flex-wrap items-center gap-1">
-                            {{ row.vulnerabilityId }}
-                            @if (row.isKnownExploited) {
-                              <app-home-exploit-tag [vulnerabilityId]="row.vulnerabilityId" />
-                            }
-                          </span>
-                        </td>
-                        <!-- the color of the count is the severity of the pair, as the severity columns of the tables -->
-                        <td class="text-right pl-2">
-                          <p-tag
-                            class="text-xs"
-                            [rounded]="true"
-                            [style]="row.severityId | severityCssStyleById: row.count"
-                            [value]="row.count | vulnerabilityCount"
-                          />
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                }
-              </table>
-            </div>
-
-            <div boxFooter><app-home-namespaces-footer [footer]="box" /></div>
-          </app-trivy-box>
-        </ng-template>
-      </app-virtual-scroller>
-    </section>
-
-    <!-- row two: the pairs, with the same day groups -->
-    <section class="flex flex-col">
-      <div class="text-xs tod-text-muted-color">
-        Pairs (vulnerability id, severity): the images each was added to; {{ pairBoxes().length }} pairs
-      </div>
-      <app-virtual-scroller
-        #pairsRow
-        class="pt-3"
-        [items]="pairBoxes()"
-        [itemWidth]="20"
-        [trackBy]="trackPairBox"
-        (heightChange)="pairsRowHeight.set($event)"
-      >
-        <ng-template let-box>
-          <app-trivy-box class="block mt-2">
-            @if (pivot.selection()?.pairKey === box.key) {
-              <p-tag boxTitle class="text-xs cursor-pointer" severity="secondary" (click)="selectPairBox(box.key)" [rounded]="true" [value]="box.vulnerabilityId" />
-            } @else {
-              <span boxTitle class="cursor-pointer" (click)="selectPairBox(box.key)">{{ box.vulnerabilityId }}</span>
-            }
-            <p-tag
-              boxTitle
-              class="text-xs"
-              [rounded]="true"
-              [style]="box.severityId | severityCssStyleById: 1"
-              [value]="severityLabel(box.severityId)"
-            />
-            @if (box.isKnownExploited) {
-              <!-- on the right of the top border: it belongs to the pair, not to its name -->
-              <app-home-exploit-tag boxTitleEnd [vulnerabilityId]="box.vulnerabilityId" />
-            }
-
-            <!-- a size, not a maximum: every box has the same dimensions, empty or with a long list -->
-            <div class="h-[12.8rem] overflow-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-xs tod-text-muted-color">
-                    <th class="font-normal">Image</th>
-                  </tr>
-                </thead>
-                @for (group of box.days; track group.day) {
-                  <tbody>
-                    <tr>
-                      <th colspan="1" class="text-left pt-2 pb-0.5 tod-content-border-bottom-light">
-                        <div class="flex items-baseline justify-between gap-2">
-                          <span class="text-sm font-semibold">{{ group.day }}</span>
-                          <span class="text-xs font-normal tod-text-muted-color">{{ pivot.age(group.day) }}</span>
-                        </div>
-                      </th>
-                    </tr>
-                    @for (row of group.rows; track row.key) {
-                      <tr
-                        class="cursor-pointer"
-                        [class.tod-selected-row]="pivot.isSelected(row.digest, box.key)"
-                        tabindex="0"
-                        (click)="selectFromPair(box, row.digest)"
-                        (keydown.enter)="selectFromPair(box, row.digest)"
-                      >
-                        <td class="break-all">{{ row.name }}</td>
-                      </tr>
-                    }
-                  </tbody>
-                }
-              </table>
-            </div>
-
-            <div boxFooter><app-home-namespaces-footer [footer]="box" /></div>
-          </app-trivy-box>
-        </ng-template>
-      </app-virtual-scroller>
-    </section>
+    </app-trivy-box>
+    </div>
   }
 
   <!-- the controls of the expanded widget, in the bottom row of the frame: the images and the pairs to pick from -->

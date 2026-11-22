@@ -11,17 +11,14 @@ import { HomeNewImagesGroupDto } from '@api/models/home-new-images-group-dto';
 import { HomeService } from '@api/services/home.service';
 import { DarkModeService } from '@core/services/dark-mode.service';
 import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
-import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
-import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
 import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
+import { LayeredGraphComponent } from '@shared/ui/layered-graph/layered-graph.component';
+import { LayeredGraphColumn, LayeredGraphEdge, LayeredGraphNode } from '@shared/ui/layered-graph/layered-graph.types';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
-import { VirtualScrollerComponent } from '@shared/ui/virtual-scroller/virtual-scroller.component';
 
-import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
 import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
-import { HomeNamespacesFooterComponent } from '../home-pivot/home-namespaces-footer.component';
 import { HomePivotImageFieldsComponent } from '../home-pivot/home-pivot-image-fields.component';
 import { HomePivotOptionComponent } from '../home-pivot/home-pivot-option.component';
 import { HomePivotSelectedSkeletonComponent } from '../home-pivot/home-pivot-selected-skeleton.component';
@@ -114,17 +111,13 @@ interface NewImagesTableRow {
     HomeWidgetFrameComponent,
     ActivityHeatmapComponent,
     TrivyBoxComponent,
+    LayeredGraphComponent,
     ButtonModule,
     FormsModule,
     SelectModule,
     SkeletonModule,
     TagModule,
-    VirtualScrollerComponent,
     TrivyTableDialogComponent,
-    SeverityCssStyleByIdPipe,
-    VulnerabilityCountPipe,
-    HomeExploitTagComponent,
-    HomeNamespacesFooterComponent,
     HomePivotImageFieldsComponent,
     HomePivotOptionComponent,
     HomePivotSelectedSkeletonComponent,
@@ -142,9 +135,9 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
     <p>The <strong>running images</strong> that the history saw for the first time in the range, with what they have <strong>now</strong>.</p>
     <p class="mt-2"><strong>Current state:</strong> the vulnerabilities and severities are today's, not the ones the image arrived with.</p>
     <p class="mt-2"><strong>Filters:</strong> a pair is (vulnerability id, severity). An image with no pair at the selected severities is <strong>not counted</strong>.</p>
-    <p class="mt-2"><strong>Heatmap:</strong> images per UTC day. While expanded, click a day to filter the boxes.</p>
-    <p class="mt-2"><strong>Boxes:</strong> images (newest first) and pairs (the images that have each). A click on a line selects both sides and the other box scrolls to it.</p>
-    <p class="mt-2"><strong>Count</strong> is the occurrences (package, version, target), not distinct vulnerabilities.</p>
+    <p class="mt-2"><strong>Heatmap:</strong> images per UTC day. While expanded, click a day to filter the graph.</p>
+    <p class="mt-2"><strong>Graph</strong> (expanded): the images above, the vulnerabilities (pairs) below, with a line for each pair an image has. The number on a node is its <strong>lines</strong>: the pairs of an image, the images of a pair.</p>
+    <p class="mt-2"><strong>Click a node</strong> to select it: only what is connected to it stays lit, and <strong>Selected</strong> shows the details. Then click a connected node on the other side to select an image and a pair together; click a selected node to unselect it.</p>
     <p class="mt-2"><strong>First day of the history:</strong> the images already running then are first seen then, so that day can look inflated.</p>
   `;
 
@@ -401,10 +394,67 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
     { field: 'openReport', header: 'Report', isFilterable: false, isSortable: false, actionIcon: 'pi pi-external-link', style: 'width: 5rem; text-align: center;', renderType: 'action' },
   ];
 
+  // ---- the graph: images -> pairs (vulnerability id, severity), top to bottom (rows, 4 sub-rows each), of the same rows as the
+  // boxes (so of the selected day). The id of a node is its kind and its key ('i:digest', 'p:pairKey'); the value of an
+  // image is its pairs, that of a pair its images
+  protected readonly graphColumns: LayeredGraphColumn[] = [
+    { label: 'Images', color: 'var(--tod-layered-graph-image)', textColor: 'var(--tod-layered-graph-image-text)', width: 260, maxPerRow: 5, subColumns: 4 },
+    { label: 'Vulnerabilities', color: 'var(--tod-layered-graph-package)', textColor: 'var(--tod-layered-graph-package-text)', width: 220, maxPerRow: 6, subColumns: 4 },
+  ];
+
+  protected readonly graphData = computed<{ nodes: LayeredGraphNode[]; edges: LayeredGraphEdge[] }>(() => {
+    const nodes: LayeredGraphNode[] = [];
+    const edges: LayeredGraphEdge[] = [];
+
+    for (const box of this.imageBoxes()) {
+      const pairKeys = new Set(box.rows.map((r) => r.pairKey));
+      nodes.push({ id: `i:${box.digest}`, column: 0, label: box.name, value: pairKeys.size, weight: pairKeys.size });
+      pairKeys.forEach((key) => edges.push({ from: `i:${box.digest}`, to: `p:${key}` }));
+    }
+    for (const box of this.pairBoxes()) {
+      const images = new Set(box.rows.map((r) => r.digest)).size;
+      // the tag marks a known exploited pair (KEV / EUVD)
+      nodes.push({
+        id: `p:${box.key}`,
+        column: 1,
+        label: box.vulnerabilityId,
+        tag: box.isKnownExploited ? 'exploited' : null,
+        value: images,
+        weight: images,
+      });
+    }
+
+    return { nodes, edges };
+  });
+
+  // multi select of the graph: at most one node per column, a peer of the other: the image and the pair of the selection
+  protected readonly selectedNodes = computed<string[]>(() => {
+    const selection = this.pivot.selection();
+
+    return [selection?.digest ? `i:${selection.digest}` : null, selection?.pairKey ? `p:${selection.pairKey}` : null].filter(
+      (id): id is string => id !== null,
+    );
+  });
+
+  // the graph says the selected nodes: each side of the selection is set from its own (none: cleared, the day stays)
+  protected onGraphSelect(ids: string[]): void {
+    const side = (prefix: string): string | null => ids.find((id) => id.startsWith(prefix))?.substring(prefix.length) ?? null;
+
+    this.pivot.pickImage(side('i:'));
+    this.pivot.pickPair(side('p:'));
+  }
+
   constructor() {
     super();
 
     effect(() => this.daysChanged.emit(this.daysResult()));
+
+    // the base reveals the widget once its two rows of boxes have a height; there are none here, the graph takes their place
+    effect(() => {
+      const height = this.showBoxes() ? 1 : 0;
+      this.imagesRowHeight.set(height);
+      this.pairsRowHeight.set(height);
+    });
 
     // the CVE dialogs (KEV/EUVD tag, details) read the enrichment of the app state, as the vulnerability id cell does
     inject(CveEnrichmentStateService).ensureLoaded();

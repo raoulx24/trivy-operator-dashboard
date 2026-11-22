@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, linkedSignal, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  output,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -11,19 +20,16 @@ import { HomeHistoryDriftGroupDto } from '@api/models/home-history-drift-group-d
 import { HomeService } from '@api/services/home.service';
 import { DarkModeService } from '@core/services/dark-mode.service';
 import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
-import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
-import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
 import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
+import { LayeredGraphComponent } from '@shared/ui/layered-graph/layered-graph.component';
+import { LayeredGraphColumn, LayeredGraphEdge, LayeredGraphNode } from '@shared/ui/layered-graph/layered-graph.types';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
-import { VirtualScrollerComponent } from '@shared/ui/virtual-scroller/virtual-scroller.component';
 
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
 import { HomeDaysResult, HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
-import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
 import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
-import { HomeNamespacesFooterComponent } from '../home-pivot/home-namespaces-footer.component';
 import { HomePivotImageFieldsComponent } from '../home-pivot/home-pivot-image-fields.component';
 import { HomePivotOptionComponent } from '../home-pivot/home-pivot-option.component';
 import { HomePivotSelectedSkeletonComponent } from '../home-pivot/home-pivot-selected-skeleton.component';
@@ -114,17 +120,13 @@ interface DriftTableRow {
     HomeWidgetFrameComponent,
     ActivityHeatmapComponent,
     TrivyBoxComponent,
+    LayeredGraphComponent,
     ButtonModule,
     FormsModule,
     SelectModule,
     SkeletonModule,
     TagModule,
-    VirtualScrollerComponent,
     TrivyTableDialogComponent,
-    SeverityCssStyleByIdPipe,
-    VulnerabilityCountPipe,
-    HomeExploitTagComponent,
-    HomeNamespacesFooterComponent,
     HomePivotImageFieldsComponent,
     HomePivotOptionComponent,
     HomePivotSelectedSkeletonComponent,
@@ -142,8 +144,8 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
     <p>The <strong>pairs</strong> (vulnerability id, severity) <strong>added</strong> to images that were <strong>already running</strong>, per UTC day, and still active now.</p>
     <p class="mt-2"><strong>Not here:</strong> what a new image brings with its first scan (see <em>New images</em>).</p>
     <p class="mt-2"><strong>Heatmap:</strong> pairs per day. A pair counts on <strong>every day</strong> it is added to some image, so the days do not sum to the distinct pairs. Only the history retention is complete.</p>
-    <p class="mt-2"><strong>Boxes</strong> (expanded): images with the pairs added to each, and pairs with the images they were added to, by day. <strong>Count</strong> is the occurrences (package, version, target), not distinct vulnerabilities.</p>
-    <p class="mt-2"><strong>Click a line</strong> to select an image and a pair together: the other box scrolls to it and <strong>Selected</strong> shows the details. <strong>Click a day</strong> to filter by it; that clears the selection.</p>
+    <p class="mt-2"><strong>Graph</strong> (expanded): the images above, the vulnerabilities (pairs) below, with a line for each pair added to an image. The number on a node is its <strong>lines</strong>: the pairs added to an image, the images a pair was added to.</p>
+    <p class="mt-2"><strong>Click a node</strong> to select it: only what is connected to it stays lit, and <strong>Selected</strong> shows the details. Then click a connected node on the other side to select an image and a pair together; click a selected node to unselect it. <strong>Click a day</strong> to filter by it; that clears the selection.</p>
     <p class="mt-2"><strong>Filters</strong> (date, image, vulnerability) depend on each other: each offers only what fits the other two. <strong>Show all</strong> opens every row in a table.</p>
   `;
 
@@ -153,13 +155,21 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
 
   // the popover of the heatmap legend: more is darker in light mode and lighter in dark mode, so it says which
   protected readonly valueHint = computed(
-    () => `Distinct (vulnerability id, severity) pairs added that day to images that were already running, at the selected severities. A new image's first snapshot is not here (see New images). A pair added on several days counts on each. ${this.darkModeService.isDarkMode() ? 'Lighter' : 'Darker'} = more.`,
+    () => `Distinct (vulnerability id, severity) pairs added that day to images that were already running (also to the stale ones, with the History switch off), at the selected severities. A new image's first snapshot is not here (see New images). A pair added on several days counts on each. ${this.darkModeService.isDarkMode() ? 'Lighter' : 'Darker'} = more.`,
   );
 
+  // only the images running now (default), or the stale ones too
+  readonly activeImagesOnly = input<boolean>(true);
+  private readonly driftScope = computed(() => ({ ...this.scope(), activeImagesOnly: this.activeImagesOnly() }));
+
   private readonly daysData = rxResource({
-    params: this.scope,
+    params: this.driftScope,
     stream: ({ params }) =>
-      this.homeService.getHomeHistoryDrift({ severities: params.severities, namespaces: params.namespaces }),
+      this.homeService.getHomeHistoryDrift({
+        severities: params.severities,
+        namespaces: params.namespaces,
+        activeImagesOnly: params.activeImagesOnly,
+      }),
   });
 
   // the days, for the widget "Since your last visit" (one call of this endpoint per page): emitted from an effect, as
@@ -172,11 +182,12 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
 
   // idle (and empty) while collapsed
   private readonly rowsData = rxResource({
-    params: () => (this.isExpanded() ? this.scope() : undefined),
+    params: () => (this.isExpanded() ? this.driftScope() : undefined),
     stream: ({ params }) =>
       this.homeService.getHomeHistoryDriftDenormalized({
         severities: params.severities,
         namespaces: params.namespaces,
+        activeImagesOnly: params.activeImagesOnly,
       }),
   });
 
@@ -391,6 +402,56 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
   protected override readonly imageBoxes = computed(() => this.boxes().imageBoxes);
   protected override readonly pairBoxes = computed(() => this.boxes().pairBoxes);
 
+  // ---- the graph: images -> pairs (vulnerability id, severity), top to bottom (rows, 3 sub-rows each), of the same rows as the boxes (so of the
+  // selected day). The id of a node is its kind and its key ('i:digest', 'p:pairKey'); the value of an image is its pairs,
+  // that of a pair its images
+  protected readonly graphColumns: LayeredGraphColumn[] = [
+    { label: 'Images', color: 'var(--tod-layered-graph-image)', textColor: 'var(--tod-layered-graph-image-text)', width: 260, maxPerRow: 5, subColumns: 4 },
+    { label: 'Vulnerabilities', color: 'var(--tod-layered-graph-package)', textColor: 'var(--tod-layered-graph-package-text)', width: 220, maxPerRow: 6, subColumns: 4 },
+  ];
+
+  protected readonly graphData = computed<{ nodes: LayeredGraphNode[]; edges: LayeredGraphEdge[] }>(() => {
+    const nodes: LayeredGraphNode[] = [];
+    const edges: LayeredGraphEdge[] = [];
+
+    for (const box of this.imageBoxes()) {
+      const pairKeys = new Set(box.rows.map((r) => r.pairKey));
+      nodes.push({ id: `i:${box.digest}`, column: 0, label: box.name, value: pairKeys.size, weight: pairKeys.size });
+      pairKeys.forEach((key) => edges.push({ from: `i:${box.digest}`, to: `p:${key}` }));
+    }
+    for (const box of this.pairBoxes()) {
+      const images = new Set(box.rows.map((r) => r.digest)).size;
+      // the tag marks a known exploited pair (KEV / EUVD)
+      nodes.push({
+        id: `p:${box.key}`,
+        column: 1,
+        label: box.vulnerabilityId,
+        tag: box.isKnownExploited ? 'exploited' : null,
+        value: images,
+        weight: images,
+      });
+    }
+
+    return { nodes, edges };
+  });
+
+  // multi select of the graph: at most one node per column, a peer of the other: the image and the pair of the selection
+  protected readonly selectedNodes = computed<string[]>(() => {
+    const selection = this.pivot.selection();
+
+    return [selection?.digest ? `i:${selection.digest}` : null, selection?.pairKey ? `p:${selection.pairKey}` : null].filter(
+      (id): id is string => id !== null,
+    );
+  });
+
+  // the graph says the selected nodes: each side of the selection is set from its own (none: cleared, the day stays)
+  protected onGraphSelect(ids: string[]): void {
+    const side = (prefix: string): string | null => ids.find((id) => id.startsWith(prefix))?.substring(prefix.length) ?? null;
+
+    this.pivot.pickImage(side('i:'));
+    this.pivot.pickPair(side('p:'));
+  }
+
   protected readonly tableRows = computed<DriftTableRow[]>(() => {
     const dto = this.rowsData.value();
     const groups = new Map<string, HomeHistoryDriftGroupDto>();
@@ -433,6 +494,13 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
     super();
 
     effect(() => this.daysChanged.emit(this.daysResult()));
+
+    // the base reveals the widget once its two rows of boxes have a height; there are none here, the graph takes their place
+    effect(() => {
+      const height = this.showBoxes() ? 1 : 0;
+      this.imagesRowHeight.set(height);
+      this.pairsRowHeight.set(height);
+    });
 
     // the CVE dialogs (KEV/EUVD tag, details) read the enrichment of the app state, as the vulnerability id cell does
     inject(CveEnrichmentStateService).ensureLoaded();

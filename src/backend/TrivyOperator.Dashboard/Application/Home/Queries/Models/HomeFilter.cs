@@ -5,8 +5,11 @@ namespace TrivyOperator.Dashboard.Application.Home.Queries.Models;
 // SeverityIds: the severities taken into account; null or empty = critical and high
 // Namespaces: only what runs in these namespaces (cluster scoped images and reports are then out); null or empty = all
 // Limit: maximum number of items of a list
+// ActiveImagesOnly: used only by the history drift; true = only the images running now, false = the history of the images no
+//   longer running (stale) too
 public sealed record HomeFilter(
     DateTime Since,
     IReadOnlyCollection<int>? SeverityIds,
     IReadOnlyCollection<string>? Namespaces,
-    int Limit);
+    int Limit,
+    bool ActiveImagesOnly = true);

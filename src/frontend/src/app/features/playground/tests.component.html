@@ -75,6 +75,42 @@
       />
     </div>
     <div class="variant">
+      <span class="variant-title">layers as rows (top to bottom), images in 2 sub-rows</span>
+      <app-layered-graph
+        [columns]="graphColumnsWide"
+        [nodes]="graphNodes"
+        [edges]="graphEdges"
+        orientation="rows"
+        [selectable]="true"
+        [(selectedNode)]="graphSelected"
+        valueLabel="workloads"
+      />
+    </div>
+    <div class="variant">
+      <span class="variant-title">multi select: one per column, each a peer of the selected one next to it</span>
+      <app-layered-graph
+        [columns]="graphColumns"
+        [nodes]="graphNodes"
+        [edges]="graphEdges"
+        [selectable]="true"
+        [multiSelect]="true"
+        [(selectedNodes)]="graphMultiSelected"
+        valueLabel="workloads"
+      />
+    </div>
+    <div class="variant">
+      <span class="variant-title">layers as rows, a new row every 2 images (maxPerRow)</span>
+      <app-layered-graph
+        [columns]="[{ label: 'Package' }, { label: 'Image', maxPerRow: 2 }, { label: 'Namespace', maxPerRow: 3 }]"
+        [nodes]="graphNodes"
+        [edges]="graphEdges"
+        orientation="rows"
+        [selectable]="true"
+        [(selectedNode)]="graphSelected"
+        valueLabel="workloads"
+      />
+    </div>
+    <div class="variant">
       <span class="variant-title">scrolls horizontally (columns of at least 150 px)</span>
       <app-layered-graph
         [columns]="graphColumns"

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { SeverityUtils } from '@shared/utils/severity.utils';
@@ -12,11 +13,11 @@ import { severityTextColor } from '../home-collapsed/home-collapsed';
 
 import { HomeWindowMode, homeSeverityOptions, homeWindowOptions } from './home-filter-bar.types';
 
-// the filters of the home page: the window of the widgets about changes, the severities, the namespaces, and a refresh
+// the filters of the home page: the window of the widgets about changes, the severities, the namespaces, the images of the history, and a refresh
 @Component({
   selector: 'app-home-filter-bar',
   standalone: true,
-  imports: [FormsModule, ButtonModule, MultiSelectModule, SelectModule, PillButtonComponent],
+  imports: [FormsModule, ButtonModule, MultiSelectModule, SelectModule, ToggleSwitchModule, PillButtonComponent],
   templateUrl: './home-filter-bar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -24,6 +25,8 @@ export class HomeFilterBarComponent {
   windowMode = model.required<HomeWindowMode>();
   severityIds = model.required<number[]>();
   namespaces = model.required<string[]>();
+  // the history widgets: only the images running now (default), or the stale ones too
+  activeImagesOnly = model.required<boolean>();
 
   namespaceOptions = input<string[]>([]);
   // the resolved start of the window, e.g. "2026-11-08 (UTC)"

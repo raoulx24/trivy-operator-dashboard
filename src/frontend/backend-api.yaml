@@ -1505,6 +1505,10 @@ paths:
             type: array
             items:
               type: string
+        - name: activeImagesOnly
+          in: query
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -1542,6 +1546,10 @@ paths:
             type: array
             items:
               type: string
+        - name: activeImagesOnly
+          in: query
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK

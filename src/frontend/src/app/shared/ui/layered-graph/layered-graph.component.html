@@ -1,11 +1,11 @@
 <!-- a vertical scroller fills its parent, so the box has the height (none: it follows the drawing) -->
 <div [style.height.px]="viewportHeight()">
-<app-scroller class="scroller-host" [class.vertical]="scroll() === 'vertical'" [direction]="scroll()">
+<app-scroller class="scroller-host" [class.vertical]="direction() === 'vertical'" [direction]="direction()">
 <div #content class="content">
 @if (width() > 0 && hasNodes()) {
-  @if (showColumnLabels()) {
+  @if (captionsOnTop()) {
     <!-- the captions: their own svg, so they stay on top while the nodes scroll under them -->
-    <svg class="captions" [attr.width]="contentWidth()" [attr.height]="labelHeight" aria-hidden="true">
+    <svg class="captions" [attr.width]="drawingWidth()" [attr.height]="labelHeight" aria-hidden="true">
       @for (label of columnLabels(); track $index) {
         <text class="axis-label tod-chart-label tod-chart-label-muted" text-anchor="middle" [attr.x]="label.x" [attr.y]="labelBaseline">
           {{ label.text }}
@@ -13,7 +13,15 @@
       }
     </svg>
   }
-  <svg class="layered-graph" [attr.width]="contentWidth()" [attr.height]="height()" role="img">
+  <svg class="layered-graph" [attr.width]="drawingWidth()" [attr.height]="height()" role="img">
+    @if (showColumnLabels() && orientation() === 'rows') {
+      <!-- rows: the caption of a layer is at the left, in the middle of it -->
+      @for (label of rowLabels(); track $index) {
+        <text class="axis-label tod-chart-label tod-chart-label-muted" dominant-baseline="central" x="0" [attr.y]="label.y">
+          {{ label.text }}
+        </text>
+      }
+    }
     @for (edge of edgeViews(); track edge.key) {
       <!-- the d of the style moves smoothly where the browser can (the attribute is the fallback) -->
       <path
@@ -55,6 +63,28 @@
           >
             {{ node.text }}
           </text>
+          @if (node.tag) {
+            <rect
+              class="node-tag"
+              [style.fill]="node.tagFill"
+              [style.stroke]="node.textColor"
+              [attr.x]="node.tagX"
+              [attr.y]="(nodeHeight() - tagHeight()) / 2"
+              [attr.width]="node.tagWidth"
+              [attr.height]="tagHeight()"
+              [attr.rx]="tagHeight() / 2"
+            />
+            <text
+              class="node-tag-text tod-chart-label"
+              text-anchor="middle"
+              dominant-baseline="central"
+              [style.fill]="node.textColor"
+              [attr.x]="node.tagX + node.tagWidth / 2"
+              [attr.y]="nodeHeight() / 2"
+            >
+              {{ node.tag }}
+            </text>
+          }
           @if (node.valueText) {
             <text
               class="node-text node-value tod-chart-label"
@@ -109,6 +139,9 @@
     } @else {
       <div class="font-bold">{{ node.label }}</div>
       <div>{{ node.columnLabel }}</div>
+      @if (node.tag) {
+        <div>{{ node.tag }}</div>
+      }
       @if (node.valueText) {
         <div>{{ node.valueText }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
       }

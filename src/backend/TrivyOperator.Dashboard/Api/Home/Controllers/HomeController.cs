@@ -179,6 +179,7 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeService.GetKnownExploitedDenormalized(ToFilter(since, null, namespaces, null), ctx));
     // days: the range ending today (UTC), at most 366; default: the history retention
+    // activeImagesOnly: true (default) = only the images running now; false = also the history of the stale ones
     [HttpGet("history-drift", Name = "GetHomeHistoryDrift")]
     [ProducesResponseType(typeof(HomeHistoryDriftDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
@@ -186,8 +187,9 @@ public class HomeController(
         [FromQuery] int? days,
         [FromQuery] int[]? severities,
         [FromQuery] string[]? namespaces,
+        [FromQuery] bool? activeImagesOnly,
         CancellationToken ctx) =>
-        Ok(await homeTimelineService.GetHistoryDrift(days, ToFilter(null, severities, namespaces, null), ctx));
+        Ok(await homeTimelineService.GetHistoryDrift(days, ToFilter(null, severities, namespaces, null, activeImagesOnly ?? true), ctx));
 
     // the same data as history-drift, flat: one row per (vulnerability id, severity, image)
     [HttpGet("history-drift/denormalized", Name = "GetHomeHistoryDriftDenormalized")]
@@ -197,10 +199,11 @@ public class HomeController(
         [FromQuery] int? days,
         [FromQuery] int[]? severities,
         [FromQuery] string[]? namespaces,
+        [FromQuery] bool? activeImagesOnly,
         CancellationToken ctx) =>
         Ok(await homeTimelineService.GetHistoryDriftDenormalized(
             days,
-            ToFilter(null, severities, namespaces, null),
+            ToFilter(null, severities, namespaces, null, activeImagesOnly ?? true),
             ctx));
 
     // days: the range ending today (UTC), at most 366; default: the history retention
@@ -452,12 +455,18 @@ public class HomeController(
             ToFilter(null, null, namespaces, null),
             ctx));
 
-    private static HomeFilter ToFilter(DateTime? since, int[]? severities, string[]? namespaces, int? limit) =>
+    private static HomeFilter ToFilter(
+        DateTime? since,
+        int[]? severities,
+        string[]? namespaces,
+        int? limit,
+        bool activeImagesOnly = true) =>
         new(
             ToSince(since),
             severities,
             namespaces is null ? null : [.. namespaces.Where(x => !string.IsNullOrWhiteSpace(x)),],
-            Math.Clamp(limit ?? DefaultLimit, 1, MaxLimit));
+            Math.Clamp(limit ?? DefaultLimit, 1, MaxLimit),
+            activeImagesOnly);
 
     // the binder gives a local time for a "Z" value and an unspecified one when there is no offset; both mean UTC here
     private static DateTime ToSince(DateTime? since) =>

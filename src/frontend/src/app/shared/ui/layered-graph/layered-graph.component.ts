@@ -28,6 +28,7 @@ import {
   LayeredGraphEdgeView,
   LayeredGraphNode,
   LayeredGraphNodeView,
+  LayeredGraphRowLabel,
   LayeredGraphTipContext,
 } from './layered-graph.types';
 
@@ -42,10 +43,26 @@ const NODE_RADIUS = 6;
 const NODE_PADDING = 8;
 // the average width of a character of the chart label (text-sm, 14px), to shorten the texts that do not fit
 const CHAR_WIDTH = 7.2;
-// the least space between two columns of nodes, so the edges can be seen
-const MIN_COLUMN_GAP = 32;
 // the narrowest a node without its own width gets in a vertical graph (it overflows rather than getting thinner)
 const MIN_NODE_WIDTH = 40;
+// px between the captions of the layers (rows) and the nodes
+const LABEL_GUTTER_GAP = 12;
+// the tag of a node (a small label after its text): the average width of a character (10px), the room at its sides, the
+// space before it, its height, and how many characters the label must keep for the tag to be shown
+const TAG_CHAR_WIDTH = 5.8;
+const TAG_PADDING = 5;
+const TAG_GAP = 6;
+const MIN_LABEL_WITH_TAG = 3;
+
+// a color a step (100) darker: var(--p-red-500) is var(--p-red-600); any other color is mixed with black
+function darker(color: string): string {
+  const match = /^var\(--p-([a-z]+)-(\d{2,3})\)$/.exec(color.trim());
+  const shade = match ? Number(match[2]) : 0;
+  if (match && shade >= 50 && shade < 900) return `var(--p-${match[1]}-${shade === 50 ? 100 : shade + 100})`;
+
+  return `color-mix(in srgb, ${color}, black 15%)`;
+}
+
 // the rounds of the crossing reduction (one round: left to right, then right to left)
 const SWEEPS = 4;
 // how many of the hidden labels the popover of a "+n more" node lists
@@ -66,12 +83,14 @@ interface PlacedItem extends Item {
   width: number;
 }
 
-// where a column is, and how wide its nodes are (px)
+// where a layer is along the way the layers go (x for columns, y for rows), and how wide its nodes are (px)
 interface ColumnGeometry {
-  x: number;
+  start: number;
   nodeWidth: number;
+  // the sub-columns (columns) or the sub-rows (rows)
   subColumns: number;
-  // all the sub-columns with the gaps between them
+  // the size of the layer along the way the layers go: all the sub-columns with the gaps between them (columns); the
+  // caption and all the sub-rows (rows)
   span: number;
 }
 
@@ -116,9 +135,17 @@ export class LayeredGraphComponent {
   // the space between the sub-columns of a column (columns[].subColumns)
   subColumnGap = input<number>(8);
 
+  // the way the layers go: 'columns' = left to right (the nodes of a layer are one under the other, the sub-columns of
+  // a layer are side by side); 'rows' = top to bottom (the nodes of a layer are side by side, a layer is split in
+  // sub-rows: columns[].subColumns is then the count of sub-rows, and the caption of a layer is above it)
+  orientation = input<'columns' | 'rows'>('columns');
+  // the least space between two layers, where the edges run; in rows it is the space (px)
+  layerGap = input<number>(32);
+
   // which way it scrolls when it does not fit: vertical scrolls when the graph is higher than maxHeight (null = it never
-  // scrolls); horizontal scrolls when the columns would be narrower than minNodeWidth (px)
-  scroll = input<'vertical' | 'horizontal'>('vertical');
+  // scrolls); horizontal scrolls when the columns would be narrower than minNodeWidth (px). Without it: vertical for
+  // columns, horizontal for rows
+  scroll = input<'vertical' | 'horizontal' | null>(null);
   maxHeight = input<number | null>(null);
   minNodeWidth = input<number>(100);
 
@@ -142,6 +169,14 @@ export class LayeredGraphComponent {
   // the id of the selected node, two-way: a click on a node selects it, a click on the selected one unselects it (the
   // owner can also set it); null = none
   selectedNode = model<string | null>(null);
+  // several nodes can be selected (selectedNodes instead of selectedNode): at most one per column, and each one a direct
+  // peer (an edge) of the selected node in the next column. A click on:
+  // - a selected node unselects it, and the selected nodes left with no selected peer go too (a lone one stays);
+  // - a node in a column that has a selection replaces it: the selected nodes that are not peers of it go (and the ones
+  //   that were only connected through them), so a click on a node that is a peer of none starts a new selection;
+  // - a node in a column with no selection adds it when it is a peer of a selected node, and is ignored when not.
+  multiSelect = input<boolean>(false);
+  selectedNodes = model<string[]>([]);
   // replaces the default popover; its context is a LayeredGraphTipContext
   tooltipTemplate = input<TemplateRef<{ $implicit: LayeredGraphTipContext }> | undefined>(undefined);
   // ms before the popover of a node shows, like a tooltip (none while another one is open)
@@ -152,6 +187,10 @@ export class LayeredGraphComponent {
   protected readonly popover = inject(PopoverService);
   private readonly injector = inject(Injector);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  // the node that was just clicked (multi select): the one that is scrolled into view
+  private focusId: string | null = null;
+  // the data (columns, nodes, edges) that the graph was last centered for
+  private centeredFor: unknown[] | null = null;
   private readonly scroller = viewChild(ScrollerComponent);
   private readonly content = viewChild<ElementRef<HTMLElement>>('content');
 
@@ -163,19 +202,45 @@ export class LayeredGraphComponent {
   protected readonly labelHeight = LABEL_HEIGHT;
   protected readonly hiddenLabelsInTip = HIDDEN_LABELS_IN_TIP;
 
+  // px: the height of the tag of a node (a little less than the node)
+  protected readonly tagHeight = computed(() => Math.max(10, Math.min(16, this.nodeHeight() - 6)));
+
   protected readonly tipOptions = computed(() => ({ delay: this.tooltipDelay() }));
 
   // px: the height of the box of a vertical scroller (it scrolls inside it): the drawing, or maxHeight when that is less;
   // null = the box follows the drawing (horizontal, or no maxHeight)
+  protected readonly direction = computed<'vertical' | 'horizontal'>(
+    () => this.scroll() ?? (this.orientation() === 'rows' ? 'horizontal' : 'vertical'),
+  );
+
   protected readonly viewportHeight = computed<number | null>(() => {
     const max = this.maxHeight();
-    if (this.scroll() !== 'vertical' || max === null) return null;
+    if (this.direction() !== 'vertical' || max === null) return null;
 
-    return Math.min(max, (this.showColumnLabels() ? LABEL_HEIGHT : 0) + this.height() + SCROLL_PADDING);
+    return Math.min(max, (this.captionsOnTop() ? LABEL_HEIGHT : 0) + this.height() + SCROLL_PADDING);
   });
 
+  // the captions stay on top (their own svg) when the layers are columns; with rows they are in the svg, above the layers
+  protected readonly captionsOnTop = computed(() => this.showColumnLabels() && this.orientation() === 'columns');
+
   // the sub-columns of each column (whole, at least 1)
-  private readonly subColumns = computed(() => this.columns().map((c) => Math.max(1, Math.floor(c.subColumns ?? 1))));
+  // (rows: with maxPerRow, as many as the nodes need: up to maxPerRow nodes are one sub-row, up to twice that two, ...)
+  private readonly subColumns = computed(() => {
+    const rowsMode = this.orientation() === 'rows';
+    const items = rowsMode ? this.items() : [];
+
+    return this.columns().map((c, i) => {
+      const cutoff = c.maxPerRow ?? 0;
+      if (rowsMode && cutoff >= 1) {
+        const needed = Math.max(1, Math.ceil((items[i]?.length ?? 0) / Math.floor(cutoff)));
+
+        // with subColumns too, it is the most sub-rows: over that the rows get more than maxPerRow nodes
+        return c.subColumns ? Math.min(needed, Math.max(1, Math.floor(c.subColumns))) : needed;
+      }
+
+      return Math.max(1, Math.floor(c.subColumns ?? 1));
+    });
+  });
 
   // the columns: where they are and how wide their nodes are. The columns with a width of their own keep it; the nodes of
   // the others share what is left (up to maxNodeWidth), none narrower than minNodeWidth (a horizontal graph scrolls then;
@@ -188,11 +253,14 @@ export class LayeredGraphComponent {
     const room = this.width();
     if (count === 0) return { contentWidth: room, columns: [] as ColumnGeometry[] };
 
-    const minNode = this.scroll() === 'horizontal' ? this.minNodeWidth() : MIN_NODE_WIDTH;
+    const minNode = this.direction() === 'horizontal' ? this.minNodeWidth() : MIN_NODE_WIDTH;
+    if (this.orientation() === 'rows') return this.rowsGeometry(room, minNode);
+
+    const layerGap = this.layerGap();
     const spanOf = (k: number, nodeWidth: number): number => k * nodeWidth + (k - 1) * subGap;
 
     const required =
-      columns.reduce((sum, c, i) => sum + spanOf(subs[i], c.width ?? minNode), 0) + (count - 1) * MIN_COLUMN_GAP;
+      columns.reduce((sum, c, i) => sum + spanOf(subs[i], c.width ?? minNode), 0) + (count - 1) * layerGap;
     const contentWidth = Math.max(room, required);
 
     let fixed = 0;
@@ -211,16 +279,16 @@ export class LayeredGraphComponent {
         ? 0
         : Math.min(
             this.maxNodeWidth(),
-            Math.max(minNode, (contentWidth - (count - 1) * MIN_COLUMN_GAP - fixed - slotGaps) / slots),
+            Math.max(minNode, (contentWidth - (count - 1) * layerGap - fixed - slotGaps) / slots),
           );
 
     const nodeWidths = columns.map((c) => c.width ?? shared);
     const spans = nodeWidths.map((w, i) => spanOf(subs[i], w));
-    const columnGap = count > 1 ? Math.max(MIN_COLUMN_GAP, (contentWidth - spans.reduce((a, b) => a + b, 0)) / (count - 1)) : 0;
+    const columnGap = count > 1 ? Math.max(layerGap, (contentWidth - spans.reduce((a, b) => a + b, 0)) / (count - 1)) : 0;
 
     let x = 0;
     const result = columns.map((_, i): ColumnGeometry => {
-      const column = { x, nodeWidth: nodeWidths[i], subColumns: subs[i], span: spans[i] };
+      const column = { start: x, nodeWidth: nodeWidths[i], subColumns: subs[i], span: spans[i] };
       x += spans[i] + columnGap;
 
       return column;
@@ -228,6 +296,57 @@ export class LayeredGraphComponent {
 
     return { contentWidth, columns: result };
   });
+
+  // px: the width of the strip at the left where the captions of the layers are (rows only), as wide as the longest
+  protected readonly labelGutter = computed(() => {
+    if (this.orientation() !== 'rows' || !this.showColumnLabels()) return 0;
+    const counts = this.items().map((layer) => layer.length);
+    const longest = Math.max(0, ...this.columns().map((c, i) => (counts[i] > 0 ? c.label.length : 0)));
+
+    return longest === 0 ? 0 : Math.ceil(longest * CHAR_WIDTH) + LABEL_GUTTER_GAP;
+  });
+
+  // the layers as rows: each layer is as high as its sub-rows; the nodes of the layers without a width
+  // of their own share the room, so that the layer with the most nodes in a sub-row fits (up to maxNodeWidth, none
+  // narrower than minNode: a horizontal graph scrolls then)
+  private rowsGeometry(room: number, minNode: number): { contentWidth: number; columns: ColumnGeometry[] } {
+    const columns = this.columns();
+    const subs = this.subColumns();
+    const counts = this.items().map((layer) => layer.length);
+    const nodeGap = this.nodeGap();
+    const subGap = this.subColumnGap();
+    const layerGap = this.layerGap();
+    // the captions are at the left (labelGutter), so the room of the nodes is what is left of it
+    room = Math.max(0, room - this.labelGutter());
+
+    // the nodes side by side in a sub-row (the layer is filled sub-row after sub-row, across)
+    const across = counts.map((n, i) => Math.ceil(n / subs[i]));
+    const extentOf = (n: number, nodeWidth: number): number => n * nodeWidth + Math.max(0, n - 1) * nodeGap;
+
+    const required = Math.max(0, ...across.map((n, i) => extentOf(n, columns[i].width ?? minNode)));
+    const contentWidth = Math.max(room, required);
+
+    const widest = Math.max(0, ...across.filter((_, i) => columns[i].width === undefined || columns[i].width === null));
+    const shared =
+      widest === 0
+        ? 0
+        : Math.min(this.maxNodeWidth(), Math.max(minNode, (contentWidth - (widest - 1) * nodeGap) / widest));
+
+    let y = 0;
+    const result = columns.map((column, i): ColumnGeometry => {
+      // an empty layer takes no room
+      if (counts[i] === 0) return { start: y, nodeWidth: column.width ?? shared, subColumns: subs[i], span: 0 };
+
+      const used = Math.min(subs[i], counts[i]);
+      const span = used * this.nodeHeight() + (used - 1) * subGap;
+      const layer = { start: y, nodeWidth: column.width ?? shared, subColumns: subs[i], span };
+      y += span + layerGap;
+
+      return layer;
+    });
+
+    return { contentWidth, columns: result };
+  }
 
   // px: the width of the drawing: the room, or more when the columns do not fit in it (it scrolls)
   protected readonly contentWidth = computed(() => this.geometry().contentWidth);
@@ -255,9 +374,21 @@ export class LayeredGraphComponent {
 
     // a new selection is scrolled into view (not on every layout change, or a resize would scroll)
     effect(() => {
-      if (this.selectedNode() === null) return;
+      if (this.selection().length === 0) return;
 
       untracked(() => afterNextRender({ write: () => this.scrollToSelected() }, { injector: this.injector }));
+    });
+
+    // the first time something is drawn (the width is known only after the first render), and each time new data is fed
+    // (other columns, nodes or edges), it is centered: the selected node, or the middle of the graph. A resize or a
+    // selection does not do it.
+    effect(() => {
+      const data = [this.columns(), this.nodes(), this.edges()];
+      if (this.width() <= 0 || !this.hasNodes()) return;
+      if (this.centeredFor?.every((part, i) => part === data[i])) return;
+
+      this.centeredFor = data;
+      untracked(() => afterNextRender({ write: () => this.scrollToSelected(true) }, { injector: this.injector }));
     });
   }
 
@@ -320,28 +451,112 @@ export class LayeredGraphComponent {
     });
   });
 
-  // the nodes on a path through the selected one: everything that leads to it, and everything it leads to; null when
-  // nothing is selected
-  private readonly related = computed<Set<string> | null>(() => {
-    const selected = this.selectedNode();
-    const { nodes, out, into } = this.graph();
-    if (selected === null || !nodes.has(selected)) return null;
+  // the ids that are selected (the ones that are in the graph)
+  private readonly selection = computed<string[]>(() => {
+    const { nodes } = this.graph();
+    const ids = this.multiSelect() ? this.selectedNodes() : [this.selectedNode()];
 
-    const result = new Set<string>([selected]);
-    for (const next of [out, into]) {
-      const queue = [selected];
-      for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
-        for (const other of next.get(id) ?? []) {
-          if (!result.has(other)) {
-            result.add(other);
-            queue.push(other);
+    return ids.filter((id): id is string => id !== null && nodes.has(id));
+  });
+
+  // the nodes on a path through the selected ones (through all of them): everything that leads to a selected node, and
+  // everything it leads to, for each of them; null when nothing is selected
+  private readonly onPath = computed<Set<string> | null>(() => {
+    const selected = this.selection();
+    if (selected.length === 0) return null;
+
+    const { out, into } = this.graph();
+    const reach = (start: string): Set<string> => {
+      const result = new Set<string>([start]);
+      for (const next of [out, into]) {
+        const queue = [start];
+        for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
+          for (const other of next.get(id) ?? []) {
+            if (!result.has(other)) {
+              result.add(other);
+              queue.push(other);
+            }
           }
         }
       }
+
+      return result;
+    };
+
+    const [first, ...others] = selected.map(reach);
+
+    return new Set([...first].filter((id) => others.every((set) => set.has(id))));
+  });
+
+  // what stays lit with a selection: the nodes on a path through the selected ones, and the direct peers of each selected
+  // node (with several selected, the peers of one are not on a path through all, but they are what can be clicked next)
+  private readonly related = computed<Set<string> | null>(() => {
+    const path = this.onPath();
+    if (path === null) return null;
+
+    const { out, into } = this.graph();
+    const result = new Set(path);
+    for (const id of this.selection()) {
+      for (const other of [...(out.get(id) ?? []), ...(into.get(id) ?? [])]) result.add(other);
     }
 
     return result;
   });
+
+  // two nodes are peers when an edge joins them (either way)
+  private isPeer(a: string, b: string): boolean {
+    const { out } = this.graph();
+
+    return (out.get(a)?.includes(b) ?? false) || (out.get(b)?.includes(a) ?? false);
+  }
+
+  // the selected nodes, in groups of nodes that are peers of one another (through the others of the group)
+  private groups(ids: string[]): string[][] {
+    const left = new Set(ids);
+    const result: string[][] = [];
+    for (const start of ids) {
+      if (!left.has(start)) continue;
+
+      left.delete(start);
+      const group = [start];
+      for (let i = 0; i < group.length; i++) {
+        for (const other of [...left]) {
+          if (this.isPeer(group[i], other)) {
+            left.delete(other);
+            group.push(other);
+          }
+        }
+      }
+      result.push(group);
+    }
+
+    return result;
+  }
+
+  // the selection after a click on a node (multi select); null when the click is ignored
+  private nextSelection(current: string[], id: string): string[] | null {
+    const { nodes } = this.graph();
+    const columnOf = (other: string): number => nodes.get(other)!.column;
+
+    if (current.includes(id)) {
+      // the nodes left with no peer go, unless only one is left; when what is left is cut in pieces, the biggest stays
+      const rest = current.filter((other) => other !== id);
+      if (rest.length <= 1) return rest;
+
+      const groups = this.groups(rest).filter((group) => group.length > 1);
+
+      return groups.sort((a, b) => b.length - a.length || Math.min(...a.map(columnOf)) - Math.min(...b.map(columnOf)))[0] ?? [];
+    }
+
+    if (current.length === 0) return [id];
+
+    const rest = current.filter((other) => columnOf(other) !== columnOf(id));
+    const occupied = rest.length < current.length;
+    if (!occupied && !rest.some((other) => this.isPeer(other, id))) return null;
+
+    // what stays is what is connected to the clicked node through the selected nodes
+    return this.groups([id, ...rest])[0];
+  }
 
   // the order of the nodes in the columns (it does not depend on the selection, or the ordering would be done again at
   // every click), and the edges between them
@@ -377,86 +592,116 @@ export class LayeredGraphComponent {
 
   // the drawing: where the nodes are, and the paths of the edges
   private readonly layout = computed(() => {
-    const { columns: geometry } = this.geometry();
+    const rowsMode = this.orientation() === 'rows';
+    const { columns: geometry, contentWidth } = this.geometry();
     const { orders, merged, maxRows } = this.arrangement();
     const related = this.centerSelection() ? this.related() : null;
     const nodeHeight = this.nodeHeight();
     const gap = this.nodeGap();
     const subGap = this.subColumnGap();
-    const step = nodeHeight + gap;
-    // the captions are not in this svg (they stay on top when it scrolls), so the nodes start at 0
-    const baseHeight = maxRows === 0 ? 0 : maxRows * step - gap;
-    // the line through the middle of the graph: the nodes on a path through the selected one are centered on it
-    const middleLine = baseHeight / 2;
 
-    // a column is three blocks: the nodes above the middle block, the middle block (the nodes on a path through the
-    // selected one, or the whole column when nothing is selected), and the nodes below it; each block keeps its order
-    // and fills the sub-columns of the column row by row
+    // The nodes of a layer go in three blocks along the cross axis (y for columns, x for rows): the nodes before the
+    // middle block, the middle block (the nodes on a path through the selected one, or the whole layer when nothing is
+    // selected), and the nodes after it. Each block keeps its order and fills the sub-columns (sub-rows) of the layer.
+    // `pitch` is the size of a node on the cross axis with the gap, `middleLine` the line the middle blocks are centered
+    // on: in columns the captions are not in this svg (they stay on top when it scrolls), so the nodes start at 0.
+    const pitch = rowsMode ? 0 : nodeHeight + gap;
+    const crossSize = rowsMode ? contentWidth : maxRows === 0 ? 0 : maxRows * pitch - gap;
+    const middleLine = crossSize / 2;
+
     const placed = new Map<string, PlacedItem>();
-    orders.forEach((order, column) => {
-      const { x, nodeWidth, subColumns: k } = geometry[column];
+    orders.forEach((order, layer) => {
+      const { start, nodeWidth, subColumns: k } = geometry[layer];
       const isMiddle = (item: Item): boolean => related === null || item.members.some((id) => related.has(id));
       const middle = order.filter(isMiddle);
       const others = order.filter((item) => !isMiddle(item));
-      // the other nodes are split in two halves, the bigger one above
-      const above = others.slice(0, Math.ceil(others.length / 2));
-      const below = others.slice(above.length);
+      // the other nodes are split in two halves, the bigger one first (above, or at the left)
+      const before = others.slice(0, Math.ceil(others.length / 2));
+      const after = others.slice(before.length);
 
-      const rows = (count: number): number => Math.ceil(count / k);
-      const middleTop = middleLine - (rows(middle.length) * step - gap) / 2;
-      const put = (block: Item[], top: number): void =>
-        block.forEach((item, i) =>
-          placed.set(item.id, {
-            ...item,
-            width: nodeWidth,
-            x: x + (i % k) * (nodeWidth + subGap),
-            y: top + Math.floor(i / k) * step,
-          }),
-        );
+      // the places across a block (the rows of a column, the nodes side by side of a row) and their pitch
+      const places = (count: number): number => Math.ceil(count / k);
+      const size = rowsMode ? nodeWidth + gap : pitch;
+      const middleStart = middleLine - (places(middle.length) * size - gap) / 2;
+      const put = (block: Item[], from: number): void =>
+        block.forEach((item, i) => {
+          const across = from + Math.floor(i / k) * size;
+          const along = i % k;
+          placed.set(
+            item.id,
+            rowsMode
+              ? { ...item, width: nodeWidth, x: across, y: start + along * (nodeHeight + subGap) }
+              : { ...item, width: nodeWidth, x: start + along * (nodeWidth + subGap), y: across },
+          );
+        });
 
-      put(above, middleTop - rows(above.length) * step);
-      put(middle, middleTop);
-      put(below, middleTop + rows(middle.length) * step);
+      put(before, middleStart - places(before.length) * size);
+      put(middle, middleStart);
+      put(after, middleStart + places(middle.length) * size);
     });
 
-    // the halves can stick out of the graph by half a step: everything moves down (and the graph grows) to make room
+    // the blocks can stick out of the graph by half a step: everything moves (and the graph grows) to make room
     let shift = 0;
-    let bottom = baseHeight;
+    let far = rowsMode ? Math.max(0, ...geometry.map((g) => g.start + g.span)) : crossSize;
+    let wide = contentWidth;
     for (const item of placed.values()) {
-      shift = Math.max(shift, -item.y);
-      bottom = Math.max(bottom, item.y + nodeHeight);
+      if (rowsMode) {
+        shift = Math.max(shift, -item.x);
+        wide = Math.max(wide, item.x + item.width);
+      } else {
+        shift = Math.max(shift, -item.y);
+        far = Math.max(far, item.y + nodeHeight);
+      }
     }
-    for (const item of placed.values()) item.y += shift;
+    // rows: the nodes start after the strip of the captions
+    if (rowsMode) shift += this.labelGutter();
+    for (const item of placed.values()) {
+      if (rowsMode) item.x += shift;
+      else item.y += shift;
+    }
 
     const placedEdges: PlacedEdge[] = merged.map(([key, entry]) => {
       const from = placed.get(entry.from.id)!;
       const to = placed.get(entry.to.id)!;
-      const x1 = from.x + from.width;
-      const y1 = from.y + nodeHeight / 2;
-      const x2 = to.x;
-      const y2 = to.y + nodeHeight / 2;
+      // columns: from the right of a node to the left of the next; rows: from the bottom to the top
+      const x1 = rowsMode ? from.x + from.width / 2 : from.x + from.width;
+      const y1 = rowsMode ? from.y + nodeHeight : from.y + nodeHeight / 2;
+      const x2 = rowsMode ? to.x + to.width / 2 : to.x;
+      const y2 = rowsMode ? to.y : to.y + nodeHeight / 2;
       const middleX = (x1 + x2) / 2;
+      const middleY = (y1 + y2) / 2;
+      const path = rowsMode
+        ? `M${x1},${y1} C${x1},${middleY} ${x2},${middleY} ${x2},${y2}`
+        : `M${x1},${y1} C${middleX},${y1} ${middleX},${y2} ${x2},${y2}`;
 
-      return { key, from, to, underlying: entry.underlying, path: `M${x1},${y1} C${middleX},${y1} ${middleX},${y2} ${x2},${y2}` };
+      return { key, from, to, underlying: entry.underlying, path };
     });
 
+    const empty = maxRows === 0;
+
     return {
-      height: maxRows === 0 ? 0 : bottom + shift,
+      width: rowsMode ? wide + shift : contentWidth,
+      height: empty ? 0 : rowsMode ? far : far + shift,
       items: orders.flatMap((order) => order.map((item) => placed.get(item.id)!)),
       edges: placedEdges,
     };
   });
 
+  // px: the size of the svg of the nodes
+  protected readonly drawingWidth = computed(() => this.layout().width);
   protected readonly height = computed(() => this.layout().height);
   protected readonly hasNodes = computed(() => this.layout().items.length > 0);
 
   protected readonly nodeViews = computed<LayeredGraphNodeView[]>(() => {
     const columns = this.columns();
     const { nodes } = this.graph();
-    const selectedId = this.selectedNode();
+    const selected = new Set(this.selection());
     const related = this.related();
     const selectable = this.selectable();
     const moreText = this.moreText();
+    // multi select: a node in a column with no selection can be clicked when it is a peer of a selected node
+    const multi = this.multiSelect() && selected.size > 0;
+    const takenColumns = new Set([...selected].map((id) => nodes.get(id)!.column));
 
     return this.layout().items.map((item) => {
       const column = columns[item.column];
@@ -466,7 +711,13 @@ export class LayeredGraphComponent {
       const valueText = value === null ? '' : String(value);
       // the room for the label: the node without the paddings and the value
       const room = item.width - 2 * NODE_PADDING - (valueText ? valueText.length * CHAR_WIDTH + NODE_PADDING : 0);
-      const fits = Math.max(1, Math.floor(room / CHAR_WIDTH));
+      // the tag is at the right of the label; it is left out when the label would not keep a few characters
+      const tag = node?.tag?.trim() ?? '';
+      const tagWidth = tag ? Math.ceil(tag.length * TAG_CHAR_WIDTH) + 2 * TAG_PADDING : 0;
+      const showTag = tag !== '' && room - tagWidth - TAG_GAP >= MIN_LABEL_WITH_TAG * CHAR_WIDTH;
+      const fits = Math.max(1, Math.floor((showTag ? room - tagWidth - TAG_GAP : room) / CHAR_WIDTH));
+      const text = label.length > fits ? `${label.substring(0, Math.max(1, fits - 1))}…` : label;
+      const color = node?.color ?? column.color ?? null;
 
       return {
         id: item.id,
@@ -476,12 +727,19 @@ export class LayeredGraphComponent {
         value,
         more: item.more,
         hiddenLabels: item.more ? item.members.map((id) => nodes.get(id)!.label) : [],
-        text: label.length > fits ? `${label.substring(0, Math.max(1, fits - 1))}…` : label,
+        text,
+        tag: showTag ? tag : '',
+        tagWidth,
+        tagX: NODE_PADDING + text.length * CHAR_WIDTH + TAG_GAP,
+        tagFill: color === null ? null : darker(color),
         valueText,
-        color: node?.color ?? column.color ?? null,
+        color,
         textColor: node?.textColor ?? column.textColor ?? null,
-        selectable: selectable && !item.more,
-        selected: !item.more && item.id === selectedId,
+        selectable:
+          selectable &&
+          !item.more &&
+          (!multi || takenColumns.has(item.column) || [...selected].some((id) => this.isPeer(id, item.id))),
+        selected: !item.more && selected.has(item.id),
         active: related === null || item.members.some((id) => related.has(id)),
         x: item.x,
         y: item.y,
@@ -491,26 +749,56 @@ export class LayeredGraphComponent {
   });
 
   protected readonly edgeViews = computed<LayeredGraphEdgeView[]>(() => {
+    const path = this.onPath();
     const related = this.related();
+    const selected = new Set(this.selection());
 
     return this.layout().edges.map((edge) => ({
       key: edge.key,
       path: edge.path,
-      // an edge is on a path when one of the edges behind it has both its ends on one
-      active: related === null || edge.underlying.some(([from, to]) => related.has(from) && related.has(to)),
+      // an edge is lit when one of the edges behind it is on a path through the selected nodes, or joins a selected node
+      // to one of its peers
+      active:
+        path === null ||
+        related === null ||
+        edge.underlying.some(
+          ([from, to]) =>
+            (path.has(from) && path.has(to)) ||
+            (selected.has(from) && related.has(to)) ||
+            (selected.has(to) && related.has(from)),
+        ),
     }));
   });
 
+  // the captions on top (columns): centered over their column
   protected readonly columnLabels = computed<LayeredGraphColumnLabel[]>(() => {
     const { columns } = this.geometry();
 
-    return this.columns().map((column, i) => ({ text: column.label, x: columns[i].x + columns[i].span / 2 }));
+    return this.columns().map((column, i) => ({ text: column.label, x: columns[i].start + columns[i].span / 2 }));
+  });
+
+  // the captions of the layers (rows): at the left, in the middle of their layer (the empty layers have none)
+  protected readonly rowLabels = computed<LayeredGraphRowLabel[]>(() => {
+    const { columns } = this.geometry();
+    const counts = this.items().map((layer) => layer.length);
+
+    return this.columns()
+      .map((column, i) => ({ text: column.label, y: columns[i].start + columns[i].span / 2 }))
+      .filter((_, i) => counts[i] > 0);
   });
 
   protected onNodeClick(node: LayeredGraphNodeView): void {
     if (!node.selectable) return;
-    // a click on the selected node unselects it
-    this.selectedNode.set(node.selected ? null : node.id);
+    if (this.multiSelect()) {
+      const next = this.nextSelection(this.selection(), node.id);
+      if (next === null) return;
+
+      this.focusId = next.includes(node.id) ? node.id : null;
+      this.selectedNodes.set(next);
+    } else {
+      // a click on the selected node unselects it
+      this.selectedNode.set(node.selected ? null : node.id);
+    }
     this.nodeSelected.emit({
       id: node.id,
       label: node.label,
@@ -521,11 +809,15 @@ export class LayeredGraphComponent {
   }
 
   // scrolls the selected node to the middle of what is visible (below the captions); the axis that does not scroll
-  // stays where it is
-  private scrollToSelected(): void {
+  // stays where it is. The first time the graph is drawn it jumps there (no animation), and with nothing selected it is
+  // the middle of the graph that is centered.
+  private scrollToSelected(initial = false): void {
     const element = this.scroller()?.scrollContainer?.nativeElement;
     const content = this.content()?.nativeElement;
-    const node = this.nodeViews().find((n) => n.selected);
+    // the one just clicked, or the first selected
+    const views = this.nodeViews();
+    const selected = views.find((n) => n.selected && n.id === this.focusId) ?? views.find((n) => n.selected);
+    const node = selected ?? (initial ? { x: 0, y: this.height() / 2 - this.nodeHeight() / 2, width: this.drawingWidth() } : null);
     if (!element || !content || !node) return;
 
     // where the content starts inside what scrolls (the scroller has paddings of its own)
@@ -534,12 +826,12 @@ export class LayeredGraphComponent {
     const offsetX = start.left - box.left + element.scrollLeft;
     const offsetY = start.top - box.top + element.scrollTop;
 
-    const captions = this.showColumnLabels() ? LABEL_HEIGHT : 0;
+    const captions = this.captionsOnTop() ? LABEL_HEIGHT : 0;
     const left = offsetX + SCROLL_PADDING + node.x + node.width / 2 - element.clientWidth / 2;
     const top = offsetY + node.y + this.nodeHeight() / 2 - (element.clientHeight - captions) / 2;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    element.scrollTo({ left, top, behavior: reduced ? 'auto' : 'smooth' });
+    element.scrollTo({ left, top, behavior: reduced || initial ? 'auto' : 'smooth' });
   }
 
   // the barycenter method: each node goes where the mean height of its neighbors is, a column at a time, left to right

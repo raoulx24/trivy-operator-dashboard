@@ -154,9 +154,9 @@ export class TestsComponent {
     { label: 'Namespace', color: '#2f8f6b', textColor: '#fff' },
   ];
   protected readonly graphNodes: LayeredGraphNode[] = [
-    { id: 'p1', column: 0, label: 'xz-utils 5.6.0' },
+    { id: 'p1', column: 0, label: 'xz-utils 5.6.0', tag: 'os' },
     { id: 'p2', column: 0, label: 'openssl 3.0.2' },
-    { id: 'i1', column: 1, label: 'api:2.0.3', weight: 9 },
+    { id: 'i1', column: 1, label: 'api:2.0.3', tag: 'new', weight: 9 },
     { id: 'i2', column: 1, label: 'worker:0.9', weight: 7 },
     { id: 'i3', column: 1, label: 'gw:1.1', weight: 5 },
     { id: 'i4', column: 1, label: 'billing:4.2.0', weight: 3 },
@@ -182,6 +182,7 @@ export class TestsComponent {
     { from: 'i6', to: 'n5' },
   ];
   protected readonly graphSelected = signal<string | null>('i3');
+  protected readonly graphMultiSelected = signal<string[]>([]);
 
   // matrix-heatmap
   protected readonly matrixColumns = ['prod', 'stage', 'dev', 'infra', 'tools'];

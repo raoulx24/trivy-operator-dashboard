@@ -83,6 +83,7 @@ export class DashboardComponent {
   private static readonly windowModeKey = 'home.windowMode';
   private static readonly severityIdsKey = 'home.severityIds';
   private static readonly namespacesKey = 'home.namespaces';
+  private static readonly activeImagesOnlyKey = 'home.activeImagesOnly';
 
   private readonly homeService = inject(HomeService);
   private readonly accessTrackingService = inject(AccessTrackingService);
@@ -98,6 +99,10 @@ export class DashboardComponent {
   protected windowMode = signal<HomeWindowMode>(this.loadWindowMode());
   protected severityIds = signal<number[]>(this.loadSeverityIds());
   protected namespaces = signal<string[]>(this.loadNamespaces());
+  // the history widgets: only the images running now (default), or the stale ones too
+  protected activeImagesOnly = signal<boolean>(
+    LocalStorageUtils.getItem(DashboardComponent.activeImagesOnlyKey) !== 'false',
+  );
   // the namespaces with data, plus the selected ones that have none now (kept visible, so they can be removed;
   // they are not dropped silently, as right after a backend start the data may be partial)
   private readonly namespacesWithData = signal<string[]>([]);
@@ -127,7 +132,8 @@ export class DashboardComponent {
   protected readonly baseOsHint = computed(() => `now${this.namespacesLabel()}`);
   protected readonly exposedSecretsHint = computed(() => `running images${this.namespacesLabel()}`);
   protected readonly historyDriftHint = computed(
-    () => `per UTC day, history retention · ${this.severitiesLabel()}${this.namespacesLabel()}`,
+    () =>
+      `per UTC day, history retention · ${this.severitiesLabel()}${this.namespacesLabel()}${this.activeImagesOnly() ? '' : ' · with stale images'}`,
   );
   protected readonly newImagesHint = computed(
     () => `per UTC day, current state · ${this.severitiesLabel()}${this.namespacesLabel()}`,
@@ -195,11 +201,13 @@ export class DashboardComponent {
       const windowMode = this.windowMode();
       const severityIds = this.severityIds();
       const namespaces = this.namespaces();
+      const activeImagesOnly = this.activeImagesOnly();
       this.refreshCounter();
 
       LocalStorageUtils.setItem(DashboardComponent.windowModeKey, windowMode);
       LocalStorageUtils.setItem(DashboardComponent.severityIdsKey, JSON.stringify(severityIds));
       LocalStorageUtils.setItem(DashboardComponent.namespacesKey, JSON.stringify(namespaces));
+      LocalStorageUtils.setItem(DashboardComponent.activeImagesOnlyKey, String(activeImagesOnly));
 
       this.loadData();
     });

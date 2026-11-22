@@ -673,6 +673,58 @@ p-multiselect.tod-home-filter-select {
   }
 }
 
+// the switch of the home filter bar: the pill of the selects (same border, fill, shadow and lift), with the switch and its
+// caption inside
+.tod-home-filter-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 1.75rem;
+  padding: 0 0.75rem 0 0.5rem;
+  border: 1px solid var(--tod-home-filter-select-border-color);
+  border-radius: 9999px;
+  background: var(--tod-home-filter-select-background);
+  box-shadow: var(--tod-score-tag-shadow);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s,
+    border-color 0.15s;
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--tod-home-filter-select-hover-border-color);
+  }
+
+  &:hover {
+    box-shadow: var(--tod-score-tag-hover-shadow);
+    transform: translateY(-1px);
+  }
+
+  &:focus-within {
+    box-shadow:
+      0 0 0 1px var(--tod-home-filter-select-hover-border-color),
+      var(--tod-score-tag-shadow);
+  }
+
+  // a smaller switch, to fit the height of the pill
+  .tod-home-filter-switch-control {
+    --p-toggleswitch-width: 2rem;
+    --p-toggleswitch-height: 1.1rem;
+    --p-toggleswitch-handle-size: 0.8rem;
+    --p-toggleswitch-gap: 0.15rem;
+    --p-toggleswitch-checked-background: var(--tod-home-filter-switch-on-background);
+    --p-toggleswitch-checked-hover-background: var(--tod-home-filter-switch-on-hover-background);
+    --p-toggleswitch-handle-checked-background: var(--tod-home-filter-switch-on-handle-background);
+    --p-toggleswitch-handle-checked-hover-background: var(--tod-home-filter-switch-on-handle-background);
+    // the pill shows the focus (its border), so no blue ring around the switch
+    --p-toggleswitch-focus-ring-width: 0;
+  }
+}
+
 // the overlay of a select of the home filter bar (panelStyleClass, it is appended to the body): the size of the pill
 // that opened it, not the one of a form field
 .tod-home-filter-panel {
