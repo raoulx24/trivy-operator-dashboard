@@ -565,6 +565,13 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
         return;
       }
 
+      // a new order (a sort, a filter) moves the selected id: it is scrolled to again
+      const order = JSON.stringify(this.sort()) + this.filterText();
+      if (order !== this.listOrder) {
+        this.listOrder = order;
+        this.scrolledToSelected = false;
+      }
+
       const index = id ? items.findIndex((x) => x.vulnerabilityId === id) : -1;
       if (!scroller || index < 0 || !this.expandedData.hasValue() || this.scrolledToSelected) {
         return;
@@ -655,9 +662,10 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
     return { nodes, edges };
   });
 
-  // the list of the ids: on expand it is scrolled to the selected one
+  // the list of the ids: on expand, and when its order changes (sort, filter), it is scrolled to the selected one
   private readonly listScroller = viewChild(Scroller);
   private scrolledToSelected = false;
+  private listOrder = '';
 
   // the height of the box of the graph, which scrolls inside it
   private readonly graphHost = viewChild<ElementRef<HTMLElement>>('graphHost');
