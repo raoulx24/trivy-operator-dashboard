@@ -248,6 +248,9 @@
         @if (filterDetail(); as filterData) {
           <app-home-node-filters [detail]="filterData" [firstPlaceholder]="firstSelectText()" [(selectedNodes)]="w.selectedNodes" />
         }
+      } @else if (filterDetail(); as filterData) {
+        <!-- without a graph: the selects set the selections of the namespaces and the images lists -->
+        <app-home-node-filters [detail]="filterData" [firstPlaceholder]="firstSelectText()" [selectedNodes]="listNodeIds()" (selectedNodesChange)="setListNodes($event)" />
       } @else {
         <span class="text-xs tod-text-muted-color">A click on a namespace or an image fades what does not go with it</span>
       }
@@ -257,7 +260,7 @@
 
 <!-- the search box: the same in the collapsed widget (at the top) and in the box of the expanded one -->
 <ng-template #searchBox>
-  <app-home-search-box [placeholder]="searchPlaceholder()" [resettable]="true" [(query)]="w.query" (search)="w.onSearch()" />
+  <app-home-search-box [placeholder]="searchPlaceholder()" [resettable]="true" [(query)]="w.query" (search)="w.onSearch()" (resetPressed)="w.onReset()" />
 </ng-template>
 
 @if (showAllDialog() && allRowsColumns(); as columns) {
@@ -274,7 +277,9 @@
 <!-- the sort of the list: a pill per key, one on at a time -->
 <ng-template #sortPills>
   <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort the list">
-    <app-pill-button label="Severity" [toggle]="true" [active]="w.sort()?.key === 'severity'" [icon]="w.sortIcon('severity')" [title]="w.sortTitle('severity')" (pressed)="w.toggleSort('severity')" />
+    @if (w.hasSeveritySort()) {
+      <app-pill-button label="Severity" [toggle]="true" [active]="w.sort()?.key === 'severity'" [icon]="w.sortIcon('severity')" [title]="w.sortTitle('severity')" (pressed)="w.toggleSort('severity')" />
+    }
     <app-pill-button label="Name" [toggle]="true" [active]="w.sort()?.key === 'name'" [icon]="w.sortIcon('name')" [title]="w.sortTitle('name')" (pressed)="w.toggleSort('name')" />
   </div>
 </ng-template>

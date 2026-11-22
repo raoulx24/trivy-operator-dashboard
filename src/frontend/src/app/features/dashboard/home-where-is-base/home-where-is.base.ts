@@ -103,6 +103,8 @@ export abstract class HomeWhereIsBase<
   // values of a row (sortValues): its severity (a lower number is worse) and its name. In the collapsed widget it sorts the
   // few rows it has
   protected readonly sortable: boolean = false;
+  // the rows have a severity to sort by (the sort pill of the severity is there)
+  protected readonly sortBySeverity: boolean = true;
   protected sortValues(_item: TItem): { severity: number; name: string } | undefined {
     return undefined;
   }
@@ -117,6 +119,9 @@ export abstract class HomeWhereIsBase<
   // for the shell
   isSortable(): boolean {
     return this.sortable;
+  }
+  hasSeveritySort(): boolean {
+    return this.sortBySeverity;
   }
   toggleSort(key: HomeListSortKey): void {
     this.sort.update((current) => nextSort(current, key));
@@ -168,8 +173,24 @@ export abstract class HomeWhereIsBase<
   // the nodes of the graph of a widget that has one (multi select: ids like 'p:2', 'i:0', 'n:1')
   readonly selectedNodes = signal<string[]>([]);
 
+  // a selection of a first kind that a widget can have besides the namespaces and the images (the package versions of a
+  // license): an index in its list, and the images it has (imagesOfFirst); the namespaces and the images follow it
+  readonly selectedFirst = signal<number | null>(null);
+  protected imagesOfFirst(_index: number): readonly number[] | undefined {
+    return undefined;
+  }
+  private readonly firstImages = computed<ReadonlySet<number> | null>(() => {
+    const index = this.selectedFirst();
+
+    return index === null ? null : new Set(this.imagesOfFirst(index) ?? []);
+  });
+
   readonly isFiltered = computed(
-    () => this.selectedNamespace() !== null || this.selectedImage() !== null || this.selectedNodes().length > 0,
+    () =>
+      this.selectedNamespace() !== null ||
+      this.selectedImage() !== null ||
+      this.selectedFirst() !== null ||
+      this.selectedNodes().length > 0,
   );
 
   // the relation of the detail as sets: the namespaces of each image
@@ -179,10 +200,12 @@ export abstract class HomeWhereIsBase<
     const d = this.detail();
     const relation = this.namespacesOfImage();
     const image = this.selectedImage();
+    const first = this.firstImages();
     const allowed = new Set<number>();
 
     for (let n = 0; d && relation && n < d.namespaceNames.length; n++) {
-      if (image === null || relation[image]?.has(n)) {
+      const inFirst = first === null || [...first].some((i) => relation[i]?.has(n));
+      if (inFirst && (image === null || relation[image]?.has(n))) {
         allowed.add(n);
       }
     }
@@ -193,10 +216,11 @@ export abstract class HomeWhereIsBase<
     const d = this.detail();
     const relation = this.namespacesOfImage();
     const namespace = this.selectedNamespace();
+    const first = this.firstImages();
     const allowed = new Set<number>();
 
     for (let i = 0; d && relation && i < d.imageNames.length; i++) {
-      if (namespace === null || relation[i]?.has(namespace)) {
+      if ((first === null || first.has(i)) && (namespace === null || relation[i]?.has(namespace))) {
         allowed.add(i);
       }
     }
@@ -288,6 +312,13 @@ export abstract class HomeWhereIsBase<
     this.request.set({ query, namespaces: namespaces.length > 0 ? namespaces : undefined });
   }
 
+  // the reset button of the search box (the search already reset the widget): an expanded widget goes back to collapsed
+  onReset(): void {
+    if (this.isExpanded()) {
+      this.toggleExpand();
+    }
+  }
+
   // the expand button of the frame
   toggle(): void {
     this.toggleExpand();
@@ -334,5 +365,6 @@ export abstract class HomeWhereIsBase<
     this.selectedNamespace.set(null);
     this.selectedImage.set(null);
     this.selectedNodes.set([]);
+    this.selectedFirst.set(null);
   }
 }

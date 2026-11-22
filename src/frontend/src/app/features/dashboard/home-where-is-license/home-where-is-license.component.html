@@ -10,6 +10,13 @@
   [rowBody]="rowBody"
   [detailHead]="detailHead"
   [detailBottom]="detailPackages"
+  [expandedHeight]="expandedHeight"
+  [listRatio]="listRatio"
+  [filterDetail]="filterDetail()"
+  firstSelectText="Select a package"
+  [allRowsColumns]="allRowsColumns"
+  allRowsTitle="Where is… license: all rows"
+  allRowsKey="Home Where Is License All"
 />
 
 <!-- the selected license and its counts -->
@@ -27,7 +34,7 @@
 <!-- the package versions that have the license, filtered by the selected namespace and image -->
 <ng-template #detailPackages let-d>
   <app-trivy-box class="h-full">
-    <span boxTitle>Packages ({{ countLabel(packageRows().length, d.packageVersions.length) }})</span>
+    <span boxTitle>Packages ({{ countLabel(packagesAllowed(), d.packageVersions.length) }})</span>
     <div class="relative h-full">
       <div class="absolute inset-0">
         <app-trivy-table
@@ -35,6 +42,11 @@
           stateKey="Home Where Is License Packages"
           [dataDtos]="packageRows()"
           [trivyTableColumns]="packageColumns"
+          selectionMode="single"
+          [rowDimmer]="packageRowDimmer"
+          [dimmedRowsSelectable]="false"
+          [selectedData]="packageSelection()"
+          (selectedDataChange)="onPackageSelection($event)"
         />
       </div>
     </div>

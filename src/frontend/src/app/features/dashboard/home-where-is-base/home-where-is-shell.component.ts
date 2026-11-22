@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, TemplateRef, effect, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, TemplateRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { Scroller, ScrollerModule } from 'primeng/scroller';
 
@@ -93,6 +93,28 @@ export class HomeWhereIsShellComponent {
   allRowsTitle = input<string>('All rows');
   allRowsKey = input<string>('Home Where Is All');
   protected readonly showAllDialog = signal(false);
+
+  // the selects of the namespaces and the images (without a graph) are the selections of the lists, as node ids
+  protected readonly listNodeIds = computed<string[]>(() => {
+    const w = this.widget();
+    const namespace = w.selectedNamespace();
+    const image = w.selectedImage();
+    const first = w.selectedFirst();
+
+    return [first === null ? null : `p:${first}`, image === null ? null : `i:${image}`, namespace === null ? null : `n:${namespace}`].filter((x): x is string => x !== null);
+  });
+
+  protected setListNodes(ids: string[]): void {
+    const w = this.widget();
+    const index = (prefix: string): number | null => {
+      const id = ids.find((x) => x.startsWith(prefix));
+      return id === undefined ? null : Number(id.substring(2));
+    };
+
+    w.selectedFirst.set(index('p:'));
+    w.selectedNamespace.set(index('n:'));
+    w.selectedImage.set(index('i:'));
+  }
   // the height of the box of the graph, which scrolls inside it
   protected readonly graphHost = viewChild<ElementRef<HTMLElement>>('graphHost');
   protected readonly graphHeight = signal<number | null>(null);

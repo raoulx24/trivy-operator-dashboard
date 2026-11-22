@@ -3,7 +3,7 @@
   [help]="help"
   [hint]="hint()"
   [state]="state()"
-  [canExpand]="canExpand()"
+  [canExpand]="expandable()"
   [expanded]="isExpanded()"
   (expandToggle)="toggleExpand()"
   [refreshable]="true"
@@ -15,6 +15,10 @@
 
     @if (searched() && items().length === 0 && state().isAvailable) {
       <div class="text-sm tod-text-muted-color p-2">Nothing failing matches this check.</div>
+    }
+
+    @if (items().length > 0) {
+      <div class="pt-2"><ng-container *ngTemplateOutlet="sortPills" /></div>
     }
 
     <div class="flex flex-col gap-4 pt-2">
@@ -31,15 +35,16 @@
     <div
       class="grid gap-3 pt-2 flex-1"
       [style.min-height]="expandedHeight"
-      [style.grid-template-columns]="(collapsedWidth() ?? 384) * 0.75 + 'px minmax(0, 1fr)'"
+      [style.grid-template-columns]="(collapsedWidth() ?? 384) * 0.525 + 'px minmax(0, 1fr)'"
     >
       <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
         <ng-container *ngTemplateOutlet="searchBox" />
         <div class="text-xs tod-text-muted-color">
           @if (searched()) {
-            {{ items().length }} of {{ totalMatches() }}
+            {{ items().length }} of {{ totalMatches() }} · {{ sortLabel() }}
           }
         </div>
+        <ng-container *ngTemplateOutlet="sortPills" />
 
         @if (searched() && items().length === 0 && state().isAvailable) {
           <div class="text-sm tod-text-muted-color p-2">Nothing failing matches this check.</div>
@@ -125,11 +130,37 @@
       </div>
     </div>
   }
+
+  <!-- the controls of the expanded widget, in the bottom row of the frame -->
+  @if (isExpanded()) {
+    <div frameActions class="flex items-center gap-2">
+      <app-pill-button label="Show all" icon="pi-list" (pressed)="showAllDialog.set(true)" />
+    </div>
+  }
 </app-home-widget-frame>
+
+@if (showAllDialog()) {
+  <app-trivy-table-dialog
+    stateKey="Home Where Is Check All"
+    title="Where is… check: all rows"
+    width="90rem"
+    [columns]="allRowsColumns"
+    [dataDtos]="items()"
+    [(isVisible)]="showAllDialog"
+  />
+}
+
+<!-- the sort of the list: a pill per key, one on at a time -->
+<ng-template #sortPills>
+  <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort the list">
+    <app-pill-button label="Severity" [toggle]="true" [active]="sort()?.key === 'severity'" [icon]="sortIcon('severity')" [title]="sortTitle('severity')" (pressed)="toggleSort('severity')" />
+    <app-pill-button label="Name" [toggle]="true" [active]="sort()?.key === 'name'" [icon]="sortIcon('name')" [title]="sortTitle('name')" (pressed)="toggleSort('name')" />
+  </div>
+</ng-template>
 
 <!-- the search box: the same in the collapsed widget (at the top) and in the box of the expanded one -->
 <ng-template #searchBox>
-  <app-home-search-box placeholder="KSV014 or a title, e.g. root (3+ characters)" [resettable]="true" [(query)]="query" (search)="onSearch()" />
+  <app-home-search-box placeholder="KSV014 or a title, e.g. root (3+ characters)" [resettable]="true" [(query)]="query" (search)="onSearch()" (resetPressed)="onReset()" />
 </ng-template>
 
 <!-- a check of the list: in the collapsed widget (the id is a button) and in the list of the expanded one (the whole row is) -->

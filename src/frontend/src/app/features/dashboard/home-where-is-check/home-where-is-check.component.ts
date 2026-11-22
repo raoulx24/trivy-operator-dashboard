@@ -10,9 +10,10 @@ import {
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ScrollerModule } from 'primeng/scroller';
+import { Scroller, ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
 import { HomeWhereIsCheckDetailDto } from '@api/models/home-where-is-check-detail-dto';
@@ -20,10 +21,13 @@ import { HomeWhereIsCheckItemDto } from '@api/models/home-where-is-check-item-dt
 import { HomeService } from '@api/services/home.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
+import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 
+import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortLabelOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent } from '../home-widget-frame/home-widget-frame.component';
@@ -62,6 +66,8 @@ interface CheckKey {
     TagModule,
     TrivyBoxComponent,
     TrivyTableComponent,
+    PillButtonComponent,
+    TrivyTableDialogComponent,
     SeverityCssStyleByIdPipe,
     SeverityNameByIdPipe,
   ],
@@ -86,7 +92,7 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
   // the height of a row of the list (a scroller needs the same for all): the id, two lines of title, the counts
   protected readonly rowHeight = 110;
   // the height of the expanded widget body (it needs a fixed one: the list and the table scroll in it)
-  protected readonly expandedHeight = '40rem';
+  protected readonly expandedHeight = '56rem';
 
   private readonly homeService = inject(HomeService);
 
@@ -139,7 +145,51 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
     this.isExpanded() && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
   );
 
-  protected readonly items = computed(() => this.shown().value()?.items ?? []);
+  private readonly baseItems = computed(() => this.shown().value()?.items ?? []);
+
+  // the sort of the list (null: the order of the server, by severity then reach); in the collapsed widget it sorts the few
+  // rows it has
+  protected readonly sort = signal<HomeListSort | null>(null);
+  protected readonly items = computed(() =>
+    sortRows(this.baseItems(), this.sort(), {
+      moment: () => undefined,
+      severity: (x) => x.severityId,
+      name: (x) => x.checkId,
+    }),
+  );
+
+  // nothing found (or nothing searched yet): there is nothing to expand to; an expanded widget can always collapse
+  protected readonly expandable = computed(() => this.canExpand() && (this.isExpanded() || this.items().length > 0));
+
+  protected toggleSort(key: HomeListSortKey): void {
+    this.sort.update((current) => nextSort(current, key));
+  }
+
+  protected sortIcon(key: HomeListSortKey): string | undefined {
+    return sortIconOf(this.sort(), key);
+  }
+
+  protected sortTitle(key: HomeListSortKey): string {
+    return sortTitleOf(this.sort(), key);
+  }
+
+  protected readonly sortLabel = computed(() => sortLabelOf(this.sort()));
+
+  // "Show all": every check found (the rows of the list, up to 500), flat, in a table
+  protected readonly showAllDialog = signal(false);
+  protected readonly allRowsColumns: TrivyTableColumn[] = [
+    { field: 'checkId', header: 'Check', isFilterable: true, isSortable: true, style: 'width: 10rem', renderType: 'standard' },
+    { field: 'severityId', header: 'Sev', isFilterable: true, isSortable: true, multiSelectType: 'severities', style: 'width: 7rem', renderType: 'severityBadge' },
+    { field: 'family', header: 'Family', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 10rem', renderType: 'standard' },
+    { field: 'title', header: 'Title', isFilterable: true, isSortable: true, style: 'width: 40%', renderType: 'standard' },
+    { field: 'resources', header: 'Resources', isFilterable: false, isSortable: true, style: 'width: 8rem', renderType: 'standard' },
+    { field: 'namespaces', header: 'Namespaces', isFilterable: false, isSortable: true, style: 'width: 8rem', renderType: 'standard' },
+  ];
+
+  // the list: on expand, and when its order changes (a sort), it is scrolled to the selected check
+  private readonly listScroller = viewChild(Scroller);
+  private scrolledToSelected = false;
+  private listOrder = '';
   protected readonly totalMatches = computed(() => this.shown().value()?.totalMatches ?? 0);
   protected readonly more = computed(() => Math.max(0, this.totalMatches() - this.items().length));
   protected readonly searched = computed(() => this.request() !== undefined);
@@ -219,6 +269,33 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
       destroyRef.onDestroy(() => observer.disconnect());
     });
 
+    // expanded with a check selected: the list scrolls to it, once (when the rows of the expanded widget are there and the
+    // list is drawn); a collapse or a new order re-arms it
+    effect(() => {
+      const scroller = this.listScroller();
+      const key = this.selected();
+      const items = this.items();
+      if (!this.isExpanded()) {
+        this.scrolledToSelected = false;
+        return;
+      }
+
+      const order = JSON.stringify(this.sort());
+      if (order !== this.listOrder) {
+        this.listOrder = order;
+        this.scrolledToSelected = false;
+      }
+
+      const index = key ? items.findIndex((x) => x.family === key.family && x.checkId === key.checkId) : -1;
+      if (!scroller || index < 0 || !this.expandedData.hasValue() || this.scrolledToSelected) {
+        return;
+      }
+
+      this.scrolledToSelected = true;
+      // after the scroller measured its box
+      setTimeout(() => scroller.scrollToIndex(index, 'auto'), 50);
+    });
+
     // expanded without a choice (the expand button, or a new search): the first check of the list
     effect(() => {
       const first = this.items()[0];
@@ -258,6 +335,13 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
     this.selected.set(undefined);
     this.loaded.set(undefined);
     this.request.set({ query, namespaces: namespaces.length > 0 ? namespaces : undefined });
+  }
+
+  // the reset button of the search box (the search already reset the widget): an expanded widget goes back to collapsed
+  protected onReset(): void {
+    if (this.isExpanded()) {
+      this.toggleExpand();
+    }
   }
 
   protected onRefresh(): void {

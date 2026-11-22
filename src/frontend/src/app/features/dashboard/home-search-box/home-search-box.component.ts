@@ -17,6 +17,8 @@ export class HomeSearchBoxComponent {
   resettable = input(false);
   query = model<string>('');
   search = output<void>();
+  // the reset button was pressed (after the search that resets the widget): a widget can collapse, for one
+  resetPressed = output<void>();
 
   protected onEnter(event: Event): void {
     this.search.emit();
@@ -30,6 +32,7 @@ export class HomeSearchBoxComponent {
   protected reset(): void {
     this.query.set('');
     this.search.emit();
+    this.resetPressed.emit();
   }
 
   protected clear(box: HTMLInputElement): void {
