@@ -51,9 +51,10 @@
           @if (versionInfo(); as v) {
             @if (v.isNewer) {
               <app-pill-button
-                class="self-end mt-1"
+                class="tod-pill-button-large self-end mt-2"
                 icon="pi-external-link"
                 title="Open the about page, with the release notes"
+                [active]="true"
                 [label]="'New version ' + v.latest"
                 (pressed)="openAbout()"
               />

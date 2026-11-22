@@ -91,3 +91,36 @@ widget (`HomeDataHealthDto`, expanded view, "Services" box).
   `src/frontend`, backend running).
 - `SingleBucketTimedHostedService` / `MultiBucketTimedHostedService` (Alerts) look like random test-alert generators and
   are not registered anywhere; check and remove if unused.
+
+## Data health: link the new version to the GitHub release
+
+The "New version x.y.z" pill of the Data health widget opens the About page (release notes). Make it open the release on
+GitHub instead, or add a second link: `ReleaseDto.htmlUrl` (already in the API, `getGitHubVersions`) of the newest
+release (`latestRelease()` in `HomeDataHealthComponent`). Also a link to the list of the releases of the repository
+(`ReleaseOptions.BaseTrivyDashboardRepoUrl`, not in the frontend settings yet) in the Services box, "GitHub releases".
+
+## Home: "open report" button on images that have no digest yet
+
+In the expanded Home widgets, an image shown with its digest has a button (`pi pi-external-link`) that opens its
+vulnerability report in a new tab (`HomeImageHistoryService.openReport`, `/open-trivy-rep?page=vulnerability-reports&digest=...`).
+Done: New images and History drift (Selected box; History drift also keeps the history button), Oldest images (Selected
+box), Base OS (rows and table), the "Show all" tables of New vulnerabilities, New fixes and Known exploited.
+
+Missing, as the server sends only the image names (`ImageNames`, repository:tag), not the digests:
+
+- the Image field of the Selected box (`app-home-selected-nodes`) in New vulnerabilities, New fixes, Known exploited,
+  Where is package and Where is vulnerability;
+- the Images list box of the Where is shell (vulnerability, package, license);
+- Fix waiting: the "Images for selected" list and the list grouped by Image.
+
+To do (backend = DTO change):
+
+- `HomeImageRelations` merges the images of one name with other digests into **one line** (by design). So a name can
+  have several digests: send `ImageDigests: IReadOnlyList<IReadOnlyList<string>>` (per image, as `ImageNames`), and on
+  the frontend open the report directly for one digest and offer a choice (or open the history) for several. The
+  alternative, one line per digest, changes the counts and the graphs (the name would repeat).
+- DTOs: `HomeNewVulnerabilityDetailItemDto`, `HomeNewFixDetailItemDto`, `HomeFixWaitingDetailItemDto`,
+  `HomeKnownExploitedDetailItemDto` (`HomeDtos.cs`), `HomeWhereIsVulnerabilityDetailItemDto`,
+  `HomeWhereIsPackageDetailItemDto`, `HomeWhereIsLicenseDetailItemDto` (`HomeSearchDtos.cs`).
+- Regenerate the frontend API (`npm run update-endpoints:local`, `npm run prebuild` in `src/frontend`, backend running).
+- Exposed secrets opens the exposed secrets report (by design); a vulnerability report button there is not done either.

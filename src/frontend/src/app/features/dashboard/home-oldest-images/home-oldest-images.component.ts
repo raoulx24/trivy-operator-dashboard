@@ -13,6 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
 import { HomeOldestImageDto } from '@api/models/home-oldest-image-dto';
@@ -25,6 +26,7 @@ import { SpanTimelineRow, SpanTimelineTick } from '@shared/ui/span-timeline/span
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 
 import { severityColor, severityName } from '../home-collapsed/home-collapsed';
+import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
 import { matchesFilter } from '../home-search-box/home-list-filter';
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
@@ -60,6 +62,7 @@ const LABEL_PADDING = 16;
   selector: 'app-home-oldest-images',
   standalone: true,
   imports: [
+    ButtonModule,
     HomeWidgetFrameComponent,
     HomeSearchBoxComponent,
     NgTemplateOutlet,
@@ -107,6 +110,7 @@ export class HomeOldestImagesComponent extends HomeWidgetBase {
   protected readonly timelineHeight = signal<number | null>(null);
 
   private readonly homeService = inject(HomeService);
+  protected readonly imageHistory = inject(HomeImageHistoryService);
 
   hint = input<string>('');
   severities = input.required<number[]>();

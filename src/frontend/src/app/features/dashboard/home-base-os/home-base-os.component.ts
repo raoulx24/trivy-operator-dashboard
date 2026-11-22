@@ -2,7 +2,6 @@ import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
@@ -28,6 +27,7 @@ import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-t
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 
 import { HomeVtItemDirective } from '../home-motion/home-vt-item.directive';
+import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -80,7 +80,7 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   private static readonly shownNamespaces = 2;
 
   private readonly homeService = inject(HomeService);
-  private readonly router = inject(Router);
+  private readonly imageHistory = inject(HomeImageHistoryService);
   protected readonly popover = inject(PopoverService);
 
   // the help dialog of the frame (html): short, the important parts in bold
@@ -285,12 +285,9 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
     };
   }
 
-  // the vulnerability report of the image, in a new tab (the same way the image dependency tree opens its reports)
+  // the vulnerability report of the image, in a new tab
   protected openReport(digest: string): void {
-    const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/open-trivy-rep'], { queryParams: { page: 'vulnerability-reports', digest } }),
-    );
-    window.open(url, '_blank');
+    this.imageHistory.openReport(digest);
   }
 
   protected title(item: HomeBaseOsItemDto): string {

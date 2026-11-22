@@ -167,6 +167,7 @@
     [columns]="allRowsColumns"
     [dataDtos]="allRows()"
     [(isVisible)]="showAllDialog"
+    (rowActionRequested)="onAllRowsAction($event)"
   />
 }
 <!-- a row of the list: in the collapsed widget (the id is a button) and in the list of the expanded one (the whole row is) -->

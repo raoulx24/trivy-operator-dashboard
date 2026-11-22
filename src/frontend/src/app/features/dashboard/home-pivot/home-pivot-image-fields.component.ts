@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { HomeImageHistoryService } from './home-image-history.service';
 import { PivotImage } from './home-pivot.types';
 
-// the Image and Registry fields of the Selected box (the image, with the button of its history); n/a when no image is
+// the Image and Registry fields of the Selected box (the image, with the buttons of its history and/or its report); n/a when no image is
 // selected (the box keeps its size)
 // the host adds no box of its own: the fields are laid out by the column they are in
 @Component({
@@ -17,20 +17,37 @@ import { PivotImage } from './home-pivot.types';
     @let image = value();
     <div class="flex flex-col gap-0.5">
       <span class="text-xs tod-text-muted-color">Image</span>
-      <!-- the button follows the name, with a small gap (not spread to the far edge) -->
+      <!-- the buttons follow the name, with a small gap (not spread to the far edge) -->
       <span class="flex flex-wrap items-center gap-x-1">
         @if (image) {
           <span class="break-all">{{ image.name }}</span>
-          <p-button
-            class="text-sm tod-button-compact inline-flex"
-            icon="pi pi-external-link"
-            size="small"
-            severity="secondary"
-            [text]="true"
-            [rounded]="true"
-            [ariaLabel]="(target() === 'report' ? 'Open the vulnerability report of ' : 'Open the vulnerability reports history of ') + image.name"
-            (onClick)="open(image.digest)"
-          />
+          <!-- the history: with both buttons it has its own icon, so the two can be told apart -->
+          @if (target() !== 'report') {
+            <p-button
+              class="text-sm tod-button-compact inline-flex"
+              [icon]="target() === 'both' ? 'pi pi-history' : 'pi pi-external-link'"
+              size="small"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              [ariaLabel]="'Open the vulnerability reports history of ' + image.name"
+              [attr.title]="'Open the vulnerability reports history'"
+              (onClick)="imageHistory.open(image.digest)"
+            />
+          }
+          @if (target() !== 'history') {
+            <p-button
+              class="text-sm tod-button-compact inline-flex"
+              icon="pi pi-external-link"
+              size="small"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              [ariaLabel]="'Open the vulnerability report of ' + image.name"
+              [attr.title]="'Open the vulnerability report'"
+              (onClick)="imageHistory.openReport(image.digest)"
+            />
+          }
         } @else {
           <span class="tod-text-muted-color">n/a</span>
         }
@@ -43,17 +60,9 @@ import { PivotImage } from './home-pivot.types';
   `,
 })
 export class HomePivotImageFieldsComponent {
-  private readonly imageHistory = inject(HomeImageHistoryService);
+  protected readonly imageHistory = inject(HomeImageHistoryService);
 
   value = input<PivotImage | undefined>();
-  // what the button opens: the history of the image, or its vulnerability report
-  target = input<'history' | 'report'>('history');
-
-  protected open(digest: string): void {
-    if (this.target() === 'report') {
-      this.imageHistory.openReport(digest);
-    } else {
-      this.imageHistory.open(digest);
-    }
-  }
+  // what the buttons open: the history of the image, its vulnerability report, or both (a button each)
+  target = input<'history' | 'report' | 'both'>('history');
 }

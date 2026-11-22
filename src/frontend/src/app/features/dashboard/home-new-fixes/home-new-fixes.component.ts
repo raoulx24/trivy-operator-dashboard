@@ -41,6 +41,7 @@ import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags
 import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
 
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
+import { HomeImageHistoryService } from '../home-pivot/home-image-history.service';
 import { HomeNodeFiltersComponent } from '../home-pivot/home-node-filters.component';
 import {
   HomeSelectedNodesComponent,
@@ -66,6 +67,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 import {
   HomeVulnerabilityTableRow,
   homeVulnerabilityColumns,
+  openHomeVulnerabilityRowReport,
   toHomeVulnerabilityTableRows,
 } from '../home-vulnerability-rows/home-vulnerability-rows';
 
@@ -137,6 +139,7 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
   private readonly homeService = inject(HomeService);
   private readonly mainAppInitService = inject(MainAppInitService);
   private readonly cveEnrichmentState = inject(CveEnrichmentStateService);
+  private readonly imageHistory = inject(HomeImageHistoryService);
   // the tags of the vulnerability id cell of the tables: here the labels of its EPSS and exploited ones
   private readonly vulnerabilityTags = new VulnerabilityTagsPipe();
 
@@ -301,6 +304,11 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
     toHomeVulnerabilityTableRows(this.allRowsData.value()?.items),
   );
   protected readonly allRowsColumns = homeVulnerabilityColumns('fix');
+
+  // the button of the report column of the 'Show all' table
+  protected onAllRowsAction(event: { row: HomeVulnerabilityTableRow; col: string }): void {
+    openHomeVulnerabilityRowReport(this.imageHistory, event);
+  }
 
   // ---- the collapsed widget: the headline, the new fix ids per day over the whole history range as bars (the days of the
   // window are highlighted), and the packages with the most ids to bump as chips

@@ -105,6 +105,17 @@
                     [value]="s.item.highestSeverityId | severityNameById"
                   />
                 }
+                <p-button
+                  class="text-sm tod-button-compact inline-flex"
+                  icon="pi pi-external-link"
+                  size="small"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  [ariaLabel]="'Open the vulnerability report of ' + s.name"
+                  [attr.title]="'Open the vulnerability report'"
+                  (onClick)="imageHistory.openReport(s.item.digest)"
+                />
               </span>
               <span class="text-xs tod-text-muted-color break-all" [attr.title]="s.item.digest">
                 {{ s.item.registry }} · {{ shortDigest(s.item.digest) }}

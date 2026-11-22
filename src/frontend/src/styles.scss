@@ -594,6 +594,18 @@ p-tag.border-primary-color {
   font-size: 0.8rem;
 }
 
+// a pill that is news, not a control (e.g. a new version): the size of the filter bar pills, and bolder
+.tod-pill-button-large .tod-pill-button {
+  height: 1.75rem;
+  padding: 0 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  .pi {
+    font-size: 0.75rem;
+  }
+}
+
 // the dot of a pill filled with its own color (e.g. a severity): a ring, so it still shows on the fill
 .tod-pill-button .tod-state-dot.tod-pill-button-dot-on-fill {
   border-color: var(--tod-pill-button-dot-border-color);
