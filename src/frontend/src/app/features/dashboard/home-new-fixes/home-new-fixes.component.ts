@@ -41,6 +41,7 @@ import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags
 import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
 
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
+import { HomeNodeFiltersComponent } from '../home-pivot/home-node-filters.component';
 import {
   HomeSelectedNodesComponent,
   SelectedImage,
@@ -93,6 +94,7 @@ import {
     TrivyTableDialogComponent,
     HomeExploitTagComponent,
     HomeSelectedNodesComponent,
+    HomeNodeFiltersComponent,
     VulnerabilityScoreTagComponent,
     SeverityCssStyleByIdPipe,
     SeverityNameByIdPipe,

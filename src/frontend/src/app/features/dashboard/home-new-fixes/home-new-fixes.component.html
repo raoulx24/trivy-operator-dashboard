@@ -143,11 +143,14 @@
   <!-- the controls of the expanded widget, in the bottom row of the frame: the selections in the lists filter each other -->
   @if (isExpanded()) {
     <div frameActions class="flex items-center gap-2">
+      <!-- the selects of the graph's nodes, interconnected: each offers only what fits the other two -->
+      @if (detail(); as d) {
+        <app-home-node-filters [detail]="d" [(selectedNodes)]="selectedNodes" />
+      }
+
       <app-pill-button label="Clear filters" icon="pi-filter-slash" [disabled]="!isFiltered()" (pressed)="clearFilters()" />
 
       <app-pill-button label="Show all" icon="pi-list" (pressed)="showAllDialog.set(true)" />
-
-      <span class="text-xs tod-text-muted-color">A click on a package, an image or a namespace of the graph fades what does not go with it; select a connected one on the next column to pick a pair</span>
     </div>
   }
 </app-home-widget-frame>

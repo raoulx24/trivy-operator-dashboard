@@ -118,11 +118,12 @@
     <div frameActions class="flex items-center gap-2">
       <p-select
         size="small"
-        class="w-56"
+        class="tod-home-filter-select w-56"
         placeholder="Filter by date"
         optionLabel="label"
         optionValue="value"
         appendTo="body"
+      panelStyleClass="tod-home-filter-panel"
         [filter]="true"
         [showClear]="true"
         [options]="pivot.dayOptions()"
@@ -134,12 +135,13 @@
       </p-select>
       <p-select
         size="small"
-        class="w-72"
+        class="tod-home-filter-select w-72"
         placeholder="Select an image"
         optionLabel="label"
         optionValue="value"
         filterBy="label,digest"
         appendTo="body"
+      panelStyleClass="tod-home-filter-panel"
         [filter]="true"
         [showClear]="true"
         [options]="pivot.imageOptions()"
@@ -151,12 +153,13 @@
       </p-select>
       <p-select
         size="small"
-        class="w-72"
+        class="tod-home-filter-select w-72"
         placeholder="Select a vulnerability"
         optionLabel="label"
         optionValue="value"
         filterBy="label"
         appendTo="body"
+      panelStyleClass="tod-home-filter-panel"
         [filter]="true"
         [showClear]="true"
         [options]="pivot.pairOptions()"
