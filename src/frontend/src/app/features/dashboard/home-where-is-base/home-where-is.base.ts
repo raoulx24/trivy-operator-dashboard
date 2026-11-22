@@ -3,6 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
+import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortLabelOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // what a "where is" list answer (the search) has, whatever it searches
@@ -96,7 +97,43 @@ export abstract class HomeWhereIsBase<
     this.isExpanded() && this.expandedData.hasValue() ? this.expandedData : this.collapsedData,
   );
 
-  readonly items = computed<TItem[]>(() => this.shown().value()?.items ?? []);
+  private readonly baseItems = computed<TItem[]>(() => this.shown().value()?.items ?? []);
+
+  // the sort of the list (null: by reach, the order of the server). A widget that can sort says so (sortable) and gives the
+  // values of a row (sortValues): its severity (a lower number is worse) and its name. In the collapsed widget it sorts the
+  // few rows it has
+  protected readonly sortable: boolean = false;
+  protected sortValues(_item: TItem): { severity: number; name: string } | undefined {
+    return undefined;
+  }
+  readonly sort = signal<HomeListSort | null>(null);
+  readonly items = computed<TItem[]>(() =>
+    sortRows(this.baseItems(), this.sort(), {
+      moment: () => undefined,
+      severity: (x) => this.sortValues(x)?.severity ?? 99,
+      name: (x) => this.sortValues(x)?.name ?? '',
+    }),
+  );
+  // for the shell
+  isSortable(): boolean {
+    return this.sortable;
+  }
+  toggleSort(key: HomeListSortKey): void {
+    this.sort.update((current) => nextSort(current, key));
+  }
+  sortIcon(key: HomeListSortKey): string | undefined {
+    return sortIconOf(this.sort(), key);
+  }
+  sortTitle(key: HomeListSortKey): string {
+    return sortTitleOf(this.sort(), key);
+  }
+  readonly sortLabel = computed(() => sortLabelOf(this.sort()));
+
+  // the many rows are here (the expanded widget has them)
+  readonly hasExpandedRows = computed(() => this.expandedData.hasValue());
+
+  // nothing found (or nothing searched yet): there is nothing to expand to; an expanded widget can always collapse
+  readonly expandable = computed(() => this.canExpand() && (this.isExpanded() || this.items().length > 0));
   readonly totalMatches = computed(() => this.shown().value()?.totalMatches ?? 0);
   readonly more = computed(() => Math.max(0, this.totalMatches() - this.items().length));
   readonly note = computed(() => this.shown().value()?.note);
@@ -128,7 +165,12 @@ export abstract class HomeWhereIsBase<
   readonly selectedNamespace = signal<number | null>(null);
   readonly selectedImage = signal<number | null>(null);
 
-  readonly isFiltered = computed(() => this.selectedNamespace() !== null || this.selectedImage() !== null);
+  // the nodes of the graph of a widget that has one (multi select: ids like 'p:2', 'i:0', 'n:1')
+  readonly selectedNodes = signal<string[]>([]);
+
+  readonly isFiltered = computed(
+    () => this.selectedNamespace() !== null || this.selectedImage() !== null || this.selectedNodes().length > 0,
+  );
 
   // the relation of the detail as sets: the namespaces of each image
   private readonly namespacesOfImage = computed(() => this.detail()?.imageNamespaceIndexes.map((x) => new Set(x)));
@@ -291,5 +333,6 @@ export abstract class HomeWhereIsBase<
   clearFilters(): void {
     this.selectedNamespace.set(null);
     this.selectedImage.set(null);
+    this.selectedNodes.set([]);
   }
 }

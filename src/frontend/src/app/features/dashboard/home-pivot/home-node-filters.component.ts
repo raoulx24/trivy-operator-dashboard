@@ -27,10 +27,11 @@ interface NodeOption {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
   template: `
+    @if (detail().packages.length > 0) {
     <p-select
       size="small"
       class="tod-home-filter-select w-56"
-      placeholder="Select a package"
+      [placeholder]="firstPlaceholder()"
       optionLabel="label"
       optionValue="value"
       filterBy="label"
@@ -42,6 +43,7 @@ interface NodeOption {
       [ngModel]="selectedOf('p:')"
       (onChange)="pick('p:', $event.value)"
     />
+    }
     <p-select
       size="small"
       class="tod-home-filter-select w-72"
@@ -77,6 +79,8 @@ interface NodeOption {
 export class HomeNodeFiltersComponent {
   detail = input.required<NodeFiltersDetail>();
   selectedNodes = model<string[]>([]);
+  // the caption of the select of the first kind (the packages; a widget can have another thing there)
+  firstPlaceholder = input<string>('Select a package');
 
   // the index of the selected node of a kind, or null
   private index(prefix: string): number | null {

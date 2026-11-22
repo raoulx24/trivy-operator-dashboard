@@ -4,7 +4,7 @@
   [help]="help()"
   [hint]="w.hint()"
   [state]="w.state()"
-  [canExpand]="w.canExpand()"
+  [canExpand]="w.expandable()"
   [expanded]="w.isExpanded()"
   (expandToggle)="w.toggle()"
   [refreshable]="true"
@@ -16,6 +16,10 @@
 
     @if (w.searched() && w.items().length === 0 && w.state().isAvailable) {
       <div class="text-sm tod-text-muted-color p-2">{{ w.note() ?? emptyText() }}</div>
+    }
+
+    @if (w.isSortable() && w.items().length > 0) {
+      <div class="pt-2"><ng-container *ngTemplateOutlet="sortPills" /></div>
     }
 
     <div class="flex flex-col gap-4 pt-2">
@@ -33,15 +37,23 @@
     <div
       class="grid gap-3 pt-2 flex-1"
       [style.min-height]="expandedHeight()"
-      [style.grid-template-columns]="'minmax(0, min(' + (w.collapsedWidth() ?? 384) + 'px, 22rem)) minmax(0, 1fr)'"
+      [style.grid-template-columns]="listRatio() !== null
+        ? (w.collapsedWidth() ?? 384) * listRatio()! + 'px minmax(0, 1fr)'
+        : 'minmax(0, min(' + (w.collapsedWidth() ?? 384) + 'px, 22rem)) minmax(0, 1fr)'"
     >
       <div class="tod-content-border flex flex-col gap-2 p-2 min-h-0">
         <ng-container *ngTemplateOutlet="searchBox" />
         <div class="text-xs tod-text-muted-color">
           @if (w.searched()) {
             {{ w.items().length }} of {{ w.totalMatches() }}
+            @if (w.isSortable()) {
+              <span>· {{ w.sortLabel() }}</span>
+            }
           }
         </div>
+        @if (w.isSortable()) {
+          <ng-container *ngTemplateOutlet="sortPills" />
+        }
 
         @if (w.searched() && w.items().length === 0 && w.state().isAvailable) {
           <div class="text-sm tod-text-muted-color p-2">{{ w.note() ?? emptyText() }}</div>
@@ -59,9 +71,10 @@
             [itemSize]="rowHeight()"
             [style]="{ width: '100%', height: '100%' }"
           >
-            <ng-template #item let-item>
+            <ng-template #item let-item let-options="options">
               <div
-                class="px-2 py-2 cursor-pointer overflow-hidden border-b border-[var(--p-content-border-color)]"
+                class="px-2 py-2 cursor-pointer overflow-hidden border-[var(--p-content-border-color)]"
+                [class.border-b]="!options.last"
                 [style.height.px]="rowHeight()"
                 [class.tod-selected-item]="w.isSelected(item)"
                 (click)="w.select(item)"
@@ -71,6 +84,15 @@
             </ng-template>
           </p-scroller>
         </div>
+
+        @if (listFooter(); as footer) {
+          <!-- one line of a fixed height (the list does not move when the selected row changes) -->
+          <div class="h-7 shrink-0 flex items-center border-t border-[var(--p-content-border-color)] pt-1 text-xs">
+            @if (w.detail(); as d) {
+              <ng-container *ngTemplateOutlet="footer; context: { $implicit: d }" />
+            }
+          </div>
+        }
       </div>
 
       <!-- the rows of this column: half of the height each (otherwise they would be as tall as their content, and the lists
@@ -80,6 +102,42 @@
           <ng-container *ngTemplateOutlet="detailHead(); context: { $implicit: head }" />
         }
 
+        @if (selectedBox(); as selectedTemplate) {
+          <!-- the graph layout: the selected nodes as tall as their content, the graph gets the rest -->
+          <div class="grid grid-rows-[auto_minmax(0,1fr)] gap-3 min-h-0 min-w-0 flex-1">
+            @if (w.detail(); as d) {
+              <app-trivy-box>
+                <span boxTitle>Selected</span>
+                <ng-container *ngTemplateOutlet="selectedTemplate; context: { $implicit: d }" />
+              </app-trivy-box>
+
+              <div class="relative min-h-0 min-w-0">
+                <div class="absolute inset-0">
+                  <app-trivy-box class="h-full">
+                    <span boxTitle>{{ graphTitle() }}</span>
+                    <div #graphHost class="relative h-full">
+                      <!-- absolute, so the graph does not make the box taller: it has the height of the box and scrolls inside -->
+                      <div class="absolute inset-0 flex flex-col justify-center">
+                        <app-layered-graph
+                          class="block"
+                          [columns]="graphColumns()"
+                          [nodes]="graphData().nodes"
+                          [edges]="graphData().edges"
+                          [selectable]="true"
+                          [maxHeight]="graphHeight()"
+                          [multiSelect]="true"
+                          [(selectedNodes)]="w.selectedNodes"
+                        />
+                      </div>
+                    </div>
+                  </app-trivy-box>
+                </div>
+              </div>
+            } @else {
+              <ng-container *ngTemplateOutlet="detailMessage" />
+            }
+          </div>
+        } @else {
         <div
           class="grid gap-3 min-h-0 min-w-0 flex-1"
           [style.grid-template-rows]="detailBottom() && (!w.detail() || w.hasDetailBottom(w.detail()))
@@ -158,16 +216,11 @@
                 </div>
               }
             }
-          } @else if (w.detailError()) {
-            <div class="text-sm home-widget-error">Error: {{ w.detailError() }}</div>
-          } @else if (w.isDetailLoading()) {
-            <div class="text-sm tod-text-muted-color">Loading...</div>
-          } @else if (w.selected() !== undefined) {
-            <div class="text-sm tod-text-muted-color">{{ w.detailNote() ?? emptyText() }}</div>
           } @else {
-            <div class="text-sm tod-text-muted-color">{{ w.searched() ? selectText() : searchText() }}</div>
+            <ng-container *ngTemplateOutlet="detailMessage" />
           }
         </div>
+        }
       </div>
     </div>
   }
@@ -186,7 +239,18 @@
         [disabled]="!w.isFiltered()"
         (onClick)="w.clearFilters()"
       />
-      <span class="text-xs tod-text-muted-color">A click on a namespace or an image fades what does not go with it</span>
+      @if (allRowsColumns()) {
+        <app-pill-button label="Show all" icon="pi-list" (pressed)="showAllDialog.set(true)" />
+      }
+
+      @if (selectedBox()) {
+        <!-- the selects of the graph's nodes, interconnected: each offers only what fits the other two -->
+        @if (filterDetail(); as filterData) {
+          <app-home-node-filters [detail]="filterData" [firstPlaceholder]="firstSelectText()" [(selectedNodes)]="w.selectedNodes" />
+        }
+      } @else {
+        <span class="text-xs tod-text-muted-color">A click on a namespace or an image fades what does not go with it</span>
+      }
     </div>
   }
 </app-home-widget-frame>
@@ -194,4 +258,36 @@
 <!-- the search box: the same in the collapsed widget (at the top) and in the box of the expanded one -->
 <ng-template #searchBox>
   <app-home-search-box [placeholder]="searchPlaceholder()" [resettable]="true" [(query)]="w.query" (search)="w.onSearch()" />
+</ng-template>
+
+@if (showAllDialog() && allRowsColumns(); as columns) {
+  <app-trivy-table-dialog
+    [stateKey]="allRowsKey()"
+    [title]="allRowsTitle()"
+    width="90rem"
+    [columns]="columns"
+    [dataDtos]="w.items()"
+    [(isVisible)]="showAllDialog"
+  />
+}
+
+<!-- the sort of the list: a pill per key, one on at a time -->
+<ng-template #sortPills>
+  <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort the list">
+    <app-pill-button label="Severity" [toggle]="true" [active]="w.sort()?.key === 'severity'" [icon]="w.sortIcon('severity')" [title]="w.sortTitle('severity')" (pressed)="w.toggleSort('severity')" />
+    <app-pill-button label="Name" [toggle]="true" [active]="w.sort()?.key === 'name'" [icon]="w.sortIcon('name')" [title]="w.sortTitle('name')" (pressed)="w.toggleSort('name')" />
+  </div>
+</ng-template>
+
+<!-- what the right side says while there is no detail -->
+<ng-template #detailMessage>
+  @if (w.detailError()) {
+    <div class="text-sm home-widget-error">Error: {{ w.detailError() }}</div>
+  } @else if (w.isDetailLoading()) {
+    <div class="text-sm tod-text-muted-color">Loading...</div>
+  } @else if (w.selected() !== undefined) {
+    <div class="text-sm tod-text-muted-color">{{ w.detailNote() ?? emptyText() }}</div>
+  } @else {
+    <div class="text-sm tod-text-muted-color">{{ w.searched() ? selectText() : searchText() }}</div>
+  }
 </ng-template>

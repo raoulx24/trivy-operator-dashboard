@@ -9,9 +9,38 @@
   [rowHeight]="rowHeight"
   [rowBody]="rowBody"
   [detailHead]="detailHead"
-  [detailExtra]="detailLicenses"
-  [detailBottom]="detailVulnerabilities"
+  [listFooter]="licenses"
+  [expandedHeight]="expandedHeight"
+  [listRatio]="listRatio"
+  [selectedBox]="selectedBox"
+  [graphColumns]="graphColumns"
+  [graphData]="graphData()"
+  [graphTitle]="graphTitle()"
+  [filterDetail]="filterDetail()"
+  firstSelectText="Select a vulnerability"
+  [allRowsColumns]="allRowsColumns"
+  allRowsTitle="Where is… package: all rows"
+  allRowsKey="Home Where Is Package All"
 />
+
+<!-- the selected nodes of the graph: the vulnerability, the image and the namespace -->
+<ng-template #selectedBox>
+  <app-home-selected-nodes
+    [package]="selectedVulnerability()"
+    [image]="selectedImageInfo()"
+    [namespace]="selectedNamespaceInfo()"
+    primaryLabel="Vulnerability"
+    installedLabel="Images"
+    imagePackagesLabel="Vulnerabilities"
+    [showExtra]="false"
+  />
+</ng-template>
+
+<!-- the licenses of the selected purl (the SBOM has them): one line, wrapped inside its box, the full text in the tooltip -->
+<ng-template #licenses let-d>
+  @let text = d.licenses.length > 0 ? 'License: ' + d.licenses.join(', ') : 'No license data';
+  <span class="line-clamp-1 break-all tod-text-muted-color min-w-0" [attr.title]="text">{{ text }}</span>
+</ng-template>
 
 <!-- the selected purl, split as in the list (name, version, type, distro, severity), and the button that copies it -->
 <ng-template #detailHead let-head>
@@ -50,38 +79,6 @@
       (onClick)="copyPurl(head.purl, $event)"
     />
   </div>
-</ng-template>
-
-<!-- fixed to the purl: nothing selects or fades it -->
-<!-- the scroll is inside the box: on the box itself it would cut its title, which sits on the border -->
-<ng-template #detailLicenses let-d>
-  <app-trivy-box>
-    <span boxTitle>License ({{ d.licenses.length }})</span>
-    <div class="flex flex-col text-sm px-1 max-h-24 overflow-auto">
-      @for (license of d.licenses; track license) {
-        <span class="break-all">{{ license }}</span>
-      } @empty {
-        <span class="tod-text-muted-color">No license data</span>
-      }
-    </div>
-  </app-trivy-box>
-</ng-template>
-
-<!-- the vulnerabilities (fixed to the purl, like the licenses) -->
-<ng-template #detailVulnerabilities let-d>
-  <app-trivy-box class="h-full">
-    <span boxTitle>Vulnerabilities ({{ d.vulnerabilities.length }})</span>
-    <div class="relative h-full">
-      <div class="absolute inset-0">
-        <app-trivy-table
-          extraClasses="tod-trivy-table-fill"
-          stateKey="Home Where Is Package Vulnerabilities"
-          [dataDtos]="vulnerabilityRows()"
-          [trivyTableColumns]="vulnerabilityColumns"
-        />
-      </div>
-    </div>
-  </app-trivy-box>
 </ng-template>
 
 <!-- a package version of the list: in the collapsed widget (the purl is a button) and in the list of the expanded one (the

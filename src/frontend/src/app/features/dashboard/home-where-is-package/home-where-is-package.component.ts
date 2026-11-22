@@ -12,21 +12,13 @@ import { HomeService } from '@api/services/home.service';
 import { PurlPartsPipe } from '@shared/pipes/purl-parts.pipe';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
-import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
-import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
+import { LayeredGraphColumn, LayeredGraphEdge, LayeredGraphNode } from '@shared/ui/layered-graph/layered-graph.types';
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 
+import { NodeFiltersDetail } from '../home-pivot/home-node-filters.component';
+import { HomeSelectedNodesComponent, SelectedImage, SelectedNamespace, SelectedPackage } from '../home-pivot/home-selected-nodes.component';
 import { HomeWhereIsBase } from '../home-where-is-base/home-where-is.base';
 import { HomeWhereIsShellComponent } from '../home-where-is-base/home-where-is-shell.component';
-
-interface VulnerabilityRow {
-  // the place of the vulnerability in the vulnerabilities of the detail
-  index: number;
-  vulnerabilityId: string;
-  severityId: number;
-  fixedVersion: string;
-  images: number;
-}
 
 // Where is... package: a package (a name, or a purl prefix) and where each of its versions runs
 // - one row per package version, i.e. per purl with its version
@@ -41,8 +33,7 @@ interface VulnerabilityRow {
     ButtonModule,
     NgTemplateOutlet,
     TagModule,
-    TrivyBoxComponent,
-    TrivyTableComponent,
+    HomeSelectedNodesComponent,
     PurlPartsPipe,
     SeverityCssStyleByIdPipe,
     SeverityNameByIdPipe,
@@ -71,27 +62,145 @@ export class HomeWhereIsPackageComponent extends HomeWhereIsBase<
   // the height of a row of the list (a scroller needs the same for all): the name and version (two lines at most), the tags, the counts
   protected readonly rowHeight = 104;
 
+  // as the other widgets: the body is as tall as theirs, and the list is as thin (a part of the collapsed width)
+  protected readonly expandedHeight = '56rem';
+  protected readonly listRatio = 0.525;
+
   protected readonly noun = 'purls';
+
+  // the list sorts by severity (the highest of its vulnerabilities, a purl with none goes last) and name
+  protected override readonly sortable = true;
+  protected override sortValues(item: HomeWhereIsPackageItemDto): { severity: number; name: string } {
+    return { severity: item.maxSeverityId ?? 99, name: item.purl };
+  }
 
   private readonly homeService = inject(HomeService);
 
-  protected readonly vulnerabilityColumns: TrivyTableColumn[] = [
-    { field: 'vulnerabilityId', header: 'Vulnerability', isFilterable: false, isSortable: true, style: 'width: 38%', renderType: 'vulnerabilityId' },
-    { field: 'severityId', header: 'Severity', isFilterable: false, isSortable: true, style: 'width: 8rem', renderType: 'severityBadge' },
-    { field: 'fixedVersion', header: 'Fixed', isFilterable: false, isSortable: true, style: 'width: 30%', renderType: 'standard' },
-    { field: 'images', header: 'Images', isFilterable: false, isSortable: true, style: 'width: 6rem; text-align: right', renderType: 'standard' },
+  // "Show all": every purl found (the rows of the list, up to 500), flat, in a table
+  protected readonly allRowsColumns: TrivyTableColumn[] = [
+    { field: 'name', header: 'Package', isFilterable: true, isSortable: true, style: 'width: 22%', renderType: 'standard' },
+    { field: 'version', header: 'Version', isFilterable: true, isSortable: true, style: 'width: 14%', renderType: 'standard' },
+    { field: 'type', header: 'Type', isFilterable: true, autoFilter: true, isSortable: true, style: 'width: 8rem', renderType: 'standard' },
+    { field: 'maxSeverityId', header: 'Sev', isFilterable: true, isSortable: true, multiSelectType: 'severities', style: 'width: 7rem', renderType: 'severityBadge' },
+    { field: 'vulnerabilityIds', header: 'Vulnerabilities', isFilterable: false, isSortable: true, style: 'width: 8rem', renderType: 'standard' },
+    { field: 'images', header: 'Images', isFilterable: false, isSortable: true, style: 'width: 6rem', renderType: 'standard' },
+    { field: 'namespaces', header: 'Namespaces', isFilterable: false, isSortable: true, style: 'width: 7rem', renderType: 'standard' },
+    { field: 'workloads', header: 'Workloads', isFilterable: false, isSortable: true, style: 'width: 7rem', renderType: 'standard' },
+    { field: 'purl', header: 'Purl', isFilterable: true, isSortable: true, style: 'width: 25%', renderType: 'standard' },
   ];
 
-  // the vulnerabilities of the table
-  protected readonly vulnerabilityRows = computed<VulnerabilityRow[]>(() =>
-    (this.detail()?.vulnerabilities ?? []).map((v, index) => ({
-      index,
-      vulnerabilityId: v.vulnerabilityId,
-      severityId: v.severityId,
-      fixedVersion: v.fixedVersion ?? 'no fix',
-      images: v.imageIndexes.length,
-    })),
-  );
+  // ---- the graph: vulnerabilities -> images -> namespaces (the first column is always there, also when the package has none).
+  // The id of a node is its kind and its index in the detail: 'p:2' (a vulnerability: the first kind of the selects), 'i:0', 'n:1'
+  protected readonly graphColumns: LayeredGraphColumn[] = [
+    { label: 'Vulnerabilities', color: 'var(--tod-layered-graph-package)', textColor: 'var(--tod-layered-graph-package-text)', width: 192 },
+    { label: 'Images', color: 'var(--tod-layered-graph-image)', textColor: 'var(--tod-layered-graph-image-text)', width: 210, subColumns: 2 },
+    { label: 'Namespaces', color: 'var(--tod-layered-graph-namespace)', textColor: 'var(--tod-layered-graph-namespace-text)' },
+  ];
+
+  protected readonly graphData = computed<{ nodes: LayeredGraphNode[]; edges: LayeredGraphEdge[] }>(() => {
+    const d = this.detail();
+    if (!d) {
+      return { nodes: [], edges: [] };
+    }
+
+    const nodes: LayeredGraphNode[] = [];
+    const edges: LayeredGraphEdge[] = [];
+    const imagesOfNamespace = new Array<number>(d.namespaceNames.length).fill(0);
+    d.imageNamespaceIndexes.forEach((list) => list.forEach((n) => (imagesOfNamespace[n] = (imagesOfNamespace[n] ?? 0) + 1)));
+
+    d.vulnerabilities.forEach((v, i) => {
+      nodes.push({
+        id: `p:${i}`,
+        column: 0,
+        label: v.vulnerabilityId,
+        tag: v.isKnownExploited ? 'exploited' : null,
+        value: v.imageIndexes.length,
+        weight: v.imageIndexes.length,
+      });
+      v.imageIndexes.forEach((image) => edges.push({ from: `p:${i}`, to: `i:${image}` }));
+    });
+    d.imageNames.forEach((name, i) => {
+      const namespaces = d.imageNamespaceIndexes[i] ?? [];
+      nodes.push({ id: `i:${i}`, column: 1, label: name, value: namespaces.length, weight: namespaces.length });
+      namespaces.forEach((n) => edges.push({ from: `i:${i}`, to: `n:${n}` }));
+    });
+    d.namespaceNames.forEach((name, n) => {
+      nodes.push({ id: `n:${n}`, column: 2, label: name, value: imagesOfNamespace[n], weight: imagesOfNamespace[n] });
+    });
+
+    return { nodes, edges };
+  });
+
+  protected readonly graphTitle = computed(() => {
+    const d = this.detail();
+    if (!d) {
+      return 'Where it runs';
+    }
+
+    const vulnerabilities = d.vulnerabilities.length > 0 ? `${d.vulnerabilities.length} ${d.vulnerabilities.length === 1 ? 'vulnerability' : 'vulnerabilities'}, ` : '';
+
+    return `Where it runs (${vulnerabilities}${d.imageNames.length} ${d.imageNames.length === 1 ? 'image' : 'images'}, ${d.namespaceNames.length} ns)`;
+  });
+
+  // what the selects of the nodes need: the vulnerabilities are their first kind
+  protected readonly filterDetail = computed<NodeFiltersDetail | undefined>(() => {
+    const d = this.detail();
+
+    return d
+      ? {
+          packages: d.vulnerabilities.map((v) => ({ packageName: v.vulnerabilityId, imageIndexes: v.imageIndexes })),
+          imageNames: d.imageNames,
+          imageNamespaceIndexes: d.imageNamespaceIndexes,
+          namespaceNames: d.namespaceNames,
+        }
+      : undefined;
+  });
+
+  // ---- the data of the selected nodes, brief (the Selected box)
+  private selectedIndex(prefix: string): number | null {
+    const id = this.selectedNodes().find((x) => x.startsWith(prefix));
+    return id === undefined ? null : Number(id.substring(2));
+  }
+
+  // the first kind is a vulnerability: its id, severity, fixed version and images (the box has no fifth field here)
+  protected readonly selectedVulnerability = computed<SelectedPackage | null>(() => {
+    const index = this.selectedIndex('p:');
+    const v = index === null ? undefined : this.detail()?.vulnerabilities[index];
+
+    return v
+      ? {
+          name: v.vulnerabilityId,
+          severityId: v.severityId,
+          installed: String(v.imageIndexes.length),
+          fixedVersion: v.fixedVersion ?? 'no fix',
+          extra: '',
+        }
+      : null;
+  });
+
+  protected readonly selectedImageInfo = computed<SelectedImage | null>(() => {
+    const d = this.detail();
+    const index = this.selectedIndex('i:');
+    const name = index === null ? undefined : d?.imageNames[index];
+
+    return d && index !== null && name !== undefined
+      ? {
+          name,
+          packages: d.vulnerabilities.filter((v) => v.imageIndexes.includes(index)).length,
+          namespaces: d.imageNamespaceIndexes[index]?.length ?? 0,
+        }
+      : null;
+  });
+
+  protected readonly selectedNamespaceInfo = computed<SelectedNamespace | null>(() => {
+    const d = this.detail();
+    const index = this.selectedIndex('n:');
+    const name = index === null ? undefined : d?.namespaceNames[index];
+
+    return d && index !== null && name !== undefined
+      ? { name, images: d.imageNamespaceIndexes.filter((x) => x.includes(index)).length }
+      : null;
+  });
 
   // the purl that was just copied (its button shows a check for a moment)
   protected readonly copiedPurl = signal<string | undefined>(undefined);
@@ -111,11 +220,6 @@ export class HomeWhereIsPackageComponent extends HomeWhereIsBase<
 
   protected override isDetailOf(dto: HomeWhereIsPackageDetailDto, item: HomeWhereIsPackageItemDto): boolean {
     return dto.packageKey === item.packageKey && dto.version === item.version;
-  }
-
-  // no vulnerabilities: nothing to put in the bottom half
-  override hasDetailBottom(detail: HomeWhereIsPackageDetailItemDto): boolean {
-    return detail.vulnerabilities.length > 0;
   }
 
   // the copy button of a row: not a click on the row (it would select it)

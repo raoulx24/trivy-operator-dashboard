@@ -40,7 +40,7 @@ export interface SelectedNamespace {
     @let n = namespace();
     <div class="grid grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))] items-start gap-x-6 gap-y-2 text-sm">
       <div class="flex flex-col gap-0.5">
-        <span class="text-xs tod-text-muted-color">Package</span>
+        <span class="text-xs tod-text-muted-color">{{ primaryLabel() }}</span>
         <span class="break-all" [class.tod-text-muted-color]="!p">{{ p?.name ?? 'n/a' }}</span>
       </div>
       <div class="flex flex-col gap-0.5">
@@ -52,24 +52,28 @@ export interface SelectedNamespace {
         }
       </div>
       <div class="flex flex-col gap-0.5">
-        <span class="text-xs tod-text-muted-color">Installed</span>
+        <span class="text-xs tod-text-muted-color">{{ installedLabel() }}</span>
         <span class="break-all" [class.tod-text-muted-color]="!p">{{ p?.installed ?? 'n/a' }}</span>
       </div>
       <div class="flex flex-col gap-0.5">
         <span class="text-xs tod-text-muted-color">Fixed</span>
         <span class="break-all" [class.tod-text-muted-color]="!p">{{ p?.fixedVersion ?? 'n/a' }}</span>
       </div>
-      <div class="flex flex-col gap-0.5">
-        <span class="text-xs tod-text-muted-color">{{ extraLabel() }}</span>
-        <span class="break-all" [class.tod-text-muted-color]="!p">{{ p?.extra ?? 'n/a' }}</span>
-      </div>
+      @if (showExtra()) {
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs tod-text-muted-color">{{ extraLabel() }}</span>
+          <span class="break-all" [class.tod-text-muted-color]="!p">{{ p?.extra ?? 'n/a' }}</span>
+        </div>
+      } @else {
+        <div></div>
+      }
 
       <div class="flex flex-col gap-0.5">
         <span class="text-xs tod-text-muted-color">Image</span>
         <span class="break-all" [class.tod-text-muted-color]="!i">{{ i?.name ?? 'n/a' }}</span>
       </div>
       <div class="flex flex-col gap-0.5">
-        <span class="text-xs tod-text-muted-color">Packages</span>
+        <span class="text-xs tod-text-muted-color">{{ imagePackagesLabel() }}</span>
         <span [class.tod-text-muted-color]="!i">{{ i?.packages ?? 'n/a' }}</span>
       </div>
       <div class="flex flex-col gap-0.5">
@@ -93,5 +97,11 @@ export class HomeSelectedNodesComponent {
   image = input<SelectedImage | null>(null);
   namespace = input<SelectedNamespace | null>(null);
   // the caption of the last field of the package
-  extraLabel = input.required<string>();
+  extraLabel = input<string>('');
+  showExtra = input<boolean>(true);
+  // the captions of the first kind (a package by default; a widget that has vulnerabilities there says so)
+  primaryLabel = input<string>('Package');
+  installedLabel = input<string>('Installed');
+  // what the image counts (its packages by default)
+  imagePackagesLabel = input<string>('Packages');
 }
