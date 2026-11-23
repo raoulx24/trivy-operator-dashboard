@@ -7,6 +7,7 @@ import { MainAppInitService } from '@core/services/main-app-init.service';
 import { AccessTrackingService } from '@features/history-reports/access-tracking.service';
 import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
 
+import { ToolbarDirective } from '../../core/layout/toolbar/toolbar.directive';
 import { HomeFilterBarComponent } from './home-filter-bar/home-filter-bar.component';
 import {
   HomeWindowMode,
@@ -50,6 +51,7 @@ import { HomeDaysResult } from './home-widget-placeholder/home-widget-placeholde
   selector: 'app-dashboard',
   standalone: true,
   imports: [
+    ToolbarDirective,
     HomeFilterBarComponent,
     HomeWidgetGroupDirective,
     HomePackageHotspotsComponent,

@@ -74,6 +74,10 @@
   --tod-home-filter-switch-on-hover-background: var(--p-surface-700);
   --tod-home-filter-switch-on-handle-background: var(--p-surface-0);
 
+  /* nav bar: the zone of the controls of the page on screen (.tod-toolbar-zone) */
+  --tod-toolbar-zone-background: color-mix(in srgb, var(--p-surface-900) 6%, transparent);
+  --tod-toolbar-zone-border-color: color-mix(in srgb, var(--p-surface-900) 18%, transparent);
+
   /* nav menu: entry of the active page */
   --tod-menu-item-active-bg: color-mix(in srgb, var(--p-primary-color) 40%, transparent);
   --tod-menu-item-active-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
@@ -237,6 +241,8 @@
   --tod-home-filter-switch-on-background: var(--p-surface-300);
   --tod-home-filter-switch-on-hover-background: var(--p-surface-200);
   --tod-home-filter-switch-on-handle-background: var(--p-surface-900);
+  --tod-toolbar-zone-background: color-mix(in srgb, var(--p-surface-0) 6%, transparent);
+  --tod-toolbar-zone-border-color: color-mix(in srgb, var(--p-surface-0) 18%, transparent);
 
   --tod-radar-stroke-color: var(--p-red-400);
   --tod-radar-vertex-outline-color: var(--p-surface-950);

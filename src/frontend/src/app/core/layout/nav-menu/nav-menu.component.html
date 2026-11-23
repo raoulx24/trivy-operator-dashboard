@@ -1,11 +1,23 @@
-<p-menubar>
+<p-menubar [class.tod-nav-toolbar-wide]="!!toolbarTemplate() && !toolbarCompact()">
   <ng-template pTemplate="start">
     <div class="flex items-center gap-4">
       <p-button icon="pi pi-bars" [raised]="true" [text]="true" (click)="openDrawer()" />
       <img alt="logo" src="assets/logo_AL.ico" style="cursor: pointer; height: 45px" (click)="router.navigate(['/'])" />
+      <!-- a page with a toolbar shows its name in the toolbar zone, so here only the name of the app stays -->
       <h4 class="no-margins font-semibold">
-        <span class="hidden sm:inline">Trivy Operator Dashboard - </span>{{ activePageTitle() }}
+        @if (toolbarTemplate()) {
+          <!-- the name of the app gives way to the controls below 2xl (the logo stays) -->
+          <span class="hidden 2xl:inline">Trivy Operator Dashboard</span>
+        } @else {
+          <span class="hidden sm:inline">Trivy Operator Dashboard - </span>{{ activePageTitle() }}
+        }
       </h4>
+      @if (toolbarTemplate(); as toolbar) {
+        <div class="tod-toolbar-zone">
+          <h4 class="tod-toolbar-title no-margins font-semibold">{{ activePageTitle() }}</h4>
+          <ng-container *ngTemplateOutlet="toolbar" />
+        </div>
+      }
     </div>
   </ng-template>
   <ng-template pTemplate="end">

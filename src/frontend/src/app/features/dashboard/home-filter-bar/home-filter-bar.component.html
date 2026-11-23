@@ -1,57 +1,79 @@
-<!-- three groups (a muted caption and its control, separated by a thin rule), the refresh at the right; the controls are
-     pills (.tod-home-filter-bar, .tod-home-filter-group, .tod-home-filter-select in styles.scss). The overlays go to the
-     body: inside the pill they would be clipped and stacked under the widgets (the pill is lifted with a transform) -->
-<div class="tod-home-filter-bar tod-content-border tod-content-background flex flex-wrap items-center gap-4 p-3">
+<!-- rendered in the nav bar (see appToolbar in dashboard.component.html). Wide: the groups in a row, each a muted caption on
+     top and its control below, separated by a thin rule, then the refresh. Compact (below xl, see ToolbarService): a
+     "Filters" button with the number of changed filters, opening a popover with the same groups; the refresh stays beside it
+     (the same on a phone). The controls are pills (.tod-home-filter-group, .tod-home-filter-select in
+     styles.scss). Their overlays go to the body: inside the pill they would be clipped and stacked under the widgets (the pill is lifted with a
+     transform). The popover is not dismissed by PrimeNG (a click on such an overlay would count as an outside click):
+     closeOnOutsideClick in the component does it -->
+<ng-template #groups>
   <div class="tod-home-filter-group">
-    <span class="text-xs tod-text-muted-color">Changes</span>
+    <div class="flex items-baseline gap-2">
+      <span class="text-xs leading-none tod-text-muted-color">Changes</span>
+      @if (sinceLabel()) {
+        <span class="text-xs leading-none tod-text-muted-color">since {{ sinceLabel() }}</span>
+      }
+    </div>
     <p-select
       class="tod-home-filter-select"
       size="small"
-      appendTo="body"
       panelStyleClass="tod-home-filter-panel"
       optionLabel="label"
       optionValue="value"
       optionDisabled="disabled"
       ariaLabel="Window of the changes"
+      appendTo="body"
       [options]="windowOptions()"
       [ngModel]="windowMode()"
       (ngModelChange)="windowMode.set($event)"
     />
-    @if (sinceLabel()) {
-      <span class="text-xs tod-text-muted-color">since {{ sinceLabel() }}</span>
-    }
   </div>
 
-  <!-- the severities: a toggle pill each, filled with the color of its severity while it is on (at least one stays on) -->
-  <div class="tod-home-filter-group flex-wrap" role="group" aria-label="Severities">
-    <span class="text-xs tod-text-muted-color">Severities</span>
-    <div class="flex flex-wrap items-center gap-1.5">
-      @for (option of severityOptions; track option.value) {
-        <app-pill-button
-          [label]="option.label"
-          [title]="'Show ' + option.label.toLowerCase() + ' (click to toggle)'"
-          [toggle]="true"
-          [active]="severityIds().includes(option.value)"
-          [dotColor]="option.color"
-          [activeColor]="option.color"
-          [activeTextColor]="option.textColor"
-          (pressed)="toggleSeverity(option.value)"
-        />
-      }
-    </div>
+  <!-- the severities: each with the color of its severity, as everywhere else in the app (at least one stays selected) -->
+  <div class="tod-home-filter-group">
+    <span class="text-xs leading-none tod-text-muted-color">Severities</span>
+    <p-multiselect
+      class="tod-home-filter-select min-w-44"
+      size="small"
+      panelStyleClass="tod-home-filter-panel"
+      optionLabel="label"
+      optionValue="value"
+      ariaLabel="Severities"
+      appendTo="body"
+      [showToggleAll]="false"
+      [options]="severityOptions"
+      [ngModel]="selectedSeverityIds()"
+      (ngModelChange)="onSeverityIdsChange($event)"
+    >
+      <ng-template #item let-option>
+        <span class="flex items-center gap-2">
+          <span class="tod-state-dot" [style.background-color]="option.color"></span>
+          {{ option.label }}
+        </span>
+      </ng-template>
+      <ng-template #selecteditems let-value>
+        <span class="flex items-center gap-1.5">
+          <span class="flex items-center">
+            @for (option of value ?? []; track option.value) {
+              <span class="tod-state-dot -ml-0.5 first:ml-0" [style.background-color]="option.color"></span>
+            }
+          </span>
+          {{ severitySummary(value) }}
+        </span>
+      </ng-template>
+    </p-multiselect>
   </div>
 
   <div class="tod-home-filter-group">
-    <span class="text-xs tod-text-muted-color">Namespaces</span>
+    <span class="text-xs leading-none tod-text-muted-color">Namespaces</span>
     <p-multiselect
       class="tod-home-filter-select min-w-48"
       size="small"
-      appendTo="body"
       panelStyleClass="tod-home-filter-panel"
       placeholder="All namespaces"
       display="comma"
       selectedItemsLabel="{0} namespaces"
       ariaLabel="Namespaces"
+      appendTo="body"
       [filter]="true"
       [showClear]="true"
       [maxSelectedLabels]="2"
@@ -63,7 +85,7 @@
 
   <!-- the history: only the images running now, or the stale ones too (a pill as the selects, with the switch inside) -->
   <div class="tod-home-filter-group">
-    <span class="text-xs tod-text-muted-color">History</span>
+    <span class="text-xs leading-none tod-text-muted-color">History</span>
     <label
       class="tod-home-filter-switch"
       title="On: the history of the images running now. Off: also the one of the stale images (no longer running)"
@@ -77,9 +99,11 @@
       <span>Active images only</span>
     </label>
   </div>
+</ng-template>
 
+<ng-template #refreshButton>
   <p-button
-    class="tod-button-compact inline-flex self-center ml-auto"
+    class="tod-button-compact inline-flex"
     icon="pi pi-refresh"
     size="small"
     severity="secondary"
@@ -90,4 +114,37 @@
     [rounded]="true"
     (onClick)="refresh.emit()"
   />
+</ng-template>
+
+<div class="tod-home-filter-bar flex items-center gap-4">
+  @if (compact()) {
+    <p-button
+      class="inline-flex shrink-0"
+      icon="pi pi-filter"
+      label="Filters"
+      size="small"
+      severity="secondary"
+      ariaLabel="Filters"
+      [attr.title]="changedFilters().length ? 'Changed: ' + changedFilters().join('; ') : 'Filters (all at their defaults)'"
+      [badge]="changedFilters().length ? changedFilters().length.toString() : undefined"
+      [text]="true"
+      [raised]="true"
+      [rounded]="true"
+      (onClick)="filtersPopover.toggle($event)"
+    />
+    <p-popover #filtersPopover appendTo="body" [dismissable]="false">
+      <div class="tod-home-filter-popover">
+        <ng-container *ngTemplateOutlet="groups" />
+      </div>
+    </p-popover>
+    <!-- the actions: a group of their own, so the rule before it is the one of the other groups -->
+    <div class="tod-home-filter-group tod-home-filter-group-action">
+      <ng-container *ngTemplateOutlet="refreshButton" />
+    </div>
+  } @else {
+    <ng-container *ngTemplateOutlet="groups" />
+    <div class="tod-home-filter-group tod-home-filter-group-action">
+      <ng-container *ngTemplateOutlet="refreshButton" />
+    </div>
+  }
 </div>

@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,6 +7,7 @@ import { AlertsService } from '../../services/alerts.service';
 import { KubernetesContextStateService } from '../../state/kubernetes-context-state.service';
 import { MainAppInitService } from '../../services/main-app-init.service';
 import { CurrentPageService } from '../../services/current-page.service';
+import { ToolbarService } from '../toolbar/toolbar.service';
 
 import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -26,6 +28,7 @@ import { buildNavMenuItems, createDrawerNavigator, findSectionIdForRoute } from 
   standalone: true,
   imports: [
     FormsModule,
+    NgTemplateOutlet,
     MenubarModule,
     DrawerModule,
     PanelMenuModule,
@@ -55,6 +58,11 @@ export class NavMenuComponent {
   alerts = this.alertsService.alerts;
   backendSettings = this.mainAppInitService.backendSettingsDto;
   activePageTitle = this.currentPageService.title;
+  // the contextual controls of the page on screen (see ToolbarDirective)
+  private toolbar = inject(ToolbarService);
+  toolbarTemplate = this.toolbar.template;
+  // the toolbar is collapsed into a popover (below xl)
+  toolbarCompact = this.toolbar.compact;
   // matched against MenuItem.id (= NavEntry.route) in the template
   activeRoute = this.currentPageService.route;
 

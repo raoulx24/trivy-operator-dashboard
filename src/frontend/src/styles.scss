@@ -611,17 +611,65 @@ p-tag.border-primary-color {
   border-color: var(--tod-pill-button-dot-border-color);
 }
 
-// a group of the home filter bar (a muted caption, then its control), separated from the next one by a thin rule, so
-// it is clear which pills belong together and what they do
-.tod-home-filter-group {
+// the bar with the full toolbar zone (stacked caption and control) would be taller than the one without: less air above and
+// below the zone (the theme gives 0.5rem 0.75rem), so the content does not jump when navigating between the two
+p-menubar.tod-nav-toolbar-wide {
+  --p-menubar-padding: 0.25rem 0.75rem;
+}
+
+// the contextual part of the nav bar (what the page on screen put there, see appToolbar): an inset, tinted zone, so it
+// is clear what belongs to the page and what is the generic frame of the app (menu, title, theme)
+.tod-toolbar-zone {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.175rem 1rem;
+  border: 1px solid var(--tod-toolbar-zone-border-color);
+  border-radius: 0.75rem;
+  background: var(--tod-toolbar-zone-background);
+}
+
+// the name of the page, first element of the zone, set apart from the controls by a thin rule
+.tod-toolbar-title {
+  flex-shrink: 0;
+  margin-right: 1rem;
+  padding-right: 1rem;
+  border-right: 1px solid var(--p-content-border-color);
+  white-space: nowrap;
+}
+
+// a group of the home filter bar (a muted caption on top, then its control), separated from the next one by a thin rule,
+// so it is clear which pills belong together and what they do
+.tod-home-filter-group {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
 
   & + & {
     padding-left: 1rem;
     border-left: 1px solid var(--p-content-border-color);
   }
+}
+
+// the groups in the popover of the compact bar: stacked, without the rules
+.tod-home-filter-popover {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 16rem;
+
+  .tod-home-filter-group + .tod-home-filter-group {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+// the group of the actions (no caption): as tall as the bar, so its rule is as long as the others, the button centered
+.tod-home-filter-group-action {
+  align-self: stretch;
+  justify-content: center;
 }
 
 // a select / multiselect of the home filter bar as a pill: rounded, outlined, raised, lifted on hover; lightly filled, as
@@ -1174,14 +1222,6 @@ mat-icon.text-xs {
       opacity: 0;
     }
   }
-}
-
-// the strip at the top edge of the window that brings a hidden nav bar back when the mouse enters it
-.tod-nav-hot-zone {
-  position: fixed;
-  inset: 0 0 auto 0;
-  height: 6px;
-  z-index: 99;
 }
 
 // Spacing and sizing

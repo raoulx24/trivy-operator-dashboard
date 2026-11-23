@@ -14,9 +14,6 @@
     >
       <app-nav-menu></app-nav-menu>
     </div>
-    @if (navBar.hidden()) {
-      <div class="tod-nav-hot-zone" (mouseenter)="navBar.setHovering(true)"></div>
-    }
     <div #content class="pt-2">
       <router-outlet></router-outlet>
     </div>

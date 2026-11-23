@@ -69,7 +69,7 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
       `The ring is the share of the watchers that are green. <strong>To look at</strong> counts the watchers that are not green and the sources with errors.`,
       `<strong>Sources</strong> (KEV, EPSS, EUVD, EOL): green when enabled without errors, amber with errors, grey when not enabled.`,
       `History and fix tracking exist only since the day they started: what is older cannot be told (e.g. when a fix appeared).`,
-      `A new version of the dashboard is shown as a tag (the same check as the About page); it is information, not counted in "to look at".`,
+      `A newer release of the dashboard on GitHub is shown as a pill, "New version available" (the same check as the About page); a running version newer than the latest release as "Experimental build". Information only, not counted in "to look at".`,
     ],
     expanded: [
       `Per report kind the count and the first and last scan. An old last scan is not a problem by itself: a report is rescanned when something changes (the rbac of a cluster can stay the same for months).`,

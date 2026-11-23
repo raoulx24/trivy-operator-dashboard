@@ -92,11 +92,17 @@ export class AppComponent implements AfterViewInit {
     );
   }
 
-  // a bar shown by the mouse at the top edge goes away when the mouse leaves it (the bar is out of the layout, so it
-  // is measured, not listened to)
+  // the mouse in the top 24px of the window brings a hidden bar back; it goes away when the mouse leaves the bar (the
+  // bar is out of the layout, so it is measured, not listened to). Position, not an element under the mouse: it also
+  // works when a fast move skips over a thin strip, and whatever is stacked above the top edge
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     if (!this.navBar.hideRequested()) return;
+    const topEdgePx = 24;
+    if (event.clientY <= topEdgePx) {
+      this.navBar.setHovering(true);
+      return;
+    }
     const bar = this.menubar();
     if (!bar) return;
     const hoverGapPx = 12;

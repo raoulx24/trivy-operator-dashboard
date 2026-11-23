@@ -29,7 +29,8 @@
           </span>
         </div>
         <!-- where the history and the fix tracking begin -->
-        <div class="flex flex-col gap-0.5 ml-auto text-right text-xs tod-text-muted-color">
+        <div class="flex flex-col items-end ml-auto">
+         <div class="flex flex-col gap-0.5 text-right text-xs tod-text-muted-color">
           <span>
             History
             @if (d.isVrHistoryEnabled) {
@@ -47,15 +48,26 @@
               ({{ fixTrackingDays() }}d)
             }
           </span>
-          <!-- a newer release than the running version (collapsed and expanded); the about page has the release notes -->
+         </div>
+          <!-- outside the muted lines, so the pill has the color of the text: a newer release than the running version, or a
+               running version newer than the latest release (experimental); the about page has the release notes -->
           @if (versionInfo(); as v) {
             @if (v.isNewer) {
               <app-pill-button
-                class="tod-pill-button-large self-end mt-2"
+                class="tod-pill-button-large mt-2"
                 icon="pi-external-link"
                 title="Open the about page, with the release notes"
                 [active]="true"
-                [label]="'New version ' + v.latest"
+                [label]="'New version available: ' + v.latest"
+                (pressed)="openAbout()"
+              />
+            } @else if (v.isExperimental) {
+              <app-pill-button
+                class="tod-pill-button-large mt-2"
+                icon="pi-external-link"
+                title="You run {{ v.current }}, newer than the latest release. Open the about page"
+                [active]="true"
+                [label]="'Experimental build: ahead of release ' + v.latest"
                 (pressed)="openAbout()"
               />
             }
