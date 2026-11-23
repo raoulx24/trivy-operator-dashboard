@@ -78,14 +78,15 @@ export class HomeWidgetFrameComponent {
   expandToggle = output<void>();
   refreshRequested = output<void>();
 
+  private readonly navBar = inject(NavBarVisibilityService);
+
   constructor() {
-    const navBar = inject(NavBarVisibilityService);
     effect(() => {
-      if (this.expanded() && this.hideNavWhenExpanded()) navBar.hide(this);
-      else navBar.show(this);
+      if (this.expanded() && this.hideNavWhenExpanded()) this.navBar.hide(this);
+      else this.navBar.show(this);
     });
     // leaving the page with the widget expanded must not leave the bar hidden
-    inject(DestroyRef).onDestroy(() => navBar.show(this));
+    inject(DestroyRef).onDestroy(() => this.navBar.show(this));
   }
 
   // no answer yet (the status line says "Loading..."): the refresh icon spins

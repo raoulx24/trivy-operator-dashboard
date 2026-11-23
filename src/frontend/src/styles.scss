@@ -1147,18 +1147,20 @@ mat-icon.text-xs {
     box-shadow: 0 8px 24px -2px rgb(0 0 0 / 0.45);
   }
 
-  // hide requested (NavBarVisibilityService): the wrapper takes no space and the bar is its overlay, so showing it again
-  // (scroll up, mouse at the top) moves nothing
-  &.tod-sticky-nav-collapsed {
-    height: 0;
+  // hide requested (NavBarVisibilityService): the bar is an overlay in the wrapper; the wrapper's height (set by the
+  // app: 0 = out of the layout, the bar's height = in it) is the space the bar takes
+  &.tod-sticky-nav-managed > * {
+    position: absolute;
+    inset: 0 0 auto 0;
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease;
+  }
 
-    > * {
-      position: absolute;
-      inset: 0 0 auto 0;
-      transition:
-        transform 0.2s ease,
-        opacity 0.2s ease;
-    }
+  // at the top of the page the space grows and shrinks with the bar sliding in and out (the content moves smoothly
+  // instead of jumping); elsewhere it must change at once, the app corrects the scroll position for it
+  &.tod-sticky-nav-animate {
+    transition: height 0.2s ease;
   }
 
   &.tod-sticky-nav-hidden {

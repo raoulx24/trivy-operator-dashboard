@@ -7,15 +7,17 @@
       #navHost
       class="tod-sticky-nav"
       [class.tod-sticky-nav-scrolled]="isScrolled()"
-      [class.tod-sticky-nav-collapsed]="navBar.hideRequested()"
+      [class.tod-sticky-nav-managed]="navBar.hideRequested()"
+      [class.tod-sticky-nav-animate]="navBar.isAtTop()"
       [class.tod-sticky-nav-hidden]="navBar.hidden()"
+      [style.height.px]="navBar.hideRequested() ? (navBar.collapsed() ? 0 : barHeight()) : null"
     >
       <app-nav-menu></app-nav-menu>
     </div>
     @if (navBar.hidden()) {
       <div class="tod-nav-hot-zone" (mouseenter)="navBar.setHovering(true)"></div>
     }
-    <div class="pt-2">
+    <div #content class="pt-2">
       <router-outlet></router-outlet>
     </div>
     <!-- the dialogs behind the vulnerability tags of any trivy table -->

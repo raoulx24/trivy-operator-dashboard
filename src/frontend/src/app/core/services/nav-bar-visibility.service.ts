@@ -21,6 +21,12 @@ export class NavBarVisibilityService {
   readonly hideRequested = computed(() => this.owners().size > 0);
   readonly hidden = computed(() => this.hideRequested() && !this.revealed() && !this.hovering());
 
+  // at the very top of the page a visible bar takes its place in the layout again (pushes the content down) instead of
+  // overlaying it, which would cover the first controls of the page (e.g. the search box)
+  private readonly atTop = signal(window.scrollY <= 0);
+  readonly isAtTop = this.atTop.asReadonly();
+  readonly collapsed =computed(() => this.hideRequested() && (this.hidden() || !this.atTop()));
+
   hide(owner: object) {
     if (this.owners().has(owner)) return;
     const wasRequested = this.hideRequested();
@@ -42,11 +48,14 @@ export class NavBarVisibilityService {
   onScroll(scrollY: number) {
     const delta = scrollY - this.lastScrollY;
     this.lastScrollY = scrollY;
+    if (scrollY <= 0) this.atTop.set(true);
     if (!this.hideRequested() || delta === 0) return;
 
     if (delta > 0) {
-      // down: out of sight again
       this.scrolledUpPx = 0;
+      // the bar sits in the layout at the top: it stays while the content slides under it (leaveTop takes it away)
+      if (this.atTop() && this.revealed()) return;
+      this.atTop.set(false);
       this.revealed.set(false);
       return;
     }
@@ -54,6 +63,20 @@ export class NavBarVisibilityService {
     if (this.scrolledUpPx >= NavBarVisibilityService.REVEAL_SCROLL_UP_PX || scrollY <= 0) {
       this.revealed.set(true);
     }
+  }
+
+  // the user stopped scrolling down with the bar in the layout at the top: once the content is scrolled past the bar's
+  // height, the bar leaves. True when it did (the caller then corrects the scroll position).
+  leaveTop(scrollY: number, barHeight: number): boolean {
+    if (!this.hideRequested() || !this.atTop() || !this.revealed() || scrollY < barHeight) return false;
+    this.atTop.set(false);
+    this.revealed.set(false);
+    return true;
+  }
+
+  // the page was scrolled by the app itself (not the user): the next scroll event must not count as the user's
+  syncScroll(scrollY: number) {
+    this.lastScrollY = scrollY;
   }
 
   // the mouse is at the top edge (the hot zone), or left the bar
@@ -66,5 +89,6 @@ export class NavBarVisibilityService {
     this.hovering.set(false);
     this.scrolledUpPx = 0;
     this.lastScrollY = window.scrollY;
+    this.atTop.set(window.scrollY <= 0);
   }
 }
