@@ -1,5 +1,17 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
@@ -18,6 +30,7 @@ import { VulnerabilityTagsPipe } from '@shared/ui/trivy-table/vulnerability-tags
 import { VulnerabilityScoreTagComponent } from '@shared/ui/vulnerability-score-tag/vulnerability-score-tag.component';
 import { ScrollerResizeDirective } from '@shared/ui/scroller-resize/scroller-resize.directive';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
+import { ScrollerComponent } from '@shared/ui/scroller/scroller.component';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
@@ -25,12 +38,23 @@ import { SeverityUtils } from '@shared/utils/severity.utils';
 
 import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
+import { matchesFilter } from '../home-search-box/home-list-filter';
+import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 
 // the versions of a package whose vulnerability ids are read (the most widespread first)
 const MAX_VERSIONS_WITH_IDS = 8;
+
+type PackageSortKey = 'name' | 'ids' | 'images' | 'namespaces';
+
+const SORT_TITLES: Record<PackageSortKey, { label: string; natural: string; reversed: string }> = {
+  name: { label: 'Sort by name', natural: 'A to Z', reversed: 'Z to A' },
+  ids: { label: 'Sort by vulnerability ids', natural: 'Most ids first', reversed: 'Fewest ids first' },
+  images: { label: 'Sort by images', natural: 'Most images first', reversed: 'Fewest images first' },
+  namespaces: { label: 'Sort by namespaces', natural: 'Most namespaces first', reversed: 'Fewest namespaces first' },
+};
 
 interface HotspotRow {
   item: HomePackageHotspotDto;
@@ -71,10 +95,12 @@ interface PackageDetail {
   standalone: true,
   imports: [
     HomeExploitTagComponent,
+    HomeSearchBoxComponent,
     HomeWidgetFrameComponent,
     MeterGroupComponent,
     NgTemplateOutlet,
     PillButtonComponent,
+    ScrollerComponent,
     ScrollerModule,
     ScrollerResizeDirective,
     SeverityCssStyleByIdPipe,
@@ -165,6 +191,12 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
 
     this.cveEnrichmentState.ensureLoaded();
 
+    // new data (a filter of the page, a refresh) plays the meters again
+    effect(() => {
+      this.expandedData.value();
+      untracked(() => this.animateMeters.set(true));
+    });
+
     // the many rows arrived and are in the signal: after they are rendered the page may scroll to show the whole widget
     effect(() => {
       if (!this.isExpanded()) {
@@ -207,6 +239,85 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
         },
       ],
     })),
+  );
+
+  // the filter box of the expanded list: the text is looked for in the package name and key
+  protected readonly filterText = signal('');
+  // the sort of the list: a pill per key, going natural direction (A to Z, the most first) -> reversed -> off (the server
+  // order: the most ids first)
+  protected readonly packageSort = signal<{ key: PackageSortKey; reversed: boolean } | null>(null);
+  protected readonly filteredRows = computed(() => {
+    const rows = this.rows().filter((r) => matchesFilter(this.filterText(), r.item.packageName, r.item.packageKey));
+    const sort = this.packageSort();
+    if (!sort) {
+      return rows;
+    }
+
+    const direction = sort.reversed ? -1 : 1;
+    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+    const compare = (a: HotspotRow, b: HotspotRow): number => {
+      switch (sort.key) {
+        case 'name':
+          return collator.compare(a.item.packageName, b.item.packageName);
+        case 'ids':
+          return b.item.vulnerabilityIds - a.item.vulnerabilityIds;
+        case 'images':
+          return b.item.images - a.item.images;
+        case 'namespaces':
+          return b.item.namespaces - a.item.namespaces;
+      }
+    };
+    // the rows that tie keep the order they had
+    return rows
+      .map((row, index) => ({ row, index }))
+      .sort((a, b) => direction * compare(a.row, b.row) || a.index - b.index)
+      .map((x) => x.row);
+  });
+
+  // the meters of the list grow when data arrives, not when a sort moves the rows
+  protected readonly animateMeters = signal(true);
+
+  protected togglePackageSort(key: PackageSortKey): void {
+    this.packageSort.update((current) =>
+      current?.key !== key ? { key, reversed: false } : current.reversed ? null : { key, reversed: true },
+    );
+    // the rows move (the DOM nodes are re-inserted, which would play their meters again): no animation until new data comes
+    this.animateMeters.set(false);
+    this.centerSelectedAfterRender();
+  }
+
+  private readonly packageList = viewChild(ScrollerComponent);
+  private readonly sortInjector = inject(Injector);
+
+  // the order changed: the list scrolls to the selected row (centered), not to the start; only the list scrolls, not the page
+  private centerSelectedAfterRender(): void {
+    afterNextRender(
+      () => {
+        const list = this.packageList()?.scrollContainer?.nativeElement;
+        const row = list?.querySelector<HTMLElement>(".tod-home-pick-row.selected");
+        if (list && row) {
+          const offset = row.getBoundingClientRect().top - list.getBoundingClientRect().top;
+          list.scrollTop += offset - (list.clientHeight - row.clientHeight) / 2;
+        }
+      },
+      { injector: this.sortInjector },
+    );
+  }
+
+  // the arrow shows the order on screen: down the natural one, up the reverse; none while it is off
+  protected packageSortIcon(key: PackageSortKey): string | undefined {
+    const sort = this.packageSort();
+    return sort?.key !== key ? undefined : sort.reversed ? 'pi-arrow-up' : 'pi-arrow-down';
+  }
+
+  protected packageSortTitle(key: PackageSortKey): string {
+    const sort = this.packageSort();
+    const titles = SORT_TITLES[key];
+    return sort?.key !== key ? titles.label : sort.reversed ? titles.reversed : titles.natural;
+  }
+
+  protected readonly noMatch = computed(
+    () => this.filterText().trim().length > 0 && this.filteredRows().length === 0 && this.rows().length > 0,
   );
 
   // a click on the selected row of the expanded list deselects it (the empty state) until the next click, or the next expand

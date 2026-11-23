@@ -42,31 +42,53 @@
       <ng-container *ngTemplateOutlet="legend; context: { withImages: false }" />
     </div>
   } @else {
-    <div class="grid grid-cols-[minmax(0,1fr)_500px] gap-3 pt-1 max-h-[80vh] min-h-[28rem]">
+    <!-- the layout of the fix waiting widget: on the left the counter, the filter box and the box of the packages (it takes
+         the rest of the height and scrolls in it), on the right the selected package; the sort is in the bottom row of the frame -->
+    <div
+      class="grid grid-cols-[minmax(0,1fr)_500px] gap-3 pt-2 flex-1"
+      style="max-height: 70vh; min-height: min(30rem, 70vh)"
+    >
       <!-- the packages -->
-      <div class="flex flex-col gap-2 min-h-0">
-        <div class="grid grid-cols-[20rem_minmax(0,1fr)_3rem_3rem] gap-x-3 px-1 text-xs tod-text-muted-color">
-          <span>Package</span>
-          <span>Vulnerability ids</span>
-          <span class="text-right" title="Images with this package">Images</span>
-          <span class="text-right" title="Namespaces with this package">Ns</span>
-        </div>
-        <div class="flex flex-col gap-1 overflow-auto min-h-0 flex-1">
-          @for (row of rows(); track row.item.packageKey) {
-            <button
-              type="button"
-              class="tod-home-pick-row grid grid-cols-[20rem_minmax(0,1fr)_3rem_3rem] items-center gap-x-3 text-sm text-left"
-              [class.selected]="row.item.packageKey === selected()?.packageKey"
-              (click)="select(row.item)"
-            >
-              <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
-              <app-meter-group [animate]="true" valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
-              <span class="text-right tabular-nums">{{ row.item.images }}</span>
-              <span class="text-right tabular-nums tod-text-muted-color">{{ row.item.namespaces }}</span>
-            </button>
+      <div class="flex flex-col gap-2 min-w-0 min-h-0">
+        <span class="text-xs tod-text-muted-color">{{ filteredRows().length }} packages</span>
+
+        <div class="flex flex-col gap-1">
+          <app-home-search-box placeholder="Filter by package" [(query)]="filterText" />
+          @if (noMatch()) {
+            <span class="text-xs tod-text-muted-color px-1">No match for "{{ filterText().trim() }}"</span>
           }
         </div>
-        <ng-container *ngTemplateOutlet="legend; context: { withImages: false }" />
+
+        <div class="tod-content-border relative flex-1 min-h-0 overflow-hidden">
+          <div class="absolute inset-0 flex flex-col gap-1 p-2">
+            <div class="grid grid-cols-[20rem_minmax(0,1fr)_3rem_3rem] gap-x-3 px-3 text-xs tod-text-muted-color">
+              <span>Package</span>
+              <span>Vulnerability ids</span>
+              <span class="text-right" title="Images with this package">Images</span>
+              <span class="text-right" title="Namespaces with this package">Ns</span>
+            </div>
+            <!-- the rows in the scroller; its box shrinks to its content, so the rows take the width of the room (container units) -->
+            <div class="flex-1 min-h-0" style="container-type: inline-size">
+              <app-scroller direction="vertical" class="block h-full">
+                <div class="flex flex-col gap-1" style="width: calc(100cqw - 1rem)">
+                      @for (row of filteredRows(); track row.item.packageKey) {
+                        <button
+                          type="button"
+                          class="tod-home-pick-row grid grid-cols-[20rem_minmax(0,1fr)_3rem_3rem] items-center gap-x-3 text-sm text-left"
+                          [class.selected]="row.item.packageKey === selected()?.packageKey"
+                          (click)="select(row.item)"
+                        >
+                          <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
+                          <app-meter-group [animate]="animateMeters()" valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
+                          <span class="text-right tabular-nums">{{ row.item.images }}</span>
+                          <span class="text-right tabular-nums tod-text-muted-color">{{ row.item.namespaces }}</span>
+                        </button>
+                      }
+                </div>
+              </app-scroller>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- the selected package, in two boxes: the package details (summary and versions) as tall as they need, and its
@@ -184,6 +206,20 @@
           </div>
         </div>
       </div>
+    </div>
+  }
+
+  <!-- the controls of the expanded widget, in the bottom row of the frame -->
+  @if (isExpanded()) {
+    <div frameActions class="flex flex-wrap items-center gap-2">
+      <div aria-label="Sort the packages" role="group" class="flex items-center gap-1.5">
+        <span class="text-xs tod-text-muted-color">Sort</span>
+        <app-pill-button label="Name" [toggle]="true" [active]="packageSort()?.key === 'name'" [icon]="packageSortIcon('name')" [title]="packageSortTitle('name')" (pressed)="togglePackageSort('name')" />
+        <app-pill-button label="Ids" [toggle]="true" [active]="packageSort()?.key === 'ids'" [icon]="packageSortIcon('ids')" [title]="packageSortTitle('ids')" (pressed)="togglePackageSort('ids')" />
+        <app-pill-button label="Images" [toggle]="true" [active]="packageSort()?.key === 'images'" [icon]="packageSortIcon('images')" [title]="packageSortTitle('images')" (pressed)="togglePackageSort('images')" />
+        <app-pill-button label="Ns" [toggle]="true" [active]="packageSort()?.key === 'namespaces'" [icon]="packageSortIcon('namespaces')" [title]="packageSortTitle('namespaces')" (pressed)="togglePackageSort('namespaces')" />
+      </div>
+      <ng-container *ngTemplateOutlet="legend; context: { withImages: false }" />
     </div>
   }
 </app-home-widget-frame>

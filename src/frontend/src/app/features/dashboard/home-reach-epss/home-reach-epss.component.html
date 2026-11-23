@@ -41,7 +41,10 @@
       [pointOpacity]="0.6"
       [tooltipTemplate]="tip"
       [height]="220"
+      [filter]="filterKeys()"
       (selectionChanged)="onSelection($event)"
+      [(regions)]="regions"
+      [(overrides)]="overrides"
     />
     <span class="text-xs tod-text-muted-color">
       @if (selected().length > 0) {
@@ -69,7 +72,10 @@
             [pointOpacity]="0.6"
             [tooltipTemplate]="tip"
             [height]="440"
+            [filter]="filterKeys()"
             (selectionChanged)="onSelection($event)"
+            [(regions)]="regions"
+            [(overrides)]="overrides"
           />
           <span boxFooter class="text-xs tod-text-muted-color">
             Top right: likely to be exploited and widespread. Drag to select (shift adds a region, a click clears).
@@ -134,9 +140,13 @@
             @if (knownExploitedCount() > 0) {
               <span boxTitleEnd class="font-normal tod-text-muted-color">{{ knownExploitedCount() }} known exploited</span>
             }
-            <div boxHeader class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort the ids">
-              <app-pill-button label="Severity" [toggle]="true" [active]="sort()?.key === 'severity'" [icon]="sortIcon('severity')" [title]="sortTitle('severity')" (pressed)="toggleSort('severity')" />
-              <app-pill-button label="Name" [toggle]="true" [active]="sort()?.key === 'name'" [icon]="sortIcon('name')" [title]="sortTitle('name')" (pressed)="toggleSort('name')" />
+            <div boxHeader class="flex flex-col gap-2">
+              <!-- the text selects the ids on the plot (with the regions), so the list and the plot agree -->
+              <app-home-search-box placeholder="Filter by id" [(query)]="filterText" />
+              <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort the ids">
+                <app-pill-button label="Severity" [toggle]="true" [active]="sort()?.key === 'severity'" [icon]="sortIcon('severity')" [title]="sortTitle('severity')" (pressed)="toggleSort('severity')" />
+                <app-pill-button label="Name" [toggle]="true" [active]="sort()?.key === 'name'" [icon]="sortIcon('name')" [title]="sortTitle('name')" (pressed)="toggleSort('name')" />
+              </div>
             </div>
             <div class="relative h-full">
               <p-scroller
@@ -183,7 +193,7 @@
                 </ng-template>
               </p-scroller>
               @if (sortedList().length === 0) {
-                <span class="absolute inset-0 text-xs tod-text-muted-color">Nothing in the selected region.</span>
+                <span class="absolute inset-0 text-xs tod-text-muted-color">Nothing in the selection.</span>
               }
             </div>
           </app-trivy-box>

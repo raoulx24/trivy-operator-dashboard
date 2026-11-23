@@ -1,8 +1,8 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, signal, untracked, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { StepSelectComponent } from '@shared/ui/step-select/step-select.component';
-import { ScrollerModule } from 'primeng/scroller';
+import { Scroller, ScrollerModule } from 'primeng/scroller';
 import { TagModule } from 'primeng/tag';
 
 import { HomeReachEpssItemDto } from '@api/models/home-reach-epss-item-dto';
@@ -22,12 +22,15 @@ import {
   ScatterAxis,
   ScatterLegendItem,
   ScatterPoint,
+  ScatterRegion,
   ScatterSelection,
 } from '@shared/ui/scatter-select/scatter-select.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
 import { HomeListSort, HomeListSortKey, nextSort, sortIconOf, sortRows, sortTitleOf } from '../home-list-sort/home-list-sort';
 import { HomeExploitTagComponent } from '../home-pivot/home-exploit-tag.component';
+import { matchesFilter } from '../home-search-box/home-list-filter';
+import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
@@ -59,6 +62,7 @@ function jitter(id: string): number {
   imports: [
     DecimalPipe,
     HomeExploitTagComponent,
+    HomeSearchBoxComponent,
     HomeWidgetFrameComponent,
     PillButtonComponent,
     ScatterSelectComponent,
@@ -99,6 +103,7 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
     ],
     expanded: [
       `On the right the selected ids (with no selection, the top ${TOP_COUNT} by EPSS times images). Click an id for its title, KEV addition, EPSS and the packages with the fix.`,
+      `<strong>Filter by id</strong> selects the matching ids on the plot (together with a drawn region), so the list and the plot show the same ids.`,
       `<strong>Include top</strong> keeps only the ids in that top share of the EPSS percentiles (default: the top 20%).`,
     ],
     tips: [
@@ -107,8 +112,39 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
     ],
   };
 
+  // the list of the expanded widget
+  private readonly listScroller = viewChild(Scroller);
+  // a point was picked on the plot: the list scrolls to its id once the list is there (the widget may be expanding)
+  private revealPending = false;
+
   constructor() {
     super();
+
+    // a point picked on the plot: the id is brought into the visible part of the list (once the list is drawn)
+    effect(() => {
+      const scroller = this.listScroller();
+      const id = this.active()?.vulnerabilityId;
+      const index = id ? this.sortedList().findIndex((x) => x.vulnerabilityId === id) : -1;
+      if (!this.isExpanded() || !scroller || index < 0 || !untracked(() => this.revealPending)) {
+        return;
+      }
+
+      this.revealPending = false;
+      // after the scroller measured its box
+      setTimeout(() => scroller.scrollToIndex(index, 'auto'), 50);
+    });
+
+    // a filter with one match picks it: its row is selected (with its detail) and its dot gets the ring
+    effect(() => {
+      const keys = this.filterKeys();
+      if (keys?.size === 1) {
+        untracked(() => {
+          this.pickedId.set([...keys][0]);
+          this.deselected.set(false);
+          this.revealPending = true;
+        });
+      }
+    });
 
     this.cveEnrichmentState.ensureLoaded();
 
@@ -203,12 +239,47 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
   // the ids inside the drawn region(s)
   protected readonly selected = signal<HomeReachEpssItemDto[]>([]);
 
+  // what the plot selects, kept here (the plot is made again when the widget expands or collapses)
+  protected readonly regions = signal<ScatterRegion[]>([]);
+  protected readonly overrides = signal<ReadonlyMap<string, boolean>>(new Map());
+
+  // the selection as it was before a click on a point of the collapsed plot (see onPointPicked)
+  private undo: {
+    regions: ScatterRegion[];
+    overrides: ReadonlyMap<string, boolean>;
+    selected: HomeReachEpssItemDto[];
+  } | null = null;
+
   protected onSelection(selection: ScatterSelection<HomeReachEpssItemDto>): void {
-    this.selected.set(selection.points.map((p) => p.data!));
+    // the click on a point of the collapsed plot picks the point and also toggles it into the selection: here the click
+    // only expands the widget on that id, the selection (so the list) stays as it was
+    const undo = this.undo;
+    if (undo) {
+      this.undo = null;
+      this.regions.set(undo.regions);
+      this.overrides.set(undo.overrides);
+      this.selected.set(undo.selected);
+      return;
+    }
+
+    // one selected point (a click on a dot) is not a selection to list: the list stays whole, with that id picked (the
+    // plot does not dim the others for one either); the text filter is always a selection, also for one match
+    const points = selection.points.map((p) => p.data!);
+    this.selected.set(points.length > 1 || (this.filterKeys() !== null && points.length > 0) ? points : []);
   }
 
-  // the ids of the list: the selected ones, else the top by risk; the most likely to be exploited and widespread first
-  protected readonly listIsSelection = computed(() => this.selected().length > 0);
+  // the filter box of the list: it selects on the plot (the ids that contain the text), together with the regions
+  protected readonly filterText = signal('');
+  protected readonly filterKeys = computed<ReadonlySet<string> | null>(() => {
+    const text = this.filterText();
+    return text.trim() === ''
+      ? null
+      : new Set(this.items().filter((x) => matchesFilter(text, x.vulnerabilityId)).map((x) => x.vulnerabilityId));
+  });
+
+  // the ids of the list: the selected ones (with a filter, even none), else the top by risk; the most likely to be exploited
+  // and widespread first
+  protected readonly listIsSelection = computed(() => this.filterKeys() !== null || this.selected().length > 0);
   protected readonly list = computed<HomeReachEpssItemDto[]>(() => {
     const source = this.listIsSelection() ? this.selected() : this.items();
     const sorted = [...source].sort(
@@ -216,9 +287,10 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
     );
     const shown = this.listIsSelection() ? sorted : sorted.slice(0, TOP_COUNT);
 
-    // the id picked on the plot is always in the list (at the top when it would not be there)
+    // the id picked on the plot is always in the list (at the top when it would not be there); with a filter the list is
+    // what matches, nothing else
     const picked = this.items().find((x) => x.vulnerabilityId === this.pickedId());
-    return picked && !shown.includes(picked) ? [picked, ...shown] : shown;
+    return picked && !shown.includes(picked) && this.filterKeys() === null ? [picked, ...shown] : shown;
   });
 
   // the sort of the list (null: the most likely to be exploited and widespread first); the pills go natural direction ->
@@ -269,14 +341,22 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
   // the point picked on the plot (null: cleared): the widget is expanded (when it is not) with that id selected in the list
   protected readonly pickedIndex = computed(() => {
     const index = this.points().findIndex((p) => p.data?.vulnerabilityId === this.pickedId());
-    return this.pickedId() === null || this.deselected() || index < 0 ? null : index;
+    // an id that is not in the list (a filter left it out) has no ring
+    const listed = this.list().some((x) => x.vulnerabilityId === this.pickedId());
+    return this.pickedId() === null || this.deselected() || index < 0 || !listed ? null : index;
   });
 
   protected onPointPicked(index: number | null): void {
     const item = index === null ? undefined : this.points()[index]?.data;
     this.pickedId.set(item?.vulnerabilityId ?? null);
     if (item) {
+      if (!this.isExpanded()) {
+        // the plot toggles the point into its selection right after this; onSelection puts the selection back
+        this.undo = { regions: this.regions(), overrides: this.overrides(), selected: this.selected() };
+        setTimeout(() => (this.undo = null));
+      }
       this.deselected.set(false);
+      this.revealPending = true;
       this.expand();
     } else if (this.isExpanded()) {
       this.deselected.set(true);

@@ -56,7 +56,7 @@
               <app-pill-button
                 class="tod-pill-button-large mt-2"
                 icon="pi-external-link"
-                title="Open the about page, with the release notes"
+                todPopover="Open the about page, with the release notes"
                 [active]="true"
                 [label]="'New version available: ' + v.latest"
                 (pressed)="openAbout()"
@@ -65,7 +65,7 @@
               <app-pill-button
                 class="tod-pill-button-large mt-2"
                 icon="pi-external-link"
-                title="You run {{ v.current }}, newer than the latest release. Open the about page"
+                todPopover="You run {{ v.current }}, newer than the latest release. Open the about page"
                 [active]="true"
                 [label]="'Experimental build: ahead of release ' + v.latest"
                 (pressed)="openAbout()"
@@ -79,7 +79,7 @@
         <!-- the sources, only a dot each -->
         <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           @for (row of sources(); track row.source) {
-            <span class="flex items-center gap-1.5" [attr.title]="row.title">
+            <span class="flex items-center gap-1.5" [todPopover]="linesTip" [todPopoverContext]="row.tip">
               <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
               {{ row.source }}
             </span>
@@ -100,7 +100,7 @@
                 <span class="w-36 shrink-0 text-right">Last scan</span>
               </div>
               @for (row of reports(); track row.kind) {
-                <div class="flex items-center gap-4 h-5" [attr.title]="row.title">
+                <div class="flex items-center gap-4 h-5" [todPopover]="linesTip" [todPopoverContext]="row.tip">
                   <span class="min-w-0 flex-1 truncate font-semibold">{{ row.kind }}</span>
                   <span class="w-12 shrink-0 text-right">{{ row.count }}</span>
                   <span class="w-36 shrink-0 text-right whitespace-nowrap tod-text-muted-color">{{ row.oldest }}</span>
@@ -118,7 +118,7 @@
               <span boxTitle>Sources</span>
               <div class="flex flex-col gap-1 text-sm">
                 @for (row of sources(); track row.source) {
-                  <div class="flex items-center gap-2 h-5" [attr.title]="row.title">
+                  <div class="flex items-center gap-2 h-5" [todPopover]="linesTip" [todPopoverContext]="row.tip">
                     <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
                     <span class="font-medium">{{ row.source }}</span>
                     <span class="ml-auto shrink-0 whitespace-nowrap text-xs tod-text-muted-color">{{ row.detail }}</span>
@@ -132,7 +132,7 @@
               <span boxTitle>Jobs</span>
               <div class="flex flex-col gap-1 text-sm">
                 @for (row of jobs(); track row.name) {
-                  <div class="flex flex-col" [attr.title]="row.title">
+                  <div class="flex flex-col" [todPopover]="linesTip" [todPopoverContext]="row.tip">
                     <div class="flex items-center gap-2 min-h-5">
                       <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
                       <span class="font-medium shrink-0">{{ row.name }}</span>
@@ -175,12 +175,12 @@
               <div class="flex flex-col gap-0.5">
                 <span class="text-xs tod-text-muted-color">GitHub releases</span>
                 @if (latestRelease(); as r) {
-                  <span [attr.title]="'Published ' + stamp(r.publishedAt)">
+                  <span [todPopover]="'Published ' + stamp(r.publishedAt)">
                     {{ r.tagName }} · {{ day(r.publishedAt) }}
                     <span class="tod-text-muted-color">({{ releaseCount() }} cached)</span>
                   </span>
                 } @else {
-                  <span class="tod-text-muted-color" title="The check is off, or it did not reach GitHub">
+                  <span class="tod-text-muted-color" todPopover="The check is off, or it did not reach GitHub">
                     {{ releasesLoaded() ? 'none cached' : 'Loading...' }}
                   </span>
                 }
@@ -202,7 +202,7 @@
               <span boxTitle class="truncate">Watchers with issues</span>
               <div class="flex flex-col gap-1 text-sm">
                 @for (issue of issues(); track $index) {
-                  <div class="flex flex-col" [attr.title]="issue.mitigationMessage">
+                  <div class="flex flex-col">
                     <span class="flex items-center gap-2 min-w-0">
                       <span class="size-2 rounded-full shrink-0" [style.background]="color('bad')"></span>
                       <span class="truncate">
@@ -226,3 +226,12 @@
     </div>
   }
 </app-home-widget-frame>
+
+<!-- the lines of a popover: the first is the title -->
+<ng-template #linesTip let-lines>
+  <div class="flex flex-col gap-0.5">
+    @for (line of lines; track $index) {
+      <span [class.font-semibold]="$first">{{ line }}</span>
+    }
+  </div>
+</ng-template>

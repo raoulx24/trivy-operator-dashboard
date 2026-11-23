@@ -6,11 +6,13 @@ import {
   TemplateRef,
   afterNextRender,
   computed,
+  effect,
   inject,
   input,
   model,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 
 import { PopoverService } from '../popover/popover.service';
@@ -58,8 +60,11 @@ interface Scale {
 //   range, format) and the legend; the control does not know what any of them mean
 // - selectable: drag to draw a region (free hand); the points inside keep the focus, the others dim. A new region
 //   replaces the previous one; shift / ctrl / cmd adds one. A click on the plot without a drag clears
-// - selectionChanged: the union of the regions (the points inside, their indexes, the polygons in data coordinates);
-//   empty after a clear
+// - a click on a point (no drag) toggles it: an unselected one joins the selection (with or without regions), a selected one
+//   (inside a region or picked before) leaves it
+// - filter: the keys of the points an outside filter lets through; it selects them (together with the regions) until it is null
+// - selectionChanged: the points selected (inside the regions, adjusted by the clicks), their indexes, and the polygons in data
+//   coordinates; empty after a clear
 // - animate: the points of the first data fade in from nothing one by one, in a random order, all within animationDuration
 //   (ms) in total. New data is merged by the id of the points (else their index): a point that was there stays, and glides
 //   to its new position if it moved; a new one fades in; one that is gone fades out. The axes are always there
@@ -99,12 +104,22 @@ export class ScatterSelectComponent<T = unknown> {
   // the plot elsewhere clears it. It is drawn with a contrast border. The owner may set it (e.g. from a list)
   pickedIndex = model<number | null>(null);
 
+  // an outside filter: the keys (ids) of the points that pass it, null for none. While it is set it is a selection: the points
+  // that pass it (and are inside the regions, if there are any) are selected, the others dim, also for a single one. A click
+  // on a point still wins over it. The selection is emitted again when the filter changes
+  filter = input<ReadonlySet<string> | null>(null);
+  private lastFilter: ReadonlySet<string> | null | undefined;
+
   protected readonly popover = inject(PopoverService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly width = signal(0);
-  // the regions, in data coordinates (they follow the axes when the control is resized)
-  private readonly regions = signal<ScatterRegion[]>([]);
+  // the regions drawn, in data coordinates (they follow the axes when the control is resized); a model, so the owner can
+  // keep them when the control is made again (e.g. the widget expands) and clear them
+  regions = model<ScatterRegion[]>([]);
+  // the points selected (true) or deselected (false) by a click, against what the regions say; by key
+  // (a model, like the regions: the owner keeps them when the control is made again)
+  overrides = model<ReadonlyMap<string, boolean>>(new Map());
   // the region being drawn, px
   private readonly draft = signal<ScatterVertex[] | null>(null);
   private additive = false;
@@ -113,6 +128,16 @@ export class ScatterSelectComponent<T = unknown> {
   constructor() {
     const destroyRef = inject(DestroyRef);
     destroyRef.onDestroy(() => this.popover.hide());
+
+    // the owner learns what the filter selects (not on the first value: nothing changed yet)
+    effect(() => {
+      const filter = this.filter();
+      const first = this.lastFilter === undefined;
+      this.lastFilter = filter;
+      if (!first) {
+        untracked(() => this.selectionChanged.emit(this.selection()));
+      }
+    });
 
     afterNextRender(() => {
       const element = this.host.nativeElement;
@@ -233,13 +258,29 @@ export class ScatterSelectComponent<T = unknown> {
     const y = this.yScale();
     const r = this.pointRadius();
     const polygons = this.regionsPx();
-    const hasSelection = polygons.length > 0;
+    const overrides = this.overrides();
+    const points = this.points();
+    // a picked point that is gone from the data does not count
+    const keys = new Set(points.map((p, i) => this.keyOf(p, i)));
+    const filter = this.filter();
+    const hasSelection = filter !== null || polygons.length > 0 || [...overrides].some(([key, on]) => on && keys.has(key));
     const enter = this.merge().enter;
 
-    return this.points().map((point, index) => {
-      const px = x.toPx(point.x);
-      const py = y.toPx(point.y);
-      const selected = hasSelection && polygons.some((polygon) => inside(px, py, polygon));
+    const positions = points.map((point) => ({ px: x.toPx(point.x), py: y.toPx(point.y) }));
+    const flags = points.map((point, index) => {
+      const key = this.keyOf(point, index);
+      const inRegion = polygons.some((polygon) => inside(positions[index].px, positions[index].py, polygon));
+      // the filter and the regions both have to say yes (each one only when it is there)
+      const base = (filter === null || filter.has(key)) && (polygons.length === 0 ? filter !== null : inRegion);
+      return overrides.get(key) ?? base;
+    });
+    // one selected point is not a comparison: the others stay as they are (dimmed only for none or for several); with a
+    // filter it is a selection, so they dim
+    const dim = hasSelection && (filter !== null || flags.filter(Boolean).length !== 1);
+
+    return points.map((point, index) => {
+      const { px, py } = positions[index];
+      const selected = flags[index];
       return {
         index,
         point,
@@ -249,7 +290,7 @@ export class ScatterSelectComponent<T = unknown> {
         color: point.color ?? null,
         centerColor: point.centerColor ?? null,
         selected,
-        dimmed: hasSelection && !selected,
+        dimmed: dim && !selected,
         key: this.keyOf(point, index),
         litDelay: enter.get(this.keyOf(point, index)) ?? null,
       };
@@ -296,10 +337,35 @@ export class ScatterSelectComponent<T = unknown> {
     };
   });
 
-  // clears the regions (also callable by the owner, e.g. from a "clear" button)
+  // clears the regions and the points picked by hand (also callable by the owner, e.g. from a "clear" button)
   clear(): void {
-    if (this.regions().length === 0) return;
+    if (this.regions().length === 0 && this.overrides().size === 0) return;
     this.regions.set([]);
+    this.overrides.set(new Map());
+    this.selectionChanged.emit(this.selection());
+  }
+
+  // a click on a point: without shift / ctrl / cmd it selects only that point (a second click on it clears); with one of
+  // them it is toggled in the selection (in -> out, out -> in, also when it is inside / outside a region)
+  private toggle(index: number): void {
+    const view = this.views().find((v) => v.index === index);
+    if (!view) return;
+
+    if (!this.additive) {
+      const onlyThis = view.selected && this.views().filter((v) => v.selected).length === 1;
+      this.regions.set([]);
+      this.overrides.set(onlyThis ? new Map() : new Map([[view.key, true]]));
+      this.selectionChanged.emit(this.selection());
+      return;
+    }
+
+    const inRegion = this.regionsPx().some((polygon) => inside(view.px, view.py, polygon));
+    const next = !view.selected;
+    const overrides = new Map(this.overrides());
+    // the region already says it: no override needed
+    if (next === inRegion) overrides.delete(view.key);
+    else overrides.set(view.key, next);
+    this.overrides.set(overrides);
     this.selectionChanged.emit(this.selection());
   }
 
@@ -353,9 +419,11 @@ export class ScatterSelectComponent<T = unknown> {
       Math.max(...ys) - Math.min(...ys) >= MIN_DRAG;
 
     if (!drawn) {
-      // a click: on a point it picks it (the regions stay), elsewhere on the plot it clears the regions and the pick
+      // a click: on a point it picks it and selects it (shift / ctrl / cmd: toggles it in the selection), elsewhere on the
+      // plot it clears the selection and the pick
       if (this.downIndex !== null) {
         this.pickedIndex.set(this.downIndex);
+        this.toggle(this.downIndex);
       } else if (!this.additive) {
         this.clear();
         this.pickedIndex.set(null);
@@ -366,6 +434,8 @@ export class ScatterSelectComponent<T = unknown> {
     const x = this.xScale();
     const y = this.yScale();
     const region: ScatterRegion = { polygon: draft.map((v) => ({ x: x.fromPx(v.x), y: y.fromPx(v.y) })) };
+    // a new region replaces the previous selection, the hand-picked points too; an added one keeps them
+    if (!this.additive) this.overrides.set(new Map());
     this.regions.set(this.additive ? [...this.regions(), region] : [region]);
     this.selectionChanged.emit(this.selection());
   }

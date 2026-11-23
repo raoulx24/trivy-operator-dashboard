@@ -8,6 +8,7 @@ import { HomeService } from '@api/services/home.service';
 import { MainAppInitService } from '@core/services/main-app-init.service';
 import { VersionUtils } from '@shared/utils/version.utils';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
+import { PopoverDirective } from '@shared/ui/popover/popover.directive';
 import { RingGaugeComponent } from '@shared/ui/ring-gauge/ring-gauge.component';
 import { RingGaugeData } from '@shared/ui/ring-gauge/ring-gauge.types';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
@@ -24,7 +25,8 @@ interface ReportRow {
   count: number;
   oldest: string;
   newest: string;
-  title: string;
+  // the lines of the popover: the first is the title
+  tip: string[];
 }
 
 // a background job of the backend (history retention, the housekeeping, the GitHub check, the KEV / EUVD download);
@@ -35,14 +37,14 @@ interface JobRow {
   summary: string;
   when: string;
   error: string | null;
-  title: string;
+  tip: string[];
 }
 
 interface SourceRow {
   source: string;
   level: Level;
   detail: string;
-  title: string;
+  tip: string[];
 }
 
 // Data health: can the other widgets be trusted?
@@ -55,7 +57,7 @@ interface SourceRow {
 @Component({
   selector: 'app-home-data-health',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, RingGaugeComponent, TrivyBoxComponent, PillButtonComponent],
+  imports: [HomeWidgetFrameComponent, RingGaugeComponent, TrivyBoxComponent, PillButtonComponent, PopoverDirective],
   templateUrl: './home-data-health.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-w-0' },
@@ -162,7 +164,7 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
       count: x.count,
       oldest: this.dayAgo(x.oldestScanAt),
       newest: this.dayAgo(x.newestScanAt),
-      title: `${x.kind}: first scan ${this.stamp(x.oldestScanAt)}, last scan ${this.stamp(x.newestScanAt)}`,
+      tip: [x.kind, `First scan: ${this.stamp(x.oldestScanAt)}`, `Last scan: ${this.stamp(x.newestScanAt)}`],
     })),
   );
 
@@ -179,9 +181,12 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
         source: x.source,
         level,
         detail,
-        title:
-          `${x.source}: ${x.isEnabled ? 'enabled' : 'not enabled'}, newest fetch ${this.stamp(x.lastFetchedAt)}` +
-          (x.errorCount > 0 ? `, ${x.errorCount} ${x.errorCount === 1 ? 'entry' : 'entries'} with an error` : ''),
+        tip: [
+          x.source,
+          x.isEnabled ? 'Enabled' : 'Not enabled',
+          `Newest fetch: ${this.stamp(x.lastFetchedAt)}`,
+          ...(x.errorCount > 0 ? [`${x.errorCount} ${x.errorCount === 1 ? 'entry' : 'entries'} with an error`] : []),
+        ],
       };
     }),
   );
@@ -215,10 +220,14 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
         summary: x.state === 'Failed' ? '' : (x.summary ?? ''),
         when,
         error: x.state === 'Failed' ? (x.lastError ?? 'unknown error') : null,
-        title:
-          `${x.name}${x.members > 1 ? ` (${x.members} jobs)` : ''}: ${x.state}, last run ${this.stamp(x.lastFinishedAt)}, ${lastOk}` +
-          (x.nextRunAt ? `, next ${this.stamp(x.nextRunAt)}` : '') +
-          (x.consecutiveFailures > 0 ? `, ${x.consecutiveFailures} failures in a row` : ''),
+        tip: [
+          `${x.name}${x.members > 1 ? ` (${x.members} jobs)` : ''}`,
+          `State: ${x.state}`,
+          `Last run: ${this.stamp(x.lastFinishedAt)}`,
+          x.lastSuccessAt ? `Last success: ${this.stamp(x.lastSuccessAt)} (${lastOk.replace('last ok ', '')})` : 'Never succeeded',
+          ...(x.nextRunAt ? [`Next run: ${this.stamp(x.nextRunAt)}`] : []),
+          ...(x.consecutiveFailures > 0 ? [`${x.consecutiveFailures} ${x.consecutiveFailures === 1 ? 'failure' : 'failures'} in a row`] : []),
+        ],
       };
     }),
   );

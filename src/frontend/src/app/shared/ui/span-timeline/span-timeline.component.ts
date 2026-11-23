@@ -4,12 +4,14 @@ import {
   DestroyRef,
   ElementRef,
   TemplateRef,
+  afterRenderEffect,
   computed,
   effect,
   inject,
   input,
   model,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 
@@ -171,7 +173,33 @@ export class SpanTimelineComponent {
       if (element) observer.observe(element);
     });
     destroyRef.onDestroy(() => observer.disconnect());
+
+    // the selected row is brought into view in the scroller of the rows (only when it is out of it), once it is drawn: when
+    // its place changes (another selection, a click or the owner's; a sort that moves it; a filter that moves it) or the
+    // scroller appears. A new list that leaves it where it was does not scroll
+    afterRenderEffect(() => {
+      const index = this.selectedIndex();
+      const container = this.scroller()?.scrollContainer?.nativeElement;
+      if (index < 0 || !container) return;
+
+      untracked(() => {
+        const top = index * this.rowHeight();
+        const bottom = top + this.rowHeight();
+        if (top < container.scrollTop) {
+          container.scrollTo({ top, behavior: 'smooth' });
+        } else if (bottom > container.scrollTop + container.clientHeight) {
+          container.scrollTo({ top: bottom - container.clientHeight, behavior: 'smooth' });
+        }
+      });
+    });
   }
+
+  private readonly scroller = viewChild(ScrollerComponent);
+  // the place of the selected row in the rows (-1: none); a number, so only a move of the row is a change
+  private readonly selectedIndex = computed(() => {
+    const id = this.selectedId();
+    return id === null ? -1 : this.rows().findIndex((r) => r.id === id);
+  });
 
   protected readonly hasValues = computed(() => this.rows().some((r) => !!r.valueLabel));
 
