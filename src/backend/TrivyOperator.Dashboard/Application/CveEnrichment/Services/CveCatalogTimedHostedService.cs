@@ -2,6 +2,8 @@
 using TrivyOperator.Dashboard.Application.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Models;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
@@ -19,11 +21,15 @@ public abstract class CveCatalogTimedHostedService<T>(
     ICveEnrichmentRefreshTrigger trigger,
     ICveSubjects subjects,
     ICache<CveId, CveInfo> infos,
+    IJobStatusRegistry jobs,
     ILogger logger
 ) : BackgroundService
     where T : class
 {
     private CveCatalogFetch<T>? catalog;
+
+    // the job is the download of the catalog (not the tick, which runs every ProcessingInterval): "KEV catalog"
+    private string JobName => $"{Source.Value.ToUpperInvariant()} catalog";
 
     protected abstract CveSource Source { get; }
     protected abstract TimeSpan ProcessingInterval { get; }
@@ -45,6 +51,8 @@ public abstract class CveCatalogTimedHostedService<T>(
     protected override async Task ExecuteAsync(CancellationToken ctx)
     {
         logger.LogInformation("CVE enrichment {source} Timed Hosted Service started.", Source);
+
+        jobs.Register(new JobDefinition(JobName, JobName, RefreshInterval));
 
         // waits first - the startup is busy enough (watchers listing all the reports)
         while (!ctx.IsCancellationRequested)
@@ -129,6 +137,8 @@ public abstract class CveCatalogTimedHostedService<T>(
 
     private async Task<CveCatalogFetch<T>> FetchAsync(CveCatalogFetch<T>? previous, CancellationToken ctx)
     {
+        jobs.Started(JobName);
+
         CveProviderResult<T> result = await FetchCatalog(previous?.Entries is null ? null : previous.Validator, ctx);
         Timestamp now = Timestamp.Now();
 
@@ -143,6 +153,8 @@ public abstract class CveCatalogTimedHostedService<T>(
 
             logger.LogInformation("CVE enrichment {source} catalog fetched - {count} CVEs.", Source, entries.Count);
 
+            jobs.Succeeded(JobName, $"{entries.Count:N0} CVEs", Add(now, RefreshInterval).Value);
+
             return new CveCatalogFetch<T>(
                 CveSourceStatuses.Ok,
                 entries,
@@ -156,6 +168,8 @@ public abstract class CveCatalogTimedHostedService<T>(
         {
             logger.LogDebug("CVE enrichment {source} catalog not modified.", Source);
 
+            jobs.Succeeded(JobName, $"not modified, {previous.Entries.Count:N0} CVEs", Add(now, RefreshInterval).Value);
+
             return previous with
             {
                 Status = CveSourceStatuses.Ok,
@@ -168,6 +182,8 @@ public abstract class CveCatalogTimedHostedService<T>(
         // a NotModified without a cached catalog drops the validator, so the next try is a full fetch
         string errorMessage = result.ErrorMessage ?? $"Unexpected {result.Status} response";
         Timestamp nextFetchAt = Add(now, result.RetryAfter ?? ErrorTtl);
+
+        jobs.Failed(JobName, errorMessage, nextFetchAt.Value);
 
         logger.LogWarning(
             "Could not fetch CVE enrichment {source} catalog - {errorMessage}. Next try at {nextFetchAt}. " +

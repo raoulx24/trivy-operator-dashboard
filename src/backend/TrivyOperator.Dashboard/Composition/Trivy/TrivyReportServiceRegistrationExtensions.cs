@@ -13,6 +13,7 @@ using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Details.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.Shared.Details.Options;
 using TrivyOperator.Dashboard.Application.Shared.Details.Services;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.SbomDetails.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.Trivy.SecurityAssessmentDetails.Providers;
@@ -674,6 +675,7 @@ public static class TrivyReportServiceRegistrationExtensions
                 sp.GetRequiredService<IOptionsMonitor<DetailsOptions>>(),
                 sp.GetRequiredKeyedService<InMemoryDetailRepository<TDetail, TId>>(family),
                 [.. sp.GetKeyedServices<IDetailReferenceProvider<TId>>(family),],
+                sp.GetRequiredService<IJobStatusRegistry>(),
                 sp.GetRequiredService<ILogger<DetailsHousekeepingHostedService<TDetail, TId>>>()));
     }
     private static void AddReportMapper(this IServiceCollection services, Type reportType)

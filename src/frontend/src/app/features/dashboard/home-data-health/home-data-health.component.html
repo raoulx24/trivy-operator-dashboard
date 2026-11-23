@@ -112,19 +112,43 @@
             </div>
           </app-trivy-box>
 
-          <!-- the sources: the last fetch -->
-          <app-trivy-box>
-            <span boxTitle>Sources</span>
-            <div class="flex flex-col gap-1 text-sm">
-              @for (row of sources(); track row.source) {
-                <div class="flex items-center gap-2 h-5" [attr.title]="row.title">
-                  <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
-                  <span class="font-medium">{{ row.source }}</span>
-                  <span class="ml-auto shrink-0 whitespace-nowrap text-xs tod-text-muted-color">{{ row.detail }}</span>
-                </div>
-              }
-            </div>
-          </app-trivy-box>
+          <div class="flex flex-col gap-3 min-w-0">
+            <!-- the sources: the last fetch -->
+            <app-trivy-box>
+              <span boxTitle>Sources</span>
+              <div class="flex flex-col gap-1 text-sm">
+                @for (row of sources(); track row.source) {
+                  <div class="flex items-center gap-2 h-5" [attr.title]="row.title">
+                    <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
+                    <span class="font-medium">{{ row.source }}</span>
+                    <span class="ml-auto shrink-0 whitespace-nowrap text-xs tod-text-muted-color">{{ row.detail }}</span>
+                  </div>
+                }
+              </div>
+            </app-trivy-box>
+
+            <!-- the background jobs of the backend -->
+            <app-trivy-box class="grow">
+              <span boxTitle>Jobs</span>
+              <div class="flex flex-col gap-1 text-sm">
+                @for (row of jobs(); track row.name) {
+                  <div class="flex flex-col" [attr.title]="row.title">
+                    <div class="flex items-center gap-2 min-h-5">
+                      <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
+                      <span class="font-medium shrink-0">{{ row.name }}</span>
+                      <span class="min-w-0 flex-1 truncate text-xs tod-text-muted-color">{{ row.summary }}</span>
+                      <span class="shrink-0 whitespace-nowrap text-xs tod-text-muted-color">{{ row.when }}</span>
+                    </div>
+                    @if (row.error) {
+                      <span class="pl-4 text-xs tod-text-muted-color">{{ row.error }}</span>
+                    }
+                  </div>
+                } @empty {
+                  <span class="text-xs tod-text-muted-color">No job reported yet</span>
+                }
+              </div>
+            </app-trivy-box>
+          </div>
 
           <!-- the other services: the version, the GitHub releases, the history cleanup -->
           <app-trivy-box class="xl:col-span-2">

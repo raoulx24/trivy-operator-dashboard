@@ -71,6 +71,7 @@ namespace TrivyOperator.Dashboard.Api.Home.Serializations;
 [JsonSerializable(typeof(HomeWatcherIssueDto))]
 [JsonSerializable(typeof(HomeReportFreshnessDto))]
 [JsonSerializable(typeof(HomeSourceStatusDto))]
+[JsonSerializable(typeof(HomeJobStatusDto))]
 [JsonSerializable(typeof(HomeDataHealthDto))]
 [JsonSerializable(typeof(HomeComplianceReportDto))]
 [JsonSerializable(typeof(HomeComplianceDto))]

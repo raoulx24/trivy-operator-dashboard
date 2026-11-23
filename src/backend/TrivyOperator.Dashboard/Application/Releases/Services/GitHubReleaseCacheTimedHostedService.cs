@@ -3,6 +3,8 @@ using TrivyOperator.Dashboard.Application.AppVersions.Queries.Services;
 using TrivyOperator.Dashboard.Application.Releases.Abstractions;
 using TrivyOperator.Dashboard.Application.Releases.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Models;
 using TrivyOperator.Dashboard.Domain.Releases.Entities;
 using TrivyOperator.Dashboard.Domain.Releases.ValueObjects;
 
@@ -12,9 +14,12 @@ public sealed class GitHubReleaseCacheTimedHostedService(
     IReleaseProvider gitHubClient,
     IOptions<ReleaseOptions> options,
     ICache<ReleaseId, Release> cache,
+    IJobStatusRegistry jobs,
     ILogger<AppVersionsService> logger
 ) : IHostedService, IDisposable
 {
+    private const string JobName = "GitHub releases check";
+
     private readonly int timeFrameInMinutes = options.Value.CheckForUpdatesIntervalInMinutes;
     private bool disposed;
     private Task? executingTask;
@@ -33,7 +38,8 @@ public sealed class GitHubReleaseCacheTimedHostedService(
         logger.LogInformation("GitHub Release Cache Timed Hosted Service is starting.");
 
         stoppingCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timer = new Timer(Execute, null, TimeSpan.Zero, TimeSpan.FromMinutes(timeFrameInMinutes));
+        jobs.Register(new JobDefinition(JobName, JobName, TimeSpan.FromMinutes(timeFrameInMinutes)));
+        timer =new Timer(Execute, null, TimeSpan.Zero, TimeSpan.FromMinutes(timeFrameInMinutes));
 
         return Task.CompletedTask;
     }
@@ -84,8 +90,13 @@ public sealed class GitHubReleaseCacheTimedHostedService(
     private async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         if (!options.Value.ServerCheckForUpdates)
+        {
+            jobs.Skipped(JobName, "The check is off (GitHub:ServerCheckForUpdates)");
             return;
-        
+        }
+
+        jobs.Started(JobName);
+
         try
         {
             Release[]? releases = await gitHubClient.GitHubReleases(
@@ -95,6 +106,7 @@ public sealed class GitHubReleaseCacheTimedHostedService(
             if (releases is null)
             {
                 logger.LogWarning("Failed to fetch releases");
+                jobs.Failed(JobName, "Could not fetch the releases from GitHub");
                 return;
             }
 
@@ -118,9 +130,13 @@ public sealed class GitHubReleaseCacheTimedHostedService(
             {
                 cache.TryAdd(release.Id, release);
             }
+
+            jobs.Succeeded(JobName, $"{releases.Length} releases");
         }
         catch (Exception ex)
         {
+            jobs.Failed(JobName, ex.Message);
+
             logger.LogError(
                 ex,
                 "Error occurred while executing the timed hosted service - {exceptionMessage}",

@@ -521,12 +521,33 @@ public sealed record HomeSourceStatusDto(
     DateTime? LastFetchedAt,
     int ErrorCount);
 
+// a background (timed) job, as it last reported (in memory: after a restart every job is NotRun until its first run)
+// - State: NotRun, Running, Ok, Failed, Skipped (switched off by its options; not a failure)
+// - the jobs of a group (e.g. the details housekeeping of every report family) are one row: Members says how many, the
+//   state is the worst one, the times are the latest ones (LastSuccessAt: the oldest of the members, null when one has never
+//   succeeded), NextRunAt the earliest
+// - Summary: what the last run did ("12 removed", "1,234 CVEs") or why it was skipped; LastError the message of the last
+//   failed run
+public sealed record HomeJobStatusDto(
+    string Name,
+    string State,
+    int Members,
+    int IntervalSeconds,
+    DateTime? LastStartedAt,
+    DateTime? LastFinishedAt,
+    DateTime? LastSuccessAt,
+    DateTime? NextRunAt,
+    string? Summary,
+    string? LastError,
+    int ConsecutiveFailures);
+
 public sealed record HomeDataHealthDto(
     int WatchersTotal,
     int WatchersOk,
     IReadOnlyList<HomeWatcherIssueDto> WatcherIssues,
     IReadOnlyList<HomeReportFreshnessDto> Reports,
     IReadOnlyList<HomeSourceStatusDto> Sources,
+    IReadOnlyList<HomeJobStatusDto> Jobs,
     bool IsVrHistoryEnabled,
     DateTime? HistoryStartedAt,
     DateTime? FixTrackingStartedAt,

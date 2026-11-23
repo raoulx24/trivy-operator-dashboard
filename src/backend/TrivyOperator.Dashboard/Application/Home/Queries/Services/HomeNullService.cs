@@ -12,7 +12,7 @@ public class HomeNullService : QueryNullService, IHomeService
     private static readonly HomeTotalsDto EmptyTotals = new(0, 0, 0, 0, 0);
 
     public Task<HomeDataHealthDto> GetDataHealth(CancellationToken ctx = default) =>
-        Task.FromResult(new HomeDataHealthDto(0, 0, [], [], [], false, null, null, DateTime.UtcNow));
+        Task.FromResult(new HomeDataHealthDto(0, 0, [], [], [], [], false, null, null, DateTime.UtcNow));
 
     public Task<IReadOnlyList<string>> GetNamespaces(CancellationToken ctx = default) =>
         Task.FromResult<IReadOnlyList<string>>([]);

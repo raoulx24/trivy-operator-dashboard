@@ -31,6 +31,11 @@ public sealed class HomeReportSources
 
     public IResourceProvider<ClusterComplianceReport, Uid>? ClusterComplianceReports { get; init; }
 
+    // the sbom reports, only for their scan times (Data health): read with GetResourceSummaries, which does not decode the
+    // components (GetResources does, for every report)
+    public IResourceProvider<SbomReport, Digest>? SbomReports { get; init; }
+    public IResourceProvider<ClusterSbomReport, Uid>? ClusterSbomReports { get; init; }
+
     public bool HasExposedSecretReports => ExposedSecretReports is not null;
 
     public bool HasVulnerabilityReports => VulnerabilityReports is not null || ClusterVulnerabilityReports is not null;

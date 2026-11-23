@@ -4699,6 +4699,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HomeSourceStatusDto'
+        jobs:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeJobStatusDto'
         isVrHistoryEnabled:
           type: boolean
         historyStartedAt:
@@ -5144,6 +5148,45 @@ components:
           type: array
           items:
             type: string
+      additionalProperties: false
+    HomeJobStatusDto:
+      type: object
+      properties:
+        name:
+          type: string
+        state:
+          type: string
+        members:
+          type: integer
+          format: int32
+        intervalSeconds:
+          type: integer
+          format: int32
+        lastStartedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastFinishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastSuccessAt:
+          type: string
+          format: date-time
+          nullable: true
+        nextRunAt:
+          type: string
+          format: date-time
+          nullable: true
+        summary:
+          type: string
+          nullable: true
+        lastError:
+          type: string
+          nullable: true
+        consecutiveFailures:
+          type: integer
+          format: int32
       additionalProperties: false
     HomeKnownExploitedDetailDto:
       type: object

@@ -8,6 +8,7 @@ using TrivyOperator.Dashboard.Composition.History;
 using TrivyOperator.Dashboard.Composition.Home;
 using TrivyOperator.Dashboard.Composition.Kubernetes;
 using TrivyOperator.Dashboard.Composition.CveDetails;
+using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Composition.Trivy;
 using TrivyOperator.Dashboard.Composition.TrivyDependencies;
 using TrivyOperator.Dashboard.Composition.WatcherStates;
@@ -18,6 +19,7 @@ public static class TrivyOperatorDashboardServiceRegistrationExtensions
 {
     public static void AddTrivyOperatorDashboardServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddJobStatusServices();
         services.AddAlertsRelatedServices();
         services.AddBackendSettingsRelatedServices(configuration);
         services.AddGitHubRelatedServices(configuration);

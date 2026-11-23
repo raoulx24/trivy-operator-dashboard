@@ -4,6 +4,7 @@ using TrivyOperator.Dashboard.Application.CveEnrichment.Models;
 using TrivyOperator.Dashboard.Application.CveEnrichment.Options;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.CveSubjects.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Abstractions;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.Entities;
 using TrivyOperator.Dashboard.Domain.CveEnrichment.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.ValueObjects;
@@ -16,8 +17,9 @@ public sealed class KevTimedHostedService(
     ICveEnrichmentRefreshTrigger trigger,
     ICveSubjects subjects,
     ICache<CveId, CveInfo> infos,
+    IJobStatusRegistry jobs,
     ILogger<KevTimedHostedService> logger
-) : CveCatalogTimedHostedService<KevEntry>(trigger, subjects, infos, logger)
+) : CveCatalogTimedHostedService<KevEntry>(trigger, subjects, infos, jobs, logger)
 {
     protected override CveSource Source => CveSources.Kev;
     protected override TimeSpan ProcessingInterval => FromSeconds(options.CurrentValue.Kev.ProcessingIntervalInSeconds);

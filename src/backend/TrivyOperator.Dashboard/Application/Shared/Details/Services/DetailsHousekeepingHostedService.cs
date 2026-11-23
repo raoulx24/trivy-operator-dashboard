@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Details.Options;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
 using TrivyOperator.Dashboard.Domain.Shared.Details;
@@ -20,11 +22,14 @@ public sealed class DetailsHousekeepingHostedService<TDetail, TId>(
     IOptionsMonitor<DetailsOptions> options,
     IDetailRepository<TDetail, TId> details,
     IReadOnlyList<IDetailReferenceProvider<TId>> references,
+    IJobStatusRegistry jobs,
     ILogger<DetailsHousekeepingHostedService<TDetail, TId>> logger
 ) : BackgroundService
     where TDetail : IDetail<TId>
     where TId : notnull
 {
+    // one job per family, shown together as one row
+    private const string JobGroup = "Details housekeeping";
     public override async Task StopAsync(CancellationToken ctx)
     {
         logger.LogInformation("{family} details Housekeeping Hosted Service is stopping.", familyName);
@@ -35,6 +40,12 @@ public sealed class DetailsHousekeepingHostedService<TDetail, TId>(
     protected override async Task ExecuteAsync(CancellationToken ctx)
     {
         logger.LogInformation("{family} details Housekeeping Hosted Service started.", familyName);
+
+        jobs.Register(
+            new JobDefinition(
+                familyName,
+                JobGroup,
+                TimeSpan.FromSeconds(Math.Max(1, options.CurrentValue.HousekeepingIntervalInSeconds))));
 
         while (!ctx.IsCancellationRequested)
         {
@@ -63,6 +74,8 @@ public sealed class DetailsHousekeepingHostedService<TDetail, TId>(
                     "Error occurred while {family} details housekeeping - {exceptionMessage}",
                     familyName,
                     ex.Message);
+
+                jobs.Failed(familyName, ex.Message);
             }
         }
     }
@@ -73,8 +86,11 @@ public sealed class DetailsHousekeepingHostedService<TDetail, TId>(
 
         if (graceInHours <= 0)
         {
+            jobs.Skipped(familyName, "The removal is off (GraceInHours is 0)");
             return;
         }
+
+        jobs.Started(familyName);
 
         Timestamp cutoff = new(DateTime.UtcNow.AddHours(-graceInHours));
 
@@ -121,5 +137,7 @@ public sealed class DetailsHousekeepingHostedService<TDetail, TId>(
         {
             logger.LogDebug("{family} details housekeeping - {swept} details removed.", familyName, swept);
         }
+
+        jobs.Succeeded(familyName, swept > 0 ? $"{swept} removed" : "nothing to remove");
     }
 }

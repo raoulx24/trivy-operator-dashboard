@@ -11,6 +11,8 @@ using static TrivyOperator.Dashboard.Application.Home.Services.HomeNames;
 using TrivyOperator.Dashboard.Application.Kubernetes.Queries.WatcherStates.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.Queries.WatcherStates.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Models;
 using TrivyOperator.Dashboard.Application.Shared.Queries.Services;
 using TrivyOperator.Dashboard.Domain.EndOfLife.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
@@ -28,10 +30,12 @@ public class HomeService(
     ActiveVulnerabilityTableCache tableCache,
     ActiveVulnerabilityTableBuilder tableBuilder,
     HomeAssessmentReportsLoader assessmentReportsLoader,
+    HomeEnabledReports enabledReports,
     IVulnerabilityReportsHistoryService vulnerabilityReportsHistoryService,
     ICveEnrichmentService cveEnrichmentService,
     IEndOfLifeService endOfLifeService,
-    IWatcherStatusService watcherStatusService
+    IWatcherStatusService watcherStatusService,
+    IJobStatusRegistry jobStatusRegistry
 ) : QueryService, IHomeService
 {
     private const string NoVulnerabilityReports = "Vulnerability reports are not enabled";
@@ -54,23 +58,36 @@ public class HomeService(
         List<WatcherStatusDto> watcherIssues =
             [.. watchers.Where(x => !string.Equals(x.Status, nameof(WatcherStateStatus.Green), StringComparison.Ordinal)),];
 
+        // one row per enabled report type, also the one without a report yet (count 0, no scan); the ones that are turned off
+        // (EnabledTrivyReports) have none. The security assessments come from their loader, grouped by type
+        List<HomeAssessmentReport> assessments = enabledReports.Kinds.Any(IsAssessmentKind)
+            ? await assessmentReportsLoader.Load(ctx)
+            : [];
+
         List<HomeReportFreshnessDto> reports = [];
 
-        if (sources.VulnerabilityReports is not null)
+        foreach (string kind in enabledReports.Kinds)
         {
-            reports.Add(ToFreshness(nameof(VulnerabilityReport),
-                [.. (await sources.VulnerabilityReports.GetResources(ctx)).Select(x => x.LastSeenAt),]));
-        }
+            IReadOnlyList<Timestamp> lastSeen = kind switch
+            {
+                nameof(VulnerabilityReport) when sources.VulnerabilityReports is not null =>
+                    [.. (await sources.VulnerabilityReports.GetResources(ctx)).Select(x => x.LastSeenAt),],
+                nameof(ClusterVulnerabilityReport) when sources.ClusterVulnerabilityReports is not null =>
+                    [.. (await sources.ClusterVulnerabilityReports.GetResources(ctx)).Select(x => x.LastSeenAt),],
+                nameof(ExposedSecretReport) when sources.ExposedSecretReports is not null =>
+                    [.. (await sources.ExposedSecretReports.GetResources(ctx)).Select(x => x.LastSeenAt),],
+                nameof(ClusterComplianceReport) when sources.ClusterComplianceReports is not null =>
+                    [.. (await sources.ClusterComplianceReports.GetResources(ctx)).Select(x => x.LastSeenAt),],
+                // summaries: the sbom reports without their components (GetResources decodes them all)
+                nameof(SbomReport) when sources.SbomReports is not null =>
+                    [.. (await sources.SbomReports.GetResourceSummaries(ctx)).Select(x => x.LastSeenAt),],
+                nameof(ClusterSbomReport) when sources.ClusterSbomReports is not null =>
+                    [.. (await sources.ClusterSbomReports.GetResourceSummaries(ctx)).Select(x => x.LastSeenAt),],
+                _ when IsAssessmentKind(kind) => [.. assessments.Where(x => x.Kind == kind).Select(x => x.LastSeenAt),],
+                _ => [],
+            };
 
-        if (sources.ClusterVulnerabilityReports is not null)
-        {
-            reports.Add(ToFreshness(nameof(ClusterVulnerabilityReport),
-                [.. (await sources.ClusterVulnerabilityReports.GetResources(ctx)).Select(x => x.LastSeenAt),]));
-        }
-
-        foreach (IGrouping<string, HomeAssessmentReport> kind in (await assessmentReportsLoader.Load(ctx)).GroupBy(x => x.Kind))
-        {
-            reports.Add(ToFreshness(kind.Key, [.. kind.Select(x => x.LastSeenAt),]));
+            reports.Add(ToFreshness(kind, lastSeen));
         }
 
         List<HomeSourceStatusDto> sourceStatuses = [];
@@ -106,10 +123,50 @@ public class HomeService(
             ],
             Reports: reports,
             Sources: sourceStatuses,
+            Jobs:
+            [
+                .. jobStatusRegistry.GetAll()
+                    .GroupBy(x => x.Group, StringComparer.Ordinal)
+                    .OrderBy(x => x.Key, StringComparer.Ordinal)
+                    .Select(x => ToJobDto(x.Key, [.. x,])),
+            ],
             IsVrHistoryEnabled: vulnerabilityReportsHistoryService.IsEnabled,
             HistoryStartedAt: table?.HistoryStartedAt?.Value,
             FixTrackingStartedAt: table?.FixTrackingStartedAt?.Value,
             GeneratedAt: DateTime.UtcNow);
+    }
+
+    // the members of a group in one row: the worst state, the latest times
+    private static HomeJobStatusDto ToJobDto(string group, IReadOnlyList<JobStatus> members)
+    {
+        // the worst first: a failed job, then a running one, one that did not run yet, a skipped one, then ok
+        JobState state = members
+            .Select(x => x.State)
+            .OrderBy(x => x switch
+            {
+                JobState.Failed => 0,
+                JobState.Running => 1,
+                JobState.NotRun => 2,
+                JobState.Skipped => 3,
+                _ => 4,
+            })
+            .First();
+
+        JobStatus? failed = members.FirstOrDefault(x => x.State == JobState.Failed);
+        JobStatus first = members[0];
+
+        return new HomeJobStatusDto(
+            Name: group,
+            State: state.ToString(),
+            Members: members.Count,
+            IntervalSeconds: (int)members.Min(x => x.Interval).TotalSeconds,
+            LastStartedAt: members.Max(x => x.LastStartedAt),
+            LastFinishedAt: members.Max(x => x.LastFinishedAt),
+            LastSuccessAt: members.Any(x => x.LastSuccessAt is null) ? null : members.Min(x => x.LastSuccessAt),
+            NextRunAt: members.Min(x => x.NextRunAt),
+            Summary: members.Count == 1 ? first.Summary : $"{members.Count} jobs",
+            LastError: failed is null ? null : members.Count == 1 ? failed.LastError : $"{failed.Name}: {failed.LastError}",
+            ConsecutiveFailures: members.Max(x => x.ConsecutiveFailures));
     }
 
     public async Task<IReadOnlyList<string>> GetNamespaces(CancellationToken ctx = default)
@@ -134,6 +191,12 @@ public class HomeService(
 
         return [.. namespaces.Where(x => !x.IsClusterScoped).Select(x => x.Value).Order(StringComparer.Ordinal),];
     }
+
+    // the security assessment types (config audit, rbac, infra; namespaced and cluster scoped), the ones the loader gives
+    private static bool IsAssessmentKind(string kind) =>
+        kind is nameof(ConfigAuditReport) or nameof(ClusterConfigAuditReport)
+            or nameof(RbacAssessmentReport) or nameof(ClusterRbacAssessmentReport)
+            or nameof(InfraAssessmentReport) or nameof(ClusterInfraAssessmentReport);
 
     private static HomeReportFreshnessDto ToFreshness(string kind, IReadOnlyList<Timestamp> lastSeen) =>
         new(

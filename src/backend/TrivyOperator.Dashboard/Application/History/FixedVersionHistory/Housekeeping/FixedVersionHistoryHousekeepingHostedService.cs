@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Details.Options;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Abstractions;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Models;
 using TrivyOperator.Dashboard.Domain.History.FixedVersionHistory.Entities;
 using TrivyOperator.Dashboard.Domain.History.FixedVersionHistory.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
@@ -18,9 +20,12 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
     IOptionsMonitor<DetailsOptions> options,
     IFixedVersionHistoryStore store,
     IReadOnlyList<IDetailReferenceProvider<PackageVulnerabilityKey>> references,
+    IJobStatusRegistry jobs,
     ILogger<FixedVersionHistoryHousekeepingHostedService> logger
 ) : BackgroundService
 {
+    private const string JobName = "Fixed version history housekeeping";
+
     public override async Task StopAsync(CancellationToken ctx)
     {
         logger.LogInformation("Fixed version history Housekeeping Hosted Service is stopping.");
@@ -31,6 +36,12 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
     protected override async Task ExecuteAsync(CancellationToken ctx)
     {
         logger.LogInformation("Fixed version history Housekeeping Hosted Service started.");
+
+        jobs.Register(
+            new JobDefinition(
+                JobName,
+                JobName,
+                TimeSpan.FromSeconds(Math.Max(1, options.CurrentValue.HousekeepingIntervalInSeconds))));
 
         while (!ctx.IsCancellationRequested)
         {
@@ -58,6 +69,8 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
                     ex,
                     "Error occurred while fixed version history housekeeping - {exceptionMessage}",
                     ex.Message);
+
+                jobs.Failed(JobName, ex.Message);
             }
         }
     }
@@ -68,8 +81,11 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
 
         if (graceInHours <= 0)
         {
+            jobs.Skipped(JobName, "The removal is off (GraceInHours is 0)");
             return;
         }
+
+        jobs.Started(JobName);
 
         DateTime cutoff = DateTime.UtcNow.AddHours(-graceInHours);
 
@@ -107,5 +123,7 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
         {
             logger.LogDebug("Fixed version history housekeeping - {swept} pairs removed.", swept);
         }
+
+        jobs.Succeeded(JobName, swept > 0 ? $"{swept} removed" : "nothing to remove");
     }
 }

@@ -3,6 +3,7 @@ using TrivyOperator.Dashboard.Application.History.FixedVersionHistory.Housekeepi
 using TrivyOperator.Dashboard.Application.History.FixedVersionHistory.KubernetesEventProcessors;
 using TrivyOperator.Dashboard.Application.Shared.Details.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Details.Options;
+using TrivyOperator.Dashboard.Application.Shared.Jobs.Abstractions;
 using TrivyOperator.Dashboard.Composition.Trivy;
 using TrivyOperator.Dashboard.Domain.History.FixedVersionHistory.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
@@ -143,6 +144,7 @@ public static class HistoryServiceRegistrationExtensions
                 sp.GetRequiredService<IOptionsMonitor<DetailsOptions>>(),
                 sp.GetRequiredService<IFixedVersionHistoryStore>(),
                 [.. sp.GetKeyedServices<IDetailReferenceProvider<PackageVulnerabilityKey>>(DetailFamilies.Vulnerability),],
+                sp.GetRequiredService<IJobStatusRegistry>(),
                 sp.GetRequiredService<ILogger<FixedVersionHistoryHousekeepingHostedService>>()));
     }
 

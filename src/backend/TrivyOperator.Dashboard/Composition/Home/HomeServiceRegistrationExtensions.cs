@@ -56,11 +56,15 @@ public static class HomeServiceRegistrationExtensions
             ClusterInfraAssessmentReports = sp.GetService<IResourceProvider<ClusterInfraAssessmentReport, Uid>>(),
             ExposedSecretReports = sp.GetService<IResourceProvider<ExposedSecretReport, Digest>>(),
             ClusterComplianceReports = sp.GetService<IResourceProvider<ClusterComplianceReport, Uid>>(),
+            SbomReports = sp.GetService<IResourceProvider<SbomReport, Digest>>(),
+            ClusterSbomReports = sp.GetService<IResourceProvider<ClusterSbomReport, Uid>>(),
         });
 
         services.AddSingleton<ActiveVulnerabilityTableCache>();
         services.AddScoped<ActiveVulnerabilityTableBuilder>();
         services.AddSingleton<HomeAssessmentReportsLoader>();
+        // scoped: the query services it reads are
+        services.AddScoped<HomeEnabledReports>();
 
         services.AddScoped<IHomeService, HomeService>();
         services.AddScoped<IHomeSearchService, HomeSearchService>();

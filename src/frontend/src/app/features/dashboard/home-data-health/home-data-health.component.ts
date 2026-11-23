@@ -27,6 +27,17 @@ interface ReportRow {
   title: string;
 }
 
+// a background job of the backend (history retention, the housekeeping, the GitHub check, the KEV / EUVD download);
+// level: warn = the last run failed (the error is shown), off = not run yet or skipped (switched off by its options)
+interface JobRow {
+  name: string;
+  level: Level;
+  summary: string;
+  when: string;
+  error: string | null;
+  title: string;
+}
+
 interface SourceRow {
   source: string;
   level: Level;
@@ -66,7 +77,7 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
   protected readonly help: HomeWidgetHelp = {
     question: `<strong>Can the other widgets be trusted?</strong> What this page shows is only as good as its data: are the watchers up and the sources on?`,
     oddities: [
-      `The ring is the share of the watchers that are green. <strong>To look at</strong> counts the watchers that are not green and the sources with errors.`,
+      `The ring is the share of the watchers that are green. <strong>To look at</strong> counts the watchers that are not green, the sources with errors and the jobs whose last run failed.`,
       `<strong>Sources</strong> (KEV, EPSS, EUVD, EOL): green when enabled without errors, amber with errors, grey when not enabled.`,
       `History and fix tracking exist only since the day they started: what is older cannot be told (e.g. when a fix appeared).`,
       `A newer release of the dashboard on GitHub is shown as a pill, "New version available" (the same check as the About page); a running version newer than the latest release as "Experimental build". Information only, not counted in "to look at".`,
@@ -75,7 +86,8 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
       `Per report kind the count and the first and last scan. An old last scan is not a problem by itself: a report is rescanned when something changes (the rbac of a cluster can stay the same for months).`,
       `Per source the newest fetch seen in the entries (the status of the feed itself is not kept) and the entries with an error.`,
       `A watcher that is not green is listed with what to do about it.`,
-      `<strong>Services</strong>: the version you run against the newest GitHub release, the releases the backend cached, and how long the history is kept (the backend does not report when its cleanup or its GitHub check last ran).`,
+      `<strong>Services</strong>: the version you run against the newest GitHub release, the releases the backend cached, and how long the history is kept.`,
+      `<strong>Jobs</strong>: the background jobs of the backend (history retention, the housekeeping of the details, the GitHub check, the KEV and EUVD downloads) with what the last run did, when it was and when the next one is. A job whose last run failed is amber, with the error (it counts in "to look at"); grey is not run yet (some wait a full interval before the first run) or switched off by its settings. The state is kept in memory: after a restart every job starts as not run.`,
     ],
   };
 
@@ -144,8 +156,8 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
   });
 
   protected readonly reports = computed<ReportRow[]>(() =>
-    // by name, so the order does not change with the data (the namespaced and the cluster kind of a report stay together)
-    [...(this.dto()?.reports ?? [])].sort((a, b) => a.kind.localeCompare(b.kind)).map((x) => ({
+    // ascending by the name shown, so the order does not change with the data
+    [...(this.dto()?.reports ?? [])].sort((a, b) => this.compareKinds(a.kind, b.kind)).map((x) => ({
       kind: this.kindLabel(x.kind),
       count: x.count,
       oldest: this.dayAgo(x.oldestScanAt),
@@ -174,14 +186,55 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
     }),
   );
 
+  protected readonly jobs = computed<JobRow[]>(() =>
+    (this.dto()?.jobs ?? []).map((x) => {
+      const level: Level = x.state === 'Failed' ? 'warn' : x.state === 'NotRun' || x.state === 'Skipped' ? 'off' : 'ok';
+      const lastOk = x.lastSuccessAt ? `last ok ${this.ago(x.lastSuccessAt)}` : 'never succeeded';
+
+      let when: string;
+      switch (x.state) {
+        case 'Failed':
+          when = `failed ${x.lastFinishedAt ? this.ago(x.lastFinishedAt) : ''}`.trim();
+          break;
+        case 'Running':
+          when = 'running';
+          break;
+        case 'NotRun':
+          when = x.nextRunAt ? `first run ${this.until(x.nextRunAt)}` : 'not run yet';
+          break;
+        case 'Skipped':
+          when = 'skipped';
+          break;
+        default:
+          when = x.lastFinishedAt ? this.ago(x.lastFinishedAt) : '';
+      }
+
+      return {
+        name: x.name,
+        level,
+        summary: x.state === 'Failed' ? '' : (x.summary ?? ''),
+        when,
+        error: x.state === 'Failed' ? (x.lastError ?? 'unknown error') : null,
+        title:
+          `${x.name}${x.members > 1 ? ` (${x.members} jobs)` : ''}: ${x.state}, last run ${this.stamp(x.lastFinishedAt)}, ${lastOk}` +
+          (x.nextRunAt ? `, next ${this.stamp(x.nextRunAt)}` : '') +
+          (x.consecutiveFailures > 0 ? `, ${x.consecutiveFailures} failures in a row` : ''),
+      };
+    }),
+  );
+
   protected readonly offSources = computed(() => this.sources().filter((x) => x.level === 'off').length);
 
   protected readonly issues = computed(() => (this.dto()?.watcherIssues ?? []).slice(0, HomeDataHealthComponent.maxIssues));
   protected readonly hiddenIssues = computed(() => Math.max(0, (this.dto()?.watcherIssues.length ?? 0) - this.issues().length));
 
-  // what needs a look: watchers that are not green, sources with errors (the age of a scan is not judged)
+  // what needs a look: watchers that are not green, sources with errors, jobs whose last run failed (the age of a scan is not
+  // judged)
   protected readonly attention = computed(
-    () => (this.dto()?.watcherIssues.length ?? 0) + this.sources().filter((x) => x.level === 'warn').length,
+    () =>
+      (this.dto()?.watcherIssues.length ?? 0) +
+      this.sources().filter((x) => x.level === 'warn').length +
+      this.jobs().filter((x) => x.level === 'warn').length,
   );
 
   protected readonly historyDays = computed(() => this.daysSince(this.dto()?.historyStartedAt));
@@ -220,6 +273,21 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
     return value ? value.substring(0, 16).replace('T', ' ') + ' UTC' : 'n/a';
   }
 
+  // "in 5m", "in 3h", "in 2d"; "soon" when it is due
+  private until(value: string): string {
+    const left = new Date(value).getTime() - this.now();
+    if (left < 60_000) {
+      return 'soon';
+    }
+    if (left < HomeDataHealthComponent.hourMs) {
+      return `in ${Math.round(left / 60_000)}m`;
+    }
+    if (left < HomeDataHealthComponent.dayMs) {
+      return `in ${Math.round(left / HomeDataHealthComponent.hourMs)}h`;
+    }
+    return `in ${Math.round(left / HomeDataHealthComponent.dayMs)}d`;
+  }
+
   // "2026-11-22 · 5m ago"
   private dayAgo(value?: string | null): string {
     return value ? `${this.day(value)} · ${this.ago(value)}` : 'n/a';
@@ -240,12 +308,34 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
     return value ? Math.max(0, Math.floor((this.now() - new Date(value).getTime()) / HomeDataHealthComponent.dayMs)) : undefined;
   }
 
-  // VulnerabilityReport -> "Vulnerability", ConfigAuditReport -> "Config audit"
+  // the type name of the report as the page calls it (the wording of the nav menu); a type that is not here (a new one) gets
+  // its name split into words: NewThingReport -> "New Thing"
+  private static readonly kindLabels: Record<string, string> = {
+    VulnerabilityReport: 'Vulnerabilities',
+    SbomReport: 'SBOMs',
+    ConfigAuditReport: 'Config Audits',
+    ExposedSecretReport: 'Exposed Secrets',
+    RbacAssessmentReport: 'RBAC Assessments',
+    InfraAssessmentReport: 'Infra Assessments',
+    ClusterVulnerabilityReport: 'Cluster Vulnerabilities',
+    ClusterSbomReport: 'Cluster SBOMs',
+    ClusterRbacAssessmentReport: 'Cluster RBAC Assessments',
+    ClusterComplianceReport: 'Cluster Compliance',
+    ClusterConfigAuditReport: 'Cluster Config Audits',
+    ClusterInfraAssessmentReport: 'Cluster Infra Assessments',
+  };
+
   private kindLabel(kind: string): string {
-    const words = kind
-      .replace(/Report$/, '')
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .toLowerCase();
-    return words.charAt(0).toUpperCase() + words.slice(1);
+    return (
+      HomeDataHealthComponent.kindLabels[kind] ??
+      kind
+        .replace(/Report$/, '')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+    );
+  }
+
+  // ascending by the label as shown
+  private compareKinds(a: string, b: string): number {
+    return this.kindLabel(a).localeCompare(this.kindLabel(b));
   }
 }
