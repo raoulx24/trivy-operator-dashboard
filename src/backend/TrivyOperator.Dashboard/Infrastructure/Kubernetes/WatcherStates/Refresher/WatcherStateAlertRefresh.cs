@@ -17,7 +17,7 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
     where TResource : class, IEntity<TKey>
 {
     private const string AlertEmitter = "Watcher";
-    private static readonly HashSet<ResourceLocation> ActiveAlerts = [];
+    private static readonly HashSet<WatcherScope> ActiveAlerts = [];
 
     public async Task ProcessEvent(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx = default)
     {
@@ -56,19 +56,19 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
 
     private async ValueTask AddAlert(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx = default)
     {
-        if (ActiveAlerts.Contains(kubernetesEvent.Key))
+        if (ActiveAlerts.Contains(kubernetesEvent.Scope))
         {
             return;
         }
 
-        ActiveAlerts.Add(kubernetesEvent.Key);
+        ActiveAlerts.Add(kubernetesEvent.Scope);
 
         await alertPublisher.AddAlert(
             AlertEmitter,
             new Alert
             {
                 Key = GetCacheKey(kubernetesEvent),
-                Message = $"Watcher for {typeof(TResource).Name}, context {kubernetesEvent.Key.ContextName} and {kubernetesEvent.Key.NamespaceName} failed ({kubernetesEvent.Failure?.Category}).",
+                Message = $"Watcher for {typeof(TResource).Name}, context {kubernetesEvent.Scope.ContextName} and {kubernetesEvent.Scope.NamespaceName} failed ({kubernetesEvent.Failure?.Category}).",
                 Severity = Severity.Error,
                 Category = "Watcher Failed",
             },
@@ -81,9 +81,9 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
         CancellationToken cancellationToken
     )
     {
-        if (ActiveAlerts.Contains(kubernetesEvent.Key))
+        if (ActiveAlerts.Contains(kubernetesEvent.Scope))
         {
-            ActiveAlerts.Remove(kubernetesEvent.Key);
+            ActiveAlerts.Remove(kubernetesEvent.Scope);
 
             await alertPublisher.RemoveAlert(
                 AlertEmitter,
@@ -98,5 +98,5 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
     
     // TODO: change this to IReadOnlyList<string> and create a IEqual for it
     private static EmitterKey GetCacheKey(KubernetesEvent<TResource, TKey> kubernetesEvent) =>
-        new([typeof(TResource).Name, kubernetesEvent.Key.ContextName.Value, kubernetesEvent.Key.NamespaceName.Value,]);
+        new([typeof(TResource).Name, kubernetesEvent.Scope.ContextName.Value, kubernetesEvent.Scope.NamespaceName.Value,]);
 }

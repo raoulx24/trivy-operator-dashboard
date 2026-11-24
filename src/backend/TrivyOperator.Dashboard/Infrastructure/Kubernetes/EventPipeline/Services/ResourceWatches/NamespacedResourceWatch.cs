@@ -13,26 +13,26 @@ public sealed class NamespacedResourceWatch<TKubernetesObjectList, TKubernetesOb
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
     public Task<ResourcePage<TKubernetesObject>> GetInitialResources(
-        ResourceLocation key,
+        WatcherScope scope,
         string? continueToken,
         int pageSize,
         CancellationToken cancellationToken = default
     ) =>
         resourceService.GetResourcePage(
-            key.NamespaceName.Value,
+            scope.NamespaceName.Value,
             pageSize,
             continueToken,
             cancellationToken
         );
 
     public IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetWatchList(
-        ResourceLocation key,
+        WatcherScope scope,
         string? resourceVersion,
         int timeoutSeconds,
         CancellationToken cancellationToken = default
     ) =>
         resourceService.GetResourceWatchList(
-            key.NamespaceName.Value,
+            scope.NamespaceName.Value,
             resourceVersion,
             timeoutSeconds,
             cancellationToken

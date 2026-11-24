@@ -14,15 +14,13 @@ public sealed class EventPipelineHostedService(
         logger.LogInformation("Event Pipeline Hosted Service stopped.");
     }
 
-    protected override Task ExecuteAsync(CancellationToken ctx)
+    protected override async Task ExecuteAsync(CancellationToken ctx)
     {
         logger.LogInformation("Event Pipeline Hosted Service started.");
 
         foreach (IEventPipelineStarter service in services)
         {
-            service.StartPipeline(ctx);
+            await service.StartPipeline(ctx);
         }
-
-        return Task.CompletedTask;
     }
 }

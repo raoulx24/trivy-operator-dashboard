@@ -13,7 +13,7 @@ public sealed class ClusterScopedResourceWatch<TKubernetesObjectList, TKubernete
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
     public Task<ResourcePage<TKubernetesObject>> GetInitialResources(
-        ResourceLocation key,
+        WatcherScope scope,
         string? continueToken,
         int pageSize,
         CancellationToken cancellationToken = default
@@ -25,7 +25,7 @@ public sealed class ClusterScopedResourceWatch<TKubernetesObjectList, TKubernete
         );
 
     public IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetWatchList(
-        ResourceLocation key,
+        WatcherScope scope,
         string? resourceVersion,
         int timeoutSeconds,
         CancellationToken cancellationToken = default

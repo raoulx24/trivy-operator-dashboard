@@ -51,7 +51,7 @@ public class WatcherStatusService(
             clusterScopedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType)
             ?? (IKubernetesWatcherRegistry?)namespacedWatchers.FirstOrDefault(x => x.WatchedKubernetesObjectType == watchedKubernetesType);
 
-        ResourceLocation resourceLocation = new(
+        WatcherScope scope = new(
             new ContextName(contextName),
             new NamespaceName(namespaceName));
         
@@ -60,17 +60,17 @@ public class WatcherStatusService(
             return new OperationResult
             {
                 Success = false,
-                Message = $"No watcher found for {kubernetesObjectType} in {resourceLocation}.",
+                Message = $"No watcher found for {kubernetesObjectType} in {scope}.",
             };
         }
         
-        await watcherRegistry.RecreateWatcher(resourceLocation, ctx);
+        await watcherRegistry.RecreateWatcher(scope, ctx);
 
         return new OperationResult
         {
             Success = true,
             Message =
-                $"Watcher for {kubernetesObjectType} in {resourceLocation} has been recreated.",
+                $"Watcher for {kubernetesObjectType} in {scope} has been recreated.",
         };
 
     }

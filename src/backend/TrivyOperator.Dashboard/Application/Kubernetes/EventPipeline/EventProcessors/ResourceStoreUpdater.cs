@@ -60,7 +60,7 @@ public class ResourceStoreUpdater<TResource, TKey> (
         {
             logger.LogWarning(
                 "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
-                kubernetesEvent.Key,
+                kubernetesEvent.Location,
                 typeof(TResource).Name
             );
             return;
@@ -78,7 +78,7 @@ public class ResourceStoreUpdater<TResource, TKey> (
         {
             logger.LogWarning(
                 "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
-                kubernetesEvent.Key,
+                kubernetesEvent.Location,
                 typeof(TResource).Name
             );
             return;
@@ -89,13 +89,13 @@ public class ResourceStoreUpdater<TResource, TKey> (
     
     private async Task ProcessFlushedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx)
     {
-        await resourceStore.ClearByNamespace(kubernetesEvent.Key.NamespaceName, ctx);
+        await resourceStore.ClearByNamespace(kubernetesEvent.Location.NamespaceName, ctx);
     }
     
     private void ProcessInitEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
         logger.LogDebug("ProcessInitEvent - for {watcherKey} - {kubernetesObjectType}. Nothing to do",
-            kubernetesEvent.Key,
+            kubernetesEvent.Location,
             typeof(TResource).Name);
     }
 }

@@ -23,10 +23,10 @@ public sealed class KubernetesWatchSessionFactory<TKubernetesObjectList, TKubern
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
     public KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject> Create(
-        ResourceLocation key
+        WatcherScope scope
     ) =>
         new(
-            key,
+            scope,
             resourceWatch,
             eventPublisher,
             throttle,

@@ -8,8 +8,9 @@ namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Servic
 
 public class ClusterScopedWatcherRegistry<TKubernetesObjectList, TKubernetesObject, TResource, TKey>(
     IKubernetesWatchSessionFactory<TKubernetesObjectList, TKubernetesObject> sessionFactory,
+    IHostApplicationLifetime applicationLifetime,
     ILogger<ClusterScopedWatcherRegistry<TKubernetesObjectList, TKubernetesObject, TResource, TKey>> logger
-) : KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>(sessionFactory, logger),
+) : KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>(sessionFactory, applicationLifetime, logger),
     IClusterScopedWatcherRegistry<TResource, TKey>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>

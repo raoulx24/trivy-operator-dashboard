@@ -1,4 +1,4 @@
-﻿using k8s;
+using k8s;
 using k8s.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
@@ -19,7 +19,7 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
     where TResource : class, IEntity<TKey>
 {
     public async Task Publish(
-        ResourceLocation key,
+        WatcherScope scope,
         PipelineEventType eventType,
         CancellationToken ctx,
         TKubernetesObject? kubernetesObject = null,
@@ -28,11 +28,11 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
     )
     {
         logger.LogDebug(
-            "Sending to Queue - {kubernetesObjectType} - {watcherEventType} - {key} - {kubernetesObjectName}",
+            "Sending to Queue - {kubernetesObjectType} - {watcherEventType} - {scope} - {kubernetesObjectName}",
             typeof(TKubernetesObject).Name,
             eventType,
-            key,
-            kubernetesObject?.Metadata?.Name ?? "N/A"
+            scope,
+            kubernetesObject?.Metadata?.Name ?? malformed?.Name ?? "N/A"
         );
 
         TResource? resource = null;
@@ -47,7 +47,8 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
         try
         {
             KubernetesEvent<TResource, TKey> kubernetesEvent = new(
-                Key: key,
+                Scope: scope,
+                Location: GetLocation(scope, kubernetesObject, malformed),
                 PipelineEventType: eventType,
                 Resource: resource,
                 ResourceId: resourceId,
@@ -61,12 +62,32 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
         {
             logger.LogError(
                 ex,
-                "Watcher for {kubernetesObjectType} and key {key} could not enqueue {watcherEventType} - {exceptionMessage}",
+                "Watcher for {kubernetesObjectType} and scope {scope} could not enqueue {watcherEventType} - {exceptionMessage}",
                 typeof(TKubernetesObject).Name,
-                key,
+                scope,
                 eventType,
                 ex.Message
             );
         }
+    }
+
+    // where the resource lives: the namespace of the object (none for cluster scoped kinds);
+    // events without an object (Initialized, Flushed, Error, Throttled) are located at the scope itself
+    private static ResourceLocation GetLocation(
+        WatcherScope scope,
+        TKubernetesObject? kubernetesObject,
+        MalformedObject? malformed)
+    {
+        if (kubernetesObject is not null)
+        {
+            return new ResourceLocation(scope.ContextName, new NamespaceName(kubernetesObject.Metadata?.NamespaceProperty));
+        }
+
+        if (malformed is not null)
+        {
+            return new ResourceLocation(scope.ContextName, new NamespaceName(malformed.Namespace));
+        }
+
+        return scope.ToResourceLocation();
     }
 }

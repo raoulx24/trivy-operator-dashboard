@@ -4,5 +4,5 @@ namespace TrivyOperator.Dashboard.Application.Kubernetes.WatcherRegistries.Abstr
 
 public interface INamespacedWatcherRegistry : IKubernetesWatcherRegistry
 {
-    Task Reconcile(IReadOnlyCollection<ResourceLocation> desiredKeys, CancellationToken ctx = default);
+    Task Reconcile(IReadOnlyCollection<WatcherScope> desiredScopes, CancellationToken ctx = default);
 }

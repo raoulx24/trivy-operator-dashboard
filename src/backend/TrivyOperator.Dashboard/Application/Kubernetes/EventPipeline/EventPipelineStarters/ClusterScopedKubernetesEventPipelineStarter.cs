@@ -16,15 +16,15 @@ public class ClusterScopedKubernetesEventPipelineStarter<TResource, TKey>(
 ) : KubernetesEventPipelineStarter<TResource, TKey>(kubernetesEventDispatcher, queue, logger)
     where TResource : class, IEntity<TKey>
 {
-    public override void StartPipeline(CancellationToken ctx = default)
+    public override async Task StartPipeline(CancellationToken ctx = default)
     {
         if (!contextResolver.TryGetCurrentContext(out ContextName contextName))
         {
             contextName = new ContextName();
         }
 
-        ResourceLocation resourceLocation = new(contextName, new NamespaceName());
-        base.StartPipeline(ctx);
-        clusterScopedWatcherRegistry.StartWatcher(resourceLocation, ctx);    
+        WatcherScope scope = new(contextName, new NamespaceName());
+        await base.StartPipeline(ctx);
+        await clusterScopedWatcherRegistry.StartWatcher(scope, ctx);
     }
 }

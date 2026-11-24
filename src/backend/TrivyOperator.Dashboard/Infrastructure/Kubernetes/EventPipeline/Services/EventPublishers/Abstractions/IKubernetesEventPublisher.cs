@@ -10,7 +10,7 @@ public interface IKubernetesEventPublisher<in TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
 {
     Task Publish(
-        ResourceLocation key,
+        WatcherScope scope,
         PipelineEventType eventType,
         CancellationToken ctx,
         TKubernetesObject? kubernetesObject = null,

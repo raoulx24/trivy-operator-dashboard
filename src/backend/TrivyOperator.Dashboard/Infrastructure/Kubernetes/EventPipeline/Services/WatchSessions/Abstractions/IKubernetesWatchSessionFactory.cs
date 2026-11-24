@@ -8,5 +8,5 @@ public interface IKubernetesWatchSessionFactory<TKubernetesObjectList, TKubernet
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject> Create(ResourceLocation key);
+    KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject> Create(WatcherScope scope);
 }

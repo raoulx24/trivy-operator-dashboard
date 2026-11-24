@@ -4,11 +4,11 @@ namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Intern
 
 public class WatcherEventsGauge
 {
-    private readonly Dictionary<ResourceLocation, int> data = [];
+    private readonly Dictionary<WatcherScope, int> data = [];
 
-    public void SetValue(ResourceLocation key, int value) => data[key] = value;
+    public void SetValue(WatcherScope key, int value) => data[key] = value;
 
-    public void OffsetValue(ResourceLocation key, int offset)
+    public void OffsetValue(WatcherScope key, int offset)
     {
         if (offset == 0)
         {
@@ -21,9 +21,9 @@ public class WatcherEventsGauge
         }
     }
 
-    public bool RemoveKey(ResourceLocation key) => data.Remove(key);
+    public bool RemoveKey(WatcherScope key) => data.Remove(key);
 
-    public int? GetValue(ResourceLocation key) => data.TryGetValue(key, out int value) ? value : null;
+    public int? GetValue(WatcherScope key) => data.TryGetValue(key, out int value) ? value : null;
 
     public void Clear() => data.Clear();
 }

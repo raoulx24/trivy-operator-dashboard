@@ -4,4 +4,4 @@ namespace TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
 
 public readonly record struct WatcherId(
     Type WatchedKubernetesObjectType,
-    ResourceLocation Location);
+    WatcherScope Scope);

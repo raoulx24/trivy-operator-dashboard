@@ -16,7 +16,8 @@ public sealed class SlimProjectionProcessor<TReport, TSlim, TKey>(
     public Task ProcessEvent(KubernetesEvent<TReport, TKey> kubernetesEvent, CancellationToken ctx = default)
     {
         KubernetesEvent<TSlim, TKey> projected = new(
-            kubernetesEvent.Key,
+            kubernetesEvent.Scope,
+            kubernetesEvent.Location,
             kubernetesEvent.PipelineEventType,
             kubernetesEvent.Resource?.ToSlim(),
             kubernetesEvent.ResourceId,

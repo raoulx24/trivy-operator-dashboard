@@ -8,68 +8,126 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.W
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatcherRegistries;
 
+// start, stop and recreate of one scope run one at a time (a lock per scope); different scopes run in parallel
+// a stop keeps the lock until the session has ended and its Flushed is queued, so the old session's events always
+// reach the (single consumer, in order) pipeline before the events of a session started afterwards
+// the locks are never removed: one small object per scope ever seen
+// sessions live until they are stopped or the application stops; the callers' tokens (an HTTP request, a hosted
+// service run) only bound the wait for the lock: once a stop has started, it completes (including its Flushed)
+// unless the application is stopping, so a cancelled caller cannot leave a stopped session's data behind
 public class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>(
     IKubernetesWatchSessionFactory<TKubernetesObjectList, TKubernetesObject> sessionFactory,
+    IHostApplicationLifetime applicationLifetime,
     ILogger<KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>> logger
 ) : IKubernetesWatcherRegistry
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
     protected readonly ConcurrentDictionary<
-        ResourceLocation,
+        WatcherScope,
         KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>
     > Sessions = [];
-    
-    public void StartWatcher(ResourceLocation key, CancellationToken ctx = default)
+
+    private readonly ConcurrentDictionary<WatcherScope, SemaphoreSlim> scopeLocks = [];
+
+    public async Task StartWatcher(WatcherScope scope, CancellationToken ctx = default)
     {
-        if (Sessions.ContainsKey(key))
+        SemaphoreSlim scopeLock = GetScopeLock(scope);
+        await scopeLock.WaitAsync(ctx);
+
+        try
         {
-            logger.LogWarning(
-                "Watcher for {kubernetesObjectType} and key {key} already exists. Ignoring start request.",
-                typeof(TKubernetesObject).Name,
-                key
-            );
-
-            return;
+            StartWatcherUnlocked(scope);
         }
-
-        KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject> session = sessionFactory.Create(key);
-
-        if (!Sessions.TryAdd(key, session))
+        finally
         {
-            logger.LogWarning(
-                "Watcher for {kubernetesObjectType} and key {key} already exists. Ignoring start request.",
-                typeof(TKubernetesObject).Name,
-                key
-            );
-
-            session.Dispose();
-            return;
+            scopeLock.Release();
         }
-
-        logger.LogInformation(
-            "Starting watcher for {kubernetesObjectType} and key {key}.",
-            typeof(TKubernetesObject).Name,
-            key
-        );
-
-        session.Start(ctx);
     }
 
-    public async Task StopWatcher(ResourceLocation key, CancellationToken ctx = default)
+    public async Task StopWatcher(WatcherScope scope, CancellationToken ctx = default)
     {
-        logger.LogInformation(
-            "Stopping watcher for {kubernetesObjectType} and key {key}.",
+        SemaphoreSlim scopeLock = GetScopeLock(scope);
+        await scopeLock.WaitAsync(ctx);
+
+        try
+        {
+            await StopWatcherUnlocked(scope);
+        }
+        finally
+        {
+            scopeLock.Release();
+        }
+    }
+
+    public async Task RecreateWatcher(WatcherScope scope, CancellationToken ctx = default)
+    {
+        logger.LogWarning(
+            "Recreating watcher for {kubernetesObjectType} and scope {scope}.",
             typeof(TKubernetesObject).Name,
-            key
+            scope
         );
 
-        if (!Sessions.TryRemove(key, out KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>? session))
+        SemaphoreSlim scopeLock = GetScopeLock(scope);
+        await scopeLock.WaitAsync(ctx);
+
+        try
+        {
+            await StopWatcherUnlocked(scope);
+            StartWatcherUnlocked(scope);
+        }
+        finally
+        {
+            scopeLock.Release();
+        }
+    }
+
+    public Type WatchedKubernetesObjectType => typeof(TKubernetesObject);
+
+    private SemaphoreSlim GetScopeLock(WatcherScope scope) =>
+        scopeLocks.GetOrAdd(scope, static _ => new SemaphoreSlim(1, 1));
+
+    private void StartWatcherUnlocked(WatcherScope scope)
+    {
+        if (Sessions.ContainsKey(scope))
         {
             logger.LogWarning(
-                "Watcher for {kubernetesObjectType} and key {key} not found. Ignoring stop request.",
+                "Watcher for {kubernetesObjectType} and scope {scope} already exists. Ignoring start request.",
                 typeof(TKubernetesObject).Name,
-                key
+                scope
+            );
+
+            return;
+        }
+
+        KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject> session = sessionFactory.Create(scope);
+
+        // only this method adds, under the scope lock, so the add cannot collide
+        Sessions[scope] = session;
+
+        logger.LogInformation(
+            "Starting watcher for {kubernetesObjectType} and scope {scope}.",
+            typeof(TKubernetesObject).Name,
+            scope
+        );
+
+        session.Start(applicationLifetime.ApplicationStopping);
+    }
+
+    private async Task StopWatcherUnlocked(WatcherScope scope)
+    {
+        logger.LogInformation(
+            "Stopping watcher for {kubernetesObjectType} and scope {scope}.",
+            typeof(TKubernetesObject).Name,
+            scope
+        );
+
+        if (!Sessions.TryRemove(scope, out KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>? session))
+        {
+            logger.LogWarning(
+                "Watcher for {kubernetesObjectType} and scope {scope} not found. Ignoring stop request.",
+                typeof(TKubernetesObject).Name,
+                scope
             );
 
             return;
@@ -77,25 +135,11 @@ public class KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>
 
         try
         {
-            await session.Stop(ctx);
+            await session.Stop(applicationLifetime.ApplicationStopping);
         }
         finally
         {
             session.Dispose();
         }
     }
-
-    public async Task RecreateWatcher(ResourceLocation key, CancellationToken ctx = default)
-    {
-        logger.LogWarning(
-            "Recreating watcher for {kubernetesObjectType} and key {key}.",
-            typeof(TKubernetesObject).Name,
-            key
-        );
-
-        await StopWatcher(key, ctx);
-        StartWatcher(key, ctx);
-    }
-
-    public Type WatchedKubernetesObjectType => typeof(TKubernetesObject);
 }

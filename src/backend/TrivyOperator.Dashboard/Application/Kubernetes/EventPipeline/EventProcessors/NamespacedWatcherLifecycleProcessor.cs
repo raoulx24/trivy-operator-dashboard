@@ -23,7 +23,7 @@ public class NamespacedWatcherLifecycleProcessor(
         switch (kubernetesEvent.PipelineEventType)
         {
             case PipelineEventType.Added:
-                ProcessAddEvent(kubernetesEvent, ctx);
+                await ProcessAddEvent(kubernetesEvent, ctx);
                 break;
             case PipelineEventType.Deleted:
                 await ProcessDeleteEvent(kubernetesEvent, ctx);
@@ -50,27 +50,25 @@ public class NamespacedWatcherLifecycleProcessor(
         }
     }
     
-    private void ProcessAddEvent(KubernetesEvent<KubernetesNamespace, Uid> kubernetesEvent, CancellationToken ctx)
+    private async Task ProcessAddEvent(KubernetesEvent<KubernetesNamespace, Uid> kubernetesEvent, CancellationToken ctx)
     {
         if (kubernetesEvent.Resource is null)
         {
             logger.LogWarning(
                 "ProcessAddEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
-                kubernetesEvent.Key,
+                kubernetesEvent.Scope,
                 nameof(KubernetesNamespace)
             );
             return;
         }
 
-        ResourceLocation namespacedEventKey = new(
-            kubernetesEvent.Key.ContextName,
+        WatcherScope namespaceScope = new(
+            kubernetesEvent.Scope.ContextName,
             new NamespaceName(kubernetesEvent.Resource.Name.Value)
         );
 
-        foreach (INamespacedWatcherRegistry namespacedWatcher in namespacedWatcherRegistries)
-        {
-            namespacedWatcher.StartWatcher(namespacedEventKey, ctx);
-        }
+        IEnumerable<Task> tasks = namespacedWatcherRegistries.Select(s => s.StartWatcher(namespaceScope, ctx));
+        await Task.WhenAll(tasks);
     }
 
 
@@ -80,18 +78,18 @@ public class NamespacedWatcherLifecycleProcessor(
         {
             logger.LogWarning(
                 "ProcessDeleteEvent - KubernetesObject is null for {watcherKey} - {kubernetesObjectType}. Ignoring",
-                kubernetesEvent.Key,
+                kubernetesEvent.Scope,
                 nameof(KubernetesNamespace)
             );
             return;
         }
 
-        ResourceLocation namespacedEventKey = new(
-            kubernetesEvent.Key.ContextName,
+        WatcherScope namespaceScope = new(
+            kubernetesEvent.Scope.ContextName,
             new NamespaceName(kubernetesEvent.Resource.Name.Value)
         );
 
-        IEnumerable<Task> tasks = namespacedWatcherRegistries.Select(s => s.StopWatcher(namespacedEventKey, ctx));
+        IEnumerable<Task> tasks = namespacedWatcherRegistries.Select(s => s.StopWatcher(namespaceScope, ctx));
         await Task.WhenAll(tasks);
     }
 
@@ -101,14 +99,14 @@ public class NamespacedWatcherLifecycleProcessor(
         
         IReadOnlyList<KubernetesNamespace> kubernetesNamespaces = await resourceProvider.GetResources(ctx);
 
-        IReadOnlyCollection<ResourceLocation> keys = 
+        IReadOnlyCollection<WatcherScope> scopes = 
             [
                 .. kubernetesNamespaces.Select(x 
-                => new ResourceLocation(kubernetesEvent.Key.ContextName, x.NamespaceName)),
+                => new WatcherScope(kubernetesEvent.Scope.ContextName, x.NamespaceName)),
             ];
         
         IEnumerable<Task> tasks =
-            namespacedWatcherRegistries.Select(s => s.Reconcile(keys, ctx));
+            namespacedWatcherRegistries.Select(s => s.Reconcile(scopes, ctx));
         
         await Task.WhenAll(tasks);
     }

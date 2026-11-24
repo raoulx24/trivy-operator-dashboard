@@ -13,14 +13,14 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.W
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions;
 
-// one list + watch loop for one key
+// one list + watch loop for one scope
 // - the data is cleared (Flushed) only on 410 (the resourceVersion / continue token is gone) and on Stop
 // - any other failure keeps the data and the resourceVersion, and the watch is resumed after a delay
 // - a failure in the middle of the paged initial list retries the same page, when it is worth retrying in place
 // - the watcher only publishes events (Error with the failure, Skipped for malformed objects); status, alerts
 //   and metrics are decided by the processors
 public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>(
-    ResourceLocation key,
+    WatcherScope scope,
     IKubernetesResourceWatch<TKubernetesObjectList, TKubernetesObject> resourceWatch,
     IKubernetesEventPublisher<TKubernetesObject> eventPublisher,
     IKubernetesWatchSessionThrottle throttle,
@@ -57,9 +57,9 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
         if (IsRunning)
         {
             logger.LogWarning(
-                "Watch session for {kubernetesObjectType} and key {key} already running. Ignoring start request.",
+                "Watch session for {kubernetesObjectType} and scope {scope} already running. Ignoring start request.",
                 typeof(TKubernetesObject).Name,
-                key
+                scope
             );
 
             return;
@@ -92,8 +92,8 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
             // Expected when stopping the session.
         }
 
-        // the session is gone, so drop what downstream processors hold for this key
-        await eventPublisher.Publish(key, PipelineEventType.Flushed, cancellationToken);
+        // the session is gone, so drop what downstream processors hold for this scope
+        await eventPublisher.Publish(scope, PipelineEventType.Flushed, cancellationToken);
     }
 
     private async Task Run(CancellationToken ctx)
@@ -112,31 +112,31 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                     {
                         // a previous list failed after publishing some pages; the new list replays everything,
                         // so drop the partial state first (the same situation as a 410: the state is incomplete)
-                        await eventPublisher.Publish(key, PipelineEventType.Flushed, ctx);
+                        await eventPublisher.Publish(scope, PipelineEventType.Flushed, ctx);
                         initialListIncomplete = false;
                     }
 
                     resourceVersion = await throttle.Run(
                         ProcessInitialResources,
-                        () => eventPublisher.Publish(key, PipelineEventType.Throttled, ctx),
+                        () => eventPublisher.Publish(scope, PipelineEventType.Throttled, ctx),
                         ctx
                     );
 
                     logger.LogInformation(
-                        "Initial Resources Processed - {kubernetesObjectType} - {key} - {resourceVersion}",
+                        "Initial Resources Processed - {kubernetesObjectType} - {scope} - {resourceVersion}",
                         typeof(TKubernetesObject).Name,
-                        key,
+                        scope,
                         resourceVersion
                     );
 
-                    await eventPublisher.Publish(key, PipelineEventType.Initialized, ctx);
+                    await eventPublisher.Publish(scope, PipelineEventType.Initialized, ctx);
                 }
 
                 phase = WatchPhase.WatchOpen;
                 bool receivedAnyEvent = false;
 
                 IAsyncEnumerable<WatchEvent<TKubernetesObject>> watchList =
-                    resourceWatch.GetWatchList(key, resourceVersion, GetWatcherRandomTimeout(), ctx);
+                    resourceWatch.GetWatchList(scope, resourceVersion, GetWatcherRandomTimeout(), ctx);
 
                 await foreach (WatchEvent<TKubernetesObject> watchEvent in watchList)
                 {
@@ -152,9 +152,9 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                 }
 
                 logger.LogDebug(
-                    "Watch stopped - {kubernetesObjectType} - {key} - resuming from {resourceVersion}",
+                    "Watch stopped - {kubernetesObjectType} - {scope} - resuming from {resourceVersion}",
                     typeof(TKubernetesObject).Name,
-                    key,
+                    scope,
                     resourceVersion
                 );
 
@@ -176,14 +176,14 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                 if (failure.Category == WatchFailureCategory.Gone)
                 {
                     // the resourceVersion (or the continue token) is gone; the re-list replays the full state,
-                    // so drop what downstream processors hold for this key
+                    // so drop what downstream processors hold for this scope
                     resourceVersion = null;
 
-                    await eventPublisher.Publish(key, PipelineEventType.Flushed, ctx);
+                    await eventPublisher.Publish(scope, PipelineEventType.Flushed, ctx);
                     initialListIncomplete = false;
                 }
 
-                await eventPublisher.Publish(key, PipelineEventType.Error, ctx, failure: failure);
+                await eventPublisher.Publish(scope, PipelineEventType.Error, ctx, failure: failure);
 
                 if (!await DelayRetry(failure, ctx))
                 {
@@ -207,7 +207,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
 
             foreach (TKubernetesObject item in page.Items)
             {
-                await eventPublisher.Publish(key, PipelineEventType.InitialAdded, ctx, item);
+                await eventPublisher.Publish(scope, PipelineEventType.InitialAdded, ctx, item);
             }
 
             foreach (MalformedObject malformedObject in page.Malformed)
@@ -242,7 +242,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
             try
             {
                 return await resourceWatch.GetInitialResources(
-                    key,
+                    scope,
                     continueToken,
                     options.Value.ResourceListPageSize,
                     ctx
@@ -259,7 +259,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
 
                 CommitFailure(failure);
 
-                await eventPublisher.Publish(key, PipelineEventType.Error, ctx, failure: failure);
+                await eventPublisher.Publish(scope, PipelineEventType.Error, ctx, failure: failure);
 
                 if (!await DelayRetry(failure, ctx))
                 {
@@ -277,7 +277,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
             return;
         }
 
-        await eventPublisher.Publish(key, watchEvent.Type.ToWatcherEvent(), ctx, watchEvent.Object);
+        await eventPublisher.Publish(scope, watchEvent.Type.ToWatcherEvent(), ctx, watchEvent.Object);
     }
 
     private async Task PublishMalformed(MalformedObject malformedObject, CancellationToken ctx)
@@ -289,16 +289,16 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
         logger.Log(
             logLevel,
             malformedObject.Exception,
-            "Skipped malformed object - {kubernetesObjectType} - {key} - {namespace}/{name} - uid {uid} - resourceVersion {resourceVersion}",
+            "Skipped malformed object - {kubernetesObjectType} - {scope} - {namespace}/{name} - uid {uid} - resourceVersion {resourceVersion}",
             typeof(TKubernetesObject).Name,
-            key,
+            scope,
             malformedObject.Namespace,
             malformedObject.Name,
             malformedObject.Uid,
             malformedObject.ResourceVersion
         );
 
-        await eventPublisher.Publish(key, PipelineEventType.Skipped, ctx, malformed: malformedObject);
+        await eventPublisher.Publish(scope, PipelineEventType.Skipped, ctx, malformed: malformedObject);
     }
 
     // waits before the next attempt; false when the session is stopping
@@ -313,9 +313,9 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
         logger.Log(
             logLevel,
             failure.Exception,
-            "Watcher {kubernetesObjectType} - {key} failed - {category} ({statusCode}) in {phase} - failure {consecutiveFailures} since {failingSince} - retry in {retryDelay}",
+            "Watcher {kubernetesObjectType} - {scope} failed - {category} ({statusCode}) in {phase} - failure {consecutiveFailures} since {failingSince} - retry in {retryDelay}",
             typeof(TKubernetesObject).Name,
-            key,
+            scope,
             failure.Category,
             failure.StatusCode,
             failure.Phase,

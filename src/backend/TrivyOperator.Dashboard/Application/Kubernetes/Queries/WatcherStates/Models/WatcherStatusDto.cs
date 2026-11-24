@@ -39,12 +39,12 @@ public static class WatcherStatusExtensions
             : new WatcherStatusDto
             {
                 KubernetesObjectType = watcherStateInfo.Id.WatchedKubernetesObjectType.Name,
-                ContextName = watcherStateInfo.Id.Location.ContextName.IsUnset
+                ContextName = watcherStateInfo.Id.Scope.ContextName.IsUnset
                     ? string.Empty
-                    : watcherStateInfo.Id.Location.ContextName.Value,
-                NamespaceName = watcherStateInfo.Id.Location.NamespaceName.IsClusterScoped
+                    : watcherStateInfo.Id.Scope.ContextName.Value,
+                NamespaceName = watcherStateInfo.Id.Scope.NamespaceName.IsClusterScoped
                     ? string.Empty
-                    : watcherStateInfo.Id.Location.NamespaceName.Value,
+                    : watcherStateInfo.Id.Scope.NamespaceName.Value,
                 Status = watcherStateInfo.Status.ToString(),
                 MitigationMessage = GetMitigationMessage(watcherStateInfo),
                 LastException = watcherStateInfo.LastException?.Message ?? string.Empty,

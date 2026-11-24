@@ -8,22 +8,23 @@ namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Servic
 
 public class NamespacedWatcherRegistry<TKubernetesObjectList, TKubernetesObject>(
     IKubernetesWatchSessionFactory<TKubernetesObjectList, TKubernetesObject> sessionFactory,
+    IHostApplicationLifetime applicationLifetime,
     ILogger<NamespacedWatcherRegistry<TKubernetesObjectList, TKubernetesObject>> logger
-    ) 
-    : KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>(sessionFactory, logger),
+    )
+    : KubernetesWatcherRegistry<TKubernetesObjectList, TKubernetesObject>(sessionFactory, applicationLifetime, logger),
         INamespacedWatcherRegistry
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    public async Task Reconcile(IReadOnlyCollection<ResourceLocation> desiredKeys, CancellationToken ctx = default)
+    public async Task Reconcile(IReadOnlyCollection<WatcherScope> desiredScopes, CancellationToken ctx = default)
     {
-        HashSet<ResourceLocation> desired = [.. desiredKeys,];
+        HashSet<WatcherScope> desired = [.. desiredScopes,];
 
-        ResourceLocation[] existing = [.. Sessions.Keys,];
+        WatcherScope[] existing = [.. Sessions.Keys,];
 
-        ResourceLocation[] toRemove = [.. existing.Except(desired),];
+        WatcherScope[] toRemove = [.. existing.Except(desired),];
 
-        ResourceLocation[] toAdd = [.. desired.Except(existing),];
+        WatcherScope[] toAdd = [.. desired.Except(existing),];
 
         logger.LogDebug(
             "Reconciling watchers for {kubernetesObjectType}. Existing: {existingCount}, Desired: {desiredCount}, Add: {addCount}, Remove: {removeCount}.",
@@ -34,13 +35,13 @@ public class NamespacedWatcherRegistry<TKubernetesObjectList, TKubernetesObject>
             toRemove.Length
         );
 
-        IEnumerable<Task> stopTasks = toRemove.Select(key => StopWatcher(key, ctx));
+        // different scopes, so stops and starts do not wait for each other
+        Task[] tasks =
+        [
+            .. toRemove.Select(scope => StopWatcher(scope, ctx)),
+            .. toAdd.Select(scope => StartWatcher(scope, ctx)),
+        ];
 
-        foreach (ResourceLocation key in toAdd)
-        {
-            StartWatcher(key, ctx);
-        }
-
-        await Task.WhenAll(stopTasks);
+        await Task.WhenAll(tasks);
     }
 }

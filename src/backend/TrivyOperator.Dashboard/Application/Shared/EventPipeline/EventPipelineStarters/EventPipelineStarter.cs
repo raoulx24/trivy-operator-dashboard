@@ -11,11 +11,13 @@ public class EventPipelineStarter<TResource>(
     ILogger<EventPipelineStarter<TResource>> logger
 ) : IEventPipelineStarter
 {
-    public virtual void StartPipeline(CancellationToken ctx = default)
+    public virtual Task StartPipeline(CancellationToken ctx = default)
     {
         logger.LogInformation("Starting Events Pipeline for {resourceType}", typeof(TResource).GetReadableName());
         
         queue.StartQueue();
-        eventDispatcher.StartEventsProcessing(ctx);   
+        eventDispatcher.StartEventsProcessing(ctx);
+
+        return Task.CompletedTask;
     }
 }

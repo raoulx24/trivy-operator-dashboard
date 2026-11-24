@@ -9,14 +9,14 @@ public interface IKubernetesResourceWatch<TKubernetesObjectList, TKubernetesObje
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
     Task<ResourcePage<TKubernetesObject>> GetInitialResources(
-        ResourceLocation key,
+        WatcherScope scope,
         string? continueToken,
         int pageSize,
         CancellationToken cancellationToken = default
     );
 
     IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetWatchList(
-        ResourceLocation key,
+        WatcherScope scope,
         string? resourceVersion,
         int timeoutSeconds,
         CancellationToken cancellationToken = default

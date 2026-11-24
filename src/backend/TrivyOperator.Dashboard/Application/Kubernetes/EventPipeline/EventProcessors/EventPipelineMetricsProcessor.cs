@@ -53,17 +53,19 @@ public class EventPipelineMetricsProcessor<TResource, TKey> (
         metricsClient.WatcherProcessedMessagesCounter.Add(
             1,
             new KeyValuePair<string, object?>("resource_kind", typeof(TResource).Name),
+            // the watcher: cluster wide or per namespace
             new KeyValuePair<string, object?>(
                 "resource_level",
-                kubernetesEvent.Key.NamespaceName.IsClusterScoped ? "cluster_scoped" : "namespaced"
+                kubernetesEvent.Scope.IsClusterWide ? "cluster_scoped" : "namespaced"
             ),
             new KeyValuePair<string, object?>(
                 "context_name",
-                kubernetesEvent.Key.ContextName.IsUnset ? null : kubernetesEvent.Key.ContextName.Value
+                kubernetesEvent.Scope.ContextName.IsUnset ? null : kubernetesEvent.Scope.ContextName.Value
             ),
+            // the resource: where it lives (the scope's namespace for events without a resource)
             new KeyValuePair<string, object?>(
                 "namespace_name",
-                kubernetesEvent.Key.NamespaceName.IsClusterScoped ? null : kubernetesEvent.Key.NamespaceName.Value
+                kubernetesEvent.Location.NamespaceName.IsClusterScoped ? null : kubernetesEvent.Location.NamespaceName.Value
             ),
             new KeyValuePair<string, object?>("watch_event_type", kubernetesEvent.PipelineEventType.ToString()),
             // set on Error events only

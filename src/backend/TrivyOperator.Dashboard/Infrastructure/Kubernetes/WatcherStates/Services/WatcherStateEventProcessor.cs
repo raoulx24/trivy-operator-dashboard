@@ -26,11 +26,11 @@ public class WatcherStateEventProcessor<TResource, TKey>(
         {
             case PipelineEventType.InitialAdded:
             case PipelineEventType.Added:
-                eventsGauge.OffsetValue(kubernetesEvent.Key, 1);
+                eventsGauge.OffsetValue(kubernetesEvent.Scope, 1);
                 ProcessGreenEvent(kubernetesEvent);
                 break;
             case PipelineEventType.Deleted:
-                eventsGauge.OffsetValue(kubernetesEvent.Key, -1);
+                eventsGauge.OffsetValue(kubernetesEvent.Scope, -1);
                 ProcessGreenEvent(kubernetesEvent);
                 break;
             case PipelineEventType.Modified:
@@ -43,7 +43,7 @@ public class WatcherStateEventProcessor<TResource, TKey>(
                 ProcessGreenEvent(kubernetesEvent);
                 break;
             case PipelineEventType.Flushed:
-                eventsGauge.RemoveKey(kubernetesEvent.Key);
+                eventsGauge.RemoveKey(kubernetesEvent.Scope);
                 ProcessFlushedEvent(kubernetesEvent);
                 break;
             // the data is kept on errors (only Flushed drops it), so the gauge is kept too
@@ -70,47 +70,47 @@ public class WatcherStateEventProcessor<TResource, TKey>(
 
     private void ProcessGreenEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
-        WatcherId id = new(typeof(TResource), kubernetesEvent.Key); 
+        WatcherId id = new(typeof(TResource), kubernetesEvent.Scope); 
         WatcherStateInfo watcherStateInfo = new(
             Id: id,
             Status: WatcherStateStatus.Green,
             LastException: null,
             LastEventMoment: DateTime.UtcNow,
-            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));
+            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Scope));
 
         cache[id] = watcherStateInfo;
     }
 
     private void ProcessYellowEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
-        WatcherId id = new(typeof(TResource), kubernetesEvent.Key);
+        WatcherId id = new(typeof(TResource), kubernetesEvent.Scope);
         WatcherStateInfo watcherStateInfo = new(
             Id: id,
             Status: WatcherStateStatus.Yellow,
             // set for a recovering watcher (Error not yet Red), null when throttled by our own gate
             LastException: kubernetesEvent.Failure?.Exception,
             LastEventMoment: DateTime.UtcNow,
-            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));
+            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Scope));
 
         cache[id] = watcherStateInfo;
     }
 
     private void ProcessRedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
-        WatcherId id = new(typeof(TResource), kubernetesEvent.Key);
+        WatcherId id = new(typeof(TResource), kubernetesEvent.Scope);
         WatcherStateInfo watcherStateInfo = new(
             Id: id,
             Status: WatcherStateStatus.Red,
             LastException: kubernetesEvent.Failure?.Exception,
             LastEventMoment: DateTime.UtcNow,
-            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));
+            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Scope));
 
         cache[id] = watcherStateInfo;
     }
 
     private void ProcessFlushedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
     {
-        WatcherId id = new(typeof(TResource), kubernetesEvent.Key);
+        WatcherId id = new(typeof(TResource), kubernetesEvent.Scope);
         cache.TryRemove(id, out _);
     }
 }

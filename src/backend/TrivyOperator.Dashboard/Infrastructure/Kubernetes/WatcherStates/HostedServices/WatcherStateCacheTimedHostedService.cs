@@ -121,7 +121,7 @@ public sealed class WatcherStateCacheTimedHostedService(
                         watchedKubernetesObjectType,
                         out IKubernetesWatcherRegistry? watcher))
                 {
-                    await watcher.RecreateWatcher(expiredWatcherState.Id.Location, ctx);
+                    await watcher.RecreateWatcher(expiredWatcherState.Id.Scope, ctx);
                 }
 
                 ctx.ThrowIfCancellationRequested();

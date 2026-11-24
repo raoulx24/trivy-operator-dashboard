@@ -2,5 +2,5 @@
 
 public interface IEventPipelineStarter
 {
-    void StartPipeline(CancellationToken ctx = default);
+    Task StartPipeline(CancellationToken ctx = default);
 }
