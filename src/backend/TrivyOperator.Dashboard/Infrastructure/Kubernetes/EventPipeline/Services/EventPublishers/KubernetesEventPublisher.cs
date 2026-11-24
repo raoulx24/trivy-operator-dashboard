@@ -2,6 +2,7 @@ using k8s;
 using k8s.Models;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.BackgroundQueues.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.Namespaces.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
@@ -13,6 +14,7 @@ namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Servic
 public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>(
     IKubernetesBackgroundQueue<TResource, TKey> backgroundQueue,
     IResourceMaterializer<TKubernetesObject, TResource, TKey> resourceMaterializer,
+    INamespacePolicyProvider namespacePolicyProvider,
     ILogger<KubernetesEventPublisher<TKubernetesObject, TResource, TKey>> logger
 ) : IKubernetesEventPublisher<TKubernetesObject>
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
@@ -35,6 +37,24 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
             kubernetesObject?.Metadata?.Name ?? malformed?.Name ?? "N/A"
         );
 
+        ResourceLocation location = GetLocation(scope, kubernetesObject, malformed);
+
+        // last guard of the namespace policy (watchers of excluded namespaces are not started, and cluster wide
+        // watches filter them on the server); events without a resource are about the watcher and always pass
+        if ((kubernetesObject is not null || malformed is not null)
+            && !namespacePolicyProvider.Get(scope.ContextName).IsAllowed(location.NamespaceName))
+        {
+            logger.LogDebug(
+                "Dropped - {kubernetesObjectType} - {watcherEventType} - {scope} - namespace {namespace} is not allowed",
+                typeof(TKubernetesObject).Name,
+                eventType,
+                scope,
+                location.NamespaceName
+            );
+
+            return;
+        }
+
         TResource? resource = null;
         Uid? resourceId = null;
 
@@ -48,7 +68,7 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
         {
             KubernetesEvent<TResource, TKey> kubernetesEvent = new(
                 Scope: scope,
-                Location: GetLocation(scope, kubernetesObject, malformed),
+                Location: location,
                 PipelineEventType: eventType,
                 Resource: resource,
                 ResourceId: resourceId,

@@ -4,6 +4,7 @@ namespace TrivyOperator.Dashboard.Application.Shared.EventPipeline.HostedService
 
 public sealed class EventPipelineHostedService(
     IEnumerable<IEventPipelineStarter> services,
+    IEnumerable<IWatchersStarter> watchersStarters,
     ILogger<EventPipelineHostedService> logger
 ) : BackgroundService
 {
@@ -21,6 +22,12 @@ public sealed class EventPipelineHostedService(
         foreach (IEventPipelineStarter service in services)
         {
             await service.StartPipeline(ctx);
+        }
+
+        // watchers that publish into several pipelines start once all pipelines are ready
+        foreach (IWatchersStarter watchersStarter in watchersStarters)
+        {
+            await watchersStarter.StartWatchers(ctx);
         }
     }
 }

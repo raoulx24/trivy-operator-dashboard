@@ -66,6 +66,26 @@ public abstract class InMemoryEntityCache<TResource, TKey>(
     }
 
     public abstract Task ClearByNamespace(NamespaceName ns, CancellationToken ctx = default);
+
+    public Task ClearContext(CancellationToken ctx = default)
+    {
+        _ = ContextResolver.TryGetCurrentContext(out ContextName contextName);
+
+        logger.LogDebug(
+            "ClearContext - {objectType} - {cacheKey}",
+            typeof(TResource).Name,
+            contextName.ToString()
+        );
+
+        ctx.ThrowIfCancellationRequested();
+
+        if (cache.TryGetValue(contextName, out ConcurrentDictionary<TKey, CacheEntry<TResource, TKey>>? innerCache))
+        {
+            innerCache.Clear();
+        }
+
+        return Task.CompletedTask;
+    }
     
     public abstract Task Delete(TKey key, Uid uid, CancellationToken ctx = default);
 

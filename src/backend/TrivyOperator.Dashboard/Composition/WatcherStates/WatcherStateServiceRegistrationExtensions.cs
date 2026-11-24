@@ -79,15 +79,6 @@ public static class WatcherStateServiceRegistrationExtensions
         // WatcherStateAlertRefresh<TResource, TKey>
         // WatcherStateEventProcessor<TResource, TKey>
 
-        // namespaces; if the namespace pipeline is not registered, these are never resolved
-        services.AddSingleton<
-            IKubernetesEventProcessor<KubernetesNamespace, Uid>,
-            WatcherStateAlertRefresh<KubernetesNamespace, Uid>>();
-
-        services.AddSingleton<
-            IKubernetesEventProcessor<KubernetesNamespace, Uid>,
-            WatcherStateEventProcessor<KubernetesNamespace, Uid>>();
-
         if (enabledReports.GetValueOrDefault(nameof(ClusterComplianceReport)))
         {
             services.AddSingleton<

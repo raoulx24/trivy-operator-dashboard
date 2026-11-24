@@ -19,6 +19,9 @@ public sealed class NullExpiringResourceRepository<TResource, TKey>
     public Task ClearByNamespace(NamespaceName namespaceName, CancellationToken ctx = default)
         => Task.CompletedTask;
 
+    public Task ClearContext(CancellationToken ctx = default)
+        => Task.CompletedTask;
+
     public Task<TResource?> GetResource(TKey key, CancellationToken ctx = default)
         => Task.FromResult<TResource?>(null);
 

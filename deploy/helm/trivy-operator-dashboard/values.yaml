@@ -8,6 +8,7 @@ kubernetes:
   kubeConfigSecretName: ""                                # the secret that contains the kube config. the key is the file name
   useDefaultContext: true                                 # if true, default context will be used and cache will be active
   namespaceList: ""                                       # a list of namespaces, comma delimited
+  excludedNamespaceList: ""                               # namespaces to ignore, comma delimited
   # trivyUseXyzReport true, false - if the reports are active in TOD or not
   trivyUseClusterComplianceReport: true
   trivyUseClusterInfraAssessmentReport: true

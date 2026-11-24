@@ -6,6 +6,8 @@ using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventDispatch
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventPipelineStarters;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
+using TrivyOperator.Dashboard.Application.Kubernetes.Namespaces;
+using TrivyOperator.Dashboard.Application.Kubernetes.Namespaces.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Contexts;
 using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Contexts.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.Queries.Namespaces.Services;
@@ -96,7 +98,6 @@ public static class KubernetesServiceRegistrationExtensions
                 CompositionLogger.Logger?.LogInformation("Adding Static Namespace related services for Default Context");
                 services.AddNamespaceCommonServices(configuration);
                 services.AddStaticNamespaceService();
-                services.AddNamespaceEventPipelineServices();
                 break;
 
             case NamespaceCompositionMode.StaticMultiContext:
@@ -107,9 +108,12 @@ public static class KubernetesServiceRegistrationExtensions
 
             case NamespaceCompositionMode.DynamicDefaultContext:
                 CompositionLogger.Logger?.LogInformation("Adding Kubernetes Namespace related services for Default Context");
-                services.AddNamespaceCommonServices(configuration);
+                // the report watchers are cluster wide, so no namespace list is kept; the namespaces endpoint answers empty
+                // the namespace service stays, as the namespaced report services depend on it (used by multi-context)
+                // the queue options are configured here too, as AddNamespaceCommonServices (which also does it) is not called
+                services.Configure<BackgroundQueueOptions>(configuration.GetSection("Queues"));
                 services.AddDynamicNamespaceService();
-                services.AddNamespaceEventPipelineServices();
+                services.AddSingleton<IKubernetesNamespaceService, KubernetesNamespaceNullService>();
                 break;
 
             case NamespaceCompositionMode.DynamicMultiContext:
@@ -142,11 +146,17 @@ public static class KubernetesServiceRegistrationExtensions
 
         // stateless; turns watch session exceptions into failure categories
         services.AddSingleton<IWatchFailureClassifier, WatchFailureClassifier>();
+
+        // which namespaces the main pipeline accepts (NamespaceList / ExcludedNamespaceList / reserved); fixed at startup
+        services.AddSingleton<INamespacePolicyProvider, NamespacePolicyProvider>();
     }
 
     private static void AddDefaultContextKubernetesServices(this IServiceCollection services)
     {
         services.AddHostedService<EventPipelineHostedService>();
+
+        // starts the namespaced report watchers (cluster wide or per namespace) once all pipelines are started
+        services.AddSingleton<IWatchersStarter, NamespacedWatchersStarter>();
 
         services.AddSingleton<IKubernetesContextResolver, DefaultKubernetesContextResolver>();
     }
@@ -224,54 +234,5 @@ public static class KubernetesServiceRegistrationExtensions
         services.AddSingleton<
             IKubernetesResourceService<V1Namespace>>(
             sp => sp.GetRequiredService<NamespaceService>());
-    }
-
-    private static void AddNamespaceEventPipelineServices(this IServiceCollection services)
-    {
-        // event pipeline starter
-        services.AddSingleton<IEventPipelineStarter, ClusterScopedKubernetesEventPipelineStarter<KubernetesNamespace, Uid>>();
-        
-        // kubernetes resource watcher
-        services.AddSingleton<
-            IKubernetesResourceWatch<V1NamespaceList, V1Namespace>,
-            ClusterScopedResourceWatch<V1NamespaceList, V1Namespace>>();
-        
-        // resource materializer
-        services.AddSingleton<
-            IResourceMaterializer<V1Namespace, KubernetesNamespace, Uid>,
-            ResourceMaterializer<V1Namespace, KubernetesNamespace, Uid>>();
-
-        // kubernetes event publisher
-        services.AddSingleton<
-            IKubernetesEventPublisher<V1Namespace>,
-            KubernetesEventPublisher<V1Namespace, KubernetesNamespace, Uid>>();
-
-        // kubernetes watch session factory
-        services.AddSingleton<
-            IKubernetesWatchSessionFactory<V1NamespaceList, V1Namespace>,
-            KubernetesWatchSessionFactory<V1NamespaceList, V1Namespace>>();
-
-        // kubernetes watcher registry
-        services.AddSingleton<ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace, KubernetesNamespace, Uid>>();
-        services.AddSingleton<IClusterScopedWatcherRegistry>(
-            sp => sp.GetRequiredService<ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace, KubernetesNamespace, Uid>>());
-        services.AddSingleton<IClusterScopedWatcherRegistry<KubernetesNamespace, Uid>>(
-            sp => sp.GetRequiredService<ClusterScopedWatcherRegistry<V1NamespaceList, V1Namespace, KubernetesNamespace, Uid>>());
-
-        // // watcher
-        // services.AddSingleton<IClusterScopedWatcher, ClusterScopedWatcher<V1NamespaceList, V1Namespace>>();
-
-        // background queue
-        services.AddSingleton<
-            IKubernetesBackgroundQueue<KubernetesNamespace, Uid>, 
-            KubernetesBackgroundQueue<KubernetesNamespace, Uid>>();
-
-        // event dispatcher
-        services.AddSingleton<
-            IKubernetesEventDispatcher<KubernetesNamespace,Uid>,
-            KubernetesEventDispatcher<KubernetesNamespace, Uid>>();
-
-        // processor for starting namespaced watchers
-        services.AddSingleton<IKubernetesEventProcessor<KubernetesNamespace, Uid>, NamespacedWatcherLifecycleProcessor>();
     }
 }

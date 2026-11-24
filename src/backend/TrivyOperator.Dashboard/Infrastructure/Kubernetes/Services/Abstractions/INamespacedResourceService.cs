@@ -30,6 +30,21 @@ public interface INamespacedResourceService<TKubernetesObject, TKubernetesObject
         CancellationToken cancellationToken = default
     );
 
+    // all namespaces, for cluster wide watch sessions; fieldSelector filters on the server (e.g. excluded namespaces)
+    Task<ResourcePage<TKubernetesObject>> GetAllNamespacesResourcePage(
+        int? pageLimit = null,
+        string? continueToken = null,
+        string? fieldSelector = null,
+        CancellationToken cancellationToken = default
+    );
+
+    IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetAllNamespacesResourceWatchList(
+        string? lastResourceVersion = null,
+        int? timeoutSeconds = null,
+        string? fieldSelector = null,
+        CancellationToken cancellationToken = default
+    );
+
     Task<IList<TKubernetesObject>> GetResources(string namespaceName, CancellationToken cancellationToken = default);
 
     IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(

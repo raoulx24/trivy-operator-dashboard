@@ -65,6 +65,80 @@ public class NamespacedCustomResourceService<TKubernetesObject>(
             cancellationToken
         );
 
+    // all namespaces (for a namespaced CRD, the cluster level list is the all namespaces list); typed first, as above
+    public override Task<ResourcePage<TKubernetesObject>> GetAllNamespacesResourcePage(
+        int? pageLimit = null,
+        string? continueToken = null,
+        string? fieldSelector = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        CustomResourcePageReader.Read<TKubernetesObject>(
+            async (limit, token, ct) =>
+            {
+                CustomResourceList<TKubernetesObject> list = await GetKubernetesClient()
+                    .ListClusterCustomObjectAsync<CustomResourceList<TKubernetesObject>>(
+                        Crd.Group,
+                        Crd.Version,
+                        Crd.PluralName,
+                        fieldSelector: fieldSelector,
+                        limit: limit,
+                        continueParameter: token,
+                        cancellationToken: ct
+                    );
+
+                return new ResourcePage<TKubernetesObject>(
+                    [.. list.Items ?? [],],
+                    [],
+                    list.Metadata?.ContinueProperty,
+                    list.Metadata?.ResourceVersion
+                );
+            },
+            (token, ct) => GetKubernetesClient()
+                .ListClusterCustomObjectAsync<JsonElement>(
+                    Crd.Group,
+                    Crd.Version,
+                    Crd.PluralName,
+                    fieldSelector: fieldSelector,
+                    limit: 1,
+                    continueParameter: token,
+                    cancellationToken: ct
+                ),
+            pageLimit,
+            continueToken,
+            cancellationToken
+        );
+
+    public override async IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetAllNamespacesResourceWatchList(
+        string? lastResourceVersion = null,
+        int? timeoutSeconds = null,
+        string? fieldSelector = null,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        Exception? watchException = null;
+
+        IAsyncEnumerable<(WatchEventType, object)> watchStream = GetKubernetesClient()
+            .CustomObjects.WatchListClusterCustomObjectAsync(
+                Crd.Group,
+                Crd.Version,
+                Crd.PluralName,
+                fieldSelector: fieldSelector,
+                resourceVersion: lastResourceVersion,
+                allowWatchBookmarks: true,
+                timeoutSeconds: timeoutSeconds,
+                // Status (ERROR) events arrive here, not as items; keep the first one
+                onError: ex => watchException ??= ex,
+                cancellationToken: cancellationToken
+            );
+        await foreach ((WatchEventType type, object item) in watchStream)
+        {
+            yield return CustomResourceJson.ToWatchEvent<TKubernetesObject>(type, item);
+        }
+
+        if (watchException is not null)
+            throw watchException;
+    }
+
     public override Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,

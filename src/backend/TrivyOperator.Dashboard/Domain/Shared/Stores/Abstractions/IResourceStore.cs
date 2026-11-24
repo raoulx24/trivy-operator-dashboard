@@ -11,4 +11,8 @@ public interface IResourceStore<TResource, in TKey>
     Task<TResource?> Get(TKey key, CancellationToken ctx = default);
 
     Task ClearByNamespace(NamespaceName namespaceName, CancellationToken ctx = default);
+
+    // everything of the current context (a cluster wide watcher was flushed)
+    // not named Clear: IExpiringResourceProvider.Clear clears all contexts
+    Task ClearContext(CancellationToken ctx = default);
 }

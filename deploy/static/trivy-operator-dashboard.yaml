@@ -135,6 +135,8 @@ spec:
           value: "true"
         - name: KUBERNETES__NAMESPACELIST
           value: ""
+        - name: KUBERNETES__EXCLUDEDNAMESPACELIST
+          value: ""
         - name: KUBERNETES__TRIVYUSECLUSTERCOMPLIANCEREPORT
           value: "true"
         - name: KUBERNETES__TRIVYUSECLUSTERINFRAASSESSMENTREPORT

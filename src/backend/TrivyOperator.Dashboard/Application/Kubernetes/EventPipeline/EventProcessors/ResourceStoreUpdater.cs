@@ -89,6 +89,13 @@ public class ResourceStoreUpdater<TResource, TKey> (
     
     private async Task ProcessFlushedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx)
     {
+        // a cluster wide watcher holds resources from every namespace of the context
+        if (kubernetesEvent.Scope.IsClusterWide)
+        {
+            await resourceStore.ClearContext(ctx);
+            return;
+        }
+
         await resourceStore.ClearByNamespace(kubernetesEvent.Location.NamespaceName, ctx);
     }
     

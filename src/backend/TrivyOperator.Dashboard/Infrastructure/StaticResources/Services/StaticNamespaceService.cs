@@ -1,7 +1,6 @@
 ﻿using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 using TrivyOperator.Dashboard.Application.Kubernetes.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Services.Abstractions;
@@ -52,70 +51,18 @@ public class StaticNamespaceService(
         Items = await GetResources(cancellationToken),
     };
     
-    public async Task<ResourcePage<V1Namespace>> GetResourcePage(
+    // static namespaces are not watched: the report watchers are started per configured namespace
+    public Task<ResourcePage<V1Namespace>> GetResourcePage(
         int? pageLimit = null,
         string? continueToken = null,
         CancellationToken cancellationToken = default
-    )
-    {
-        V1NamespaceList list = await GetResourceList(pageLimit, continueToken, cancellationToken);
+    ) => throw new NotSupportedException("Static namespaces are not watched.");
 
-        return new ResourcePage<V1Namespace>([.. list.Items,], [], null, list.Metadata.ResourceVersion);
-    }
-
-    public async IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
-    string? lastResourceVersion = null,
-    int? timeoutSeconds = null,
-    [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        DateTimeOffset? deadline = timeoutSeconds is null
-            ? null
-            : DateTimeOffset.UtcNow.AddSeconds(timeoutSeconds.Value);
-
-        if (string.IsNullOrEmpty(lastResourceVersion))
-        {
-            foreach (V1Namespace ns in await GetResources(cancellationToken))
-            {
-                ns.Metadata ??= new V1ObjectMeta();
-                ns.Metadata.ResourceVersion = ResourceVersion;
-
-                yield return new WatchEvent<V1Namespace>
-                {
-                    Type = WatchEventType.Added,
-                    Object = ns,
-                };
-            }
-
-            yield return GetBookmarkEvent();
-        }
-
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            TimeSpan delay = BookmarkInterval;
-
-            if (deadline is not null)
-            {
-                TimeSpan remaining = deadline.Value - DateTimeOffset.UtcNow;
-
-                if (remaining <= TimeSpan.Zero)
-                    yield break;
-
-                if (remaining < delay)
-                    delay = remaining;
-            }
-
-            try
-            {
-                await Task.Delay(delay, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                yield break;
-            }
-
-            yield return GetBookmarkEvent();
-        }
-    }
+    public IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
+        string? lastResourceVersion = null,
+        int? timeoutSeconds = null,
+        CancellationToken cancellationToken = default
+    ) => throw new NotSupportedException("Static namespaces are not watched.");
 
     private static V1Namespace CreateNamespace(string namespaceName) => new()
     {
@@ -127,20 +74,4 @@ public class StaticNamespaceService(
             Uid = Guid.NewGuid().ToString(),
         },
     };
-    
-    private static WatchEvent<V1Namespace> GetBookmarkEvent() =>
-        new()
-        {
-            Type = WatchEventType.Bookmark,
-            Object = new V1Namespace
-            {
-                Metadata = new V1ObjectMeta
-                {
-                    ResourceVersion = ResourceVersion,
-                },
-            },
-        };
-    
-    private static readonly string ResourceVersion = "1";
-    private static readonly TimeSpan BookmarkInterval = TimeSpan.FromSeconds(60);
 }

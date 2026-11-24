@@ -45,6 +45,8 @@ spec:
           value: {{ .Values.kubernetes.useDefaultContext | quote }}
         - name: KUBERNETES__NAMESPACELIST
           value: {{ .Values.kubernetes.namespaceList | quote }}
+        - name: KUBERNETES__EXCLUDEDNAMESPACELIST
+          value: {{ .Values.kubernetes.excludedNamespaceList | quote }}
         - name: KUBERNETES__TRIVYUSECLUSTERCOMPLIANCEREPORT
           value: {{ .Values.kubernetes.trivyUseClusterComplianceReport | quote }}
         - name: KUBERNETES__TRIVYUSECLUSTERINFRAASSESSMENTREPORT

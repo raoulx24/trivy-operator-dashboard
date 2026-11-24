@@ -72,6 +72,20 @@ public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesOb
         );
     }
 
+    public abstract Task<ResourcePage<TKubernetesObject>> GetAllNamespacesResourcePage(
+        int? pageLimit = null,
+        string? continueToken = null,
+        string? fieldSelector = null,
+        CancellationToken cancellationToken = default
+    );
+
+    public abstract IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetAllNamespacesResourceWatchList(
+        string? lastResourceVersion = null,
+        int? timeoutSeconds = null,
+        string? fieldSelector = null,
+        CancellationToken cancellationToken = default
+    );
+
     public abstract Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,
