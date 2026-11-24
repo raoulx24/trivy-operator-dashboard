@@ -4,12 +4,14 @@ using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Models;
 using TrivyOperator.Dashboard.Application.Shared.Cache.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Failures.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Internals;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Services;
 
 public class WatcherStateEventProcessor<TResource, TKey>(
     ICache<WatcherId, WatcherStateInfo> cache,
+    IWatchRetryPolicy retryPolicy,
     ILogger<WatcherStateEventProcessor<TResource, TKey>> logger
 ) : IKubernetesEventProcessor<TResource, TKey>
     where TResource : class, IEntity<TKey>
@@ -36,15 +38,20 @@ public class WatcherStateEventProcessor<TResource, TKey>(
             // the initial list ended; covers empty namespaces, which emit no InitialAdded to turn Yellow into Green
             case PipelineEventType.Initialized:
             case PipelineEventType.WatcherConnected:
+            // a skipped (malformed) object is a data problem, not a watcher one; the watch goes on
+            case PipelineEventType.Skipped:
                 ProcessGreenEvent(kubernetesEvent);
                 break;
             case PipelineEventType.Flushed:
                 eventsGauge.RemoveKey(kubernetesEvent.Key);
                 ProcessFlushedEvent(kubernetesEvent);
                 break;
-            case PipelineEventType.Error:
-                eventsGauge.RemoveKey(kubernetesEvent.Key);
+            // the data is kept on errors (only Flushed drops it), so the gauge is kept too
+            case PipelineEventType.Error when retryPolicy.IsRed(kubernetesEvent.Failure):
                 ProcessRedEvent(kubernetesEvent);
+                break;
+            case PipelineEventType.Error:
+                ProcessYellowEvent(kubernetesEvent);
                 break;
             case PipelineEventType.Throttled:
                 ProcessYellowEvent(kubernetesEvent);
@@ -80,7 +87,8 @@ public class WatcherStateEventProcessor<TResource, TKey>(
         WatcherStateInfo watcherStateInfo = new(
             Id: id,
             Status: WatcherStateStatus.Yellow,
-            LastException: null,
+            // set for a recovering watcher (Error not yet Red), null when throttled by our own gate
+            LastException: kubernetesEvent.Failure?.Exception,
             LastEventMoment: DateTime.UtcNow,
             EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));
 
@@ -93,7 +101,7 @@ public class WatcherStateEventProcessor<TResource, TKey>(
         WatcherStateInfo watcherStateInfo = new(
             Id: id,
             Status: WatcherStateStatus.Red,
-            LastException: kubernetesEvent.Exception,
+            LastException: kubernetesEvent.Failure?.Exception,
             LastEventMoment: DateTime.UtcNow,
             EventsGauge: eventsGauge.GetValue(kubernetesEvent.Key));
 

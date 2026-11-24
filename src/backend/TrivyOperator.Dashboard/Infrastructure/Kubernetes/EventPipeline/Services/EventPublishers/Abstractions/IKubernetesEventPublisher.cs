@@ -1,5 +1,6 @@
 ﻿using k8s;
 using k8s.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 
@@ -13,6 +14,7 @@ public interface IKubernetesEventPublisher<in TKubernetesObject>
         PipelineEventType eventType,
         CancellationToken ctx,
         TKubernetesObject? kubernetesObject = null,
-        Exception? exception = null
+        WatchFailure? failure = null,
+        MalformedObject? malformed = null
     );
 }

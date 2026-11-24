@@ -36,6 +36,28 @@ public class ClusterScopedCustomResourceService<TKubernetesObject>(
             cancellationToken: cancellationToken
         );
 
+    // typed, as a plain list; a page that fails to deserialize is re-read item by item to skip the malformed one
+    public override Task<ResourcePage<TKubernetesObject>> GetResourcePage(
+        int? pageLimit = null,
+        string? continueToken = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        CustomResourcePageReader.Read<TKubernetesObject>(
+            (limit, token, ct) => base.GetResourcePage(limit, token, ct),
+            (token, ct) => GetKubernetesClient()
+                .ListClusterCustomObjectAsync<JsonElement>(
+                    Crd.Group,
+                    Crd.Version,
+                    Crd.PluralName,
+                    limit: 1,
+                    continueParameter: token,
+                    cancellationToken: ct
+                ),
+            pageLimit,
+            continueToken,
+            cancellationToken
+        );
+
     public override Task<TKubernetesObject>
         GetResource(string resourceName, CancellationToken cancellationToken = default) => GetKubernetesClient()
         .CustomObjects.GetClusterCustomObjectAsync<TKubernetesObject>(
@@ -62,15 +84,12 @@ public class ClusterScopedCustomResourceService<TKubernetesObject>(
                 resourceVersion: lastResourceVersion,
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,
-                onError: ex => watchException = ex,
+                // Status (ERROR) events arrive here, not as items; keep the first one
+                onError: ex => watchException ??= ex,
                 cancellationToken: cancellationToken);
         await foreach ((WatchEventType type, object item) in watchStream)
         {
-            yield return new WatchEvent<TKubernetesObject>
-            {
-                Type = type,
-                Object = KubernetesJson.Deserialize<TKubernetesObject>(((JsonElement)item).GetRawText()),
-            };
+            yield return CustomResourceJson.ToWatchEvent<TKubernetesObject>(type, item);
         }
         
         if (watchException is not null)

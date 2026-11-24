@@ -54,6 +54,24 @@ public abstract class NamespacedResourceService<TKubernetesObject, TKubernetesOb
         CancellationToken cancellationToken = default
     );
 
+    // typed resources cannot be deserialized item by item, so the page has no malformed items
+    public virtual async Task<ResourcePage<TKubernetesObject>> GetResourcePage(
+        string namespaceName,
+        int? pageLimit = null,
+        string? continueToken = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        TKubernetesObjectList list = await GetResourceList(namespaceName, pageLimit, continueToken, cancellationToken);
+
+        return new ResourcePage<TKubernetesObject>(
+            [.. list.Items ?? [],],
+            [],
+            list.Metadata?.ContinueProperty,
+            list.Metadata?.ResourceVersion
+        );
+    }
+
     public abstract Task<TKubernetesObject> GetResource(
         string resourceName,
         string namespaceName,

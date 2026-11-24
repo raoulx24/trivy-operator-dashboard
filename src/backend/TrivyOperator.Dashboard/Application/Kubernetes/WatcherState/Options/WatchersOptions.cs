@@ -6,4 +6,15 @@ public class WatchersOptions
     public bool FilterWatchersWithNoActivity { get; init; } = true;
     public int MaxConcurrentInitialLists { get; init; } = 2;
     public int ResourceListPageSize { get; init; } = 100;
+
+    // backoff for transient failures: exponential from base, capped, with jitter; Retry-After is the minimum
+    public int RetryBaseDelaySeconds { get; init; } = 1;
+    public int RetryMaxDelaySeconds { get; init; } = 60;
+
+    // fixed retry interval for failures that will not fix themselves soon (403, 404)
+    public int PermanentFailureRetrySeconds { get; init; } = 300;
+
+    // a failing watcher turns Red after this many failures in a row, or after failing this long (first reached)
+    public int RedAfterConsecutiveFailures { get; init; } = 5;
+    public int RedAfterSeconds { get; init; } = 300;
 }

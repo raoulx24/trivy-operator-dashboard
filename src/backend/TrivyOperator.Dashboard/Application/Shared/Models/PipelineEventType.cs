@@ -12,5 +12,7 @@ public enum PipelineEventType
     WatcherConnected,
     Flushed,
     Throttled,
+    // an object that could not be deserialized was skipped; the watch goes on
+    Skipped,
     Unknown,
 }

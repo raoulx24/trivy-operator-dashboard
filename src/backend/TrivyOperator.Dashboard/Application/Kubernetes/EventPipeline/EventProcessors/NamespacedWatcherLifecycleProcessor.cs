@@ -37,6 +37,7 @@ public class NamespacedWatcherLifecycleProcessor(
             case PipelineEventType.Flushed:
             case PipelineEventType.Modified:
             case PipelineEventType.Throttled:
+            case PipelineEventType.Skipped:
             default:
                 break;
             case PipelineEventType.Unknown:

@@ -34,6 +34,8 @@ using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.R
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatcherRegistries;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Failures;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Failures.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.Mappers.Abstract;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.PersistenceAggregators;
@@ -137,6 +139,9 @@ public static class KubernetesServiceRegistrationExtensions
 
         // one throttle shared by all watch sessions (all types, all contexts)
         services.AddSingleton<IKubernetesWatchSessionThrottle, KubernetesWatchSessionThrottle>();
+
+        // stateless; turns watch session exceptions into failure categories
+        services.AddSingleton<IWatchFailureClassifier, WatchFailureClassifier>();
     }
 
     private static void AddDefaultContextKubernetesServices(this IServiceCollection services)

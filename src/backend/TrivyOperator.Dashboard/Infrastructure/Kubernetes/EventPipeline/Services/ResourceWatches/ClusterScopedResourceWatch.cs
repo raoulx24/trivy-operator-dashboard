@@ -12,13 +12,13 @@ public sealed class ClusterScopedResourceWatch<TKubernetesObjectList, TKubernete
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    public Task<TKubernetesObjectList> GetInitialResources(
+    public Task<ResourcePage<TKubernetesObject>> GetInitialResources(
         ResourceLocation key,
         string? continueToken,
         int pageSize,
         CancellationToken cancellationToken = default
     ) =>
-        resourceService.GetResourceList(
+        resourceService.GetResourcePage(
             pageSize,
             continueToken,
             cancellationToken

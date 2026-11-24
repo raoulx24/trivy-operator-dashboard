@@ -20,7 +20,8 @@ public sealed class SlimProjectionProcessor<TReport, TSlim, TKey>(
             kubernetesEvent.PipelineEventType,
             kubernetesEvent.Resource?.ToSlim(),
             kubernetesEvent.ResourceId,
-            kubernetesEvent.Exception);
+            kubernetesEvent.Failure,
+            kubernetesEvent.Malformed);
 
         return inner.ProcessEvent(projected, ctx);
     }

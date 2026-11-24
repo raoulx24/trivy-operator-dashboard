@@ -8,7 +8,7 @@ public interface IKubernetesResourceWatch<TKubernetesObjectList, TKubernetesObje
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    Task<TKubernetesObjectList> GetInitialResources(
+    Task<ResourcePage<TKubernetesObject>> GetInitialResources(
         ResourceLocation key,
         string? continueToken,
         int pageSize,

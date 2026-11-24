@@ -5,11 +5,13 @@ using TrivyOperator.Dashboard.Application.Kubernetes.Models;
 using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Shared.Abstractions;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Failures.Abstractions;
 
 namespace TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Refresher;
 
 public class WatcherStateAlertRefresh<TResource, TKey>(
     IAlertPublisher alertPublisher,
+    IWatchRetryPolicy retryPolicy,
     ILogger<WatcherStateAlertRefresh<TResource, TKey>> logger
 ) : IKubernetesEventProcessor<TResource, TKey>
     where TResource : class, IEntity<TKey>
@@ -31,11 +33,15 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
             case PipelineEventType.Initialized:
                 await RemoveAlert(kubernetesEvent, ctx);
                 break;
-            case PipelineEventType.Error:
+            // alert only when the watcher is Red; a recovering (Yellow) watcher keeps an existing alert
+            case PipelineEventType.Error when retryPolicy.IsRed(kubernetesEvent.Failure):
                 await AddAlert(kubernetesEvent, ctx);
                 break;
+            case PipelineEventType.Error:
             case PipelineEventType.Throttled:
-                // keep an existing alert until the re-list actually succeeds
+            // a skipped (malformed) object is a data problem, not a watcher one
+            case PipelineEventType.Skipped:
+                // keep an existing alert until the watcher actually recovers
                 break;
             case PipelineEventType.Unknown:
                 logger.LogWarning(
@@ -62,7 +68,7 @@ public class WatcherStateAlertRefresh<TResource, TKey>(
             new Alert
             {
                 Key = GetCacheKey(kubernetesEvent),
-                Message = $"Watcher for {typeof(TResource).Name}, context {kubernetesEvent.Key.ContextName} and {kubernetesEvent.Key.NamespaceName} failed.",
+                Message = $"Watcher for {typeof(TResource).Name}, context {kubernetesEvent.Key.ContextName} and {kubernetesEvent.Key.NamespaceName} failed ({kubernetesEvent.Failure?.Category}).",
                 Severity = Severity.Error,
                 Category = "Watcher Failed",
             },

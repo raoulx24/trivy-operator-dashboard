@@ -42,7 +42,7 @@ public class NamespaceService(
                 resourceVersion: lastResourceVersion,
                 allowWatchBookmarks: true,
                 timeoutSeconds: timeoutSeconds,
-                onError: ex => watchException = ex,
+                onError: ex => watchException ??= ex,
                 cancellationToken: cancellationToken
             );
         await foreach ((WatchEventType type, V1Namespace item) in watchStream)

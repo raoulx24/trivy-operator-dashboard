@@ -28,16 +28,18 @@ public class ResourceStoreUpdater<TResource, TKey> (
             case PipelineEventType.Deleted:
                 await ProcessDeleteEvent(kubernetesEvent, ctx);
                 break;
-            case PipelineEventType.Error:
+            // the data is dropped only when the watcher says it is gone (410 or stop); an error keeps it
             case PipelineEventType.Flushed:
-                await ProcessErrorEvent(kubernetesEvent, ctx);
+                await ProcessFlushedEvent(kubernetesEvent, ctx);
                 break;
             case PipelineEventType.Initialized:
                 ProcessInitEvent(kubernetesEvent);
                 break;
+            case PipelineEventType.Error:
             case PipelineEventType.Bookmark:
             case PipelineEventType.WatcherConnected:
             case PipelineEventType.Throttled:
+            case PipelineEventType.Skipped:
                 break;
             case PipelineEventType.Unknown:
             default:
@@ -85,7 +87,7 @@ public class ResourceStoreUpdater<TResource, TKey> (
         await resourceStore.Delete(resource.Id, resourceId.Value, ctx);
     }
     
-    private async Task ProcessErrorEvent(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx)
+    private async Task ProcessFlushedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent, CancellationToken ctx)
     {
         await resourceStore.ClearByNamespace(kubernetesEvent.Key.NamespaceName, ctx);
     }

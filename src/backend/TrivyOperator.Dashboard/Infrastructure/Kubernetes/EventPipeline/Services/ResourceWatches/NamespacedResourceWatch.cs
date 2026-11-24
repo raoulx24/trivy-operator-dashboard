@@ -12,13 +12,13 @@ public sealed class NamespacedResourceWatch<TKubernetesObjectList, TKubernetesOb
     where TKubernetesObject : class, IKubernetesObject<V1ObjectMeta>, new()
     where TKubernetesObjectList : IKubernetesObject<V1ListMeta>, IItems<TKubernetesObject>
 {
-    public Task<TKubernetesObjectList> GetInitialResources(
+    public Task<ResourcePage<TKubernetesObject>> GetInitialResources(
         ResourceLocation key,
         string? continueToken,
         int pageSize,
         CancellationToken cancellationToken = default
     ) =>
-        resourceService.GetResourceList(
+        resourceService.GetResourcePage(
             key.NamespaceName.Value,
             pageSize,
             continueToken,

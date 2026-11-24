@@ -35,6 +35,7 @@ public abstract class DetailsCollector<TReport, TKey>(
             case PipelineEventType.Bookmark:
             case PipelineEventType.WatcherConnected:
             case PipelineEventType.Throttled:
+            case PipelineEventType.Skipped:
                 break;
             case PipelineEventType.Unknown:
             default:

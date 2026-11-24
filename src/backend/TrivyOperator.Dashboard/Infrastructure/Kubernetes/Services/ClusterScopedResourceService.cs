@@ -29,6 +29,23 @@ public abstract class ClusterScopedResourceService<TKubernetesObject, TKubernete
         CancellationToken cancellationToken = default
     );
 
+    // typed resources cannot be deserialized item by item, so the page has no malformed items
+    public virtual async Task<ResourcePage<TKubernetesObject>> GetResourcePage(
+        int? pageLimit = null,
+        string? continueToken = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        TKubernetesObjectList list = await GetResourceList(pageLimit, continueToken, cancellationToken);
+
+        return new ResourcePage<TKubernetesObject>(
+            [.. list.Items ?? [],],
+            [],
+            list.Metadata?.ContinueProperty,
+            list.Metadata?.ResourceVersion
+        );
+    }
+
     public abstract Task<TKubernetesObject> GetResource(
         string resourceName,
         CancellationToken cancellationToken = default

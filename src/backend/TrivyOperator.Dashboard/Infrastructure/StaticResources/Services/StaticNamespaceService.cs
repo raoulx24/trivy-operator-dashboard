@@ -52,6 +52,17 @@ public class StaticNamespaceService(
         Items = await GetResources(cancellationToken),
     };
     
+    public async Task<ResourcePage<V1Namespace>> GetResourcePage(
+        int? pageLimit = null,
+        string? continueToken = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        V1NamespaceList list = await GetResourceList(pageLimit, continueToken, cancellationToken);
+
+        return new ResourcePage<V1Namespace>([.. list.Items,], [], null, list.Metadata.ResourceVersion);
+    }
+
     public async IAsyncEnumerable<WatchEvent<V1Namespace>> GetResourceWatchList(
     string? lastResourceVersion = null,
     int? timeoutSeconds = null,

@@ -12,6 +12,8 @@ using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
 using TrivyOperator.Dashboard.Infrastructure.Caching.ConcurrentCache;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Failures;
+using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.WatchSessions.Failures.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.HostedServices;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Refresher;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.WatcherStates.Services;
@@ -50,7 +52,10 @@ public static class WatcherStateServiceRegistrationExtensions
     private static void AddWatcherStateServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<WatchersOptions>(configuration.GetSection("Watchers"));
-        
+
+        // backoff and Red threshold; used by the watch sessions and by the watcher state / alert processors
+        services.AddSingleton<IWatchRetryPolicy, WatchRetryPolicy>();
+
         Dictionary<string, bool> enabledReports = configuration.LoadEnabledTrivyReports();
 
         services.AddSingleton<

@@ -23,7 +23,8 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
         PipelineEventType eventType,
         CancellationToken ctx,
         TKubernetesObject? kubernetesObject = null,
-        Exception? exception = null
+        WatchFailure? failure = null,
+        MalformedObject? malformed = null
     )
     {
         logger.LogDebug(
@@ -50,7 +51,8 @@ public sealed class KubernetesEventPublisher<TKubernetesObject, TResource, TKey>
                 PipelineEventType: eventType,
                 Resource: resource,
                 ResourceId: resourceId,
-                Exception: exception
+                Failure: failure,
+                Malformed: malformed
             );
 
             await backgroundQueue.QueueBackgroundWorkItemAsync(kubernetesEvent, ctx);

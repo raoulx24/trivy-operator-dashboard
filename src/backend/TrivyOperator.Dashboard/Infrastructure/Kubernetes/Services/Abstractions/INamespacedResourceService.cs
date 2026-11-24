@@ -22,6 +22,14 @@ public interface INamespacedResourceService<TKubernetesObject, TKubernetesObject
         CancellationToken cancellationToken = default
     );
 
+    // one page for the watch sessions; malformed items are reported instead of failing the page
+    Task<ResourcePage<TKubernetesObject>> GetResourcePage(
+        string namespaceName,
+        int? pageLimit = null,
+        string? continueToken = null,
+        CancellationToken cancellationToken = default
+    );
+
     Task<IList<TKubernetesObject>> GetResources(string namespaceName, CancellationToken cancellationToken = default);
 
     IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(

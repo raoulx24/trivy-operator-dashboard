@@ -18,6 +18,13 @@ public interface
         CancellationToken cancellationToken = default
     );
 
+    // one page for the watch sessions; malformed items are reported instead of failing the page
+    Task<ResourcePage<TKubernetesObject>> GetResourcePage(
+        int? pageLimit = null,
+        string? continueToken = null,
+        CancellationToken cancellationToken = default
+    );
+
     IAsyncEnumerable<WatchEvent<TKubernetesObject>> GetResourceWatchList(
         string? lastResourceVersion = null,
         int? timeoutSeconds = null,

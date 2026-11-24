@@ -28,6 +28,7 @@ public class EventPipelineMetricsProcessor<TResource, TKey> (
             case PipelineEventType.Flushed:
             case PipelineEventType.Initialized:
             case PipelineEventType.Throttled:
+            case PipelineEventType.Skipped:
             case PipelineEventType.Unknown:
                 UpdateMetrics(kubernetesEvent, ctx);
                 break;
@@ -64,7 +65,10 @@ public class EventPipelineMetricsProcessor<TResource, TKey> (
                 "namespace_name",
                 kubernetesEvent.Key.NamespaceName.IsClusterScoped ? null : kubernetesEvent.Key.NamespaceName.Value
             ),
-            new KeyValuePair<string, object?>("watch_event_type", kubernetesEvent.PipelineEventType.ToString())
+            new KeyValuePair<string, object?>("watch_event_type", kubernetesEvent.PipelineEventType.ToString()),
+            // set on Error events only
+            new KeyValuePair<string, object?>("failure_category", kubernetesEvent.Failure?.Category.ToString()),
+            new KeyValuePair<string, object?>("status_code", kubernetesEvent.Failure?.StatusCode)
         );
     }
 }
