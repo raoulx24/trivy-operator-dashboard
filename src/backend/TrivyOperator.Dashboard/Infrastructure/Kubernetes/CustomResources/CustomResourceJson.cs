@@ -35,7 +35,7 @@ public static class CustomResourceJson
 
         V1ListMeta? listMeta = list.ValueKind == JsonValueKind.Object
                                && list.TryGetProperty("metadata", out JsonElement metadataElement)
-            ? KubernetesJson.Deserialize<V1ListMeta>(metadataElement.GetRawText())
+            ? KubernetesJson.Deserialize<V1ListMeta>(metadataElement)
             : null;
 
         return new ResourcePage<TKubernetesObject>(items, malformed, listMeta?.ContinueProperty, listMeta?.ResourceVersion);
@@ -60,7 +60,10 @@ public static class CustomResourceJson
     {
         try
         {
-            kubernetesObject = KubernetesJson.Deserialize<TKubernetesObject>(element.GetRawText());
+            // straight from the element (the client already parsed the line); no string copy of the object,
+            // which for large reports (SBOMs of MBs) would land on the large object heap; same options as the
+            // string overload (KubernetesJson's shared options, with ours added by AddJsonOptions)
+            kubernetesObject = KubernetesJson.Deserialize<TKubernetesObject>(element);
 
             if (kubernetesObject is null)
             {
