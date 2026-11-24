@@ -24,23 +24,30 @@ public class WatcherStateEventProcessor<TResource, TKey>(
         
         switch (kubernetesEvent.PipelineEventType)
         {
+            // the initial list is in progress: Yellow until Initialized, so a (re)created watcher is not
+            // reported Green while it is still loading
             case PipelineEventType.InitialAdded:
+                eventsGauge.OffsetValue(kubernetesEvent.Scope, 1);
+                SetState(kubernetesEvent, WatcherStateStatus.Yellow, WatcherStateReason.Listing);
+                break;
             case PipelineEventType.Added:
                 eventsGauge.OffsetValue(kubernetesEvent.Scope, 1);
-                ProcessGreenEvent(kubernetesEvent);
+                SetState(kubernetesEvent, WatcherStateStatus.Green, WatcherStateReason.None);
                 break;
             case PipelineEventType.Deleted:
                 eventsGauge.OffsetValue(kubernetesEvent.Scope, -1);
-                ProcessGreenEvent(kubernetesEvent);
+                SetState(kubernetesEvent, WatcherStateStatus.Green, WatcherStateReason.None);
                 break;
             case PipelineEventType.Modified:
             case PipelineEventType.Bookmark:
-            // the initial list ended; covers empty namespaces, which emit no InitialAdded to turn Yellow into Green
+            // the initial list ended; also covers empty namespaces, which emit no InitialAdded
             case PipelineEventType.Initialized:
             case PipelineEventType.WatcherConnected:
-            // a skipped (malformed) object is a data problem, not a watcher one; the watch goes on
+                SetState(kubernetesEvent, WatcherStateStatus.Green, WatcherStateReason.None);
+                break;
+            // a skipped (malformed) object is a data problem, not a watcher one; the status stays as it is
+            // (it must not turn a listing watcher Green)
             case PipelineEventType.Skipped:
-                ProcessGreenEvent(kubernetesEvent);
                 break;
             case PipelineEventType.Flushed:
                 eventsGauge.RemoveKey(kubernetesEvent.Scope);
@@ -48,13 +55,13 @@ public class WatcherStateEventProcessor<TResource, TKey>(
                 break;
             // the data is kept on errors (only Flushed drops it), so the gauge is kept too
             case PipelineEventType.Error when retryPolicy.IsRed(kubernetesEvent.Failure):
-                ProcessRedEvent(kubernetesEvent);
+                SetState(kubernetesEvent, WatcherStateStatus.Red, WatcherStateReason.Failed);
                 break;
             case PipelineEventType.Error:
-                ProcessYellowEvent(kubernetesEvent);
+                SetState(kubernetesEvent, WatcherStateStatus.Yellow, WatcherStateReason.Recovering);
                 break;
             case PipelineEventType.Throttled:
-                ProcessYellowEvent(kubernetesEvent);
+                SetState(kubernetesEvent, WatcherStateStatus.Yellow, WatcherStateReason.Throttled);
                 break;
             case PipelineEventType.Unknown:
                 logger.LogWarning(
@@ -68,42 +75,20 @@ public class WatcherStateEventProcessor<TResource, TKey>(
         return Task.CompletedTask;
     }
 
-    private void ProcessGreenEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
-    {
-        WatcherId id = new(typeof(TResource), kubernetesEvent.Scope); 
-        WatcherStateInfo watcherStateInfo = new(
-            Id: id,
-            Status: WatcherStateStatus.Green,
-            LastException: null,
-            LastEventMoment: DateTime.UtcNow,
-            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Scope));
-
-        cache[id] = watcherStateInfo;
-    }
-
-    private void ProcessYellowEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
+    private void SetState(
+        KubernetesEvent<TResource, TKey> kubernetesEvent,
+        WatcherStateStatus status,
+        WatcherStateReason reason)
     {
         WatcherId id = new(typeof(TResource), kubernetesEvent.Scope);
         WatcherStateInfo watcherStateInfo = new(
             Id: id,
-            Status: WatcherStateStatus.Yellow,
-            // set for a recovering watcher (Error not yet Red), null when throttled by our own gate
+            Status: status,
+            // set on Error events only
             LastException: kubernetesEvent.Failure?.Exception,
             LastEventMoment: DateTime.UtcNow,
-            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Scope));
-
-        cache[id] = watcherStateInfo;
-    }
-
-    private void ProcessRedEvent(KubernetesEvent<TResource, TKey> kubernetesEvent)
-    {
-        WatcherId id = new(typeof(TResource), kubernetesEvent.Scope);
-        WatcherStateInfo watcherStateInfo = new(
-            Id: id,
-            Status: WatcherStateStatus.Red,
-            LastException: kubernetesEvent.Failure?.Exception,
-            LastEventMoment: DateTime.UtcNow,
-            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Scope));
+            EventsGauge: eventsGauge.GetValue(kubernetesEvent.Scope),
+            Reason: reason);
 
         cache[id] = watcherStateInfo;
     }

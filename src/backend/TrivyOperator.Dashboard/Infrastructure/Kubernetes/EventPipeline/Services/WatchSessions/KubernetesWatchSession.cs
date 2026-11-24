@@ -2,6 +2,7 @@
 using k8s.Models;
 using Microsoft.Extensions.Options;
 using TrivyOperator.Dashboard.Application.Kubernetes.Models;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Application.Shared.Models;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
@@ -26,6 +27,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
     IKubernetesWatchSessionThrottle throttle,
     IWatchFailureClassifier failureClassifier,
     IWatchRetryPolicy retryPolicy,
+    IKnownKubernetesTypeFactory knownKubernetesTypeFactory,
     IOptions<WatchersOptions> options,
     ILogger<KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>> logger
 ) : IDisposable
@@ -244,7 +246,7 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
                 return await resourceWatch.GetInitialResources(
                     scope,
                     continueToken,
-                    options.Value.ResourceListPageSize,
+                    ResourceListPageSize,
                     ctx
                 );
             }
@@ -365,6 +367,41 @@ public sealed class KubernetesWatchSession<TKubernetesObjectList, TKubernetesObj
         string? resourceVersion = watchEvent.Object?.Metadata?.ResourceVersion ?? watchEvent.Malformed?.ResourceVersion;
 
         return string.IsNullOrEmpty(resourceVersion) ? null : resourceVersion;
+    }
+
+    // the page size of this type (Watchers:ResourceListPageSizes), else the global one; computed once
+    private int ResourceListPageSize => field > 0 ? field : field = GetResourceListPageSize();
+
+    private int GetResourceListPageSize()
+    {
+        WatchersOptions watchersOptions = options.Value;
+        string? reportName = knownKubernetesTypeFactory.GetName(typeof(TKubernetesObject));
+
+        // case-insensitive: keys coming from environment variables are upper case
+        KeyValuePair<string, int>? configured = reportName is null
+            ? null
+            : watchersOptions.ResourceListPageSizes
+                .Where(kvp => string.Equals(kvp.Key, reportName, StringComparison.OrdinalIgnoreCase))
+                .Select(static kvp => (KeyValuePair<string, int>?)kvp)
+                .FirstOrDefault();
+
+        if (configured is not { Value: var pageSize })
+        {
+            return Math.Max(1, watchersOptions.ResourceListPageSize);
+        }
+
+        if (pageSize > 0)
+        {
+            return pageSize;
+        }
+
+        logger.LogWarning(
+            "Watchers:ResourceListPageSizes:{reportName} is {pageSize}; using Watchers:ResourceListPageSize",
+            reportName,
+            pageSize
+        );
+
+        return Math.Max(1, watchersOptions.ResourceListPageSize);
     }
 
     private int GetWatcherRandomTimeout()

@@ -35,6 +35,12 @@ public class KnownKubernetesTypeFactory : IKnownKubernetesTypeFactory
         [nameof(VulnerabilityReport)] = typeof(VulnerabilityReportCr),
     };
 
+    private static readonly Dictionary<Type, string> Names =
+        Types.ToDictionary(static kvp => kvp.Value, static kvp => kvp.Key);
+
+    public string? GetName(Type watchedKubernetesObjectType) =>
+        Names.GetValueOrDefault(watchedKubernetesObjectType);
+
     public Type Get(string name) =>
         Types.TryGetValue(name, out Type? type)
             ? type

@@ -1,6 +1,7 @@
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Options;
+using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Abstractions;
 using TrivyOperator.Dashboard.Application.Kubernetes.WatcherState.Options;
 using TrivyOperator.Dashboard.Domain.Kubernetes.ValueObjects;
 using TrivyOperator.Dashboard.Infrastructure.Kubernetes.EventPipeline.Services.EventPublishers.Abstractions;
@@ -16,6 +17,7 @@ public sealed class KubernetesWatchSessionFactory<TKubernetesObjectList, TKubern
     IKubernetesWatchSessionThrottle throttle,
     IWatchFailureClassifier failureClassifier,
     IWatchRetryPolicy retryPolicy,
+    IKnownKubernetesTypeFactory knownKubernetesTypeFactory,
     IOptions<WatchersOptions> options,
     ILogger<KubernetesWatchSession<TKubernetesObjectList, TKubernetesObject>> logger
 ) : IKubernetesWatchSessionFactory<TKubernetesObjectList, TKubernetesObject>
@@ -32,6 +34,7 @@ public sealed class KubernetesWatchSessionFactory<TKubernetesObjectList, TKubern
             throttle,
             failureClassifier,
             retryPolicy,
+            knownKubernetesTypeFactory,
             options,
             logger
         );

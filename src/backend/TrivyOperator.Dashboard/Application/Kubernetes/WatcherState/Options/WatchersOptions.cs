@@ -7,6 +7,10 @@ public class WatchersOptions
     public int MaxConcurrentInitialLists { get; init; } = 2;
     public int ResourceListPageSize { get; init; } = 100;
 
+    // page size per report type (the EnabledTrivyReports names), for types with large objects (e.g. SbomReport);
+    // types not listed use ResourceListPageSize
+    public Dictionary<string, int> ResourceListPageSizes { get; init; } = [];
+
     // backoff for transient failures: exponential from base, capped, with jitter; Retry-After is the minimum
     public int RetryBaseDelaySeconds { get; init; } = 1;
     public int RetryMaxDelaySeconds { get; init; } = 60;

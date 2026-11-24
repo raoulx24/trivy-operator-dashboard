@@ -54,12 +54,15 @@ public static class WatcherStatusExtensions
 
     private static string GetMitigationMessage(WatcherStateInfo watcherStateInfo)
     {
-        // Yellow is either our own list throttling (no exception) or a watcher recovering from a failure
         if (watcherStateInfo.Status == WatcherStateStatus.Yellow)
         {
-            return watcherStateInfo.LastException is null
-                ? "Throttled: waiting for a free slot to list resources (see Watchers:MaxConcurrentInitialLists)"
-                : "Recovering: retrying after a failure (see last exception); data is kept meanwhile";
+            return watcherStateInfo.Reason switch
+            {
+                WatcherStateReason.Listing => "Listing: initial load in progress",
+                WatcherStateReason.Recovering =>
+                    "Recovering: retrying after a failure (see last exception); data is kept meanwhile",
+                _ => "Throttled: waiting for a free slot to list resources (see Watchers:MaxConcurrentInitialLists)",
+            };
         }
 
         return watcherStateInfo.LastException switch
