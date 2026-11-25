@@ -1,17 +1,15 @@
-﻿using StackExchange.Redis;
+using StackExchange.Redis;
 using TrivyOperator.Dashboard.Composition.Shared;
 
-namespace TrivyOperator.Dashboard.Composition.History;
+namespace TrivyOperator.Dashboard.Composition.DistributedCache;
 
-public static class HistoryStartupChecks
+public static class DistributedCacheStartupChecks
 {
     public static async Task CheckDistributedCacheConnectivity(
         IConfiguration configuration,
         CancellationToken cancellationToken = default)
     {
-        HistoryCompositionMode mode = HistoryCompositionResolver.Resolve(configuration);
-
-        if (mode != HistoryCompositionMode.DistributedCache)
+        if (!DistributedCacheCompositionResolver.IsRequired(configuration))
             return;
 
         string connString = configuration.GetValue<string?>("History:DistributedCache:ConnectionString") ??

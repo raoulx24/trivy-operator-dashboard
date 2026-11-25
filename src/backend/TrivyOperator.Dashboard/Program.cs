@@ -1,9 +1,11 @@
 ﻿using Serilog;
 using TrivyOperator.Dashboard.Composition.Api;
 using TrivyOperator.Dashboard.Composition.Configuration;
+using TrivyOperator.Dashboard.Composition.DistributedCache;
 using TrivyOperator.Dashboard.Composition.Health;
 using TrivyOperator.Dashboard.Composition.History;
 using TrivyOperator.Dashboard.Composition.Observability;
+using TrivyOperator.Dashboard.Composition.ScanOnDemand;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Composition.TrivyOperatorDashboard;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
@@ -39,7 +41,7 @@ CompositionLogger.Initialize(logger);
 TrivyOperatorDashboardHostConfiguration.Configure(builder.WebHost, configuration, builder.Environment);
 
 // check redis/valkey connectivity
-await HistoryStartupChecks.CheckDistributedCacheConnectivity(configuration);
+await DistributedCacheStartupChecks.CheckDistributedCacheConnectivity(configuration);
 
 // api configurations (JSON options, swagger, headers, cors etc.)
 builder.Services.AddApiServices(configuration, builder.Environment);
@@ -59,6 +61,9 @@ WebApplication app = builder.Build();
 
 // app lifecycle hooks (on started, on stopping etc.)
 TrivyOperatorDashboardLifecycle.Configure(app, logger);
+
+// scan on demand: reserve its namespace (before the watchers start) and check namespace, pod template and permissions
+await app.RunScanOnDemandStartupChecksAsync(configuration);
 
 // run history migrations
 await app.RunHistoryMigrationsAsync();

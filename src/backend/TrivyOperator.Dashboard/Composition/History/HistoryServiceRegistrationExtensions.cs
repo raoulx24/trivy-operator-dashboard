@@ -22,6 +22,7 @@ using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Ku
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Kubernetes.EventPipeline.EventProcessors.Abstractions;
 using TrivyOperator.Dashboard.Application.Shared.EventPipeline.EventPipelineStarters.Abstractions;
+using TrivyOperator.Dashboard.Composition.DistributedCache;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Entities;
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Services;
@@ -29,10 +30,6 @@ using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Service
 using TrivyOperator.Dashboard.Domain.History.VulnerabilityReportsHistory.Stores.Abstractions;
 using TrivyOperator.Dashboard.Domain.Trivy.Entities;
 using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Shared;
-using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories;
-using TrivyOperator.Dashboard.Infrastructure.Caching.CacheEntityCodec.Factories.Abstractions;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed;
-using TrivyOperator.Dashboard.Infrastructure.Caching.Distributed.Abstractions;
 using TrivyOperator.Dashboard.Infrastructure.History.EventPipeline.BackgroundQueues;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator;
 using TrivyOperator.Dashboard.Infrastructure.History.Migrations.Migrator.Abstractions;
@@ -92,24 +89,7 @@ public static class HistoryServiceRegistrationExtensions
         // services.Configure<VulnerabilityReportsHistoryOptions>(configuration.GetSection("History"));
         // services.Configure<RetentionOptions>(configuration.GetSection("History").GetSection("Retention"));
         
-        services.Configure<DistributedCacheClientOptions>(configuration
-                .GetSection("History")
-                .GetSection("DistributedCache"));
-
-        services.Configure<DistributedCacheClientOptions>(
-            configuration
-                .GetSection("History")
-                .GetSection("DistributedCache")
-                .GetSection("RetryOptions"));
-
-        services.AddSingleton<DistributedCacheConnectionProvider>();
-        services.AddHostedService<DistributedCacheConnectionProvider>();
-
-        services.AddSingleton<IDistributedCacheClientFactory, DistributedCacheClientFactory>();
-
-        services.AddSingleton<ICacheEntityCodecFactory, CacheEntityCodecFactory>();
-
-        services.AddSingleton<IDistributedCacheExecutor, DistributedCacheExecutor>();
+        services.AddDistributedCacheServices(configuration);
 
         services.AddSingleton<IVulnerabilityReportsHistoryStore, DistributedCacheVulnerabilityReportsHistoryStore>();
 

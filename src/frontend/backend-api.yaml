@@ -2755,6 +2755,157 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+  /api/scan-on-demand/scans:
+    post:
+      tags:
+        - ScanOnDemand
+      operationId: SubmitOnDemandScan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanSubmitRequestDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/ScanSubmitRequestDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/ScanSubmitRequestDto'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanSubmitResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    get:
+      tags:
+        - ScanOnDemand
+      operationId: GetOnDemandScans
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OnDemandScanDto'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/scan-on-demand/scans/{id}':
+    get:
+      tags:
+        - ScanOnDemand
+      operationId: GetOnDemandScan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnDemandScanDto'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/api/scan-on-demand/results/{digest}':
+    get:
+      tags:
+        - ScanOnDemand
+      operationId: GetOnDemandScanResult
+      parameters:
+        - name: digest
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnDemandScanResultDto'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    delete:
+      tags:
+        - ScanOnDemand
+      operationId: DeleteOnDemandScanResult
+      parameters:
+        - name: digest
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   /api/severities:
     get:
       tags:
@@ -3255,6 +3406,15 @@ components:
           type: boolean
         isEolEnabled:
           type: boolean
+        isScanOnDemandEnabled:
+          type: boolean
+        scanOnDemandAllowedReportTypes:
+          type: array
+          items:
+            type: string
+        scanOnDemandUnavailableReason:
+          type: string
+          nullable: true
       additionalProperties: false
     BackendSettingsTrivyReportConfigDto:
       type: object
@@ -6672,6 +6832,67 @@ components:
         current:
           type: string
       additionalProperties: false
+    OnDemandScanDto:
+      type: object
+      properties:
+        id:
+          type: string
+        image:
+          type: string
+        requestedReportTypes:
+          type: array
+          items:
+            type: string
+        requestedBy:
+          type: string
+          nullable: true
+        state:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        imageDigest:
+          type: string
+          nullable: true
+        producedReportTypes:
+          type: array
+          items:
+            type: string
+        failureMessage:
+          type: string
+          nullable: true
+      additionalProperties: false
+    OnDemandScanResultDto:
+      type: object
+      properties:
+        digest:
+          type: string
+        image:
+          type: string
+          nullable: true
+        lastScanId:
+          type: string
+        collectedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        vulnerabilityReport:
+          $ref: '#/components/schemas/VulnerabilityReportImageDto'
+        exposedSecretReport:
+          $ref: '#/components/schemas/ExposedSecretReportImageDto'
+        sbomReport:
+          $ref: '#/components/schemas/SbomReportImageDto'
+      additionalProperties: false
     ProblemDetails:
       type: object
       properties:
@@ -6952,6 +7173,24 @@ components:
         unknownCount:
           type: integer
           format: int32
+      additionalProperties: false
+    ScanSubmitRequestDto:
+      type: object
+      properties:
+        image:
+          type: string
+        reportTypes:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+    ScanSubmitResponseDto:
+      type: object
+      properties:
+        scanId:
+          type: string
+        isExisting:
+          type: boolean
       additionalProperties: false
     SecurityAssessmentReportDetailDto:
       type: object
@@ -7720,6 +7959,7 @@ tags:
   - name: KubernetesNamespaces
   - name: RbacAssessmentReport
   - name: SbomReport
+  - name: ScanOnDemand
   - name: Severities
   - name: TrivyReportDependencies
   - name: VulnerabilityReports

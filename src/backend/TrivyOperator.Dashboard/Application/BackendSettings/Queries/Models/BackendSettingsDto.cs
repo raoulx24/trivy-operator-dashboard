@@ -14,6 +14,11 @@ public sealed record BackendSettingsDto
     public bool IsCveEnrichmentEnabled { get; init; }
     public bool IsVrHistoryEnabled { get; init; }
     public bool IsEolEnabled { get; init; }
+    public bool IsScanOnDemandEnabled { get; init; }
+    // the report types a scan on demand may collect (names); empty when not enabled
+    public List<string> ScanOnDemandAllowedReportTypes { get; init; } = [];
+    // why scan on demand is off although enabled in the settings; null otherwise
+    public string? ScanOnDemandUnavailableReason { get; init; }
 }
 
 public sealed record BackendSettingsTrivyReportConfigDto

@@ -7,6 +7,7 @@ using TrivyOperator.Dashboard.Composition.GitHub;
 using TrivyOperator.Dashboard.Composition.History;
 using TrivyOperator.Dashboard.Composition.Home;
 using TrivyOperator.Dashboard.Composition.Kubernetes;
+using TrivyOperator.Dashboard.Composition.ScanOnDemand;
 using TrivyOperator.Dashboard.Composition.CveDetails;
 using TrivyOperator.Dashboard.Composition.Shared;
 using TrivyOperator.Dashboard.Composition.Trivy;
@@ -33,6 +34,7 @@ public static class TrivyOperatorDashboardServiceRegistrationExtensions
         services.AddTrivyDependenciesRelatedServices(configuration);
         services.AddWatcherStateRelatedServices(configuration);
         services.AddHistoryRelatedServices(configuration);
+        services.AddScanOnDemandRelatedServices(configuration);
         services.AddHomeRelatedServices(configuration);
     }
 }

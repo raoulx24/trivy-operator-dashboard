@@ -30,6 +30,9 @@ export class MainAppInitService {
     // off until the backend says otherwise, so the history menu items do not flash before the settings arrive
     isVrHistoryEnabled: false,
     isEolEnabled: false,
+    // off until the backend says otherwise
+    isScanOnDemandEnabled: false,
+    scanOnDemandAllowedReportTypes: [],
   });
   readonly backendSettingsDto = this._backendSettingsDto.asReadonly();
 
@@ -106,6 +109,9 @@ export class MainAppInitService {
         isCveEnrichmentEnabled: this.defaultBackendSettingsDto?.isCveEnrichmentEnabled ?? false,
         isVrHistoryEnabled: this.defaultBackendSettingsDto?.isVrHistoryEnabled ?? false,
         isEolEnabled: this.defaultBackendSettingsDto?.isEolEnabled ?? false,
+        isScanOnDemandEnabled: this.defaultBackendSettingsDto?.isScanOnDemandEnabled ?? false,
+        scanOnDemandAllowedReportTypes: this.defaultBackendSettingsDto?.scanOnDemandAllowedReportTypes ?? [],
+        scanOnDemandUnavailableReason: this.defaultBackendSettingsDto?.scanOnDemandUnavailableReason,
       };
       return newItem;
     });

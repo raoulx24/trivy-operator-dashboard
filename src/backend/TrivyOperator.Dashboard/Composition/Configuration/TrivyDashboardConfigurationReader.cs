@@ -98,6 +98,9 @@ public static class TrivyDashboardConfigurationReader
     internal static bool LoadUseHistory(this IConfiguration config)
         => config.GetValue<bool>("History:Enabled");
     
+    internal static bool LoadUseScanOnDemand(this IConfiguration config)
+        => config.GetValue("ScanOnDemand:Enabled", false);
+
     internal static bool LoadUseGithub(this IConfiguration config)
         => config.GetValue<bool>("GitHub:ServerCheckForUpdates");
 

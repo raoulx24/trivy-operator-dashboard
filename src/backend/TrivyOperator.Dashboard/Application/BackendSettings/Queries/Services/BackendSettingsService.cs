@@ -7,6 +7,7 @@ using TrivyOperator.Dashboard.Application.FileRepository.Options;
 using TrivyOperator.Dashboard.Application.History.Queries.History.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.History.VulnerabilityReportsHistory.Retention;
 using TrivyOperator.Dashboard.Application.Kubernetes.Options;
+using TrivyOperator.Dashboard.Application.ScanOnDemand.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.CveDetails.Queries.Services.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterComplianceReports.Abstractions;
 using TrivyOperator.Dashboard.Application.Trivy.Queries.Trivy.Services.ClusterConfigAuditReports.Abstractions;
@@ -31,6 +32,7 @@ public class BackendSettingsService(
     ICveEnrichmentService cveEnrichmentService,
     IEndOfLifeService endOfLifeService,
     IVulnerabilityReportsHistoryService vrHistoryService,
+    IScanOnDemandQueryService scanOnDemandQueryService,
     IClusterComplianceReportService clusterComplianceReportService,
     IClusterConfigAuditReportService clusterConfigAuditReportService,
     IClusterInfraAssessmentReportService clusterInfraAssessmentReportService,
@@ -134,6 +136,9 @@ public class BackendSettingsService(
             IsCveEnrichmentEnabled = cveEnrichmentService.IsEnabled,
             IsVrHistoryEnabled = vrHistoryService.IsEnabled,
             IsEolEnabled = endOfLifeService.IsEnabled,
+            IsScanOnDemandEnabled = scanOnDemandQueryService.IsEnabled,
+            ScanOnDemandAllowedReportTypes = [.. scanOnDemandQueryService.AllowedReportTypes,],
+            ScanOnDemandUnavailableReason = scanOnDemandQueryService.UnavailableReason,
         };
 
         return Task.FromResult(backendSettingsDto);
