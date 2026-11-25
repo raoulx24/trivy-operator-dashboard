@@ -129,6 +129,22 @@
   --tod-layered-graph-image-text: var(--p-surface-900);
   --tod-layered-graph-namespace: var(--p-amber-400);
   --tod-layered-graph-namespace-text: var(--p-surface-900);
+  /* layered graph of the pivot widgets (History drift, New images): the vulnerabilities take the color of their severity
+     (the hues of the severity pills), the images and the namespaces get hues that are not severity ones */
+  --tod-layered-graph-severity-0: var(--p-red-600);
+  --tod-layered-graph-severity-0-text: var(--p-surface-0);
+  --tod-layered-graph-severity-1: var(--p-orange-500);
+  --tod-layered-graph-severity-1-text: var(--p-surface-900);
+  --tod-layered-graph-severity-2: var(--p-yellow-400);
+  --tod-layered-graph-severity-2-text: var(--p-surface-900);
+  --tod-layered-graph-severity-3: var(--p-cyan-400);
+  --tod-layered-graph-severity-3-text: var(--p-surface-900);
+  --tod-layered-graph-severity-4: var(--p-blue-300);
+  --tod-layered-graph-severity-4-text: var(--p-surface-900);
+  --tod-layered-graph-pivot-image: var(--p-violet-400);
+  --tod-layered-graph-pivot-image-text: var(--p-surface-900);
+  --tod-layered-graph-pivot-namespace: var(--p-emerald-400);
+  --tod-layered-graph-pivot-namespace-text: var(--p-surface-900);
 
   /* lane strip: the background of the cells without a value */
   --tod-lane-strip-empty: color-mix(in srgb, var(--p-text-color) 7%, transparent);
@@ -283,6 +299,20 @@
   --tod-layered-graph-image-text: var(--p-surface-0);
   --tod-layered-graph-namespace: var(--p-amber-600);
   --tod-layered-graph-namespace-text: var(--p-surface-0);
+  --tod-layered-graph-severity-0: var(--p-red-800);
+  --tod-layered-graph-severity-0-text: var(--p-surface-0);
+  --tod-layered-graph-severity-1: var(--p-orange-700);
+  --tod-layered-graph-severity-1-text: var(--p-surface-0);
+  --tod-layered-graph-severity-2: var(--p-yellow-700);
+  --tod-layered-graph-severity-2-text: var(--p-surface-0);
+  --tod-layered-graph-severity-3: var(--p-cyan-700);
+  --tod-layered-graph-severity-3-text: var(--p-surface-0);
+  --tod-layered-graph-severity-4: var(--p-blue-700);
+  --tod-layered-graph-severity-4-text: var(--p-surface-0);
+  --tod-layered-graph-pivot-image: var(--p-violet-700);
+  --tod-layered-graph-pivot-image-text: var(--p-surface-0);
+  --tod-layered-graph-pivot-namespace: var(--p-emerald-700);
+  --tod-layered-graph-pivot-namespace-text: var(--p-surface-0);
 
   --tod-network-line-color: color-mix(in srgb, var(--p-primary-color) 18%, transparent);
   --tod-network-node-color: color-mix(in srgb, var(--p-primary-color) 30%, transparent);

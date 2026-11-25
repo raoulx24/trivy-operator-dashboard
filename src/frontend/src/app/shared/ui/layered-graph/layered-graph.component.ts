@@ -51,7 +51,7 @@ const LABEL_GUTTER_GAP = 12;
 // space before it, its height, and how many characters the label must keep for the tag to be shown
 const TAG_CHAR_WIDTH = 5.8;
 const TAG_PADDING = 5;
-const TAG_GAP = 6;
+const TAG_GAP = 10;
 const MIN_LABEL_WITH_TAG = 3;
 
 // a color a step (100) darker: var(--p-red-500) is var(--p-red-600); any other color is mixed with black
@@ -711,12 +711,24 @@ export class LayeredGraphComponent {
       const valueText = value === null ? '' : String(value);
       // the room for the label: the node without the paddings and the value
       const room = item.width - 2 * NODE_PADDING - (valueText ? valueText.length * CHAR_WIDTH + NODE_PADDING : 0);
-      // the tag is at the right of the label; it is left out when the label would not keep a few characters
-      const tag = node?.tag?.trim() ?? '';
-      const tagWidth = tag ? Math.ceil(tag.length * TAG_CHAR_WIDTH) + 2 * TAG_PADDING : 0;
-      const showTag = tag !== '' && room - tagWidth - TAG_GAP >= MIN_LABEL_WITH_TAG * CHAR_WIDTH;
-      const fits = Math.max(1, Math.floor((showTag ? room - tagWidth - TAG_GAP : room) / CHAR_WIDTH));
+      // the tag is at the right of the label, one part for each text; the parts are taken in order while the label would
+      // keep a few characters, so a node too narrow for the first one has no tag
+      const texts = (Array.isArray(node?.tag) ? node.tag : [node?.tag ?? ''])
+        .map((x) => x.trim())
+        .filter((x) => x !== '');
+      const drawn: { text: string; width: number; offset: number }[] = [];
+      let tagWidth = 0;
+      for (const part of texts) {
+        const width = Math.ceil(part.length * TAG_CHAR_WIDTH) + 2 * TAG_PADDING;
+        if (room - tagWidth - width - TAG_GAP < MIN_LABEL_WITH_TAG * CHAR_WIDTH) break;
+
+        drawn.push({ text: part, width, offset: tagWidth });
+        tagWidth += width;
+      }
+      const fits = Math.max(1, Math.floor((tagWidth > 0 ? room - tagWidth - TAG_GAP : room) / CHAR_WIDTH));
       const text = label.length > fits ? `${label.substring(0, Math.max(1, fits - 1))}…` : label;
+      // the tag is at the end of the node, just before the value: its place does not depend on the width of the label
+      const tagX = item.width - NODE_PADDING - (valueText ? valueText.length * CHAR_WIDTH + NODE_PADDING : 0) - tagWidth;
       const color = node?.color ?? column.color ?? null;
 
       return {
@@ -728,9 +740,14 @@ export class LayeredGraphComponent {
         more: item.more,
         hiddenLabels: item.more ? item.members.map((id) => nodes.get(id)!.label) : [],
         text,
-        tag: showTag ? tag : '',
+        tag: texts.join(' · '),
+        tagParts: drawn.map((part, i) => ({
+          text: part.text,
+          x: tagX + part.offset + part.width / 2,
+          divider: i === 0 ? null : tagX + part.offset,
+        })),
         tagWidth,
-        tagX: NODE_PADDING + text.length * CHAR_WIDTH + TAG_GAP,
+        tagX,
         tagFill: color === null ? null : darker(color),
         valueText,
         color,

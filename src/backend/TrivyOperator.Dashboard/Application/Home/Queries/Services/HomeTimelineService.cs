@@ -73,9 +73,9 @@ public class HomeTimelineService(
             ]);
     }
 
-    // Items: one row per history entry (digest + cves hash) and (vulnerability id, severity) added in it, as the history
-    // has them; Groups: one per (vulnerability id, severity)
-    public async Task<HomeHistoryDriftDenormalizedDto> GetHistoryDriftDenormalized(
+    // the same data, normalized: the namespaces, the pairs and the images once each, and the entries pointing into them
+    // (the entries of a digest at the same moment are one: their pairs are merged, their counts summed)
+    public async Task<HomeHistoryDriftNormalizedDto> GetHistoryDriftNormalized(
         int? days,
         HomeFilter filter,
         CancellationToken ctx = default)
@@ -84,55 +84,73 @@ public class HomeTimelineService(
 
         if (drift.Reason is not null)
         {
-            return new HomeHistoryDriftDenormalizedDto(false, drift.Reason, drift.From, [], []);
+            return new HomeHistoryDriftNormalizedDto(false, drift.Reason, drift.From, [], [], [], []);
         }
 
-        return new HomeHistoryDriftDenormalizedDto(
+        string[] namespaceNames = ToSortedNames(drift.Entries.SelectMany(x => x.Namespaces));
+        Dictionary<string, int> namespaceIndex = ToIndexes(namespaceNames);
+
+        (VulnerabilityId Id, int SeverityId)[] pairKeys =
+        [
+            .. drift.Entries
+                .Select(x => x.Pair)
+                .Distinct()
+                .OrderBy(x => x.SeverityId)
+                .ThenBy(x => x.Id.Value, StringComparer.Ordinal),
+        ];
+        Dictionary<(VulnerabilityId Id, int SeverityId), int> pairIndex = pairKeys
+            .Select((pair, index) => (pair, index))
+            .ToDictionary(x => x.pair, x => x.index);
+
+        // the images in the order of their first entry (the group by keeps the order of the first of each key)
+        DriftEntry[] firstOfImage = [.. drift.Entries.GroupBy(x => x.ImageDigest).Select(x => x.First()),];
+        Dictionary<string, int> imageIndex = ToIndexes(firstOfImage.Select(x => x.ImageDigest));
+
+        return new HomeHistoryDriftNormalizedDto(
             true,
             null,
             drift.From,
+            namespaceNames,
             [
-                .. drift.Entries
-                    .Select(entry => new HomeHistoryDriftDenormalizedItemDto(
-                        VulnerabilityId: entry.Pair.Id.Value,
-                        SeverityId: entry.Pair.SeverityId,
-                        AddedAt: entry.AddedAt,
-                        ImageDigest: entry.ImageDigest,
-                        Registry: entry.Meta.Registry.Value,
-                        Repository: entry.Meta.Repo.Value,
-                        Tag: entry.Meta.Tag.Value,
-                        Count: entry.Count,
-                        Namespaces: entry.Namespaces.Count,
-                        NamespaceNames: ToNamespaceNames(entry.Namespaces)))
-                    .OrderBy(x => x.AddedAt)
-                    .ThenBy(x => x.SeverityId)
-                    .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal)
-                    .ThenBy(x => x.ImageDigest, StringComparer.Ordinal),
+                .. pairKeys.Select(pair =>
+                {
+                    ActiveVulnerability row = drift.ActiveById[pair.Id];
+
+                    return new HomePivotPairDto(pair.Id.Value, pair.SeverityId, row.Title, row.IsKnownExploited, row.EpssPercentile);
+                }),
+            ],
+            [
+                .. firstOfImage.Select(x => new HomeHistoryDriftNormalizedImageDto(
+                    x.ImageDigest,
+                    x.Meta.Registry.Value,
+                    x.Meta.Repo.Value,
+                    x.Meta.Tag.Value)),
             ],
             [
                 .. drift.Entries
-                    .GroupBy(x => x.Pair)
-                    .Select(group =>
-                    {
-                        ActiveVulnerability row = drift.ActiveById[group.Key.Id];
-                        HashSet<NamespaceName> namespaces = [.. group.SelectMany(x => x.Namespaces),];
-
-                        return new HomeHistoryDriftGroupDto(
-                            VulnerabilityId: group.Key.Id.Value,
-                            SeverityId: group.Key.SeverityId,
-                            Title: row.Title,
-                            Count: group.Sum(x => x.Count),
-                            FirstAddedAt: group.Min(x => x.AddedAt),
-                            IsKnownExploited: row.IsKnownExploited,
-                            EpssPercentile: row.EpssPercentile,
-                            Namespaces: namespaces.Count,
-                            NamespaceNames: ToNamespaceNames(namespaces));
-                    })
-                    .OrderBy(x => x.FirstAddedAt)
-                    .ThenBy(x => x.SeverityId)
-                    .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal),
+                    .GroupBy(x => (x.ImageDigest, x.AddedAt))
+                    .OrderBy(x => x.Key.AddedAt)
+                    .ThenBy(x => x.Key.ImageDigest, StringComparer.Ordinal)
+                    .Select(entry => new HomeHistoryDriftNormalizedEntryDto(
+                        imageIndex[entry.Key.ImageDigest],
+                        entry.Key.AddedAt,
+                        [.. entry.SelectMany(x => x.Namespaces).Select(x => namespaceIndex[x.Value]).Distinct().Order(),],
+                        [
+                            .. entry
+                                .GroupBy(x => x.Pair)
+                                .Select(pair => new HomePivotPairCountDto(pairIndex[pair.Key], pair.Sum(x => x.Count)))
+                                .OrderBy(x => x.PairIndex),
+                        ])),
             ]);
     }
+
+    // the distinct names, sorted (not capped)
+    private static string[] ToSortedNames(IEnumerable<NamespaceName> namespaces) =>
+        [.. namespaces.Select(x => x.Value).Distinct().Order(StringComparer.Ordinal),];
+
+    // the index of each value in the list, in the order they come
+    private static Dictionary<string, int> ToIndexes(IEnumerable<string> values) =>
+        values.Select((value, index) => (value, index)).ToDictionary(x => x.value, x => x.index);
 
     // a history entry (digest + cves hash) and a (vulnerability id, severity) added in it; Namespaces: the ones of the
     // entry, inside the namespaces filter
@@ -260,8 +278,8 @@ public class HomeTimelineService(
             [.. EachDay(data.From).Select(day => byDay.GetValueOrDefault(day) ?? new HomeNewImagesDayDto(day, 0, 0, NoSeverityCounts, 0)),]);
     }
 
-    // Items: one row per new image and (vulnerability id, severity) it has now; Groups: one per (vulnerability id, severity)
-    public async Task<HomeNewImagesDenormalizedDto> GetNewImagesDenormalized(
+    // the same data, normalized: the namespaces and the pairs once each, and the images pointing into them
+    public async Task<HomeNewImagesNormalizedDto> GetNewImagesNormalized(
         int? days,
         HomeFilter filter,
         CancellationToken ctx = default)
@@ -270,75 +288,60 @@ public class HomeTimelineService(
 
         if (data.Reason is not null)
         {
-            return new HomeNewImagesDenormalizedDto(false, data.Reason, data.From, [], []);
+            return new HomeNewImagesNormalizedDto(false, data.Reason, data.From, [], [], []);
         }
 
-        // per image and pair: the occurrences (package, version, target); an image without pairs has no rows
-        List<NewImageEntry> entries =
+        (NewImage Image, HomeReach Reach)[] images =
         [
-            .. data.Images.SelectMany(x =>
-            {
-                HomeReach reach = data.Scope!.GetReach([x.Image.Key,]);
-                IReadOnlyList<string> namespaceNames = ToNamespaceNames(reach.Namespaces);
-
-                return x.Rows
-                    .GroupBy(row => (row.Key.VulnerabilityId, SeverityId: row.Severity.Rank))
-                    .Select(group => new NewImageEntry(
-                        group.Key,
-                        x.Image,
-                        group.Count(),
-                        reach.Workloads.Count,
-                        reach.Namespaces,
-                        namespaceNames));
-            }),
+            .. data.Images
+                .OrderBy(x => x.Image.FirstSeenAt!.Value.Value)
+                .ThenBy(x => x.Image.Digest!.Value.Value, StringComparer.Ordinal)
+                .Select(x => (x, data.Scope!.GetReach([x.Image.Key,]))),
         ];
 
-        return new HomeNewImagesDenormalizedDto(
+        string[] namespaceNames = ToSortedNames(images.SelectMany(x => x.Reach.Namespaces));
+        Dictionary<string, int> namespaceIndex = ToIndexes(namespaceNames);
+
+        (VulnerabilityId Id, int SeverityId)[] pairKeys =
+        [
+            .. images
+                .SelectMany(x => x.Image.Pairs)
+                .Distinct()
+                .OrderBy(x => x.SeverityId)
+                .ThenBy(x => x.Id.Value, StringComparer.Ordinal),
+        ];
+        Dictionary<(VulnerabilityId Id, int SeverityId), int> pairIndex = pairKeys
+            .Select((pair, index) => (pair, index))
+            .ToDictionary(x => x.pair, x => x.index);
+
+        return new HomeNewImagesNormalizedDto(
             true,
             null,
             data.From,
+            namespaceNames,
             [
-                .. entries
-                    .Select(entry => new HomeNewImagesDenormalizedItemDto(
-                        VulnerabilityId: entry.Pair.Id.Value,
-                        SeverityId: entry.Pair.SeverityId,
-                        FirstSeenAt: entry.Image.FirstSeenAt!.Value.Value,
-                        ImageDigest: entry.Image.Digest!.Value.Value,
-                        Registry: entry.Image.ImageMeta.Registry.Value,
-                        Repository: entry.Image.ImageMeta.Repo.Value,
-                        Tag: entry.Image.ImageMeta.Tag.Value,
-                        Count: entry.Count,
-                        Workloads: entry.Workloads,
-                        Namespaces: entry.Namespaces.Count,
-                        NamespaceNames: entry.NamespaceNames))
-                    .OrderBy(x => x.FirstSeenAt)
-                    .ThenBy(x => x.SeverityId)
-                    .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal)
-                    .ThenBy(x => x.ImageDigest, StringComparer.Ordinal),
+                .. pairKeys.Select(pair =>
+                {
+                    ActiveVulnerability row = data.RowById[pair.Id];
+
+                    return new HomePivotPairDto(pair.Id.Value, pair.SeverityId, row.Title, row.IsKnownExploited, row.EpssPercentile);
+                }),
             ],
             [
-                .. entries
-                    .GroupBy(x => x.Pair)
-                    .Select(group =>
-                    {
-                        ActiveVulnerability row = data.RowById[group.Key.Id];
-                        HashSet<NamespaceName> namespaces = [.. group.SelectMany(x => x.Namespaces),];
-
-                        return new HomeNewImagesGroupDto(
-                            VulnerabilityId: group.Key.Id.Value,
-                            SeverityId: group.Key.SeverityId,
-                            Title: row.Title,
-                            Count: group.Sum(x => x.Count),
-                            Images: group.Count(),
-                            FirstSeenAt: group.Min(x => x.Image.FirstSeenAt!.Value.Value),
-                            IsKnownExploited: row.IsKnownExploited,
-                            EpssPercentile: row.EpssPercentile,
-                            Namespaces: namespaces.Count,
-                            NamespaceNames: ToNamespaceNames(namespaces));
-                    })
-                    .OrderBy(x => x.FirstSeenAt)
-                    .ThenBy(x => x.SeverityId)
-                    .ThenBy(x => x.VulnerabilityId, StringComparer.Ordinal),
+                .. images.Select(x => new HomeNewImagesNormalizedImageDto(
+                    x.Image.Image.Digest!.Value.Value,
+                    x.Image.Image.ImageMeta.Registry.Value,
+                    x.Image.Image.ImageMeta.Repo.Value,
+                    x.Image.Image.ImageMeta.Tag.Value,
+                    x.Image.Image.FirstSeenAt!.Value.Value,
+                    x.Reach.Workloads.Count,
+                    [.. x.Reach.Namespaces.Select(n => namespaceIndex[n.Value]).Order(),],
+                    [
+                        .. x.Image.Rows
+                            .GroupBy(row => (row.Key.VulnerabilityId, SeverityId: row.Severity.Rank))
+                            .Select(group => new HomePivotPairCountDto(pairIndex[group.Key], group.Count()))
+                            .OrderBy(pair => pair.PairIndex),
+                    ])),
             ]);
     }
 
@@ -352,15 +355,6 @@ public class HomeTimelineService(
         public HashSet<VulnerabilityId> Exploited { get; } =
             [.. Rows.Where(x => x.IsKnownExploited).Select(x => x.Key.VulnerabilityId),];
     }
-
-    // an image and a (vulnerability id, severity) it has; Namespaces: the ones of the image, inside the namespaces filter
-    private sealed record NewImageEntry(
-        (VulnerabilityId Id, int SeverityId) Pair,
-        ActiveImage Image,
-        int Count,
-        int Workloads,
-        IReadOnlySet<NamespaceName> Namespaces,
-        IReadOnlyList<string> NamespaceNames);
 
     private sealed record NewImages(
         string? Reason,

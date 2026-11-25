@@ -63,7 +63,8 @@
           >
             {{ node.text }}
           </text>
-          @if (node.tag) {
+          @if (node.tagParts.length > 0) {
+            <!-- one pill; with several parts, a thin line divides each from the one before it -->
             <rect
               class="node-tag"
               [style.fill]="node.tagFill"
@@ -74,16 +75,28 @@
               [attr.height]="tagHeight()"
               [attr.rx]="tagHeight() / 2"
             />
-            <text
-              class="node-tag-text tod-chart-label"
-              text-anchor="middle"
-              dominant-baseline="central"
-              [style.fill]="node.textColor"
-              [attr.x]="node.tagX + node.tagWidth / 2"
-              [attr.y]="nodeHeight() / 2"
-            >
-              {{ node.tag }}
-            </text>
+            @for (part of node.tagParts; track $index) {
+              @if (part.divider !== null) {
+                <line
+                  class="node-tag-divider"
+                  [style.stroke]="node.textColor"
+                  [attr.x1]="part.divider"
+                  [attr.x2]="part.divider"
+                  [attr.y1]="(nodeHeight() - tagHeight()) / 2"
+                  [attr.y2]="(nodeHeight() + tagHeight()) / 2"
+                />
+              }
+              <text
+                class="node-tag-text tod-chart-label"
+                text-anchor="middle"
+                dominant-baseline="central"
+                [style.fill]="node.textColor"
+                [attr.x]="part.x"
+                [attr.y]="nodeHeight() / 2"
+              >
+                {{ part.text }}
+              </text>
+            }
           }
           @if (node.valueText) {
             <text

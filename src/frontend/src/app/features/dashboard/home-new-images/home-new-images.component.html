@@ -52,8 +52,8 @@
         <div class="grid grid-cols-[minmax(14rem,2fr)_minmax(0,3fr)] items-start gap-x-8 text-sm">
           <div class="flex flex-col gap-2">
             <app-home-pivot-image-fields [value]="image" target="report" />
-            <!-- first seen and workloads share a row, half each -->
-            <div class="grid grid-cols-2 gap-x-2">
+            <!-- first seen and workloads share a row: two thirds and one third -->
+            <div class="grid grid-cols-[2fr_1fr] gap-x-2">
               <div class="flex flex-col gap-0.5">
                 <span class="text-xs tod-text-muted-color">First seen</span>
                 @if (image) {
@@ -105,11 +105,14 @@
          higher than that makes the row, and the widget, grow -->
     <div class="grid flex-1">
       <app-trivy-box class="block">
-        <span boxTitle>Graph ({{ imageBoxes().length }} images, {{ pairBoxes().length }} vulnerabilities)</span>
-        <!-- the graph is centered vertically in the box, which can be higher than it -->
-        <div class="flex h-full flex-col justify-center">
+        <span boxTitle>Graph ({{ pairBoxes().length }} vulnerabilities, {{ imageBoxes().length }} images, {{ graphData().namespaceCount }} namespaces)</span>
+        <!-- the box has a fixed height, that of a full graph; a graph with less is centered vertically in it -->
+        <div class="flex flex-col justify-center" [style.height.px]="graphHeight">
           <app-layered-graph
-            [columns]="graphColumns"
+            [columns]="graphColumns()"
+            [nodeHeight]="graphNodeHeight()"
+            [subColumnGap]="graphSubGap"
+            [layerGap]="graphLayerGap"
             [nodes]="graphData().nodes"
             [edges]="graphData().edges"
             orientation="rows"

@@ -5,6 +5,7 @@ import { VirtualScrollerComponent } from '@shared/ui/virtual-scroller/virtual-sc
 import { SeverityUtils } from '@shared/utils/severity.utils';
 
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
+import { PIVOT_GRAPH_LAYER_GAP, PIVOT_GRAPH_SUB_GAP, pivotGraphHeight } from './home-pivot-graph';
 import { HomePivotState } from './home-pivot-state';
 
 const EMPTY_CHART_DAYS = 90;
@@ -107,6 +108,11 @@ export abstract class HomePivotWidgetBase<
   private revealed = false;
   // the rows have no height until their boxes are rendered and measured (virtual rows): the widget is revealed when
   // both have one (or at once when there are no boxes); 0 while the rows are not shown
+  // the graph of the two widgets that have one (History drift, New images): its box has a fixed height, that of a full graph
+  protected readonly graphHeight = pivotGraphHeight();
+  protected readonly graphSubGap = PIVOT_GRAPH_SUB_GAP;
+  protected readonly graphLayerGap = PIVOT_GRAPH_LAYER_GAP;
+
   protected readonly imagesRowHeight = signal(0);
   protected readonly pairsRowHeight = signal(0);
 

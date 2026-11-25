@@ -88,17 +88,18 @@
   }
 
   @if (showBoxes()) {
-    <!-- the graph: images -> vulnerabilities (of the selected day); a click selects like the selects do. It has its
-         natural height (the widget grows with it); only the width scrolls -->
-    <!-- a grid: its single row takes the height the frame has left, and the box (a stretched item) fills it; a graph that is
-         higher than that makes the row, and the widget, grow -->
+    <!-- the graph: vulnerabilities -> images -> namespaces (of the selected day); a click selects like the selects do. Its
+         box has a fixed height, that of a full graph, so the widget does not change its height; only the width scrolls -->
     <div class="grid flex-1">
     <app-trivy-box class="block">
-      <span boxTitle>Graph ({{ imageBoxes().length }} images, {{ pairBoxes().length }} vulnerabilities)</span>
-      <!-- the graph is centered vertically in the box, which can be higher than it -->
-      <div class="flex h-full flex-col justify-center">
+      <span boxTitle>Graph ({{ pairBoxes().length }} vulnerabilities, {{ imageBoxes().length }} images, {{ graphData().namespaceCount }} namespaces)</span>
+      <!-- a graph with less than a full one is centered vertically in the box -->
+      <div class="flex flex-col justify-center" [style.height.px]="graphHeight">
       <app-layered-graph
-        [columns]="graphColumns"
+        [columns]="graphColumns()"
+        [nodeHeight]="graphNodeHeight()"
+        [subColumnGap]="graphSubGap"
+        [layerGap]="graphLayerGap"
         [nodes]="graphData().nodes"
         [edges]="graphData().edges"
         orientation="rows"

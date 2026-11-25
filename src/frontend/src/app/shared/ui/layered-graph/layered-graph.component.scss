@@ -134,6 +134,14 @@
   pointer-events: none;
 }
 
+// the line between two parts of a tag: the border of the pill, a little fainter
+.node-tag-divider {
+  stroke: var(--tod-layered-graph-node-text);
+  stroke-width: 1;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .node-tag-text {
   font-size: 10px;
   fill: var(--tod-layered-graph-node-text);

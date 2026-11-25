@@ -100,3 +100,33 @@ To do (backend = DTO change):
   `HomeWhereIsPackageDetailItemDto`, `HomeWhereIsLicenseDetailItemDto` (`HomeSearchDtos.cs`).
 - Regenerate the frontend API (`npm run update-endpoints:local`, `npm run prebuild` in `src/frontend`, backend running).
 - Exposed secrets opens the exposed secrets report (by design); a vulnerability report button there is not done either.
+
+## Home filter bar: an open filter panel follows the page when it scrolls
+
+**Where:** the home page filter bar (`home-filter-bar.component.html`): the Changes select, the Severities and Namespaces multiselects and, in the compact layout, the "Filters" popover.
+
+### The bug
+
+Open a filter (for example Severities) and scroll the page: the panel scrolls away with the page, while the bar (the sticky nav) stays on screen. The panel ends up detached from its control, for example 75px below it when the page was scrolled up after it opened.
+
+### Cause
+
+Not a wrong parent: `appendTo="body"` is deliberate (inside the pill the panel would be clipped and stacked under the widgets).
+
+- An overlay in the body is placed with absolute coordinates, computed once when it opens. The bar is stuck to the viewport.
+- PrimeNG closes an overlay on scroll only for the scrolling of the ancestors of its control that have `overflow: auto` or `scroll` (`ConnectedOverlayScrollHandler` / `DomHandler.getScrollableParents` in `primeng/dom`, bound by `primeng/overlay`). The document is skipped, and here the whole page is what scrolls, so nothing listens.
+- Checked in PrimeNG 21.1.10 by reading its code and from the symptom; not reproduced with a debugger.
+
+### Proposed fix
+
+In `HomeFilterBarComponent`, close the open panel when the page scrolls. Do it cheaply, as the app uses zone.js (`provideZoneChangeDetection({ eventCoalescing: true })` in `app.config.ts`): a plain host listener `(window:scroll)` would run change detection on every scroll event of every page, with or without a panel open.
+
+- Add one **passive** `scroll` listener on the window **only while a panel is open** (the show and hide events of the selects and of the popover attach and detach it).
+- Register it **outside the Angular zone** (`NgZone.runOutsideAngular`), so scrolling does not trigger change detection.
+- Its handler hides the open panel(s) (`hide()` of the select, multiselect or popover) and removes itself on the first scroll event.
+- Scrolling inside a panel's own option list does not fire a window `scroll`, so it does not close it.
+- Check the compact layout: the popover contains the selects, so both can be open together.
+
+Cost: nothing while no panel is open (no listener exists); while one is open, one small callback that detaches itself on the first scroll. About 20 lines.
+
+Alternative: leave it. It only shows when scrolling with a filter open and goes away on the next click. Re-positioning the panel on every scroll event instead of closing it is possible, but more fragile.

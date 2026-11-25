@@ -1522,11 +1522,11 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-  /api/home/history-drift/denormalized:
+  /api/home/history-drift/normalized:
     get:
       tags:
         - Home
-      operationId: GetHomeHistoryDriftDenormalized
+      operationId: GetHomeHistoryDriftNormalized
       parameters:
         - name: days
           in: query
@@ -1556,7 +1556,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HomeHistoryDriftDenormalizedDto'
+                $ref: '#/components/schemas/HomeHistoryDriftNormalizedDto'
         '500':
           description: Internal Server Error
           content:
@@ -1600,11 +1600,11 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-  /api/home/new-images/denormalized:
+  /api/home/new-images/normalized:
     get:
       tags:
         - Home
-      operationId: GetHomeNewImagesDenormalized
+      operationId: GetHomeNewImagesNormalized
       parameters:
         - name: days
           in: query
@@ -1630,7 +1630,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HomeNewImagesDenormalizedDto'
+                $ref: '#/components/schemas/HomeNewImagesNormalizedDto'
         '500':
           description: Internal Server Error
           content:
@@ -5052,56 +5052,6 @@ components:
           type: integer
           format: int32
       additionalProperties: false
-    HomeHistoryDriftDenormalizedDto:
-      type: object
-      properties:
-        isAvailable:
-          type: boolean
-        unavailableReason:
-          type: string
-          nullable: true
-        from:
-          type: string
-          format: date
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeHistoryDriftDenormalizedItemDto'
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeHistoryDriftGroupDto'
-      additionalProperties: false
-    HomeHistoryDriftDenormalizedItemDto:
-      type: object
-      properties:
-        vulnerabilityId:
-          type: string
-        severityId:
-          type: integer
-          format: int32
-        addedAt:
-          type: string
-          format: date-time
-        imageDigest:
-          type: string
-        registry:
-          type: string
-        repository:
-          type: string
-        tag:
-          type: string
-        count:
-          type: integer
-          format: int32
-        namespaces:
-          type: integer
-          format: int32
-        namespaceNames:
-          type: array
-          items:
-            type: string
-      additionalProperties: false
     HomeHistoryDriftDto:
       type: object
       properties:
@@ -5118,36 +5068,64 @@ components:
           items:
             $ref: '#/components/schemas/HomeHistoryDriftDayDto'
       additionalProperties: false
-    HomeHistoryDriftGroupDto:
+    HomeHistoryDriftNormalizedDto:
       type: object
       properties:
-        vulnerabilityId:
-          type: string
-        severityId:
-          type: integer
-          format: int32
-        title:
-          type: string
-          nullable: true
-        count:
-          type: integer
-          format: int32
-        firstAddedAt:
-          type: string
-          format: date-time
-        isKnownExploited:
+        isAvailable:
           type: boolean
-        epssPercentile:
-          type: number
-          format: double
+        unavailableReason:
+          type: string
           nullable: true
-        namespaces:
-          type: integer
-          format: int32
+        from:
+          type: string
+          format: date
         namespaceNames:
           type: array
           items:
             type: string
+        pairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomePivotPairDto'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeHistoryDriftNormalizedImageDto'
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeHistoryDriftNormalizedEntryDto'
+      additionalProperties: false
+    HomeHistoryDriftNormalizedEntryDto:
+      type: object
+      properties:
+        imageIndex:
+          type: integer
+          format: int32
+        addedAt:
+          type: string
+          format: date-time
+        namespaceIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
+        pairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomePivotPairCountDto'
+      additionalProperties: false
+    HomeHistoryDriftNormalizedImageDto:
+      type: object
+      properties:
+        digest:
+          type: string
+        registry:
+          type: string
+        repository:
+          type: string
+        tag:
+          type: string
       additionalProperties: false
     HomeJobStatusDto:
       type: object
@@ -5546,59 +5524,6 @@ components:
           type: integer
           format: int32
       additionalProperties: false
-    HomeNewImagesDenormalizedDto:
-      type: object
-      properties:
-        isAvailable:
-          type: boolean
-        unavailableReason:
-          type: string
-          nullable: true
-        from:
-          type: string
-          format: date
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeNewImagesDenormalizedItemDto'
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/HomeNewImagesGroupDto'
-      additionalProperties: false
-    HomeNewImagesDenormalizedItemDto:
-      type: object
-      properties:
-        vulnerabilityId:
-          type: string
-        severityId:
-          type: integer
-          format: int32
-        firstSeenAt:
-          type: string
-          format: date-time
-        imageDigest:
-          type: string
-        registry:
-          type: string
-        repository:
-          type: string
-        tag:
-          type: string
-        count:
-          type: integer
-          format: int32
-        workloads:
-          type: integer
-          format: int32
-        namespaces:
-          type: integer
-          format: int32
-        namespaceNames:
-          type: array
-          items:
-            type: string
-      additionalProperties: false
     HomeNewImagesDto:
       type: object
       properties:
@@ -5619,39 +5544,56 @@ components:
           items:
             $ref: '#/components/schemas/HomeNewImagesDayDto'
       additionalProperties: false
-    HomeNewImagesGroupDto:
+    HomeNewImagesNormalizedDto:
       type: object
       properties:
-        vulnerabilityId:
-          type: string
-        severityId:
-          type: integer
-          format: int32
-        title:
-          type: string
-          nullable: true
-        count:
-          type: integer
-          format: int32
-        images:
-          type: integer
-          format: int32
-        firstSeenAt:
-          type: string
-          format: date-time
-        isKnownExploited:
+        isAvailable:
           type: boolean
-        epssPercentile:
-          type: number
-          format: double
+        unavailableReason:
+          type: string
           nullable: true
-        namespaces:
-          type: integer
-          format: int32
+        from:
+          type: string
+          format: date
         namespaceNames:
           type: array
           items:
             type: string
+        pairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomePivotPairDto'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomeNewImagesNormalizedImageDto'
+      additionalProperties: false
+    HomeNewImagesNormalizedImageDto:
+      type: object
+      properties:
+        digest:
+          type: string
+        registry:
+          type: string
+        repository:
+          type: string
+        tag:
+          type: string
+        firstSeenAt:
+          type: string
+          format: date-time
+        workloads:
+          type: integer
+          format: int32
+        namespaceIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
+        pairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/HomePivotPairCountDto'
       additionalProperties: false
     HomeNewVulnerabilitiesDto:
       type: object
@@ -5897,6 +5839,34 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HomePackageHotspotDto'
+      additionalProperties: false
+    HomePivotPairCountDto:
+      type: object
+      properties:
+        pairIndex:
+          type: integer
+          format: int32
+        count:
+          type: integer
+          format: int32
+      additionalProperties: false
+    HomePivotPairDto:
+      type: object
+      properties:
+        vulnerabilityId:
+          type: string
+        severityId:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        isKnownExploited:
+          type: boolean
+        epssPercentile:
+          type: number
+          format: double
+          nullable: true
       additionalProperties: false
     HomeReachEpssDto:
       type: object

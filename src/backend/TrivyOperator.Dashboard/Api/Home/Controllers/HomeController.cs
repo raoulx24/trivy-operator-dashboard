@@ -191,17 +191,17 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeTimelineService.GetHistoryDrift(days, ToFilter(null, severities, namespaces, null, activeImagesOnly ?? true), ctx));
 
-    // the same data as history-drift, flat: one row per (vulnerability id, severity, image)
-    [HttpGet("history-drift/denormalized", Name = "GetHomeHistoryDriftDenormalized")]
-    [ProducesResponseType(typeof(HomeHistoryDriftDenormalizedDto), StatusCodes.Status200OK, "application/json")]
+    // the same data as history-drift, normalized (lists and indexes): what the boxes and the graph are made of
+    [HttpGet("history-drift/normalized", Name = "GetHomeHistoryDriftNormalized")]
+    [ProducesResponseType(typeof(HomeHistoryDriftNormalizedDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
-    public async Task<IActionResult> GetHistoryDriftDenormalized(
+    public async Task<IActionResult> GetHistoryDriftNormalized(
         [FromQuery] int? days,
         [FromQuery] int[]? severities,
         [FromQuery] string[]? namespaces,
         [FromQuery] bool? activeImagesOnly,
         CancellationToken ctx) =>
-        Ok(await homeTimelineService.GetHistoryDriftDenormalized(
+        Ok(await homeTimelineService.GetHistoryDriftNormalized(
             days,
             ToFilter(null, severities, namespaces, null, activeImagesOnly ?? true),
             ctx));
@@ -217,19 +217,16 @@ public class HomeController(
         CancellationToken ctx) =>
         Ok(await homeTimelineService.GetNewImages(days, ToFilter(null, severities, namespaces, null), ctx));
 
-    // the same data as new-images, flat: one row per (vulnerability id, severity, image)
-    [HttpGet("new-images/denormalized", Name = "GetHomeNewImagesDenormalized")]
-    [ProducesResponseType(typeof(HomeNewImagesDenormalizedDto), StatusCodes.Status200OK, "application/json")]
+    // the same data as new-images, normalized (lists and indexes): what the boxes and the graph are made of
+    [HttpGet("new-images/normalized", Name = "GetHomeNewImagesNormalized")]
+    [ProducesResponseType(typeof(HomeNewImagesNormalizedDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
-    public async Task<IActionResult> GetNewImagesDenormalized(
+    public async Task<IActionResult> GetNewImagesNormalized(
         [FromQuery] int? days,
         [FromQuery] int[]? severities,
         [FromQuery] string[]? namespaces,
         CancellationToken ctx) =>
-        Ok(await homeTimelineService.GetNewImagesDenormalized(
-            days,
-            ToFilter(null, severities, namespaces, null),
-            ctx));
+        Ok(await homeTimelineService.GetNewImagesNormalized(days, ToFilter(null, severities, namespaces, null), ctx));
 
     [HttpGet("base-os", Name = "GetHomeBaseOs")]
     [ProducesResponseType(typeof(HomeBaseOsDto), StatusCodes.Status200OK, "application/json")]

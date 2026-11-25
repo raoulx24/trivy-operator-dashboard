@@ -12,12 +12,19 @@ public class HomeTimelineNullService : QueryNullService, IHomeTimelineService
     public Task<HomeHistoryDriftDto> GetHistoryDrift(int? days, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeHistoryDriftDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), []));
 
-    public Task<HomeHistoryDriftDenormalizedDto> GetHistoryDriftDenormalized(
+    public Task<HomeHistoryDriftNormalizedDto> GetHistoryDriftNormalized(
         int? days,
         HomeFilter filter,
         CancellationToken ctx = default) =>
         Task.FromResult(
-            new HomeHistoryDriftDenormalizedDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), [], []));
+            new HomeHistoryDriftNormalizedDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), [], [], [], []));
+
+    public Task<HomeNewImagesNormalizedDto> GetNewImagesNormalized(
+        int? days,
+        HomeFilter filter,
+        CancellationToken ctx = default) =>
+        Task.FromResult(
+            new HomeNewImagesNormalizedDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), [], [], []));
 
     public Task<HomeNewImagesDto> GetNewImages(int? days, HomeFilter filter, CancellationToken ctx = default) =>
         Task.FromResult(new HomeNewImagesDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), null, []));
@@ -36,11 +43,4 @@ public class HomeTimelineNullService : QueryNullService, IHomeTimelineService
         HomeFilter filter,
         CancellationToken ctx = default) =>
         Task.FromResult(new HomeKnownExploitedSummaryDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), []));
-
-    public Task<HomeNewImagesDenormalizedDto> GetNewImagesDenormalized(
-        int? days,
-        HomeFilter filter,
-        CancellationToken ctx = default) =>
-        Task.FromResult(
-            new HomeNewImagesDenormalizedDto(false, Reason, DateOnly.FromDateTime(DateTime.UtcNow), [], []));
 }

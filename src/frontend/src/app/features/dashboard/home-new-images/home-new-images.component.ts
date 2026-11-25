@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, linkedSignal, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, linkedSignal, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -7,13 +7,13 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 
 import { HomeNewImagesDto } from '@api/models/home-new-images-dto';
-import { HomeNewImagesGroupDto } from '@api/models/home-new-images-group-dto';
+import { HomeNewImagesNormalizedImageDto } from '@api/models/home-new-images-normalized-image-dto';
+import { HomePivotPairDto } from '@api/models/home-pivot-pair-dto';
 import { HomeService } from '@api/services/home.service';
 import { DarkModeService } from '@core/services/dark-mode.service';
 import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
 import { ActivityHeatmapComponent } from '@shared/ui/activity-heatmap/activity-heatmap.component';
 import { LayeredGraphComponent } from '@shared/ui/layered-graph/layered-graph.component';
-import { LayeredGraphColumn, LayeredGraphEdge, LayeredGraphNode } from '@shared/ui/layered-graph/layered-graph.types';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { TrivyTableDialogComponent } from '@shared/ui/trivy-table-dialog/trivy-table-dialog.component';
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
@@ -23,6 +23,7 @@ import { HomePivotImageFieldsComponent } from '../home-pivot/home-pivot-image-fi
 import { HomePivotOptionComponent } from '../home-pivot/home-pivot-option.component';
 import { HomePivotSelectedSkeletonComponent } from '../home-pivot/home-pivot-selected-skeleton.component';
 import { HomePivotSkeletonComponent } from '../home-pivot/home-pivot-skeleton.component';
+import { buildPivotGraph, pivotGraphColumns, pivotGraphNodeHeight } from '../home-pivot/home-pivot-graph';
 import { HomePivotState } from '../home-pivot/home-pivot-state';
 import { HomePivotVulnerabilityFieldComponent } from '../home-pivot/home-pivot-vulnerability-field.component';
 import { HomePivotWidgetBase } from '../home-pivot/home-pivot-widget.base';
@@ -78,6 +79,28 @@ interface PairBoxRow {
   name: string;
 }
 
+// an image of the normalized rows, with what the boxes need of it
+interface ImageRef {
+  dto: HomeNewImagesNormalizedImageDto;
+  // repository:tag
+  name: string;
+  // the UTC day the digest was first seen
+  day: string;
+  namespaceNames: string[];
+}
+
+interface PairRef {
+  dto: HomePivotPairDto;
+  key: string;
+}
+
+// a row of the pivot: an image and a pair it has now (the occurrences of the pair in the image)
+interface NewImageItem {
+  image: ImageRef;
+  pair: PairRef;
+  count: number;
+}
+
 // a row of "Show all": an item of the server (an image and a pair), with what the table shows of its pair
 interface NewImagesTableRow {
   firstSeenAt: string;
@@ -96,8 +119,9 @@ interface NewImagesTableRow {
 }
 
 // New images: the heatmap of the running images first seen per UTC day; while expanded, two rows of boxes that pivot the
-// same data (api/home/new-images/denormalized: a row per image and pair, and a group per pair), with what the images
-// have now (current state, not as they arrived):
+// same data (api/home/new-images/normalized: the namespaces and the pairs once, the images pointing into them), with what
+// the images have now (current state, not as they arrived); "Show all" flattens the same rows into a table, only while it is
+// open:
 // - images: a box per new image (digest) with a table of its pairs: vulnerability id, severity, and the count (the
 //   occurrences of the pair in the image: one per package, version and target)
 // - pairs: a box per (vulnerability id, severity) with a table of the new images that have it, by the day they arrived
@@ -139,7 +163,7 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
       `The first day of the history looks inflated: the images already running then count as first seen then.`,
     ],
     expanded: [
-      `A graph: the images above, the pairs below, a line for each pair an image has. The number on a node is its lines.`,
+      `A graph: the vulnerabilities above (colored by severity), then the images, then the namespaces they run in; a line for each pair an image has. The number on a node is its lines.`,
       `Click a day of the heatmap to filter the graph.`,
     ],
     tips: [
@@ -170,11 +194,11 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
     error: this.daysData.error() ? ((this.daysData.error() as Error)?.message ?? 'request failed') : undefined,
   }));
 
-  // idle (and empty) while collapsed
+  // idle (and empty) while collapsed: the normalized rows (the names once, the rest points into the lists)
   private readonly rowsData = rxResource({
     params: () => (this.isExpanded() ? this.scope() : undefined),
     stream: ({ params }) =>
-      this.homeService.getHomeNewImagesDenormalized({
+      this.homeService.getHomeNewImagesNormalized({
         severities: params.severities,
         namespaces: params.namespaces,
       }),
@@ -242,98 +266,115 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
   );
 
 
-  // the rows of the selects: one per item of the server
-  private readonly entries = computed<PivotEntry[]>(() => {
+  // the rows of the normalized response, as one row per image and pair (they share the image and pair objects: the names
+  // are not copied)
+  private readonly items = computed<NewImageItem[]>(() => {
     const dto = this.rowsData.value();
-    const exploited = new Map<string, boolean>();
-    for (const group of dto?.groups ?? []) {
-      exploited.set(pairKey(group.vulnerabilityId, group.severityId), group.isKnownExploited);
-    }
+    if (!dto) return [];
 
-    return (dto?.items ?? []).map((item) => {
-      const key = pairKey(item.vulnerabilityId, item.severityId);
+    const pairs: PairRef[] = dto.pairs.map((p) => ({ dto: p, key: pairKey(p.vulnerabilityId, p.severityId) }));
 
-      return {
-        day: item.firstSeenAt.substring(0, 10),
-        digest: item.imageDigest,
-        name: `${item.repository}:${item.tag}`,
-        pairKey: key,
-        vulnerabilityId: item.vulnerabilityId,
-        severityId: item.severityId,
-        isKnownExploited: exploited.get(key) ?? false,
+    return dto.images.flatMap((image) => {
+      const ref: ImageRef = {
+        dto: image,
+        name: `${image.repository}:${image.tag}`,
+        day: image.firstSeenAt.substring(0, 10),
+        namespaceNames: image.namespaceIndexes.map((i) => dto.namespaceNames[i]),
       };
+
+      return image.pairs.map((p) => ({ image: ref, pair: pairs[p.pairIndex], count: p.count }));
     });
   });
 
+  // per pair, over all the rows of the range (not of the selected day): its images and where they run
+  private readonly pairStats = computed(() => {
+    const digests = new Map<string, Set<string>>();
+    const namespaces = new Map<string, Set<string>>();
+    for (const { image, pair } of this.items()) {
+      digests.set(pair.key, (digests.get(pair.key) ?? new Set()).add(image.dto.digest));
+      const names = namespaces.get(pair.key) ?? new Set();
+      image.namespaceNames.forEach((x) => names.add(x));
+      namespaces.set(pair.key, names);
+    }
+
+    return new Map(
+      [...digests].map(([key, images]) => [key, { images: images.size, namespaceNames: [...(namespaces.get(key) ?? [])].sort() }]),
+    );
+  });
+
+  // the rows of the selects: one per image and pair
+  private readonly entries = computed<PivotEntry[]>(() =>
+    this.items().map(({ image, pair }) => ({
+      day: image.day,
+      digest: image.dto.digest,
+      name: image.name,
+      pairKey: pair.key,
+      vulnerabilityId: pair.dto.vulnerabilityId,
+      severityId: pair.dto.severityId,
+      isKnownExploited: pair.dto.isKnownExploited,
+    })),
+  );
+
   protected override readonly pivot = new HomePivotState(this.entries, this.isExpanded, this.today);
 
-  // the boxes are made of the items of the selected UTC day only (none selected: all of them)
+  // the boxes are made of the rows of the selected UTC day only (none selected: all of them)
   private readonly dayItems = computed(() => {
-    const items = this.rowsData.value()?.items ?? [];
+    const items = this.items();
     const day = this.pivot.selectedDay();
 
-    return day ? items.filter((x) => x.firstSeenAt.substring(0, 10) === day) : items;
+    return day ? items.filter((x) => x.image.day === day) : items;
   });
 
   // the pivot: the same rows, once per image and once per pair
   private readonly boxes = computed(() => {
-    const dto = this.rowsData.value();
-    const groups = new Map<string, HomeNewImagesGroupDto>();
-    for (const group of dto?.groups ?? []) {
-      groups.set(pairKey(group.vulnerabilityId, group.severityId), group);
-    }
-
+    const stats = this.pairStats();
     const images = new Map<string, ImageBox>();
     const pairs = new Map<string, PairBox>();
 
-    for (const item of this.dayItems()) {
-      const key = pairKey(item.vulnerabilityId, item.severityId);
-      const group = groups.get(key);
-      const day = item.firstSeenAt.substring(0, 10);
-      const name = `${item.repository}:${item.tag}`;
-
+    for (const { image, pair, count } of this.dayItems()) {
       // an image has one row per pair: the items are one per (image, pair)
-      let image = images.get(item.imageDigest);
-      if (!image) {
-        image = {
-          digest: item.imageDigest,
-          name,
-          repository: item.repository,
-          tag: item.tag,
-          registry: item.registry,
-          day,
-          workloads: item.workloads,
-          namespaces: item.namespaces,
-          namespaceNames: item.namespaceNames,
+      let imageBox = images.get(image.dto.digest);
+      if (!imageBox) {
+        imageBox = {
+          digest: image.dto.digest,
+          name: image.name,
+          repository: image.dto.repository,
+          tag: image.dto.tag,
+          registry: image.dto.registry,
+          day: image.day,
+          workloads: image.dto.workloads,
+          namespaces: image.namespaceNames.length,
+          namespaceNames: image.namespaceNames,
           rows: [],
         };
-        images.set(item.imageDigest, image);
+        images.set(image.dto.digest, imageBox);
       }
-      image.rows.push({
-        pairKey: key,
-        vulnerabilityId: item.vulnerabilityId,
-        severityId: item.severityId,
-        isKnownExploited: group?.isKnownExploited ?? false,
-        count: item.count,
+      imageBox.rows.push({
+        pairKey: pair.key,
+        vulnerabilityId: pair.dto.vulnerabilityId,
+        severityId: pair.dto.severityId,
+        isKnownExploited: pair.dto.isKnownExploited,
+        count,
       });
 
-      let pair = pairs.get(key);
-      if (!pair) {
-        pair = {
-          key,
-          vulnerabilityId: item.vulnerabilityId,
-          severityId: item.severityId,
-          title: group?.title,
-          isKnownExploited: group?.isKnownExploited ?? false,
-          images: group?.images ?? 0,
-          namespaces: group?.namespaces ?? 0,
-          namespaceNames: group?.namespaceNames ?? [],
+      let pairBox = pairs.get(pair.key);
+      if (!pairBox) {
+        const stat = stats.get(pair.key);
+        pairBox = {
+          key: pair.key,
+          vulnerabilityId: pair.dto.vulnerabilityId,
+          severityId: pair.dto.severityId,
+          title: pair.dto.title,
+          isKnownExploited: pair.dto.isKnownExploited,
+          images: stat?.images ?? 0,
+          namespaces: stat?.namespaceNames.length ?? 0,
+          namespaceNames: stat?.namespaceNames ?? [],
           rows: [],
           days: [],
         };
-        pairs.set(key, pair);
+        pairs.set(pair.key, pairBox);
       }
-      pair.rows.push({ key: item.imageDigest, day, digest: item.imageDigest, name });
+      pairBox.rows.push({ key: image.dto.digest, day: image.day, digest: image.dto.digest, name: image.name });
     }
 
     const imageBoxes = [...images.values()];
@@ -360,31 +401,23 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
   protected override readonly imageBoxes = computed(() => this.boxes().imageBoxes);
   protected override readonly pairBoxes = computed(() => this.boxes().pairBoxes);
 
-  protected readonly tableRows = computed<NewImagesTableRow[]>(() => {
-    const dto = this.rowsData.value();
-    const groups = new Map<string, HomeNewImagesGroupDto>();
-    for (const group of dto?.groups ?? []) {
-      groups.set(pairKey(group.vulnerabilityId, group.severityId), group);
-    }
-
-    return (dto?.items ?? []).map((item) => {
-      const group = groups.get(pairKey(item.vulnerabilityId, item.severityId));
-
-      return {
-        firstSeenAt: item.firstSeenAt,
-        vulnerabilityId: item.vulnerabilityId,
-        severityId: item.severityId,
-        title: group?.title,
-        isKnownExploited: group?.isKnownExploited ?? false,
-        count: item.count,
-        registry: item.registry,
-        imageName: `${item.repository}:${item.tag}`,
-        imageDigest: item.imageDigest,
-        workloads: item.workloads,
-        namespaceNames: item.namespaceNames.join(','),
-      };
-    });
-  });
+  // "Show all": the rows flattened from the normalized ones (one per image and pair, the namespaces in one array column);
+  // made only while the dialog is open, as the template reads it inside its @if
+  protected readonly tableRows = computed<NewImagesTableRow[]>(() =>
+    this.items().map(({ image, pair, count }) => ({
+      firstSeenAt: image.dto.firstSeenAt,
+      vulnerabilityId: pair.dto.vulnerabilityId,
+      severityId: pair.dto.severityId,
+      title: pair.dto.title,
+      isKnownExploited: pair.dto.isKnownExploited,
+      count,
+      registry: image.dto.registry,
+      imageName: image.name,
+      imageDigest: image.dto.digest,
+      workloads: image.dto.workloads,
+      namespaceNames: image.namespaceNames.join(','),
+    })),
+  );
 
   protected readonly tableColumns: TrivyTableColumn[] = [
     { field: 'firstSeenAt', header: 'First seen', isFilterable: false, isSortable: true, style: 'width: 9rem', renderType: 'dateTime' },
@@ -400,52 +433,33 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
     { field: 'openReport', header: 'Report', isFilterable: false, isSortable: false, actionIcon: 'pi pi-external-link', style: 'width: 5rem; text-align: center;', renderType: 'action' },
   ];
 
-  // ---- the graph: images -> pairs (vulnerability id, severity), top to bottom (rows, 4 sub-rows each), of the same rows as the
-  // boxes (so of the selected day). The id of a node is its kind and its key ('i:digest', 'p:pairKey'); the value of an
-  // image is its pairs, that of a pair its images
-  protected readonly graphColumns: LayeredGraphColumn[] = [
-    { label: 'Images', color: 'var(--tod-layered-graph-image)', textColor: 'var(--tod-layered-graph-image-text)', width: 260, maxPerRow: 5, subColumns: 4 },
-    { label: 'Vulnerabilities', color: 'var(--tod-layered-graph-package)', textColor: 'var(--tod-layered-graph-package-text)', width: 220, maxPerRow: 6, subColumns: 4 },
-  ];
+  // ---- the graph: vulnerabilities (id, severity) -> images -> namespaces, top to bottom, of the same rows as the boxes (so
+  // of the selected day); see home-pivot-graph.ts
+  private readonly graph = computed(() => buildPivotGraph(this.imageBoxes(), this.pairBoxes()));
+  protected readonly graphColumns = computed(() => pivotGraphColumns(this.graph().hasNamespaces));
+  protected readonly graphNodeHeight = computed(() => pivotGraphNodeHeight(this.graph().hasNamespaces));
+  protected readonly graphData = this.graph;
 
-  protected readonly graphData = computed<{ nodes: LayeredGraphNode[]; edges: LayeredGraphEdge[] }>(() => {
-    const nodes: LayeredGraphNode[] = [];
-    const edges: LayeredGraphEdge[] = [];
+  // a namespace is not part of the selection of the boxes (they have no select for it): the graph keeps it
+  private readonly selectedNamespace = signal<string | null>(null);
 
-    for (const box of this.imageBoxes()) {
-      const pairKeys = new Set(box.rows.map((r) => r.pairKey));
-      nodes.push({ id: `i:${box.digest}`, column: 0, label: box.name, value: pairKeys.size, weight: pairKeys.size });
-      pairKeys.forEach((key) => edges.push({ from: `i:${box.digest}`, to: `p:${key}` }));
-    }
-    for (const box of this.pairBoxes()) {
-      const images = new Set(box.rows.map((r) => r.digest)).size;
-      // the tag marks a known exploited pair (KEV / EUVD)
-      nodes.push({
-        id: `p:${box.key}`,
-        column: 1,
-        label: box.vulnerabilityId,
-        tag: box.isKnownExploited ? 'exploited' : null,
-        value: images,
-        weight: images,
-      });
-    }
-
-    return { nodes, edges };
-  });
-
-  // multi select of the graph: at most one node per column, a peer of the other: the image and the pair of the selection
+  // multi select of the graph: at most one node per column, a peer of the other: the pair, the image and the namespace
   protected readonly selectedNodes = computed<string[]>(() => {
     const selection = this.pivot.selection();
+    const namespace = this.selectedNamespace();
 
-    return [selection?.digest ? `i:${selection.digest}` : null, selection?.pairKey ? `p:${selection.pairKey}` : null].filter(
-      (id): id is string => id !== null,
-    );
+    return [
+      selection?.pairKey ? `p:${selection.pairKey}` : null,
+      selection?.digest ? `i:${selection.digest}` : null,
+      namespace ? `n:${namespace}` : null,
+    ].filter((id): id is string => id !== null);
   });
 
   // the graph says the selected nodes: each side of the selection is set from its own (none: cleared, the day stays)
   protected onGraphSelect(ids: string[]): void {
     const side = (prefix: string): string | null => ids.find((id) => id.startsWith(prefix))?.substring(prefix.length) ?? null;
 
+    this.selectedNamespace.set(side('n:'));
     this.pivot.pickImage(side('i:'));
     this.pivot.pickPair(side('p:'));
   }

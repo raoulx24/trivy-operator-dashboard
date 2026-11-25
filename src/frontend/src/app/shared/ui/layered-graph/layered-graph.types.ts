@@ -23,8 +23,9 @@ export interface LayeredGraphNode {
   column: number;
   label: string;
   // a small tag after the label (a kind, a status, ...): a darker shade of the node color, bordered in its text color;
-  // left out when the node is too narrow for it
-  tag?: string | null;
+  // left out when the node is too narrow for it. With an array it is one tag split by dividers, one part for each text:
+  // the parts that do not fit are left out from the last one, and the popover lists them all
+  tag?: string | string[] | null;
   // shown at the right of the node (a count, ...); also in the popover
   value?: number | string | null;
   // decides which nodes survive the cap (the heaviest stay); without it, the order of the input
@@ -55,9 +56,11 @@ export interface LayeredGraphNodeView extends LayeredGraphClick {
   hiddenLabels: string[];
   // what is written on the node (shortened to fit)
   text: string;
-  // the tag (empty when none, or when it does not fit), its width, where it starts (px in the node) and its fill (null:
-  // the default of the theme)
+  // the texts of the tag, all of them, joined by " · " (empty when none): for the popover
   tag: string;
+  // the parts of the tag that are drawn (none when it does not fit), their total width, where it starts (px in the node)
+  // and its fill (null: the default of the theme)
+  tagParts: LayeredGraphTagPart[];
   tagWidth: number;
   tagX: number;
   tagFill: string | null;
@@ -72,6 +75,14 @@ export interface LayeredGraphNodeView extends LayeredGraphClick {
   x: number;
   y: number;
   width: number;
+}
+
+// a part of the tag of a node: its text, the center of the part, and the line that divides it from the part before it
+// (px in the node; null for the first part)
+export interface LayeredGraphTagPart {
+  text: string;
+  x: number;
+  divider: number | null;
 }
 
 export interface LayeredGraphEdgeView {
