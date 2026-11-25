@@ -37,6 +37,7 @@ import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.compo
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import { IconComponent } from '@shared/ui/icon/icon.component';
 
 type GroupBy = 'id' | 'package' | 'image';
 type SortBy = 'wait' | 'reach';
@@ -113,6 +114,7 @@ const LABEL_PADDING = 16;
   selector: 'app-home-fix-waiting',
   standalone: true,
   imports: [
+    IconComponent,
     HomeWidgetFrameComponent,
     HomeSearchBoxComponent,
     NgTemplateOutlet,

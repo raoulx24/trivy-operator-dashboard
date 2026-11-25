@@ -5,6 +5,12 @@ export class SemaphoreStatusUtils {
 
   public static getCssColorByName(statusName: string): string {
     const documentStyle = getComputedStyle(document.documentElement);
+
+    // the green is the theme's own raw green (the same as the shields of the home page)
+    if (statusName.toLowerCase() === 'green') {
+      return documentStyle.getPropertyValue('--tod-ok-color').trim();
+    }
+
     const colorName = this.getColorByName(statusName);
     const color: string = '--p-' + colorName + '-' + this.getIntensityByColor(colorName);
 

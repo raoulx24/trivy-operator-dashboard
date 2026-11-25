@@ -73,6 +73,7 @@ import {
   openHomeVulnerabilityRowReport,
   toHomeVulnerabilityTableRows,
 } from '../home-vulnerability-rows/home-vulnerability-rows';
+import { IconComponent } from '@shared/ui/icon/icon.component';
 
 
 // New active vulnerabilities: the (vulnerability id, package) rows first seen in the window of the page
@@ -87,6 +88,7 @@ import {
   selector: 'app-home-new-vulnerabilities',
   standalone: true,
   imports: [
+    IconComponent,
     HomeWidgetFrameComponent,
     HomeSearchBoxComponent,
     ScrollerResizeDirective,

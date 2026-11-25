@@ -7,6 +7,7 @@ import { AppVersionsService } from '@api/services/app-versions.service';
 import { HomeService } from '@api/services/home.service';
 import { MainAppInitService } from '@core/services/main-app-init.service';
 import { VersionUtils } from '@shared/utils/version.utils';
+import { IconComponent } from '@shared/ui/icon/icon.component';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { PopoverDirective } from '@shared/ui/popover/popover.directive';
 import { RingGaugeComponent } from '@shared/ui/ring-gauge/ring-gauge.component';
@@ -23,8 +24,11 @@ type Level = 'ok' | 'warn' | 'bad' | 'off';
 interface ReportRow {
   kind: string;
   count: number;
-  oldest: string;
-  newest: string;
+  // the first / last scan, the day and the age apart, so the table aligns them in their own columns
+  oldestDay: string;
+  oldestAgo: string;
+  newestDay: string;
+  newestAgo: string;
   // the lines of the popover: the first is the title
   tip: string[];
 }
@@ -57,7 +61,7 @@ interface SourceRow {
 @Component({
   selector: 'app-home-data-health',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, RingGaugeComponent, TrivyBoxComponent, PillButtonComponent, PopoverDirective],
+  imports: [HomeWidgetFrameComponent, IconComponent, RingGaugeComponent, TrivyBoxComponent, PillButtonComponent, PopoverDirective],
   templateUrl: './home-data-health.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-w-0' },
@@ -143,18 +147,78 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
     return !dto || dto.watchersTotal === 0 ? 0 : (dto.watchersOk / dto.watchersTotal) * 100;
   });
 
+  private readonly watchersLevel = computed<Level>(() => {
+    const dto = this.dto();
+    const percent = this.watchersOkPercent();
+    return !dto || dto.watchersTotal === 0 ? 'off' : percent === 100 ? 'ok' : percent >= 50 ? 'warn' : 'bad';
+  });
+
+  // the color of the verdict icon: green when all is good, red when the watchers ring is bad, else amber
+  protected readonly verdictLevel = computed<Level>(() =>
+    this.attention() === 0 ? 'ok' : this.watchersLevel() === 'bad' ? 'bad' : 'warn',
+  );
+
+  // the same shield for all three, so the layout does not jump: the mark inside says it (a check, an exclamation, a cross)
+  protected readonly verdictIcon = computed(() => {
+    const level = this.verdictLevel();
+    return level === 'ok' ? 'verified_user' : level === 'bad' ? 'gpp_bad' : 'gpp_maybe';
+  });
+
   protected readonly watcherGauge = computed<RingGaugeData>(() => {
     const dto = this.dto();
     const percent = this.watchersOkPercent();
-    const level: Level = !dto || dto.watchersTotal === 0 ? 'off' : percent === 100 ? 'ok' : percent >= 50 ? 'warn' : 'bad';
 
     return {
       id: 'watchers',
       value: percent,
-      color: this.color(level),
+      color: this.color(this.watchersLevel()),
       label: 'watchers',
       centerText: dto ? `${dto.watchersOk}/${dto.watchersTotal}` : '',
     };
+  });
+
+  // the services: the jobs and the sources that run. What is off (switched off, not run yet, skipped) is normal, so it is not
+  // counted, otherwise the ring would stay under 100% without a problem
+  private readonly servicesRunning = computed(() => [
+    ...this.jobs().filter((x) => x.level !== 'off').map((x) => ({ name: x.name, level: x.level })),
+    ...this.sources().filter((x) => x.level !== 'off').map((x) => ({ name: x.source, level: x.level })),
+  ]);
+
+  protected readonly servicesGauge = computed<RingGaugeData>(() => {
+    const running = this.servicesRunning();
+    const ok = running.filter((x) => x.level === 'ok').length;
+    const percent = running.length === 0 ? 0 : (ok / running.length) * 100;
+    const level: Level = running.length === 0 ? 'off' : percent === 100 ? 'ok' : percent >= 50 ? 'warn' : 'bad';
+
+    return {
+      id: 'services',
+      value: percent,
+      color: this.color(level),
+      label: 'services',
+      centerText: `${ok}/${running.length}`,
+    };
+  });
+
+  // the lines of the popover of the services ring: the first is the title
+  protected readonly servicesTip = computed(() => {
+    const failing = this.servicesRunning().filter((x) => x.level !== 'ok');
+    return [
+      'Jobs and sources that run',
+      failing.length === 0 ? 'None has an error' : `With an error: ${failing.map((x) => x.name).join(', ')}`,
+      'What is off or not run yet is not counted',
+    ];
+  });
+
+  // the lines of the popover of the verdict: the first is the title
+  protected readonly verdictTip = computed(() => {
+    const dto = this.dto();
+    return dto
+      ? [
+          'What the verdict counts',
+          `${dto.watchersOk} of ${dto.watchersTotal} watchers green`,
+          `${dto.sources.length - this.offSources()} of ${dto.sources.length} sources on`,
+        ]
+      : [];
   });
 
   protected readonly reports = computed<ReportRow[]>(() =>
@@ -162,8 +226,10 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
     [...(this.dto()?.reports ?? [])].sort((a, b) => this.compareKinds(a.kind, b.kind)).map((x) => ({
       kind: this.kindLabel(x.kind),
       count: x.count,
-      oldest: this.dayAgo(x.oldestScanAt),
-      newest: this.dayAgo(x.newestScanAt),
+      oldestDay: x.oldestScanAt ? this.day(x.oldestScanAt) : 'n/a',
+      oldestAgo: x.oldestScanAt ? this.ago(x.oldestScanAt) : '',
+      newestDay: x.newestScanAt ? this.day(x.newestScanAt) : 'n/a',
+      newestAgo: x.newestScanAt ? this.ago(x.newestScanAt) : '',
       tip: [x.kind, `First scan: ${this.stamp(x.oldestScanAt)}`, `Last scan: ${this.stamp(x.newestScanAt)}`],
     })),
   );
@@ -295,11 +361,6 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
       return `in ${Math.round(left / HomeDataHealthComponent.hourMs)}h`;
     }
     return `in ${Math.round(left / HomeDataHealthComponent.dayMs)}d`;
-  }
-
-  // "2026-11-22 · 5m ago"
-  private dayAgo(value?: string | null): string {
-    return value ? `${this.day(value)} · ${this.ago(value)}` : 'n/a';
   }
 
   private ago(value: string): string {

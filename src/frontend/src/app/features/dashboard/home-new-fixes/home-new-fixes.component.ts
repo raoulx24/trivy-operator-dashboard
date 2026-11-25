@@ -335,7 +335,7 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
       .reduce((sum, x) => sum + x.vulnerabilityIds, 0);
   });
 
-  protected readonly stripSeries: StackedBarSeries[] = [{ name: 'New fixes', color: 'var(--p-green-500)' }];
+  protected readonly stripSeries: StackedBarSeries[] = [{ name: 'New fixes', color: 'var(--tod-ok-color)' }];
 
   protected readonly strip = computed(() => {
     const dto = this.summaryData.value();

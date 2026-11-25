@@ -13,6 +13,7 @@ import { HomeImageHistoryService } from '../home-pivot/home-image-history.servic
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import { IconComponent } from '@shared/ui/icon/icon.component';
 
 // Exposed secrets: the running images with secrets found in them (an access key in a file, a token...), the worst first.
 // Collapsed only. It loads by itself (a change of a filter, or of refresh, reloads it); only the namespaces filter
@@ -21,7 +22,7 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 @Component({
   selector: 'app-home-exposed-secrets',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, ButtonModule, ScrollerComponent, TagModule, SeverityCssStyleByIdPipe, SeverityNameByIdPipe],
+  imports: [IconComponent, HomeWidgetFrameComponent, ButtonModule, ScrollerComponent, TagModule, SeverityCssStyleByIdPipe, SeverityNameByIdPipe],
   templateUrl: './home-exposed-secrets.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // a grid cell: wide content must wrap, not widen the cell

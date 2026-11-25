@@ -178,8 +178,12 @@
   /* oldest running images: the bar of an image without a vulnerability id (of the selected severities) */
   --tod-oldest-images-no-ids: var(--p-surface-400);
 
+  /* the green of "all good": a muted, raw green, like green cotton fabric (not the yellowish green palette, not neon): the
+     shields of the home page, the green of the data health and of the semaphore tags */
+  --tod-ok-color: #277a4c;
+
   /* data health: the dots and the ring (fresh / getting old / stale or failing / not enabled) */
-  --tod-data-health-ok: var(--p-green-500);
+  --tod-data-health-ok: var(--tod-ok-color);
   --tod-data-health-warn: var(--p-amber-500);
   --tod-data-health-bad: var(--p-red-500);
   --tod-data-health-off: var(--p-surface-400);
@@ -273,10 +277,13 @@
   --tod-fix-waiting-age-3: var(--p-amber-300);
   --tod-fix-waiting-age-4: var(--p-orange-300);
 
+  /* the green of "all good", a little lighter on the dark background */
+  --tod-ok-color: #429f6b;
+
   /* data health: a little lighter on the dark background */
-  --tod-data-health-ok: var(--p-green-400);
+  --tod-data-health-ok: var(--tod-ok-color);
   --tod-data-health-warn: var(--p-amber-400);
-  --tod-data-health-bad: var(--p-red-400);
+  --tod-data-health-bad: var(--p-red-500);
   --tod-data-health-off: var(--p-surface-500);
 
   /* oldest running images: the bar of an image without a vulnerability id, lighter on the dark background */

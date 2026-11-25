@@ -85,7 +85,7 @@ export class HomeComplianceComponent extends HomeWidgetBase {
     this.measured().map((x) => ({
       id: x.uid,
       value: x.passPercent ?? 0,
-      color: 'var(--p-green-400)',
+      color: 'var(--tod-ok-color)',
       label: this.label(x),
     })),
   );

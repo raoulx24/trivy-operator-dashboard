@@ -1099,6 +1099,17 @@ mat-icon.text-xs {
   font-size: 2rem;
 }
 
+/* the shield of an empty state on the home page ("all good"; an app-icon is 1.5em wide, so about 48px) */
+.tod-home-empty-shield {
+  font-size: 2rem;
+  color: var(--tod-ok-color);
+}
+
+/* data health: the icon of the verdict (an app-icon is 1.5em wide, so about 60px), bigger than the empty-state icons of the other widgets */
+.tod-data-health-icon {
+  font-size: 2.5rem;
+}
+
 .tod-content-border-left {
   border: 1px solid var(--p-content-border-color);
   border-top-left-radius: var(--tod-app-border-radius-md);

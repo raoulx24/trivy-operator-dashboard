@@ -227,7 +227,7 @@
 <!-- nothing new: a calm message, saying what was looked at -->
 <ng-template #emptyState>
   <div class="flex flex-col items-center justify-center gap-1 py-8 px-4 text-center">
-    <i class="pi pi-check-circle text-3xl tod-text-muted-color" aria-hidden="true"></i>
+    <app-icon [name]="'verified_user'" [class]="'tod-home-empty-shield'" />
     <span class="text-sm font-medium">Nothing new</span>
     <span class="text-xs tod-text-muted-color">No new active vulnerabilities since {{ toDay(since()) }} (UTC) in the selected severities and namespaces.</span>
   </div>

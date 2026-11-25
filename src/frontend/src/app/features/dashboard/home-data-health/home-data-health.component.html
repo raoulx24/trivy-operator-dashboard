@@ -15,17 +15,23 @@
       <!-- the headline: the watchers ring and the verdict at the left, where the history and the fix tracking begin at the right (collapsed and expanded) -->
       <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
         <app-ring-gauge [data]="watcherGauge()" [size]="76" [animate]="true" />
-        <div class="flex flex-col gap-0.5 min-w-0">
+        <div [todPopover]="linesTip" [todPopoverContext]="servicesTip()">
+          <app-ring-gauge [data]="servicesGauge()" [size]="76" [animate]="true" />
+        </div>
+        <!-- the verdict, in the middle: a big icon (the shield when all is good, else the warning) over the words; the counts
+             are in the popover -->
+        <div
+          class="flex flex-col items-center gap-1 min-w-0 flex-1 text-center"
+          [todPopover]="linesTip"
+          [todPopoverContext]="verdictTip()"
+        >
+          <app-icon [name]="verdictIcon()" [class]="'tod-data-health-icon'" [style.color]="color(verdictLevel())" />
           <span class="text-2xl font-semibold">
             @if (attention() === 0) {
               All good
             } @else {
               <span class="tod-headline-num">{{ attention() }}</span> to look at
             }
-          </span>
-          <span class="text-xs tod-text-muted-color">
-            {{ d.watchersOk }} of {{ d.watchersTotal }} watchers green · {{ d.sources.length - offSources() }} of
-            {{ d.sources.length }} sources on
           </span>
         </div>
         <!-- where the history and the fix tracking begin -->
@@ -96,15 +102,21 @@
               <div class="flex items-center gap-4 text-xs tod-text-muted-color">
                 <span class="min-w-0 flex-1">Kind</span>
                 <span class="w-12 shrink-0 text-right">Count</span>
-                <span class="w-36 shrink-0 text-right">First scan</span>
-                <span class="w-36 shrink-0 text-right">Last scan</span>
+                <span class="w-48 shrink-0 border-l border-transparent pl-3">First scan</span>
+                <span class="w-48 shrink-0 border-l border-transparent pl-3">Last scan</span>
               </div>
               @for (row of reports(); track row.kind) {
                 <div class="flex items-center gap-4 h-5" [todPopover]="linesTip" [todPopoverContext]="row.tip">
                   <span class="min-w-0 flex-1 truncate font-semibold">{{ row.kind }}</span>
                   <span class="w-12 shrink-0 text-right">{{ row.count }}</span>
-                  <span class="w-36 shrink-0 text-right whitespace-nowrap tod-text-muted-color">{{ row.oldest }}</span>
-                  <span class="w-36 shrink-0 text-right whitespace-nowrap">{{ row.newest }}</span>
+                  <span class="w-48 shrink-0 flex justify-between gap-3 whitespace-nowrap border-l border-[var(--p-content-border-color)] pl-3">
+                    <span>{{ row.oldestDay }}</span>
+                    <span class="tod-text-muted-color">{{ row.oldestAgo }}</span>
+                  </span>
+                  <span class="w-48 shrink-0 flex justify-between gap-3 whitespace-nowrap border-l border-[var(--p-content-border-color)] pl-3">
+                    <span>{{ row.newestDay }}</span>
+                    <span class="tod-text-muted-color">{{ row.newestAgo }}</span>
+                  </span>
                 </div>
               } @empty {
                 <span class="text-xs tod-text-muted-color">No report kind is enabled</span>
