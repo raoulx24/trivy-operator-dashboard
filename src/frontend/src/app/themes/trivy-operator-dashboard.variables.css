@@ -182,6 +182,14 @@
      shields of the home page, the green of the data health and of the semaphore tags */
   --tod-ok-color: #277a4c;
 
+  /* text of an error next to a form (e.g. the scan on demand submit) */
+  --tod-text-danger-color: var(--p-red-600);
+
+  /* generic-sbom: what sits above it besides the page header; its list, navigator and graph heights subtract it
+     (0 on the SBOM pages; the scan on demand result sets its header strip + tab bar, see .tod-sod-result-sbom) */
+  --tod-sbom-extra-offset: 0px;
+  --tod-sod-result-sbom-offset: 115px;
+
   /* data health: the dots and the ring (fresh / getting old / stale or failing / not enabled) */
   --tod-data-health-ok: var(--tod-ok-color);
   --tod-data-health-warn: var(--p-amber-500);
@@ -279,6 +287,9 @@
 
   /* the green of "all good", a little lighter on the dark background */
   --tod-ok-color: #429f6b;
+
+  /* error text, a little lighter on the dark background */
+  --tod-text-danger-color: var(--p-red-400);
 
   /* data health: a little lighter on the dark background */
   --tod-data-health-ok: var(--tod-ok-color);

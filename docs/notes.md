@@ -130,3 +130,47 @@ In `HomeFilterBarComponent`, close the open panel when the page scrolls. Do it c
 Cost: nothing while no panel is open (no listener exists); while one is open, one small callback that detaches itself on the first scroll. About 20 lines.
 
 Alternative: leave it. It only shows when scrolling with a filter open and goes away on the next click. Re-positioning the panel on every scroll event instead of closing it is possible, but more fragile.
+
+## Scan on demand: an alert when a scan finishes (deferred)
+
+**Status:** idea, not implemented. Today the scan on demand page follows the scans through its own hub (`ScansChanged`); nothing tells you about a finished scan while you are on another page.
+
+### The idea
+
+When a scan reaches a final state, the backend adds an alert through the existing `IAlertPublisher`. The alerts badge and page already show alerts in real time (`AlertsHub`), so no toast and no second notification path are needed.
+
+- emitter `ScanOnDemand`, key = the scan id, category "Scan on demand";
+- severity: Completed → Info, Timed out → Warning, Failed → Error;
+- message: "nginx:1.29 completed", "... failed: <reason>", "... timed out".
+
+### The open question: when is the alert removed?
+
+Alerts here describe current conditions (e.g. a failing watcher): the emitter adds them and removes them, and the UI has no way to dismiss one. A "scan finished" alert needs a removal rule, or the badge only grows. Options:
+
+1. **With the scan record** (preferred): removed when the scan is deleted, or when its record expires (the runner's 10 minute cleanup notices it). Simple, fits how alerts work today, and Delete in the scans table becomes the way to dismiss. Downside: an alert can live up to the result TTL (7 days by default).
+2. **After a fixed time** (e.g. 30 minutes), on the same cleanup tick. Reads like a notification, but it can be missed.
+3. **On acknowledge**: a new "dismiss" (alerts page, or opening the result). The most correct, but a new endpoint and UI, and it changes the alerts feature for every emitter.
+
+Note: the alerts cache is in memory, so these alerts are lost on a restart, like all the others.
+
+## Scan on demand: enabled in the settings but turned off, and the UI does not say why
+
+**Status:** known gap, not fixed.
+
+### When it happens
+
+`ScanOnDemand:Enabled` is `true`, but the feature does not run, for one of two reasons:
+
+- **it cannot be composed**: multi-context mode (`Kubernetes:UseDefaultContext` = false) or the file repository. `ScanOnDemandCompositionResolver` says no and the null query service is registered with the reason "Scan on demand works only in the default context and without the file repository.";
+- **a startup check fails** (`ScanOnDemandStartupChecks`): the scan namespace does not exist, the pod template is invalid, a permission is missing (the `SelfSubjectAccessReview`s), or the namespace could not be reserved. `IScanOnDemandAvailability.SetUnavailable(reason)` turns it off.
+
+The backend is consistent in both cases: an error / warning in the log, and in `/api/backend-settings` `isScanOnDemandEnabled: false` with `scanOnDemandUnavailableReason` set.
+
+### The gap
+
+The menu entry is gated by `isScanOnDemandEnabled`, so it is just greyed out. The scan on demand page does show the reason, but it can only be reached by typing its URL. An admin who enabled the feature sees a grey menu item and no explanation, unless they read the backend log.
+
+### Possible fixes
+
+- show `scanOnDemandUnavailableReason` in the Settings page or in Home's data health;
+- or keep the menu entry clickable when a reason is set, so the page itself explains it.

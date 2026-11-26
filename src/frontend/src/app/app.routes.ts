@@ -32,6 +32,11 @@ export const routes: Routes = [
     data: { title: 'Alerts' },
   },
   {
+    path: 'scan-on-demand',
+    loadComponent: () => import('@features/scan-on-demand/scan-on-demand.component').then((m) => m.ScanOnDemandComponent),
+    data: { title: 'Scan on Demand' },
+  },
+  {
     path: 'test1',
     loadComponent: () => import('@features/playground/tests.component').then((m) => m.TestsComponent),
     data: { title: 'Test1' },

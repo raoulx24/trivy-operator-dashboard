@@ -31,7 +31,7 @@ public sealed record OnDemandScan(
 
     public string? FailureMessage { get; init; }
 
-    public bool IsFinal => State is ScanState.Completed or ScanState.Failed or ScanState.TimedOut;
+    public bool IsFinal => State is ScanState.Completed or ScanState.Failed or ScanState.TimedOut or ScanState.Cancelled;
 
     public OnDemandScan MarkRunning(ResourceName podName, Timestamp now)
     {
@@ -67,6 +67,13 @@ public sealed record OnDemandScan(
         EnsureState(ScanState.Running);
 
         return this with { State = ScanState.TimedOut, UpdatedAt = now, FinishedAt = now, };
+    }
+
+    public OnDemandScan MarkCancelled(Timestamp now)
+    {
+        EnsureState(ScanState.Pending, ScanState.Running);
+
+        return this with { State = ScanState.Cancelled, UpdatedAt = now, FinishedAt = now, };
     }
 
     private void EnsureState(params ScanState[] allowed)

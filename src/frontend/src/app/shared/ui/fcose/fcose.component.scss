@@ -25,6 +25,15 @@ $default-breakpoint: 640px;
   }
 }
 
+/* in generic-sbom: the host breadcrumb and the package box sit above, fcose's own breadcrumb is hidden */
+.fcose.fcose-sbom {
+  height: $default-height-half;
+
+  @media (min-width: $default-breakpoint) {
+    height: calc(100vh - 230px - var(--tod-sbom-extra-offset, 0px));
+  }
+}
+
 .fcose-dialog {
   height: $default-dialog-height;
 }

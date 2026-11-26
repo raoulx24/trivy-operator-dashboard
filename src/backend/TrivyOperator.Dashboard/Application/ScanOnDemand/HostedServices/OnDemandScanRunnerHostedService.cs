@@ -16,6 +16,7 @@ namespace TrivyOperator.Dashboard.Application.ScanOnDemand.HostedServices;
 
 // drives the scans; the store is the source of truth, so a restart simply continues
 // one loop, every PollIntervalSeconds or when a submit wakes it up:
+// - cancel requests first (IOnDemandScanCancellations): Cancelled, the pod deleted, nothing stored
 // - Running scans: pod gone or failed -> Failed; read the requested types not collected yet; the first report starts the
 //   grace period; done when all arrived or the grace period is over -> save the result, Completed, delete the pod;
 //   nothing after ScanTimeoutSeconds -> TimedOut, delete the pod
@@ -29,6 +30,8 @@ public sealed class OnDemandScanRunnerHostedService(
     IScanReportReader reportReader,
     IOnDemandScanWakeUp wakeUp,
     IScanOnDemandAvailability availability,
+    IOnDemandScanNotifier notifier,
+    IOnDemandScanCancellations cancellations,
     IOptions<ScanOnDemandOptions> options,
     IJobStatusRegistry jobs,
     ILogger<OnDemandScanRunnerHostedService> logger
@@ -125,12 +128,22 @@ public sealed class OnDemandScanRunnerHostedService(
             await CleanupAsync(ctx);
         }
 
-        OnDemandScan[] active =
-        [
-            .. (await store.GetScansAsync(ctx))
-                .Where(static x => !x.IsFinal)
-                .OrderBy(static x => x.CreatedAt),
-        ];
+        List<OnDemandScan> active = [];
+
+        foreach (OnDemandScan scan in (await store.GetScansAsync(ctx))
+                     .Where(static x => !x.IsFinal)
+                     .OrderBy(static x => x.CreatedAt))
+        {
+            // cancel requests first, also for the pending scans beyond the capacity
+            if (cancellations.TryTake(scan.Id))
+            {
+                await TryStepAsync(scan, CancelScanAsync, ctx);
+            }
+            else
+            {
+                active.Add(scan);
+            }
+        }
 
         // forget the collected reports of scans that are no longer running (deleted, finished elsewhere)
         foreach (ScanId id in collected.Keys.Where(id => active.All(x => x.Id != id || x.State != ScanState.Running)).ToArray())
@@ -183,6 +196,23 @@ public sealed class OnDemandScanRunnerHostedService(
         }
     }
 
+    // the pod (a running scan has one) is deleted and the reports collected so far are dropped; no result is stored
+    private async Task<bool> CancelScanAsync(OnDemandScan scan, CancellationToken ctx)
+    {
+        try
+        {
+            await FinishAsync(scan.MarkCancelled(Timestamp.Now()), deletePod: true, ctx);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // not saved: keep the request for the next tick
+            cancellations.Request(scan.Id);
+            throw;
+        }
+
+        return false;
+    }
+
     private async Task<bool> StartScanAsync(OnDemandScan scan, CancellationToken ctx)
     {
         Timestamp now = Timestamp.Now();
@@ -206,6 +236,7 @@ public sealed class OnDemandScanRunnerHostedService(
 
         await store.SaveScanAsync(scan.MarkRunning(podName, now), ctx);
         logger.LogInformation("Scan {scanId} started with pod {podName}", scan.Id, podName);
+        await notifier.ScansChangedAsync(ctx);
 
         return true;
     }
@@ -285,6 +316,7 @@ public sealed class OnDemandScanRunnerHostedService(
     {
         await store.SaveScanAsync(scan, ctx);
         collected.Remove(scan.Id);
+        await notifier.ScansChangedAsync(ctx);
 
         logger.LogInformation(
             "Scan {scanId} of {image} ended: {state}{failure}",

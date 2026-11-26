@@ -1,3 +1,4 @@
+using TrivyOperator.Dashboard.Api.ScanOnDemand.Hubs;
 using TrivyOperator.Dashboard.Application.ScanOnDemand.Abstractions;
 using TrivyOperator.Dashboard.Application.ScanOnDemand.HostedServices;
 using TrivyOperator.Dashboard.Application.ScanOnDemand.Options;
@@ -50,6 +51,8 @@ public static class ScanOnDemandServiceRegistrationExtensions
         services.AddSingleton<IScanReportReader, ScanReportReader>();
         services.AddSingleton<IScanRequestValidator, ScanRequestValidator>();
         services.AddSingleton<IOnDemandScanWakeUp, OnDemandScanWakeUp>();
+        services.AddSingleton<IOnDemandScanNotifier, ScanOnDemandHubNotifier>();
+        services.AddSingleton<IOnDemandScanCancellations, OnDemandScanCancellations>();
         services.AddSingleton<IOnDemandScanService, OnDemandScanService>();
         services.AddSingleton<IScanOnDemandQueryService, ScanOnDemandQueryService>();
         services.AddHostedService<OnDemandScanRunnerHostedService>();

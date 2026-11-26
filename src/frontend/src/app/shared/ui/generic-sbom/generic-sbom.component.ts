@@ -6,19 +6,26 @@ import {
   inject,
   input,
   model,
+  OnInit,
   output,
   signal,
   untracked,
 } from '@angular/core';
 
 import { NodeDataDto } from '../fcose/fcose.types';
-import { genericSbomReportComparedColumns, genericSbomReportDetailColumns } from './generic-sbom.constants';
-import { GenericSbomReportDetailDto, GenericSbomReportDto, GenericSbomReportMinimalDto } from './generic-sbom.types';
-
-import { SeverityCssStyleByIdPipe } from '../../pipes/severity-css-style-by-id.pipe';
-import { VulnerabilityCountPipe } from '../../pipes/vulnerability-count.pipe';
+import { FcoseNavigation } from '../fcose/fcose.navigation';
+import { genericSbomReportComparedColumns, genericSbomReportSlimDetailColumns } from './generic-sbom.constants';
+import {
+  GenericSbomReportDetailDto,
+  GenericSbomReportDto,
+  GenericSbomReportMinimalDto,
+  GenericSbomViewMode,
+  SbomIndex,
+} from './generic-sbom.types';
 
 import { FcoseComponent } from '../fcose/fcose.component';
+import { SbomNavigatorComponent } from '../sbom-navigator/sbom-navigator.component';
+import { SbomPackageBoxComponent } from '../sbom-package-box/sbom-package-box.component';
 import {
   nonExistingNamespace, PairedOptionsSelectorComponent,
 } from '../paired-options-selector/paired-options-selector.component';
@@ -31,41 +38,42 @@ import {
   TrivyTableExpandRowData,
 } from '../trivy-table/trivy-table.types';
 
+import { BreadcrumbItemClickEvent, BreadcrumbModule } from 'primeng/breadcrumb';
+import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { Splitter, SplitterModule } from 'primeng/splitter';
 import { resetSplitterSizes } from '../splitter/splitter.utils';
-import { TagModule } from 'primeng/tag';
 
 import { KubernetesContextStateService } from '@core/state/kubernetes-context-state.service';
+import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
 import { GenericReportsCompareComponent } from '../generic-reports-compare/generic-reports-compare.component';
 
-/** Lookups over the details of the current report, built once per report instead of scanning per node. */
-interface SbomIndex {
-  byBomRef: Map<string, GenericSbomReportDetailDto>;
-  /** position of a detail in the report; keeps children in report order */
-  order: Map<string, number>;
-  /** bomRef -> details that depend on it (report order) */
-  parentsByBomRef: Map<string, GenericSbomReportDetailDto[]>;
-}
+const DEFAULT_VIEW_MODE: GenericSbomViewMode = 'navigator';
 
 @Component({
   selector: 'app-generic-sbom',
   imports: [
+    BreadcrumbModule,
+    ButtonModule,
     DialogModule,
     FcoseComponent,
     GenericReportsCompareComponent,
-    SeverityCssStyleByIdPipe,
+    SbomNavigatorComponent,
+    SbomPackageBoxComponent,
     SplitterModule,
-    TagModule,
     TrivyTableComponent,
-    VulnerabilityCountPipe,
     PairedOptionsSelectorComponent,
   ],
   templateUrl: './generic-sbom.component.html',
   styleUrl: './generic-sbom.component.scss',
 })
-export class GenericSbomComponent {
+export class GenericSbomComponent implements OnInit {
   private readonly kubernetesContextService = inject(KubernetesContextStateService);
+
+  // false where the report is not one of many (e.g. a scan on demand result)
+  isImageSelectorVisible = input<boolean>(true);
+  // true: the graph view also hides the package list, so the graph gets the full width
+  hideListInGraphView = input<boolean>(false);
 
   dataDtos = input<GenericSbomReportMinimalDto[]>([]);
   fullSbomDataDto = input<GenericSbomReportDto | undefined>();
@@ -83,12 +91,15 @@ export class GenericSbomComponent {
   refreshRequestedChange = output<void>();
   fullSbomDataDtoRequestedChange = output<void>();
 
+  // the view of the right side: once at start (the saved one), then on every switch
+  viewModeChange = output<GenericSbomViewMode>();
+
   compareFirstDtoRequested = output<string>();
   compareSecondDtoRequested = output<string>();
 
   namespacedImageDtos?: PairedOptionsDto[];
 
-  private readonly sbomIndex = computed<SbomIndex>(() => {
+  protected readonly sbomIndex = computed<SbomIndex>(() => {
     const details = this.fullSbomDataDto()?.details ?? [];
     const byBomRef = new Map<string, GenericSbomReportDetailDto>();
     const order = new Map<string, number>();
@@ -118,7 +129,25 @@ export class GenericSbomComponent {
   dependsOnBoms: GenericSbomReportDetailDto[] = [];
   deletedDependsOnBom: GenericSbomReportDetailDto[] = [];
 
-  dependsOnTableColumns: TrivyTableColumn[] = [...genericSbomReportDetailColumns];
+  dependsOnTableColumns: TrivyTableColumn[] = [...genericSbomReportSlimDetailColumns];
+  // #endregion
+
+  // #region right side: navigator or graph, the package box and the dive breadcrumb
+  readonly viewMode = signal<GenericSbomViewMode>(DEFAULT_VIEW_MODE);
+  readonly isListCollapsed = computed(() => this.hideListInGraphView() && this.viewMode() === 'graph');
+
+  // the breadcrumb of the dives, shared by both views (fcose's own is hidden); every dive goes through showNode
+  readonly navigation = new FcoseNavigation({
+    getNodeName: (nodeId) => this.sbomIndex().byBomRef.get(nodeId)?.name ?? undefined,
+    onNavigate: (nodeId) => this.onActiveNodeIdChange(nodeId),
+  });
+
+  // the box: in graph view the hovered node while hovering, otherwise the selected package
+  get packageBoxDto(): GenericSbomReportDetailDto | undefined {
+    return this.viewMode() === 'graph'
+      ? (this.hoveredSbomDetailDto ?? this.selectedSbomDetailDto)
+      : this.selectedSbomDetailDto;
+  }
   // #endregion
 
   hoveredSbomDetailDto?: GenericSbomReportDetailDto;
@@ -141,12 +170,18 @@ export class GenericSbomComponent {
     effect(() => {
       const fullSbomDataDto = this.fullSbomDataDto();
       if (fullSbomDataDto) {
-        this.showNode(fullSbomDataDto.rootNodeBomRef ?? '');
+        untracked(() => {
+          this.navigation.init(fullSbomDataDto.rootNodeBomRef ?? undefined);
+          this.showNode(fullSbomDataDto.rootNodeBomRef ?? '');
+        });
       }
     });
 
     effect(() => {
       const selectedImageId = this.selectedImageId();
+      // without the image selector there is no selection: the report is given as is (e.g. a scan on demand result),
+      // and an undefined selectedImageId must not reset it
+      if (!this.isImageSelectorVisible()) return;
       // only a change of the selected image triggers this, not the arrival of the report
       const currentDto = untracked(() => this.fullSbomDataDto());
       // avoid re-selecting the same image
@@ -171,6 +206,32 @@ export class GenericSbomComponent {
     });
   }
 
+  ngOnInit() {
+    const saved = LocalStorageUtils.getItem(this.viewModeStorageKey());
+    if (saved === 'navigator' || saved === 'graph') {
+      this.viewMode.set(saved);
+    }
+    this.viewModeChange.emit(this.viewMode());
+  }
+
+  setViewMode(viewMode: GenericSbomViewMode) {
+    this.viewMode.set(viewMode);
+    LocalStorageUtils.setItem(this.viewModeStorageKey(), viewMode);
+    this.viewModeChange.emit(viewMode);
+  }
+
+  private viewModeStorageKey(): string {
+    return `genericSbom.viewMode.${this.stateKey()}`;
+  }
+
+  onBreadcrumbItemClick(event: BreadcrumbItemClickEvent) {
+    this.navigation.onItemClick(event);
+  }
+
+  onDiveRequested(bomRef: string) {
+    this.onActiveNodeIdChange(bomRef);
+  }
+
   onRefreshRequested() {
     this.namespacedImageDtos = undefined;
     this.resetAllRelatedData();
@@ -187,6 +248,7 @@ export class GenericSbomComponent {
     this.selectedSbomDetail = { source: 'programmatic', selectedDtos: [] };
     this.hoveredSbomDetailDto = undefined;
     this.rowExpandResponse = undefined;
+    this.navigation.clear();
   }
 
   // #region Image selector data
@@ -208,6 +270,7 @@ export class GenericSbomComponent {
   /** Builds the table and graph data around a node and selects that node. */
   private showNode(nodeId: string) {
     this.getDataDtosByNodeId(nodeId);
+    this.navigation.update(nodeId);
     const baseSbomDetailDto = this.dependsOnBoms.find((x) => x.level == 'Base');
     if (!baseSbomDetailDto) {
       return;

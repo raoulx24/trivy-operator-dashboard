@@ -75,6 +75,15 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    label: 'Tools',
+    icon: 'construction',
+    expanded: true,
+    entries: [
+      // 'sod' is not a Trivy report; the backend reports it as a separate flag (see the nav-menu component)
+      { label: 'Scan on Demand', icon: 'radar', route: 'scan-on-demand', reportId: 'sod' },
+    ],
+  },
+  {
     label: 'System',
     icon: 'settings',
     expanded: true,

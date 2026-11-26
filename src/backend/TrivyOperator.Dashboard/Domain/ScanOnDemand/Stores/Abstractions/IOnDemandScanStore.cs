@@ -11,6 +11,8 @@ public interface IOnDemandScanStore
     Task<OnDemandScan?> GetScanAsync(ScanId id, CancellationToken ctx = default);
     // the scan records only, no reports
     Task<IReadOnlyList<OnDemandScan>> GetScansAsync(CancellationToken ctx = default);
+    // removes the scan record only; the result of its digest (if any) stays
+    Task DeleteScanAsync(OnDemandScan scan, CancellationToken ctx = default);
 
     // insert or replace; expires at result.ExpiresAt
     Task SaveResultAsync(OnDemandScanResult result, CancellationToken ctx = default);

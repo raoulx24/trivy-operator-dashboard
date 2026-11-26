@@ -12,4 +12,6 @@ public enum ScanState
     Failed,
     // no selected report arrived before the timeout
     TimedOut,
+    // cancelled by a user while pending or running; no result is stored
+    Cancelled,
 }

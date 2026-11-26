@@ -1,0 +1,35 @@
+<div class="flex flex-col gap-1">
+  <div class="flex items-center gap-1 text-sm font-semibold pt-1">
+    <span class="pi pi-arrow-up text-xs"></span>
+    <span>Used by ({{ usedBy().length }})</span>
+  </div>
+  <!-- dataKey and rowExpansionRender go together: trivy-table adds the expander cell per row for the first and the
+       expander header for the second -->
+  <app-trivy-table
+    [dataDtos]="usedBy()"
+    [dataKey]="'bomRef'"
+    [extraClasses]="'trivy-stacked-half'"
+    [rowExpandData]="usedByRowExpand()"
+    [rowExpansionRender]="'table'"
+    [stateKey]="`${stateKey()} - Used By`"
+    [trivyTableColumns]="usedByColumns"
+    (rowActionRequested)="onRowAction($event)"
+    (rowExpandDataChange)="onUsedByRowExpand($event)"
+  />
+
+  <div class="flex items-center gap-1 text-sm font-semibold pt-2">
+    <span class="pi pi-arrow-down text-xs"></span>
+    <span>Depends on ({{ dependsOn().length }})</span>
+  </div>
+  <app-trivy-table
+    [dataDtos]="dependsOn()"
+    [dataKey]="'bomRef'"
+    [extraClasses]="'trivy-stacked-half'"
+    [rowExpandData]="dependsOnRowExpand()"
+    [rowExpansionRender]="'table'"
+    [stateKey]="`${stateKey()} - Depends On Direct`"
+    [trivyTableColumns]="dependsOnColumns"
+    (rowActionRequested)="onRowAction($event)"
+    (rowExpandDataChange)="onDependsOnRowExpand($event)"
+  />
+</div>

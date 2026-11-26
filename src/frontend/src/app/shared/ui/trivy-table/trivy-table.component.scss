@@ -52,6 +52,46 @@ $default-breakpoint: 640px;
       min-height: $default-height-with-filters;
     }
   }
+
+  // scan on demand: the scans list under the submit form
+  &.trivy-sod-scans {
+    height: calc(100vh - 190px);
+    min-height: 16rem;
+  }
+
+  // scan on demand: a report table under the result header strip and the tabs
+  &.trivy-sod-result {
+    height: calc(100vh - 250px);
+    min-height: 16rem;
+  }
+
+  // generic-sbom's package list, without / with the image selector above it; --tod-sbom-extra-offset is what the host
+  // puts above generic-sbom (0 on the SBOM pages)
+  &.trivy-sbom-list {
+    height: $default-height-half;
+    min-height: $default-height-half;
+
+    @media (min-width: $default-breakpoint) {
+      height: calc(100vh - 90px - var(--tod-sbom-extra-offset, 0px));
+      min-height: calc(100vh - 90px - var(--tod-sbom-extra-offset, 0px));
+    }
+  }
+
+  &.trivy-sbom-list-with-filters {
+    height: $default-height-half;
+    min-height: $default-height-half;
+
+    @media (min-width: $default-breakpoint) {
+      height: calc(100vh - 140px - var(--tod-sbom-extra-offset, 0px));
+      min-height: calc(100vh - 140px - var(--tod-sbom-extra-offset, 0px));
+    }
+  }
+
+  // two tables stacked under a header (generic-sbom navigator: breadcrumb, package box, one title per table)
+  &.trivy-stacked-half {
+    height: calc((100vh - 290px - var(--tod-sbom-extra-offset, 0px)) / 2);
+    min-height: 12rem;
+  }
 }
 
 .truncate-ellipsis {

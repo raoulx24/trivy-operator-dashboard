@@ -15,6 +15,8 @@ public sealed class OnDemandScanService(
     IScanRequestValidator validator,
     IOnDemandScanStore store,
     IOnDemandScanWakeUp wakeUp,
+    IOnDemandScanNotifier notifier,
+    IOnDemandScanCancellations cancellations,
     IOptions<ScanOnDemandOptions> options,
     ILogger<OnDemandScanService> logger
 ) : IOnDemandScanService
@@ -60,6 +62,7 @@ public sealed class OnDemandScanService(
 
         await store.SaveScanAsync(scan, ctx);
         wakeUp.Signal();
+        await notifier.ScansChangedAsync(ctx);
 
         logger.LogInformation(
             "Scan {scanId} of {image} ({reportTypes}) submitted",
@@ -73,12 +76,58 @@ public sealed class OnDemandScanService(
     public Task<OnDemandScan?> GetScanAsync(ScanId id, CancellationToken ctx = default)
         => store.GetScanAsync(id, ctx);
 
+    public async Task<ScanCancelResult> CancelScanAsync(ScanId id, CancellationToken ctx = default)
+    {
+        OnDemandScan? scan = await store.GetScanAsync(id, ctx);
+
+        if (scan is null)
+        {
+            return ScanCancelResult.NotFound;
+        }
+
+        if (scan.IsFinal)
+        {
+            return ScanCancelResult.AlreadyFinished;
+        }
+
+        cancellations.Request(scan.Id);
+        wakeUp.Signal();
+        logger.LogInformation("Cancel requested for scan {scanId} of {image}", scan.Id, scan.Image.FullName);
+
+        return ScanCancelResult.Accepted;
+    }
+
+    public async Task<ScanDeleteResult> DeleteScanAsync(ScanId id, CancellationToken ctx = default)
+    {
+        OnDemandScan? scan = await store.GetScanAsync(id, ctx);
+
+        if (scan is null)
+        {
+            return ScanDeleteResult.NotFound;
+        }
+
+        if (!scan.IsFinal)
+        {
+            return ScanDeleteResult.NotFinished;
+        }
+
+        await store.DeleteScanAsync(scan, ctx);
+        logger.LogInformation("Scan {scanId} of {image} deleted", scan.Id, scan.Image.FullName);
+        await notifier.ScansChangedAsync(ctx);
+
+        return ScanDeleteResult.Deleted;
+    }
+
     public Task<IReadOnlyList<OnDemandScan>> GetScansAsync(CancellationToken ctx = default)
         => store.GetScansAsync(ctx);
 
     public Task<OnDemandScanResult?> GetResultAsync(Digest digest, CancellationToken ctx = default)
         => store.GetResultAsync(digest, ctx);
 
-    public Task DeleteResultAsync(Digest digest, CancellationToken ctx = default)
-        => store.DeleteResultAsync(digest, ctx);
+    // the scans pointing to the digest go too, so the list changes
+    public async Task DeleteResultAsync(Digest digest, CancellationToken ctx = default)
+    {
+        await store.DeleteResultAsync(digest, ctx);
+        await notifier.ScansChangedAsync(ctx);
+    }
 }

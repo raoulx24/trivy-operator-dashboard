@@ -840,6 +840,116 @@ p-splitter.tod-splitter-no-borders {
   border: none !important;
 }
 
+/* generic-sbom: the package list folds away in graph view when the host asks for it (hideListInGraphView);
+   the panel sizes are inline styles set by the splitter, hence !important */
+p-splitter.tod-sbom-splitter .p-splitter-panel {
+  transition: flex-basis 300ms ease;
+  min-width: 0;
+}
+
+p-splitter.tod-sbom-splitter.tod-sbom-list-collapsed .p-splitter-panel:first-child {
+  flex-basis: 0 !important;
+  overflow: hidden;
+}
+
+p-splitter.tod-sbom-splitter.tod-sbom-list-collapsed .p-splitter-panel:last-child {
+  flex-basis: 100% !important;
+}
+
+p-splitter.tod-sbom-splitter.tod-sbom-list-collapsed .p-splitter-gutter {
+  display: none;
+}
+
+/* scan on demand: full view (list | nothing), collapsed (rail | result), wide (nothing | result); the columns are
+   length-percentages (not fr), so the transition interpolates */
+.tod-sod-layout {
+  display: grid;
+  grid-template-columns: 100% 0%;
+  transition: grid-template-columns 300ms ease;
+  position: relative;
+}
+
+.tod-sod-layout.tod-sod-collapsed {
+  grid-template-columns: 12rem calc(100% - 12rem);
+}
+
+.tod-sod-layout.tod-sod-collapsed.tod-sod-wide {
+  grid-template-columns: 0rem 100%;
+}
+
+.tod-sod-left,
+.tod-sod-right {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tod-sod-layout.tod-sod-collapsed .tod-sod-right {
+  padding-left: 0.5rem;
+}
+
+.tod-sod-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  border-radius: var(--p-border-radius-md);
+  background: transparent;
+  color: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tod-sod-rail-item:hover {
+  background: var(--p-content-hover-background);
+}
+
+.tod-sod-rail-item.tod-sod-rail-item-selected {
+  background: var(--p-highlight-background);
+  color: var(--p-highlight-color);
+}
+
+.tod-sod-rail-item.tod-sod-rail-item-disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* generic-sbom inside the scan on demand result: the header strip and the tab bar sit above it */
+.tod-sod-result-sbom {
+  --tod-sbom-extra-offset: var(--tod-sod-result-sbom-offset);
+}
+
+/* the rail folded away (SBOM graph): the button that brings it back, on the left edge */
+.tod-sod-rail-restore {
+  position: absolute;
+  top: 0.25rem;
+  left: 0;
+  z-index: 1;
+}
+
+/* generic-sbom: navigator and graph share one cell; the hidden one keeps its size (fcose needs a real size to lay
+   out), it is only made invisible */
+.tod-sbom-views {
+  display: grid;
+  min-width: 0;
+}
+
+.tod-sbom-views > .tod-sbom-view {
+  grid-area: 1 / 1;
+  min-width: 0;
+  transition: opacity 250ms ease, transform 250ms ease, visibility 0s linear 0s;
+}
+
+.tod-sbom-views > .tod-sbom-view.tod-sbom-view-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(1rem);
+  transition: opacity 250ms ease, transform 250ms ease, visibility 0s linear 250ms;
+}
+
 
 /* ==========================================================================
    PrimeNG: TieredMenu
@@ -922,6 +1032,10 @@ mat-icon.text-xs {
 
 .tod-text-right {
   text-align: right;
+}
+
+.tod-text-danger-color {
+  color: var(--tod-text-danger-color);
 }
 
 // The texts of the svg charts (EOL runway, activity heatmap): text-sm and normal weight (300 looked too thin next to

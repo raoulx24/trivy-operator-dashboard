@@ -76,6 +76,53 @@ public class ScanOnDemandController(IScanOnDemandQueryService scanOnDemandQueryS
             : Ok(scan);
     }
 
+    // the cancel is carried out by the runner right after (pod deleted, no result stored)
+    [HttpPost("scans/{id}/cancel", Name = "CancelOnDemandScan")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> CancelScan(string id, CancellationToken ct)
+    {
+        if (!scanOnDemandQueryService.IsEnabled)
+        {
+            return NotEnabled();
+        }
+
+        return await scanOnDemandQueryService.CancelScanAsync(id, ct) switch
+        {
+            ScanCancelResult.Accepted => Accepted(),
+            ScanCancelResult.AlreadyFinished => Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Scan already finished",
+                detail: $"Scan '{id}' has already finished; there is nothing to cancel."),
+            _ => Problem(statusCode: StatusCodes.Status404NotFound, title: "Not found", detail: $"Scan '{id}' was not found."),
+        };
+    }
+
+    [HttpDelete("scans/{id}", Name = "DeleteOnDemandScan")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError, "application/problem+json")]
+    public async Task<IActionResult> DeleteScan(string id, CancellationToken ct)
+    {
+        if (!scanOnDemandQueryService.IsEnabled)
+        {
+            return NotEnabled();
+        }
+
+        return await scanOnDemandQueryService.DeleteScanAsync(id, ct) switch
+        {
+            ScanDeleteResult.Deleted => NoContent(),
+            ScanDeleteResult.NotFinished => Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Scan not finished",
+                detail: $"Scan '{id}' is still pending or running; only a finished scan can be deleted."),
+            _ => Problem(statusCode: StatusCodes.Status404NotFound, title: "Not found", detail: $"Scan '{id}' was not found."),
+        };
+    }
+
     [HttpGet("results/{digest}", Name = "GetOnDemandScanResult")]
     [ProducesResponseType(typeof(OnDemandScanResultDto), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]

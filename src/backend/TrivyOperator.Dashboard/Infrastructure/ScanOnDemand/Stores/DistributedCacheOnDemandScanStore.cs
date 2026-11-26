@@ -102,6 +102,18 @@ public sealed class DistributedCacheOnDemandScanStore(
             return (IReadOnlyList<OnDemandScan>)scans;
         }, ctx);
 
+    public Task DeleteScanAsync(OnDemandScan scan, CancellationToken ctx = default)
+        => executor.ExecuteAsync(async db =>
+        {
+            await db.KeyDeleteAsync(ScanOnDemandKeys.Scan(scan.Id));
+            await db.SetRemoveAsync(ScanOnDemandKeys.Scans(), scan.Id.Value);
+
+            if (scan.ImageDigest.IsValid)
+            {
+                await db.SetRemoveAsync(ScanOnDemandKeys.ResultScans(scan.ImageDigest), scan.Id.Value);
+            }
+        }, ctx);
+
     public Task SaveResultAsync(OnDemandScanResult result, CancellationToken ctx = default)
         => executor.ExecuteAsync(async db =>
         {

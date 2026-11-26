@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   OnInit,
   ViewChild,
@@ -39,6 +40,9 @@ import { DeletedNodes, NodeDataDto } from './fcose.types';
 import { DarkModeService } from '@core/services/dark-mode.service';
 
 cytoscape.use(fcose);
+
+// a container resize settles (e.g. after an animated layout change) before the canvas follows
+const RESIZE_DEBOUNCE_MS = 150;
 
 const NO_NODES: NodeSingular[] = [];
 const NO_DELETED_NODES: DeletedNodes[] = [];
@@ -86,6 +90,12 @@ export class FcoseComponent implements AfterViewInit, OnInit {
   extraColorClasses = input<{ name: string; code: string }[]>([]);
   idealEdgeLength = input<number>(150);
 
+  // false: the host shows its own breadcrumb (driven by its own FcoseNavigation)
+  isBreadcrumbVisible = input<boolean>(true);
+  // true: after the container is resized, the graph is fitted again (zoom and pan change); false: only the canvas
+  // follows the new size, the user's zoom and pan are kept
+  isFitOnResize = input<boolean>(false);
+
   inputFilterByNameControl = new FormControl('');
   isHelpDialogVisible: boolean = false;
 
@@ -103,6 +113,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
   private darkLightMode: DarkLightMode = 'Dark';
 
   private darkModeService = inject(DarkModeService);
+  private destroyRef = inject(DestroyRef);
 
   // #region template bindings
   get navItems(): MenuItem[] {
@@ -191,7 +202,30 @@ export class FcoseComponent implements AfterViewInit, OnInit {
   ngAfterViewInit() {
     this.setupCy();
     this.setupCyEvents();
+    this.setupResizeObserver();
     this.redrawGraph();
+  }
+
+  // cytoscape follows window resizes only; a container resize (splitter, animated layout) leaves a stale canvas
+  // the layout itself is never re-run here, only the canvas size (and the fit, when asked for)
+  private setupResizeObserver() {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const observer = new ResizeObserver(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        this.cy?.resize();
+        if (this.isFitOnResize() && !this.isLayoutRedraw) {
+          this.onZoomFit();
+        }
+      }, RESIZE_DEBOUNCE_MS);
+    });
+
+    observer.observe(this.graphContainer.nativeElement);
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(timer);
+      observer.disconnect();
+    });
   }
 
   // #region Cy setup

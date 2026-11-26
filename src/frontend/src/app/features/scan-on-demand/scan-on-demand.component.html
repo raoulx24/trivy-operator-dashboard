@@ -1,0 +1,71 @@
+@if (!isEnabled()) {
+  <div class="p-4 flex flex-col gap-1">
+    <span class="font-semibold">Scan on demand is not available</span>
+    <span class="tod-text-muted-color">{{ unavailableReason() ?? 'It is not enabled in the settings.' }}</span>
+  </div>
+} @else {
+  <div class="tod-sod-layout" [class.tod-sod-collapsed]="isCollapsed()" [class.tod-sod-wide]="isWide()">
+    <div class="tod-sod-left">
+      @if (!isCollapsed()) {
+        <div class="flex flex-col gap-2">
+          <app-scan-on-demand-form
+            [allowedTypes]="allowedTypes()"
+            [isSubmitting]="isSubmitting()"
+            [serverError]="submitError()"
+            (submitted)="submit($event)"
+          />
+          <div class="tod-content-border tod-content-background overflow-hidden">
+            <app-trivy-table
+              [dataDtos]="rows()"
+              [extraClasses]="'trivy-sod-scans'"
+              [isLoading]="isScansLoading()"
+              [isRefreshVisible]="true"
+              [isResetFiltersVisible]="true"
+              [stateKey]="'Scan On Demand - Scans'"
+              [trivyTableColumns]="columns"
+              (refreshRequested)="loadScans()"
+              (rowActionRequested)="onRowAction($event)"
+            />
+          </div>
+        </div>
+      } @else {
+        <app-scan-on-demand-rail
+          [scans]="scans()"
+          [selectedScanId]="result()?.lastScanId"
+          (expandRequested)="expand()"
+          (selected)="inspect($event)"
+        />
+      }
+    </div>
+    <div class="tod-sod-right">
+      @if (isCollapsed()) {
+        @if (result(); as r) {
+          <app-scan-on-demand-result
+            [result]="r"
+            [scan]="resultScan()"
+            (deleteRequested)="onDeleteResult()"
+            (rescanRequested)="onRescanResult()"
+            (wideChange)="isWide.set($event)"
+          />
+        } @else {
+          <div class="p-4 tod-text-muted-color">Loading the result…</div>
+        }
+      }
+    </div>
+  </div>
+
+  @if (isWide()) {
+    <!-- the rail is folded away: one button brings it back -->
+    <p-button
+      class="tod-sod-rail-restore"
+      icon="pi pi-angle-double-right"
+      size="small"
+      [ariaLabel]="'Show scans'"
+      [rounded]="true"
+      [text]="true"
+      (onClick)="isWide.set(false)"
+    />
+  }
+
+  <p-confirmdialog />
+}

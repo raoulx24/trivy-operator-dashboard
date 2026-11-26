@@ -19,6 +19,10 @@ public interface IScanOnDemandQueryService
     Task<IReadOnlyList<OnDemandScanDto>> GetScansAsync(CancellationToken ctx = default);
     // null for an unknown or malformed id
     Task<OnDemandScanDto?> GetScanAsync(string id, CancellationToken ctx = default);
+    // NotFound also for a malformed id
+    Task<ScanCancelResult> CancelScanAsync(string id, CancellationToken ctx = default);
+    // NotFound also for a malformed id
+    Task<ScanDeleteResult> DeleteScanAsync(string id, CancellationToken ctx = default);
     // null for an unknown or malformed digest
     Task<OnDemandScanResultDto?> GetResultAsync(string digest, CancellationToken ctx = default);
     Task DeleteResultAsync(string digest, CancellationToken ctx = default);

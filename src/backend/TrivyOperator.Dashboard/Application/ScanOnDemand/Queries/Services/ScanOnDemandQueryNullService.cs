@@ -27,6 +27,12 @@ public sealed class ScanOnDemandQueryNullService(string? unavailableReason) : IS
     public Task<OnDemandScanDto?> GetScanAsync(string id, CancellationToken ctx = default)
         => Task.FromResult<OnDemandScanDto?>(null);
 
+    public Task<ScanCancelResult> CancelScanAsync(string id, CancellationToken ctx = default)
+        => Task.FromResult(ScanCancelResult.NotFound);
+
+    public Task<ScanDeleteResult> DeleteScanAsync(string id, CancellationToken ctx = default)
+        => Task.FromResult(ScanDeleteResult.NotFound);
+
     public Task<OnDemandScanResultDto?> GetResultAsync(string digest, CancellationToken ctx = default)
         => Task.FromResult<OnDemandScanResultDto?>(null);
 

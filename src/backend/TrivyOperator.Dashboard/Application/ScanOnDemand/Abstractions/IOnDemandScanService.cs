@@ -16,6 +16,10 @@ public interface IOnDemandScanService
         CancellationToken ctx = default);
 
     Task<OnDemandScan?> GetScanAsync(ScanId id, CancellationToken ctx = default);
+    // a pending or running scan: the request is recorded and the runner cancels it right after (pod deleted, no result)
+    Task<ScanCancelResult> CancelScanAsync(ScanId id, CancellationToken ctx = default);
+    // only a finished scan can be deleted (a pending or running one is cancelled first); its result stays
+    Task<ScanDeleteResult> DeleteScanAsync(ScanId id, CancellationToken ctx = default);
     Task<IReadOnlyList<OnDemandScan>> GetScansAsync(CancellationToken ctx = default);
     Task<OnDemandScanResult?> GetResultAsync(Digest digest, CancellationToken ctx = default);
     // the delete from the inspect page, before the TTL

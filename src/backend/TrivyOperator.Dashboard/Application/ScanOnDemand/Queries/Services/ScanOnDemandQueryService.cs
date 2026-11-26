@@ -57,6 +57,20 @@ public sealed class ScanOnDemandQueryService(
         return scanId.IsValid ? (await service.GetScanAsync(scanId, ctx))?.ToDto() : null;
     }
 
+    public Task<ScanCancelResult> CancelScanAsync(string id, CancellationToken ctx = default)
+    {
+        ScanId scanId = new(id);
+
+        return scanId.IsValid ? service.CancelScanAsync(scanId, ctx) : Task.FromResult(ScanCancelResult.NotFound);
+    }
+
+    public Task<ScanDeleteResult> DeleteScanAsync(string id, CancellationToken ctx = default)
+    {
+        ScanId scanId = new(id);
+
+        return scanId.IsValid ? service.DeleteScanAsync(scanId, ctx) : Task.FromResult(ScanDeleteResult.NotFound);
+    }
+
     public async Task<OnDemandScanResultDto?> GetResultAsync(string digest, CancellationToken ctx = default)
     {
         Digest key = new(digest);

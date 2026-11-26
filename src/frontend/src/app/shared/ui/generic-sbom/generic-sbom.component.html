@@ -2,21 +2,24 @@
   #splitter
   (dblclick)="onSplitterDoubleClick($event, splitter)"
   stateStorage="local"
-  class="tod-splitter-no-borders tod-no-background mb-8"
+  class="tod-splitter-no-borders tod-no-background tod-sbom-splitter mb-8"
+  [class.tod-sbom-list-collapsed]="isListCollapsed()"
   [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
   [panelSizes]="[35, 65]"
   [stateKey]="screenSize !== 'sm' ? `splitter.${stateKey()}` : undefined"
 >
   <ng-template #panel>
     <div class="w-full">
-      <div class="pb-2">
-        <app-paired-options-selector [dataDtos]="namespacedImageDtos" [(selectedUid)]="selectedImageId" />
-      </div>
+      @if (isImageSelectorVisible()) {
+        <div class="pb-2">
+          <app-paired-options-selector [dataDtos]="namespacedImageDtos" [(selectedUid)]="selectedImageId" />
+        </div>
+      }
       <div class="tod-content-border-left tod-content-background overflow-hidden">
         <app-trivy-table
           [dataDtos]="dependsOnBoms"
           [dataKey]="'bomRef'"
-          [extraClasses]="'trivy-with-filters-half'"
+          [extraClasses]="isImageSelectorVisible() ? 'trivy-sbom-list-with-filters' : 'trivy-sbom-list'"
           [isLoading]="isTableLoading()"
           [isRefreshVisible]="true"
           [multiHeaderActions]="multiHeaderActions()"
@@ -25,7 +28,6 @@
           [selectionMode]="'single'"
           [selectedData]="selectedSbomDetail"
           [stateKey]="`${stateKey()} - Depends On`"
-          [style]="{ width: '930px' }"
           [trivyTableColumns]="dependsOnTableColumns"
           (multiHeaderActionRequested)="onMultiHeaderActionRequested($event)"
           (refreshRequested)="onRefreshRequested()"
@@ -36,56 +38,59 @@
     </div>
   </ng-template>
   <ng-template #panel>
-    <div class="w-full flex flex-col tod-content-border-right tod-content-background overflow-hidden h-full">
-      <app-fcose
-        class="px-2"
-        [nodeDataDtos]="nodeDataDtos"
-        [selectedNodeId]="selectedSbomDetailBomRef"
-        (activeNodeIdChange)="onActiveNodeIdChange($event)"
-        (deletedNodeIdsChange)="onDeletedNodeIds($event)"
-        (hoveredNodeIdChange)="onHoveredNodeDtoChange($event)"
-        (selectedNodeIdChange)="onNodeIdChange($event)"
-        (undeletedNodeIdsChange)="onUndeletedNodeIds($event)"
-      />
-      @let dto = hoveredSbomDetailDto;
-      @if (dto) {
-        <div class="mt-auto pb-1 pl-2">
-          <span>
-            <b>Name:</b> {{ dto.name }} - <b>Version:</b> {{ dto.version }} - <b>Dependencies:</b>
-            {{ dto.dependsOn.length }}
-          </span>
-          <p-tag
-            class="ml-2"
-            [rounded]="true"
-            [style]="0 | severityCssStyleById: dto.criticalCount"
-            [value]="dto.criticalCount | vulnerabilityCount"
-          />
-          <p-tag
-            class="ml-2"
-            [rounded]="true"
-            [style]="1 | severityCssStyleById: dto.highCount"
-            [value]="dto.highCount | vulnerabilityCount"
-          />
-          <p-tag
-            class="ml-2"
-            [rounded]="true"
-            [style]="2 | severityCssStyleById: dto.mediumCount"
-            [value]="dto.mediumCount | vulnerabilityCount"
-          />
-          <p-tag
-            class="ml-2"
-            [rounded]="true"
-            [style]="3 | severityCssStyleById: dto.lowCount"
-            [value]="dto.lowCount | vulnerabilityCount"
-          />
-          <p-tag
-            class="ml-2"
-            [rounded]="true"
-            [style]="4 | severityCssStyleById: dto.unknownCount"
-            [value]="dto.unknownCount | vulnerabilityCount"
-          />
-        </div>
-      }
+    <div class="w-full flex flex-col tod-content-border-right tod-content-background overflow-hidden h-full px-2">
+      <div class="flex items-center gap-2">
+        <p-breadcrumb
+          class="flex-1 min-w-0 breadcrumb-no-background breadcrumb-no-overflow text-xs [&_a]:cursor-pointer"
+          [home]="navigation.navHome"
+          [model]="navigation.navItems"
+          (onItemClick)="onBreadcrumbItemClick($event)"
+        />
+        <p-button
+          size="small"
+          text
+          [ariaLabel]="'Tables view'"
+          [icon]="'pi pi-list'"
+          [outlined]="viewMode() === 'navigator'"
+          (onClick)="setViewMode('navigator')"
+        />
+        <p-button
+          size="small"
+          text
+          [ariaLabel]="'Graph view'"
+          [icon]="'pi pi-share-alt'"
+          [outlined]="viewMode() === 'graph'"
+          (onClick)="setViewMode('graph')"
+        />
+      </div>
+
+      <app-sbom-package-box class="block pb-1" [dto]="packageBoxDto" />
+
+      <!-- both views stay rendered (fcose keeps its state and its size); the hidden one is only made invisible -->
+      <div class="tod-sbom-views">
+        <app-sbom-navigator
+          class="tod-sbom-view"
+          [class.tod-sbom-view-hidden]="viewMode() !== 'navigator'"
+          [bomRef]="selectedSbomDetailBomRef"
+          [index]="sbomIndex()"
+          [stateKey]="stateKey()"
+          (diveRequested)="onDiveRequested($event)"
+        />
+        <app-fcose
+          class="tod-sbom-view"
+          [class.tod-sbom-view-hidden]="viewMode() !== 'graph'"
+          [fcoseClasses]="'fcose fcose-sbom'"
+          [isBreadcrumbVisible]="false"
+          [isFitOnResize]="hideListInGraphView()"
+          [nodeDataDtos]="nodeDataDtos"
+          [selectedNodeId]="selectedSbomDetailBomRef"
+          (activeNodeIdChange)="onActiveNodeIdChange($event)"
+          (deletedNodeIdsChange)="onDeletedNodeIds($event)"
+          (hoveredNodeIdChange)="onHoveredNodeDtoChange($event)"
+          (selectedNodeIdChange)="onNodeIdChange($event)"
+          (undeletedNodeIdsChange)="onUndeletedNodeIds($event)"
+        />
+      </div>
     </div>
   </ng-template>
 </p-splitter>

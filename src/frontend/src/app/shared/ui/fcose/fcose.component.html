@@ -83,7 +83,7 @@
       }
     </div>
   </app-scroller>
-  @if (!isStatic()) {
+  @if (!isStatic() && isBreadcrumbVisible()) {
     <div class="flex items-center col-span-12 p-0">
       <p-breadcrumb
         class="breadcrumb-no-background breadcrumb-no-overflow pl-2.5 text-xs [&_a]:cursor-pointer"

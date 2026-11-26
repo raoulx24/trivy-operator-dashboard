@@ -1,7 +1,7 @@
 import { SemaphoreStatusUtils } from '../../utils/semaphore-status.utils';
 import { EOL_STATE_COLORS, EOL_STATE_LABELS, EOL_STATE_ORDER } from '../eol-runway/eol-runway.state';
 
-export type TagSetName = 'semaphore' | 'boolean' | 'logLevel' | 'vrHistoryStatus' | 'eolState';
+export type TagSetName = 'semaphore' | 'boolean' | 'logLevel' | 'vrHistoryStatus' | 'eolState' | 'scanState';
 
 export interface TagOption {
   value: string | boolean | number;
@@ -58,6 +58,15 @@ const tagSetBuilders: Record<TagSetName, () => TagOption[]> = {
       label: EOL_STATE_LABELS[state],
       style: { background: EOL_STATE_COLORS[state] },
     })),
+  // the states of a scan on demand (backend ScanState names); colors reuse semaphore; Pending (last) is the fallback
+  scanState: () => [
+    semaphoreOption('Running', 'Neutral'),
+    semaphoreOption('Completed', 'Green'),
+    semaphoreOption('Failed', 'Red'),
+    semaphoreOption('TimedOut', 'Yellow', 'Timed out'),
+    semaphoreOption('Cancelled', 'Unknown'),
+    semaphoreOption('Pending', 'Unknown'),
+  ],
 };
 
 export class TrivyTableTagSets {

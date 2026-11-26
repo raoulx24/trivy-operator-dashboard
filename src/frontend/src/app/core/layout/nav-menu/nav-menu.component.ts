@@ -77,7 +77,7 @@ export class NavMenuComponent {
     const dto = this.backendSettings();
     if (!dto || !dto.trivyReportConfigDtos) {
       // Backend settings not loaded yet: assume all reports are enabled
-      return ['vr', 'vrh', 'sr', 'car', 'esr', 'rar', 'iar', 'cvr', 'csr', 'crar', 'ccr', 'ccar', 'ciar'];
+      return ['vr', 'vrh', 'sr', 'car', 'esr', 'rar', 'iar', 'cvr', 'csr', 'crar', 'ccr', 'ccar', 'ciar', 'sod'];
     }
 
     const enabledIds = dto.trivyReportConfigDtos
@@ -85,8 +85,12 @@ export class NavMenuComponent {
       .map((x) => x.id ?? '')
       .filter((id) => !!id);
 
-    // history is not a Trivy report; the backend reports it as a separate flag
-    return dto.isVrHistoryEnabled ? [...enabledIds, 'vrh'] : enabledIds;
+    // history and scan on demand are not Trivy reports; the backend reports them as separate flags
+    return [
+      ...enabledIds,
+      ...(dto.isVrHistoryEnabled ? ['vrh'] : []),
+      ...(dto.isScanOnDemandEnabled ? ['sod'] : []),
+    ];
   });
 
   private menuItems = computed<MenuItem[]>(() => {

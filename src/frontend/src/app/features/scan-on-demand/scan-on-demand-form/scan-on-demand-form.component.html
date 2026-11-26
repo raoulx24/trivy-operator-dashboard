@@ -1,0 +1,35 @@
+<form class="flex flex-col gap-1" (ngSubmit)="onSubmit()">
+  <div class="flex flex-wrap items-center gap-3">
+    <input
+      pInputText
+      class="flex-1 min-w-[16rem]"
+      name="image"
+      placeholder="registry/repository:tag or @sha256:..."
+      [(ngModel)]="image"
+      (ngModelChange)="onInputChange()"
+      aria-label="Image to scan"
+    />
+    @for (type of allowedTypes(); track type) {
+      <div class="flex items-center gap-1">
+        <p-checkbox
+          name="types"
+          [inputId]="'sod-type-' + type"
+          [value]="type"
+          [(ngModel)]="selectedTypes"
+          (ngModelChange)="onInputChange()"
+        />
+        <label class="text-sm" [for]="'sod-type-' + type">{{ typeLabel(type) }}</label>
+      </div>
+    }
+    <p-button
+      icon="pi pi-play"
+      label="Scan"
+      size="small"
+      type="submit"
+      [loading]="isSubmitting()"
+    />
+  </div>
+  @if (localError() ?? serverError(); as error) {
+    <small class="tod-text-danger-color">{{ error }}</small>
+  }
+</form>
