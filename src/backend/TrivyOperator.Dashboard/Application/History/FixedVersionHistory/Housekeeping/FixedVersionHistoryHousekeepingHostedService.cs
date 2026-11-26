@@ -11,8 +11,9 @@ using TrivyOperator.Dashboard.Domain.Trivy.ValueObjects.Vulnerabilities;
 namespace TrivyOperator.Dashboard.Application.History.FixedVersionHistory.Housekeeping;
 
 // each tick removes the pairs (vulnerability id, package) that no stored vulnerability report references
-// (of any kind: namespaced and cluster) and that no event touched in the last GraceInHours (0 disables the removal);
-// same options as the details housekeeping (DetailsOptions)
+// (of any kind: namespaced and cluster) and that no event touched in the last FixedVersionHistoryGraceInHours
+// (0 disables the removal); same options as the details housekeeping (DetailsOptions), but its own grace:
+// a report can be gone for a while (TTL replacement, rescan queue) and a removed pair comes back as new
 // - the states are read before the references: an event in between touches the pair, and the conditional
 //   delete keeps it
 // - the first tick is one interval after the start, so the initial events have touched the pairs in use
@@ -25,6 +26,7 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
 ) : BackgroundService
 {
     private const string JobName = "Fixed version history housekeeping";
+    private const int MaxLoggedKeys = 100;
 
     public override async Task StopAsync(CancellationToken ctx)
     {
@@ -77,11 +79,11 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
 
     private async Task Process(CancellationToken ctx)
     {
-        int graceInHours = options.CurrentValue.GraceInHours;
+        int graceInHours = options.CurrentValue.FixedVersionHistoryGraceInHours;
 
         if (graceInHours <= 0)
         {
-            jobs.Skipped(JobName, "The removal is off (GraceInHours is 0)");
+            jobs.Skipped(JobName, "The removal is off (FixedVersionHistoryGraceInHours is 0)");
             return;
         }
 
@@ -103,6 +105,7 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
         }
 
         int swept = 0;
+        List<string> sweptKeys = [];
 
         foreach (FixedVersionState state in states)
         {
@@ -116,12 +119,22 @@ public sealed class FixedVersionHistoryHousekeepingHostedService(
             if (await store.DeleteIfUntouchedAsync(state, ctx))
             {
                 swept++;
+
+                if (sweptKeys.Count < MaxLoggedKeys)
+                {
+                    sweptKeys.Add($"{state.Key.VulnerabilityId}|{state.Key.PackageKey}");
+                }
             }
         }
 
+        // a removed pair loses its history and comes back as new: log what was removed, to trace phantom new pairs
         if (swept > 0)
         {
-            logger.LogDebug("Fixed version history housekeeping - {swept} pairs removed.", swept);
+            logger.LogInformation(
+                "Fixed version history housekeeping - {swept} pairs removed (first {loggedCount} listed): {sweptKeys}",
+                swept,
+                sweptKeys.Count,
+                string.Join(", ", sweptKeys));
         }
 
         jobs.Succeeded(JobName, swept > 0 ? $"{swept} removed" : "nothing to remove");
