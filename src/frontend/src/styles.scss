@@ -1566,6 +1566,27 @@ p-panelmenu > .p-panelmenu-panel {
 //  background-repeat: no-repeat;
 //}
 
+// Entries of a section are tighter than the headers (the py-2 of the template is overridden here).
+a.tod-menu-leaf {
+  padding-block: 0.375rem;
+}
+
+// Group headers: their height is mostly the chevron button, so only a little padding is left to trim.
+a.tod-menu-group {
+  padding-block: 0.25rem;
+}
+
+// Chevron button of a group header: smaller than PrimeNG's "small" icon-only button.
+a.tod-menu-group p-button button.p-button {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+
+  .p-button-icon {
+    font-size: 0.75rem;
+  }
+}
+
 // The last entry follows the curve of the submenu's guide line (same radius as the ul below).
 ul.p-panelmenu-submenu > .p-panelmenu-item:last-child {
   border-bottom-left-radius: var(--tod-app-border-radius-lg);

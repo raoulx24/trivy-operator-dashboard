@@ -52,6 +52,7 @@
         pRipple
         class="flex items-center cursor-pointer text-color text-sm px-4 py-2"
         [class.tod-menu-group]="!!item.items?.length"
+        [class.tod-menu-leaf]="!item.items?.length"
         [class.tod-menu-item-active]="!item.items && item.id === activeRoute()"
         (click)="onMenuItemClick(item)"
       >
