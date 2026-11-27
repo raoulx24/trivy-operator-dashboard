@@ -4,7 +4,7 @@ export type DarkLightMode = 'Dark' | 'Light';
  * Colors used by the graph stylesheet. Node text is dark in both modes on purpose:
  * node fills (including custom `extraColorClasses`) are always mid/light tones.
  */
-export interface FcoseTheme {
+export interface GraphTheme {
   nodeFill: string;
   nodeBorder: string;
   nodeText: string;
@@ -28,7 +28,7 @@ export interface FcoseTheme {
   groupText: string;
 }
 
-export const FCOSE_THEMES: Record<DarkLightMode, FcoseTheme> = {
+export const GRAPH_THEMES: Record<DarkLightMode, GraphTheme> = {
   Light: {
     nodeFill: '#ffa3bd',
     nodeBorder: '#2b7a8c',

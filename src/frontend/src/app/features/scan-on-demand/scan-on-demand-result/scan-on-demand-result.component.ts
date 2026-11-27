@@ -13,7 +13,7 @@ import { FriendlyTimePipe } from '@shared/pipes/local-time.pipe';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
 import { GenericSbomComponent } from '@shared/ui/generic-sbom/generic-sbom.component';
-import { GenericSbomReportDto, GenericSbomViewMode } from '@shared/ui/generic-sbom/generic-sbom.types';
+import { GenericSbomReportDto } from '@shared/ui/generic-sbom/generic-sbom.types';
 import { MultiHeaderAction, TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
 
@@ -29,7 +29,7 @@ interface ResultTab {
 const TAB_ORDER = ['VulnerabilityReport', 'ExposedSecretReport', 'SbomReport'];
 
 // one scan result: a two-line header strip and one tab per requested report type
-// a tab's content exists only while the tab is active: fcose needs a visible container to lay out
+// a tab's content exists only while the tab is active: the graph needs a visible container to lay out
 @Component({
   selector: 'app-scan-on-demand-result',
   standalone: true,
@@ -54,8 +54,6 @@ export class ScanOnDemandResultComponent {
 
   rescanRequested = output<void>();
   deleteRequested = output<void>();
-  // true while the result needs the full width (SBOM tab in graph view): the page folds the rail away
-  wideChange = output<boolean>();
 
   readonly vulnerabilityColumns: TrivyTableColumn[] = [...vulnerabilityReportDetailColumns];
   readonly exposedSecretColumns: TrivyTableColumn[] = [...exposedSecretReportDetailColumns];
@@ -87,7 +85,6 @@ export class ScanOnDemandResultComponent {
   });
 
   readonly activeTab = signal<string>(TAB_ORDER[0]);
-  private readonly sbomViewMode = signal<GenericSbomViewMode>('navigator');
 
   constructor() {
     // a new result: the first tab that has a report
@@ -95,20 +92,12 @@ export class ScanOnDemandResultComponent {
       const first = this.tabs().find((x) => x.isAvailable)?.type ?? TAB_ORDER[0];
       this.activeTab.set(first);
     });
-
-    effect(() => {
-      this.wideChange.emit(this.activeTab() === 'SbomReport' && this.sbomViewMode() === 'graph');
-    });
   }
 
   onTabChange(value: string | number | undefined) {
     if (typeof value === 'string') {
       this.activeTab.set(value);
     }
-  }
-
-  onSbomViewModeChange(viewMode: GenericSbomViewMode) {
-    this.sbomViewMode.set(viewMode);
   }
 
   private tabLabel(type: string): string {

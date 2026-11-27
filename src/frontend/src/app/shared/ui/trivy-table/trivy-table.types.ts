@@ -37,6 +37,10 @@ export interface TrivyTableColumn extends Column {
   autoFilter?: boolean;
   // 'action' only: an icon on the button; without a label (extraFields[0]) it is an icon-only button
   actionIcon?: string;
+  // 'action' only: the row field that holds the icon of that row's button; takes precedence over actionIcon
+  actionIconField?: string;
+  // 'action' only: the boolean row field that disables that row's button
+  actionDisabledField?: string;
   // 'imageNameTag' only: the boolean field of the row that adds the EOSL tag
   eoslField?: string;
   // 'imageNameTag' only: adds a KEV/EUVD tag when any vulnerability of the row (its details) is listed there

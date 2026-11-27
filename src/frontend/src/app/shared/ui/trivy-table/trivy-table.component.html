@@ -413,14 +413,16 @@
                 <span [innerHTML]="rowData[col.field].join('<br>')"></span>
               }
               @case ('action') {
+                @let actionIcon = col.actionIconField ? rowData[col.actionIconField] : col.actionIcon;
                 <p-button
                   raised
                   size="small"
                   text
                   class="tod-text-primary-color"
                   [ariaLabel]="col.extraFields?.[0] ?? col.header"
-                  [icon]="col.actionIcon"
-                  [label]="col.extraFields?.[0] ?? (col.actionIcon ? undefined : 'Change label!')"
+                  [disabled]="col.actionDisabledField ? !!rowData[col.actionDisabledField] : false"
+                  [icon]="actionIcon"
+                  [label]="col.extraFields?.[0] ?? (actionIcon ? undefined : 'Change label!')"
                   (onClick)="onRowAction(rowData, col.field)"
                 />
               }

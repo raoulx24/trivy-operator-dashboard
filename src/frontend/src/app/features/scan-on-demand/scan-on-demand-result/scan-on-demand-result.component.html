@@ -76,11 +76,9 @@
         <div class="tod-sod-result-sbom">
           <app-generic-sbom
             [fullSbomDataDto]="sbom"
-            [hideListInGraphView]="true"
             [isImageSelectorVisible]="false"
             [multiHeaderActions]="sbomActions"
             [stateKey]="'Scan On Demand - SBOM'"
-            (viewModeChange)="onSbomViewModeChange($event)"
           />
         </div>
       }

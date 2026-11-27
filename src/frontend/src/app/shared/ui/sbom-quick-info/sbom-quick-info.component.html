@@ -1,0 +1,32 @@
+@let d = dto();
+<app-trivy-box>
+  <span boxTitle>Quick info</span>
+
+  <!-- each field is its muted name with the value under it; the purl takes what is left (one line, cut at the end: the
+       qualifiers, e.g. ?arch=…&distro=…, go first), the vulnerabilities and the counts have fixed widths on the right,
+       so they never move -->
+  <div class="grid grid-cols-[minmax(0,1fr)_auto_7rem] items-start gap-x-6 text-sm">
+    <div class="flex flex-col gap-0.5 min-w-0">
+      <span class="text-xs tod-text-muted-color">Purl</span>
+      <span class="truncate" [class.tod-text-muted-color]="!d?.purl">{{ d?.purl || 'n/a' }}</span>
+    </div>
+    <div class="flex flex-col gap-0.5">
+      <span class="text-xs tod-text-muted-color">Vulnerabilities</span>
+      <!-- always shown: nothing hovered is -1 (the empty tags) -->
+      <div class="flex items-center gap-1">
+        @for (severityId of severityIds; track severityId) {
+          @let count = d ? severityCount(d, severityId) : -1;
+          <p-tag
+            [rounded]="true"
+            [style]="severityId | severityCssStyleById: count"
+            [value]="count | vulnerabilityCount"
+          />
+        }
+      </div>
+    </div>
+    <div class="flex flex-col text-xs tod-text-muted-color whitespace-nowrap pt-0.5">
+      <span>Used by {{ usedByCount() ?? 'n/a' }}</span>
+      <span>Depends on {{ dependsOnCount() ?? 'n/a' }}</span>
+    </div>
+  </div>
+</app-trivy-box>

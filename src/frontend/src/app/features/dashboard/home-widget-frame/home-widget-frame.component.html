@@ -122,6 +122,16 @@
             </ul>
           </section>
         }
+        @if (h.quirks?.length) {
+          <section class="flex flex-col gap-1.5">
+            <h3 class="tod-help-section-title"><i class="pi pi-sparkles"></i>Oddities</h3>
+            <ul class="tod-help-list">
+              @for (item of h.quirks; track item) {
+                <li [innerHTML]="item"></li>
+              }
+            </ul>
+          </section>
+        }
         @if (h.expanded?.length) {
           <section class="flex flex-col gap-1.5">
             <h3 class="tod-help-section-title"><i class="pi pi-window-maximize"></i>When expanded</h3>

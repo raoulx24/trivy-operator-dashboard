@@ -12,8 +12,8 @@ import {
   untracked,
 } from '@angular/core';
 
-import { NodeDataDto } from '../fcose/fcose.types';
-import { FcoseNavigation } from '../fcose/fcose.navigation';
+import { NodeDataDto } from '../cytoscape-graph/cytoscape-graph.types';
+import { GraphNavigation } from '../cytoscape-graph/cytoscape-graph.navigation';
 import { genericSbomReportComparedColumns, genericSbomReportSlimDetailColumns } from './generic-sbom.constants';
 import {
   GenericSbomReportDetailDto,
@@ -23,9 +23,10 @@ import {
   SbomIndex,
 } from './generic-sbom.types';
 
-import { FcoseComponent } from '../fcose/fcose.component';
+import { CytoscapeGraphComponent } from '../cytoscape-graph/cytoscape-graph.component';
 import { SbomNavigatorComponent } from '../sbom-navigator/sbom-navigator.component';
-import { SbomPackageBoxComponent } from '../sbom-package-box/sbom-package-box.component';
+import { SbomNeighbourLevel } from '../sbom-navigator/sbom-navigator.types';
+import { SbomQuickInfoComponent } from '../sbom-quick-info/sbom-quick-info.component';
 import {
   nonExistingNamespace, PairedOptionsSelectorComponent,
 } from '../paired-options-selector/paired-options-selector.component';
@@ -41,6 +42,9 @@ import {
 import { BreadcrumbItemClickEvent, BreadcrumbModule } from 'primeng/breadcrumb';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { PopoverModule } from 'primeng/popover';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { FormsModule } from '@angular/forms';
 import { Splitter, SplitterModule } from 'primeng/splitter';
 import { resetSplitterSizes } from '../splitter/splitter.utils';
 
@@ -56,10 +60,13 @@ const DEFAULT_VIEW_MODE: GenericSbomViewMode = 'navigator';
     BreadcrumbModule,
     ButtonModule,
     DialogModule,
-    FcoseComponent,
+    PopoverModule,
+    CytoscapeGraphComponent,
     GenericReportsCompareComponent,
     SbomNavigatorComponent,
-    SbomPackageBoxComponent,
+    SbomQuickInfoComponent,
+    SelectButtonModule,
+    FormsModule,
     SplitterModule,
     TrivyTableComponent,
     PairedOptionsSelectorComponent,
@@ -72,8 +79,6 @@ export class GenericSbomComponent implements OnInit {
 
   // false where the report is not one of many (e.g. a scan on demand result)
   isImageSelectorVisible = input<boolean>(true);
-  // true: the graph view also hides the package list, so the graph gets the full width
-  hideListInGraphView = input<boolean>(false);
 
   dataDtos = input<GenericSbomReportMinimalDto[]>([]);
   fullSbomDataDto = input<GenericSbomReportDto | undefined>();
@@ -91,13 +96,34 @@ export class GenericSbomComponent implements OnInit {
   refreshRequestedChange = output<void>();
   fullSbomDataDtoRequestedChange = output<void>();
 
-  // the view of the right side: once at start (the saved one), then on every switch
-  viewModeChange = output<GenericSbomViewMode>();
-
   compareFirstDtoRequested = output<string>();
   compareSecondDtoRequested = output<string>();
 
+  // all the images (the compare dialog gets them all)
   namespacedImageDtos?: PairedOptionsDto[];
+  // the images of the selector: all, or only the active ones (with a vulnerability report); the selected image is always
+  // kept, as the selector drops a selection that is not in its list
+  selectorImageDtos?: PairedOptionsDto[];
+  // true: only the active images in the selector; saved per page
+  readonly isActiveOnly = signal<boolean>(true);
+  // the namespace picked in the selector (its own model, bound both ways); the counts are for it when there is one
+  readonly selectedNamespace = signal<string | undefined>(undefined);
+  private readonly countedImages = computed(() => {
+    const namespace = this.selectedNamespace();
+    const images = this.dataDtos();
+
+    return namespace
+      ? images.filter((x) => (x.resourceNamespace ?? nonExistingNamespace) === namespace)
+      : images;
+  });
+  readonly imagesFilterOptions = computed(() => {
+    const images = this.countedImages();
+
+    return [
+      { value: true, label: `Active (${images.filter((x) => x.hasVulnerabilityReport).length})` },
+      { value: false, label: `All (${images.length})` },
+    ];
+  });
 
   protected readonly sbomIndex = computed<SbomIndex>(() => {
     const details = this.fullSbomDataDto()?.details ?? [];
@@ -132,24 +158,26 @@ export class GenericSbomComponent implements OnInit {
   dependsOnTableColumns: TrivyTableColumn[] = [...genericSbomReportSlimDetailColumns];
   // #endregion
 
-  // #region right side: navigator or graph, the package box and the dive breadcrumb
+  // #region right side: navigator (neighbours table, quick info, small graph) or the full graph, and the dive breadcrumb
   readonly viewMode = signal<GenericSbomViewMode>(DEFAULT_VIEW_MODE);
-  readonly isListCollapsed = computed(() => this.hideListInGraphView() && this.viewMode() === 'graph');
+  // the view switch: icons only, the label is the tooltip and the aria label
+  readonly viewModeOptions: { value: GenericSbomViewMode; icon: string; label: string }[] = [
+    { value: 'graph', icon: 'pi pi-share-alt', label: 'Full graph view' },
+    { value: 'navigator', icon: 'pi pi-list', label: 'Neighbours view' },
+  ];
 
-  // the breadcrumb of the dives, shared by both views (fcose's own is hidden); every dive goes through showNode
-  readonly navigation = new FcoseNavigation({
+  // the breadcrumb of the dives, shared by both views (the graph's own is hidden); every dive goes through showNode
+  readonly navigation = new GraphNavigation({
     getNodeName: (nodeId) => this.sbomIndex().byBomRef.get(nodeId)?.name ?? undefined,
     onNavigate: (nodeId) => this.onActiveNodeIdChange(nodeId),
   });
 
-  // the box: in graph view the hovered node while hovering, otherwise the selected package
-  get packageBoxDto(): GenericSbomReportDetailDto | undefined {
-    return this.viewMode() === 'graph'
-      ? (this.hoveredSbomDetailDto ?? this.selectedSbomDetailDto)
-      : this.selectedSbomDetailDto;
-  }
+  // the level of each package of the dive set (the package list), for the navigator's table; set per dive,
+  // so hiding nodes in the full graph does not change it
+  levelByBomRef = new Map<string, SbomNeighbourLevel>();
   // #endregion
 
+  // the full graph view's quick info: the hovered node only
   hoveredSbomDetailDto?: GenericSbomReportDetailDto;
   nodeDataDtos: NodeDataDto[] = [];
   selectedSbomDetailBomRef?: string;
@@ -165,6 +193,13 @@ export class GenericSbomComponent implements OnInit {
     effect(() => {
       // also runs for an empty list, so the selector is cleared when there is nothing to show
       this.getNamespacedImageDtos();
+    });
+
+    effect(() => {
+      // the filter and the selection decide what the selector lists (the selected image always stays in)
+      this.isActiveOnly();
+      this.selectedImageId();
+      untracked(() => this.updateSelectorImageDtos());
     });
 
     effect(() => {
@@ -211,13 +246,29 @@ export class GenericSbomComponent implements OnInit {
     if (saved === 'navigator' || saved === 'graph') {
       this.viewMode.set(saved);
     }
-    this.viewModeChange.emit(this.viewMode());
+    this.isActiveOnly.set(LocalStorageUtils.getItem(this.activeOnlyStorageKey()) !== 'false');
   }
 
-  setViewMode(viewMode: GenericSbomViewMode) {
+  setActiveOnly(isActiveOnly: boolean | null) {
+    // a select button can be unselected by a click on the selected option: the filter stays
+    if (isActiveOnly === null) {
+      return;
+    }
+    this.isActiveOnly.set(isActiveOnly);
+    LocalStorageUtils.setItem(this.activeOnlyStorageKey(), String(isActiveOnly));
+  }
+
+  private activeOnlyStorageKey(): string {
+    return `genericSbom.activeOnly.${this.stateKey()}`;
+  }
+
+  setViewMode(viewMode: GenericSbomViewMode | null) {
+    // a select button can be unselected by a click on the selected option: the view stays
+    if (!viewMode) {
+      return;
+    }
     this.viewMode.set(viewMode);
     LocalStorageUtils.setItem(this.viewModeStorageKey(), viewMode);
-    this.viewModeChange.emit(viewMode);
   }
 
   private viewModeStorageKey(): string {
@@ -229,11 +280,28 @@ export class GenericSbomComponent implements OnInit {
   }
 
   onDiveRequested(bomRef: string) {
+    // already the dive root: a dive would only reset the selection
+    if (this.levelByBomRef.get(bomRef) === 'Base') {
+      return;
+    }
     this.onActiveNodeIdChange(bomRef);
+  }
+
+  // the Select button of a navigator row: that package becomes the selected row of the list (the navigator then shows
+  // it); a package not in the list (outside the dive, or hidden in the full graph) is not selectable
+  onSelectRequested(bomRef: string) {
+    const dto = this.dependsOnBoms.find((x) => x.bomRef === bomRef);
+    if (!dto) {
+      return;
+    }
+    this.selectedSbomDetailDto = dto;
+    this.selectedSbomDetailBomRef = dto.bomRef;
+    this.selectedSbomDetail = { source: 'programmatic', selectedDtos: [dto] };
   }
 
   onRefreshRequested() {
     this.namespacedImageDtos = undefined;
+    this.selectorImageDtos = undefined;
     this.resetAllRelatedData();
 
     this.refreshRequestedChange.emit();
@@ -243,6 +311,7 @@ export class GenericSbomComponent implements OnInit {
     this.dependsOnBoms = [];
     this.deletedDependsOnBom = [];
     this.nodeDataDtos = [];
+    this.levelByBomRef = new Map();
     this.selectedSbomDetailDto = undefined;
     this.selectedSbomDetailBomRef = undefined;
     this.selectedSbomDetail = { source: 'programmatic', selectedDtos: [] };
@@ -263,6 +332,18 @@ export class GenericSbomComponent implements OnInit {
             icon: x.hasVulnerabilityReport ? 'security' : undefined,
           }) as PairedOptionsDto,
       ) ?? [];
+    this.updateSelectorImageDtos();
+  }
+
+  private updateSelectorImageDtos() {
+    const all = this.namespacedImageDtos;
+    if (!all || !this.isActiveOnly()) {
+      this.selectorImageDtos = all;
+      return;
+    }
+    const activeUids = new Set(this.dataDtos().filter((x) => x.hasVulnerabilityReport).map((x) => x.uid));
+    const selectedImageId = this.selectedImageId();
+    this.selectorImageDtos = all.filter((x) => activeUids.has(x.uid) || x.uid === selectedImageId);
   }
   // #endregion
 
@@ -299,6 +380,7 @@ export class GenericSbomComponent implements OnInit {
     }
 
     this.dependsOnBoms = sbomDetailDtos;
+    this.levelByBomRef = new Map(sbomDetailDtos.filter((x) => x.level).map((x) => [x.bomRef, x.level!]));
     this.nodeDataDtos = sbomDetailDtos.map((x) => ({
       id: x.bomRef ?? undefined,
       dependsOn: x.dependsOn,

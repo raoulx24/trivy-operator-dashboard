@@ -1,35 +1,28 @@
-<div class="flex flex-col gap-1">
-  <div class="flex items-center gap-1 text-sm font-semibold pt-1">
-    <span class="pi pi-arrow-up text-xs"></span>
-    <span>Used by ({{ usedBy().length }})</span>
-  </div>
-  <!-- dataKey and rowExpansionRender go together: trivy-table adds the expander cell per row for the first and the
-       expander header for the second -->
-  <app-trivy-table
-    [dataDtos]="usedBy()"
-    [dataKey]="'bomRef'"
-    [extraClasses]="'trivy-stacked-half'"
-    [rowExpandData]="usedByRowExpand()"
-    [rowExpansionRender]="'table'"
-    [stateKey]="`${stateKey()} - Used By`"
-    [trivyTableColumns]="usedByColumns"
-    (rowActionRequested)="onRowAction($event)"
-    (rowExpandDataChange)="onUsedByRowExpand($event)"
-  />
+<!-- the table and the graph share, half each, the height the quick info leaves -->
+<!-- dataKey and rowExpansionRender go together: trivy-table adds the expander cell per row for the first and the
+     expander header for the second -->
+<app-trivy-table
+  class="block flex-1 basis-0 min-h-0"
+  [dataDtos]="rows()"
+  [dataKey]="'rowKey'"
+  [extraClasses]="'trivy-fill'"
+  [rowExpandData]="rowExpand()"
+  [rowExpansionRender]="'table'"
+  [stateKey]="`${stateKey()} - Neighbours`"
+  [trivyTableColumns]="columns"
+  (rowActionRequested)="onRowAction($event)"
+  (rowExpandDataChange)="onRowExpand($event)"
+/>
 
-  <div class="flex items-center gap-1 text-sm font-semibold pt-2">
-    <span class="pi pi-arrow-down text-xs"></span>
-    <span>Depends on ({{ dependsOn().length }})</span>
-  </div>
-  <app-trivy-table
-    [dataDtos]="dependsOn()"
-    [dataKey]="'bomRef'"
-    [extraClasses]="'trivy-stacked-half'"
-    [rowExpandData]="dependsOnRowExpand()"
-    [rowExpansionRender]="'table'"
-    [stateKey]="`${stateKey()} - Depends On Direct`"
-    [trivyTableColumns]="dependsOnColumns"
-    (rowActionRequested)="onRowAction($event)"
-    (rowExpandDataChange)="onDependsOnRowExpand($event)"
-  />
-</div>
+<app-sbom-quick-info [dto]="hoveredDto()" [index]="index()" />
+
+<app-cytoscape-graph
+  class="block flex-1 basis-0 min-h-0"
+  [isBreadcrumbVisible]="false"
+  [isDeleteEnabled]="false"
+  [isFillHeight]="true"
+  [layout]="'layered'"
+  [nodeDataDtos]="nodeDataDtos()"
+  (activeNodeIdChange)="onActiveNodeIdChange($event)"
+  (hoveredNodeIdChange)="onHoveredNodeIdChange($event)"
+/>

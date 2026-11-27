@@ -15,8 +15,8 @@ import {
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs/operators';
 
-import cytoscape, { NodeSingular } from 'cytoscape';
-import fcose, { FcoseLayoutOptions } from 'cytoscape-fcose';
+import cytoscape, { LayoutOptions, NodeSingular } from 'cytoscape';
+import fcose from 'cytoscape-fcose';
 
 import { MenuItem } from 'primeng/api';
 import { BreadcrumbItemClickEvent, BreadcrumbModule } from 'primeng/breadcrumb';
@@ -28,14 +28,14 @@ import { TagModule } from 'primeng/tag';
 import { IconComponent } from '../icon/icon.component';
 import { ScrollerComponent } from '../scroller/scroller.component';
 
-import { FcoseDeleteHistory } from './fcose.delete-history';
-import { buildElements } from './fcose.elements';
-import { FcoseHighlighter } from './fcose.highlighter';
-import { buildLayoutOptions } from './fcose.layout';
-import { DEFAULT_ROOT_NODE_ID, FcoseNavigation } from './fcose.navigation';
-import { buildStyles } from './fcose.styles';
-import { DarkLightMode, FCOSE_THEMES } from './fcose.theme';
-import { DeletedNodes, NodeDataDto } from './fcose.types';
+import { GraphDeleteHistory } from './cytoscape-graph.delete-history';
+import { buildElements } from './cytoscape-graph.elements';
+import { GraphHighlighter } from './cytoscape-graph.highlighter';
+import { buildLayeredPositions, buildLayoutOptions } from './cytoscape-graph.layout';
+import { DEFAULT_ROOT_NODE_ID, GraphNavigation } from './cytoscape-graph.navigation';
+import { buildStyles } from './cytoscape-graph.styles';
+import { DarkLightMode, GRAPH_THEMES } from './cytoscape-graph.theme';
+import { DeletedNodes, GraphLayout, NodeDataDto } from './cytoscape-graph.types';
 
 import { DarkModeService } from '@core/services/dark-mode.service';
 
@@ -47,8 +47,12 @@ const RESIZE_DEBOUNCE_MS = 150;
 const NO_NODES: NodeSingular[] = [];
 const NO_DELETED_NODES: DeletedNodes[] = [];
 
+// the layered layout: around the graph when it is fitted, and the largest zoom (a few nodes are not blown up)
+const LAYERED_FIT_PADDING = 10;
+const LAYERED_MAX_ZOOM = 1.25;
+
 @Component({
-  selector: 'app-fcose',
+  selector: 'app-cytoscape-graph',
   standalone: true,
   imports: [
     BreadcrumbModule,
@@ -61,10 +65,10 @@ const NO_DELETED_NODES: DeletedNodes[] = [];
     CommonModule,
     ReactiveFormsModule,
   ],
-  templateUrl: './fcose.component.html',
-  styleUrl: './fcose.component.scss',
+  templateUrl: './cytoscape-graph.component.html',
+  styleUrl: './cytoscape-graph.component.scss',
 })
-export class FcoseComponent implements AfterViewInit, OnInit {
+export class CytoscapeGraphComponent implements AfterViewInit, OnInit {
   @ViewChild('graphContainer', { static: true }) graphContainer!: ElementRef;
   @ViewChild('helpContainer', { read: ViewContainerRef }) helpContainer!: ViewContainerRef;
 
@@ -86,28 +90,34 @@ export class FcoseComponent implements AfterViewInit, OnInit {
   staticHighlightedNodeId = input<string | undefined>(undefined);
   staticInputFilterByNameValue = input<string>('');
 
-  fcoseClasses = input<string>('fcose fcose-half');
+  graphClasses = input<string>('graph graph-half');
   extraColorClasses = input<{ name: string; code: string }[]>([]);
   idealEdgeLength = input<number>(150);
 
-  // false: the host shows its own breadcrumb (driven by its own FcoseNavigation)
+  // false: the host shows its own breadcrumb (driven by its own GraphNavigation)
   isBreadcrumbVisible = input<boolean>(true);
   // true: after the container is resized, the graph is fitted again (zoom and pan change); false: only the canvas
   // follows the new size, the user's zoom and pan are kept
   isFitOnResize = input<boolean>(false);
+  // fcose: the free force layout; layered: parents above the main node, children below it, wrapped to the width (it is
+  // laid out again on every resize, fitted to the width, with labels hidden when zoomed out)
+  layout = input<GraphLayout>('fcose');
+  // false: no hiding of nodes (Hide Node / Hide Subtree / Undo / Redo / Show All are not shown)
+  isDeleteEnabled = input<boolean>(true);
+  // true: the graph takes the height of the host (which has to have one), not one of the graphClasses heights
+  isFillHeight = input<boolean>(false);
 
   inputFilterByNameControl = new FormControl('');
   isHelpDialogVisible: boolean = false;
 
   private cy!: cytoscape.Core;
-  private highlighter!: FcoseHighlighter;
-  private deleteHistory!: FcoseDeleteHistory;
-  private readonly navigation = new FcoseNavigation({
+  private highlighter!: GraphHighlighter;
+  private deleteHistory!: GraphDeleteHistory;
+  private readonly navigation = new GraphNavigation({
     getNodeName: (nodeId) => this.getDataDetailDtoById(nodeId)?.name ?? undefined,
     onNavigate: (nodeId) => this.activeNodeIdChange.emit(nodeId),
   });
 
-  private readonly fcoseLayoutOptions: FcoseLayoutOptions = buildLayoutOptions(() => this.idealEdgeLength());
   private isLayoutRedraw: boolean = false;
   private inputFilterByNameValue: string = '';
   private darkLightMode: DarkLightMode = 'Dark';
@@ -174,7 +184,7 @@ export class FcoseComponent implements AfterViewInit, OnInit {
         return;
       }
       if (nodeId) {
-        const node = this.cy?.$(`#${nodeId}`);
+        const node = this.findNode(nodeId);
         if (node && selectedNodes.length == 1 && selectedNodes[0] == node) {
           return;
         }
@@ -202,12 +212,16 @@ export class FcoseComponent implements AfterViewInit, OnInit {
   ngAfterViewInit() {
     this.setupCy();
     this.setupCyEvents();
+    if (this.layout() === 'layered') {
+      this.setupLayeredWheel();
+    }
     this.setupResizeObserver();
     this.redrawGraph();
   }
 
   // cytoscape follows window resizes only; a container resize (splitter, animated layout) leaves a stale canvas
-  // the layout itself is never re-run here, only the canvas size (and the fit, when asked for)
+  // fcose is never re-run here, only the canvas size (and the fit, when asked for); layered is cheap and wraps to the
+  // width, so it is laid out again
   private setupResizeObserver() {
     let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -215,7 +229,13 @@ export class FcoseComponent implements AfterViewInit, OnInit {
       clearTimeout(timer);
       timer = setTimeout(() => {
         this.cy?.resize();
-        if (this.isFitOnResize() && !this.isLayoutRedraw) {
+        if (this.isLayoutRedraw) {
+          return;
+        }
+        if (this.layout() === 'layered') {
+          this.cy.layout(this.getLayoutOptions()).run();
+          this.fitLayered();
+        } else if (this.isFitOnResize()) {
           this.onZoomFit();
         }
       }, RESIZE_DEBOUNCE_MS);
@@ -228,21 +248,68 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     });
   }
 
+  /**
+   * Layered: the graph is a tall page fitted to the width, so the wheel scrolls it (Shift + wheel or a horizontal wheel:
+   * sideways), and the scroll stops at the top and the bottom of the graph; Ctrl + wheel zooms, around the pointer.
+   */
+  private setupLayeredWheel() {
+    const container = this.graphContainer.nativeElement as HTMLElement;
+    const onWheel = (event: WheelEvent) => {
+      if (!this.cy || this.cy.elements().empty()) {
+        return;
+      }
+      event.preventDefault();
+      // lines / pages (some mice, Firefox) to pixels
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? this.cy.height() : 1;
+      if (event.ctrlKey) {
+        const factor = Math.pow(1.002, -event.deltaY * unit);
+        const rect = container.getBoundingClientRect();
+        this.cy.zoom({
+          level: this.cy.zoom() * factor,
+          renderedPosition: { x: event.clientX - rect.left, y: event.clientY - rect.top },
+        });
+        return;
+      }
+      const deltaX = (event.shiftKey ? event.deltaY : event.deltaX) * unit;
+      const deltaY = (event.shiftKey ? 0 : event.deltaY) * unit;
+      this.cy.panBy({ x: -deltaX, y: -this.clampLayeredScroll(deltaY) });
+    };
+    container.addEventListener('wheel', onWheel, { passive: false });
+    this.destroyRef.onDestroy(() => container.removeEventListener('wheel', onWheel));
+  }
+
+  /** The vertical scroll, cut so the graph's top stays at or above the top and its bottom at or below the bottom. */
+  private clampLayeredScroll(deltaY: number): number {
+    const box = this.cy.elements().renderedBoundingBox();
+    const height = this.cy.height();
+    if (box.h <= height - 2 * LAYERED_FIT_PADDING) {
+      // the whole graph is visible: nothing to scroll
+      return 0;
+    }
+    // scrolling down moves the graph up: at most until its bottom reaches the bottom edge, and the other way round
+    const maxDown = Math.max(0, box.y2 - (height - LAYERED_FIT_PADDING));
+    const maxUp = Math.max(0, LAYERED_FIT_PADDING - box.y1);
+
+    return deltaY > 0 ? Math.min(deltaY, maxDown) : -Math.min(-deltaY, maxUp);
+  }
+
   // #region Cy setup
   private setupCy() {
     this.cy = cytoscape({
       container: this.graphContainer.nativeElement,
       elements: [],
-      layout: this.fcoseLayoutOptions,
-      style: buildStyles(this.extraColorClasses(), FCOSE_THEMES[this.darkLightMode]),
+      layout: this.getLayoutOptions(),
+      style: this.getStyles(),
+      // layered: the wheel scrolls (see setupLayeredWheel), the zoom is on the buttons and on Ctrl + wheel
+      userZoomingEnabled: this.layout() !== 'layered',
     });
 
-    this.highlighter = new FcoseHighlighter(this.cy, {
+    this.highlighter = new GraphHighlighter(this.cy, {
       isRedrawing: () => this.isLayoutRedraw,
       onHoveredNodeIdChange: (nodeId) => this.hoveredNodeIdChange.emit(nodeId),
       onSelectedNodeIdChange: (nodeId) => this.selectedNodeIdChange.emit(nodeId),
     });
-    this.deleteHistory = new FcoseDeleteHistory(this.cy, {
+    this.deleteHistory = new GraphDeleteHistory(this.cy, {
       getSelectedNodes: () => this.highlighter.selectedNodes,
       getNodeDataDtos: () => this.nodeDataDtos(),
       onDeleted: (nodeIds) => this.deletedNodeIdsChange.emit(nodeIds),
@@ -252,11 +319,44 @@ export class FcoseComponent implements AfterViewInit, OnInit {
 
   /** Re-applies the stylesheet for the current theme (dark/light mode switch). */
   private applyStyles() {
-    const extraColorClasses = this.extraColorClasses();
-    this.cy
-      ?.style()
-      .fromJson(buildStyles(extraColorClasses, FCOSE_THEMES[this.darkLightMode]))
-      .update();
+    const styles = this.getStyles();
+    this.cy?.style().fromJson(styles).update();
+  }
+
+  private getStyles() {
+    return buildStyles(this.extraColorClasses(), GRAPH_THEMES[this.darkLightMode], this.layout() === 'layered');
+  }
+
+  private getLayoutOptions(): LayoutOptions {
+    return buildLayoutOptions(
+      this.layout(),
+      () => this.idealEdgeLength(),
+      () => buildLayeredPositions(this.nodeDataDtos(), this.cy?.width() ?? 0),
+    );
+  }
+
+  /**
+   * Layered: fitted to the width (capped, so a few nodes are not blown up), and to the top; what does not fit in the
+   * height is reached by panning. A graph that fits whole is centered.
+   */
+  private fitLayered() {
+    const visibleElements = this.cy.elements().filter((ele) => !ele.hasClass('deleted'));
+    if (visibleElements.empty()) {
+      return;
+    }
+    const box = visibleElements.boundingBox();
+    const availableWidth = this.cy.width() - 2 * LAYERED_FIT_PADDING;
+    const availableHeight = this.cy.height() - 2 * LAYERED_FIT_PADDING;
+    const zoom = Math.min(LAYERED_MAX_ZOOM, availableWidth / Math.max(box.w, 1));
+    const isWholeVisible = box.h * zoom <= availableHeight;
+    const fittedZoom = isWholeVisible ? Math.min(zoom, availableHeight / Math.max(box.h, 1)) : zoom;
+    this.cy.zoom(fittedZoom);
+    this.cy.pan({
+      x: (this.cy.width() - box.w * fittedZoom) / 2 - box.x1 * fittedZoom,
+      y: isWholeVisible
+        ? (this.cy.height() - box.h * fittedZoom) / 2 - box.y1 * fittedZoom
+        : LAYERED_FIT_PADDING - box.y1 * fittedZoom,
+    });
   }
 
   private setupCyEvents() {
@@ -280,7 +380,9 @@ export class FcoseComponent implements AfterViewInit, OnInit {
     if (node.isParent() || node.hasClass('nodeLeaf')) {
       return;
     }
-    if (this.activeNodeId !== node.id()) {
+    // layered: the main node is the one the graph is about, not the dive root, so it can be dived into too (the host
+    // knows whether it already is the root)
+    if (this.layout() === 'layered' || this.activeNodeId !== node.id()) {
       this.activeNodeIdChange.emit(node.id());
     }
   }
@@ -351,9 +453,9 @@ export class FcoseComponent implements AfterViewInit, OnInit {
   }
 
   async onHelp() {
-    const { FcoseHelpComponent } = await import('../fcose-help/fcose-help.component'); // Lazy load the component
+    const { CytoscapeGraphHelpComponent } = await import('../cytoscape-graph-help/cytoscape-graph-help.component'); // Lazy load the component
     this.helpContainer.clear();
-    this.helpContainer.createComponent(FcoseHelpComponent);
+    this.helpContainer.createComponent(CytoscapeGraphHelpComponent);
     this.isHelpDialogVisible = true;
   }
   // #endregion
@@ -368,33 +470,46 @@ export class FcoseComponent implements AfterViewInit, OnInit {
 
       this.cy.elements().addClass('hidden');
 
-      this.cy.layout(this.fcoseLayoutOptions).run();
-      this.onZoomFit();
+      this.cy.layout(this.getLayoutOptions()).run();
+      if (this.layout() === 'layered') {
+        this.fitLayered();
+      } else {
+        this.onZoomFit();
+      }
 
       this.updateActiveNode(this.activeNodeId ?? '');
       setTimeout(() => {
         this.cy.elements().removeClass('hidden');
 
-        const node = this.cy.$(`#${this.selectedNodeId()}`);
-        if (node) {
-          node.select();
-        }
+        // layered: with no selection from outside, the main node (the one the graph is about) starts selected
+        const selectedNodeId = this.selectedNodeId() ?? (this.layout() === 'layered' ? this.activeNodeId : undefined);
+        this.findNode(selectedNodeId)?.select();
         if (this.inputFilterByNameValue) {
           this.highlighter.filterByName(this.inputFilterByNameValue);
         }
         if (this.isStatic()) {
-          let node = this.cy.$(`#${this.staticSelectedNodeId()}`);
-          if (node) {
-            this.highlighter.highlightSelectedNode(node);
+          const selectedNode = this.findNode(this.staticSelectedNodeId());
+          if (selectedNode) {
+            this.highlighter.highlightSelectedNode(selectedNode);
           }
-          node = this.cy.$(`#${this.staticHighlightedNodeId()}`);
-          if (node) {
-            this.highlighter.highlightHoveredNode(node);
+          const highlightedNode = this.findNode(this.staticHighlightedNodeId());
+          if (highlightedNode) {
+            this.highlighter.highlightHoveredNode(highlightedNode);
           }
         }
         this.isLayoutRedraw = false;
       }, 500);
     }, 350);
+  }
+
+  /**
+   * The node with that id, if there is one. Not cy.$('#' + id): the ids are e.g. purls (pkg:nuget/x@1.0), which are not
+   * valid selectors; such a selector matches nothing, and the empty collection it returns is still truthy.
+   */
+  private findNode(nodeId: string | undefined): NodeSingular | undefined {
+    const node = nodeId ? this.cy?.getElementById(nodeId) : undefined;
+
+    return node?.nonempty() ? (node as NodeSingular) : undefined;
   }
 
   // #region Navigation

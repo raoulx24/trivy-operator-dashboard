@@ -12,7 +12,6 @@ import {
 } from '@angular/core';
 
 import { ConfirmationService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 import { OnDemandScanDto } from '@api/models/on-demand-scan-dto';
@@ -49,7 +48,6 @@ import {
   selector: 'app-scan-on-demand',
   standalone: true,
   imports: [
-    ButtonModule,
     ConfirmDialogModule,
     ScanOnDemandFormComponent,
     ScanOnDemandRailComponent,
@@ -83,8 +81,6 @@ export class ScanOnDemandComponent {
   readonly inspectedDigest = signal<string | undefined>(LocalStorageUtils.getItem(INSPECTED_DIGEST_STORAGE_KEY) ?? undefined);
   readonly result = signal<OnDemandScanResultDto | undefined>(undefined);
   readonly isCollapsed = computed(() => !!this.inspectedDigest());
-  // the SBOM tab in graph view: the rail folds away too
-  readonly isWide = signal<boolean>(false);
   // the scan the inspected result came from (its requested types)
   readonly resultScan = computed(() => {
     const scanId = this.result()?.lastScanId;
@@ -108,7 +104,6 @@ export class ScanOnDemandComponent {
     effect(() => {
       const digest = this.inspectedDigest();
       this.result.set(undefined);
-      this.isWide.set(false);
       if (digest) {
         this.loadResult(digest);
       }

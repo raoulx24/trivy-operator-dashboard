@@ -1,8 +1,8 @@
 import { Core, NodeSingular } from 'cytoscape';
 
-import { DeletedNodes, NodeDataDto } from './fcose.types';
+import { DeletedNodes, NodeDataDto } from './cytoscape-graph.types';
 
-export interface FcoseDeleteHistoryHost {
+export interface GraphDeleteHistoryHost {
   getSelectedNodes: () => NodeSingular[];
   getNodeDataDtos: () => NodeDataDto[];
   onDeleted: (nodeIds: string[]) => void;
@@ -12,13 +12,13 @@ export interface FcoseDeleteHistoryHost {
 /**
  * "Deleting" only hides nodes (class `deleted`); this class tracks those steps for undo / redo.
  */
-export class FcoseDeleteHistory {
+export class GraphDeleteHistory {
   entries: DeletedNodes[] = [];
   currentIndex: number = -1;
 
   constructor(
     private readonly cy: Core,
-    private readonly host: FcoseDeleteHistoryHost,
+    private readonly host: GraphDeleteHistoryHost,
   ) {}
 
   reset() {
@@ -160,7 +160,8 @@ export class FcoseDeleteHistory {
         .getNodeDataDtos()
         .filter((dto) => dto.groupName == parent.id())
         .forEach((dto) => {
-          this.cy.nodes(`#${dto.id}`).move({ parent: parent.id() });
+          // by id, not cy.nodes('#' + id): the ids (e.g. purls) are not valid selectors
+          this.cy.getElementById(dto.id ?? '').move({ parent: parent.id() });
         });
     });
   }

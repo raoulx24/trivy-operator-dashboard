@@ -1,4 +1,4 @@
-<div class="gap-4 flex-col">
+<div [ngClass]="isFillHeight() ? 'flex flex-col gap-1 h-full' : 'gap-4 flex-col'">
   <app-scroller>
     <div class="flex items-center gap-1 shrink-0 whitespace-nowrap">
       <p-button icon="pi pi-search-plus" label="Zoom In" size="small" raised [text]="true" (onClick)="onZoomIn()" />
@@ -20,7 +20,7 @@
         type="search"
         [formControl]="inputFilterByNameControl"
       />
-      @if (!isStatic()) {
+      @if (!isStatic() && isDeleteEnabled()) {
         <div class="h-6 w-[2px] tod-separator mx-1"></div>
         <p-button
           label="Hide Node"
@@ -77,6 +77,8 @@
         >
           <app-icon name="visibility" />
         </p-button>
+      }
+      @if (!isStatic()) {
         <div class="h-6 w-[2px] tod-separator mx-1"></div>
         <p-button icon="pi pi-question-circle" size="small" class="hidden-sm" raised [text]="true" (onClick)="onHelp()">
         </p-button>
@@ -93,8 +95,13 @@
       />
     </div>
   }
-  <div class="col-span-12">
-    <div #graphContainer class="graph-container" [ngClass]="fcoseClasses()"></div>
+  <div class="col-span-12" [ngClass]="{ 'flex-1 min-h-0': isFillHeight() }">
+    <div
+      #graphContainer
+      class="graph-container"
+      [class.graph-fill]="isFillHeight()"
+      [ngClass]="isFillHeight() ? '' : graphClasses()"
+    ></div>
   </div>
 </div>
 

@@ -2,7 +2,7 @@ import { Core, EdgeSingular, NodeSingular } from 'cytoscape';
 
 type StylePrefix = 'hovered' | 'selected';
 
-export interface FcoseHighlighterHost {
+export interface GraphHighlighterHost {
   /** True while the graph is being redrawn; hover un-highlighting is suspended then. */
   isRedrawing: () => boolean;
   onHoveredNodeIdChange: (nodeId: string | undefined) => void;
@@ -12,14 +12,14 @@ export interface FcoseHighlighterHost {
 /**
  * Owns hover / selection / filter-by-name state and the cytoscape classes that visualize it.
  */
-export class FcoseHighlighter {
+export class GraphHighlighter {
   private _selectedNodes: NodeSingular[] = [];
   private _hoveredNode?: NodeSingular;
   private highlightedHoverNode?: NodeSingular;
 
   constructor(
     private readonly cy: Core,
-    private readonly host: FcoseHighlighterHost,
+    private readonly host: GraphHighlighterHost,
   ) {}
 
   get selectedNodes(): NodeSingular[] {

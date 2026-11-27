@@ -96,27 +96,42 @@ export const genericSbomReportSlimDetailColumns: readonly TrivyTableColumn[] = g
   .filter((x) => x.field in slimDetailColumnStyles)
   .map((x) => ({ ...x, style: slimDetailColumnStyles[x.field] }));
 
-// the navigator's "used by" / "depends on" tables: static, except the dive button of each row
-const navigatorColumns = (diveField: string, diveIcon: string, diveLabel: string): readonly TrivyTableColumn[] => [
-  ...genericSbomReportDetailColumns
-    .filter((x) => x.field in slimDetailColumnStyles && x.field !== 'level')
-    .map((x) => ({ ...x, isFilterable: false, style: slimDetailColumnStyles[x.field] })),
+// the navigator's neighbours table (used by and depends on, in one): static, except the dive button of each row, whose
+// arrow is the direction (up: used by, a dive out; down: depends on, a dive in); sorting on it groups the directions
+export const sbomNavigatorDiveField = 'direction';
+// next to the dive button: selects the row's package in the list on the left
+export const sbomNavigatorSelectField = 'select';
+export const sbomNavigatorColumns: readonly TrivyTableColumn[] = [
   {
-    field: diveField,
+    field: sbomNavigatorDiveField,
     // also the aria label of the icon-only button
-    header: diveLabel,
+    header: 'Dive',
     isFilterable: false,
-    isSortable: false,
-    actionIcon: diveIcon,
+    isSortable: true,
+    multiSelectType: 'none',
+    actionIconField: 'directionIcon',
     style: 'width: 5.5rem; max-width: 5.5rem; text-align: center;',
     renderType: 'action',
   },
+  {
+    field: sbomNavigatorSelectField,
+    // also the aria label of the icon-only button
+    header: 'Select',
+    isFilterable: false,
+    isSortable: false,
+    multiSelectType: 'none',
+    actionIcon: 'pi pi-arrow-left',
+    // a package that is not in the list on the left (outside the dive) cannot be selected there
+    actionDisabledField: 'isSelectDisabled',
+    style: 'width: 5.5rem; max-width: 5.5rem; text-align: center;',
+    renderType: 'action',
+  },
+  // no Level: it is the level in the list on the left (from the dive root), the dive arrow already tells the relation
+  // to the shown package
+  ...genericSbomReportDetailColumns
+    .filter((x) => x.field in slimDetailColumnStyles && x.field !== 'level')
+    .map((x) => ({ ...x, isFilterable: false, style: slimDetailColumnStyles[x.field] })),
 ];
-
-export const sbomNavigatorDiveOutField = 'diveOut';
-export const sbomNavigatorDiveInField = 'diveIn';
-export const sbomNavigatorUsedByColumns = navigatorColumns(sbomNavigatorDiveOutField, 'pi pi-arrow-up', 'Dive out');
-export const sbomNavigatorDependsOnColumns = navigatorColumns(sbomNavigatorDiveInField, 'pi pi-arrow-down', 'Dive in');
 
 export const genericSbomReportComparedColumns: readonly TrivyTableColumn[] = [
   {

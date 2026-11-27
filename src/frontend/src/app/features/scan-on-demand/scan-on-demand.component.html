@@ -4,7 +4,7 @@
     <span class="tod-text-muted-color">{{ unavailableReason() ?? 'It is not enabled in the settings.' }}</span>
   </div>
 } @else {
-  <div class="tod-sod-layout" [class.tod-sod-collapsed]="isCollapsed()" [class.tod-sod-wide]="isWide()">
+  <div class="tod-sod-layout" [class.tod-sod-collapsed]="isCollapsed()">
     <div class="tod-sod-left">
       @if (!isCollapsed()) {
         <div class="flex flex-col gap-2">
@@ -45,7 +45,6 @@
             [scan]="resultScan()"
             (deleteRequested)="onDeleteResult()"
             (rescanRequested)="onRescanResult()"
-            (wideChange)="isWide.set($event)"
           />
         } @else {
           <div class="p-4 tod-text-muted-color">Loading the result…</div>
@@ -53,19 +52,6 @@
       }
     </div>
   </div>
-
-  @if (isWide()) {
-    <!-- the rail is folded away: one button brings it back -->
-    <p-button
-      class="tod-sod-rail-restore"
-      icon="pi pi-angle-double-right"
-      size="small"
-      [ariaLabel]="'Show scans'"
-      [rounded]="true"
-      [text]="true"
-      (onClick)="isWide.set(false)"
-    />
-  }
 
   <p-confirmdialog />
 }

@@ -24,8 +24,10 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 export interface HomeWidgetHelp {
   // the question the widget answers: why and what, two sentences at most
   question: string;
-  // what is odd, the same collapsed or expanded
+  // what is odd, the same collapsed or expanded (the "Good to know" section)
   oddities: string[];
+  // the surprising cases, e.g. why the numbers of two widgets do not match (the "Oddities" section); leave out if none
+  quirks?: string[];
   // what is special in the expanded widget; leave out for a widget that cannot expand
   expanded?: string[];
   // one or two tips and tricks (or a bit of trivia)

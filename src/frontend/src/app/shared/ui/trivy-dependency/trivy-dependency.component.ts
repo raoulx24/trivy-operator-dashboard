@@ -7,8 +7,8 @@ import { TrivyDependencyTreeDto } from '@api/models/trivy-dependency-tree-dto';
 import { TrivyReportDependenciesService } from '@api/services/trivy-report-dependencies.service';
 
 import { injectLogger } from '@core/logging/inject-logger';
-import { NodeDataDto } from '../fcose/fcose.types';
-import { FcoseComponent } from '../fcose/fcose.component';
+import { NodeDataDto } from '../cytoscape-graph/cytoscape-graph.types';
+import { CytoscapeGraphComponent } from '../cytoscape-graph/cytoscape-graph.component';
 import { ButtonModule } from 'primeng/button';
 import { SplitterModule } from 'primeng/splitter';
 import { TagModule } from 'primeng/tag';
@@ -32,7 +32,7 @@ interface TrivyReportTreeNodeData {
 @Component({
   selector: 'app-trivy-dependency',
   imports: [
-    FcoseComponent,
+    CytoscapeGraphComponent,
     ButtonModule,
     SplitterModule,
     TagModule,

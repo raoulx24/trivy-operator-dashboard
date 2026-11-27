@@ -1,6 +1,6 @@
 import { StylesheetJson, StylesheetJsonBlock } from 'cytoscape';
 
-import { FcoseTheme } from './fcose.theme';
+import { GraphTheme } from './cytoscape-graph.theme';
 
 const FONT_FAMILY = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 const TRANSITION_NODE = 'width height background-color font-size border-color border-width opacity';
@@ -9,18 +9,27 @@ const TRANSITION_NODE = 'width height background-color font-size border-color bo
  * Builds the cytoscape stylesheet. The per-instance color classes come first,
  * so the base styles take precedence over them.
  */
-export function buildStyles(extraColorClasses: { name: string; code: string }[], theme: FcoseTheme): StylesheetJson {
+export function buildStyles(
+  extraColorClasses: { name: string; code: string }[],
+  theme: GraphTheme,
+  isLabelHiddenWhenZoomedOut: boolean = false,
+): StylesheetJson {
   const extraStyles: StylesheetJsonBlock[] = extraColorClasses.map((c) => ({
     selector: `.${c.name}`,
     style: {
       'background-color': c.code,
     },
   }));
+  // a label smaller than this on screen is not drawn: many nodes zoomed out stay readable as shapes and edges; the
+  // hover still names them
+  const zoomedOutStyles: StylesheetJsonBlock[] = isLabelHiddenWhenZoomedOut
+    ? [{ selector: 'node', style: { 'min-zoomed-font-size': 9 } }]
+    : [];
 
-  return [...extraStyles, ...buildBaseStyles(theme)];
+  return [...extraStyles, ...buildBaseStyles(theme), ...zoomedOutStyles];
 }
 
-function buildBaseStyles(theme: FcoseTheme): StylesheetJson {
+function buildBaseStyles(theme: GraphTheme): StylesheetJson {
   return [
     // groups
     {

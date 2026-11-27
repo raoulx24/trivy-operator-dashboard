@@ -3,7 +3,7 @@ import { BreadcrumbItemClickEvent } from 'primeng/breadcrumb';
 
 export const DEFAULT_ROOT_NODE_ID = '00000000-0000-0000-0000-000000000000';
 
-export interface FcoseNavigationHost {
+export interface GraphNavigationHost {
   getNodeName: (nodeId: string) => string | undefined;
   onNavigate: (nodeId: string) => void;
 }
@@ -11,12 +11,12 @@ export interface FcoseNavigationHost {
 /**
  * Breadcrumb state: the path of "dived-in" nodes starting at the root (home).
  */
-export class FcoseNavigation {
+export class GraphNavigation {
   navItems: MenuItem[] = [];
   navHome?: MenuItem;
   private rootNodeId: string = DEFAULT_ROOT_NODE_ID;
 
-  constructor(private readonly host: FcoseNavigationHost) {}
+  constructor(private readonly host: GraphNavigationHost) {}
 
   /** Resets the breadcrumb to just the home item for the given root. */
   init(rootNodeId: string = DEFAULT_ROOT_NODE_ID) {

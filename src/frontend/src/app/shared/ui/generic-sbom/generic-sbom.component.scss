@@ -1,0 +1,7 @@
+/* the right side: stretches to the splitter panel, whose height is set by the package list on the left (its selector
+   and table), so both sides always end at the same line; the neighbours table, the quick info and the graphs size
+   themselves in it */
+.sbom-right {
+  height: 100%;
+  min-height: 24rem;
+}

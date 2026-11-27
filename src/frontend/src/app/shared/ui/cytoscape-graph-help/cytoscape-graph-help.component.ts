@@ -1,16 +1,16 @@
 import { Component } from '@angular/core';
 
-import { FcoseComponent } from '../fcose/fcose.component';
-import { NodeDataDto } from '../fcose/fcose.types';
+import { CytoscapeGraphComponent } from '../cytoscape-graph/cytoscape-graph.component';
+import { NodeDataDto } from '../cytoscape-graph/cytoscape-graph.types';
 
 @Component({
-  selector: 'app-fcose-help',
+  selector: 'app-cytoscape-graph-help',
   standalone: true,
-  imports: [FcoseComponent],
-  templateUrl: './fcose-help.component.html',
-  styleUrl: './fcose-help.component.scss',
+  imports: [CytoscapeGraphComponent],
+  templateUrl: './cytoscape-graph-help.component.html',
+  styleUrl: './cytoscape-graph-help.component.scss',
 })
-export class FcoseHelpComponent {
+export class CytoscapeGraphHelpComponent {
   nodeDataDtos: NodeDataDto[] = [
     { id: 'n01', name: 'root notdimmed', isMain: true, dependsOn: ['n10', 'n20', 'n30'] },
     { id: 'n10', name: 'selected parent notdimmed', dependsOn: ['n11'] },

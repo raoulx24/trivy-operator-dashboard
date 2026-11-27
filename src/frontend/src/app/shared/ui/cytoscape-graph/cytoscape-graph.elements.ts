@@ -1,6 +1,6 @@
 import { ElementDefinition } from 'cytoscape';
 
-import { NodeDataDto } from './fcose.types';
+import { NodeDataDto } from './cytoscape-graph.types';
 
 export function buildElements(nodeDataDtos: NodeDataDto[]): ElementDefinition[] {
   const elements: ElementDefinition[] = [];
@@ -25,7 +25,7 @@ export function buildElements(nodeDataDtos: NodeDataDto[]): ElementDefinition[] 
         label: nodeData.name ? nodeData.name : ' ', // so called 'em space' - just a 'long' space,
         parent: parentId,
       },
-      classes: `nodeCommon nodePackage ${nodeData.colorClass ?? 'mainBackgroundColor'} ${nodeData.dependsOn?.length ? 'nodeBranch' : 'nodeLeaf'}`,
+      classes: `nodeCommon nodePackage ${nodeData.colorClass ?? 'mainBackgroundColor'} ${(nodeData.isLeaf ?? !nodeData.dependsOn?.length) ? 'nodeLeaf' : 'nodeBranch'}`,
     });
     nodeData.dependsOn?.forEach((depends) => {
       elements.push({

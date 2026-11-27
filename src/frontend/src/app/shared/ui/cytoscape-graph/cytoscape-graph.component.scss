@@ -9,14 +9,14 @@ $default-height-half: calc(50vh - 145px);
 $default-breakpoint: 640px;
 
 /* base style */
-.fcose {
+.graph {
   height: $default-height;
   width: 100%;
   display: flex !important;
   flex-direction: column !important;
   flex-grow: 1 !important;
   /* styles when classB is also present */
-  &.fcose-half {
+  &.graph-half {
     height: $default-height-half;
 
     @media (min-width: $default-breakpoint) {
@@ -25,16 +25,13 @@ $default-breakpoint: 640px;
   }
 }
 
-/* in generic-sbom: the host breadcrumb and the package box sit above, fcose's own breadcrumb is hidden */
-.fcose.fcose-sbom {
-  height: $default-height-half;
-
-  @media (min-width: $default-breakpoint) {
-    height: calc(100vh - 230px - var(--tod-sbom-extra-offset, 0px));
-  }
+/* isFillHeight: the height of the host, given down by the flex column of the template */
+.graph-fill {
+  height: 100%;
+  width: 100%;
 }
 
-.fcose-dialog {
+.graph-dialog {
   height: $default-dialog-height;
 }
 

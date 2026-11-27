@@ -3,19 +3,58 @@
   (dblclick)="onSplitterDoubleClick($event, splitter)"
   stateStorage="local"
   class="tod-splitter-no-borders tod-no-background tod-sbom-splitter mb-8"
-  [class.tod-sbom-list-collapsed]="isListCollapsed()"
   [layout]="screenSize == 'sm' ? 'vertical' : 'horizontal'"
   [panelSizes]="[35, 65]"
   [stateKey]="screenSize !== 'sm' ? `splitter.${stateKey()}` : undefined"
 >
   <ng-template #panel>
-    <div class="w-full">
+    <div class="w-full h-full flex flex-col">
       @if (isImageSelectorVisible()) {
-        <div class="pb-2">
-          <app-paired-options-selector [dataDtos]="namespacedImageDtos" [(selectedUid)]="selectedImageId" />
+        <!-- the selector gets the images already filtered (it knows nothing of active images); the filter is in a
+             popover, its button shows whether it is on (a filled filter) -->
+        <!-- items-stretch + h-full: the button is as tall as the selects; size small keeps its own height below theirs,
+             otherwise it would set the height of the row -->
+        <div class="pb-2 flex items-stretch gap-2">
+          <app-paired-options-selector
+            class="block flex-1 min-w-0"
+            [dataDtos]="selectorImageDtos"
+            [(selectedFirstOption)]="selectedNamespace"
+            [(selectedUid)]="selectedImageId"
+          />
+          <p-button
+            class="flex tod-select-side-button"
+            styleClass="h-full"
+            size="small"
+            raised
+            text
+            [ariaLabel]="'Images filter'"
+            [icon]="isActiveOnly() ? 'pi pi-filter-fill' : 'pi pi-filter'"
+            (onClick)="imagesFilterPopover.toggle($event)"
+          />
+          <p-popover #imagesFilterPopover appendTo="body">
+            <div class="flex flex-col gap-2 text-sm">
+              <span class="font-semibold">Images in the selector</span>
+              <p-selectbutton
+                class="text-sm inline-flex w-fit"
+                optionLabel="label"
+                optionValue="value"
+                size="small"
+                [allowEmpty]="false"
+                [options]="imagesFilterOptions()"
+                [ngModel]="isActiveOnly()"
+                (ngModelChange)="setActiveOnly($event)"
+              />
+              <span class="text-xs tod-text-muted-color">
+                Active: the images with a vulnerability report.
+                @if (selectedNamespace(); as namespace) {
+                  <br />Counted in {{ namespace }}.
+                }
+              </span>
+            </div>
+          </p-popover>
         </div>
       }
-      <div class="tod-content-border-left tod-content-background overflow-hidden">
+      <div class="tod-content-border-left tod-content-background overflow-hidden flex-1 min-h-0">
         <app-trivy-table
           [dataDtos]="dependsOnBoms"
           [dataKey]="'bomRef'"
@@ -38,7 +77,8 @@
     </div>
   </ng-template>
   <ng-template #panel>
-    <div class="w-full flex flex-col tod-content-border-right tod-content-background overflow-hidden h-full px-2">
+    <!-- the height of the package list on the left; the views share what the breadcrumb bar leaves -->
+    <div class="sbom-right w-full flex flex-col tod-content-border-right tod-content-background overflow-hidden px-2 pb-2">
       <div class="flex items-center gap-2">
         <p-breadcrumb
           class="flex-1 min-w-0 breadcrumb-no-background breadcrumb-no-overflow text-xs [&_a]:cursor-pointer"
@@ -46,50 +86,51 @@
           [model]="navigation.navItems"
           (onItemClick)="onBreadcrumbItemClick($event)"
         />
-        <p-button
+        <p-selectbutton
+          class="tod-select-button-xs inline-flex w-fit"
+          optionValue="value"
           size="small"
-          text
-          [ariaLabel]="'Tables view'"
-          [icon]="'pi pi-list'"
-          [outlined]="viewMode() === 'navigator'"
-          (onClick)="setViewMode('navigator')"
-        />
-        <p-button
-          size="small"
-          text
-          [ariaLabel]="'Graph view'"
-          [icon]="'pi pi-share-alt'"
-          [outlined]="viewMode() === 'graph'"
-          (onClick)="setViewMode('graph')"
-        />
+          [allowEmpty]="false"
+          [options]="viewModeOptions"
+          [ngModel]="viewMode()"
+          (ngModelChange)="setViewMode($event)"
+        >
+          <ng-template #item let-item>
+            <span [attr.aria-label]="item.label" [class]="item.icon" [title]="item.label"></span>
+          </ng-template>
+        </p-selectbutton>
       </div>
 
-      <app-sbom-package-box class="block pb-1" [dto]="packageBoxDto" />
-
-      <!-- both views stay rendered (fcose keeps its state and its size); the hidden one is only made invisible -->
-      <div class="tod-sbom-views">
+      <!-- both views stay rendered (the graphs keep their state and their size); the hidden one is only made invisible -->
+      <div class="tod-sbom-views flex-1 min-h-0">
         <app-sbom-navigator
           class="tod-sbom-view"
           [class.tod-sbom-view-hidden]="viewMode() !== 'navigator'"
           [bomRef]="selectedSbomDetailBomRef"
           [index]="sbomIndex()"
+          [levelByBomRef]="levelByBomRef"
           [stateKey]="stateKey()"
           (diveRequested)="onDiveRequested($event)"
+          (selectRequested)="onSelectRequested($event)"
         />
-        <app-fcose
-          class="tod-sbom-view"
+        <div
+          class="tod-sbom-view flex flex-col gap-1 min-h-0"
           [class.tod-sbom-view-hidden]="viewMode() !== 'graph'"
-          [fcoseClasses]="'fcose fcose-sbom'"
-          [isBreadcrumbVisible]="false"
-          [isFitOnResize]="hideListInGraphView()"
-          [nodeDataDtos]="nodeDataDtos"
-          [selectedNodeId]="selectedSbomDetailBomRef"
-          (activeNodeIdChange)="onActiveNodeIdChange($event)"
-          (deletedNodeIdsChange)="onDeletedNodeIds($event)"
-          (hoveredNodeIdChange)="onHoveredNodeDtoChange($event)"
-          (selectedNodeIdChange)="onNodeIdChange($event)"
-          (undeletedNodeIdsChange)="onUndeletedNodeIds($event)"
-        />
+        >
+          <app-sbom-quick-info [dto]="hoveredSbomDetailDto" [index]="sbomIndex()" />
+          <app-cytoscape-graph
+            class="block flex-1 min-h-0"
+            [isBreadcrumbVisible]="false"
+            [isFillHeight]="true"
+            [nodeDataDtos]="nodeDataDtos"
+            [selectedNodeId]="selectedSbomDetailBomRef"
+            (activeNodeIdChange)="onActiveNodeIdChange($event)"
+            (deletedNodeIdsChange)="onDeletedNodeIds($event)"
+            (hoveredNodeIdChange)="onHoveredNodeDtoChange($event)"
+            (selectedNodeIdChange)="onNodeIdChange($event)"
+            (undeletedNodeIdsChange)="onUndeletedNodeIds($event)"
+          />
+        </div>
       </div>
     </div>
   </ng-template>

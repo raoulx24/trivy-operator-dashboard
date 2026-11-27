@@ -87,10 +87,11 @@ $default-breakpoint: 640px;
     }
   }
 
-  // two tables stacked under a header (generic-sbom navigator: breadcrumb, package box, one title per table)
-  &.trivy-stacked-half {
-    height: calc((100vh - 290px - var(--tod-sbom-extra-offset, 0px)) / 2);
-    min-height: 12rem;
+  // the height of the host, which has to have one (e.g. a flex item of a column of a known height): generic-sbom's
+  // neighbours table
+  &.trivy-fill {
+    height: 100%;
+    min-height: 0;
   }
 }
 

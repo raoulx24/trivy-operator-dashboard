@@ -51,6 +51,12 @@ export class HomeSinceLastVisitComponent extends HomeWidgetBase {
       `One lane per kind, one square per <strong>UTC day</strong>: new vulnerabilities (by first seen), new fixes (by the day the fix appeared), drift, new images, newly exploited.`,
       `The <strong>teal corner</strong> is a day you opened the home page, the <strong>orange corner</strong> a day with a known exploited (KEV / EUVD) vulnerability.`,
     ],
+    quirks: [
+      `The lanes <strong>do not add up</strong>. A new image that brings vulnerabilities other images already have is in <strong>new images</strong>, not in new vulnerabilities.`,
+      `A vulnerability added to a running image is in <strong>drift</strong>, even when another image already had it; it is not in new vulnerabilities.`,
+      `One new vulnerability on three images is three images in drift or new images, but <strong>one</strong> in new vulnerabilities.`,
+      `Cluster reports have no image digest: never in drift or new images, but they can be in <strong>new vulnerabilities</strong>.`,
+    ],
     tips: [
       `<strong>Click a square</strong> to open the widget of that lane on that day.`,
     ],

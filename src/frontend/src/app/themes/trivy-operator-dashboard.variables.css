@@ -232,10 +232,16 @@
   --tod-help-tip-bg: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
   --tod-help-tip-border: color-mix(in srgb, var(--p-primary-color) 30%, transparent);
   --tod-help-bullet: var(--p-text-muted-color);
+
+  /* a button next to a select, as tall as it (e.g. generic-sbom's images filter): no border in light mode */
+  --tod-select-side-button-border-color: transparent;
 }
 
 /* dark mode vars */
 :root.trivy-operator-dashboard-dark {
+  /* a button next to a select: the select's thin border, so it reads as one of the fields */
+  --tod-select-side-button-border-color: var(--p-select-border-color);
+
   /* widget help dialog: the tip card a surface step up from the dialog */
   --tod-help-tip-bg: var(--p-surface-800);
   --tod-help-tip-border: var(--p-surface-700);
