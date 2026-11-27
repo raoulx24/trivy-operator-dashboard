@@ -48,7 +48,7 @@ export class HomeExposedSecretsComponent extends HomeWidgetBase {
 
   protected readonly help: HomeWidgetHelp = {
     question: `Which <strong>running images contain secrets</strong> (keys, tokens, passwords found in their files)? These need action whatever their severity.`,
-    oddities: [
+    goodToKnow: [
       `The secret values are <strong>never shown</strong>, only the type of each one, colored by its severity.`,
       `Worst severity first, then the images with more secrets.`,
       `Only the <strong>namespaces filter</strong> applies, not the severities.`,

@@ -41,9 +41,9 @@
           [class.selected]="node.selected"
           [class.faded]="!node.active"
           (click)="onNodeClick(node)"
-          (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, node, tipOptions())"
-          (mousemove)="popover.move($event)"
-          (mouseleave)="popover.hide()"
+          (mouseenter)="tipShow.emit({ context: node, event: $event })"
+          (mousemove)="tipMove.emit($event)"
+          (mouseleave)="tipHide.emit()"
         >
           <rect
             class="node"
@@ -139,25 +139,3 @@
 </app-scroller>
 </div>
 
-<ng-template #defaultTip let-node>
-  <div class="tod-text-contrast-color">
-    @if (node.more) {
-      <div class="font-bold">{{ node.columnLabel }} · {{ node.label }}</div>
-      @for (label of node.hiddenLabels.slice(0, hiddenLabelsInTip); track $index) {
-        <div>{{ label }}</div>
-      }
-      @if (node.hiddenLabels.length > hiddenLabelsInTip) {
-        <div>…</div>
-      }
-    } @else {
-      <div class="font-bold">{{ node.label }}</div>
-      <div>{{ node.columnLabel }}</div>
-      @if (node.tag) {
-        <div>{{ node.tag }}</div>
-      }
-      @if (node.valueText) {
-        <div>{{ node.valueText }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
-      }
-    }
-  </div>
-</ng-template>

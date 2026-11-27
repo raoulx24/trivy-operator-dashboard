@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet, PercentPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -27,6 +27,7 @@ import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 import { StackedBarChartComponent } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.component';
 import { StackedBarClick, StackedBarColumn, StackedBarSeries } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.types';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
@@ -100,6 +101,8 @@ import { IconComponent } from '@shared/ui/icon/icon.component';
     PillButtonComponent,
     MeterGroupComponent,
     StackedBarChartComponent,
+    ChartTipDirective,
+    PercentPipe,
     TrivyTableDialogComponent,
     HomeExploitTagComponent,
     HomeSelectedNodesComponent,
@@ -124,7 +127,7 @@ export class HomeNewVulnerabilitiesComponent extends HomeWidgetBase {
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Which active vulnerabilities <strong>showed up</strong> in my cluster recently? So nothing new goes unnoticed.`,
-    oddities: [
+    goodToKnow: [
       `A row is a vulnerability id with one package. The window is since the previous visit, or the history window.`,
       `A row that existed before the history started recording is never new: its age is unknown.`,
       `Needs the vulnerability reports history.`,

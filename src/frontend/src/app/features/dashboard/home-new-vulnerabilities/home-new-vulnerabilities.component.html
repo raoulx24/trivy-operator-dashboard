@@ -29,10 +29,10 @@
           [series]="strip().series"
           [highlightFrom]="strip().highlightFrom"
           [clickable]="true"
-          valueLabel="ids"
+          [todChartTip]="columnTip"
           (columnClicked)="onBarClicked($event)"
         />
-        <app-meter-group [animate]="true" [segments]="mix()" [max]="t.vulnerabilityIds" valueLabel="ids" />
+        <app-meter-group [animate]="true" [segments]="mix()" [max]="t.vulnerabilityIds" [todChartTip]="idsMeterTip" />
         <span class="text-xs tod-text-muted-color">Bars: new ids per day, stacked by severity. Below: severity mix of the {{ t.vulnerabilityIds }}, the ones of the highlighted days (the window).</span>
       </div>
     }
@@ -107,6 +107,8 @@
                   <!-- absolute, so the graph does not make the box taller: it has the height of the box and scrolls inside -->
                   <div class="absolute inset-0 flex flex-col justify-center">
                   <app-layered-graph
+                    [todChartTip]="nodeTip"
+                    [todChartTipOptions]="{ delay: 400 }"
                     class="block"
                     [columns]="graphColumns()"
                     [nodes]="graphData().nodes"
@@ -244,6 +246,57 @@
     }
     @if (partialLabel()) {
       <span class="text-xs tod-text-muted-color px-1">{{ partialLabel() }}</span>
+    }
+  </div>
+</ng-template>
+
+<!-- the popover of a column of the chart: the day, the total and the layers with their share -->
+<ng-template #columnTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ ctx.label }}</div>
+    <div class="mb-1">{{ ctx.total }} {{ ctx.total === 1 ? "id" : "ids" }}</div>
+    @for (layer of ctx.layers; track layer.series.name) {
+      <div class="tod-tip-row">
+        <span class="tod-tip-swatch" [style.background]="layer.series.color"></span>
+        <span class="tod-text-inverted-muted-color">{{ layer.series.name }}</span>
+        <span class="tod-tip-value">{{ layer.value }}<span class="tod-text-inverted-muted-color"> · {{ (layer.value / ctx.total) | percent: "1.0-0" }}</span></span>
+      </div>
+    }
+  </div>
+</ng-template>
+
+<!-- the popover of a segment of a meter: what it is, how many ids, and its share -->
+<ng-template #idsMeterTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-row tod-tip-title"><span class="tod-tip-swatch" [style.background]="ctx.color"></span>{{ ctx.label }}</div>
+    <div>{{ ctx.value }}{{ ctx.max !== undefined ? " of " + ctx.max : "" }} ids</div>
+    <div class="tod-text-inverted-muted-color">{{ ctx.sharePercent.toFixed(ctx.sharePercent < 10 ? 1 : 0) }}% of the total</div>
+  </div>
+</ng-template>
+
+<!-- the popover of a node of the graph: what it is, its column, its tag and its value; a "+n more" node lists what it hides -->
+<ng-template #nodeTip let-node>
+  <div class="tod-text-contrast-color">
+    @if (node.more) {
+      <div class="tod-tip-title">{{ node.columnLabel }} · {{ node.label }}</div>
+      @for (label of node.hiddenLabels.slice(0, 12); track $index) {
+        <div>{{ label }}</div>
+      }
+      @if (node.hiddenLabels.length > 12) {
+        <div class="tod-text-inverted-muted-color">and {{ node.hiddenLabels.length - 12 }} more</div>
+      }
+    } @else {
+      <div class="tod-tip-title">{{ node.label }}</div>
+      <div class="tod-text-inverted-muted-color">{{ node.columnLabel }}</div>
+      @if (node.tag) {
+        <div>{{ node.tag }}</div>
+      }
+      @if (node.valueText) {
+        <div>{{ node.valueText }}</div>
+      }
+      @if (node.selectable) {
+        <div class="tod-text-inverted-muted-color">Click to follow its paths</div>
+      }
     }
   </div>
 </ng-template>

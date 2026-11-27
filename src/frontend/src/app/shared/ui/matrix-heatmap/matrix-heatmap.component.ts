@@ -3,7 +3,6 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  TemplateRef,
   afterNextRender,
   computed,
   inject,
@@ -14,6 +13,7 @@ import {
 } from '@angular/core';
 
 import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 
 import {
   MatrixHeatmapCell,
@@ -54,6 +54,7 @@ const MAX_FADE = 300;
   templateUrl: './matrix-heatmap.component.html',
   styleUrl: './matrix-heatmap.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: MatrixHeatmapComponent }],
 })
 export class MatrixHeatmapComponent {
   // the labels of the columns (top)
@@ -86,10 +87,13 @@ export class MatrixHeatmapComponent {
   // the selected cell, two-way: a click on a cell with a value selects it, a click on the selected one unselects it
   // (the owner can also set it); null = none
   selectedCell = model<MatrixHeatmapCellRef | null>(null);
-  // replaces the default popover; its context is a MatrixHeatmapTipContext
-  tooltipTemplate = input<TemplateRef<{ $implicit: MatrixHeatmapTipContext }> | undefined>(undefined);
 
   cellSelected = output<MatrixHeatmapClick>();
+
+  // the popover of an item is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<MatrixHeatmapTipContext>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
 
   protected readonly popover = inject(PopoverService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

@@ -24,6 +24,7 @@
 
         <!-- the distinct checks by family and severity; a click on a cell expands the widget filtered by it -->
         <app-matrix-heatmap
+          [todChartTip]="cellTip"
           valueLabel="checks"
           [cellHeight]="30"
           [columns]="gridColumns()"
@@ -229,5 +230,16 @@
     <app-icon [name]="'verified_user'" [class]="'tod-home-empty-shield'" />
     <span class="text-sm font-medium">No failing checks</span>
     <span class="text-xs tod-text-muted-color">No check fails now in the selected severities and namespaces.</span>
+  </div>
+</ng-template>
+
+<!-- the popover of a cell of the heatmap -->
+<ng-template #cellTip let-cell>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ cell.rowLabel }} · {{ cell.columnLabel }}</div>
+    <div>{{ cell.value }} {{ cell.value === 1 ? "check" : "checks" }}</div>
+    @if (cell.selectable) {
+      <div class="tod-text-inverted-muted-color">Click to select the cell</div>
+    }
   </div>
 </ng-template>

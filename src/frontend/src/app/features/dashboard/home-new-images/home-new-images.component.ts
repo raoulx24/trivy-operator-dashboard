@@ -30,6 +30,8 @@ import { HomePivotWidgetBase } from '../home-pivot/home-pivot-widget.base';
 import { DayGroup, NamespacesFooter, PivotEntry, groupByDay, pairKey } from '../home-pivot/home-pivot.types';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeDaysResult, HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import { WeekdayNamePipe } from '@shared/pipes/weekday-name.pipe';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 
 // one new image (digest): the pairs it has now; the image arrived on one day, so its rows are not grouped by day
 interface ImageBox extends NamespacesFooter {
@@ -132,6 +134,8 @@ interface NewImagesTableRow {
   selector: 'app-home-new-images',
   standalone: true,
   imports: [
+    WeekdayNamePipe,
+    ChartTipDirective,
     HomeWidgetFrameComponent,
     ActivityHeatmapComponent,
     TrivyBoxComponent,
@@ -157,7 +161,7 @@ export class HomeNewImagesComponent extends HomePivotWidgetBase<ImageBox, PairBo
   // the help dialog of the frame (html, short: what is easy to get wrong is in bold)
   protected readonly help: HomeWidgetHelp = {
     question: `Which <strong>images started running</strong> in the range, and what do they carry? So a new deployment does not bring in a surprise.`,
-    oddities: [
+    goodToKnow: [
       `The vulnerabilities shown are the ones of <strong>today</strong>, not the ones the image arrived with.`,
       `A pair is (vulnerability id, severity). An image with no pair at the selected severities is <strong>not counted</strong>.`,
       `The first day of the history looks inflated: the images already running then count as first seen then.`,

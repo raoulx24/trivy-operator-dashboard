@@ -15,6 +15,7 @@ import { HomeNodeFiltersComponent, NodeFiltersDetail } from '../home-pivot/home-
 import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.component';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWhereIsBase } from './home-where-is.base';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 
 // the layout of the "where is" widgets that search something and show where each result runs (package, license); the
 // logic is in HomeWhereIsBase (the widget), what a row, the head of the selected one and the rest of its detail look like
@@ -30,6 +31,7 @@ import { HomeWhereIsBase } from './home-where-is.base';
   selector: 'app-home-where-is-shell',
   standalone: true,
   imports: [
+    ChartTipDirective,
     HomeWidgetFrameComponent,
     HomeSearchBoxComponent,
     ButtonModule,

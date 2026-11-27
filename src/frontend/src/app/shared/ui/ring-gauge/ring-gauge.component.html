@@ -3,7 +3,7 @@
   [class.selected]="isSelected()"
   role="button"
   tabindex="0"
-  [attr.aria-pressed]="isSelected()"
+  [attr.aria-pressed]="selectable() ? isSelected() : null"
   [attr.aria-label]="data().label + ', ' + centerText()"
   (click)="toggle()"
   (keydown.enter)="toggle()"

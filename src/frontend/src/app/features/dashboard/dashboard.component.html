@@ -106,7 +106,7 @@
       [namespaces]="namespaces()"
       [refresh]="refreshCounter()"
     />
-    <app-home-failing-checks
+    <app-home-package-hotspots
       [hint]="stateHint()"
       [severities]="severityIds()"
       [namespaces]="namespaces()"
@@ -122,7 +122,7 @@
 
   <div appHomeWidgetGroup class="grid grid-cols-1 lg:grid-cols-3 gap-2">
     <app-home-compliance hint="cluster, not filtered" [refresh]="refreshCounter()" />
-    <app-home-package-hotspots
+    <app-home-failing-checks
       [hint]="stateHint()"
       [severities]="severityIds()"
       [namespaces]="namespaces()"

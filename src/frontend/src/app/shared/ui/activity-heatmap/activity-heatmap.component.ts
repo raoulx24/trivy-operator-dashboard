@@ -8,9 +8,9 @@ import {
   output,
 } from '@angular/core';
 
-import { WeekdayNamePipe } from '../../pipes/weekday-name.pipe';
 import { cornerMarkerPath } from '../corner-marker/corner-marker-path';
 import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 import { ScrollerComponent } from '../scroller/scroller.component';
 
 import {
@@ -49,10 +49,11 @@ const SUNDAY_REGIONS = new Set(['US', 'CA', 'MX', 'BR', 'JP', 'IL', 'IN', 'PH', 
 @Component({
   selector: 'app-activity-heatmap',
   standalone: true,
-  imports: [ScrollerComponent, WeekdayNamePipe],
+  imports: [ScrollerComponent],
   templateUrl: './activity-heatmap.component.html',
   styleUrl: './activity-heatmap.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: ActivityHeatmapComponent }],
 })
 export class ActivityHeatmapComponent {
   data = input<ActivityHeatmapDayDto[]>([]);
@@ -90,6 +91,11 @@ export class ActivityHeatmapComponent {
   selectedDay = input<string | null>(null);
 
   daySelected = output<string>();
+
+  // the popover of an item is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<ActivityHeatmapCell>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
 
   protected readonly popover = inject(PopoverService);
 

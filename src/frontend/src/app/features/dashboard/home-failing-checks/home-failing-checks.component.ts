@@ -35,6 +35,7 @@ import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
 import { IconComponent } from '@shared/ui/icon/icon.component';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 
 type SortBy = 'severity' | 'share';
 
@@ -106,6 +107,7 @@ interface NamespaceGroup {
   selector: 'app-home-failing-checks',
   standalone: true,
   imports: [
+    ChartTipDirective,
     IconComponent,
     HomeWidgetFrameComponent,
     HomeSearchBoxComponent,
@@ -130,7 +132,7 @@ export class HomeFailingChecksComponent extends HomeWidgetBase {
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Which <strong>security checks</strong> (config audit, RBAC, infra) fail in the widest share of my cluster? So you fix the ones that hit the most resources.`,
-    oddities: [
+    goodToKnow: [
       `<strong>Failing / evaluated</strong> is an estimate: Trivy keeps only the failures, so a kind in which every resource passes is not counted.`,
       `All workload kinds (Pod, Deployment, StatefulSet...) count as one kind, as do Role and ClusterRole.`,
       `A faint bar with a dashed outline has fewer than ${FEW_EVALUATED} evaluated resources: its share is shaky.`,

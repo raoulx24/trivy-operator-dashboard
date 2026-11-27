@@ -84,7 +84,7 @@ export class HomeWhereIsCheckComponent extends HomeWidgetBase {
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Where does a <strong>security check</strong> (config audit, RBAC, infra) fail in my cluster? Type an id or a part of the title.`,
-    oddities: [
+    goodToKnow: [
       `At least 3 characters, then <strong>Enter</strong>. <em>KSV014</em>, <em>KSV-0014</em> and <em>AVD-KSV-0014</em> are the same check; case does not matter.`,
       `Only the <strong>namespaces filter</strong> applies (cluster scoped resources are then out). A change of it does not search again; the refresh button does.`,
       `The resource is the owner of the report (e.g. the Deployment). Trivy reports per resource, not per container.`,

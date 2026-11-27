@@ -10,9 +10,9 @@
         [class.has-value]="bar.total > 0"
         [class.clickable]="clickable() && bar.total > 0"
         (click)="onBarClick(bar)"
-        (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(bar))"
-        (mousemove)="popover.move($event)"
-        (mouseleave)="popover.hide()"
+        (mouseenter)="tipShow.emit({ context: tipContext(bar), event: $event })"
+        (mousemove)="tipMove.emit($event)"
+        (mouseleave)="tipHide.emit()"
       >
         <!-- the slot: the hit area of the column, and the track when it is highlighted -->
         <rect
@@ -52,16 +52,3 @@
   </svg>
 }
 
-<ng-template #defaultTip let-ctx>
-  <div class="tod-text-contrast-color">
-    <div class="font-bold">{{ ctx.label }}</div>
-    <div>{{ ctx.total }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
-    @for (layer of ctx.layers; track layer.series.name) {
-      <div class="flex items-center gap-2">
-        <span class="tip-swatch" [style.background]="layer.series.color"></span>
-        <span class="tod-text-inverted-muted-color">{{ layer.series.name }}</span>
-        <span class="ml-auto pl-3">{{ layer.value }}</span>
-      </div>
-    }
-  </div>
-</ng-template>

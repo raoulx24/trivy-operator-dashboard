@@ -1223,6 +1223,22 @@ mat-icon.text-xs {
   font-size: 2.5rem;
 }
 
+/* the big icons of the home widgets (the empty-state shield and info icon, the verdict of data health): 1.2 on hover, as the rings */
+.tod-home-empty-icon,
+.tod-home-empty-shield,
+.tod-data-health-icon {
+  display: inline-block;
+  transition: transform 180ms ease-in-out;
+
+  &:hover {
+    transform: scale(1.2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
 .tod-content-border-left {
   border: 1px solid var(--p-content-border-color);
   border-top-left-radius: var(--tod-app-border-radius-md);
@@ -1365,6 +1381,31 @@ mat-icon.text-xs {
 
 .tod-tooltip-shadow {
   box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.8) !important;
+}
+
+// the content of the popovers of the charts (they are declared by the widgets, so no component styles reach them)
+.tod-tip-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.tod-tip-title {
+  font-weight: 700;
+}
+
+.tod-tip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tod-tip-row > .tod-tip-value {
+  margin-left: auto;
+  padding-left: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .tod-box-shadow {

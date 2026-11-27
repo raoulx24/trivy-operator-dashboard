@@ -112,21 +112,21 @@
           <h3 class="tod-help-eyebrow">Answers</h3>
           <p class="tod-help-question m-0" [innerHTML]="h.question"></p>
         </section>
-        @if (h.oddities.length) {
+        @if (h.goodToKnow.length) {
           <section class="flex flex-col gap-1.5">
             <h3 class="tod-help-section-title"><i class="pi pi-info-circle"></i>Good to know</h3>
             <ul class="tod-help-list">
-              @for (item of h.oddities; track item) {
+              @for (item of h.goodToKnow; track item) {
                 <li [innerHTML]="item"></li>
               }
             </ul>
           </section>
         }
-        @if (h.quirks?.length) {
+        @if (h.trickyBits?.length) {
           <section class="flex flex-col gap-1.5">
-            <h3 class="tod-help-section-title"><i class="pi pi-sparkles"></i>Oddities</h3>
+            <h3 class="tod-help-section-title"><i class="pi pi-sparkles"></i>Tricky bits</h3>
             <ul class="tod-help-list">
-              @for (item of h.quirks; track item) {
+              @for (item of h.trickyBits; track item) {
                 <li [innerHTML]="item"></li>
               }
             </ul>

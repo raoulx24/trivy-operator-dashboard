@@ -19,9 +19,9 @@
               [class.has-value]="cell.level > 0"
               [style.--lit-delay]="cell.litDelay !== null ? cell.litDelay + 'ms' : null"
               (click)="onCellClick(cell)"
-              (mouseenter)="popover.show(tip, $event, cell)"
-              (mousemove)="popover.move($event)"
-              (mouseleave)="popover.hide()"
+              (mouseenter)="tipShow.emit({ context: cell, event: $event })"
+              (mousemove)="tipMove.emit($event)"
+              (mouseleave)="tipHide.emit()"
             >
               <rect
                 class="cell level-{{ cell.level }}"
@@ -114,15 +114,3 @@
   </div>
 }
 
-<ng-template #tip let-cell>
-  <div class="tod-text-contrast-color">
-    <div class="font-bold">{{ cell.day }} · {{ cell.day | weekdayName }}</div>
-    <div>{{ cell.value }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
-    @if (cell.emphasis1 && emphasis1Label()) {
-      <div class="tod-text-inverted-muted-color">{{ emphasis1Label() }}</div>
-    }
-    @if (cell.emphasis2 && emphasis2Label()) {
-      <div class="tod-text-inverted-muted-color">{{ emphasis2Label() }}</div>
-    }
-  </div>
-</ng-template>

@@ -3,12 +3,12 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  TemplateRef,
   afterRenderEffect,
   computed,
   effect,
   inject,
   input,
+  output,
   model,
   signal,
   untracked,
@@ -16,6 +16,7 @@ import {
 } from '@angular/core';
 
 import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 import { ScrollerComponent } from '../scroller/scroller.component';
 
 import {
@@ -74,6 +75,7 @@ const LOG_TICKS = [1, 3, 7, 14, 30, 60, 90, 180, 365, 730, 1095, 1825, 3650];
   templateUrl: './span-timeline.component.html',
   styleUrl: './span-timeline.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: SpanTimelineComponent }],
 })
 export class SpanTimelineComponent {
   rows = input<SpanTimelineRow[]>([]);
@@ -101,8 +103,6 @@ export class SpanTimelineComponent {
   labelWidth = input<number>(160);
   // the room of the text on the right (used only when a row has a valueLabel)
   valueWidth = input<number>(48);
-  // replaces the default popover of a row
-  tooltipTemplate = input<TemplateRef<SpanTimelineTipContext> | undefined>(undefined);
 
   // px, the axis included: taller rows scroll; null = all the rows are shown
   maxHeight = input<number | null>(null);
@@ -126,6 +126,11 @@ export class SpanTimelineComponent {
   );
   protected readonly axisHeight = TOP_HEIGHT;
   protected readonly viewWidth = signal(DEFAULT_WIDTH);
+  // the popover of an item is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<SpanTimelineTipContext>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
+
   protected readonly popover = inject(PopoverService);
 
   // how long one bar takes to grow (the last one starts at animationDuration minus this, so everything is done within

@@ -1,17 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
-  TemplateRef,
   computed,
-  inject,
   input,
   model,
   output,
 } from '@angular/core';
 
 import { cornerMarkerPath } from '../corner-marker/corner-marker-path';
-import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 import { ScrollerComponent } from '../scroller/scroller.component';
 
 import { LaneStripCell, LaneStripCellClick, LaneStripLane, LaneStripRow, LaneStripSelection, LaneStripTipContext } from './lane-strip.types';
@@ -39,6 +36,7 @@ const MAX_FADE = 300;
   templateUrl: './lane-strip.component.html',
   styleUrl: './lane-strip.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: LaneStripComponent }],
 })
 export class LaneStripComponent {
   // the label of each column (the tooltip title), e.g. the day
@@ -57,22 +55,14 @@ export class LaneStripComponent {
 
   // the cells with a value can be clicked (cellClicked)
   clickable = input<boolean>(true);
-  // the texts of the two markers in the popover (shown on the cells that have them)
-  emphasis1Label = input<string>('');
-  emphasis2Label = input<string>('');
-  // the text of the tooltip after the value, e.g. "vulns"
-  valueLabel = input<string>('');
-  // replaces the default popover (the column, "value label", the lane caption); its context is a LaneStripTipContext
-  tooltipTemplate = input<TemplateRef<LaneStripTipContext> | undefined>(undefined);
 
   cellClicked = output<LaneStripCellClick>();
 
-  protected readonly popover = inject(PopoverService);
+  // the popover of an item is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<LaneStripTipContext>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
 
-  constructor() {
-    // never leave the popover behind when the control goes away while hovered
-    inject(DestroyRef).onDestroy(() => this.popover.hide());
-  }
 
   protected readonly step = computed(() => this.cellSize() + this.cellGap());
 

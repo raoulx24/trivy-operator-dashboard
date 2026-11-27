@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet, PercentPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -24,6 +24,7 @@ import { MainAppInitService } from '@core/services/main-app-init.service';
 import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.service';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 import { StackedBarChartComponent } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.component';
 import { StackedBarClick, StackedBarColumn, StackedBarSeries } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.types';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
@@ -93,6 +94,8 @@ import {
     LayeredGraphComponent,
     PillButtonComponent,
     StackedBarChartComponent,
+    ChartTipDirective,
+    PercentPipe,
     TrivyTableDialogComponent,
     HomeExploitTagComponent,
     HomeSelectedNodesComponent,
@@ -117,7 +120,7 @@ export class HomeNewFixesComponent extends HomeWidgetBase {
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Which active vulnerabilities <strong>just got a fix</strong>? So you know what is worth updating now.`,
-    oddities: [
+    goodToKnow: [
       `Only a fix that appeared <strong>after</strong> the row was first seen counts: a row that came with its fix is not here.`,
       `A row is a vulnerability id with one package. The window is since the previous visit, or the history window.`,
       `Needs the vulnerability reports history.`,

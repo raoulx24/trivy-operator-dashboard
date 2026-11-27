@@ -82,7 +82,7 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
 
   protected readonly help: HomeWidgetHelp = {
     question: `<strong>Can the other widgets be trusted?</strong> What this page shows is only as good as its data: are the watchers up and the sources on?`,
-    oddities: [
+    goodToKnow: [
       `The ring is the share of the watchers that are green. <strong>To look at</strong> counts the watchers that are not green, the sources with errors and the jobs whose last run failed.`,
       `<strong>Sources</strong> (KEV, EPSS, EUVD, EOL): green when enabled without errors, amber with errors, grey when not enabled.`,
       `History and fix tracking exist only since the day they started: what is older cannot be told (e.g. when a fix appeared).`,
@@ -330,6 +330,13 @@ export class HomeDataHealthComponent extends HomeWidgetBase {
       summary: this.attention() === 0 ? 'all good' : `${this.attention()} to look at`,
     };
   });
+
+  // a click on a ring or a source (collapsed) opens the details; nothing when it cannot expand
+  protected expandOnClick(): void {
+    if (this.canExpand()) {
+      this.expand();
+    }
+  }
 
   // the about page has the release notes; in a new tab, so the home page stays as it is
   protected openAbout(): void {

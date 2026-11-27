@@ -8,12 +8,11 @@
 >
   <app-trivy-box>
     <app-lane-strip
+      [todChartTip]="cellTip"
       [columns]="columns()"
       [lanes]="lanes()"
       [animate]="true"
       [animationDuration]="600"
-      emphasis1Label="visit"
-      emphasis2Label="known exploited"
       [(selected)]="selected"
       (cellClicked)="onCell($event)"
     />
@@ -24,3 +23,18 @@
     a known exploited vulnerability. Click a square to open that lane's widget on that day.
   </p>
 </app-home-widget-frame>
+
+<!-- the popover of a square of the strip: the day, how many, the lane, and the markers of the day -->
+<ng-template #cellTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ ctx.column }}</div>
+    <div>{{ ctx.value }}</div>
+    <div class="tod-text-inverted-muted-color">{{ ctx.caption }}</div>
+    @if (ctx.emphasis1) {
+      <div class="tod-text-inverted-muted-color">You opened the home page</div>
+    }
+    @if (ctx.emphasis2) {
+      <div class="tod-text-inverted-muted-color">A known exploited vulnerability</div>
+    }
+  </div>
+</ng-template>

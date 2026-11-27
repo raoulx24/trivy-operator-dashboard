@@ -48,7 +48,7 @@ export class HomeWhereIsLicenseComponent extends HomeWhereIsBase<
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Where does a <strong>license</strong> run in my cluster? So you can find the images that bring in a license you cannot accept.`,
-    oddities: [
+    goodToKnow: [
       `An SPDX id (<em>MIT</em>, <em>GPL-3.0</em>) or a part of a name, at least 2 characters, then <strong>Enter</strong>. One row per license.`,
       `Needs the <strong>SBOM reports</strong>: the licenses come from them.`,
       `Only the <strong>namespaces filter</strong> applies. A change of it does not search again; the refresh button does.`,

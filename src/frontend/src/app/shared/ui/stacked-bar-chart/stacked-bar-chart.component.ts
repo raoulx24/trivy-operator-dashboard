@@ -3,7 +3,6 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  TemplateRef,
   afterNextRender,
   computed,
   inject,
@@ -12,7 +11,7 @@ import {
   signal,
 } from '@angular/core';
 
-import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 
 import {
   StackedBarBar,
@@ -34,7 +33,7 @@ const MAX_GROW = 500;
 // - everything comes from the inputs: columns (label + one value per series), series (name + color)
 // - the bars share one scale: the largest total is the full height; a column without a value is a dash on the baseline
 // - highlightFrom (optional) puts a track behind the columns from that index to the end
-// - the popover shows the label, the total and the layers of the column (heatmap-style: it follows the mouse)
+// - hovering a column emits tipShow / tipMove / tipHide (a StackedBarTipContext: the label, the total and the layers)
 // - animate: when new data arrives the bars grow up from the baseline, one after the other in a random order of columns, all
 //   within animationDuration (ms) in total; the same data does not play again (a resize does not); the dashes of the
 //   columns without a value and the highlight are always there
@@ -45,6 +44,7 @@ const MAX_GROW = 500;
   templateUrl: './stacked-bar-chart.component.html',
   styleUrl: './stacked-bar-chart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: StackedBarChartComponent }],
 })
 export class StackedBarChartComponent {
   columns = input<StackedBarColumn[]>([]);
@@ -65,14 +65,14 @@ export class StackedBarChartComponent {
 
   // the columns with a value can be clicked (columnClicked)
   clickable = input<boolean>(false);
-  // the text of the popover after the total, e.g. "ids"
-  valueLabel = input<string>('');
-  // replaces the default popover; its context is a StackedBarTipContext
-  tooltipTemplate = input<TemplateRef<{ $implicit: StackedBarTipContext }> | undefined>(undefined);
 
   columnClicked = output<StackedBarClick>();
 
-  protected readonly popover = inject(PopoverService);
+  // the popover of a column is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<StackedBarTipContext>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
+
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly width = signal(0);
@@ -81,9 +81,6 @@ export class StackedBarChartComponent {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
-    // never leave the popover behind when the chart goes away while hovered
-    destroyRef.onDestroy(() => this.popover.hide());
-
     // the svg is drawn in px: it follows the width of the host
     afterNextRender(() => {
       const element = this.host.nativeElement;

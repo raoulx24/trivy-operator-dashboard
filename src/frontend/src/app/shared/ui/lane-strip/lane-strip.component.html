@@ -18,9 +18,9 @@
             [class.clickable]="clickable() && cell.value > 0"
             [class.selected]="cell.selected"
             (click)="onCellClick(row, laneIndex, cell)"
-            (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(row, laneIndex, cell))"
-            (mousemove)="popover.move($event)"
-            (mouseleave)="popover.hide()"
+            (mouseenter)="tipShow.emit({ context: tipContext(row, laneIndex, cell), event: $event })"
+            (mousemove)="tipMove.emit($event)"
+            (mouseleave)="tipHide.emit()"
           >
             <rect
               class="lane-cell"
@@ -70,16 +70,3 @@
   </div>
 </div>
 
-<ng-template #defaultTip let-ctx>
-  <div class="tod-text-contrast-color">
-    <div class="font-bold">{{ ctx.column }}</div>
-    <div>{{ ctx.value }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
-    <div class="tod-text-inverted-muted-color">{{ ctx.caption }}</div>
-    @if (ctx.emphasis1 && emphasis1Label()) {
-      <div class="tod-text-inverted-muted-color">{{ emphasis1Label() }}</div>
-    }
-    @if (ctx.emphasis2 && emphasis2Label()) {
-      <div class="tod-text-inverted-muted-color">{{ emphasis2Label() }}</div>
-    }
-  </div>
-</ng-template>

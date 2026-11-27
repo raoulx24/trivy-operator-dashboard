@@ -67,9 +67,11 @@
         <!-- drawn after (so on top of) the bar and its arrow: the only part of the row that reacts to the mouse, a little taller than the bar -->
         <rect
           class="row-hit"
-          (mouseenter)="popover.show(tip, $event, bar.tip)"
-          (mousemove)="popover.move($event)"
-          (mouseleave)="popover.hide()"
+          [class.clickable]="clickable()"
+          (click)="barClick.emit()"
+          (mouseenter)="tipShow.emit({ context: bar.tip, event: $event })"
+          (mousemove)="tipMove.emit($event)"
+          (mouseleave)="tipHide.emit()"
           [attr.x]="barsLeft"
           [attr.y]="(rowHeight - barHeight) / 2 - 3"
           [attr.width]="bar.width + (bar.clipped ? 18 : 0)"
@@ -113,17 +115,3 @@
   </div>
 </ng-template>
 
-<ng-template #tip let-tip>
-  <div class="tod-text-contrast-color">
-    <div class="font-bold">{{ tip.label }}</div>
-    <div>End of life: {{ tip.eol }}</div>
-    @if (tip.eoas) {
-      <div class="tod-text-inverted-muted-color">End of active support: {{ tip.eoas }}</div>
-    }
-    @if (tip.endsSoon) {
-      <div class="tod-text-inverted-muted-color">End of life is near</div>
-    }
-    @if (tip.securityFixesOnly) {
-      <div class="tod-text-inverted-muted-color">Security fixes only</div>
-    }  </div>
-</ng-template>

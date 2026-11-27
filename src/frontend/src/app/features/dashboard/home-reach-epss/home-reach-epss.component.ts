@@ -34,6 +34,7 @@ import { HomeSearchBoxComponent } from '../home-search-box/home-search-box.compo
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 
 // the ids listed when nothing is selected on the plot: the top by risk
 const TOP_COUNT = 30;
@@ -60,6 +61,7 @@ function jitter(id: string): number {
   selector: 'app-home-reach-epss',
   standalone: true,
   imports: [
+    ChartTipDirective,
     DecimalPipe,
     HomeExploitTagComponent,
     HomeSearchBoxComponent,
@@ -96,7 +98,7 @@ export class HomeReachEpssComponent extends HomeWidgetBase {
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Which vulnerabilities are both <strong>likely to be exploited</strong> and <strong>widespread</strong>? That is where to start.`,
-    oddities: [
+    goodToKnow: [
       `One point per vulnerability id: to the right, more images (log scale); up, a higher <strong>EPSS percentile</strong> (more likely to be exploited).`,
       `The color is the severity; a <strong>cross</strong> is a known exploited id (KEV / EUVD).`,
       `Only the ids with an EPSS score are on the plot.`,

@@ -120,6 +120,8 @@
                       <!-- absolute, so the graph does not make the box taller: it has the height of the box and scrolls inside -->
                       <div class="absolute inset-0 flex flex-col justify-center">
                         <app-layered-graph
+                          [todChartTip]="nodeTip"
+                          [todChartTipOptions]="{ delay: 400 }"
                           class="block"
                           [columns]="graphColumns()"
                           [nodes]="graphData().nodes"
@@ -296,4 +298,31 @@
   } @else {
     <div class="text-sm tod-text-muted-color">{{ w.searched() ? selectText() : searchText() }}</div>
   }
+</ng-template>
+
+<!-- the popover of a node of the graph: what it is, its column, its tag and its value; a "+n more" node lists what it hides -->
+<ng-template #nodeTip let-node>
+  <div class="tod-text-contrast-color">
+    @if (node.more) {
+      <div class="tod-tip-title">{{ node.columnLabel }} · {{ node.label }}</div>
+      @for (label of node.hiddenLabels.slice(0, 12); track $index) {
+        <div>{{ label }}</div>
+      }
+      @if (node.hiddenLabels.length > 12) {
+        <div class="tod-text-inverted-muted-color">and {{ node.hiddenLabels.length - 12 }} more</div>
+      }
+    } @else {
+      <div class="tod-tip-title">{{ node.label }}</div>
+      <div class="tod-text-inverted-muted-color">{{ node.columnLabel }}</div>
+      @if (node.tag) {
+        <div>{{ node.tag }}</div>
+      }
+      @if (node.valueText) {
+        <div>{{ node.valueText }}</div>
+      }
+      @if (node.selectable) {
+        <div class="tod-text-inverted-muted-color">Click to follow its paths</div>
+      }
+    }
+  </div>
 </ng-template>

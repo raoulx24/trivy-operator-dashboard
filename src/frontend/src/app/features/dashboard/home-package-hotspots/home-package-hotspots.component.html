@@ -36,7 +36,7 @@
               >{{ row.item.images }} {{ row.item.images === 1 ? 'image' : 'images' }}</span
             >
           </span>
-          <app-meter-group [animate]="true" valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
+          <app-meter-group [animate]="true" [todChartTip]="idsMeterTip" [max]="maxIds()" [segments]="row.segments" />
         </button>
       }
       <ng-container *ngTemplateOutlet="legend; context: { withImages: false }" />
@@ -79,7 +79,7 @@
                           (click)="select(row.item)"
                         >
                           <span class="truncate" [title]="row.item.packageKey">{{ row.item.packageName }}</span>
-                          <app-meter-group [animate]="animateMeters()" valueLabel="ids" [max]="maxIds()" [segments]="row.segments" />
+                          <app-meter-group [animate]="animateMeters()" [todChartTip]="idsMeterTip" [max]="maxIds()" [segments]="row.segments" />
                           <span class="text-right tabular-nums">{{ row.item.images }}</span>
                           <span class="text-right tabular-nums tod-text-muted-color">{{ row.item.namespaces }}</span>
                         </button>
@@ -115,7 +115,7 @@
                   @for (v of d.versions; track v.version) {
                     <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3.5rem] items-center gap-x-3">
                       <span class="truncate font-mono text-xs" [title]="v.version">{{ v.version }}</span>
-                      <app-meter-group [animate]="true" valueLabel="images" [max]="maxVersionImages()" [segments]="v.segments" />
+                      <app-meter-group [animate]="true" [todChartTip]="imagesMeterTip" [max]="maxVersionImages()" [segments]="v.segments" />
                       <span class="text-right tabular-nums text-xs">{{ v.images }} img</span>
                     </div>
                   } @empty {
@@ -235,5 +235,23 @@
     @if (withImages) {
       <span>right: images</span>
     }
+  </div>
+</ng-template>
+
+<!-- the popover of a segment of a meter: what it is, how many ids, and its share -->
+<ng-template #idsMeterTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-row tod-tip-title"><span class="tod-tip-swatch" [style.background]="ctx.color"></span>{{ ctx.label }}</div>
+    <div>{{ ctx.value }}{{ ctx.max !== undefined ? " of " + ctx.max : "" }} ids</div>
+    <div class="tod-text-inverted-muted-color">{{ ctx.sharePercent.toFixed(ctx.sharePercent < 10 ? 1 : 0) }}% of the total</div>
+  </div>
+</ng-template>
+
+<!-- the popover of a segment of a meter: what it is, how many images, and its share -->
+<ng-template #imagesMeterTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-row tod-tip-title"><span class="tod-tip-swatch" [style.background]="ctx.color"></span>{{ ctx.label }}</div>
+    <div>{{ ctx.value }}{{ ctx.max !== undefined ? " of " + ctx.max : "" }} images</div>
+    <div class="tod-text-inverted-muted-color">{{ ctx.sharePercent.toFixed(ctx.sharePercent < 10 ? 1 : 0) }}% of the total</div>
   </div>
 </ng-template>

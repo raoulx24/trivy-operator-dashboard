@@ -3,7 +3,6 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  TemplateRef,
   afterNextRender,
   computed,
   effect,
@@ -16,6 +15,7 @@ import {
 } from '@angular/core';
 
 import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 
 import {
   ScatterAxis,
@@ -75,6 +75,7 @@ interface Scale {
   templateUrl: './scatter-select.component.html',
   styleUrl: './scatter-select.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: ScatterSelectComponent }],
 })
 export class ScatterSelectComponent<T = unknown> {
   points = input<ScatterPoint<T>[]>([]);
@@ -95,8 +96,6 @@ export class ScatterSelectComponent<T = unknown> {
   animationDuration = input<number>(800);
 
   selectable = input<boolean>(true);
-  // replaces the default popover; its context is a ScatterTipContext
-  tooltipTemplate = input<TemplateRef<{ $implicit: ScatterTipContext<T> }> | undefined>(undefined);
 
   selectionChanged = output<ScatterSelection<T>>();
 
@@ -109,6 +108,11 @@ export class ScatterSelectComponent<T = unknown> {
   // on a point still wins over it. The selection is emitted again when the filter changes
   filter = input<ReadonlySet<string> | null>(null);
   private lastFilter: ReadonlySet<string> | null | undefined;
+
+  // the popover of an item is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<ScatterTipContext<T>>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
 
   protected readonly popover = inject(PopoverService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -388,7 +392,7 @@ export class ScatterSelectComponent<T = unknown> {
     const p = this.local(event);
     if (!this.inPlot(p)) return;
 
-    this.popover.hide();
+    this.tipHide.emit();
     this.additive = event.shiftKey || event.ctrlKey || event.metaKey;
     // the point under the pointer, if any: a click (no drag) will pick it
     const index = (event.target as Element).getAttribute?.('data-index');

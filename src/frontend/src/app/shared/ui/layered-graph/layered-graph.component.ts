@@ -4,7 +4,6 @@ import {
   DestroyRef,
   ElementRef,
   Injector,
-  TemplateRef,
   afterNextRender,
   computed,
   effect,
@@ -17,7 +16,7 @@ import {
   viewChild,
 } from '@angular/core';
 
-import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 import { ScrollerComponent } from '../scroller/scroller.component';
 
 import {
@@ -65,8 +64,6 @@ function darker(color: string): string {
 
 // the rounds of the crossing reduction (one round: left to right, then right to left)
 const SWEEPS = 4;
-// how many of the hidden labels the popover of a "+n more" node lists
-const HIDDEN_LABELS_IN_TIP = 12;
 
 interface Item {
   id: string;
@@ -121,6 +118,7 @@ interface PlacedEdge {
   templateUrl: './layered-graph.component.html',
   styleUrl: './layered-graph.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: LayeredGraphComponent }],
 })
 export class LayeredGraphComponent {
   columns = input<LayeredGraphColumn[]>([]);
@@ -150,8 +148,6 @@ export class LayeredGraphComponent {
   minNodeWidth = input<number>(100);
 
   showColumnLabels = input<boolean>(true);
-  // the unit of the value of a node, for the popover
-  valueLabel = input<string>('');
   // the text of the node that stands for the nodes over the cap: "+3 more"
   moreText = input<string>('more');
 
@@ -177,14 +173,14 @@ export class LayeredGraphComponent {
   // - a node in a column with no selection adds it when it is a peer of a selected node, and is ignored when not.
   multiSelect = input<boolean>(false);
   selectedNodes = model<string[]>([]);
-  // replaces the default popover; its context is a LayeredGraphTipContext
-  tooltipTemplate = input<TemplateRef<{ $implicit: LayeredGraphTipContext }> | undefined>(undefined);
-  // ms before the popover of a node shows, like a tooltip (none while another one is open)
-  tooltipDelay = input<number>(400);
 
   nodeSelected = output<LayeredGraphClick>();
 
-  protected readonly popover = inject(PopoverService);
+  // the popover of an item is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<LayeredGraphTipContext>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
+
   private readonly injector = inject(Injector);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   // the node that was just clicked (multi select): the one that is scrolled into view
@@ -200,12 +196,10 @@ export class LayeredGraphComponent {
   protected readonly nodePadding = NODE_PADDING;
   protected readonly labelBaseline = LABEL_BASELINE;
   protected readonly labelHeight = LABEL_HEIGHT;
-  protected readonly hiddenLabelsInTip = HIDDEN_LABELS_IN_TIP;
 
   // px: the height of the tag of a node (a little less than the node)
   protected readonly tagHeight = computed(() => Math.max(10, Math.min(16, this.nodeHeight() - 6)));
 
-  protected readonly tipOptions = computed(() => ({ delay: this.tooltipDelay() }));
 
   // px: the height of the box of a vertical scroller (it scrolls inside it): the drawing, or maxHeight when that is less;
   // null = the box follows the drawing (horizontal, or no maxHeight)
@@ -353,8 +347,6 @@ export class LayeredGraphComponent {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
-    // never leave the popover behind when the graph goes away while hovered
-    destroyRef.onDestroy(() => this.popover.hide());
 
     // the svg is drawn in px: it follows the width of the host, less the paddings of the scroller (read from it, they
     // are its own) and our own; the scroller is as wide as its content, so it cannot be the one that is measured

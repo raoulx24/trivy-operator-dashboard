@@ -11,6 +11,7 @@ import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeDaysResult, HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 
 // the lanes, in order; the widget the lane opens on its day is the one of the same key
 export type SinceLastVisitLane = 'vulnerabilities' | 'fixes' | 'exploited' | 'drift' | 'images';
@@ -39,7 +40,7 @@ const LANES: { key: SinceLastVisitLane; caption: string }[] = [
 @Component({
   selector: 'app-home-since-last-visit',
   standalone: true,
-  imports: [HomeWidgetFrameComponent, LaneStripComponent, TrivyBoxComponent],
+  imports: [HomeWidgetFrameComponent, LaneStripComponent, TrivyBoxComponent, ChartTipDirective],
   templateUrl: './home-since-last-visit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-w-0' },
@@ -47,11 +48,11 @@ const LANES: { key: SinceLastVisitLane; caption: string }[] = [
 export class HomeSinceLastVisitComponent extends HomeWidgetBase {
   protected readonly help: HomeWidgetHelp = {
     question: `What <strong>changed in my cluster</strong>, day by day? Spot the busy days and what came with them.`,
-    oddities: [
+    goodToKnow: [
       `One lane per kind, one square per <strong>UTC day</strong>: new vulnerabilities (by first seen), new fixes (by the day the fix appeared), drift, new images, newly exploited.`,
       `The <strong>teal corner</strong> is a day you opened the home page, the <strong>orange corner</strong> a day with a known exploited (KEV / EUVD) vulnerability.`,
     ],
-    quirks: [
+    trickyBits: [
       `The lanes <strong>do not add up</strong>. A new image that brings vulnerabilities other images already have is in <strong>new images</strong>, not in new vulnerabilities.`,
       `A vulnerability added to a running image is in <strong>drift</strong>, even when another image already had it; it is not in new vulnerabilities.`,
       `One new vulnerability on three images is three images in drift or new images, but <strong>one</strong> in new vulnerabilities.`,

@@ -37,7 +37,10 @@ export class RingGaugeComponent {
   // the id of the selected ring (the data id), undefined = none; two-way
   selected = model<string | undefined>(undefined);
 
-  protected readonly isSelected = computed(() => this.selected() === this.data().id);
+  // false: a click does not select the ring (it stays as it is); the click is for the owner (e.g. around the ring)
+  selectable = input<boolean>(true);
+
+  protected readonly isSelected = computed(() => this.selectable() && this.selected() === this.data().id);
 
   // viewBox 0 0 100 100
   protected readonly strokeWidth = computed(() => Math.min(Math.max(this.thickness(), 1), 40));
@@ -54,6 +57,9 @@ export class RingGaugeComponent {
   protected readonly centerText = computed(() => this.data().centerText ?? `${Math.round(this.percent())}%`);
 
   protected toggle(): void {
+    if (!this.selectable()) {
+      return;
+    }
     this.selected.set(this.isSelected() ? undefined : this.data().id);
   }
 }

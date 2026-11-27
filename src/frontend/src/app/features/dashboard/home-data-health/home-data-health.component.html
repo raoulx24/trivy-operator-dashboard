@@ -14,25 +14,35 @@
     <div class="flex flex-col gap-3 pt-1">
       <!-- the headline: the watchers ring and the verdict at the left, where the history and the fix tracking begin at the right (collapsed and expanded) -->
       <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <app-ring-gauge [data]="watcherGauge()" [size]="76" [animate]="true" />
-        <div [todPopover]="linesTip" [todPopoverContext]="servicesTip()">
-          <app-ring-gauge [data]="servicesGauge()" [size]="76" [animate]="true" />
+        <div [class.cursor-pointer]="canExpand() && !isExpanded()" (click)="expandOnClick()">
+          <app-ring-gauge [selectable]="false" [data]="watcherGauge()" [size]="76" [animate]="true" />
+        </div>
+        <div
+          [class.cursor-pointer]="canExpand() && !isExpanded()"
+          [todPopover]="linesTip"
+          [todPopoverContext]="servicesTip()"
+          (click)="expandOnClick()"
+        >
+          <app-ring-gauge [selectable]="false" [data]="servicesGauge()" [size]="76" [animate]="true" />
         </div>
         <!-- the verdict, in the middle: a big icon (the shield when all is good, else the warning) over the words; the counts
              are in the popover -->
-        <div
-          class="flex flex-col items-center gap-1 min-w-0 flex-1 text-center"
-          [todPopover]="linesTip"
-          [todPopoverContext]="verdictTip()"
-        >
-          <app-icon [name]="verdictIcon()" [class]="'tod-data-health-icon'" [style.color]="color(verdictLevel())" />
-          <span class="text-2xl font-semibold">
-            @if (attention() === 0) {
-              All good
-            } @else {
-              <span class="tod-headline-num">{{ attention() }}</span> to look at
-            }
-          </span>
+        <div class="flex justify-center min-w-0 flex-1">
+          <!-- the popover is on the icon and the words only (a block as wide as they are), not on the empty space around -->
+          <div
+            class="flex flex-col items-center gap-1 text-center"
+            [todPopover]="linesTip"
+            [todPopoverContext]="verdictTip()"
+          >
+            <app-icon [name]="verdictIcon()" [class]="'tod-data-health-icon'" [style.color]="color(verdictLevel())" />
+            <span class="text-2xl font-semibold">
+              @if (attention() === 0) {
+                All good
+              } @else {
+                <span class="tod-headline-num">{{ attention() }}</span> to look at
+              }
+            </span>
+          </div>
         </div>
         <!-- where the history and the fix tracking begin -->
         <div class="flex flex-col items-end ml-auto">
@@ -85,7 +95,13 @@
         <!-- the sources, only a dot each -->
         <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           @for (row of sources(); track row.source) {
-            <span class="flex items-center gap-1.5" [todPopover]="linesTip" [todPopoverContext]="row.tip">
+            <span
+              class="flex items-center gap-1.5"
+              [class.cursor-pointer]="canExpand()"
+              [todPopover]="linesTip"
+              [todPopoverContext]="row.tip"
+              (click)="expandOnClick()"
+            >
               <span class="size-2 rounded-full shrink-0" [style.background]="color(row.level)"></span>
               {{ row.source }}
             </span>

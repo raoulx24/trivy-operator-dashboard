@@ -22,15 +22,24 @@
         }
       </div>
 
-      @if (!selectedReport()) {
-        <div class="flex flex-col gap-2" [style.min-height.px]="panelHeight">
+      @if (!shown()) {
+        <!-- the panels fade out and in when the selection changes (the fade of the component, 250 ms) -->
+        <div
+          class="flex flex-col gap-2 transition-opacity duration-[250ms] ease-in-out"
+          [class.opacity-0]="fading()"
+          [style.min-height.px]="panelHeight"
+        >
           <p class="m-0 text-xs tod-text-muted-color">Centre: % of controls passing. Click a ring to see its worst failing controls.</p>
           <app-network-fill class="flex-1" seed="Compliance" />
         </div>
       } @else {
-        <div class="flex flex-col gap-2" [style.min-height.px]="panelHeight">
+        <div
+          class="flex flex-col gap-2 transition-opacity duration-[250ms] ease-in-out"
+          [class.opacity-0]="fading()"
+          [style.min-height.px]="panelHeight"
+        >
           <app-trivy-box>
-            <span boxTitle class="truncate">Worst failing controls · {{ selectedLabel() }}</span>
+            <span boxTitle class="truncate">Worst failing controls · {{ shown()!.label }}</span>
             <p-button
               boxTitleEnd
               class="tod-button-compact inline-flex shrink-0"
@@ -44,12 +53,10 @@
               (onClick)="openReports()"
             />
             <div class="flex flex-col gap-1 text-sm">
-              @if (!worstDto()) {
-                <span class="text-xs tod-text-muted-color">Loading...</span>
-              } @else if (controls().length === 0) {
+              @if (shown()!.controls.length === 0) {
                 <span class="text-xs tod-text-muted-color">No failing controls</span>
               } @else {
-                @for (control of controls(); track control.controlId) {
+                @for (control of shown()!.controls; track control.controlId) {
                   <div class="flex items-center gap-2 h-5">
                     <span class="w-8 shrink-0 text-xs tod-text-muted-color">{{ control.controlId }}</span>
                     <span
@@ -61,15 +68,15 @@
                     <span class="shrink-0 whitespace-nowrap">{{ control.totalFail }} failing</span>
                   </div>
                 }
-                @if (hiddenControls() > 0) {
-                  <span class="text-xs tod-text-muted-color">+{{ hiddenControls() }} more failing {{ hiddenControls() === 1 ? 'control' : 'controls' }}</span>
+                @if (shown()!.hidden > 0) {
+                  <span class="text-xs tod-text-muted-color">+{{ shown()!.hidden }} more failing {{ shown()!.hidden === 1 ? 'control' : 'controls' }}</span>
                 }
               }
             </div>
           </app-trivy-box>
 
           <!-- takes the room the (short) details leave; the panel's min-height keeps the widget from jumping -->
-          @if (worstDto() && controls().length > 0) {
+          @if (shown() && shown()!.controls.length > 0) {
             <app-network-fill class="flex-1" seed="Compliance controls" />
           }
         </div>

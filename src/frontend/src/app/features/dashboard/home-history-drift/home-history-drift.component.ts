@@ -40,6 +40,8 @@ import { HomePivotState } from '../home-pivot/home-pivot-state';
 import { HomePivotVulnerabilityFieldComponent } from '../home-pivot/home-pivot-vulnerability-field.component';
 import { HomePivotWidgetBase } from '../home-pivot/home-pivot-widget.base';
 import { DayGroup, NamespacesFooter, PivotEntry, groupByDay, pairKey } from '../home-pivot/home-pivot.types';
+import { WeekdayNamePipe } from '@shared/pipes/weekday-name.pipe';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 
 // one image (digest): the pairs that were added to it, by day
 interface ImageBox extends NamespacesFooter {
@@ -144,6 +146,8 @@ interface DriftTableRow {
   selector: 'app-home-history-drift',
   standalone: true,
   imports: [
+    WeekdayNamePipe,
+    ChartTipDirective,
     HomeWidgetFrameComponent,
     ActivityHeatmapComponent,
     TrivyBoxComponent,
@@ -169,7 +173,7 @@ export class HomeHistoryDriftComponent extends HomePivotWidgetBase<ImageBox, Pai
   // the help dialog of the frame (html, short: what is easy to get wrong is in bold)
   protected readonly help: HomeWidgetHelp = {
     question: `Did <strong>images that were already running</strong> get new vulnerabilities, without anyone deploying anything? These are the ones that appear while you sleep.`,
-    oddities: [
+    goodToKnow: [
       `A pair is (vulnerability id, severity), counted per UTC day, and only while still active.`,
       `A pair counts on <strong>every day</strong> it is added to some image, so the days do not sum to the distinct pairs.`,
       `Not here: what a new image brings with its first scan (see <em>New images</em>).`,

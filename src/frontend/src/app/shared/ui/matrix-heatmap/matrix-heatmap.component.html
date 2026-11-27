@@ -29,9 +29,9 @@
         [class.selectable]="cell.selectable"
         [class.selected]="cell.selected"
         (click)="onCellClick(cell)"
-        (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, cell)"
-        (mouseleave)="popover.hide()"
-        (mousemove)="popover.move($event)"
+        (mouseenter)="tipShow.emit({ context: cell, event: $event })"
+        (mousemove)="tipMove.emit($event)"
+        (mouseleave)="tipHide.emit()"
       >
         <rect
           class="cell level-{{ cell.level }}"
@@ -98,9 +98,3 @@
   </div>
 }
 
-<ng-template #defaultTip let-cell>
-  <div class="tod-text-contrast-color">
-    <div class="font-bold">{{ cell.rowLabel }} · {{ cell.columnLabel }}</div>
-    <div>{{ cell.value }}{{ valueLabel() ? ' ' + valueLabel() : '' }}</div>
-  </div>
-</ng-template>

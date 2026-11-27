@@ -18,6 +18,7 @@
   <div class="flex items-stretch gap-4">
     <app-trivy-box [class]="showBoxes() || isLoadingBoxes() ? 'max-w-[55%]' : 'flex-1'">
       <app-activity-heatmap
+        [todChartTip]="dayTip"
         [data]="heatmapData()"
         [animate]="true"
         [replay]="answers()"
@@ -96,6 +97,8 @@
       <!-- a graph with less than a full one is centered vertically in the box -->
       <div class="flex flex-col justify-center" [style.height.px]="graphHeight">
       <app-layered-graph
+        [todChartTip]="nodeTip"
+        [todChartTipOptions]="{ delay: 400 }"
         [columns]="graphColumns()"
         [nodeHeight]="graphNodeHeight()"
         [subColumnGap]="graphSubGap"
@@ -105,7 +108,6 @@
         orientation="rows"
         [selectable]="true"
         [maxNodesPerColumn]="100"
-        valueLabel="links"
         [multiSelect]="true"
         [selectedNodes]="selectedNodes()"
         (selectedNodesChange)="onGraphSelect($event)"
@@ -196,3 +198,44 @@
     (rowActionRequested)="onTableRowAction($event)"
   />
 }
+
+<!-- the popover of a day of the heatmap -->
+<ng-template #dayTip let-cell>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ cell.day }} · {{ cell.day | weekdayName }}</div>
+    <div>{{ cell.value }} added</div>
+    @if (cell.emphasis1) {
+      <div class="tod-text-inverted-muted-color">You opened the home page</div>
+    }
+    @if (cell.emphasis2) {
+      <div class="tod-text-inverted-muted-color">A known exploited vulnerability was added</div>
+    }
+  </div>
+</ng-template>
+
+<!-- the popover of a node of the graph: what it is, its column, its tag and its value; a "+n more" node lists what it hides -->
+<ng-template #nodeTip let-node>
+  <div class="tod-text-contrast-color">
+    @if (node.more) {
+      <div class="tod-tip-title">{{ node.columnLabel }} · {{ node.label }}</div>
+      @for (label of node.hiddenLabels.slice(0, 12); track $index) {
+        <div>{{ label }}</div>
+      }
+      @if (node.hiddenLabels.length > 12) {
+        <div class="tod-text-inverted-muted-color">and {{ node.hiddenLabels.length - 12 }} more</div>
+      }
+    } @else {
+      <div class="tod-tip-title">{{ node.label }}</div>
+      <div class="tod-text-inverted-muted-color">{{ node.columnLabel }}</div>
+      @if (node.tag) {
+        <div>{{ node.tag }}</div>
+      }
+      @if (node.valueText) {
+        <div>{{ node.valueText }} links</div>
+      }
+      @if (node.selectable) {
+        <div class="tod-text-inverted-muted-color">Click to follow its paths</div>
+      }
+    }
+  </div>
+</ng-template>

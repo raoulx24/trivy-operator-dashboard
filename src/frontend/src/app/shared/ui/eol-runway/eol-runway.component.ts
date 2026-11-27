@@ -7,10 +7,12 @@ import {
   computed,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 
 import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 
 import {
   EOL_RISK_DAYS,
@@ -58,6 +60,7 @@ const MAX_GROW = 600;
   templateUrl: './eol-runway.component.html',
   styleUrl: './eol-runway.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: EolRunwayComponent }],
 })
 export class EolRunwayComponent {
   items = input<EolRunwayItem[]>([]);
@@ -110,6 +113,15 @@ export class EolRunwayComponent {
 
   protected readonly countX = computed(() => this.barsLeft + this.barsWidth() + ARROW_WIDTH + COUNT_WIDTH);
   protected readonly arrowX = computed(() => this.barsLeft + this.barsWidth());
+
+  // the popover of an item is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<EolRunwayTip>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
+  // a click on a bar (the owner decides, e.g. to expand its widget)
+  readonly barClick = output<void>();
+  // the bars show the pointer cursor
+  clickable = input<boolean>(false);
 
   protected readonly popover = inject(PopoverService);
 

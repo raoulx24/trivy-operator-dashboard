@@ -4,7 +4,7 @@
     <legend>activity-heatmap</legend>
     <div class="variant">
       <span class="variant-title">3 rows</span>
-      <app-activity-heatmap
+      <app-activity-heatmap [todChartTip]="dayTip" [todChartTip]="dayTip"
         [data]="activityData()"
         [animate]="true"
         [rows]="3"
@@ -17,7 +17,7 @@
     </div>
     <div class="variant">
       <span class="variant-title">4 rows</span>
-      <app-activity-heatmap [data]="activityData()" [rows]="4" [showLegend]="false" valueLabel="scans" />
+      <app-activity-heatmap [todChartTip]="dayTip" [data]="activityData()" [rows]="4" [showLegend]="false" valueLabel="scans" />
     </div>
     <button type="button" (click)="reloadActivity()">reload data</button>
     <app-network-fill class="fill" [seed]="fillSeed('activity-heatmap')" />
@@ -26,7 +26,7 @@
   <!-- eol-runway -->
   <fieldset class="box">
     <legend>eol-runway</legend>
-    <app-eol-runway [items]="eolItems()" [today]="today" [animate]="true" />
+    <app-eol-runway [todChartTip]="eolTip" [items]="eolItems()" [today]="today" [animate]="true" />
     <button type="button" (click)="reloadEol()">reload data</button>
     <app-network-fill class="fill" [seed]="fillSeed('eol-runway')" />
   </fieldset>
@@ -34,15 +34,12 @@
   <!-- lane-strip -->
   <fieldset class="box">
     <legend>lane-strip</legend>
-    <app-lane-strip
+    <app-lane-strip [todChartTip]="laneTip" [todChartTip]="laneTip"
       [columns]="laneColumns"
       [lanes]="lanes()"
       [animate]="true"
       [animationDuration]="600"
-      emphasis1Label="new since last visit"
-      emphasis2Label="known exploited"
       [(selected)]="laneSelected"
-      valueLabel="vulns"
     />
     <button type="button" (click)="reloadLanes()">reload data</button>
     <app-network-fill class="fill" [seed]="fillSeed('lane-strip')" />
@@ -53,66 +50,61 @@
     <legend>layered-graph</legend>
     <div class="variant">
       <span class="variant-title">selectable, all nodes, scrolls vertically over 180 px (captions stay on top)</span>
-      <app-layered-graph
+      <app-layered-graph [todChartTip]="nodeTip" [todChartTip]="nodeTip"
         [columns]="graphColumns"
         [nodes]="graphNodes"
         [edges]="graphEdges"
         [selectable]="true"
         [maxHeight]="180"
         [(selectedNode)]="graphSelected"
-        valueLabel="workloads"
       />
     </div>
     <div class="variant">
       <span class="variant-title">package column 130 px wide, images in 2 sub-columns</span>
-      <app-layered-graph
+      <app-layered-graph [todChartTip]="nodeTip" [todChartTip]="nodeTip"
         [columns]="graphColumnsWide"
         [nodes]="graphNodes"
         [edges]="graphEdges"
         [selectable]="true"
         [(selectedNode)]="graphSelected"
-        valueLabel="workloads"
       />
     </div>
     <div class="variant">
       <span class="variant-title">layers as rows (top to bottom), images in 2 sub-rows</span>
-      <app-layered-graph
+      <app-layered-graph [todChartTip]="nodeTip" [todChartTip]="nodeTip"
         [columns]="graphColumnsWide"
         [nodes]="graphNodes"
         [edges]="graphEdges"
         orientation="rows"
         [selectable]="true"
         [(selectedNode)]="graphSelected"
-        valueLabel="workloads"
       />
     </div>
     <div class="variant">
       <span class="variant-title">multi select: one per column, each a peer of the selected one next to it</span>
-      <app-layered-graph
+      <app-layered-graph [todChartTip]="nodeTip" [todChartTip]="nodeTip"
         [columns]="graphColumns"
         [nodes]="graphNodes"
         [edges]="graphEdges"
         [selectable]="true"
         [multiSelect]="true"
         [(selectedNodes)]="graphMultiSelected"
-        valueLabel="workloads"
       />
     </div>
     <div class="variant">
       <span class="variant-title">layers as rows, a new row every 2 images (maxPerRow)</span>
-      <app-layered-graph
+      <app-layered-graph [todChartTip]="nodeTip" [todChartTip]="nodeTip"
         [columns]="[{ label: 'Package' }, { label: 'Image', maxPerRow: 2 }, { label: 'Namespace', maxPerRow: 3 }]"
         [nodes]="graphNodes"
         [edges]="graphEdges"
         orientation="rows"
         [selectable]="true"
         [(selectedNode)]="graphSelected"
-        valueLabel="workloads"
       />
     </div>
     <div class="variant">
       <span class="variant-title">scrolls horizontally (columns of at least 150 px)</span>
-      <app-layered-graph
+      <app-layered-graph [todChartTip]="nodeTip" [todChartTip]="nodeTip"
         [columns]="graphColumns"
         [nodes]="graphNodes"
         [edges]="graphEdges"
@@ -120,19 +112,17 @@
         scroll="horizontal"
         [minNodeWidth]="150"
         [(selectedNode)]="graphSelected"
-        valueLabel="workloads"
       />
     </div>
     <div class="variant">
       <span class="variant-title">capped at 3 per column, theme colors, not selectable</span>
-      <app-layered-graph
+      <app-layered-graph [todChartTip]="nodeTip" [todChartTip]="nodeTip"
         [columns]="[{ label: 'Package' }, { label: 'Image' }, { label: 'Namespace' }]"
         [nodes]="graphNodes"
         [edges]="graphEdges"
         [maxNodesPerColumn]="3"
         [nodeHeight]="24"
         [nodeGap]="6"
-        valueLabel="workloads"
       />
     </div>
     <app-network-fill class="fill" [seed]="fillSeed('layered-graph')" />
@@ -143,7 +133,7 @@
     <legend>matrix-heatmap</legend>
     <div class="variant">
       <span class="variant-title">values and legend, selectable</span>
-      <app-matrix-heatmap
+      <app-matrix-heatmap [todChartTip]="cellTip" [todChartTip]="cellTip"
         [rows]="matrixData()"
         [columns]="matrixColumns"
         [animate]="true"
@@ -154,7 +144,7 @@
     </div>
     <div class="variant">
       <span class="variant-title">compact, shades only</span>
-      <app-matrix-heatmap
+      <app-matrix-heatmap [todChartTip]="cellTip" [todChartTip]="cellTip"
         [rows]="matrixData()"
         [columns]="matrixColumns"
         [showValues]="false"
@@ -173,15 +163,15 @@
     <legend>meter-group</legend>
     <div class="variant">
       <span class="variant-title">a mix (no max), thin</span>
-      <app-meter-group [animate]="true" [segments]="meterMix" valueLabel="vulns" />
+      <app-meter-group [todChartTip]="meterTip" [animate]="true" [segments]="meterMix" />
     </div>
     <div class="variant">
       <span class="variant-title">a mix, with values</span>
-      <app-meter-group [animate]="true" [segments]="meterMix" [showValues]="true" valueLabel="vulns" />
+      <app-meter-group [todChartTip]="meterTip" [animate]="true" [segments]="meterMix" [showValues]="true" />
     </div>
     <div class="variant">
       <span class="variant-title">a percent (max = 100), with values</span>
-      <app-meter-group [animate]="true" [segments]="meterPercent" [max]="100" [showValues]="true" valueLabel="%" />
+      <app-meter-group [todChartTip]="percentTip" [animate]="true" [segments]="meterPercent" [max]="100" [showValues]="true" />
     </div>
     <app-network-fill class="fill" [seed]="fillSeed('meter-group')" />
   </fieldset>
@@ -202,7 +192,7 @@
     <legend>scatter-select</legend>
     <div class="variant">
       <span class="variant-title">log x axis</span>
-      <app-scatter-select [animate]="true" [points]="scatterPoints()" [xAxis]="scatterXLog" [yAxis]="scatterY" [legend]="scatterLegend" />
+      <app-scatter-select [todChartTip]="pointTip" [animate]="true" [points]="scatterPoints()" [xAxis]="scatterXLog" [yAxis]="scatterY" [legend]="scatterLegend" />
     </div>
     <button type="button" (click)="reloadScatter()">reload data</button>
     <app-network-fill class="fill" [seed]="fillSeed('scatter-select')" />
@@ -213,7 +203,7 @@
     <legend>span-timeline</legend>
     <div class="variant">
       <span class="variant-title">log scale</span>
-      <app-span-timeline [rows]="spanRows" scale="log" [colors]="spanColors" [animate]="true" />
+      <app-span-timeline [todChartTip]="rowTip" [rows]="spanRows" scale="log" [colors]="spanColors" [animate]="true" />
     </div>
     <app-network-fill class="fill" [seed]="fillSeed('span-timeline')" />
   </fieldset>
@@ -221,7 +211,127 @@
   <!-- stacked-bar-chart -->
   <fieldset class="box">
     <legend>stacked-bar-chart</legend>
-    <app-stacked-bar-chart [animate]="true" [columns]="stackedColumns" [series]="stackedSeries" [highlightFrom]="10" [clickable]="true" valueLabel="vulns" />
+    <app-stacked-bar-chart [todChartTip]="columnTip" [animate]="true" [columns]="stackedColumns" [series]="stackedSeries" [highlightFrom]="10" [clickable]="true" />
     <app-network-fill class="fill" [seed]="fillSeed('stacked-bar-chart')" />
   </fieldset>
 </div>
+
+<!-- the popovers of the charts: plain ones, just to see the data each chart hands over -->
+<ng-template #dayTip let-cell>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ cell.day }}</div>
+    <div>{{ cell.value }} scans</div>
+    @if (cell.emphasis1) {
+      <div class="tod-text-inverted-muted-color">Seen</div>
+    }
+    @if (cell.emphasis2) {
+      <div class="tod-text-inverted-muted-color">Failed</div>
+    }
+  </div>
+</ng-template>
+
+<ng-template #eolTip let-tip>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ tip.label }}</div>
+    <div>End of life: {{ tip.eol }}</div>
+    @if (tip.eoas) {
+      <div class="tod-text-inverted-muted-color">End of active support: {{ tip.eoas }}</div>
+    }
+    @if (tip.endsSoon) {
+      <div class="tod-text-inverted-muted-color">End of life is near</div>
+    }
+    @if (tip.securityFixesOnly) {
+      <div class="tod-text-inverted-muted-color">Security fixes only</div>
+    }
+  </div>
+</ng-template>
+
+<ng-template #laneTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ ctx.column }}</div>
+    <div>{{ ctx.value }} vulns</div>
+    <div class="tod-text-inverted-muted-color">{{ ctx.caption }}</div>
+    @if (ctx.emphasis1) {
+      <div class="tod-text-inverted-muted-color">New since last visit</div>
+    }
+    @if (ctx.emphasis2) {
+      <div class="tod-text-inverted-muted-color">Known exploited</div>
+    }
+  </div>
+</ng-template>
+
+<ng-template #nodeTip let-node>
+  <div class="tod-text-contrast-color">
+    @if (node.more) {
+      <div class="tod-tip-title">{{ node.columnLabel }} · {{ node.label }}</div>
+      @for (label of node.hiddenLabels.slice(0, 12); track $index) {
+        <div>{{ label }}</div>
+      }
+    } @else {
+      <div class="tod-tip-title">{{ node.label }}</div>
+      <div class="tod-text-inverted-muted-color">{{ node.columnLabel }}</div>
+      @if (node.tag) {
+        <div>{{ node.tag }}</div>
+      }
+      @if (node.valueText) {
+        <div>{{ node.valueText }} workloads</div>
+      }
+    }
+  </div>
+</ng-template>
+
+<ng-template #cellTip let-cell>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ cell.rowLabel }} · {{ cell.columnLabel }}</div>
+    <div>{{ cell.value }} vulns</div>
+  </div>
+</ng-template>
+
+<ng-template #meterTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-row tod-tip-title"><span class="tod-tip-swatch" [style.background]="ctx.color"></span>{{ ctx.label }}</div>
+    <div>{{ ctx.value }} vulns</div>
+    <div class="tod-text-inverted-muted-color">{{ ctx.sharePercent.toFixed(ctx.sharePercent < 10 ? 1 : 0) }}%</div>
+  </div>
+</ng-template>
+
+<ng-template #percentTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-row tod-tip-title"><span class="tod-tip-swatch" [style.background]="ctx.color"></span>{{ ctx.label }}</div>
+    <div>{{ ctx.value }}%</div>
+  </div>
+</ng-template>
+
+<ng-template #pointTip let-ctx>
+  <div class="tod-text-contrast-color">
+    @if (ctx.view.point.label) {
+      <div class="tod-tip-title">{{ ctx.view.point.label }}</div>
+    }
+    <div>{{ ctx.xLabel }}: {{ ctx.xText }}</div>
+    <div>{{ ctx.yLabel }}: {{ ctx.yText }}</div>
+  </div>
+</ng-template>
+
+<ng-template #rowTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ ctx.row.label }}</div>
+    <div>{{ ctx.range }}</div>
+    @for (line of ctx.row.details ?? []; track $index) {
+      <div class="tod-text-inverted-muted-color">{{ line }}</div>
+    }
+  </div>
+</ng-template>
+
+<ng-template #columnTip let-ctx>
+  <div class="tod-text-contrast-color">
+    <div class="tod-tip-title">{{ ctx.label }}</div>
+    <div class="mb-1">{{ ctx.total }} vulns</div>
+    @for (layer of ctx.layers; track layer.series.name) {
+      <div class="tod-tip-row">
+        <span class="tod-tip-swatch" [style.background]="layer.series.color"></span>
+        <span class="tod-text-inverted-muted-color">{{ layer.series.name }}</span>
+        <span class="tod-tip-value">{{ layer.value }}</span>
+      </div>
+    }
+  </div>
+</ng-template>

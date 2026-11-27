@@ -85,7 +85,7 @@ export class HomeOldestImagesComponent extends HomeWidgetBase {
 
   protected readonly help: HomeWidgetHelp = {
     question: `Which <strong>running images are the oldest</strong>? An image that runs for a long time is usually one nobody rebuilt.`,
-    oddities: [
+    goodToKnow: [
       `The age counts from when the history first saw the <strong>digest</strong>, not from the build of the image, so it is never longer than the history.`,
       `The bar color is the highest severity of the image (grey: none in the selected severities). The dashed line is at ${OLD_DAYS} days.`,
       `The counts are distinct vulnerability ids of the selected severities, over the whole image.`,

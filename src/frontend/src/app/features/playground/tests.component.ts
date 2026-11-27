@@ -21,6 +21,7 @@ import { SpanTimelineComponent } from '@shared/ui/span-timeline/span-timeline.co
 import { SpanTimelineLegendItem, SpanTimelineRow } from '@shared/ui/span-timeline/span-timeline.types';
 import { StackedBarChartComponent } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.component';
 import { StackedBarColumn, StackedBarSeries } from '@shared/ui/stacked-bar-chart/stacked-bar-chart.types';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 
 // enough days for the lane strip to scroll in its box
 const LANE_DAYS = 60;
@@ -53,6 +54,7 @@ function shortDay(offsetDays: number): string {
 @Component({
   selector: 'app-tests',
   imports: [
+    ChartTipDirective,
     ActivityHeatmapComponent,
     EolRunwayComponent,
     LaneStripComponent,

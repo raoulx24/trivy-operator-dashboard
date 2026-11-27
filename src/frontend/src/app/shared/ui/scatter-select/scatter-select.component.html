@@ -82,9 +82,9 @@
         [attr.d]="view.path"
         [style.fill]="view.color"
         [style.fill-opacity]="view.selected ? 1 : view.dimmed ? null : pointOpacity()"
-        (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(view))"
-        (mousemove)="popover.move($event)"
-        (mouseleave)="popover.hide()"
+        (mouseenter)="tipShow.emit({ context: tipContext(view), event: $event })"
+        (mousemove)="tipMove.emit($event)"
+        (mouseleave)="tipHide.emit()"
       />
       @if (view.centerColor) {
         <!-- the dot in the middle: it follows the point (dimmed with it) and lets the pointer through -->
@@ -126,12 +126,3 @@
   </div>
 }
 
-<ng-template #defaultTip let-ctx>
-  <div class="tod-text-contrast-color">
-    @if (ctx.view.point.label) {
-      <div class="font-bold">{{ ctx.view.point.label }}</div>
-    }
-    <div>{{ ctx.xLabel }}: {{ ctx.xText }}</div>
-    <div>{{ ctx.yLabel }}: {{ ctx.yText }}</div>
-  </div>
-</ng-template>

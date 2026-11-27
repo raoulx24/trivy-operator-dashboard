@@ -16,9 +16,9 @@
           class="segment"
           [class.grows]="bar.growDelay !== null"
           [style.--grow-delay]="bar.growDelay !== null ? bar.growDelay + 'ms' : null"
-          (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(bar, i))"
-          (mousemove)="popover.move($event)"
-          (mouseleave)="popover.hide()"
+          (mouseenter)="tipShow.emit({ context: tipContext(bar, i), event: $event })"
+          (mousemove)="tipMove.emit($event)"
+          (mouseleave)="tipHide.emit()"
         >
           <rect
             class="segment-fill"
@@ -46,14 +46,3 @@
   </svg>
 }
 
-<ng-template #defaultTip let-ctx>
-  <div class="tod-text-contrast-color">
-    <div class="flex items-center gap-2 font-bold">
-      <span class="tip-swatch" [style.background]="ctx.color"></span>{{ ctx.label }}
-    </div>
-    <div>
-      {{ ctx.value }}{{ ctx.max !== undefined ? ' of ' + ctx.max : '' }}{{ valueLabel() ? ' ' + valueLabel() : '' }}
-    </div>
-    <div class="tod-text-inverted-muted-color">{{ ctx.sharePercent.toFixed(ctx.sharePercent < 10 ? 1 : 0) }}%</div>
-  </div>
-</ng-template>

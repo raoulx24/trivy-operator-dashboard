@@ -114,9 +114,9 @@
                 [attr.height]="rowHeight()"
                 [attr.width]="viewWidth()"
                 (click)="select(bar.row)"
-                (mouseenter)="popover.show(tooltipTemplate() ?? defaultTip, $event, tipContext(bar))"
-                (mouseleave)="popover.hide()"
-                (mousemove)="popover.move($event)"
+                (mouseenter)="tipShow.emit({ context: tipContext(bar), event: $event })"
+                (mousemove)="tipMove.emit($event)"
+                (mouseleave)="tipHide.emit()"
               />
               @for (key of [bar.key]; track key) {
               @for (marker of bar.markers; track $index) {
@@ -197,12 +197,3 @@
   </div>
 </ng-template>
 
-<ng-template #defaultTip let-ctx>
-  <div class="tod-text-contrast-color">
-    <div class="font-bold">{{ ctx.row.label }}</div>
-    <div>{{ ctx.range }}</div>
-    @for (line of ctx.row.details ?? []; track $index) {
-      <div class="tod-text-inverted-muted-color">{{ line }}</div>
-    }
-  </div>
-</ng-template>

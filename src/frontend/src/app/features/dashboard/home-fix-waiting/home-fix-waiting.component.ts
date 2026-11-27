@@ -21,6 +21,7 @@ import { CveEnrichmentStateService } from '@core/state/cve-enrichment-state.serv
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { SeverityNameByIdPipe } from '@shared/pipes/severity-name-by-id.pipe';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { SpanTimelineComponent } from '@shared/ui/span-timeline/span-timeline.component';
@@ -119,6 +120,7 @@ const LABEL_PADDING = 16;
     HomeSearchBoxComponent,
     NgTemplateOutlet,
     MeterGroupComponent,
+    ChartTipDirective,
     PillButtonComponent,
     SpanTimelineComponent,
     TagModule,
@@ -141,7 +143,7 @@ export class HomeFixWaitingComponent extends HomeWidgetBase {
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Which <strong>vulnerabilities could I already fix</strong>, and for how long has the fix been waiting? The longest waits are the cheapest wins.`,
-    oddities: [
+    goodToKnow: [
       `<strong>Fix known since</strong> is a lower bound of the wait (hence the ≥). A row without history has no date and goes last.`,
       `An id is in the bucket of its longest waiting package.`,
       `Only active vulnerabilities with a fix, running now, in the severities and namespaces of the filter bar.`,

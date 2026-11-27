@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 
+import { HomeComplianceControlDto } from '@api/models/home-compliance-control-dto';
 import { HomeComplianceReportDto } from '@api/models/home-compliance-report-dto';
 import { HomeService } from '@api/services/home.service';
 import { NetworkFillComponent } from '@shared/ui/network-fill/network-fill.component';
@@ -15,6 +16,13 @@ import { SeverityUtils } from '@shared/utils/severity.utils';
 import { HomeWidgetBase } from '../home-widget-base/home-widget.base';
 import { HomeWidgetFrameComponent, HomeWidgetHelp } from '../home-widget-frame/home-widget-frame.component';
 import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placeholder.types';
+
+interface ShownControls {
+  uid: string;
+  label: string;
+  controls: HomeComplianceControlDto[];
+  hidden: number;
+}
 
 // Compliance: one ring per cluster compliance report (CIS, NSA, PSS...), the share of its controls that pass.
 // Not filtered (the reports are about the cluster). It loads by itself (a change of refresh reloads it).
@@ -32,6 +40,8 @@ import { HomeWidgetState } from '../home-widget-placeholder/home-widget-placehol
 })
 export class HomeComplianceComponent extends HomeWidgetBase {
   private static readonly maxControls = 5;
+  // ms of the fade out and of the fade in of the panel (the same in the template)
+  private static readonly fadeMs = 250;
 
   // the height the panel of the controls takes with all of them (the border, the padding of 8px, the header of 28px, five rows
   // of 20px, the line of the rest, and the gaps of 4px), reserved also while it is closed, so the widget does not change its height
@@ -49,7 +59,7 @@ export class HomeComplianceComponent extends HomeWidgetBase {
 
   protected readonly help: HomeWidgetHelp = {
     question: `How well does the cluster pass its <strong>compliance reports</strong> (CIS, NSA, PSS...)? One ring per report shows where to start.`,
-    oddities: [
+    goodToKnow: [
       `The ring is the share of controls that pass: pass / (pass + fail). A report without controls has no ring.`,
       `Not filtered: the reports are about the cluster, not about namespaces.`,
       `There is no change since the last visit: the compliance reports have no history yet.`,
@@ -58,6 +68,48 @@ export class HomeComplianceComponent extends HomeWidgetBase {
       `<strong>Click a ring</strong> to see the five worst failing controls of that report.`,
     ],
   };
+
+  constructor() {
+    super();
+
+    // the panel shown is not the one of the selection (none, or another report): it fades out
+    effect((onCleanup) => {
+      if (this.selected() === this.shown()?.uid) {
+        return;
+      }
+
+      this.fading.set(true);
+      this.fadeElapsed.set(false);
+      const timer = setTimeout(() => this.fadeElapsed.set(true), HomeComplianceComponent.fadeMs);
+      onCleanup(() => clearTimeout(timer));
+    });
+
+    // when it has faded out, the panel takes the selection: the explanation (none selected) or the controls of the report,
+    // when they are loaded (a failed request shows no controls, so the panel does not stay hidden)
+    effect(() => {
+      const uid = this.selected();
+      const report = this.selectedReport();
+      const worst = this.worst.value();
+      const failed = this.worst.error();
+      if (!this.fadeElapsed()) {
+        return;
+      }
+
+      if (uid === undefined) {
+        this.shown.set(undefined);
+      } else if (report && (worst || failed)) {
+        this.shown.set({
+          uid,
+          label: this.label(report),
+          controls: worst?.items ?? [],
+          hidden: Math.max(0, (worst?.totalFailingControls ?? 0) - (worst?.items?.length ?? 0)),
+        });
+      } else {
+        return;
+      }
+      this.fading.set(false);
+    });
+  }
 
   private readonly reports = rxResource({
     params: () => ({ refresh: this.refresh(), localRefresh: this.localRefresh() }),
@@ -91,13 +143,17 @@ export class HomeComplianceComponent extends HomeWidgetBase {
   );
 
   protected readonly selectedReport = computed(() => this.measured().find((x) => x.uid === this.selected()));
-  protected readonly worstDto = computed(() => (this.selectedReport() ? this.worst.value() : undefined));
-  protected readonly controls = computed(() => this.worstDto()?.items ?? []);
-  protected readonly hiddenControls = computed(() => Math.max(0, (this.worstDto()?.totalFailingControls ?? 0) - this.controls().length));
   protected readonly selectedLabel = computed(() => {
     const report = this.selectedReport();
     return report ? this.label(report) : '';
   });
+
+  // what the panel shows: the controls of one report, or the explanation (undefined). A change of the selection (none -> a ring,
+  // a ring -> another, a ring -> none) fades the panel out, changes it when the new controls are there (so there is no
+  // "Loading..." in between), and fades it in
+  protected readonly shown = signal<ShownControls | undefined>(undefined);
+  protected readonly fading = signal(false);
+  private readonly fadeElapsed = signal(true);
 
   protected readonly state = computed<HomeWidgetState>(() => {
     if (this.reports.error()) {

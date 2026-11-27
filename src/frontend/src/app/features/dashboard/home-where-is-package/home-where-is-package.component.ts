@@ -53,7 +53,7 @@ export class HomeWhereIsPackageComponent extends HomeWhereIsBase<
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Where does a <strong>package</strong> run, and in which versions? So you know what an update or a bad release touches.`,
-    oddities: [
+    goodToKnow: [
       `One row per version (a purl with its version). Type a name or the beginning of a purl, at least 3 characters, then <strong>Enter</strong>.`,
       `The packages come from the <strong>SBOM reports</strong>; without them only the vulnerable packages are found, and there are no licenses.`,
       `Only the <strong>namespaces filter</strong> applies. A change of it does not search again; the refresh button does.`,

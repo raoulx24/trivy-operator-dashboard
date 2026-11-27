@@ -86,7 +86,7 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Which <strong>operating systems</strong> do my running images use, and how long will each still get fixes? So you can plan the upgrades before support ends.`,
-    oddities: [
+    goodToKnow: [
       `<strong>EOL</strong>: end of life passed, no more fixes at all. <strong>Risky</strong>: EOL in less than ${EOL_RISK_DAYS} days. <strong>EOAS</strong>: active support ended, security fixes only.`,
       `The bar runs to the end of life; the dashed line is today. A <strong>hatched</strong> part is time already spent past EOL.`,
       `One row per OS cycle (Alpine 3.19 covers 3.19.0 and 3.19.1). Cycles without end of life data are not shown.`,
@@ -286,6 +286,13 @@ export class HomeBaseOsComponent extends HomeWidgetBase {
   }
 
   // the vulnerability report of the image, in a new tab
+  // a click on a bar of the runway (collapsed) opens the details; nothing when it cannot expand
+  protected expandOnClick(): void {
+    if (this.canExpand()) {
+      this.expand();
+    }
+  }
+
   protected openReport(digest: string): void {
     this.imageHistory.openReport(digest);
   }

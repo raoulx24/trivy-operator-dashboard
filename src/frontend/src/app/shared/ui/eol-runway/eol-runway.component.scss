@@ -17,6 +17,10 @@
   fill: transparent;
   // only this area (the bar and its arrow) gets the hover effect and the popover
   pointer-events: all;
+
+  &.clickable {
+    cursor: pointer;
+  }
 }
 
 .bar {

@@ -3,15 +3,15 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  TemplateRef,
   afterNextRender,
   computed,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 
-import { PopoverService } from '../popover/popover.service';
+import { CHART_TIP_SOURCE, ChartTip } from '../popover/chart-tip';
 
 import { MeterGroupBar, MeterGroupSegment, MeterGroupTipContext } from './meter-group.types';
 
@@ -32,7 +32,7 @@ let nextId = 0;
 //     rest is the empty track. When the sum is above max the meter is full (the segments are scaled to fit)
 // - everything comes from the inputs: segments (label, value, color, optional textColor), max
 // - showValues writes the value in the middle of each segment (left out of a segment too narrow for it)
-// - the popover (heatmap-style: it follows the mouse) shows the label, the value and its share
+// - hovering a segment emits tipShow / tipMove / tipHide (a MeterGroupTipContext: the label, the value and its share)
 // - animate: when new data arrives each segment grows from its middle to both ends, one after the other in a random order,
 //   all within animationDuration (ms) in total; the value of a segment fades in with it; the same data does not play again
 //   (a resize does not); the track is always there
@@ -43,6 +43,7 @@ let nextId = 0;
   templateUrl: './meter-group.component.html',
   styleUrl: './meter-group.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: CHART_TIP_SOURCE, useExisting: MeterGroupComponent }],
 })
 export class MeterGroupComponent {
   segments = input<MeterGroupSegment[]>([]);
@@ -61,21 +62,18 @@ export class MeterGroupComponent {
   // refresh); without it only changed data plays
   replay = input<unknown>(undefined);
 
-  // the text of the popover after the value, e.g. "ids"
-  valueLabel = input<string>('');
-  // replaces the default popover; its context is a MeterGroupTipContext
-  tooltipTemplate = input<TemplateRef<{ $implicit: MeterGroupTipContext }> | undefined>(undefined);
+  // the popover of a segment is up to the owner (see ChartTipDirective)
+  readonly tipShow = output<ChartTip<MeterGroupTipContext>>();
+  readonly tipMove = output<MouseEvent>();
+  readonly tipHide = output<void>();
 
-  protected readonly popover = inject(PopoverService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly clipId = `meter-group-clip-${nextId++}`;
   protected readonly width = signal(0);
 
   constructor() {
-    // never leave the popover behind when the meter goes away while hovered
     const destroyRef = inject(DestroyRef);
-    destroyRef.onDestroy(() => this.popover.hide());
 
     // the svg is drawn in px: it follows the width of the host
     afterNextRender(() => {

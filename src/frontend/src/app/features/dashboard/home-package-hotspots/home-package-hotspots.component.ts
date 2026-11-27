@@ -32,6 +32,7 @@ import { ScrollerResizeDirective } from '@shared/ui/scroller-resize/scroller-res
 import { PillButtonComponent } from '@shared/ui/pill-button/pill-button.component';
 import { ScrollerComponent } from '@shared/ui/scroller/scroller.component';
 import { MeterGroupComponent } from '@shared/ui/meter-group/meter-group.component';
+import { ChartTipDirective } from '@shared/ui/popover/chart-tip.directive';
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { MeterGroupSegment } from '@shared/ui/meter-group/meter-group.types';
 import { SeverityUtils } from '@shared/utils/severity.utils';
@@ -98,6 +99,7 @@ interface PackageDetail {
     HomeSearchBoxComponent,
     HomeWidgetFrameComponent,
     MeterGroupComponent,
+    ChartTipDirective,
     NgTemplateOutlet,
     PillButtonComponent,
     ScrollerComponent,
@@ -131,7 +133,7 @@ export class HomePackageHotspotsComponent extends HomeWidgetBase {
   // the help dialog of the frame (html): short, the important parts in bold
   protected readonly help: HomeWidgetHelp = {
     question: `Which <strong>packages</strong> bring the most vulnerabilities? Patching them pays off the most.`,
-    oddities: [
+    goodToKnow: [
       `Packages are counted without their version. The bar is the number of vulnerability ids, on one scale for all: <strong>teal</strong> have a fix, <strong>grey</strong> none yet.`,
       `At the right: the images (expanded, also the namespaces) that have the package.`,
       `The ids of a package are read from its ${MAX_VERSIONS_WITH_IDS} most widespread versions.`,
