@@ -1495,13 +1495,15 @@ mat-icon.text-xs {
 /* First panel: round the top corners */
 p-panelmenu > .p-panelmenu-panel:first-child {
   border-radius: 12px 12px 0 0;
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 12px; // room for the hover enlargement of the header (see .p-panelmenu-header:hover)
 }
 
 /* Last panel: round the bottom corners */
 p-panelmenu > .p-panelmenu-panel:last-child {
   border-radius: 0 0 12px 12px;
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 12px; // same reason as the first panel
 }
 
 p-panelmenu > .p-panelmenu-panel {
@@ -1529,6 +1531,32 @@ p-panelmenu > .p-panelmenu-panel {
 .p-panelmenu-item {
   border-radius: var(--tod-app-border-radius-sm);
   overflow: hidden;
+  position: relative; // so the enlarged hovered cell stacks above its neighbours
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+// Hover: the whole cell grows a little. The overshoot sideways stays inside the drawer's content padding.
+.p-panelmenu-header:hover,
+.p-panelmenu-item:hover {
+  transform: scale(1.05);
+  z-index: 1;
+}
+
+// group headers (sections with children) grow less than the leaf entries
+.p-panelmenu-header:has(.tod-menu-group):hover {
+  transform: scale(1.025);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p-panelmenu-header,
+  .p-panelmenu-item {
+    transition: none;
+  }
+
+  .p-panelmenu-header:hover,
+  .p-panelmenu-item:hover {
+    transform: none;
+  }
 }
 
 //.p-panelmenu-submenu {
