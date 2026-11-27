@@ -1566,6 +1566,11 @@ p-panelmenu > .p-panelmenu-panel {
 //  background-repeat: no-repeat;
 //}
 
+// The last entry follows the curve of the submenu's guide line (same radius as the ul below).
+ul.p-panelmenu-submenu > .p-panelmenu-item:last-child {
+  border-bottom-left-radius: var(--tod-app-border-radius-lg);
+}
+
 ul.p-panelmenu-submenu {
   padding: 0 0 0 1px;
   margin: 0 0 0 var(--p-panelmenu-submenu-indent);
