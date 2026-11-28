@@ -79,6 +79,8 @@ export class GenericSbomComponent implements OnInit {
 
   // false where the report is not one of many (e.g. a scan on demand result)
   isImageSelectorVisible = input<boolean>(true);
+  // the chosen view (navigator / graph) is remembered per stateKey; a host that does not want that turns it off
+  isViewModePersisted = input<boolean>(true);
 
   dataDtos = input<GenericSbomReportMinimalDto[]>([]);
   fullSbomDataDto = input<GenericSbomReportDto | undefined>();
@@ -242,7 +244,7 @@ export class GenericSbomComponent implements OnInit {
   }
 
   ngOnInit() {
-    const saved = LocalStorageUtils.getItem(this.viewModeStorageKey());
+    const saved = this.isViewModePersisted() ? LocalStorageUtils.getItem(this.viewModeStorageKey()) : null;
     if (saved === 'navigator' || saved === 'graph') {
       this.viewMode.set(saved);
     }
@@ -268,7 +270,9 @@ export class GenericSbomComponent implements OnInit {
       return;
     }
     this.viewMode.set(viewMode);
-    LocalStorageUtils.setItem(this.viewModeStorageKey(), viewMode);
+    if (this.isViewModePersisted()) {
+      LocalStorageUtils.setItem(this.viewModeStorageKey(), viewMode);
+    }
   }
 
   private viewModeStorageKey(): string {

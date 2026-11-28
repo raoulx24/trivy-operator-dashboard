@@ -610,6 +610,20 @@
                 </div>
               }
 
+              @case ('tagList') {
+                <div class="flex items-center gap-1">
+                  @for (item of rowData[col.field] ?? []; track item.label) {
+                    <p-tag
+                      rounded
+                      class="shrink-0"
+                      [attr.title]="item.tooltip ?? null"
+                      [severity]="item.isPrimary ? undefined : 'secondary'"
+                      [value]="item.label"
+                    />
+                  }
+                </div>
+              }
+
               @case ('vulnerabilityId') {
                 <app-vulnerability-id-cell [link]="rowData[col.extraFields?.[0] ?? '']" [vulnerabilityId]="rowData[col.field]" />
               }

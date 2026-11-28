@@ -7,7 +7,9 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 
 import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 
-import { reportTypeLabel } from '../scan-on-demand.constants';
+import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
+
+import { reportTypeLabel, SUBMIT_FORM_STORAGE_KEY } from '../scan-on-demand.constants';
 
 export interface ScanSubmitRequest {
   image: string;
@@ -31,19 +33,23 @@ export class ScanOnDemandFormComponent {
 
   submitted = output<ScanSubmitRequest>();
 
-  image = '';
+  image = (LocalStorageUtils.parseObject(LocalStorageUtils.getItem(SUBMIT_FORM_STORAGE_KEY) ?? '')?.image as string | undefined) ?? '';
   selectedTypes: string[] = [];
   readonly localError = signal<string | undefined>(undefined);
   readonly typeOptions = computed(() => this.allowedTypes().map((x) => ({ label: reportTypeLabel(x), value: x })));
 
   constructor() {
     effect(() => {
-      this.selectedTypes = [...this.allowedTypes()];
+      // the remembered types that are still allowed; all of them when none
+      const saved = LocalStorageUtils.parseObject(LocalStorageUtils.getItem(SUBMIT_FORM_STORAGE_KEY) ?? '')?.types;
+      const remembered = Array.isArray(saved) ? this.allowedTypes().filter((x) => saved.includes(x)) : [];
+      this.selectedTypes = remembered.length > 0 ? remembered : [...this.allowedTypes()];
     });
   }
 
   onInputChange() {
     this.localError.set(undefined);
+    LocalStorageUtils.setItem(SUBMIT_FORM_STORAGE_KEY, JSON.stringify({ image: this.image, types: this.selectedTypes }));
   }
 
   onSubmit() {

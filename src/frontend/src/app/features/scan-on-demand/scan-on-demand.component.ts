@@ -22,7 +22,6 @@ import { MainAppInitService } from '@core/services/main-app-init.service';
 import { ScanOnDemandHubService } from '@core/services/scan-on-demand-hub.service';
 import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
 import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
-import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
 
 import { ScanOnDemandFormComponent, ScanSubmitRequest } from './scan-on-demand-form/scan-on-demand-form.component';
 import { ScanOnDemandResultComponent } from './scan-on-demand-result/scan-on-demand-result.component';
@@ -30,7 +29,6 @@ import {
   CANCEL_FIELD,
   DELETE_FIELD,
   INSPECT_FIELD,
-  INSPECTED_DIGEST_STORAGE_KEY,
   isFinalScanState,
   onDemandScanColumns,
   OnDemandScanRow,
@@ -76,7 +74,7 @@ export class ScanOnDemandComponent {
   readonly isSubmitting = signal<boolean>(false);
   readonly submitError = signal<string | undefined>(undefined);
 
-  readonly inspectedDigest = signal<string | undefined>(LocalStorageUtils.getItem(INSPECTED_DIGEST_STORAGE_KEY) ?? undefined);
+  readonly inspectedDigest = signal<string | undefined>(undefined);
   readonly result = signal<OnDemandScanResultDto | undefined>(undefined);
   readonly isCollapsed = computed(() => !!this.inspectedDigest());
   // the scan the inspected result came from (its requested types)
@@ -138,7 +136,7 @@ export class ScanOnDemandComponent {
 
   onRowAction(event: { row: OnDemandScanRow; col: string }) {
     if (event.col === RESCAN_FIELD) {
-      this.rescan(event.row);
+      this.confirmRescan(event.row.image, event.row.requestedReportTypes);
     } else if (event.col === CANCEL_FIELD) {
       this.cancelScan(event.row);
     } else if (event.col === DELETE_FIELD) {
@@ -224,19 +222,25 @@ export class ScanOnDemandComponent {
     });
   }
 
-  rescan(scan: OnDemandScanDto) {
-    this.submit({ image: scan.image, types: scan.requestedReportTypes });
+  // asks first: a scan takes a pod, time and a registry pull
+  private confirmRescan(image: string, types: string[]) {
+    this.confirmation.confirm({
+      header: 'Re-scan the image',
+      message: `Scan ${image} again?`,
+      icon: 'pi pi-refresh',
+      acceptButtonProps: { label: 'Re-scan' },
+      rejectButtonProps: { label: 'Cancel', text: true },
+      accept: () => this.submit({ image, types }),
+    });
   }
   // #endregion
 
   // #region result
   inspect(digest: string) {
-    LocalStorageUtils.setItem(INSPECTED_DIGEST_STORAGE_KEY, digest);
     this.inspectedDigest.set(digest);
   }
 
   expand() {
-    LocalStorageUtils.removeItem(INSPECTED_DIGEST_STORAGE_KEY);
     this.inspectedDigest.set(undefined);
   }
 
@@ -244,9 +248,9 @@ export class ScanOnDemandComponent {
     const scan = this.resultScan();
     const image = this.result()?.image;
     if (scan) {
-      this.rescan(scan);
+      this.confirmRescan(scan.image, scan.requestedReportTypes);
     } else if (image) {
-      this.submit({ image, types: this.allowedTypes() });
+      this.confirmRescan(image, this.allowedTypes());
     }
   }
 

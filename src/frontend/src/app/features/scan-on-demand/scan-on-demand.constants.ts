@@ -1,5 +1,5 @@
 import { OnDemandScanDto } from '@api/models/on-demand-scan-dto';
-import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
+import { TagListItem, TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 import { SemaphoreStatusUtils } from '@shared/utils/semaphore-status.utils';
 
 // the report types, as the backend names them (ScanReportType), and how the page shows them
@@ -19,17 +19,22 @@ export const FINAL_SCAN_STATES: ReadonlySet<string> = new Set(['Completed', 'Fai
 
 export const SCAN_POLL_INTERVAL_MS = 5000;
 
-// the inspected result survives a reload (the page has no query params)
-export const INSPECTED_DIGEST_STORAGE_KEY = 'scanOnDemand.inspectedDigest';
+// the choices of the submit form (what to scan, what to collect) survive a reload; nothing else of the page does
+export const SUBMIT_FORM_STORAGE_KEY = 'scanOnDemand.submitForm';
 
 // a scan as a row of the scans table: the dto plus the derived columns and the fields of the action buttons
 export interface OnDemandScanRow extends OnDemandScanDto {
   duration: string;
-  reports: string;
+  reports: TagListItem[];
   inspect: string;
   rescan: string;
   cancel: string;
   delete: string;
+  // the disabled state of the action buttons, by the state of the scan
+  isInspectDisabled: boolean;
+  isRescanDisabled: boolean;
+  isCancelDisabled: boolean;
+  isDeleteDisabled: boolean;
 }
 
 export const INSPECT_FIELD = 'inspect';
@@ -73,15 +78,30 @@ export const scanReports = (scan: OnDemandScanDto): string =>
     )
     .join(' ');
 
-export const toScanRow = (scan: OnDemandScanDto): OnDemandScanRow => ({
-  ...scan,
-  duration: scanDuration(scan),
-  reports: scanReports(scan),
-  inspect: '',
-  rescan: '',
-  cancel: '',
-  delete: '',
-});
+// requested types as tags: primary when the scan produced it, secondary otherwise (not done, or not produced)
+export const scanReportTags = (scan: OnDemandScanDto): TagListItem[] =>
+  scan.requestedReportTypes.map((x) => ({
+    label: SCAN_REPORT_TYPE_SHORT[x] ?? x,
+    isPrimary: scan.state === 'Completed' && scan.producedReportTypes.includes(x),
+    tooltip: reportTypeLabel(x),
+  }));
+
+export const toScanRow = (scan: OnDemandScanDto): OnDemandScanRow => {
+  const isFinal = isFinalScanState(scan.state);
+  return {
+    ...scan,
+    duration: scanDuration(scan),
+    reports: scanReportTags(scan),
+    inspect: '',
+    rescan: '',
+    cancel: '',
+    delete: '',
+    isInspectDisabled: scan.state !== 'Completed' || !scan.imageDigest,
+    isRescanDisabled: !isFinal,
+    isCancelDisabled: isFinal,
+    isDeleteDisabled: !isFinal,
+  };
+};
 
 export const onDemandScanColumns: readonly TrivyTableColumn[] = [
   {
@@ -90,6 +110,7 @@ export const onDemandScanColumns: readonly TrivyTableColumn[] = [
     isFilterable: false,
     isSortable: false,
     actionIcon: 'pi pi-arrow-up-right-and-arrow-down-left-from-center',
+    actionDisabledField: 'isInspectDisabled',
     style: 'width: 5.5rem; max-width: 5.5rem; text-align: center;',
     renderType: 'action',
   },
@@ -131,8 +152,8 @@ export const onDemandScanColumns: readonly TrivyTableColumn[] = [
     header: 'Reports',
     isFilterable: false,
     isSortable: false,
-    style: 'width: 9rem; max-width: 9rem;',
-    renderType: 'standard',
+    style: 'width: 12rem; max-width: 12rem;',
+    renderType: 'tagList',
   },
   {
     field: 'failureMessage',
@@ -148,6 +169,7 @@ export const onDemandScanColumns: readonly TrivyTableColumn[] = [
     isFilterable: false,
     isSortable: false,
     actionIcon: 'pi pi-refresh',
+    actionDisabledField: 'isRescanDisabled',
     style: 'width: 5.5rem; max-width: 5.5rem; text-align: center;',
     renderType: 'action',
   },
@@ -158,6 +180,7 @@ export const onDemandScanColumns: readonly TrivyTableColumn[] = [
     isFilterable: false,
     isSortable: false,
     actionIcon: 'pi pi-times',
+    actionDisabledField: 'isCancelDisabled',
     style: 'width: 5.5rem; max-width: 5.5rem; text-align: center;',
     renderType: 'action',
   },
@@ -168,6 +191,7 @@ export const onDemandScanColumns: readonly TrivyTableColumn[] = [
     isFilterable: false,
     isSortable: false,
     actionIcon: 'pi pi-trash',
+    actionDisabledField: 'isDeleteDisabled',
     style: 'width: 5.5rem; max-width: 5.5rem; text-align: center;',
     renderType: 'action',
   },

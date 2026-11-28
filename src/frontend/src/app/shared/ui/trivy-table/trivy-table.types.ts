@@ -73,8 +73,16 @@ export interface TrivyTableColumn extends Column {
     | 'compareDateStacked'
     | 'array'
     | 'arrayTags'
-    | 'vulnerabilityId';
+    | 'vulnerabilityId'
+    | 'tagList';
     extraFields?: string[];
+}
+
+// 'tagList' render type - the row field holds a TagListItem[], one tag each (primary or secondary)
+export interface TagListItem {
+  label: string;
+  isPrimary: boolean;
+  tooltip?: string;
 }
 
 // 'vulnerabilityId' render type - the tags under the id; a click emits rowActionRequested with the source as action
