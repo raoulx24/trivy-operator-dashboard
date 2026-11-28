@@ -186,9 +186,9 @@
   --tod-text-danger-color: var(--p-red-600);
 
   /* generic-sbom: what sits above it besides the page header; its list, navigator and graph heights subtract it
-     (0 on the SBOM pages; the scan on demand result sets its header strip + tab bar, see .tod-sod-result-sbom) */
+     (0 on the SBOM pages; the scan on demand result sets its header box + the gap, see .tod-sod-result-sbom) */
   --tod-sbom-extra-offset: 0px;
-  --tod-sod-result-sbom-offset: 115px;
+  --tod-sod-result-sbom-offset: 76px;
 
   /* data health: the dots and the ring (fresh / getting old / stale or failing / not enabled) */
   --tod-data-health-ok: var(--tod-ok-color);

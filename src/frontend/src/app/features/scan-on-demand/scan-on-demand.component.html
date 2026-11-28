@@ -4,53 +4,42 @@
     <span class="tod-text-muted-color">{{ unavailableReason() ?? 'It is not enabled in the settings.' }}</span>
   </div>
 } @else {
-  <div class="tod-sod-layout" [class.tod-sod-collapsed]="isCollapsed()">
-    <div class="tod-sod-left">
-      @if (!isCollapsed()) {
-        <div class="flex flex-col gap-2">
-          <app-scan-on-demand-form
-            [allowedTypes]="allowedTypes()"
-            [isSubmitting]="isSubmitting()"
-            [serverError]="submitError()"
-            (submitted)="submit($event)"
-          />
-          <div class="tod-content-border tod-content-background overflow-hidden">
-            <app-trivy-table
-              [dataDtos]="rows()"
-              [extraClasses]="'trivy-sod-scans'"
-              [isLoading]="isScansLoading()"
-              [isRefreshVisible]="true"
-              [isResetFiltersVisible]="true"
-              [stateKey]="'Scan On Demand - Scans'"
-              [trivyTableColumns]="columns"
-              (refreshRequested)="loadScans()"
-              (rowActionRequested)="onRowAction($event)"
-            />
-          </div>
-        </div>
-      } @else {
-        <app-scan-on-demand-rail
-          [scans]="scans()"
-          [selectedScanId]="result()?.lastScanId"
-          (expandRequested)="expand()"
-          (selected)="inspect($event)"
+  <div class="tod-sod-page">
+    @if (!isCollapsed()) {
+      <div class="flex flex-col gap-2 h-full">
+        <app-scan-on-demand-form
+          [allowedTypes]="allowedTypes()"
+          [isSubmitting]="isSubmitting()"
+          [serverError]="submitError()"
+          (submitted)="submit($event)"
         />
-      }
-    </div>
-    <div class="tod-sod-right">
-      @if (isCollapsed()) {
-        @if (result(); as r) {
-          <app-scan-on-demand-result
-            [result]="r"
-            [scan]="resultScan()"
-            (deleteRequested)="onDeleteResult()"
-            (rescanRequested)="onRescanResult()"
+        <div class="tod-content-border tod-content-background overflow-hidden flex-1 min-h-0">
+          <app-trivy-table
+            [dataDtos]="rows()"
+            [extraClasses]="'trivy-fill'"
+            [isLoading]="isScansLoading()"
+            [isRefreshVisible]="true"
+            [isResetFiltersVisible]="true"
+            [stateKey]="'Scan On Demand - Scans (inspect first)'"
+            [trivyTableColumns]="columns"
+            (refreshRequested)="loadScans()"
+            (rowActionRequested)="onRowAction($event)"
           />
-        } @else {
-          <div class="p-4 tod-text-muted-color">Loading the result…</div>
-        }
-      }
-    </div>
+        </div>
+      </div>
+    } @else if (result(); as r) {
+      <app-scan-on-demand-result
+        [result]="r"
+        [scan]="resultScan()"
+        [scans]="scans()"
+        (allScansRequested)="expand()"
+        (deleteRequested)="onDeleteResult()"
+        (rescanRequested)="onRescanResult()"
+        (scanSelected)="inspect($event)"
+      />
+    } @else {
+      <div class="p-4 tod-text-muted-color">Loading the result…</div>
+    }
   </div>
 
   <p-confirmdialog />

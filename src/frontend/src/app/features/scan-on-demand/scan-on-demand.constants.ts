@@ -85,6 +85,15 @@ export const toScanRow = (scan: OnDemandScanDto): OnDemandScanRow => ({
 
 export const onDemandScanColumns: readonly TrivyTableColumn[] = [
   {
+    field: INSPECT_FIELD,
+    header: 'Inspect',
+    isFilterable: false,
+    isSortable: false,
+    actionIcon: 'pi pi-arrow-up-right-and-arrow-down-left-from-center',
+    style: 'width: 5.5rem; max-width: 5.5rem; text-align: center;',
+    renderType: 'action',
+  },
+  {
     field: 'image',
     header: 'Image',
     isFilterable: true,
@@ -132,15 +141,6 @@ export const onDemandScanColumns: readonly TrivyTableColumn[] = [
     isSortable: false,
     style: 'white-space: nowrap; text-overflow: ellipsis; overflow: hidden; min-width: 12rem;',
     renderType: 'standard',
-  },
-  {
-    field: INSPECT_FIELD,
-    header: 'Inspect',
-    isFilterable: false,
-    isSortable: false,
-    actionIcon: 'pi pi-eye',
-    style: 'width: 5.5rem; max-width: 5.5rem; text-align: center;',
-    renderType: 'action',
   },
   {
     field: RESCAN_FIELD,

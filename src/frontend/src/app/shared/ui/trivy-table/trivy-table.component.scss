@@ -53,18 +53,6 @@ $default-breakpoint: 640px;
     }
   }
 
-  // scan on demand: the scans list under the submit form
-  &.trivy-sod-scans {
-    height: calc(100vh - 190px);
-    min-height: 16rem;
-  }
-
-  // scan on demand: a report table under the result header strip and the tabs
-  &.trivy-sod-result {
-    height: calc(100vh - 250px);
-    min-height: 16rem;
-  }
-
   // generic-sbom's package list, without / with the image selector above it; --tod-sbom-extra-offset is what the host
   // puts above generic-sbom (0 on the SBOM pages)
   &.trivy-sbom-list {
@@ -88,7 +76,7 @@ $default-breakpoint: 640px;
   }
 
   // the height of the host, which has to have one (e.g. a flex item of a column of a known height): generic-sbom's
-  // neighbours table
+  // neighbours table, the scan on demand tables
   &.trivy-fill {
     height: 100%;
     min-height: 0;

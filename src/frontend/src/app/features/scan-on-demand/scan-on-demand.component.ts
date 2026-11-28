@@ -25,7 +25,6 @@ import { TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 import { LocalStorageUtils } from '@shared/utils/local-storage.utils';
 
 import { ScanOnDemandFormComponent, ScanSubmitRequest } from './scan-on-demand-form/scan-on-demand-form.component';
-import { ScanOnDemandRailComponent } from './scan-on-demand-rail/scan-on-demand-rail.component';
 import { ScanOnDemandResultComponent } from './scan-on-demand-result/scan-on-demand-result.component';
 import {
   CANCEL_FIELD,
@@ -40,8 +39,8 @@ import {
   toScanRow,
 } from './scan-on-demand.constants';
 
-// one page, two states: the full view (submit form + scans list) and, once a result is inspected, the collapsed view
-// (the list folded into a rail + the result); the switch is animated by the grid (tod-sod-* classes)
+// one page, two views: the scans list with the submit form and, once a result is inspected, that result (a switcher in
+// its header goes to another completed scan, a button back to the list)
 // the list is read again whenever the hub says it changed (also while a result is inspected: the rail follows); while
 // the hub is not connected, it is polled instead, as long as any scan is pending or running
 @Component({
@@ -50,7 +49,6 @@ import {
   imports: [
     ConfirmDialogModule,
     ScanOnDemandFormComponent,
-    ScanOnDemandRailComponent,
     ScanOnDemandResultComponent,
     TrivyTableComponent,
   ],

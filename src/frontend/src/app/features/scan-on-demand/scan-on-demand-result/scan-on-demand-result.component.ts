@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 
+import { FormsModule } from '@angular/forms';
+
 import { ButtonModule } from 'primeng/button';
-import { TabsModule } from 'primeng/tabs';
+import { SelectModule } from 'primeng/select';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
 
 import { OnDemandScanDto } from '@api/models/on-demand-scan-dto';
 import { OnDemandScanResultDto } from '@api/models/on-demand-scan-result-dto';
@@ -12,32 +14,37 @@ import { vulnerabilityReportDetailColumns } from '@features/trivy-reports/vulner
 import { FriendlyTimePipe } from '@shared/pipes/local-time.pipe';
 import { SeverityCssStyleByIdPipe } from '@shared/pipes/severity-css-style-by-id.pipe';
 import { VulnerabilityCountPipe } from '@shared/pipes/vulnerability-count.pipe';
+import { ScrollerComponent } from '@shared/ui/scroller/scroller.component';
+import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 import { GenericSbomComponent } from '@shared/ui/generic-sbom/generic-sbom.component';
 import { GenericSbomReportDto } from '@shared/ui/generic-sbom/generic-sbom.types';
 import { MultiHeaderAction, TrivyTableColumn } from '@shared/ui/trivy-table/trivy-table.types';
 import { TrivyTableComponent } from '@shared/ui/trivy-table/trivy-table.component';
 
-import { reportTypeLabel } from '../scan-on-demand.constants';
+import { reportTypeLabel, scanReports, scanStateColor, shortImageName } from '../scan-on-demand.constants';
 
 interface ResultTab {
   type: string;
   label: string;
-  // requested but not produced by trivy-operator (or not requested at all, for an older result)
-  isAvailable: boolean;
+  // requested but not produced by trivy-operator (or not requested at all, for an older result): not selectable
+  isDisabled: boolean;
 }
 
 const TAB_ORDER = ['VulnerabilityReport', 'ExposedSecretReport', 'SbomReport'];
 
-// one scan result: a two-line header strip and one tab per requested report type
-// a tab's content exists only while the tab is active: the graph needs a visible container to lay out
+// one scan result: a two-line header strip and one select button option per requested report type
+// the content of a report exists only while it is selected: the graph needs a visible container to lay out
 @Component({
   selector: 'app-scan-on-demand-result',
   standalone: true,
   imports: [
+    FormsModule,
     ButtonModule,
-    TabsModule,
+    SelectButtonModule,
+    SelectModule,
     TagModule,
-    TooltipModule,
+    ScrollerComponent,
+    TrivyBoxComponent,
     FriendlyTimePipe,
     SeverityCssStyleByIdPipe,
     VulnerabilityCountPipe,
@@ -46,12 +53,19 @@ const TAB_ORDER = ['VulnerabilityReport', 'ExposedSecretReport', 'SbomReport'];
   ],
   templateUrl: './scan-on-demand-result.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block h-full' },
 })
 export class ScanOnDemandResultComponent {
   result = input.required<OnDemandScanResultDto>();
   // the scan the result came from (its requested types); undefined once that scan record expired
   scan = input<OnDemandScanDto | undefined>();
 
+  // the scans list, for the switcher: its completed scans
+  scans = input<OnDemandScanDto[]>([]);
+
+  // the digest of the completed scan picked in the switcher
+  scanSelected = output<string>();
+  allScansRequested = output<void>();
   rescanRequested = output<void>();
   deleteRequested = output<void>();
 
@@ -80,18 +94,39 @@ export class ScanOnDemandResultComponent {
     return TAB_ORDER.filter((x) => requested.includes(x) || present[x]).map((type) => ({
       type,
       label: this.tabLabel(type),
-      isAvailable: present[type],
+      isDisabled: !present[type],
     }));
   });
+
+  readonly scanOptions = computed(() =>
+    this.scans()
+      .filter((x) => x.state === 'Completed' && !!x.imageDigest)
+      .map((x) => ({
+        id: x.id,
+        digest: x.imageDigest as string,
+        label: x.image,
+        shortLabel: shortImageName(x.image),
+        createdAt: x.createdAt,
+        reports: scanReports(x),
+        color: scanStateColor(x.state),
+      })),
+  );
 
   readonly activeTab = signal<string>(TAB_ORDER[0]);
 
   constructor() {
     // a new result: the first tab that has a report
     effect(() => {
-      const first = this.tabs().find((x) => x.isAvailable)?.type ?? TAB_ORDER[0];
+      const first = this.tabs().find((x) => !x.isDisabled)?.type ?? TAB_ORDER[0];
       this.activeTab.set(first);
     });
+  }
+
+  onScanChange(id: string | undefined) {
+    const option = this.scanOptions().find((x) => x.id === id);
+    if (option) {
+      this.scanSelected.emit(option.digest);
+    }
   }
 
   onTabChange(value: string | number | undefined) {

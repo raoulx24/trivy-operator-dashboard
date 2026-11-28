@@ -7,6 +7,10 @@
   padding: 0.75rem;
 }
 
+.box.box-compact {
+  padding: 0.5rem 0.75rem;
+}
+
 // the title sits on the top border, so the box makes room for the half of it that is inside
 .box:has(> .box-title:not(:empty)) {
   padding-top: 1rem;

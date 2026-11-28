@@ -394,6 +394,15 @@ p-select {
   box-shadow: var(--tod-box-shadow);
 }
 
+/* the popups of all the selects of the app */
+.p-select-overlay,
+.p-multiselect-overlay,
+.p-treeselect-overlay,
+.p-cascadeselect-overlay,
+.p-autocomplete-overlay {
+  box-shadow: var(--tod-box-shadow);
+}
+
 p-select.text-sm span.p-select-label {
   font-size: 0.875rem;
 }
@@ -870,60 +879,19 @@ p-splitter.tod-sbom-splitter .p-splitter-panel {
   min-width: 0;
 }
 
-/* scan on demand: full view (list | nothing), collapsed (rail | result); the columns are length-percentages (not
-   fr), so the transition interpolates */
-.tod-sod-layout {
-  display: grid;
-  grid-template-columns: 100% 0%;
-  transition: grid-template-columns 300ms ease;
+/* scan on demand: the list view or the result view; either fills the page, like the tables of the master-detail pages */
+.tod-sod-page {
+  height: calc(100vh - 90px);
 }
 
-.tod-sod-layout.tod-sod-collapsed {
-  grid-template-columns: 12rem calc(100% - 12rem);
-}
-
-.tod-sod-left,
-.tod-sod-right {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.tod-sod-layout.tod-sod-collapsed .tod-sod-right {
-  padding-left: 0.5rem;
-}
-
-.tod-sod-rail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.375rem 0.5rem;
-  border: none;
-  border-radius: var(--p-border-radius-md);
-  background: transparent;
-  color: inherit;
-  font-size: 0.875rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-.tod-sod-rail-item:hover {
-  background: var(--p-content-hover-background);
-}
-
-.tod-sod-rail-item.tod-sod-rail-item-selected {
-  background: var(--p-highlight-background);
-  color: var(--p-highlight-color);
-}
-
-.tod-sod-rail-item.tod-sod-rail-item-disabled {
-  cursor: default;
-  opacity: 0.7;
-}
-
-/* generic-sbom inside the scan on demand result: the header strip and the tab bar sit above it */
+/* generic-sbom inside the scan on demand result: the header box sits above it (the splitter has no bottom margin here: the
+   page height is already the available one) */
 .tod-sod-result-sbom {
   --tod-sbom-extra-offset: var(--tod-sod-result-sbom-offset);
+}
+
+.tod-sod-result-sbom p-splitter {
+  margin-bottom: 0;
 }
 
 /* generic-sbom: navigator and graph share one cell; the hidden one keeps its size (the graph needs a real size to lay
@@ -1075,6 +1043,26 @@ mat-icon.text-xs {
 
 .tod-text-muted-color {
   color: var(--p-text-muted-color);
+}
+
+/* scan on demand: the end of the result header, after a thin rule (as the groups of the home filter bar) */
+.tod-sod-header-end {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  align-self: stretch;
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--p-content-border-color);
+}
+
+/* a raised text button without the color of a text button (the text and the icon in the text color) */
+p-button.tod-neutral-button button.p-button-text {
+  color: var(--p-text-color);
+}
+
+.tod-text-color {
+  color: var(--p-text-color);
 }
 
 // a secondary number in a home widget headline ("6 ids on 7 images, 7 days"): semi-bold, sized between the big number

@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
+import { SelectButtonModule } from 'primeng/selectbutton';
+
+import { TrivyBoxComponent } from '@shared/ui/trivy-box/trivy-box.component';
 
 import { reportTypeLabel } from '../scan-on-demand.constants';
 
@@ -16,7 +18,7 @@ export interface ScanSubmitRequest {
 @Component({
   selector: 'app-scan-on-demand-form',
   standalone: true,
-  imports: [FormsModule, ButtonModule, CheckboxModule, InputTextModule],
+  imports: [FormsModule, ButtonModule, InputTextModule, SelectButtonModule, TrivyBoxComponent],
   templateUrl: './scan-on-demand-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -32,7 +34,7 @@ export class ScanOnDemandFormComponent {
   image = '';
   selectedTypes: string[] = [];
   readonly localError = signal<string | undefined>(undefined);
-  readonly typeLabel = reportTypeLabel;
+  readonly typeOptions = computed(() => this.allowedTypes().map((x) => ({ label: reportTypeLabel(x), value: x })));
 
   constructor() {
     effect(() => {

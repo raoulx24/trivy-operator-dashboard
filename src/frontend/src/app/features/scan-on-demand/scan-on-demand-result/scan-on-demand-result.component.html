@@ -1,87 +1,134 @@
 @let r = result();
 @let vr = vulnerabilityReport();
 
-<div class="flex flex-wrap items-start justify-between gap-2 pb-2 tod-content-border-bottom">
-  <div class="min-w-0">
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="text-base font-semibold">{{ r.image ?? 'N/A' }}</span>
-      @if (vr) {
-        <p-tag [rounded]="true" [style]="0 | severityCssStyleById: vr.criticalCount" [value]="vr.criticalCount | vulnerabilityCount" />
-        <p-tag [rounded]="true" [style]="1 | severityCssStyleById: vr.highCount" [value]="vr.highCount | vulnerabilityCount" />
-        <p-tag [rounded]="true" [style]="2 | severityCssStyleById: vr.mediumCount" [value]="vr.mediumCount | vulnerabilityCount" />
-        <p-tag [rounded]="true" [style]="3 | severityCssStyleById: vr.lowCount" [value]="vr.lowCount | vulnerabilityCount" />
-        <p-tag [rounded]="true" [style]="4 | severityCssStyleById: vr.unknownCount" [value]="vr.unknownCount | vulnerabilityCount" />
-      }
-    </div>
-    <div class="text-xs tod-text-muted-color overflow-hidden text-ellipsis whitespace-nowrap">
-      <span class="font-mono">{{ r.digest }}</span>
-      @if (vr) {
-        · {{ vr.imageOsFamily }} {{ vr.imageOsName }}
-      }
-      · collected {{ r.collectedAt | friendlyTime: true }} · expires {{ r.expiresAt | friendlyTime: true }}
-    </div>
+<div class="flex flex-col gap-2 h-full">
+  <div class="flex items-stretch gap-2">
+    <app-trivy-box class="flex-1" [hasBackground]="true" [isCompact]="true">
+      <div class="flex items-center">
+      <app-scroller class="block flex-1 min-w-0 -my-2">
+        <div class="flex flex-1 items-center gap-4 min-w-max">
+        <div class="shrink-0 whitespace-nowrap">
+          <div class="flex items-center gap-2">
+            <p-select
+              appendTo="body"
+              class="tod-home-filter-select min-w-64 max-w-[28rem]"
+              optionLabel="label"
+              optionValue="id"
+              panelStyleClass="tod-home-filter-panel"
+              size="small"
+              [ariaLabel]="'Switch scan'"
+              [ngModel]="r.lastScanId"
+              [options]="scanOptions()"
+              [placeholder]="r.image ?? 'N/A'"
+              (ngModelChange)="onScanChange($event)"
+            >
+              <ng-template #selectedItem let-option>
+                <span class="overflow-hidden text-ellipsis whitespace-nowrap">{{ option.label }}</span>
+              </ng-template>
+              <ng-template #item let-option>
+                <span class="flex items-center gap-2 min-w-0">
+                  <span class="tod-state-dot shrink-0" [style.background]="option.color"></span>
+                  <span class="flex flex-col min-w-0">
+                    <span class="overflow-hidden text-ellipsis whitespace-nowrap">{{ option.label }}</span>
+                    <span class="text-xs tod-text-muted-color whitespace-nowrap">
+                      {{ option.createdAt | friendlyTime: true }} · {{ option.reports }}
+                    </span>
+                  </span>
+                </span>
+              </ng-template>
+            </p-select>
+            @if (vr) {
+              <span class="text-sm tod-text-muted-color">{{ vr.imageOsFamily }} {{ vr.imageOsName }}</span>
+              <p-tag [rounded]="true" [style]="0 | severityCssStyleById: vr.criticalCount" [value]="vr.criticalCount | vulnerabilityCount" />
+              <p-tag [rounded]="true" [style]="1 | severityCssStyleById: vr.highCount" [value]="vr.highCount | vulnerabilityCount" />
+              <p-tag [rounded]="true" [style]="2 | severityCssStyleById: vr.mediumCount" [value]="vr.mediumCount | vulnerabilityCount" />
+              <p-tag [rounded]="true" [style]="3 | severityCssStyleById: vr.lowCount" [value]="vr.lowCount | vulnerabilityCount" />
+              <p-tag [rounded]="true" [style]="4 | severityCssStyleById: vr.unknownCount" [value]="vr.unknownCount | vulnerabilityCount" />
+            }
+          </div>
+          <div class="mt-1.5 text-xs tod-text-muted-color font-mono">{{ r.digest }}</div>
+        </div>
+        <div class="shrink-0 ml-auto grid grid-cols-[auto_auto] gap-x-2 text-xs whitespace-nowrap">
+          <span class="tod-text-muted-color">collected</span>
+          <span class="tod-text-color">{{ r.collectedAt | friendlyTime: true }}</span>
+          <span class="tod-text-muted-color">expires</span>
+          <span class="tod-text-color">{{ r.expiresAt | friendlyTime: true }}</span>
+        </div>
+        <p-selectbutton
+          class="shrink-0 inline-flex w-fit whitespace-nowrap"
+          optionDisabled="isDisabled"
+          optionLabel="label"
+          optionValue="type"
+          size="small"
+          [allowEmpty]="false"
+          [options]="tabs()"
+          [ngModel]="activeTab()"
+          (ngModelChange)="onTabChange($event)"
+        />
+        <div class="shrink-0 flex items-center gap-2 whitespace-nowrap">
+          <p-button class="tod-neutral-button" icon="pi pi-refresh" label="Re-scan" raised text size="small" (onClick)="rescanRequested.emit()" />
+          <p-button class="tod-neutral-button" icon="pi pi-trash" label="Delete" raised text size="small" (onClick)="deleteRequested.emit()" />
+        </div>
+        </div>
+      </app-scroller>
+      <div class="tod-sod-header-end">
+        <p-button
+          ariaLabel="All scans"
+          class="tod-neutral-button"
+          icon="pi pi-arrow-down-left-and-arrow-up-right-to-center"
+          raised
+          text
+          size="small"
+          title="All scans"
+          (onClick)="allScansRequested.emit()"
+        />
+      </div>
+      </div>
+    </app-trivy-box>
   </div>
-  <div class="flex items-center gap-1">
-    <p-button icon="pi pi-refresh" label="Re-scan" size="small" [text]="true" (onClick)="rescanRequested.emit()" />
-    <p-button
-      icon="pi pi-trash"
-      label="Delete"
-      severity="danger"
-      size="small"
-      [text]="true"
-      (onClick)="deleteRequested.emit()"
-    />
+
+  <div class="flex-1 min-h-0">
+    @switch (activeTab()) {
+      @case ('VulnerabilityReport') {
+        @if (vr) {
+          <div class="tod-content-border tod-content-background overflow-hidden h-full">
+            <app-trivy-table
+              [dataDtos]="vr.details"
+              [extraClasses]="'trivy-fill'"
+              [isResetFiltersVisible]="true"
+              [stateKey]="'Scan On Demand - Vulnerabilities'"
+              [trivyTableColumns]="vulnerabilityColumns"
+            />
+          </div>
+        }
+      }
+      @case ('ExposedSecretReport') {
+        @let es = exposedSecretReport();
+        @if (es) {
+          <div class="tod-content-border tod-content-background overflow-hidden h-full">
+            <app-trivy-table
+              [dataDtos]="es.details"
+              [extraClasses]="'trivy-fill'"
+              [isResetFiltersVisible]="true"
+              [stateKey]="'Scan On Demand - Exposed Secrets'"
+              [trivyTableColumns]="exposedSecretColumns"
+            />
+          </div>
+        }
+      }
+      @case ('SbomReport') {
+        @let sbom = sbomReport();
+        @if (sbom) {
+          <div class="tod-sod-result-sbom">
+            <app-generic-sbom
+              [fullSbomDataDto]="sbom"
+              [isImageSelectorVisible]="false"
+              [multiHeaderActions]="sbomActions"
+              [stateKey]="'Scan On Demand - SBOM'"
+            />
+          </div>
+        }
+      }
+    }
   </div>
 </div>
-
-<p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
-  <p-tablist>
-    @for (tab of tabs(); track tab.type) {
-      <p-tab
-        [disabled]="!tab.isAvailable"
-        [pTooltip]="tab.isAvailable ? undefined : 'Not produced by trivy-operator for this scan'"
-        [value]="tab.type"
-      >
-        {{ tab.label }}
-      </p-tab>
-    }
-  </p-tablist>
-  <p-tabpanels class="px-0 pb-0">
-    <p-tabpanel value="VulnerabilityReport">
-      @if (activeTab() === 'VulnerabilityReport' && vr) {
-        <app-trivy-table
-          [dataDtos]="vr.details"
-          [extraClasses]="'trivy-sod-result'"
-          [isResetFiltersVisible]="true"
-          [stateKey]="'Scan On Demand - Vulnerabilities'"
-          [trivyTableColumns]="vulnerabilityColumns"
-        />
-      }
-    </p-tabpanel>
-    <p-tabpanel value="ExposedSecretReport">
-      @let es = exposedSecretReport();
-      @if (activeTab() === 'ExposedSecretReport' && es) {
-        <app-trivy-table
-          [dataDtos]="es.details"
-          [extraClasses]="'trivy-sod-result'"
-          [isResetFiltersVisible]="true"
-          [stateKey]="'Scan On Demand - Exposed Secrets'"
-          [trivyTableColumns]="exposedSecretColumns"
-        />
-      }
-    </p-tabpanel>
-    <p-tabpanel value="SbomReport">
-      @let sbom = sbomReport();
-      @if (activeTab() === 'SbomReport' && sbom) {
-        <div class="tod-sod-result-sbom">
-          <app-generic-sbom
-            [fullSbomDataDto]="sbom"
-            [isImageSelectorVisible]="false"
-            [multiHeaderActions]="sbomActions"
-            [stateKey]="'Scan On Demand - SBOM'"
-          />
-        </div>
-      }
-    </p-tabpanel>
-  </p-tabpanels>
-</p-tabs>
